@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace CloudApiPublicSamples.ViewModels
 {
@@ -19,9 +20,23 @@ namespace CloudApiPublicSamples.ViewModels
         // RelayCommands
         RelayCommand _commandOk;
         RelayCommand _commandCancel;
+        RelayCommand _commandBrowseTempDownloadFolder;
+        RelayCommand _commandBrowseDatabaseFolder;
+        RelayCommand _commandBrowseTraceFolder;
+        
 
         private Settings _settingsCurrent;
         private Settings _settingsCaller;
+        private bool _windowClosed = false;
+
+        #endregion
+
+        #region Events
+
+        public event EventHandler<NotificationEventArgs> NotifyBrowseTempDownloadFolder;
+        public event EventHandler<NotificationEventArgs> NotifyBrowseDatabaseFolder;
+        public event EventHandler<NotificationEventArgs> NotifyBrowseTraceFolder;
+        public event EventHandler<NotificationEventArgs<string, bool>> NotifyAdvancedSettingsChanged;
 
         #endregion
 
@@ -53,19 +68,19 @@ namespace CloudApiPublicSamples.ViewModels
             }
         }
 
-        public string DatabaseFileFullPath
+        public string DatabaseFolderFullPath
         {
-            get { return _settingsCurrent.DatabaseFileFullPath; }
+            get { return _settingsCurrent.DatabaseFolderFullPath; }
             set
             {
-                if (value == _settingsCurrent.DatabaseFileFullPath)
+                if (value == _settingsCurrent.DatabaseFolderFullPath)
                 {
                     return;
                 }
 
-                _settingsCurrent.DatabaseFileFullPath = value;
+                _settingsCurrent.DatabaseFolderFullPath = value;
 
-                base.OnPropertyChanged("DatabaseFileFullPath");
+                base.OnPropertyChanged("DatabaseFolderFullPath");
             }
         }
 
@@ -85,35 +100,41 @@ namespace CloudApiPublicSamples.ViewModels
             }
         }
 
-        public TraceType TraceType
+        public string TraceType
         {
-            get { return _settingsCurrent.TraceType; }
+            get { return ((int)_settingsCurrent.TraceType).ToString(); }
             set
             {
-                if (value == _settingsCurrent.TraceType)
+                try
                 {
-                    return;
+                    string currentStringValue = ((int)_settingsCurrent.TraceType).ToString();
+                    if (value == currentStringValue)
+                    {
+                        return;
+                    }
+
+                    _settingsCurrent.TraceType = (TraceType)Convert.ToInt32(value);
+                    base.OnPropertyChanged("TraceType");
                 }
-
-                _settingsCurrent.TraceType = value;
-
-                base.OnPropertyChanged("TraceType");
+                catch
+                {
+                }
             }
         }
 
-        public string TraceFilesFullPath
+        public string TraceFolderFullPath
         {
-            get { return _settingsCurrent.TraceFilesFullPath; }
+            get { return _settingsCurrent.TraceFolderFullPath; }
             set
             {
-                if (value == _settingsCurrent.TraceFilesFullPath)
+                if (value == _settingsCurrent.TraceFolderFullPath)
                 {
                     return;
                 }
 
-                _settingsCurrent.TraceFilesFullPath = value;
+                _settingsCurrent.TraceFolderFullPath = value;
 
-                base.OnPropertyChanged("TraceFilesFullPath");
+                base.OnPropertyChanged("TraceFolderFullPath");
             }
         }
 
@@ -133,19 +154,25 @@ namespace CloudApiPublicSamples.ViewModels
             }
         }
 
-        public int TraceLevel
+        public string TraceLevel
         {
-            get { return _settingsCurrent.TraceLevel; }
+            get { return _settingsCurrent.TraceLevel.ToString(); }
             set
             {
-                if (value == _settingsCurrent.TraceLevel)
+                try
                 {
-                    return;
+                    string currentStringValue = ((int)_settingsCurrent.TraceLevel).ToString();
+                    if (value == currentStringValue)
+                    {
+                        return;
+                    }
+
+                    _settingsCurrent.TraceLevel = Convert.ToInt32(value);
+                    base.OnPropertyChanged("TraceLevel");
                 }
-
-                _settingsCurrent.TraceLevel = value;
-
-                base.OnPropertyChanged("TraceLevel");
+                catch
+                {
+                }
             }
         }
 
@@ -170,22 +197,22 @@ namespace CloudApiPublicSamples.ViewModels
         }
         private bool _isTempDownloadFolderFullPathFocused;
 
-        public bool IsDatabaseFileFullPathFocused
+        public bool IsDatabaseFolderFullPathFocused
         {
-            get { return _isDatabaseFileFullPathFocused; }
+            get { return _isDatabaseFolderFullPathFocused; }
             set
             {
-                if (value == _isDatabaseFileFullPathFocused)
+                if (value == _isDatabaseFolderFullPathFocused)
                 {
-                    _isDatabaseFileFullPathFocused = false;
-                    base.OnPropertyChanged("IsDatabaseFileFullPathFocused");
+                    _isDatabaseFolderFullPathFocused = false;
+                    base.OnPropertyChanged("IsDatabaseFolderFullPathFocused");
                 }
 
-                _isDatabaseFileFullPathFocused = value;
-                base.OnPropertyChanged("IsDatabaseFileFullPathFocused");
+                _isDatabaseFolderFullPathFocused = value;
+                base.OnPropertyChanged("IsDatabaseFolderFullPathFocused");
             }
         }
-        private bool _isDatabaseFileFullPathFocused;
+        private bool _isDatabaseFolderFullPathFocused;
 
         public bool IsTraceTypeFocused
         {
@@ -204,22 +231,22 @@ namespace CloudApiPublicSamples.ViewModels
         }
         private bool _isTraceTypeFocused;
 
-        public bool IsTraceFilesFullPathFocused
+        public bool IsTraceFolderFullPathFocused
         {
-            get { return _isTraceFilesFullPathFocused; }
+            get { return _isTraceFolderFullPathFocused; }
             set
             {
-                if (value == _isTraceFilesFullPathFocused)
+                if (value == _isTraceFolderFullPathFocused)
                 {
-                    _isTraceFilesFullPathFocused = false;
-                    base.OnPropertyChanged("IsTraceFilesFullPathFocused");
+                    _isTraceFolderFullPathFocused = false;
+                    base.OnPropertyChanged("IsTraceFolderFullPathFocused");
                 }
 
-                _isTraceFilesFullPathFocused = value;
-                base.OnPropertyChanged("IsTraceFilesFullPathFocused");
+                _isTraceFolderFullPathFocused = value;
+                base.OnPropertyChanged("IsTraceFolderFullPathFocused");
             }
         }
-        private bool _isTraceFilesFullPathFocused;
+        private bool _isTraceFolderFullPathFocused;
 
         public bool IsTraceLevelFocused
         {
@@ -271,13 +298,68 @@ namespace CloudApiPublicSamples.ViewModels
                 {
                     _commandCancel = new RelayCommand(
                         param => this.Cancel(),
-                        param => this.CanCancel
+                        param => { return true; }
                         );
                 }
                 return _commandCancel;
             }
         }
 
+        /// <summary>
+        /// Returns a command that allows the user to select a folder for the temporary download files.
+        /// </summary>
+        public ICommand CommandBrowseTempDownloadFolder
+        {
+            get
+            {
+                if (_commandBrowseTempDownloadFolder == null)
+                {
+                    _commandBrowseTempDownloadFolder = new RelayCommand(
+                        param => this.BrowseTempDownloadFolder(),
+                        param => { return true; }
+                        );
+                }
+                return _commandBrowseTempDownloadFolder;
+            }
+        }
+
+        /// <summary>
+        /// Returns a command that allows the user to select a folder for the database file.
+        /// </summary>
+        public ICommand CommandBrowseDatabaseFolder
+        {
+            get
+            {
+                if (_commandBrowseDatabaseFolder == null)
+                {
+                    _commandBrowseDatabaseFolder = new RelayCommand(
+                        param => this.BrowseDatabaseFolder(),
+                        param => { return true; }
+                        );
+                }
+                return _commandBrowseDatabaseFolder;
+            }
+        }
+
+        /// <summary>
+        /// Returns a command that allows the user to select a folder for the trace files.
+        /// </summary>
+        public ICommand CommandBrowseTraceFolder
+        {
+            get
+            {
+                if (_commandBrowseTraceFolder == null)
+                {
+                    _commandBrowseTraceFolder = new RelayCommand(
+                        param => this.BrowseTraceFolder(),
+                        param => { return true; }
+                        );
+                }
+                return _commandBrowseTraceFolder;
+            }
+        }
+
+        
 
         #endregion
 
@@ -286,7 +368,7 @@ namespace CloudApiPublicSamples.ViewModels
         /// <summary>
         /// The user clicked the OK button.
         /// </summary>
-        public void Ok()
+        private void Ok()
         {
             // Validate the temporary download file full path.  OK to be empty.
             if (!String.IsNullOrEmpty(TempDownloadFolderFullPath) &&
@@ -298,70 +380,134 @@ namespace CloudApiPublicSamples.ViewModels
             }
 
             // Validate the database file path.  OK to be empty.
-            if (!String.IsNullOrEmpty(DatabaseFileFullPath) &&
-                !File.Exists(DatabaseFileFullPath))
+            if (!String.IsNullOrEmpty(DatabaseFolderFullPath) &&
+                !Directory.Exists(DatabaseFolderFullPath))
             {
-                MessageBox.Show("The database file must exist at the location specified.");
-                this.IsDatabaseFileFullPathFocused = true;
+                MessageBox.Show("The database folder must be the full path of a valid directory.");
+                this.IsDatabaseFolderFullPathFocused = true;
                 return;
             }
 
             // Validate the trace files file path.  OK to be empty.
-            if (!String.IsNullOrEmpty(TraceFilesFullPath) &&
-                !Directory.Exists(TraceFilesFullPath))
+            if (!String.IsNullOrEmpty(TraceFolderFullPath) &&
+                !Directory.Exists(TraceFolderFullPath))
             {
                 MessageBox.Show("The trace folder must be the full path of a valid directory.");
-                this.IsTraceFilesFullPathFocused = true;
+                this.IsTraceFolderFullPathFocused = true;
                 return;
             }
 
             // Validate the TraceType
-            if (!String.IsNullOrEmpty(TraceType) &&
-                !OnlyHexInString(AppSecret) ||
-                 AppSecret.Length != 64)
-            {
-                MessageBox.Show("The Application Secret must be a 64 character long string with only hexadecimal characters.");
-                this.IsAppSecretFocused = true;
-                return;
-            }
-
-            // Validate the SyncBox ID.
             ulong value;
-            if (String.IsNullOrEmpty(SyncBoxId) ||
-                !ConvertStringToUlong(SyncBoxId, out value) ||
-                value == 0)
+            if (String.IsNullOrEmpty(TraceType) ||
+                !Utilities.ConvertStringToUlong(TraceType, out value))
             {
-                MessageBox.Show("The SyncBox ID must be a positive decimal number convertible to an unsigned integer <= 18446744073709551615.");
-                this.IsSyncBoxIdFocused = true;
+                MessageBox.Show("The TraceType is a bit mask.  It must be a non-negative decimal number convertible to an unsigned integer <= 18446744073709551615.");
+                this.IsTraceTypeFocused = true;
                 return;
             }
 
-            // Validate the Device ID.
-            if (String.IsNullOrEmpty(DeviceId) ||
-                !ConvertStringToUlong(DeviceId, out value) ||
-                value == 0)
+            // Validate the TraceLevel
+            if (String.IsNullOrEmpty(TraceLevel) ||
+                !Utilities.ConvertStringToUlong(TraceLevel, out value))
             {
-                MessageBox.Show("The Device ID must be a positive decimal number convertible to an unsigned integer <= 18446744073709551615.");
-                this.IsDeviceIdFocused = true;
+                MessageBox.Show("The TraceLevel must be a non-negative decimal number convertible to an unsigned integer <= 18446744073709551615.");
+                this.IsTraceLevelFocused = true;
                 return;
             }
 
-            // Save the values to Settings
-            Properties.Settings.Default.SyncBoxFullPath = SyncRoot;
-            Properties.Settings.Default.ApplicationKey = AppKey;
-            Properties.Settings.Default.ApplicationSecret = AppSecret;
-            Properties.Settings.Default.SyncBoxId = SyncBoxId;
-            Properties.Settings.Default.UniqueDeviceId = DeviceId;
+            // Save the values to caller's settings
+            _settingsCaller.TempDownloadFolderFullPath = TempDownloadFolderFullPath;
+            _settingsCaller.DatabaseFolderFullPath = DatabaseFolderFullPath;
+            _settingsCaller.LogErrors = LogErrors;
+            _settingsCaller.TraceType = (TraceType)Convert.ToInt32(TraceType);
+            _settingsCaller.TraceFolderFullPath = TraceFolderFullPath;
+            _settingsCaller.TraceExcludeAuthorization = TraceExcludeAuthorization;
+            _settingsCaller.TraceLevel = Convert.ToInt32(TraceLevel);
+
+            // Close the window
+            _windowClosed = true;
+            CloseCommand.Execute(null);
         }
 
         /// <summary>
         /// The user clicked the Cancel button.
         /// </summary>
-        public void Cancel()
+        private void Cancel()
         {
-            MessageBox.Show("Cancel button clicked");
+            if (!_settingsCaller.Equals(_settingsCurrent))
+            {
+                // Notify the view to put up a MessageBox saying that the settings have changed.  Does the user want to exit anyway?
+                NotifyAdvancedSettingsChanged(this, new NotificationEventArgs<string, bool> { Completed = UserWantsToExit });
+            }
+            else
+            {
+                // Close the window
+                _windowClosed = true;
+                CloseCommand.Execute(null);
+            }
         }
 
+        /// <summary>
+        /// The user clicked the "X" in the upper right corner of the view window.
+        /// </summary>
+        /// <returns>bool: Prevent the window close.</returns>
+        public bool OnWindowClosing()
+        {
+            if (_windowClosed)
+            {
+                return false;           // allow the window close
+            }
+
+            Dispatcher dispatcher = Application.Current.Dispatcher;
+            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+            {
+                Cancel();
+            });
+
+            return true;                // cancel the window close
+        }
+
+        /// <summary>
+        /// The user was asked (by the view) whether he wants to exit with changed advanced options.  This is the user's answer.
+        /// </summary>
+        /// <param name="willExit"></param>
+        private void UserWantsToExit(bool willExit)
+        {
+            if (willExit)
+            {
+                // Close the window
+                _windowClosed = true;
+                CloseCommand.Execute(null);
+            }
+        }
+        
+        /// <summary>
+        /// The user wants to browse for the temporary download file folder.
+        /// </summary>
+        private void BrowseTempDownloadFolder()
+        {
+            // Notify the view to put up the folder selector.
+            NotifyBrowseTempDownloadFolder(this, new NotificationEventArgs());
+        }
+
+        /// <summary>
+        /// The user wants to browse for the database file folder.
+        /// </summary>
+        private void BrowseDatabaseFolder()
+        {
+            // Notify the view to put up the folder selector.
+            NotifyBrowseDatabaseFolder(this, new NotificationEventArgs());
+        }
+
+        /// <summary>
+        /// The user wants to browse for the trace file folder.
+        /// </summary>
+        private void BrowseTraceFolder()
+        {
+            // Notify the view to put up the folder selector.
+            NotifyBrowseTraceFolder(this, new NotificationEventArgs());
+        }
 
         #endregion
 
@@ -391,30 +537,14 @@ namespace CloudApiPublicSamples.ViewModels
             }
         }
 
-        /// <summary>
-        /// Returns true if the OK button can be clicked.
-        /// </summary>
-        private bool CanOk
-        {
-            get
-            {
-                //TODO: Fill this in.
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the Cancel button should be active.
-        /// </summary>
-        private bool CanCancel
-        {
-            get
-            {
-                //TODO: Fill this in.
-                return true;
-            }
-        }
-
         #endregion
+
+        public bool CanOk
+        {
+            get
+            {
+                return !_settingsCaller.Equals(_settingsCurrent);
+            }
+        }
     }
 }

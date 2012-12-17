@@ -100,49 +100,6 @@ namespace CloudApiPrivate.Static
             bindingExpression.UpdateSource();
         }
 
-        /// <summary>
-        /// Extend Dispatcher.*
-        /// Delayed invocation on the UI thread without arguments.
-        /// </summary>
-        public static void DelayedInvoke(this Dispatcher dispatcher, TimeSpan delay, Action action)
-        {
-            Thread thread = new Thread(DoDelayedInvokeByAction);
-            thread.Start(new Tuple<Dispatcher, TimeSpan, Action>(dispatcher, delay, action));
-        }
-
-        ///<summary>
-        ///Private delayed invocation by action.
-        ///</summary>
-        private static void DoDelayedInvokeByAction(object parameter)
-        {
-            Tuple<Dispatcher, TimeSpan, Action> parameterData = (Tuple<Dispatcher, TimeSpan, Action>)parameter;
-
-            Thread.Sleep(parameterData.Item2);
-
-            parameterData.Item1.BeginInvoke(parameterData.Item3);
-        }
-
-        /// <summary>
-        /// Delayed invocation on the UI thread with arguments.
-        /// </summary>
-        public static void DelayedInvoke(this Dispatcher dispatcher, TimeSpan delay, System.Delegate d, params object[] args)
-        {
-            Thread thread = new Thread(DoDelayedInvokeByDelegate);
-            thread.Start(new Tuple<Dispatcher, TimeSpan, System.Delegate, object[]>(dispatcher, delay, d, args));
-        }
-
-        /// <summary>
-        /// Private delayed invocation by delegate.
-        /// </summary>
-        private static void DoDelayedInvokeByDelegate(object parameter)
-        {
-            Tuple<Dispatcher, TimeSpan, System.Delegate, object[]> parameterData = (Tuple<Dispatcher, TimeSpan, System.Delegate, object[]>)parameter;
-
-            Thread.Sleep(parameterData.Item2);
-
-            parameterData.Item1.BeginInvoke(parameterData.Item3, parameterData.Item4);
-        }
-
         /// <summary> 
         /// Extend DependencyObject: Finds a Child of a given item in the visual tree.  
         /// </summary> 

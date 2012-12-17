@@ -24,7 +24,7 @@
 ///             RegistrationInfoApplicationId: "...",   // provided by the registration process
 ///             RegistrationInfoSyncBoxId: "...",       // provided by the application developer through the registration process
 ///             RegistrationInfoDeviceId: "...",        // provided by the registration process
-///             DatabaseFileFullPath: "<full path and filename.ext of the database file>",
+///             DatabaseFolderFullPath: "<full path of the folder to contain the database file IndexDB.sdf>",
 ///                 );
 ///         
 ///         // Construct the SyncBox object with the settings.
@@ -215,7 +215,7 @@
 ///                   RegistrationInfoApplicationId: "...",   // provided by the registration process
 ///                   RegistrationInfoSyncBoxId: "...",       // provided by the application developer through the registration process
 ///                   RegistrationInfoDeviceId: "...",        // provided by the registration process
-///                   DatabaseFileFullPath: "<full path and filename.ext of the database file>",
+///                   DatabaseFolderFullPath: "<full path of the folder to contain the database file IndexDB.sdf>",
 ///                    );
 ///         
 ///               // Construct the SyncBox object with the settings.

@@ -28,6 +28,7 @@ using System.Windows.Forms;
 using Hardcodet.Wpf.TaskbarNotification;
 using CloudApiPrivate.Static;
 using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 using win_client.Model;
 using CleanShutdown.Messaging;
 using System.Threading.Tasks;

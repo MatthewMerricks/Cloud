@@ -20,7 +20,7 @@
     <Setting Name="TempDownloadFolderFullPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="DatabaseFileFullPath" Type="System.String" Scope="User">
+    <Setting Name="DatabaseFolderFullPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="LogErrors" Type="System.Boolean" Scope="User">
@@ -29,7 +29,7 @@
     <Setting Name="TraceType" Type="CloudApiPublic.Static.TraceType" Scope="User">
       <Value Profile="(Default)">CommunicationIncludeAuthorization, FileChangeFlow</Value>
     </Setting>
-    <Setting Name="TraceFilesFullPath" Type="System.String" Scope="User">
+    <Setting Name="TraceFolderFullPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="TraceExcludeAuthorization" Type="System.Boolean" Scope="User">

@@ -208,14 +208,14 @@ namespace CloudApiPublic.Sync
         }
         private string _cloudRoot = null;
 
-        public string DatabaseFile
+        public string DatabaseFolder
         {
             get
             {
-                return _databaseFile;
+                return _databaseFolder;
             }
         }
-        private string _databaseFile = null;
+        private string _databaseFolder = null;
 
         public AdvancedSyncSettings(
                     bool logErrors,
@@ -230,7 +230,7 @@ namespace CloudApiPublic.Sync
                     string clientVersion,
                     string deviceName,
                     string cloudRoot,
-                    string databaseFile)
+                    string databaseFolder)
         {
             this._logErrors = logErrors;
             this._traceType = traceType;
@@ -244,7 +244,7 @@ namespace CloudApiPublic.Sync
             this._clientVersion = clientVersion;
             this._deviceName = deviceName;
             this._cloudRoot = cloudRoot;
-            this._databaseFile = databaseFile;
+            this._databaseFolder = databaseFolder;
         }
     }
 
@@ -265,7 +265,7 @@ namespace CloudApiPublic.Sync
                 toCopy.ClientVersion,
                 toCopy.DeviceName,
                 toCopy.SyncRoot,
-                toCopy.DatabaseFile);
+                toCopy.DatabaseFolder);
         }
 
         public static AdvancedSyncSettings CopySettings(this ISyncSettings toCopy)

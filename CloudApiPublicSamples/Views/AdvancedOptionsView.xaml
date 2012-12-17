@@ -1,4 +1,4 @@
-﻿<Window x:Class="CloudApiPublicSamples.Views.AdvancedOptions"
+﻿<Window x:Class="CloudApiPublicSamples.Views.AdvancedOptionsView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ext="clr-namespace:CloudApiPublicSamples.Static"
@@ -22,46 +22,60 @@
             <!-- Temporary download file Folder -->
             <Grid>
                 <Label Content="Folder for Temporary Download Files:" Target="{Binding ElementName=tbTempDownloadFolder}"/>
-                <Button x:Name="cmdBrowseSyncBoxFolder" HorizontalAlignment="Right" Width="75" Margin="2" 
+                <Button x:Name="cmdBrowseTempDownloadFolder" HorizontalAlignment="Right" Width="75" Margin="2" 
                         Height="26" Command="{Binding Path=CommandBrowseTempDownloadFolder, Mode=OneTime}" 
                         ToolTip="Click to choose a folder to be used for the temporary download files.">
-                    <AccessText Text="Bro_wse..."/>
+                    <AccessText Text="Browse..."/>
                 </Button>
             </Grid>
             <TextBox x:Name="tbTempDownloadFolder" Margin="10,0,0,0" 
-                     Text="{Binding SyncRoot, Mode=TwoWay}"
+                     Text="{Binding TempDownloadFolderFullPath, Mode=TwoWay}"
                      ext:FocusExtension.IsFocused="{Binding IsTempDownloadFolderFullPathFocused}"
                      ToolTip="Enter the full path of the folder to be used for temporary download files."/>
             <!-- Database file -->
-            <Label Content="Database _File with Full Path:" Target="{Binding ElementName=tbDatabaseFileFullPath}"/>
-            <TextBox Name="tbDatabaseFileFullPath" Margin="10,0,0,0" 
-                    Text="{Binding DatabaseFileFullPath, Mode=TwoWay}"
-                     ext:FocusExtension.IsFocused="{Binding IsDatabaseFileFullPathFocused}"
-                    ToolTip="Database file to use.  Enter the full path and filename.ext of the database file."/>
+            <Grid>
+                <Label Content="Folder for Database _File:" Target="{Binding ElementName=tbDatabaseFolderFullPath}"/>
+                <Button x:Name="cmdBrowseDatabaseFolder" HorizontalAlignment="Right" Width="75" Margin="2" 
+                        Height="26" Command="{Binding Path=CommandBrowseDatabaseFolder, Mode=OneTime}" 
+                        ToolTip="Click to choose a folder to be used for the database file.">
+                    <AccessText Text="Browse..."/>
+                </Button>
+            </Grid>
+            <TextBox Name="tbDatabaseFolderFullPath" Margin="10,0,0,0" 
+                    Text="{Binding DatabaseFolderFullPath, Mode=TwoWay}"
+                     ext:FocusExtension.IsFocused="{Binding IsDatabaseFolderFullPathFocused}"
+                    ToolTip="Folder to use for the database file.  Enter the full path of the folder to hold the IndexDB.sdf database file."/>
             <GroupBox Header="Trace" HorizontalAlignment="Stretch" Margin="0,10,0,0">
-                <StackPanel Orientation="Vertical">                   
-                    <!-- Trace files full path -->
-                    <Label Content="Trace Folder:" Target="{Binding ElementName=tbTraceFilesFolder}"/>
-                    <TextBox x:Name="tbTraceFilesFolder" Margin="10,0,0,0" 
-                        Text="{Binding TraceFilesFullPath, Mode=TwoWay}"
-                         ext:FocusExtension.IsFocused="{Binding IsTraceFilesFullPathFocused}"
+                <StackPanel Orientation="Vertical" Margin="5,10,5,5">                   
+                    <!-- Trace folder full path -->
+                    <Grid>
+                        <Label Content="Trace Folder:" Target="{Binding ElementName=tbTraceFolder}"/>
+                        <Button x:Name="cmdBrowseTraceFolder" HorizontalAlignment="Right" Width="75" Margin="2" 
+                        Height="26" Command="{Binding Path=CommandBrowseTraceFolder, Mode=OneTime}" 
+                        ToolTip="Click to choose a folder to be used for the trace files.">
+                            <AccessText Text="Browse..."/>
+                        </Button>
+                    </Grid>
+                    <TextBox x:Name="tbTraceFolder" Margin="10,0,0,0" 
+                        Text="{Binding TraceFolderFullPath, Mode=TwoWay}"
+                         ext:FocusExtension.IsFocused="{Binding IsTraceFolderFullPathFocused}"
                         ToolTip="Folder for trace files."/>
                     <!-- Trace Type -->
                     <Label Content="Trace Type:" Target="{Binding ElementName=tbTraceType}"/>
-                    <TextBox x:Name="tbTraceType" Margin="10,0,0,0" 
+                    <TextBox x:Name="tbTraceType" Margin="10,0,0,0" Width="75" HorizontalAlignment="Left"
                         Text="{Binding TraceType, Mode=TwoWay}"
                          ext:FocusExtension.IsFocused="{Binding IsTraceTypeFocused}"
                         ToolTip="Bitmask for items to be traced."/>
                     <!-- Trace Level -->
                     <Label Content="Trace Level:" Target="{Binding ElementName=tbTraceLevel}"/>
-                    <TextBox x:Name="tbTraceLevel" Margin="10,0,0,0" 
+                    <TextBox x:Name="tbTraceLevel" Margin="10,0,0,0" Width="75" HorizontalAlignment="Left"
                         Text="{Binding TraceLevel, Mode=TwoWay}"
                          ext:FocusExtension.IsFocused="{Binding IsTraceLevelFocused}"
                         ToolTip="Higher number for more functional trace.  Zero for no trace.  10 for all trace."/>
-                    <RadioButton Content="Log Errors" Margin="10,10,0,0"
+                    <CheckBox Content="Log Errors" Margin="10,10,0,0"
                                     IsChecked="{Binding LogErrors, Mode=TwoWay}"
                                     ToolTip="Check to log errors to an error trace file."/>
-                    <RadioButton Content="Exclude Authorization Information" Margin="10,10,0,0" 
+                    <CheckBox Content="Exclude Authorization Information" Margin="10,10,0,0" 
                                     IsChecked="{Binding TraceExcludeAuthorization, Mode=TwoWay}"
                                     ToolTip="Check to exclude authorization information in the trace files."/>
 
@@ -73,12 +87,12 @@
         </StackPanel>
         <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="cmdOk" HorizontalAlignment="Right" Width="75" Margin="0,0,20,0"
-                        Command="{Binding Path=CommandOk, Mode=OneTime}" 
+                        Command="{Binding Path=CommandOk, Mode=OneTime}" IsDefault="True" 
                         ToolTip="Click to exit and save any changes.">
                 <AccessText Text="_OK"/>
             </Button>
             <Button x:Name="cmdCancel" HorizontalAlignment="Right" Width="75"
-                        Command="{Binding Path=CommandCancel, Mode=OneTime}" 
+                        Command="{Binding Path=CommandCancel, Mode=OneTime}" IsCancel="True" 
                         ToolTip="Click to exit and cancel any changes.">
                 <AccessText Text="_Cancel"/>
             </Button>

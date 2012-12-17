@@ -24,6 +24,7 @@ using CloudApiPrivate.Static;
 using CloudApiPublic;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 using System.Collections.Generic;
 using GalaSoft.MvvmLight.Ioc;
 using Dialog.Abstractions.Wpf.Intefaces;

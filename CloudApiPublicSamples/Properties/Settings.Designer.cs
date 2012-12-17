@@ -98,12 +98,12 @@ namespace CloudApiPublicSamples.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string DatabaseFileFullPath {
+        public string DatabaseFolderFullPath {
             get {
-                return ((string)(this["DatabaseFileFullPath"]));
+                return ((string)(this["DatabaseFolderFullPath"]));
             }
             set {
-                this["DatabaseFileFullPath"] = value;
+                this["DatabaseFolderFullPath"] = value;
             }
         }
         
@@ -134,12 +134,12 @@ namespace CloudApiPublicSamples.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string TraceFilesFullPath {
+        public string TraceFolderFullPath {
             get {
-                return ((string)(this["TraceFilesFullPath"]));
+                return ((string)(this["TraceFolderFullPath"]));
             }
             set {
-                this["TraceFilesFullPath"] = value;
+                this["TraceFolderFullPath"] = value;
             }
         }
         

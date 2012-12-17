@@ -2097,7 +2097,7 @@ namespace CloudApiPublic.SQLIndexer
                     "\\" + Helpers.GetDefaultNameFromApplicationName() +
                     "\\" + userId + // create the default location uniquely for the user
                     "\\IndexDB.sdf"
-                : new FileInfo(databaseLocation).FullName);
+                : new FileInfo(databaseLocation).FullName + "\\IndexDB.sdf");
         }
 
         /// <summary>

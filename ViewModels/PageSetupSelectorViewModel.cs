@@ -29,6 +29,7 @@ using System.Windows.Threading;
 using CloudApiPublic;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 using CloudApiPrivate.Static;
 using win_client.ViewModelHelpers;
 using win_client.Resources;

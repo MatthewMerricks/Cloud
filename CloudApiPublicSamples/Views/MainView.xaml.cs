@@ -11,6 +11,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using CloudApiPublicSamples.ViewModels;
+using CloudApiPublicSamples.Static;
 
 namespace CloudApiPublicSamples.Views
 {
@@ -22,6 +24,68 @@ namespace CloudApiPublicSamples.Views
         public MainView()
         {
             InitializeComponent();
+            Loaded += OnMainView_Loaded;
+            Unloaded += OnMainView_Unloaded;
+            Closing += OnMainView_Closing;
+        }
+
+        void OnMainView_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            MainViewModel vm = (MainViewModel)DataContext;
+            if (vm != null)
+            {
+                bool shouldCancel = vm.OnWindowClosing();
+                e.Cancel = shouldCancel;
+            }
+        }
+
+        private void OnMainView_Loaded(object sender, RoutedEventArgs e)
+        {
+            MainViewModel vm = (MainViewModel)DataContext;
+            if (vm != null)
+            {
+                vm.NotifyBrowseSyncBoxFolder += OnNotifyBrowseSyncBoxFolder;
+                vm.NotifySettingsChanged += OnNotifySettingsChanged;
+            }
+        }
+
+        private void OnMainView_Unloaded(object sender, RoutedEventArgs e)
+        {
+            MainViewModel vm = (MainViewModel)DataContext;
+            if (vm != null)
+            {
+                vm.NotifyBrowseSyncBoxFolder -= OnNotifyBrowseSyncBoxFolder;
+                vm.NotifySettingsChanged -= OnNotifySettingsChanged;
+            }
+        }
+
+        private void OnNotifyBrowseSyncBoxFolder(object sender, Support.NotificationEventArgs e)
+        {
+            System.Windows.Forms.FolderBrowserDialog folderBrowser = new System.Windows.Forms.FolderBrowserDialog();
+            folderBrowser.Description = "Choose a folder to synchronize with your other devices.";
+            if (!String.IsNullOrWhiteSpace(tbSyncBoxFolder.Text))
+            {
+                folderBrowser.SelectedPath = tbSyncBoxFolder.Text;
+            }
+            else
+            {
+                folderBrowser.RootFolder = Environment.SpecialFolder.UserProfile;
+            }
+            folderBrowser.ShowNewFolderButton = true;
+            System.Windows.Forms.DialogResult result = folderBrowser.ShowDialog(this.GetIWin32Window());
+            if (result == System.Windows.Forms.DialogResult.OK)
+            {
+                // The user selected a folder.
+                BindingExpression be = tbSyncBoxFolder.GetBindingExpression(TextBox.TextProperty);
+                tbSyncBoxFolder.Text = folderBrowser.SelectedPath;
+                be.UpdateSource();
+            }
+        }
+
+        private void OnNotifySettingsChanged(object sender, Support.NotificationEventArgs<string, bool> e)
+        {
+            MessageBoxResult result = MessageBox.Show("Some settings have changed.  Do you want to cancel the changes anyway?", "Cancel Anyway?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            e.Completed(result == MessageBoxResult.Yes);
         }
     }
 }

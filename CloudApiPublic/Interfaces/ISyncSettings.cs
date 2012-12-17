@@ -80,8 +80,8 @@ namespace CloudApiPublic.Interfaces
         /// </summary>
         string DeviceName { get; }
         /// <summary>
-        /// Full path to a file location where the database will be stored when using a SyncBox (you must handle your own database when using SyncEngine directly); If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
+        /// Full path to a folder location where the database will be stored when using a SyncBox (you must handle your own database when using SyncEngine directly); If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory.  The file will be IndexDB.sdf.
         /// </summary>
-        string DatabaseFile { get; }
+        string DatabaseFolder { get; }
     }
 }

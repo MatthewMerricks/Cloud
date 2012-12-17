@@ -1,13 +1,22 @@
 ﻿using CloudApiPublic.Interfaces;
+using CloudApiPublic.Static;
 using CloudApiPublicSamples.Models;
 using CloudApiPublicSamples.Support;
+using CloudApiPublicSamples.Views;
+using CloudApiPublicSamples.Static;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
+using System.Windows.Threading;
+using CloudApiPublic;
+using CloudApiPublic.Model;
 
 namespace CloudApiPublicSamples.ViewModels
 {
@@ -24,15 +33,36 @@ namespace CloudApiPublicSamples.ViewModels
         RelayCommand _commandStopSyncing;
         RelayCommand _commandExit;
 
-        private Settings _settingsCurrent;
-        private Settings _settingsInitial;
+        // Private fields
+        private Settings _settingsCurrent = null;
+        private Settings _settingsInitial = null;
+        private Window _mainWindow = null;
+        private bool _syncStarted = false;
+        private bool _windowClosed = false;
+        private CLSync _syncBox = null;
+        private readonly object _locker = new object();
 
         #endregion
 
+        #region Events
+
+        public event EventHandler<NotificationEventArgs> NotifyBrowseSyncBoxFolder;
+        public event EventHandler<NotificationEventArgs<string, bool>> NotifySettingsChanged;
+        public event EventHandler<NotificationEventArgs<CLError>> NotifyException;
+		 
+	    #endregion
+
         #region Constructors
 
-        public MainViewModel()
+        public MainViewModel(Window mainWindow)
         {
+            if (mainWindow == null)
+            {
+                throw new Exception("mainWindow must not be null");
+            }
+            _mainWindow = mainWindow;
+
+            // Read in the settings
             _settingsCurrent = new Settings();
             _settingsInitial = new Settings();
             _settingsCurrent.GetSavedSettings();
@@ -227,7 +257,7 @@ namespace CloudApiPublicSamples.ViewModels
                 {
                     _commandBrowseSyncBoxFolder = new RelayCommand(
                         param => this.BrowseSyncBoxFolder(),
-                        param => this.CanBrowseSyncBoxFolder
+                        param => { return true; }
                         );
                 }
                 return _commandBrowseSyncBoxFolder;
@@ -245,7 +275,7 @@ namespace CloudApiPublicSamples.ViewModels
                 {
                     _commandShowAdvancedOptions = new RelayCommand(
                         param => this.ShowAdvancedOptions(),
-                        param => this.CanShowAdvancedOptions
+                        param => { return true; }
                         );
                 }
                 return _commandShowAdvancedOptions;
@@ -335,7 +365,7 @@ namespace CloudApiPublicSamples.ViewModels
                 {
                     _commandExit = new RelayCommand(
                         param => this.Exit(),
-                        param => this.CanExit
+                        param => { return true; }
                         );
                 }
                 return _commandExit;
@@ -351,7 +381,8 @@ namespace CloudApiPublicSamples.ViewModels
         /// </summary>
         public void BrowseSyncBoxFolder()
         {
-            MessageBox.Show("BrowseSyncBoxFolder");
+            // Notify the view to put up the folder selector.
+            NotifyBrowseSyncBoxFolder(this, new NotificationEventArgs());
         }
 
         /// <summary>
@@ -359,7 +390,34 @@ namespace CloudApiPublicSamples.ViewModels
         /// </summary>
         public void ShowAdvancedOptions()
         {
-            MessageBox.Show("ShowAdvancedOptions");
+            // Show the advanced options as a modal dialog.
+            AdvancedOptionsView viewWindow = new AdvancedOptionsView();
+            viewWindow.Owner = _mainWindow;
+            viewWindow.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner;
+            viewWindow.ResizeMode = ResizeMode.NoResize;
+
+            // Create the ViewModel to which the view binds.
+            var viewModel = new AdvancedOptionsViewModel(_settingsCurrent);
+
+            // When the ViewModel asks to be closed, close the window.
+            EventHandler handler = null;
+            handler = delegate
+            {
+                viewModel.RequestClose -= handler;
+                viewWindow.Close();
+            };
+            viewModel.RequestClose += handler;
+
+            // Allow all controls in the window to bind to the ViewModel by setting the 
+            // DataContext, which propagates down the element tree.
+            viewWindow.DataContext = viewModel;
+
+            // Show the dialog.
+            Dispatcher dispatcher = Application.Current.Dispatcher;
+            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+            {
+                ((Window)viewWindow).ShowDialog();
+            });
         }
 
         /// <summary>
@@ -399,7 +457,7 @@ namespace CloudApiPublicSamples.ViewModels
             // Validate the SyncBox ID.
             ulong value;
             if (String.IsNullOrEmpty(SyncBoxId) ||
-                !ConvertStringToUlong(SyncBoxId, out value) ||
+                !Utilities.ConvertStringToUlong(SyncBoxId, out value) ||
                 value == 0)
             {
                 MessageBox.Show("The SyncBox ID must be a positive decimal number convertible to an unsigned integer <= 18446744073709551615.");
@@ -409,7 +467,7 @@ namespace CloudApiPublicSamples.ViewModels
 
             // Validate the Device ID.
             if (String.IsNullOrEmpty(DeviceId) ||
-                !ConvertStringToUlong(DeviceId, out value) ||
+                !Utilities.ConvertStringToUlong(DeviceId, out value) ||
                 value == 0)
             {
                 MessageBox.Show("The Device ID must be a positive decimal number convertible to an unsigned integer <= 18446744073709551615.");
@@ -423,6 +481,16 @@ namespace CloudApiPublicSamples.ViewModels
             Properties.Settings.Default.ApplicationSecret = AppSecret;
             Properties.Settings.Default.SyncBoxId = SyncBoxId;
             Properties.Settings.Default.UniqueDeviceId = DeviceId;
+            Properties.Settings.Default.TempDownloadFolderFullPath = _settingsCurrent.TempDownloadFolderFullPath;
+            Properties.Settings.Default.DatabaseFolderFullPath = _settingsCurrent.DatabaseFolderFullPath;
+            Properties.Settings.Default.LogErrors = _settingsCurrent.LogErrors;
+            Properties.Settings.Default.TraceType = _settingsCurrent.TraceType;
+            Properties.Settings.Default.TraceFolderFullPath = _settingsCurrent.TraceFolderFullPath;
+            Properties.Settings.Default.TraceExcludeAuthorization = _settingsCurrent.TraceExcludeAuthorization;
+            Properties.Settings.Default.TraceLevel = _settingsCurrent.TraceLevel;
+            Properties.Settings.Default.Save();
+
+            _settingsInitial = new Settings(_settingsCurrent);          // Saved.  Initial is now current.
         }
 
         /// <summary>
@@ -438,7 +506,30 @@ namespace CloudApiPublicSamples.ViewModels
         /// </summary>
         public void StartSyncing()
         {
-            MessageBox.Show("StartSyncing");
+            bool startSyncBox = false;
+            lock (_locker)
+            {
+                if (_syncBox == null)
+                {
+                    _syncBox = new CLSync();
+                    startSyncBox = true;
+                }
+            }
+
+            if (startSyncBox)
+            {
+                CLSyncStartStatus startStatus;
+                CLError errorFromSyncBoxStart = _syncBox.Start((ISyncSettings)_settingsInitial, out startStatus);
+                if (errorFromSyncBoxStart != null)
+                {
+                    _syncBox = null;
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncBoxStart, Message = String.Format("Error starting the SyncBox: {0}.", startStatus.ToString()) });
+                }
+                else
+                {
+                    _syncStarted = true;
+                }
+            }
         }
 
         /// <summary>
@@ -446,7 +537,15 @@ namespace CloudApiPublicSamples.ViewModels
         /// </summary>
         public void StopSyncing()
         {
-            MessageBox.Show("StopSyncing");
+            lock (_locker)
+            {
+                if (_syncBox != null)
+                {
+                    _syncStarted = false;
+                    _syncBox.Stop();
+                    _syncBox = null;
+                }
+            }
         }
 
         /// <summary>
@@ -454,7 +553,37 @@ namespace CloudApiPublicSamples.ViewModels
         /// </summary>
         public void Exit()
         {
-            MessageBox.Show("Exit");
+            if (!_settingsInitial.Equals(_settingsCurrent))
+            {
+                // Notify the view to put up a MessageBox saying that the settings have changed.  Does the user want to exit anyway?
+                NotifySettingsChanged(this, new NotificationEventArgs<string, bool> { Completed = UserWantsToExit });
+            }
+            else
+            {
+                // Close the window
+                _windowClosed = true;
+                CloseCommand.Execute(null);
+            }
+        }
+
+        /// <summary>
+        /// The user clicked the "X" in the upper right corner of the view window.
+        /// </summary>
+        /// <returns>bool: Prevent the window close.</returns>
+        public bool OnWindowClosing()
+        {
+            if (_windowClosed)
+            {
+                return false;           // allow the window close
+            }
+
+            Dispatcher dispatcher = Application.Current.Dispatcher;
+            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+            {
+                Exit();
+            });
+
+            return true;                // cancel the window close
         }
 
         #endregion
@@ -462,26 +591,16 @@ namespace CloudApiPublicSamples.ViewModels
         #region Private Helpers
 
         /// <summary>
-        /// Returns true if the Browse button should be active to select a SyncBox folder.
+        /// The user was asked (by the view) whether he wants to exit with changed advanced options.  This is the user's answer.
         /// </summary>
-        private bool CanBrowseSyncBoxFolder
+        /// <param name="willExit"></param>
+        private void UserWantsToExit(bool willExit)
         {
-            get
+            if (willExit)
             {
-                //TODO: Fill this in.
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the Advanced Options button should be active.
-        /// </summary>
-        private bool CanShowAdvancedOptions
-        {
-            get
-            {
-                //TODO: Fill this in.
-                return true;
+                // Close the window
+                _windowClosed = true;
+                CloseCommand.Execute(null);
             }
         }
 
@@ -492,8 +611,7 @@ namespace CloudApiPublicSamples.ViewModels
         {
             get
             {
-                //TODO: Fill this in.
-                return true;
+                return !_settingsCurrent.Equals(_settingsInitial);
             }
         }
 
@@ -504,8 +622,7 @@ namespace CloudApiPublicSamples.ViewModels
         {
             get
             {
-                //TODO: Fill this in.
-                return true;
+                return _syncStarted;
             }
         }
 
@@ -516,8 +633,7 @@ namespace CloudApiPublicSamples.ViewModels
         {
             get
             {
-                //TODO: Fill this in.
-                return true;
+                return !_syncStarted;
             }
         }
 
@@ -528,20 +644,7 @@ namespace CloudApiPublicSamples.ViewModels
         {
             get
             {
-                //TODO: Fill this in.
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the Exit button should be active.
-        /// </summary>
-        private bool CanExit
-        {
-            get
-            {
-                //TODO: Fill this in.
-                return true;
+                return _syncStarted;
             }
         }
 

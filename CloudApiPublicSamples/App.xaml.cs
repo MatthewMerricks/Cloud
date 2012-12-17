@@ -21,7 +21,7 @@ namespace CloudApiPublicSamples
             MainView window = new MainView();
 
             // Create the ViewModel to which the main window binds.
-            var viewModel = new MainViewModel();
+            var viewModel = new MainViewModel(window);
 
             // When the ViewModel asks to be closed, 
             // close the window.

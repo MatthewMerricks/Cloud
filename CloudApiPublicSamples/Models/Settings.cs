@@ -14,10 +14,10 @@ namespace CloudApiPublicSamples.Models
         public string SyncBoxId { get; set; }
         public string UniqueDeviceId { get; set; }
         public string TempDownloadFolderFullPath { get; set; }
-        public string DatabaseFileFullPath { get; set; }
+        public string DatabaseFolderFullPath { get; set; }
         public bool LogErrors { get; set; }
         public TraceType TraceType { get; set; }
-        public string TraceFilesFullPath { get; set; }
+        public string TraceFolderFullPath { get; set; }
         public bool TraceExcludeAuthorization { get; set; }
         public int TraceLevel { get; set; }
 
@@ -37,10 +37,10 @@ namespace CloudApiPublicSamples.Models
             SyncBoxId = settingsCopy.SyncBoxId;
             UniqueDeviceId = settingsCopy.UniqueDeviceId;
             TempDownloadFolderFullPath = settingsCopy.TempDownloadFolderFullPath;
-            DatabaseFileFullPath = settingsCopy.DatabaseFileFullPath;
+            DatabaseFolderFullPath = settingsCopy.DatabaseFolderFullPath;
             LogErrors = settingsCopy.LogErrors;
             TraceType = settingsCopy.TraceType;
-            TraceFilesFullPath = settingsCopy.TraceFilesFullPath;
+            TraceFolderFullPath = settingsCopy.TraceFolderFullPath;
             TraceExcludeAuthorization = settingsCopy.TraceExcludeAuthorization;
             TraceLevel = settingsCopy.TraceLevel;
         }
@@ -67,8 +67,8 @@ namespace CloudApiPublicSamples.Models
             if (!Object.Equals(SyncBoxId, otherSettings.SyncBoxId)) return false;
             if (!Object.Equals(UniqueDeviceId, otherSettings.UniqueDeviceId)) return false;
             if (!Object.Equals(TempDownloadFolderFullPath, otherSettings.TempDownloadFolderFullPath)) return false;
-            if (!Object.Equals(DatabaseFileFullPath, otherSettings.DatabaseFileFullPath)) return false;
-            if (!Object.Equals(TraceFilesFullPath, otherSettings.TraceFilesFullPath)) return false;
+            if (!Object.Equals(DatabaseFolderFullPath, otherSettings.DatabaseFolderFullPath)) return false;
+            if (!Object.Equals(TraceFolderFullPath, otherSettings.TraceFolderFullPath)) return false;
 
             // Use this pattern to compare value members
             if (!LogErrors.Equals(otherSettings.LogErrors)) return false;
@@ -95,10 +95,10 @@ namespace CloudApiPublicSamples.Models
             this.SyncBoxId = Properties.Settings.Default.SyncBoxId;
             this.UniqueDeviceId = Properties.Settings.Default.UniqueDeviceId;
             this.TempDownloadFolderFullPath = Properties.Settings.Default.TempDownloadFolderFullPath;
-            this.DatabaseFileFullPath = Properties.Settings.Default.DatabaseFileFullPath;
+            this.DatabaseFolderFullPath = Properties.Settings.Default.DatabaseFolderFullPath;
             this.LogErrors = Properties.Settings.Default.LogErrors;
             this.TraceType = Properties.Settings.Default.TraceType;
-            this.TraceFilesFullPath = Properties.Settings.Default.TraceFilesFullPath;
+            this.TraceFolderFullPath = Properties.Settings.Default.TraceFolderFullPath;
             this.TraceExcludeAuthorization = Properties.Settings.Default.TraceExcludeAuthorization;
             this.TraceLevel = Properties.Settings.Default.TraceLevel;
         }

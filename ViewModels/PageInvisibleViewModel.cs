@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
 using CloudApiPublic.Support;
+using CloudApiPublic.Static;
 using System.ComponentModel;
 using System.Windows.Input;
 using CleanShutdown.Helpers;

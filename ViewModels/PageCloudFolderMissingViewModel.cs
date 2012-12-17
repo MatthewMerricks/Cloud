@@ -29,6 +29,7 @@ using win_client.Views;
 using win_client.AppDelegate;
 using CloudApiPublic.Support;
 using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 using win_client.ViewModelHelpers;
 using win_client.Resources;
 using Ookii.Dialogs.WpfMinusTaskDialog;

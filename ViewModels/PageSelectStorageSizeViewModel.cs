@@ -24,6 +24,7 @@ using System.Windows.Input;
 using System.ComponentModel;
 using win_client.AppDelegate;
 using CloudApiPublic.Support;
+using CloudApiPublic.Static;
 using System.Resources;
 using CleanShutdown.Messaging;
 using win_client.ViewModelHelpers;

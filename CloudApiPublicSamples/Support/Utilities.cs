@@ -13,7 +13,7 @@ namespace CloudApiPublicSamples.Support
         /// <param name="inString">The string to convert.</param>
         /// <param name="value">out: The converted value.</param>
         /// <returns>bool: true: Successful conversion.</returns>
-        public bool ConvertStringToUlong(string inString, out ulong value)
+        public static bool ConvertStringToUlong(string inString, out ulong value)
         {
             bool toReturn = true;
             try

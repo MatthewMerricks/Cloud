@@ -48,7 +48,7 @@ namespace CloudApiPublicSamples.Models
         {
             get
             {
-                return Properties.Settings.Default.TraceFilesFullPath;
+                return Properties.Settings.Default.TraceFolderFullPath;
             }
         }
         public bool TraceExcludeAuthorization
@@ -128,7 +128,7 @@ namespace CloudApiPublicSamples.Models
         /// <summary>
         /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
         /// </summary>
-        public string DatabaseFile
+        public string DatabaseFolder
         {
             get
             {

@@ -37,6 +37,7 @@ using CleanShutdown.Helpers;
 using System.Windows.Threading;
 using System.Diagnostics;
 using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 
 
 namespace win_client.ViewModels
