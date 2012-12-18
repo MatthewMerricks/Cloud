@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("CloudApiPublicSamples")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Citrix Systems")]
+[assembly: AssemblyCompany("Cloud.com")]
 [assembly: AssemblyProduct("CloudApiPublicSamples")]
-[assembly: AssemblyCopyright("Copyright © Citrix Systems 2012")]
+[assembly: AssemblyCopyright("Copyright © Cloud.com.  All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

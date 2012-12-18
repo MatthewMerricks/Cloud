@@ -519,7 +519,7 @@ namespace CloudApiPublicSamples.ViewModels
             if (startSyncBox)
             {
                 CLSyncStartStatus startStatus;
-                CLError errorFromSyncBoxStart = _syncBox.Start((ISyncSettings)_settingsInitial, out startStatus);
+                CLError errorFromSyncBoxStart = _syncBox.Start(SettingsAvancedImpl.Instance, out startStatus);
                 if (errorFromSyncBoxStart != null)
                 {
                     _syncBox = null;
@@ -633,7 +633,7 @@ namespace CloudApiPublicSamples.ViewModels
         {
             get
             {
-                return !_syncStarted;
+                return !_syncStarted && !CanSaveSettings;
             }
         }
 
