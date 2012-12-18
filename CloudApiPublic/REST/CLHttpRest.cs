@@ -156,10 +156,13 @@ namespace CloudApiPublic.REST
             FileChange changeToDownload,
             int timeoutMilliseconds,
             out CLHttpRestStatus status,
+            out string responseBody,
             CancellationTokenSource shutdownToken = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
+            responseBody = "---Incomplete file download---";
+
             // try/catch to process the file download, on catch return the error
             try
             {
@@ -171,7 +174,7 @@ namespace CloudApiPublic.REST
                 }
 
                 // run the HTTP communication
-                ProcessHttp<object, object>(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
+                responseBody = ProcessHttp<object, string>(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
                     CLDefinitions.CLUploadDownloadServerURL,  // Server URL
                     CLDefinitions.MethodPathDownload, // path to download
                     requestMethod.post, // download request is an HTTP POST
@@ -1367,7 +1370,8 @@ namespace CloudApiPublic.REST
         #endregion
     }
 
-    internal delegate void SendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource);
+    //TODO: Should this be internal?
+    public delegate void SendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource);
     public delegate void BeforeDownloadToTempFile(Guid tempId, object UserState);
     /// <summary>
     /// 

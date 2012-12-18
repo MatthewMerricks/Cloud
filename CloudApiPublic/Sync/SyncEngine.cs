@@ -175,6 +175,9 @@ namespace CloudApiPublic.Sync
         // build a default location for temp downloads by path in current user's non-roaming application data plus the name of the currently running application
         private readonly string DefaultTempDownloadsPath;
 
+        //TODO: Find a better way to detect that a file was successfully downloaded.  Use an enum.
+        private const string kFileDownloadCompletedOk = "---Completed file download---";
+
         // EventHandler for when the _failureTimer hits the end of its timer;
         // state object must be the Function which adds failed items to the FileMonitor processing queue
         private static void FailureProcessing(object state)
@@ -2014,6 +2017,16 @@ namespace CloudApiPublic.Sync
                             castState.HttpTimeoutMilliseconds ?? int.MaxValue,
                             out status,
                             castState.ShutdownToken);
+                    if (errorFromUploadFile != null)
+                    {
+                        throw new AggregateException("Error uploading file", errorFromUploadFile.GrabExceptions());
+                    }
+
+                    // The upload was successful (no exceptions), but it may still have a reportable error.
+                    if (status == CLHttpRestStatus.Cancelled)
+                    {
+                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings);
+                    }
 
                     // Handle a successful upload.
                     return HandleSuccessfulUpload(castState);
@@ -2582,323 +2595,54 @@ namespace CloudApiPublic.Sync
                         castState.TempDownloadFolderPath); // path to the folder containing temp downloads
                 }
 
-                // declare a string for storing the content of the download request
-                string requestBody;
-                // create a memory stream for storing the serialized request JSON contract
-                using (MemoryStream ms = new MemoryStream())
+                // Start the download process.
+                CLHttpRestStatus status;
+                BeforeDownloadToTempFile beforeDownloadToTempFileCallback = OnBeforeDownloadToTempFile;
+                AfterDownloadToTempFile afterDownloadToTempFileCallback = OnAfterDownloadToTempFile;
+                SendUploadDownloadStatus sendUploadDownloadStatusCallback = OnSendUploadDownloadStatus;
+                CLError errorFromDownloadFile = castState.RestClient.DownloadFile(
+                        beforeDownloadCallback: beforeDownloadToTempFileCallback,
+                        beforeDownloadUserState: castState,
+                        afterDownloadToTempFileCallback: afterDownloadToTempFileCallback,
+                        afterDownloadUserState: castState,
+                        tempDownloadFolderPath: castState.TempDownloadFolderPath,
+                        sendUploadDownloadStatusCallback: sendUploadDownloadStatusCallback,
+                        changeToDownload: castState.FileToDownload,
+                        timeoutMilliseconds: castState.HttpTimeoutMilliseconds ?? int.MaxValue,
+                        status: out status,
+                        responseBody: out responseBody,
+                        shutdownToken: castState.ShutdownToken);
+                if (errorFromDownloadFile != null)
                 {
-                    // serialize the request JSON contract to the stream via its appropriate serializer
-                    JsonContractHelpers.DownloadSerializer.WriteObject(
-                        ms, // current stream to receive serialization
-                        new Download() // JSON contract to serialize
-                        {
-                            StorageKey = castState.FileToDownload.Metadata.StorageKey // storage key parameter
-                        });
-                    requestBody = Encoding.Default.GetString(ms.ToArray()); // take the bytes written to the memory stream (which should be default string-encoded) and retrieve the actual string
+                    throw new AggregateException("Error downloading file", errorFromDownloadFile.GrabExceptions());
                 }
 
-                // get the UTF8-encoded bytes for the request content
-                byte[] requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
-
-                // set all the parameters for the download request
-
-                HttpWebRequest downloadRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathDownload); // create the request from the download path
-                downloadRequest.Method = CLDefinitions.HeaderAppendMethodPost; // download request is an HTTP POST
-                downloadRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // fill in the current client
-                // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-                downloadRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = castState.SyncSettings.ClientVersion;
-                downloadRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(castState.SyncSettings.Akey); // set the authorization token
-                downloadRequest.SendChunked = false; // send as non-chunked
-                downloadRequest.KeepAlive = false; // do not keep connection alive
-                downloadRequest.Timeout = (int)castState.HttpTimeoutMilliseconds; // set timeout for communication, does not apply to the length of time it takes to actually download the file
-                downloadRequest.ContentType = CLDefinitions.HeaderAppendContentTypeJson; // request is json-formatted
-                downloadRequest.Headers[CLDefinitions.HeaderKeyContentEncoding] = CLDefinitions.HeaderAppendContentEncoding; // utf8 encoded request
-                downloadRequest.ContentLength = requestBodyBytes.Length; // request has the length of the bytes to be sent
-
-                // for communication trace, trace communication
-                if ((castState.SyncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
-                {
-                    // trace communication
-                    Trace.LogCommunication(castState.SyncSettings.TraceLocation, // location of trace file
-                        castState.SyncSettings.Udid, // device id
-                        castState.SyncSettings.SyncBoxId, // user id
-                        CommunicationEntryDirection.Request, // direction of communication is request
-                        CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathDownload, // path for download
-                        true, // trace is enabled
-                        downloadRequest.Headers, // request headers
-                        requestBody, // request content
-                        null, // no status code for request
-                        castState.SyncSettings.TraceExcludeAuthorization, // whether to exclude authorization (such as authentication token)
-                        downloadRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
-                        downloadRequest.ContentLength.ToString(), // content length value which would be part of the headers (but cannot be pulled from headers directly)
-                        (downloadRequest.Expect == null ? "100-continue" : downloadRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
-                        (downloadRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
-                }
-
-                // store the total size which will be used for status event callbacks
-                long storeSizeForStatus = castState.FileToDownload.Metadata.HashableProperties.Size ?? 0;
-                // store the relative path which will be used for status event callbacks
-                string storeRelativePathForStatus = castState.FileToDownload.NewPath.GetRelativePath((castState.SyncSettings.SyncRoot ?? string.Empty), false);
-                // store the start time for the download
-                DateTime storeStartTimeForStatus = getStartTime(startTimeHolder);
-
-                // create new async holder used to make async http calls synchronous
-                AsyncRequestHolder requestHolder = new AsyncRequestHolder(castState.ShutdownToken);
-
-                // declare result from async http call
-                IAsyncResult requestAsyncResult;
-
-                // lock on async holder for modification
-                lock (requestHolder)
-                {
-                    // begin upload request asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
-                    requestAsyncResult = downloadRequest.BeginGetRequestStream(new AsyncCallback(MakeAsyncRequestSynchronous), requestHolder);
-
-                    // wait on the request to become synchronous again
-                    Monitor.Wait(requestHolder);
-                }
-
-                // if there was an error that occurred on the async http call, then rethrow the error
-                if (requestHolder.Error != null)
-                {
-                    throw requestHolder.Error;
-                }
-
-                // if the http call was cancelled, then return immediately with default
-                if (requestHolder.IsCanceled)
+                // The download was successful (no exceptions), but it may have been cancelled.
+                if (status == CLHttpRestStatus.Cancelled)
                 {
                     return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings, castState.TempDownloadFolderPath);
                 }
 
-                // get the stream used to request the download
-                using (Stream downloadRequestStream = downloadRequest.EndGetRequestStream(requestAsyncResult))
+                // Check to see that the file downloaded OK.
+                if (!responseBody.Equals(kFileDownloadCompletedOk, StringComparison.InvariantCulture))
                 {
-                    // write the request for the download
-                    downloadRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
+                    throw new Exception("The downloaded temp file was not successfully moved to its permanent location");
                 }
 
-                // declare the download response
-                HttpWebResponse downloadResponse;
-                // try/catch to retrieve the download response, on catch of a WebException try to store the response anyways and continue
-                try
-                {
-                    // create new async holder used to make async http calls synchronous
-                    AsyncRequestHolder responseHolder = new AsyncRequestHolder(castState.ShutdownToken);
+                // return the success
+                return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
+                    castState.SyncData, // event source to handle callback for completing the event
+                    castState.SyncSettings, // settings for tracing and logging errors
+                    castState.TempDownloadFolderPath); // location of folder for temp downloads
 
-                    // declare result from async http call
-                    IAsyncResult responseAsyncResult;
-
-                    // lock on async holder for modification
-                    lock (responseHolder)
-                    {
-                        // retrieve the response asynchronously, using callback which will take the async holder and make the response synchronous again, storing the result
-                        responseAsyncResult = downloadRequest.BeginGetResponse(new AsyncCallback(MakeAsyncRequestSynchronous), responseHolder);
-
-                        // wait on the response to become synchronous again
-                        Monitor.Wait(responseHolder);
-                    }
-
-                    // if there was an error that occurred on the async http call, then rethrow the error
-                    if (responseHolder.Error != null)
-                    {
-                        throw responseHolder.Error;
-                    }
-
-                    // if the http call was cancelled, then return immediately with default
-                    if (responseHolder.IsCanceled)
-                    {
-                        return new EventIdAndCompletionProcessor(0,
-                            castState.SyncData,
-                            castState.SyncSettings,
-                            castState.TempDownloadFolderPath);
-                    }
-
-                    // store the retrieved response
-                    downloadResponse = (HttpWebResponse)downloadRequest.EndGetResponse(responseAsyncResult);
-                }
-                catch (WebException ex)
-                {
-                    // if the web exception does not have a response, rethrow the exception
-                    if (ex.Response == null)
-                    {
-                        throw new NullReferenceException("downloadRequest Response cannot be null", ex);
-                    }
-                    // store the error response
-                    downloadResponse = (HttpWebResponse)ex.Response;
-                }
-
-                // try/finally to process the retrieved response, finally close the response
-                try
-                {
-                    // define a response body, default to a value that will be displayed if the actual response fails to process
-                    try
-                    {
-                        // set the response body to a value that will be displayed if the actual response fails to process
-                        responseBody = "---Incomplete file download---";
-                        // if the download status is not okay, then set the response body from the content of the response and throw the error
-                        if (downloadResponse.StatusCode != HttpStatusCode.OK)
-                        {
-                            // try/catch to set the response body from the content of the response, on catch silence the error
-                            try
-                            {
-                                // grab the response stream
-                                using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
-                                {
-                                    // read the response as UTF8 text
-                                    using (StreamReader downloadResponseStreamReader = new StreamReader(downloadResponseStream, Encoding.UTF8))
-                                    {
-                                        // set the response text
-                                        responseBody = downloadResponseStreamReader.ReadToEnd();
-                                    }
-                                }
-                            }
-                            catch
-                            {
-                            }
-
-                            // throw the exception for an invalid response
-                            throw new Exception("Invalid HTTP response status code in file download: " + ((int)downloadResponse.StatusCode).ToString() +
-                                (responseBody == null ? string.Empty
-                                    : Environment.NewLine + "Response:" + Environment.NewLine +
-                                    responseBody)); // either the default "incomplete" body or the body retrieved from the response content
-                        }
-                        // else if the response status code is okay, then download can start:
-                        // perform actual download
-                        else
-                        {
-                            // create a new unique id for the download
-                            newTempFile = Guid.NewGuid();
-
-                            // lock on current download id map for modification
-                            lock (currentDownloads)
-                            {
-                                // if current download id map contains downloads for the current file size, then add the new download to the existing list
-                                if (currentDownloads.ContainsKey((long)castState.FileToDownload.Metadata.HashableProperties.Size))
-                                {
-                                    currentDownloads[(long)castState.FileToDownload.Metadata.HashableProperties.Size].Add(new DownloadIdAndMD5((Guid)newTempFile, castState.MD5));
-                                }
-                                // else if current download id map does not contain downloads for the current file size,
-                                // create the new list of downloads with the new download as its initial value
-                                else
-                                {
-                                    currentDownloads.Add((long)castState.FileToDownload.Metadata.HashableProperties.Size,
-                                        new List<DownloadIdAndMD5>(new DownloadIdAndMD5[]
-                                            {
-                                                new DownloadIdAndMD5((Guid)newTempFile, castState.MD5)
-                                            }));
-                                }
-                            }
-
-                            // calculate location for downloading the file
-                            string newTempFileString = castState.TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
-
-                            // get the stream of the download
-                            using (Stream downloadResponseStream = downloadResponse.GetResponseStream())
-                            {
-                                // create a stream by creating a non-shared writable file at the file path
-                                using (FileStream tempFileStream = new FileStream(newTempFileString, FileMode.Create, FileAccess.Write, FileShare.None))
-                                {
-                                    // define a count for the total bytes downloaded
-                                    long totalBytesDownloaded = 0;
-                                    // create the buffer for transferring bytes from the download stream to the file stream
-                                    byte[] data = new byte[CLDefinitions.SyncConstantsResponseBufferSize];
-                                    // declare an int for the amount of bytes read in each buffer transfer
-                                    int read;
-                                    // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the download stream and store the read byte count
-                                    while ((read = downloadResponseStream.Read(data, 0, data.Length)) > 0)
-                                    {
-                                        // write the current buffer to the file
-                                        tempFileStream.Write(data, 0, read);
-                                        // append the count of the read bytes on this buffer transfer to the total downloaded
-                                        totalBytesDownloaded += read;
-
-                                        // check for sync shutdown
-                                        Monitor.Enter(castState.ShutdownToken);
-                                        try
-                                        {
-                                            if (castState.ShutdownToken.Token.IsCancellationRequested)
-                                            {
-                                                return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings, castState.TempDownloadFolderPath);
-                                            }
-                                        }
-                                        finally
-                                        {
-                                            Monitor.Exit(castState.ShutdownToken);
-                                        }
-
-                                        // fire eventhandler for status change on transfer
-                                        MessageEvents.UpdateFileDownload(castState.FileToDownload, // sender of event (the event itself)
-                                            castState.FileToDownload.EventId, // the event id which can uniquely identify the download
-                                            new CLStatusFileTransferUpdateParameters(
-                                                storeStartTimeForStatus, // start time for download
-                                                storeSizeForStatus, // total file size
-                                                storeRelativePathForStatus, // relative path of file
-                                                totalBytesDownloaded)); // current count of completed download bytes
-                                    }
-                                    // flush file stream to finish the file
-                                    tempFileStream.Flush();
-                                }
-                            }
-
-                            // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
-                            // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
-                            // attributes to set: creation time, last modified time, and last access time
-
-                            Helpers.RunActionWithRetries(() => System.IO.File.SetCreationTimeUtc(newTempFileString, castState.FileToDownload.Metadata.HashableProperties.CreationTime), true);
-                            Helpers.RunActionWithRetries(() => System.IO.File.SetLastAccessTimeUtc(newTempFileString, castState.FileToDownload.Metadata.HashableProperties.LastTime), true);
-                            Helpers.RunActionWithRetries(() => System.IO.File.SetLastWriteTimeUtc(newTempFileString, castState.FileToDownload.Metadata.HashableProperties.LastTime), true);
-
-                            // fire callback to perform the actual move of the temp file to the final destination
-                            castState.MoveCompletedDownload(newTempFileString, // location of temp file
-                                castState.FileToDownload, // download event
-                                ref responseBody, // reference to response string (sets to "completed" on success)
-                                castState.FailureTimer, // timer for failure queue
-                                (Guid)newTempFile); // id for the downloaded file
-
-                            // return the success
-                            return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
-                                castState.SyncData, // event source to handle callback for completing the event
-                                castState.SyncSettings, // settings for tracing and logging errors
-                                castState.TempDownloadFolderPath); // location of folder for temp downloads
-                        }
-                    }
-                    finally
-                    {
-                        // for communication tracing, trace communication
-                        if ((castState.SyncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
-                        {
-                            // trace communication
-                            Trace.LogCommunication(castState.SyncSettings.TraceLocation, // location of trace file
-                                castState.SyncSettings.Udid, // device id
-                                castState.SyncSettings.SyncBoxId, // user id
-                                CommunicationEntryDirection.Response, // direction of communication is response
-                                CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathDownload, // download path
-                                true, // trace is enabled
-                                downloadResponse.Headers, // response headers
-                                responseBody, // response content (simplified to "completed" if the content was otherwise the actual download)
-                                (int)downloadResponse.StatusCode, // status code for the response
-                                castState.SyncSettings.TraceExcludeAuthorization); // whether to exclude authorization (such as the authentication token)
-                        }
-                    }
-                }
-                finally
-                {
-                    // try/catch to close the response, failing silently
-                    try
-                    {
-                        downloadResponse.Close();
-                    }
-                    catch
-                    {
-                    }
-                }
             }
             catch (Exception ex)
             {
                 // for advanced trace, UploadDownloadFailure
                 if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
+                    Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, 
+                        FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
                 }
 
                 // if there was a download event, then fire the eventhandler for finishing the status of the transfer
@@ -3011,6 +2755,119 @@ namespace CloudApiPublic.Sync
                 }
             }
         }
+
+        /// <summary>
+        /// Called by CLHttpRest DownloadFile() before actually downloading the file.  Add this file to the cache.
+        /// </summary>
+        /// <param name="newTempFile"></param>
+        /// <param name="UserState"></param>
+        private static void OnBeforeDownloadToTempFile(Guid newTempFile, object UserState)
+        {
+            try
+            {
+                DownloadTaskState castState = UserState as DownloadTaskState;
+                if (castState == null)
+                {
+                    return;
+                }
+
+                // declare a mapping of file sizes to download ids and hashes
+                Dictionary<long, List<DownloadIdAndMD5>> currentDownloads;
+
+                // lock on the map of temp download folder to downloaded id maps to retrieve current download id map
+                lock (TempDownloads)
+                {
+                    // try to retrieve the current download id map for the current temp download folder and if unsuccesful, then add a new download id map
+                    if (!TempDownloads.TryGetValue(castState.TempDownloadFolderPath, out currentDownloads))
+                    {
+                        TempDownloads.Add(castState.TempDownloadFolderPath,
+                            currentDownloads = new Dictionary<long, List<DownloadIdAndMD5>>());
+                    }
+                }
+                // lock on current download id map for modification
+                lock (currentDownloads)
+                {
+                    // if current download id map contains downloads for the current file size, then add the new download to the existing list
+                    if (currentDownloads.ContainsKey((long)castState.FileToDownload.Metadata.HashableProperties.Size))
+                    {
+                        currentDownloads[(long)castState.FileToDownload.Metadata.HashableProperties.Size].Add(new DownloadIdAndMD5((Guid)newTempFile, castState.MD5));
+                    }
+                    // else if current download id map does not contain downloads for the current file size,
+                    // create the new list of downloads with the new download as its initial value
+                    else
+                    {
+                        currentDownloads.Add((long)castState.FileToDownload.Metadata.HashableProperties.Size,
+                            new List<DownloadIdAndMD5>(new DownloadIdAndMD5[]
+                                                {
+                                                    new DownloadIdAndMD5((Guid)newTempFile, castState.MD5)
+                                                }));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // log the error
+                ((CLError)new Exception("Error adding a download file to the download cache", ex)).LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+            }
+        }
+
+        /// <summary>
+        /// Called by CLHttpRest:DownloadFile() after the download to the temp file is complete.  Move the temp file to its permanent position.
+        /// </summary>
+        /// <param name="newTempFileString">The full path of the temp file.</param>
+        /// <param name="downloadChange">The FileChange representing the downloaded file.</param>
+        /// <param name="responseBody">The response body.  Input and output.</param>
+        /// <param name="UserState">The user state.</param>
+        /// <param name="newTempFile">The GUID of the temp file.</param>
+        private static void OnAfterDownloadToTempFile(string newTempFileString, FileChange downloadChange, ref string responseBody, object UserState, Guid newTempFile)
+        {
+            try
+            {
+                DownloadTaskState castState = UserState as DownloadTaskState;
+                if (castState == null)
+                {
+                    return;
+                }
+
+                // fire callback to perform the actual move of the temp file to the final destination
+                castState.MoveCompletedDownload(newTempFileString, // location of temp file
+                    castState.FileToDownload, // download event
+                    ref responseBody, // reference to response string (sets to "completed" on success)
+                    castState.FailureTimer, // timer for failure queue
+                    (Guid)newTempFile); // id for the downloaded file
+            }
+            catch (Exception ex)
+            {
+                // log the error
+                ((CLError)new Exception("Error moving a temporary downloaded file to its permanent position", ex)).LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+            }
+
+        }
+
+        /// <summary>
+        /// Called by CLHttpRest:DownloadFile() as the file is being downloaded.
+        /// </summary>
+        /// <param name="status">The file download status.</param>
+        /// <param name="eventSource">The event representing the file being downloaded.</param>
+        private static void OnSendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource)
+        {
+            try 
+        	{	        
+                // fire eventhandler for status change on transfer
+                MessageEvents.UpdateFileDownload(eventSource, // sender of event (the event itself)
+                    eventSource.EventId, // the event id which can uniquely identify the download
+                    new CLStatusFileTransferUpdateParameters(
+                        status.TransferStartTime,   // start time for download
+                        status.ByteSize,      // total file size
+                        status.RelativePath,  // relative path of file
+                        status.ByteProgress));   // current count of completed download bytes
+        	}
+	        catch  // silent
+	        {
+        	}
+        }
+
+
 
         // code to handle cleanup when an error occurred during upload
         private static void ProcessDownloadError(PossiblyStreamableFileChangeWithSyncData exceptionState, AggregateException exceptions)
@@ -3456,7 +3313,7 @@ namespace CloudApiPublic.Sync
                 }
 
                 // record the download completion response
-                responseBody = "---Completed file download---";
+                responseBody = kFileDownloadCompletedOk;
 
                 // try cast download event as one with dependencies
                 FileChangeWithDependencies toCompleteWithDependencies = completedDownload as FileChangeWithDependencies;
