@@ -5076,170 +5076,17 @@ namespace CloudApiPublic.Sync
                         // Contains errors only for rename changes where the original file/folder to rename was not found locally (can get converted to new create events)
                         // Should not give any completed changes
 
-                        // declare a string for the content of the request body
-                        string requestBody;
-                        // create a stream to serialize a json contract object for the request
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            // serialize a created json contract object for the current Sync To operation to the memory stream
-                            JsonContractHelpers.PushSerializer.WriteObject(ms,
-                                new Push()
-                                {
-                                    LastSyncId = syncString
-                                });
-                            // set the response body content from the serialized bytes in the stream
-                            requestBody = Encoding.Default.GetString(ms.ToArray());
-                        }
-
-                        // define a byte array as the bytes for the request content
-                        byte[] requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
-
-                        // set all the http request parameters for the Sync To operation
-
-                        HttpWebRequest pushRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom); // create the request for the Sync To location
-                        pushRequest.Method = CLDefinitions.HeaderAppendMethodPost; // Sync To is a POST operation
-                        pushRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set the client
-                        // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-                        pushRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = syncSettings.ClientVersion;
-                        pushRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(syncSettings.Akey); // set the authentication token
-                        pushRequest.SendChunked = false; // do not send chunked
-                        pushRequest.Timeout = HttpTimeoutMilliseconds; // the millisecond delay allowed for this operation
-                        pushRequest.ContentType = CLDefinitions.HeaderAppendContentTypeJson; // the request content will be json-formatted 
-                        pushRequest.Headers[CLDefinitions.HeaderKeyContentEncoding] = CLDefinitions.HeaderAppendContentEncoding; // the json request will be UTF8-encoded
-                        pushRequest.ContentLength = requestBodyBytes.Length; // write the size of the request content
-
-                        // if tracing communication, trace communication
-                        if ((syncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
-                        {
-                            // trace communication
-                            Trace.LogCommunication(syncSettings.TraceLocation, // location of the trace file
-                                syncSettings.Udid, // device id
-                                syncSettings.SyncBoxId, // user id
-                                CommunicationEntryDirection.Request, // direction of operation is request
-                                CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom, // path for Sync To
-                                true, // trace is enabled
-                                pushRequest.Headers, // request headers
-                                requestBody, // request body
-                                null, // requests do not have a status code
-                                syncSettings.TraceExcludeAuthorization, // whether to exclude the authorization information (such as the authentication token)
-                                pushRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
-                                pushRequest.ContentLength.ToString(), // content length value which would be part of the headers (but cannot be pulled from headers directly)
-                                (pushRequest.Expect == null ? "100-continue" : pushRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
-                                (pushRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
-                        }
-
-                        // grab the stream for writing the request
-                        using (Stream pushRequestStream = pushRequest.GetRequestStream())
-                        {
-                            // write the request content
-                            pushRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
-                        }
-
-                        // declare the response
-                        HttpWebResponse pushResponse;
-                        // try/catch process the operation and retrieve the response, on catch try to get the response from the error
-                        try
-                        {
-                            // process the operation and retrieve the response
-                            pushResponse = (HttpWebResponse)pushRequest.GetResponse();
-                        }
-                        catch (WebException ex)
-                        {
-                            // if the error does not contain a response, then rethrow the error
-                            if (ex.Response == null)
-                            {
-                                throw new NullReferenceException("pushRequest Response cannot be null", ex);
-                            }
-
-                            // store the response from the error
-                            pushResponse = (HttpWebResponse)ex.Response;
-                        }
-
-                        // declare the json contract object for the deserialized response
+                        // Send the request and get the response.
+                        CLHttpRestStatus status;
                         PushResponse deserializedResponse;
-                        // try/finally process the response into the deserialized object, finally close the response
-                        try
+                        Push requestPush = new Push()
+                            {
+                                LastSyncId = syncString
+                            };
+                        CLError errorFromPostSyncFromCloud = httpRestClient.PostSyncFromCloud(requestPush, HttpTimeoutMilliseconds, out status, out deserializedResponse);
+                        if (errorFromPostSyncFromCloud != null)
                         {
-                            // grab the response stream
-                            using (Stream pushHttpWebResponseStream = pushResponse.GetResponseStream())
-                            {
-                                // store the trace type in case it changes between two crucial points (deciding to made a stream wrapper and disposing the stream wrapper)
-                                TraceType storeTraceType = syncSettings.TraceType;
-
-                                // set the stream for processing the response by a copy of the communication stream (if trace enabled) or the communication stream itself (if trace is not enabled)
-                                Stream pushResponseStream = (((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                                    ? Helpers.CopyHttpWebResponseStreamAndClose(pushHttpWebResponseStream)
-                                    : pushHttpWebResponseStream);
-
-                                // try/finally process the response stream, finally if trace is enabled dispose the stream copy
-                                try
-                                {
-                                    // if tracing communication, then trace communication
-                                    if ((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                                    {
-                                        // trace communication
-                                        Trace.LogCommunication(syncSettings.TraceLocation, // location of trace file
-                                            syncSettings.Udid, // device id
-                                            syncSettings.SyncBoxId, // user id
-                                            CommunicationEntryDirection.Response, // direction of communication is response
-                                            CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom, // sync to path
-                                            true, // trace is enabled
-                                            pushResponse.Headers, // response headers
-                                            pushResponseStream, // use the copied stream as the response content (upon being read, it will seek back to origin for reuse)
-                                            (int)pushResponse.StatusCode, // response status code
-                                            syncSettings.TraceExcludeAuthorization); // whether to exclude authorization (such as the authentication token)
-                                    }
-
-                                    // if response status is not one of the accepted values, then use the response content in an error message and throw
-                                    if (pushResponse.StatusCode != HttpStatusCode.OK)
-                                    {
-                                        // define a string for an error message from the response content, defaulting to null
-                                        string pushResponseString = null;
-                                        // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
-                                        // try/catch read the response content into the error string, silently failing
-                                        try
-                                        {
-                                            // create a reader for the response content
-                                            using (TextReader pushResponseStreamReader = new StreamReader(pushResponseStream, Encoding.UTF8))
-                                            {
-                                                // set the error string from the response
-                                                pushResponseString = pushResponseStreamReader.ReadToEnd();
-                                            }
-                                        }
-                                        catch
-                                        {
-                                        }
-
-                                        // throw the error
-                                        throw new Exception("Invalid HTTP response status code in Sync From: " + ((int)pushResponse.StatusCode).ToString() +
-                                            (pushResponseString == null ? string.Empty
-                                                : Environment.NewLine + "Response:" + Environment.NewLine + // if a message was retrieved for the response content, then add it to the error message
-                                                pushResponseString));
-                                    }
-
-                                    // deserialize the response content into the appropriate json contract object
-                                    deserializedResponse = (PushResponse)JsonContractHelpers.PushResponseSerializer.ReadObject(pushResponseStream);
-                                }
-                                finally
-                                {
-                                    // if tracing communication, then the stream had been copied and the copy must be disposed
-                                    if ((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                                    {
-                                        pushResponseStream.Dispose();
-                                    }
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            // try/catch to dispose the response, failing silently
-                            try
-                            {
-                                pushResponse.Close();
-                            }
-                            catch
-                            {
-                            }
+                            throw new AggregateException("Error from sync_from request or response", errorFromPostSyncFromCloud.GrabExceptions());
                         }
 
                         // record the latest sync id from the deserialized response
