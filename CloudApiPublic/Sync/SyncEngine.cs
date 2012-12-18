@@ -5698,160 +5698,29 @@ namespace CloudApiPublic.Sync
         // communication method to retrieve a json contract object for metadata for a file or folder from the server at a specified path
         private JsonContracts.Metadata GetMetadataAtPath(FilePath getMetadataPath, bool isFolder)
         {
-            // build the location of the metadata retrieval method on the server dynamically
-            string metadataRequestUri = CLDefinitions.CLMetaDataServerURL + // base domain is the MDS server
-                (isFolder
-                    ? CLDefinitions.MethodPathGetFolderMetadata // if the current metadata is for a folder, then retrieve it from the folder method
-                    : CLDefinitions.MethodPathGetFileMetadata) + // else if the current metadata is for a file, then retrieve it from the file method
-                Helpers.QueryStringBuilder(new[] // both methods grab their parameters by query string (since this method is an HTTP GET)
-                    {
-                        // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(getMetadataPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true) + "/")),
-
-                        // query string parameter for the current user id, should not need escaping since it should be an integer in string format, but do it anyways
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, Uri.EscapeDataString(syncSettings.SyncBoxId))
-                    });
-
-            // set the parameters for the request
-
-            HttpWebRequest metadataRequest = (HttpWebRequest)HttpWebRequest.Create(metadataRequestUri); // create the request for the dynamically-calculated location
-            metadataRequest.Method = CLDefinitions.HeaderAppendMethodGet; // metadata requests (both methods) are HTTP GET
-            metadataRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set the client
-            // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-            metadataRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = syncSettings.ClientVersion;
-            metadataRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(syncSettings.Akey); // set the authorization as the authentication token
-            metadataRequest.SendChunked = false; // do not send chunked
-            metadataRequest.Timeout = HttpTimeoutMilliseconds; // set the timeout for the communication
-
-            // if tracing communication, then trace communication
-            if ((syncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
-            {
-                Trace.LogCommunication(syncSettings.TraceLocation, // location of the trace file
-                    syncSettings.Udid, // device id
-                    syncSettings.SyncBoxId, // user id
-                    CommunicationEntryDirection.Request, // direction of communication is request
-                    metadataRequestUri, // path to request metadata (dynamic for whether the metadata is for a file or folder)
-                    true, // trace is enabled
-                    metadataRequest.Headers, // request headers
-                    (string)null, // request is an HTTP GET so there is no request body content
-                    null, // requests do not have a status code
-                    syncSettings.TraceExcludeAuthorization, // whether to exclude authorization from the request (such as the authentication token)
-                    metadataRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
-                    null, // content length value which would be part of the headers (but cannot be pulled from headers directly) <-- null in this case because this is an HTTP GET with no request content
-                    (metadataRequest.Expect == null ? "100-continue" : metadataRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
-                    (metadataRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
-            }
-
-            // declare the response
-            HttpWebResponse metadataResponse;
-            // try/catch to process the communication and retrieve the response, on catch try to pull the response from the error
-            try
-            {
-                // process the communication and retrieve the response
-                metadataResponse = (HttpWebResponse)metadataRequest.GetResponse();
-            }
-            catch (WebException ex)
-            {
-                // if the error does not contain a response, then rethrow the error
-                if (ex.Response == null)
+            try 
+	        {	        
+                // Make the request to the server.
+                CLHttpRestStatus status;
+                JsonContracts.Metadata response = Helpers.DefaultForType<JsonContracts.Metadata>();
+                CLError errorFromGetMetadataAtPath = httpRestClient.GetMetadataAtPath(
+                        fullPath: getMetadataPath,
+                        isFolder: isFolder,
+                        timeoutMilliseconds: HttpTimeoutMilliseconds,
+                        status: out status,
+                        response: out response);
+                if (errorFromGetMetadataAtPath != null)
                 {
-                    throw new NullReferenceException("metadataRequest Response cannot be null", ex);
+                    throw new AggregateException("Error getting metadata at path", errorFromGetMetadataAtPath.GrabExceptions());
                 }
 
-                // pull the response from the error
-                metadataResponse = (HttpWebResponse)ex.Response;
+                return response;
             }
-
-            // declare the json contract object for the deserialized response
-            JsonContracts.Metadata toReturn;
-            // try/finally process the response and deserialize it, finally dispose the response
-            try
-            {
-                // grab the response stream
-                using (Stream metadataHttpWebResponseStream = metadataResponse.GetResponseStream())
-                {
-                    // store the trace type in case it changes between two crucial points (deciding to made a stream wrapper and disposing the stream wrapper)
-                    TraceType storeTraceType = syncSettings.TraceType;
-
-                    // set the stream for processing the response by a copy of the communication stream (if trace enabled) or the communication stream itself (if trace is not enabled)
-                    Stream metadataResponseStream = (((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                        ? Helpers.CopyHttpWebResponseStreamAndClose(metadataHttpWebResponseStream)  // if trace is enabled, then copy the communications stream to a memory stream
-                        : metadataHttpWebResponseStream); // if trace is not enabled, use the communication stream
-
-                    // try/finally process the response stream, finally if trace is enabled dispose the stream copy
-                    try
-                    {
-                        // if tracing communication, then trace communication
-                        if ((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                        {
-                            // trace communication
-                            Trace.LogCommunication(syncSettings.TraceLocation, // location of trace file
-                                syncSettings.Udid, // device id
-                                syncSettings.SyncBoxId, // user id
-                                CommunicationEntryDirection.Response, // direction of communication is response
-                                metadataRequestUri, // path to request metadata (dynamic for whether the metadata is for a file or folder)
-                                true, // trace is enabled 
-                                metadataResponse.Headers, // response headers
-                                metadataResponseStream, // use the copied stream as the response content (upon being read, it will seek back to origin for reuse)
-                                (int)metadataResponse.StatusCode, // response status code
-                                syncSettings.TraceExcludeAuthorization); // whether to exclude authorization (such as the authentication token)
-                        }
-
-                        // if response status is not one of the accepted values, then use the response content in an error message and throw
-                        if (metadataResponse.StatusCode != HttpStatusCode.OK
-                            && metadataResponse.StatusCode != HttpStatusCode.Accepted)
-                        {
-                            // define a string for an error message from the response content, defaulting to null
-                            string metadataResponseString = null;
-                            // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
-                            // try/catch read the response content into the error string, silently failing
-                            try
-                            {
-                                // create a reader for the response content
-                                using (TextReader metadataResponseStreamReader = new StreamReader(metadataResponseStream, Encoding.UTF8))
-                                {
-                                    // set the error string from the response
-                                    metadataResponseString = metadataResponseStreamReader.ReadToEnd();
-                                }
-                            }
-                            catch
-                            {
-                            }
-
-                            // throw the error
-                            throw new Exception("Invalid HTTP response status code in Get Metadata: " + ((int)metadataResponse.StatusCode).ToString() +
-                                (metadataResponseString == null ? string.Empty
-                                    : Environment.NewLine + "Response:" + Environment.NewLine + // if a message was retrieved for the response content, then add it to the error message
-                                    metadataResponseString));
-                        }
-
-                        // deserialize the response content into the appropriate json contract object
-                        toReturn = (JsonContracts.Metadata)JsonContractHelpers.GetMetadataResponseSerializer.ReadObject(metadataResponseStream);
-                    }
-                    finally
-                    {
-                        // if tracing communication, then the stream had been copied and the copy must be disposed
-                        if ((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                        {
-                            metadataResponseStream.Dispose();
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                // try/catch to dispose the response, failing silently
-                try
-                {
-                    metadataResponse.Close();
-                }
-                catch
-                {
-                }
-            }
-
-            // return the deserialized server response for metadata
-            return toReturn;
+	        catch (Exception ex)
+	        {
+                ((CLError)new Exception("Error from GetMetadataAtPath", ex)).LogErrors(syncSettings.TraceLocation, syncSettings.LogErrors);
+                throw;
+        	} 
         }
 
         // helper method which takes a FileChange and a hash string and creates a new FileChange with dependencies and sets the hash as the MD5 bytes; also copies over dependencies if any
