@@ -140,7 +140,7 @@ namespace CloudApiPublic.PushNotification
                 // WebSocket4Net implementation.
                 try
                 {
-                    string url = String.Format("{0}?channel=/channel_{1}&sender={2}", CLDefinitions.CLNotificationServerURL, _syncSettings.Uuid, _syncSettings.Udid);
+                    string url = String.Format("{0}?channel=/channel_{1}&sender={2}", CLDefinitions.CLNotificationServerURL, _syncSettings.SyncBoxId, _syncSettings.Udid);
                     _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>.", url);
 
                     //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on _syncSettings.TraceExcludeAuthorization !!

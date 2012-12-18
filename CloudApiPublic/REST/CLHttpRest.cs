@@ -82,6 +82,7 @@ namespace CloudApiPublic.REST
         #endregion
 
         #region public API calls
+
         /// <summary>
         /// Uploads a file from a provided stream and file upload change
         /// </summary>
@@ -90,7 +91,7 @@ namespace CloudApiPublic.REST
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
         public CLError UploadFile(Stream uploadStream,
             FileChange changeToUpload,
             int timeoutMilliseconds,
@@ -121,6 +122,70 @@ namespace CloudApiPublic.REST
                         changeToUpload, // the FileChange describing the upload
                         shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
                         settings.SyncRoot), // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
+                    okCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
+                    ref status); // reference to update the output success/failure status for the communication
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Downloads a file to a provided stream using a file download change
+        /// </summary>
+        /// <param name="beforeDownloadCallback">Called back before downloading the file.</param>
+        /// <param name="beforeDownloadUserState">User state before downloading the file.</param>
+        /// <param name="afterDownloadToTempFileCallback">Called back after downloading the file to a temp file in the temp file folder.</param>
+        /// <param name="afterDownloadUserState">User state after downloading the file to a temp file.</param>
+        /// <param name="tempDownloadFolderPath">Folder to contain the temp downloaded files.</param>
+        /// <param name="sendUploadDownloadStatusCallback">Called back with download status.</param>
+        /// <param name="changeToDownload">File download change, requires the StorageKey to be set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file download</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="shutdownToken">(optional) Token used to request cancellation of the download.</param>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        public CLError DownloadFile(
+            BeforeDownloadToTempFile beforeDownloadCallback,
+            object beforeDownloadUserState,
+            AfterDownloadToTempFile afterDownloadToTempFileCallback,
+            object afterDownloadUserState,
+            string tempDownloadFolderPath,
+            SendUploadDownloadStatus sendUploadDownloadStatusCallback,
+            FileChange changeToDownload,
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            CancellationTokenSource shutdownToken = null)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the file download, on catch return the error
+            try
+            {
+                // check input parameters (other checks are done on constructing the private upload class upon ProcessHttp)
+
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // run the HTTP communication
+                ProcessHttp<object, object>(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
+                    CLDefinitions.CLUploadDownloadServerURL,  // Server URL
+                    CLDefinitions.MethodPathDownload, // path to download
+                    requestMethod.post, // download request is an HTTP POST
+                    timeoutMilliseconds, // time before communication timeout (does not restrict time for the actual file upload)
+                    new download(                   // this is a special communication method and requires passing download parameters
+                        BeforeDownloadCallback: beforeDownloadCallback,             // called before download
+                        BeforeDownloadUserState: beforeDownloadUserState,           // user state before download
+                        AfterDownloadCallback: afterDownloadToTempFileCallback,     // called after download to temp file completes
+                        AfterDownloadUserState: afterDownloadUserState,             // user state after download
+                        TempDownloadFolderPath: tempDownloadFolderPath,             // the temp file folder path
+                        StatusCallback: sendUploadDownloadStatusCallback,           // called with download status
+                        ChangeToTransfer: changeToDownload,                         // FileChange representing the file to download
+                        ShutdownToken: shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
+                        SyncRootFullPath: settings.SyncRoot), // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
                     okCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
                     ref status); // reference to update the output success/failure status for the communication
             }
@@ -301,7 +366,6 @@ namespace CloudApiPublic.REST
             httpRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
             httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = settings.ClientVersion; // set client version
-            //&&&&httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(settings.Akey); // set authentication key
             httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken +
                              CLDefinitions.WrapInDoubleQuotes(
                                         GenerateAuthorizationHeaderToken(

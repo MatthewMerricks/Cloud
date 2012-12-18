@@ -165,7 +165,7 @@ namespace CloudApiPublic
 
                 // Start the indexer.
                 _trace.writeToLog(9, "CLSync: Start: Start the indexer.");
-                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, _syncSettings.Uuid, _syncSettings.DatabaseFolder);
+                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, _syncSettings.SyncBoxId, _syncSettings.DatabaseFolder);
                 if (indexCreationError != null)
                 {
                     _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, indexCreationError.errorCode);

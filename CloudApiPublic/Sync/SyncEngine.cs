@@ -95,7 +95,7 @@ namespace CloudApiPublic.Sync
             // Copy sync settings in case third party attempts to change values without restarting sync 
             this.syncSettings = SyncSettingsExtensions.CopySettings(syncSettings);
 
-            if (string.IsNullOrWhiteSpace(this.syncSettings.Uuid))
+            if (string.IsNullOrWhiteSpace(this.syncSettings.SyncBoxId))
             {
                 throw new NullReferenceException("syncSettings Uuid cannot be null");
             }
@@ -109,7 +109,7 @@ namespace CloudApiPublic.Sync
 
             this.DefaultTempDownloadsPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" +
                 Helpers.GetDefaultNameFromApplicationName() + // name of currently running application
-                "\\" + this.syncSettings.Uuid + // unique downloads location for each user
+                "\\" + this.syncSettings.SyncBoxId + // unique downloads location for each user
                 "\\DownloadTemp";
 
             this.HttpTimeoutMilliseconds = HttpTimeoutMilliseconds;
@@ -445,7 +445,7 @@ namespace CloudApiPublic.Sync
                         // advanced trace, SyncRunInitialErrors
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.FileChange));
+                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.FileChange));
                         }
 
                         // update last status
@@ -790,8 +790,8 @@ namespace CloudApiPublic.Sync
                         // for advanced trace, log SyncRunPreprocessedEventsSynchronous and SyncRunPreprocessedEventsAsynchronous
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
+                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
+                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
                         }
 
                         // after each loop where more FileChanges from previous dependencies are processed,
@@ -831,8 +831,8 @@ namespace CloudApiPublic.Sync
                         // for advanced trace, SyncRunRequeuedFailuresBeforeCommunication and SyncRunChangesForCommunication
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.FileChange));
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
+                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.FileChange));
+                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
                         }
 
                         // update latest status
@@ -877,9 +877,9 @@ namespace CloudApiPublic.Sync
                             // for advanced trace, CommunicationCompletedChanges, CommunicationIncompletedChanges, and CommunicationChangesInError
                             if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
-                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
-                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
+                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
+                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
+                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
                             }
                             
                             // if there are completed changes, then loop through them to process success
@@ -973,7 +973,7 @@ namespace CloudApiPublic.Sync
                                 // For advanced trace, SyncRunPostCommunicationDequeuedFailures
                                 if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                 {
-                                    Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
+                                    Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
                                 }
 
                                 // Declare enumerable for errors to set after dependency calculations
@@ -1067,8 +1067,8 @@ namespace CloudApiPublic.Sync
                                         // For advanced trace, DependencyAssignmentOutputChanges and DependencyAssignmentTopLevelErrors
                                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                         {
-                                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
-                                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
+                                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
+                                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
                                         }
 
                                         // outputChanges now excludes any FileChanges which overlapped with the existing list of thingsThatWereDependenciesToQueue
@@ -1204,7 +1204,7 @@ namespace CloudApiPublic.Sync
                             // advanced trace, SyncRunPostCommunicationSynchronous
                             if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
+                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
                             }
 
                             // update latest status
@@ -1365,7 +1365,7 @@ namespace CloudApiPublic.Sync
                             // advanced trace, SyncRunPostCommunicationAsynchronous
                             if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
+                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
                             }
 
                             // for any FileChange which was asynchronously queued for file upload or download,
@@ -1429,7 +1429,7 @@ namespace CloudApiPublic.Sync
                         // advanced trace, SyncRunEndThingsThatWereDependenciesToQueue
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
+                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
                         }
                     }
                     // on catch, add dependencies to failure queue
@@ -1479,7 +1479,7 @@ namespace CloudApiPublic.Sync
                 if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow
                     && errorsToQueue != null) // <-- fixed a parameter exception on the Enumerable.Select extension method used in the trace statement
                 {
-                    Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.FileChange));
+                    Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.FileChange));
                 }
 
                 // errorsToQueue is no longer used (all its errors were added back to the failure queue)
@@ -1847,7 +1847,7 @@ namespace CloudApiPublic.Sync
                                 MaxNumberOfNotFounds = MaxNumberOfNotFounds,
                                 FailedChangesQueue = FailedChangesQueue,
                                 RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent,
-                                RestClient = httpRestClient;
+                                RestClient = httpRestClient
                             }));
                 }
                 //  else if FileChange was not a Sync From change nor a Sync To change, throw exception for unknown direction
@@ -2015,356 +2015,15 @@ namespace CloudApiPublic.Sync
                             out status,
                             castState.ShutdownToken);
 
-                    &&&&&&&&&&&
-                    // set communication parameters for upload
-
-                    HttpWebRequest uploadRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload); // create request by upload path
-                    uploadRequest.Method = CLDefinitions.HeaderAppendMethodPut; // upload uses HTTP PUT
-                    uploadRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
-                    // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-                    uploadRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = castState.SyncSettings.ClientVersion; // set client version
-                    uploadRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(castState.SyncSettings.Akey); // set authentication key
-                    uploadRequest.SendChunked = false; // send non-chunked
-                    uploadRequest.Timeout = (int)castState.HttpTimeoutMilliseconds; // set timeout by input parameter, timeout does not apply to the amount of time it takes to perform the actual upload
-                    uploadRequest.ContentType = CLDefinitions.HeaderAppendContentTypeBinary; // content will be direct binary stream
-                    uploadRequest.ContentLength = (long)castState.FileToUpload.Metadata.HashableProperties.Size; // content length will be file size
-                    uploadRequest.Headers[CLDefinitions.HeaderAppendStorageKey] = castState.FileToUpload.Metadata.StorageKey; // add header for destination location of file
-                    uploadRequest.Headers[CLDefinitions.HeaderAppendContentMD5] = hash; // set MD5 content hash for verification of upload stream
-                    uploadRequest.KeepAlive = true; // do not close connection (is this needed?)
-
-                    // if communication is supposed to be traced, then trace it
-                    if ((castState.SyncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
-                    {
-                        // trace communication for requesting start of file upload
-                        Trace.LogCommunication(castState.SyncSettings.TraceLocation, // location of trace file
-                            castState.SyncSettings.Udid, // device id
-                            castState.SyncSettings.Uuid, // user id
-                            CommunicationEntryDirection.Request, // direction is request
-                            CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload, // path for file upload
-                            true, // trace is enabled
-                            uploadRequest.Headers, // headers of request
-                            "---File upload started---", // content of request (does not trace the actual file upload itself, converted to a simple string)
-                            null, // no status code for requests
-                            castState.SyncSettings.TraceExcludeAuthorization, // whether or not to exclude authorization information (like the authentication key)
-                            uploadRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
-                            uploadRequest.ContentLength.ToString(), // content length value which would be part of the headers (but cannot be pulled from headers directly)
-                            (uploadRequest.Expect == null ? "100-continue" : uploadRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
-                            (uploadRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
-                    }
-
-                    // define size to be used for status update event callbacks
-                    long storeSizeForStatus = castState.FileToUpload.Metadata.HashableProperties.Size ?? 0;
-                    // define relative path to be used for status update event callbacks
-                    string storeRelativePathForStatus = castState.FileToUpload.NewPath.GetRelativePath((castState.SyncSettings.SyncRoot ?? string.Empty), false);
-                    // retrieve and define time for when upload started (now)
-                    DateTime storeStartTimeForStatus = getStartTime(startTimeHolder);
-
-                    // create new async holder used to make async http calls synchronous
-                    AsyncRequestHolder requestHolder = new AsyncRequestHolder(castState.ShutdownToken);
-
-                    // declare result from async http call
-                    IAsyncResult requestAsyncResult;
-
-                    // lock on async holder for modification
-                    lock (requestHolder)
-                    {
-                        // begin upload request asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
-                        requestAsyncResult = uploadRequest.BeginGetRequestStream(new AsyncCallback(MakeAsyncRequestSynchronous), requestHolder);
-
-                        // wait on the request to become synchronous again
-                        Monitor.Wait(requestHolder);
-                    }
-
-                    // if there was an error that occurred on the async http call, then rethrow the error
-                    if (requestHolder.Error != null)
-                    {
-                        throw requestHolder.Error;
-                    }
-
-                    // if the http call was cancelled, then return immediately with default
-                    if (requestHolder.IsCanceled)
-                    {
-                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings);
-                    }
-
-                    // get the stream used for the actual upload
-                    using (Stream uploadRequestStream = uploadRequest.EndGetRequestStream(requestAsyncResult))
-                    {
-                        // define a transfer buffer between the file and the upload stream
-                        byte[] uploadBuffer = new byte[FileConstants.BufferSize];
-
-                        // declare a count of the bytes read in each buffer read from the file
-                        int bytesRead;
-                        // define a count for the total amount of bytes uploaded so far
-                        long totalBytesUploaded = 0;
-
-                        // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file and store the read byte count
-                        while ((bytesRead = castState.UploadStream.Read(uploadBuffer, 0, uploadBuffer.Length)) != 0)
-                        {
-                            // write the buffer from the file to the upload stream
-                            uploadRequestStream.Write(uploadBuffer, 0, bytesRead);
-                            // add the number of bytes read on the current buffer transfer to the total bytes uploaded
-                            totalBytesUploaded += bytesRead;
-
-                            // check for sync shutdown
-                            Monitor.Enter(castState.ShutdownToken);
-                            try
-                            {
-                                if (castState.ShutdownToken.Token.IsCancellationRequested)
-                                {
-                                    return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings);
-                                }
-                            }
-                            finally
-                            {
-                                Monitor.Exit(castState.ShutdownToken);
-                            }
-
-                            // fire event callbacks for status change on uploading
-                            MessageEvents.UpdateFileUpload(castState.FileToUpload, // source of event, the event itself
-                                castState.FileToUpload.EventId, // event id which should uniquely identify this transfer
-                                new CLStatusFileTransferUpdateParameters(
-                                    storeStartTimeForStatus, // time of upload start
-                                    storeSizeForStatus, // total size of file
-                                    storeRelativePathForStatus, // relative path of file
-                                    totalBytesUploaded)); // bytes uploaded so far
-                        }
-                    }
-
-                    // try/catch to dispose the stream from the event source, silence errors
-                    try
-                    {
-                        castState.UploadStream.Dispose();
-                        castState.UploadStream = null;
-                    }
-                    catch
-                    {
-                    }
-
-                    // declare the response
-                    HttpWebResponse uploadResponse;
-                    // try/catch to retrieve the upload response, on catch of a WebException try to store the response anyways and continue
-                    try
-                    {
-                        // create new async holder used to make async http calls synchronous
-                        AsyncRequestHolder responseHolder = new AsyncRequestHolder(castState.ShutdownToken);
-
-                        // declare result from async http call
-                        IAsyncResult responseAsyncResult;
-
-                        // lock on async holder for modification
-                        lock (responseHolder)
-                        {
-                            // retrieve the response asynchronously, using callback which will take the async holder and make the response synchronous again, storing the result
-                            responseAsyncResult = uploadRequest.BeginGetResponse(new AsyncCallback(MakeAsyncRequestSynchronous), responseHolder);
-
-                            // wait on the response to become synchronous again
-                            Monitor.Wait(responseHolder);
-                        }
-
-                        // if there was an error that occurred on the async http call, then rethrow the error
-                        if (responseHolder.Error != null)
-                        {
-                            throw responseHolder.Error;
-                        }
-
-                        // if the http call was cancelled, then return immediately with default
-                        if (responseHolder.IsCanceled)
-                        {
-                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings);
-                        }
-                        
-                        // store the retrieved response
-                        uploadResponse = (HttpWebResponse)uploadRequest.EndGetResponse(responseAsyncResult);
-                    }
-                    catch (WebException ex)
-                    {
-                        // if the web exception does not have a response, rethrow the exception
-                        if (ex.Response == null)
-                        {
-                            throw new NullReferenceException("uploadRequest Response cannot be null", ex);
-                        }
-                        // store the error response
-                        uploadResponse = (HttpWebResponse)ex.Response;
-                    }
-
-                    // try/finally to process the retrieved response, finally close the response
-                    try
-                    {
-                        // define a response body, default to a value that will be displayed if the actual response fails to process
-                        string responseBody = "---File upload incomplete---";
-                        // try/finally process the response message, finally trace communication if needed
-                        try
-                        {
-                            // if the response status code is not any of the valid values,
-                            // then set a response body from the content of the response and throw the error
-                            if (uploadResponse.StatusCode != HttpStatusCode.OK
-                                && uploadResponse.StatusCode != HttpStatusCode.Created
-                                && uploadResponse.StatusCode != HttpStatusCode.NotModified)
-                            {
-                                // try/catch to set the response body from the content of the response, on catch silence the error
-                                try
-                                {
-                                    // grab the response stream
-                                    using (Stream downloadResponseStream = uploadResponse.GetResponseStream())
-                                    {
-                                        // read the response as UTF8 text
-                                        using (StreamReader downloadResponseStreamReader = new StreamReader(downloadResponseStream, Encoding.UTF8))
-                                        {
-                                            // set the response text
-                                            responseBody = downloadResponseStreamReader.ReadToEnd();
-                                        }
-                                    }
-                                }
-                                catch
-                                {
-                                }
-
-                                // throw the exception for an invalid response
-                                throw new Exception("Invalid HTTP response status code in file upload: " + ((int)uploadResponse.StatusCode).ToString() +
-                                    (responseBody == null ? string.Empty
-                                        : Environment.NewLine + "Response:" + Environment.NewLine +
-                                        responseBody)); // either the default "incomplete" body or the body retrieved from the response content
-                            }
-                            // else if the response status code is one of the valid values, then upload was successful:
-                            // advanced trace, set body for communication trace, and queue dependencies for processing
-                            else
-                            {
-                                // for advanced trace, UploadDownloadSuccess
-                                if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                                {
-                                    Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
-                                }
-
-                                // set body as successful value
-                                responseBody = "---File upload complete---";
-
-                                // try to cast the current event as one with dependencies
-                                FileChangeWithDependencies toCompleteWithDependencies = castState.FileToUpload as FileChangeWithDependencies;
-                                // if the current event was one with dependencies and has at least one dependency, then queue dependencies for processing
-                                if (toCompleteWithDependencies != null
-                                    && toCompleteWithDependencies.DependenciesCount > 0)
-                                {
-                                    // create a holder for a list of events which could not be added for processing
-                                    GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
-                                    // add dependencies to processing queue on event source, storing any error that occurs
-                                    CLError err = castState.SyncData.addChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, // dependencies to add to processing queue
-                                        /* add to top */true, // add changes to top of processing queue
-                                        errList); // holder for list of changes which failed to add to processing queue
-
-                                    // if the holder for errors has a value, then queue changes in error to failure queue
-                                    if (errList.Value != null)
-                                    {
-                                        // define a bool for whether at least one change was added to the processing queue, defaulting to false
-                                        bool atLeastOneFailureAdded = false;
-
-                                        // lock on failure queue timer locker for modifying failure queue
-                                        lock (castState.FailureTimer.TimerRunningLocker)
-                                        {
-                                            // loop through changes in error from adding to processing queue
-                                            foreach (FileChange currentError in errList.Value)
-                                            {
-                                                // enqueue change in error to failure queue
-                                                castState.FailedChangesQueue.Enqueue(currentError);
-
-                                                // mark that an error was added to the failure queue
-                                                atLeastOneFailureAdded = true;
-                                            }
-
-                                            // if at least one error was added to the failure queue, start the failure queue timer
-                                            if (atLeastOneFailureAdded)
-                                            {
-                                                castState.FailureTimer.StartTimerIfNotRunning();
-                                            }
-                                        }
-                                    }
-
-                                    // if an error occurred adding dependencies to the processing queue in the event source,
-                                    // then add the dependencies to the failed changes queue if they haven't already been added and also log the error
-                                    if (err != null)
-                                    {
-                                        // if dependencies have not already been added to the failure queue, then add them
-                                        if (errList.Value == null)
-                                        {
-                                            // try/catch to add dependencies to failure queue, on catch aggregate the exception to the error to be logged
-                                            try
-                                            {
-                                                // lock on failure queue timer locker for modifying the failure queue
-                                                lock (castState.FailureTimer.TimerRunningLocker)
-                                                {
-                                                    // define a bool for whether an event was added to the failure queue, defaulting to false
-                                                    bool atLeastOneFailureAdded = false;
-
-                                                    // loop through dependencies
-                                                    foreach (FileChange currentDependency in toCompleteWithDependencies.Dependencies)
-                                                    {
-                                                        // add the current dependency to the failure queue
-                                                        castState.FailedChangesQueue.Enqueue(currentDependency);
-
-                                                        // mark that a dependency was added to the failure queue
-                                                        atLeastOneFailureAdded = true;
-                                                    }
-
-                                                    // if at least one dependency was added to the failure queue, then start the failure queue timer
-                                                    if (atLeastOneFailureAdded)
-                                                    {
-                                                        castState.FailureTimer.StartTimerIfNotRunning();
-                                                    }
-                                                }
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                // aggregate the error queing dependencies to the failure queue with the existing error
-                                                err += ex;
-                                            }
-                                        }
-
-                                        // log the error
-                                        err.LogErrors(castState.SyncSettings.TraceLocation, castState.SyncSettings.LogErrors);
-                                    }
-                                }
-
-                                // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
-                                return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncSettings);
-                            }
-                        }
-                        finally
-                        {
-                            // for communication logging, log communication
-                            if ((castState.SyncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
-                            {
-                                // log communication
-                                Trace.LogCommunication(castState.SyncSettings.TraceLocation, // trace file location
-                                    castState.SyncSettings.Udid, // device id
-                                    castState.SyncSettings.Uuid, // user id
-                                    CommunicationEntryDirection.Response, // communication direction is response
-                                    CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload, // path for file upload
-                                    true, // trace is enabled
-                                    uploadResponse.Headers, // response headers
-                                    responseBody, // response body (either an overridden string that says "complete" or "incomplete" or an error message from the actual response)
-                                    (int)uploadResponse.StatusCode, // status code of the response
-                                    castState.SyncSettings.TraceExcludeAuthorization); // whether to include authorization in the trace (such as the authentication key)
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        // try/catch to close the response and fail silently
-                        try
-                        {
-                            uploadResponse.Close();
-                        }
-                        catch
-                        {
-                        }
-                    }
+                    // Handle a successful upload.
+                    return HandleSuccessfulUpload(castState);
                 }
                 catch
                 {
                     // advanced trace, UploadDownloadFailure
                     if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToUpload == null ? null : new FileChange[] { castState.FileToUpload }));
+                        Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToUpload == null ? null : new FileChange[] { castState.FileToUpload }));
                     }
 
                     // rethrow
@@ -2484,6 +2143,108 @@ namespace CloudApiPublic.Sync
                     castState.RemoveFileChangeEvents(castState.FileToUpload);
                 }
             }
+        }
+
+        /// <summary>
+        /// Handle a successful upload operation.
+        /// </summary>
+        /// <param name="castState"></param>
+        /// <returns></returns>
+        private static EventIdAndCompletionProcessor HandleSuccessfulUpload(UploadTaskState castState)
+        {
+            // for advanced trace, UploadDownloadSuccess
+            if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            {
+                Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
+            }
+
+            // try to cast the current event as one with dependencies
+            FileChangeWithDependencies toCompleteWithDependencies = castState.FileToUpload as FileChangeWithDependencies;
+            // if the current event was one with dependencies and has at least one dependency, then queue dependencies for processing
+            if (toCompleteWithDependencies != null
+                && toCompleteWithDependencies.DependenciesCount > 0)
+            {
+                // create a holder for a list of events which could not be added for processing
+                GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
+                // add dependencies to processing queue on event source, storing any error that occurs
+                CLError err = castState.SyncData.addChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, // dependencies to add to processing queue
+                    /* add to top */true, // add changes to top of processing queue
+                    errList); // holder for list of changes which failed to add to processing queue
+
+                // if the holder for errors has a value, then queue changes in error to failure queue
+                if (errList.Value != null)
+                {
+                    // define a bool for whether at least one change was added to the processing queue, defaulting to false
+                    bool atLeastOneFailureAdded = false;
+
+                    // lock on failure queue timer locker for modifying failure queue
+                    lock (castState.FailureTimer.TimerRunningLocker)
+                    {
+                        // loop through changes in error from adding to processing queue
+                        foreach (FileChange currentError in errList.Value)
+                        {
+                            // enqueue change in error to failure queue
+                            castState.FailedChangesQueue.Enqueue(currentError);
+
+                            // mark that an error was added to the failure queue
+                            atLeastOneFailureAdded = true;
+                        }
+
+                        // if at least one error was added to the failure queue, start the failure queue timer
+                        if (atLeastOneFailureAdded)
+                        {
+                            castState.FailureTimer.StartTimerIfNotRunning();
+                        }
+                    }
+                }
+
+                // if an error occurred adding dependencies to the processing queue in the event source,
+                // then add the dependencies to the failed changes queue if they haven't already been added and also log the error
+                if (err != null)
+                {
+                    // if dependencies have not already been added to the failure queue, then add them
+                    if (errList.Value == null)
+                    {
+                        // try/catch to add dependencies to failure queue, on catch aggregate the exception to the error to be logged
+                        try
+                        {
+                            // lock on failure queue timer locker for modifying the failure queue
+                            lock (castState.FailureTimer.TimerRunningLocker)
+                            {
+                                // define a bool for whether an event was added to the failure queue, defaulting to false
+                                bool atLeastOneFailureAdded = false;
+
+                                // loop through dependencies
+                                foreach (FileChange currentDependency in toCompleteWithDependencies.Dependencies)
+                                {
+                                    // add the current dependency to the failure queue
+                                    castState.FailedChangesQueue.Enqueue(currentDependency);
+
+                                    // mark that a dependency was added to the failure queue
+                                    atLeastOneFailureAdded = true;
+                                }
+
+                                // if at least one dependency was added to the failure queue, then start the failure queue timer
+                                if (atLeastOneFailureAdded)
+                                {
+                                    castState.FailureTimer.StartTimerIfNotRunning();
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // aggregate the error queing dependencies to the failure queue with the existing error
+                            err += ex;
+                        }
+                    }
+
+                    // log the error
+                    err.LogErrors(castState.SyncSettings.TraceLocation, castState.SyncSettings.LogErrors);
+                }
+            }
+
+            // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
+            return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncSettings);
         }
 
         // code to handle cleanup when an error occurred during upload
@@ -2860,7 +2621,7 @@ namespace CloudApiPublic.Sync
                     // trace communication
                     Trace.LogCommunication(castState.SyncSettings.TraceLocation, // location of trace file
                         castState.SyncSettings.Udid, // device id
-                        castState.SyncSettings.Uuid, // user id
+                        castState.SyncSettings.SyncBoxId, // user id
                         CommunicationEntryDirection.Request, // direction of communication is request
                         CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathDownload, // path for download
                         true, // trace is enabled
@@ -3109,7 +2870,7 @@ namespace CloudApiPublic.Sync
                             // trace communication
                             Trace.LogCommunication(castState.SyncSettings.TraceLocation, // location of trace file
                                 castState.SyncSettings.Udid, // device id
-                                castState.SyncSettings.Uuid, // user id
+                                castState.SyncSettings.SyncBoxId, // user id
                                 CommunicationEntryDirection.Response, // direction of communication is response
                                 CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathDownload, // download path
                                 true, // trace is enabled
@@ -3137,7 +2898,7 @@ namespace CloudApiPublic.Sync
                 // for advanced trace, UploadDownloadFailure
                 if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
+                    Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
                 }
 
                 // if there was a download event, then fire the eventhandler for finishing the status of the transfer
@@ -3224,7 +2985,7 @@ namespace CloudApiPublic.Sync
                 else
                 {
                     // wrap the error to execute for cleanup
-                    ExecutableException<PossiblyStreamableFileChangeWithSyncData> wrappedEx = new ExecutableException<PossiblyStreamableFileChangeWithSyncData>(ProcessUploadError, // callback with the code to handle cleanup
+                    ExecutableException<PossiblyStreamableFileChangeWithSyncData> wrappedEx = new ExecutableException<PossiblyStreamableFileChangeWithSyncData>(ProcessDownloadError, // callback with the code to handle cleanup
                         new PossiblyStreamableFileChangeWithSyncData(castState.FailedChangesQueue, // failure queue for reprocessing failed events
                             (byte)castState.MaxNumberOfFailureRetries, // how many times to retry on failure before stopping
                             (byte)castState.MaxNumberOfNotFounds, // how many not found errors can occur before presuming the event was cancelled out
@@ -3648,7 +3409,7 @@ namespace CloudApiPublic.Sync
                 // For advanced trace, UploadDownloadSuccess
                 if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.Uuid, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
+                    Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
                 }
 
                 // Pull the location of the temp download folder by finding the directory path portion before the name of the downloaded file
@@ -3896,7 +3657,7 @@ namespace CloudApiPublic.Sync
                         // properties are purposed as named
 
                         DeviceId = syncSettings.Udid,
-                        UserId = syncSettings.Uuid
+                        UserId = syncSettings.SyncBoxId
                     };
                     
                     // declare the json contract object for the response content
@@ -4122,7 +3883,7 @@ namespace CloudApiPublic.Sync
                             CLDefinitions.MethodPathSyncTo +
                             Helpers.QueryStringBuilder(new KeyValuePair<string, string>[]
                                 {
-                                    new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, syncSettings.Uuid) // query string parameter "user_id" should be set to the user id
+                                    new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, syncSettings.SyncBoxId) // query string parameter "user_id" should be set to the user id
                                 }
                             );
 
@@ -4146,7 +3907,7 @@ namespace CloudApiPublic.Sync
                             // trace communication
                             Trace.LogCommunication(syncSettings.TraceLocation, // location of trace file
                                 syncSettings.Udid, // device id
-                                syncSettings.Uuid, // user id
+                                syncSettings.SyncBoxId, // user id
                                 CommunicationEntryDirection.Request, // direction of communication is request
                                 syncToHostAndMethod, // the dynamically calculated location for communication
                                 true, // trace is enabled
@@ -4211,7 +3972,7 @@ namespace CloudApiPublic.Sync
                                         // trace communication
                                         Trace.LogCommunication(syncSettings.TraceLocation, // location of trace file
                                             syncSettings.Udid, // device id
-                                            syncSettings.Uuid, // user id
+                                            syncSettings.SyncBoxId, // user id
                                             CommunicationEntryDirection.Response, // direction of communication is response
                                             syncToHostAndMethod, // sync to path
                                             true, // trace is enabled
@@ -5657,7 +5418,7 @@ namespace CloudApiPublic.Sync
                             // trace communication
                             Trace.LogCommunication(syncSettings.TraceLocation, // location of the trace file
                                 syncSettings.Udid, // device id
-                                syncSettings.Uuid, // user id
+                                syncSettings.SyncBoxId, // user id
                                 CommunicationEntryDirection.Request, // direction of operation is request
                                 CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom, // path for Sync To
                                 true, // trace is enabled
@@ -5723,7 +5484,7 @@ namespace CloudApiPublic.Sync
                                         // trace communication
                                         Trace.LogCommunication(syncSettings.TraceLocation, // location of trace file
                                             syncSettings.Udid, // device id
-                                            syncSettings.Uuid, // user id
+                                            syncSettings.SyncBoxId, // user id
                                             CommunicationEntryDirection.Response, // direction of communication is response
                                             CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathSyncFrom, // sync to path
                                             true, // trace is enabled
@@ -6091,7 +5852,7 @@ namespace CloudApiPublic.Sync
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(getMetadataPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true) + "/")),
 
                         // query string parameter for the current user id, should not need escaping since it should be an integer in string format, but do it anyways
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, Uri.EscapeDataString(syncSettings.Uuid))
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, Uri.EscapeDataString(syncSettings.SyncBoxId))
                     });
 
             // set the parameters for the request
@@ -6110,7 +5871,7 @@ namespace CloudApiPublic.Sync
             {
                 Trace.LogCommunication(syncSettings.TraceLocation, // location of the trace file
                     syncSettings.Udid, // device id
-                    syncSettings.Uuid, // user id
+                    syncSettings.SyncBoxId, // user id
                     CommunicationEntryDirection.Request, // direction of communication is request
                     metadataRequestUri, // path to request metadata (dynamic for whether the metadata is for a file or folder)
                     true, // trace is enabled
@@ -6169,7 +5930,7 @@ namespace CloudApiPublic.Sync
                             // trace communication
                             Trace.LogCommunication(syncSettings.TraceLocation, // location of trace file
                                 syncSettings.Udid, // device id
-                                syncSettings.Uuid, // user id
+                                syncSettings.SyncBoxId, // user id
                                 CommunicationEntryDirection.Response, // direction of communication is response
                                 metadataRequestUri, // path to request metadata (dynamic for whether the metadata is for a file or folder)
                                 true, // trace is enabled 
