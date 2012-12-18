@@ -207,7 +207,7 @@ namespace CloudApiPublic.REST
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
         public CLError GetMetadataAtPath(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
@@ -255,6 +255,51 @@ namespace CloudApiPublic.REST
                 response = Helpers.DefaultForType<JsonContracts.Metadata>();
                 return ex;
             }
+            return null;
+        }
+
+        /// <summary>
+        /// Sends a list of sync events to the server.  The events must be batched in groups of 1,000 or less.
+        /// </summary>
+        /// <param name="syncTo">The array of events to send to the server.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        public CLError PostSyncToCloud(To syncTo, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.To response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+
+            // try/catch to process the sync_to request, on catch return the error
+            try
+            {
+                // check input parameters
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // build the location of the metadata retrieval method on the server dynamically
+                string serverMethodPath = CLDefinitions.MethodPathSyncTo;
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = ProcessHttp<object, JsonContracts.To>(
+                    syncTo,
+                    CLDefinitions.CLMetaDataServerURL,   // base domain is the MDS server
+                    serverMethodPath, // path to query metadata (dynamic based on file or folder)
+                    requestMethod.post, // sync_to is a post
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    okAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status); // reference to update the output success/failure status for the communication
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.To>();
+                return ex;
+            }
+
             return null;
         }
         #endregion

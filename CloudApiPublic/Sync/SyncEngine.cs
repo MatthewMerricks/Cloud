@@ -3481,7 +3481,7 @@ namespace CloudApiPublic.Sync
                         // create a list to store the changes which are currently uploading or downloading
                         List<FileChange> runningUpDownChanges = new List<FileChange>();
                         // retrieve the changes which are currently uploading or downloading via UpDownEvent (all under the UpDownEvent locker)
-                        RunUnDownEvent(new FileChange.UpDownEventArgs(currentUpDown =>
+                        RunUpDownEvent(new FileChange.UpDownEventArgs(currentUpDown =>
                             runningUpDownChanges.Add(currentUpDown)));
 
                         // initialize the runningUpDownChangesDict and store any error that occurs in the process
@@ -3721,174 +3721,13 @@ namespace CloudApiPublic.Sync
                             }).ToArray() // selected into a new array
                         };
 
-                        // declare a string for the request body content
-                        string requestBody;
-                        // create a stream for serializing the request object
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            // serialize the request object into the stream
-                            JsonContractHelpers.ToSerializer.WriteObject(ms, syncTo);
-                            // grab the string from the serialized data
-                            requestBody = Encoding.Default.GetString(ms.ToArray());
-                        }
-
-                        // grab the bytes for the serialized request body content
-                        byte[] requestBodyBytes = Encoding.UTF8.GetBytes(requestBody);
-
-                        // calculate the method path for the communication operation (has a dynamic query string value)
-                        string syncToHostAndMethod = CLDefinitions.CLMetaDataServerURL +
-                            CLDefinitions.MethodPathSyncTo +
-                            Helpers.QueryStringBuilder(new KeyValuePair<string, string>[]
-                                {
-                                    new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, syncSettings.SyncBoxId) // query string parameter "user_id" should be set to the user id
-                                }
-                            );
-
-                        // fill in the request parameters for the Sync To communication operation
-
-                        HttpWebRequest toRequest = (HttpWebRequest)HttpWebRequest.Create(syncToHostAndMethod); // set the communication location by the already dynamically calculated location
-                        toRequest.Method = CLDefinitions.HeaderAppendMethodPost; // Sync To is a post operation
-                        toRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set the client
-                        // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-                        toRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = syncSettings.ClientVersion;
-                        toRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(syncSettings.Akey); // set the authentication token
-                        toRequest.SendChunked = false; // do not send request chunked
-                        toRequest.Timeout = HttpTimeoutMilliseconds; // set the timeout for the operation
-                        toRequest.ContentType = CLDefinitions.HeaderAppendContentTypeJson; // the request body content is json-formatted
-                        toRequest.Headers[CLDefinitions.HeaderKeyContentEncoding] = CLDefinitions.HeaderAppendContentEncoding; // the json content is utf8 encoded
-                        toRequest.ContentLength = requestBodyBytes.Length; // set the size of the request content
-
-                        // if tracing communication, then trace communication
-                        if ((syncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
-                        {
-                            // trace communication
-                            Trace.LogCommunication(syncSettings.TraceLocation, // location of trace file
-                                syncSettings.Udid, // device id
-                                syncSettings.SyncBoxId, // user id
-                                CommunicationEntryDirection.Request, // direction of communication is request
-                                syncToHostAndMethod, // the dynamically calculated location for communication
-                                true, // trace is enabled
-                                toRequest.Headers, // request headers
-                                requestBody, // request body
-                                null, // http requests do not have a status code
-                                syncSettings.TraceExcludeAuthorization, // whether to exclude authorization information (such as the authentication token)
-                                toRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
-                                toRequest.ContentLength.ToString(), // content length value which would be part of the headers (but cannot be pulled from headers directly)
-                                (toRequest.Expect == null ? "100-continue" : toRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
-                                (toRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
-                        }
-
-                        // grab the request stream to write the request content
-                        using (Stream toRequestStream = toRequest.GetRequestStream())
-                        {
-                            // write the request content
-                            toRequestStream.Write(requestBodyBytes, 0, requestBodyBytes.Length);
-                        }
-
-                        // declare the response
-                        HttpWebResponse toResponse;
-                        // try/catch process the communication and retrieve the response, on catch try to retrieve the response from the error
-                        try
-                        {
-                            // process and retrieve response
-                            toResponse = (HttpWebResponse)toRequest.GetResponse();
-                        }
-                        catch (WebException ex)
-                        {
-                            // if the error has no response, then rethrow the exception
-                            if (ex.Response == null)
-                            {
-                                throw new NullReferenceException("toRequest Response cannot be null", ex);
-                            }
-                            // store the error response
-                            toResponse = (HttpWebResponse)ex.Response;
-                        }
-
-                        // declare the json contract object for the response content
+                        // Send the request and get the response.
+                        CLHttpRestStatus status;
                         To currentBatchResponse;
-                        // try/finally process the response stream, finally close the response
-                        try
+                        CLError errorFromPostSyncToCloud = httpRestClient.PostSyncToCloud(syncTo, HttpTimeoutMilliseconds, out status, out currentBatchResponse);
+                        if (errorFromPostSyncToCloud != null)
                         {
-                            // grab the response stream
-                            using (Stream toHttpWebResponseStream = toResponse.GetResponseStream())
-                            {
-                                // store the trace type in case it changes between two crucial points (deciding to made a stream wrapper and disposing the stream wrapper)
-                                TraceType storeTraceType = syncSettings.TraceType;
-
-                                // set the stream for processing the response by a copy of the communication stream (if trace enabled) or the communication stream itself (if trace is not enabled)
-                                Stream toResponseStream = (((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                                    ? Helpers.CopyHttpWebResponseStreamAndClose(toHttpWebResponseStream)
-                                    : toHttpWebResponseStream);
-
-                                // try/finally process the response stream, finally if trace is enabled dispose the stream copy
-                                try
-                                {
-                                    // if tracing communication, then trace communication
-                                    if ((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                                    {
-                                        // trace communication
-                                        Trace.LogCommunication(syncSettings.TraceLocation, // location of trace file
-                                            syncSettings.Udid, // device id
-                                            syncSettings.SyncBoxId, // user id
-                                            CommunicationEntryDirection.Response, // direction of communication is response
-                                            syncToHostAndMethod, // sync to path
-                                            true, // trace is enabled
-                                            toResponse.Headers, // response headers
-                                            toResponseStream, // use the copied stream as the response content (upon being read, it will seek back to origin for resuse)
-                                            (int)toResponse.StatusCode, // response status code
-                                            syncSettings.TraceExcludeAuthorization); // whether to exclude authorization (such as the authentication token)
-                                    }
-
-                                    // if response status is not one of the accepted values, then use the response content in an error message and throw
-                                    if (toResponse.StatusCode != HttpStatusCode.OK)
-                                    {
-                                        // define a string for an error message from the response content, defaulting to null
-                                        string toResponseString = null;
-                                        // Bug in MDS: ContentLength is not set so I cannot read the stream to compare against it
-                                        // try/catch read the response content into the error string, silently failing
-                                        try
-                                        {
-                                            // create a reader for the response content
-                                            using (TextReader toResponseStreamReader = new StreamReader(toResponseStream, Encoding.UTF8))
-                                            {
-                                                // set the error string from the response
-                                                toResponseString = toResponseStreamReader.ReadToEnd();
-                                            }
-                                        }
-                                        catch
-                                        {
-                                        }
-
-                                        // throw the error
-                                        throw new Exception("Invalid HTTP response status code in Sync To: " + ((int)toResponse.StatusCode).ToString() +
-                                            (toResponseString == null ? string.Empty
-                                                : Environment.NewLine + "Response:" + Environment.NewLine + // if a message was retrieved for the response content, then add it to the error message
-                                                toResponseString));
-                                    }
-
-                                    // deserialize the response content into the appropriate json contract object
-                                    currentBatchResponse = (To)JsonContractHelpers.ToSerializer.ReadObject(toResponseStream);
-                                }
-                                finally
-                                {
-                                    // if tracing communication, then the stream had been copied and the copy must be disposed
-                                    if ((storeTraceType & TraceType.Communication) == TraceType.Communication)
-                                    {
-                                        toResponseStream.Dispose();
-                                    }
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            // try/catch dispose the response, failing silently
-                            try
-                            {
-                                toResponse.Close();
-                            }
-                            catch
-                            {
-                            }
+                            throw new AggregateException("Error from sync_to request or response", errorFromPostSyncToCloud.GrabExceptions());
                         }
 
                         // validate a couple fields in the response which are required for processing
@@ -5714,6 +5553,11 @@ namespace CloudApiPublic.Sync
                     throw new AggregateException("Error getting metadata at path", errorFromGetMetadataAtPath.GrabExceptions());
                 }
 
+                if (status == CLHttpRestStatus.NoContent)
+                {
+                    return Helpers.DefaultForType<JsonContracts.Metadata>();
+                }
+
                 return response;
             }
 	        catch (Exception ex)
@@ -5959,7 +5803,7 @@ namespace CloudApiPublic.Sync
             }
         }
         // fire the UpDown event to receive the provided callback (passed in the provided event args on construction) for each FileChange subscribed to the event
-        private void RunUnDownEvent(FileChange.UpDownEventArgs callback)
+        private void RunUpDownEvent(FileChange.UpDownEventArgs callback)
         {
             // lock on local UpDownEvent locker for firing local UpDownEvent
             lock (UpDownEventLocker)
