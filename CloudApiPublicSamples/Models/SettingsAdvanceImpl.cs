@@ -75,22 +75,31 @@ namespace CloudApiPublicSamples.Models
                 return Properties.Settings.Default.UniqueDeviceId;
             }
         }
-        public string Uuid
+
+        public string ApplicationKey
         {
             get
             {
-                //TODO: Uuid should be deleted from settings.
-                return String.Empty;
+                return Properties.Settings.Default.ApplicationKey;
             }
         }
-        public string Akey
+
+        public string ApplicationSecret
         {
             get
             {
-                //TODO: AKey should be deleted from settings.
-                return String.Empty;
+                return Properties.Settings.Default.ApplicationSecret;
             }
         }
+
+        public string SyncBoxId
+        {
+            get
+            {
+                return Properties.Settings.Default.SyncBoxId;
+            }
+        }
+
         /// <summary>
         /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
         /// </summary>

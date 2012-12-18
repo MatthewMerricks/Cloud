@@ -11,6 +11,8 @@ using CloudApiPublic.Model;
 using CloudApiPublic.JsonContracts;
 using CloudApiPublic.Static;
 using System.Runtime.Serialization.Json;
+using System.Security.Cryptography;
+using CloudApiPublic.Support;
 
 namespace CloudApiPublic.REST
 {
@@ -87,6 +89,7 @@ namespace CloudApiPublic.REST
         /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, StorageKey, and MD5 hash to be set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
         /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UploadFile(Stream uploadStream,
             FileChange changeToUpload,
@@ -108,7 +111,8 @@ namespace CloudApiPublic.REST
 
                 // run the HTTP communication
                 ProcessHttp<object, object>(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
-                    CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload, // path to upload
+                    CLDefinitions.CLUploadDownloadServerURL,  // Server URL
+                    CLDefinitions.MethodPathUpload, // path to upload
                     requestMethod.put, // upload is a put
                     timeoutMilliseconds, // time before communication timeout (does not restrict time for the actual file upload)
                     new upload( // this is a special communication method and requires passing upload parameters
@@ -155,7 +159,7 @@ namespace CloudApiPublic.REST
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
-                string uri = CLDefinitions.CLMetaDataServerURL + // base domain is the MDS server
+                string serverMethodPath = 
                     (isFolder
                         ? CLDefinitions.MethodPathGetFolderMetadata // if the current metadata is for a folder, then retrieve it from the folder method
                         : CLDefinitions.MethodPathGetFileMetadata) + // else if the current metadata is for a file, then retrieve it from the file method
@@ -165,12 +169,13 @@ namespace CloudApiPublic.REST
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((settings.SyncRoot ?? string.Empty), true) + "/")),
 
                         // query string parameter for the current user id, should not need escaping since it should be an integer in string format, but do it anyways
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, Uri.EscapeDataString(settings.Uuid))
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, Uri.EscapeDataString(settings.SyncBoxId))
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<object, JsonContracts.Metadata>(null, // HTTP Get method does not have content
-                    uri, // path to query metadata (dynamic based on file or folder)
+                    CLDefinitions.CLMetaDataServerURL,   // base domain is the MDS server
+                    serverMethodPath, // path to query metadata (dynamic based on file or folder)
                     requestMethod.get, // query metadata is a get
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
@@ -214,7 +219,7 @@ namespace CloudApiPublic.REST
                 }
 
                 response = ProcessHttp<JsonContracts.PurgePending, JsonContracts.PurgePendingResponse>(request, // json contract object for purge pending method
-                    CLDefinitions.CLMetaDataServerURL + CLDefinitions.MethodPathPurgePending, // purge pending address
+                    CLDefinitions.CLMetaDataServerURL, CLDefinitions.MethodPathPurgePending, // purge pending address
                     requestMethod.post, // purge pending is a post operation
                     timeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
@@ -260,7 +265,8 @@ namespace CloudApiPublic.REST
         // Tin should be the type of the JSON contract object to serialize and send up if any, otherwise use string/object type
         // Tout should be the type of the JSON contract object which can be deserialized from the return response of the server if any, otherwise use string/object type which will be filled in as the entire string response
         private Tout ProcessHttp<Tin, Tout>(Tin requestContent, // JSON contract object to serialize and send up as the request content, if any
-            string uri, // the location of the server method
+            string serverUrl, // the server URL
+            string serverMethodPath,    // the server method path
             requestMethod method, // type of HTTP method (get vs. put vs. post)
             int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
             uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
@@ -270,7 +276,7 @@ namespace CloudApiPublic.REST
             where Tout : class // restrict Tout to an object type to allow default null return
         {
             // create the main request object for the provided uri location
-            HttpWebRequest httpRequest = (HttpWebRequest)HttpWebRequest.Create(uri);
+            HttpWebRequest httpRequest = (HttpWebRequest)HttpWebRequest.Create(serverUrl + serverMethodPath);
 
             #region set request parameters
             // switch case to set the HTTP method (GET vs. POST vs. PUT); throw exception if not supported yet
@@ -295,7 +301,14 @@ namespace CloudApiPublic.REST
             httpRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
             httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = settings.ClientVersion; // set client version
-            httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(settings.Akey); // set authentication key
+            //&&&&httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken + CLDefinitions.WrapInDoubleQuotes(settings.Akey); // set authentication key
+            httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken +
+                             CLDefinitions.WrapInDoubleQuotes(
+                                        GenerateAuthorizationHeaderToken(
+                                            settings,
+                                            httpMethod: httpRequest.Method,
+                                            pathAndQueryStringAndFragment: CLDefinitions.MethodPathUpload,
+                                            serverUrl: CLDefinitions.CLUploadDownloadServerURL));   // set the authentication token
             httpRequest.SendChunked = false; // do not send chunked
             httpRequest.Timeout = timeoutMilliseconds; // set timeout by input parameter, timeout does not apply to the amount of time it takes to perform uploading or downloading of a file
 
@@ -375,9 +388,9 @@ namespace CloudApiPublic.REST
                 // trace communication for the current request
                 Trace.LogCommunication(settings.TraceLocation, // location of trace file
                     settings.Udid, // device id
-                    settings.Uuid, // user id
+                    settings.SyncBoxId, // user id
                     CommunicationEntryDirection.Request, // direction is request
-                    uri, // location for the server method
+                    serverUrl + serverMethodPath, // location for the server method
                     true, // trace is enabled
                     httpRequest.Headers, // headers of request
                     ((uploadDownload != null && uploadDownload is upload) // special condition for the request body content based on whether this is a file upload or not
@@ -543,7 +556,10 @@ namespace CloudApiPublic.REST
                     {
                         if (ex.Response == null)
                         {
-                            throw new NullReferenceException("httpResponse GetResponse at uri " + (uri ?? "{missing uri}") + " threw a WebException without a WebResponse");
+                            throw new NullReferenceException(String.Format("httpResponse GetResponse at URL {0}, MethodPath {1}",
+                                        (serverUrl ?? "{missing serverUrl}"),
+                                        (serverMethodPath ?? "{missing serverMethodPath}"))
+                                        + " threw a WebException without a WebResponse");
                         }
 
                         httpResponse = (HttpWebResponse)ex.Response;
@@ -584,10 +600,13 @@ namespace CloudApiPublic.REST
                     }
 
                     // throw the exception for an invalid response
-                    throw new Exception("Invalid HTTP response status code at uri " + (uri ?? "{missing uri") + ": " + ((int)httpResponse.StatusCode).ToString() +
-                        (responseBody == null ? string.Empty
-                            : Environment.NewLine + "Response:" + Environment.NewLine +
-                            responseBody)); // either the default "incomplete" body or the body retrieved from the response content
+                    throw new Exception(String.Format("Invalid HTTP response status code at URL {0}, MethodPath {1}", 
+                                    (serverUrl ?? "{missing serverUrl"), 
+                                    (serverMethodPath ?? "{missing serverMethodPath")) + 
+                                    ": " + ((int)httpResponse.StatusCode).ToString() +
+                                    (responseBody == null ? string.Empty
+                                        : Environment.NewLine + "Response:" + Environment.NewLine +
+                                            responseBody)); // either the default "incomplete" body or the body retrieved from the response content
                 }
                 #endregion
 
@@ -715,9 +734,9 @@ namespace CloudApiPublic.REST
                             // log communication for stream body
                             Trace.LogCommunication(settings.TraceLocation, // trace file location
                                 settings.Udid, // device id
-                                settings.Uuid, // user id
+                                settings.SyncBoxId, // user id
                                 CommunicationEntryDirection.Response, // communication direction is response
-                                uri, // input parameter method path
+                                serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled
                                 httpResponse.Headers, // response headers
                                 serializationStream, // copied response stream
@@ -760,9 +779,9 @@ namespace CloudApiPublic.REST
                         // log communication for string body
                         Trace.LogCommunication(settings.TraceLocation, // trace file location
                             settings.Udid, // device id
-                            settings.Uuid, // user id
+                            settings.SyncBoxId, // user id
                             CommunicationEntryDirection.Response, // communication direction is response
-                            uri, // input parameter method path
+                            serverUrl + serverMethodPath, // input parameter method path
                             true, // trace is enabled
                             httpResponse.Headers, // response headers
                             responseBody, // response body (either an overridden string that says "complete" or "incomplete" or an error message from the actual response)
@@ -1202,6 +1221,85 @@ namespace CloudApiPublic.REST
                 this._stream = Stream;
             }
         }
+        #endregion
+
+        #region Support
+        
+        /// <summary>
+        /// Generate the signed token for the platform auth Authorization header.
+        /// </summary>
+        /// <param name="settings">The settings to use for this generation.</param>
+        /// <param name="httpMethod">The HTTP method.  e.g.: "POST".</param>
+        /// <param name="pathAndQueryStringAndFragment">The HTTP path, query string and fragment.  The path is required.</param>
+        /// <param name="serverUrl">The server URL.</param>
+        /// <returns></returns>
+        private string GenerateAuthorizationHeaderToken(ISyncSettingsAdvanced settings, string httpMethod, string pathAndQueryStringAndFragment, string serverUrl)
+        {
+            string toReturn = String.Empty;
+            try
+            {
+                string methodPath = String.Empty;
+                string queryString = String.Empty;
+
+                // Determine the methodPath and the queryString
+                char[] delimiterChars = { '?' };
+                string[] parts = pathAndQueryStringAndFragment.Split(delimiterChars);
+                if (parts.Length > 1)
+                {
+                    methodPath = parts[0].Trim();
+                    queryString = parts[parts.Length - 1].Trim();
+                }
+                else
+                {
+                    methodPath = pathAndQueryStringAndFragment;
+                }
+
+                // Build the string that we will hash.
+                string stringToHash = String.Format("{0}{1}{2}{3}{4}{5}{6}{7}{8}",
+                        CLDefinitions.AuthorizationFormatType,
+                        "\n",
+                        httpMethod.ToUpper(),
+                        "\n",
+                        serverUrl.Replace('\\', '/'),
+                        "\n",
+                        methodPath,
+                        "\n",
+                        queryString);
+
+                // Hash the string
+                System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
+                byte[] secretByte = Encoding.UTF8.GetBytes(settings.ApplicationSecret);
+                HMACSHA256 hmac = new HMACSHA256(secretByte);
+                byte[] stringToHashBytes = encoding.GetBytes(stringToHash);
+                byte[] hashMessage = hmac.ComputeHash(stringToHashBytes);
+                toReturn = ByteToString(hashMessage);
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                CLTrace.Instance.writeToLog(1, "CLGen: Gen: ERROR. Exception.  Msg: <{0}>.", ex.Message);
+            }
+
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Convert a byte array to a string.
+        /// </summary>
+        /// <param name="buff"></param>
+        /// <returns></returns>
+        private string ByteToString(byte[] buff)
+        {
+            string sbinary = "";
+
+            for (int i = 0; i < buff.Length; i++)
+            {
+                sbinary += buff[i].ToString("X2"); // hex format
+            }
+            return (sbinary);
+        }
+
         #endregion
     }
 

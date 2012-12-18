@@ -64,7 +64,7 @@ namespace CloudApiPublic.PushNotification
         private int _faultCount = 0;
 
         /// <summary>
-        /// Tracks the subscribed clients via their Settings AKey.
+        /// Tracks the subscribed clients via their Settings SyncBoxId.
         /// </summary>
         private static readonly Dictionary<string, CLNotification> NotificationClientsRunning = new Dictionary<string, CLNotification>();
 
@@ -83,18 +83,18 @@ namespace CloudApiPublic.PushNotification
                 throw new NullReferenceException("syncSettings cannot be null");
             }
 
-            if (string.IsNullOrWhiteSpace(syncSettings.Akey))
+            if (string.IsNullOrWhiteSpace(syncSettings.SyncBoxId))
             {
-                throw new NullReferenceException("syncSettings Akey cannot be null");
+                throw new NullReferenceException("syncSettings SyncBoxId cannot be null");
             }
 
             lock (NotificationClientsRunning)
             {
-                string storeAKey = syncSettings.Akey;
+                string storeSyncBoxId = syncSettings.SyncBoxId;
                 CLNotification toReturn;
-                if (!NotificationClientsRunning.TryGetValue(storeAKey, out toReturn))
+                if (!NotificationClientsRunning.TryGetValue(storeSyncBoxId, out toReturn))
                 {
-                    NotificationClientsRunning.Add(storeAKey, toReturn = new CLNotification(syncSettings));
+                    NotificationClientsRunning.Add(storeSyncBoxId, toReturn = new CLNotification(syncSettings));
                 }
                 return toReturn;
             }
@@ -148,7 +148,7 @@ namespace CloudApiPublic.PushNotification
                     {
                         Trace.LogCommunication(_syncSettings.TraceLocation,
                             _syncSettings.Udid,
-                            _syncSettings.Uuid,
+                            _syncSettings.SyncBoxId,
                             CommunicationEntryDirection.Request,
                             url,
                             true,
@@ -553,7 +553,7 @@ namespace CloudApiPublic.PushNotification
                 {
                     Trace.LogCommunication(_innerSyncSettings.TraceLocation,
                         _innerSyncSettings.Udid,
-                        _innerSyncSettings.Uuid,
+                        _innerSyncSettings.SyncBoxId,
                         CommunicationEntryDirection.Response,
                         this._url,
                         true,
@@ -628,9 +628,9 @@ namespace CloudApiPublic.PushNotification
                 _trace.writeToLog(1, "CLNotification: DisconnectPushNotificationServer: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
 
-            if (_syncSettings != null && !String.IsNullOrWhiteSpace(_syncSettings.Akey))
+            if (_syncSettings != null && !String.IsNullOrWhiteSpace(_syncSettings.SyncBoxId))
             {
-                NotificationClientsRunning.Remove(_syncSettings.Akey);
+                NotificationClientsRunning.Remove(_syncSettings.SyncBoxId);
             }
             _isInitialized = false;
         }

@@ -1788,7 +1788,8 @@ namespace CloudApiPublic.Sync
                                         MaxNumberOfFailureRetries = MaxNumberOfFailureRetries,
                                         MaxNumberOfNotFounds = MaxNumberOfNotFounds,
                                         FailedChangesQueue = FailedChangesQueue,
-                                        RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent
+                                        RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent,
+                                        RestClient = httpRestClient
                                     }));
                         }
                     }
@@ -1845,7 +1846,8 @@ namespace CloudApiPublic.Sync
                                 MaxNumberOfFailureRetries = MaxNumberOfFailureRetries,
                                 MaxNumberOfNotFounds = MaxNumberOfNotFounds,
                                 FailedChangesQueue = FailedChangesQueue,
-                                RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent
+                                RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent,
+                                RestClient = httpRestClient;
                             }));
                 }
                 //  else if FileChange was not a Sync From change nor a Sync To change, throw exception for unknown direction
@@ -2004,6 +2006,16 @@ namespace CloudApiPublic.Sync
                         throw new NullReferenceException("storeFileChange must have a hash");
                     }
 
+                    // Upload the file
+                    CLHttpRestStatus status;
+                    CLError errorFromUploadFile = castState.RestClient.UploadFile(
+                            castState.UploadStream,
+                            castState.FileToUpload,
+                            castState.HttpTimeoutMilliseconds ?? int.MaxValue,
+                            out status,
+                            castState.ShutdownToken);
+
+                    &&&&&&&&&&&
                     // set communication parameters for upload
 
                     HttpWebRequest uploadRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLUploadDownloadServerURL + CLDefinitions.MethodPathUpload); // create request by upload path
@@ -3423,6 +3435,7 @@ namespace CloudApiPublic.Sync
             public Nullable<byte> MaxNumberOfNotFounds { get; set; }
             public Queue<FileChange> FailedChangesQueue { get; set; }
             public Action<FileChange> RemoveFileChangeEvents { get; set; }
+            public CLHttpRest RestClient { get; set; }
         }
         /// <summary>
         /// Data object to be sent to the code that runs for the upload task
@@ -3440,6 +3453,7 @@ namespace CloudApiPublic.Sync
             public Nullable<byte> MaxNumberOfNotFounds { get; set; }
             public Queue<FileChange> FailedChangesQueue { get; set; }
             public Action<FileChange> RemoveFileChangeEvents { get; set; }
+            public CLHttpRest RestClient { get; set; }
         }
         /// <summary>
         /// Async HTTP operation holder used to help make async calls synchronous

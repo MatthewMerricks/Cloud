@@ -27,32 +27,44 @@ namespace CloudApiPublic.PushNotification
         }
         private string _udid;
 
-        public string Uuid
+        public string ApplicationKey
         {
             get
             {
-                return _uuid;
+                return _applicationKey;
             }
         }
-        private string _uuid;
+        private string _applicationKey;
 
-        public string Akey
+        public string ApplicationSecret
         {
             get
             {
-                return _akey;
+                return _applicationSecret;
             }
         }
-        private string _akey;
+        private string _applicationSecret;
+
+        public string SyncBoxId
+        {
+            get
+            {
+                return _syncBoxId;
+            }
+        }
+        private string _syncBoxId;
 
         public PushSettings(
-                    string udid,
-                    string uuid,
-                    string akey)
+            string udid,
+            string applicationKey,
+            string applicationSecret,
+            string syncBoxId
+            )
         {
             this._udid = udid;
-            this._uuid = uuid;
-            this._akey = akey;
+            this._applicationKey = applicationKey;
+            this._applicationSecret = applicationSecret;
+            this._syncBoxId = syncBoxId;
         }
     }
 }

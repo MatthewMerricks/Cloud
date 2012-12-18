@@ -40,17 +40,35 @@ namespace CloudApiPublic.Interfaces
     public interface IHttpSettings
     {
         /// <summary>
-        /// Device id (each user may contain multiple devices, each with a different id), provided by server upon authentication
+        /// Device id (each SyncBox may contain multiple devices, each with a unique id within the SyncBox).
         /// </summary>
         string Udid { get; }
+
+        /// <summary>
+        /// The public key that identifies this application.
+        /// </summary>
+        string ApplicationKey { get; }
+
+        /// <summary>
+        /// The application secret private key.
+        /// TODO: This should not be stored in the settings.  It should be retrieved dynamically from the developer's server.
+        /// </summary>
+        string ApplicationSecret { get; }
+
+        /// <summary>
+        /// The unique ID of this SyncBox assigned by the auth server.
+        /// </summary>
+        string SyncBoxId { get; }
+
         /// <summary>
         /// User id, provided by server upon authentication
         /// </summary>
-        string Uuid { get; }
+        //string Uuid { get; }
+
         /// <summary>
         /// Authorization key, provided by server upon authentication
         /// </summary>
-        string Akey { get; }
+        //string Akey { get; }
     }
 
     public interface IHttpSettingsAdvanced : IHttpSettings, IAddTraceSettings { }

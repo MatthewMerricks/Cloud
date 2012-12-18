@@ -6,6 +6,7 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 //#define PRODUCTION_BACKEND 
+#define CLIFF_SERVERS
 
 // Merged 7/3/12
 namespace CloudApiPublic.Model
@@ -25,7 +26,6 @@ namespace CloudApiPublic.Model
         public const int ManualPollingIterationsBeforeConnectingPush = 10;
         public const double ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
         public const int PushNotificationFaultLimitBeforeFallback = 5;
-
 #if PRODUCTION_BACKEND
 
         // Registration
@@ -47,8 +47,35 @@ namespace CloudApiPublic.Model
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cloud.com";
 
-#else
+#else  // !PRODUCTION_BACKEND
+#if CLIFF_SERVERS
+        // Registration
+        public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/user/create.json";
+        public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
+                                                                    "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6},\"os_platform\":{7}," +
+                                                                    "\"os_version\":{8},\"app_version\":{9}}},\"client_id\":{10},\"client_secret\":{11}}}";
 
+        // Link/Unlink
+        public const string CLRegistrationUnlinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/unlink.json";
+        public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + "={0}";
+
+        public const string CLRegistrationLinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/link.json";
+        public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
+                                                                     "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
+                                                                     "\"client_id\":{8},\"client_secret\":{9}}}";
+
+        // Platform Auth
+        public const string CLPlatformAuthServerURL = HttpPrefix + @"platform-auth.cliff.cloudburrito.com";
+
+        // Meta Data
+        public const string CLMetaDataServerURL = HttpPrefix + @"mds.cliff.cloudburrito.com";
+
+        // Notifications
+        public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com/events";
+
+        // Upload/Download Server
+        public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";
+#else   // !CLIFF_SERVERS
         // Registration
         public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth-edge.cloudburrito.com/user/create.json";
         public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
@@ -72,13 +99,32 @@ namespace CloudApiPublic.Model
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd-edge.cloudburrito.com";
+#endif  // !CLIFF_SERVERS
+#endif  // !PRODUCTION_BACKEND
 
-#endif
+        // Public keys
+        public const string sdk_client_id = "8f5e73a72874b8664e8e7a6c7f5c2f50faa32c3c2f170810d7a1049f43c708df";
+        public const string client_id = "7d5352411711b2435c3d5e8f7bcf9ee71e956637ef3efe47024ec56ab5164a07";
+
+        //TODO: Secrets.  Bury these.
+        public const string client_secret = "3c52734df439f457e4d6750662708108ebdaa13182ef4aed3238626474be444d";
 
         // Twitter page
         public const string CLTwitterPageUrl = "http://twitter.com/clouddotcom";
 
         // Method Path
+#if CLIFF_SERVERS
+        public const string MethodPathSyncFrom = "/1/sync/from_cloud";                       // POST
+        public const string MethodPathDownload = "/1/get_file";                              // POST
+        public const string MethodPathUpload = "/1/put_file";                                // POST
+        public const string MethodPathSyncTo = "/1/sync/to_cloud";                           // POST
+        public const string MethodPathPurgePending = "/1/file/purge/pending";                // POST
+        public const string MethodPathGetFileMetadata = "/1/file/metadata";                  // GET
+        public const string MethodPathGetFolderMetadata = "/1/folder/metadata";              // GET
+        public const string MethodPathSyncBoxList = "/1/sync_box/list";                      // POST
+
+        public const string AuthorizationFormatType = "CWS0";
+#else   // !CLIFF_SERVERS
         public const string MethodPathSyncFrom = "/sync/from_cloud";
         public const string MethodPathDownload = "/get_file";
         public const string MethodPathUpload = "/put_file";
@@ -86,10 +132,59 @@ namespace CloudApiPublic.Model
         public const string MethodPathPurgePending = "/private/purge_pending";
         public const string MethodPathGetFileMetadata = "/file_objects/metadata";
         public const string MethodPathGetFolderMetadata = "/folder_objects/metadata";
+#endif  // !CLIFF_SERVERS
+
+        // Common Json field names
+        public const string JsonResponseStatus = "status";
+        public const string JsonResponseMessage = "message";
+        public const string JsonAccountId = "account_id";
+        public const string JsonApplicationsList = "client_applications";
+
+        // Json objects
+        public const string JsonAccount = "account";
+
+        // Json application fields
+        public const string JsonApplicationFieldId = "id";
+        public const string JsonApplicationFieldAccountId = "account_id";
+        public const string JsonApplicationFieldName = "name";
+        public const string JsonApplicationFieldKey = "key";
+        public const string JsonApplicationFieldSecret = "secret";
+
+        // Json client_application fields
+        public const string JsonClientApplication = "client_application";
+        public const string JsonClientApplicationFieldId = "id";
+        public const string JsonClientApplicationFieldAccountId = "account_id";
+        public const string JsonClientApplicationFieldName = "name";
+        public const string JSonClientApplicationFieldApplicationNamespace = "application_namespace";
+        public const string JsonClientApplicationFieldKey = "key";
+        public const string JsonClientApplicationFieldSecret = "secret";
+
+        // Json service type fields
+        public const string JsonServiceTypeFieldName = "name";
+        public const string JsonServiceTypeFieldCode = "code";
+
+        // Json /private/services/list
+        public const string JsonPrivateServicesListResponseFieldServiceTypes = "service_types";
+
+        // Json 
+
+        // Json account fields
+        public const string JsonAccountFieldId = "id";
+        public const string JsonAccountFieldName = "name";
+        public const string JsonAccountFieldUserId = "user_id";
+        public const string JsonAccountFieldCreatedAt = "created_at";
+
+        // client_param fields
+        public const string JsonClientParamsFieldName = "name";
+        public const string JsonClientParamsFieldApplicationNamespace = "application_namespace";
+
+        // client_param values
+        public const string JsonClientParamsFieldName_Value = "WindowsCloudClient";
+        public const string JsonClientParamsFieldApplicationNamespace_Value = "com.cloud.product.clients.windows";
 
         // Query string keys
-        public const string QueryStringUserId = "user_id";
         public const string QueryStringDeviceUUId = "device_uuid";
+        public const string QueryStringUserId = "user_id";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
@@ -213,6 +308,13 @@ namespace CloudApiPublic.Model
             CLEventTypeModifyLink
         };
 
+        // SyncBox
+        public const string CLSyncBoxClientAppId = "client_application_id";
+        public const string CLSyncBoxCreatedAt = "created_at";
+        public const string CLSyncBoxId = "id";
+        public const string CLSyncBoxStorageQuota = "storage_quota";
+        public const string CLSyncBoxUpdatedAt = "updated_at";
+
         // Cloud Sync Status
         public const string CLEventTypeAccepted = "ok";
         public const string CLEventTypeUpload = "upload";
@@ -259,6 +361,7 @@ namespace CloudApiPublic.Model
         public const string CLSyncEventID = "eid";
         public const string ResponsePendingCount = "pending_count";
         public const string ResponsePartial = "partial_response";
+        public const string CLSyncBoxes = "syncboxes";
 
         // Notification keys
         public const string NotificationMessageBody = "message_body";
