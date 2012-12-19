@@ -19,6 +19,7 @@ using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.JsonContracts;
+using CloudApiPublic.REST;
 
 namespace CloudApiPublic.PushNotification
 {
@@ -62,6 +63,7 @@ namespace CloudApiPublic.PushNotification
         private bool _serviceStarted;               // True: the push notification service has been started.
         private bool _pushConnected = false;
         private int _faultCount = 0;
+        private CLHttpRest _restclient = null;
 
         /// <summary>
         /// Tracks the subscribed clients via their Settings SyncBoxId.
@@ -86,6 +88,11 @@ namespace CloudApiPublic.PushNotification
             if (string.IsNullOrWhiteSpace(syncSettings.SyncBoxId))
             {
                 throw new NullReferenceException("syncSettings SyncBoxId cannot be null");
+            }
+
+            if (string.IsNullOrWhiteSpace(syncSettings.Udid))
+            {
+                throw new NullReferenceException("syncSettings Udid cannot be null");
             }
 
             lock (NotificationClientsRunning)
@@ -117,6 +124,14 @@ namespace CloudApiPublic.PushNotification
             CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "CLNotification: CLNotification: Entry");
 
+            // Instantiate the Http Rest client
+            CLError createRestClientError = CLHttpRest.CreateAndInitialize(_syncSettings, out _restclient);
+            if (createRestClientError != null)
+            {
+                _trace.writeToLog(1, "CLNotification: CLNotification: ERROR: Error creating the HTTP REST client.");
+                throw new AggregateException("Error creating the HTTP REST client.", createRestClientError.GrabExceptions());
+            }
+
             // Initialize members, etc. here (at static initialization time).
             ConnectPushNotificationServer();
         }
@@ -140,8 +155,9 @@ namespace CloudApiPublic.PushNotification
                 // WebSocket4Net implementation.
                 try
                 {
-                    string url = String.Format("{0}?channel=/channel_{1}&sender={2}", CLDefinitions.CLNotificationServerURL, _syncSettings.SyncBoxId, _syncSettings.Udid);
-                    _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>.", url);
+                    string url = CLDefinitions.CLNotificationServerURL;
+                    string pathAndQueryStringAndFragment = String.Format("/1/sync/subscribe?sync_box_id={0}&device={1}", _syncSettings.SyncBoxId, _syncSettings.Udid);
+                    _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>. QueryString: {1}.", url, pathAndQueryStringAndFragment);
 
                     //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on _syncSettings.TraceExcludeAuthorization !!
                     if ((_syncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
@@ -150,7 +166,7 @@ namespace CloudApiPublic.PushNotification
                             _syncSettings.Udid,
                             _syncSettings.SyncBoxId,
                             CommunicationEntryDirection.Request,
-                            url,
+                            url + pathAndQueryStringAndFragment,
                             true,
                             null,
                             (string)null,
@@ -161,7 +177,27 @@ namespace CloudApiPublic.PushNotification
                     string webSocketOpenStatus = "Entered action to open WebSocket";
                     lock (this)
                     {
-                        _connection = new WebSocket(url, null, WebSocketVersion.Rfc6455);
+                        _connection = new WebSocket(
+                                    uri: url + pathAndQueryStringAndFragment,
+                                    subProtocol: null,
+                                    cookies: null,
+                                    customHeaderItems: new List<KeyValuePair<string, string>>()
+                                            {
+                                                new KeyValuePair<string, string>(
+                                                        CLDefinitions.HeaderKeyAuthorization, 
+                                                        CLDefinitions.HeaderAppendCWS0 +
+                                                            CLDefinitions.HeaderAppendKey +
+                                                            _syncSettings.ApplicationKey + ", " +
+                                                            CLDefinitions.HeaderAppendSignature +
+                                                            _restclient.GenerateAuthorizationHeaderToken(
+                                                                    settings: _syncSettings,
+                                                                    httpMethod: CLDefinitions.HeaderAppendMethodGet, 
+                                                                    pathAndQueryStringAndFragment: pathAndQueryStringAndFragment))
+                                            },
+                                    userAgent: String.Empty,
+                                    origin: String.Empty,
+                                    version: WebSocketVersion.Rfc6455);
+
                         webSocketOpenStatus = "Instantiated new WebSocket";
                         _connection.Opened += OnConnectionOpened;
                         webSocketOpenStatus = "Attached connection opened handler";
@@ -384,7 +420,7 @@ namespace CloudApiPublic.PushNotification
             bool forceErrors = false;
             try
             {
-                _trace.writeToLog(1, "CLNotification: OnConnectionError: Connection error.  Set faultCount to zero.");
+                _trace.writeToLog(1, "CLNotification: OnConnectionError: Connection error.  Message: <{0}>. Set faultCount to zero.", e.Exception.Message);
                 CleanWebSocketAndRestart((WebSocket)sender);
             }
             catch (Exception ex)

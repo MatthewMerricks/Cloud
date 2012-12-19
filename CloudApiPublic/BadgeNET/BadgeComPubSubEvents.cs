@@ -51,6 +51,7 @@ namespace CloudApiPublic.BadgeNET
         private bool _fRequestSubscribingThreadExit = false;
         private bool _fRequestWatchingThreadExit = false;
         private bool _fTerminating = false;
+        private bool _fIsInitialized = false;
         private ISyncSettingsAdvanced _syncSettings;
         
         #endregion
@@ -63,18 +64,31 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
-                // Copy sync settings in case third party attempts to change values without restarting sync 
-                _syncSettings = SyncSettingsExtensions.CopySettings(syncSettings);
-
-                // Hook up with the shared memory PubSubServer
-                _trace.writeToLog(9, "BadgeComPubSubEvents: Initialize: Entry.");
-                if (_pubSubServer == null)
+                lock (this)
                 {
-                    // Generate a GUID to represent this subscription
-                    _guidSubscriber = Guid.NewGuid();
+                    if (_fIsInitialized)
+                    {
+                        CLError error = new Exception("Already initialized");
+                        error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                        _trace.writeToLog(1, "BadgeComPubSubEvents: Initialize: ERROR: Exception (2): Msg: <{0}>.", error.errorDescription);
+                        return;
+                    }
 
-                    _pubSubServer = new PubSubServerClass();
-                    _pubSubServer.Initialize();
+                    // Copy sync settings in case third party attempts to change values without restarting sync 
+                    _syncSettings = SyncSettingsExtensions.CopySettings(syncSettings);
+
+                    // Hook up with the shared memory PubSubServer
+                    _trace.writeToLog(9, "BadgeComPubSubEvents: Initialize: Entry.");
+                    if (_pubSubServer == null)
+                    {
+                        // Generate a GUID to represent this subscription
+                        _guidSubscriber = Guid.NewGuid();
+
+                        _pubSubServer = new PubSubServerClass();
+                        _pubSubServer.Initialize();
+                    }
+
+                    _fIsInitialized = true;
                 }
             }
             catch (Exception ex)
@@ -92,6 +106,12 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Don't bother if not initialized.
+                if (!_fIsInitialized)
+                {
+                    return;
+                }
+
                 _trace.writeToLog(9, "BadgeComPubSubEvents: PublishEventToBadgeCom: Entry. eventType: {0}. eventSubType: {1}. badgeType: {2}. fullPath: {3}.", eventType, eventSubType, badgeType, fullPath);
                 if (_pubSubServer == null || fullPath == null)
                 {
@@ -120,6 +140,12 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Don't bother if not initialized.
+                if (!_fIsInitialized)
+                {
+                    return;
+                }
+
                 // Start the subscribing thread.
                 _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribeToBadgeComInitializationEvents: Entry.");
                 bool startedOk = StartSubscribingThread();
@@ -152,6 +178,12 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Don't bother if not initialized.
+                if (!_fIsInitialized)
+                {
+                    return;
+                }
+
                 bool fSemaphoreReleased = false;
 
                 _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Entry.");
@@ -250,6 +282,12 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Don't bother if not initialized.
+                if (!_fIsInitialized)
+                {
+                    return;
+                }
+
                 _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Entry.");
                 bool fRestartSubscribingThread;
 
@@ -335,6 +373,12 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Don't bother if not initialized.
+                if (!_fIsInitialized)
+                {
+                    return;
+                }
+
                 _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Entry.");
                 bool fThreadSubscribingInstantiated = false;
                 lock (_locker)
@@ -403,6 +447,12 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Don't bother if not initialized.
+                if (!_fIsInitialized)
+                {
+                    return;
+                }
+
                 _trace.writeToLog(9, "BadgeComPubSubEvents: KillWatchingThread: Entry.");
                 // Request the thread to exit and wait for the thread to be gone.  If it takes too long, kill it.
                 bool fThreadWatchingInstantiated = false;
@@ -509,6 +559,12 @@ namespace CloudApiPublic.BadgeNET
         {
             try
             {
+                // Don't bother if not initialized.
+                if (!_fIsInitialized)
+                {
+                    return;
+                }
+
                 _trace.writeToLog(9, "BadgeComPubSubEvents: StartWatchingThread: Entry.");
                 lock (_locker)
                 {
@@ -536,6 +592,12 @@ namespace CloudApiPublic.BadgeNET
         /// </summary>
         private void RestartSubcribingThread()
         {
+            // Don't bother if not initialized.
+            if (!_fIsInitialized)
+            {
+                return;
+            }
+
             _trace.writeToLog(9, "BadgeComPubSubEvents: RestartSubcribingThread: Entry.");
             KillSubscribingThread();
             StartSubscribingThread();
@@ -606,6 +668,10 @@ namespace CloudApiPublic.BadgeNET
                     CLError error = ex;
                     error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                     _trace.writeToLog(1, "BadgeComPubSubEvents: Dispose: ERROR: Exception. Freeing PubSubServer resources. Msg: <{0}>.", ex.Message);
+                }
+                finally
+                {
+                    _fIsInitialized = false;
                 }
             }
         }

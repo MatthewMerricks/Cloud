@@ -76,6 +76,10 @@ namespace CloudApiPublicSamples.Models
             }
         }
 
+        /// <summary>
+        /// Application secret.
+        /// </summary>
+        /// <remarks>NOTE: This should not be stored in the settings.  It should be retrieved dynamically from the developer's server.</remarks>
         public string ApplicationKey
         {
             get

@@ -382,7 +382,10 @@ namespace CloudApiPublicSamples.ViewModels
         public void BrowseSyncBoxFolder()
         {
             // Notify the view to put up the folder selector.
-            NotifyBrowseSyncBoxFolder(this, new NotificationEventArgs());
+            if (NotifyBrowseSyncBoxFolder != null)
+            {
+                NotifyBrowseSyncBoxFolder(this, new NotificationEventArgs());
+            }
         }
 
         /// <summary>
@@ -456,21 +459,17 @@ namespace CloudApiPublicSamples.ViewModels
 
             // Validate the SyncBox ID.
             ulong value;
-            if (String.IsNullOrEmpty(SyncBoxId) ||
-                !Utilities.ConvertStringToUlong(SyncBoxId, out value) ||
-                value == 0)
+            if (String.IsNullOrEmpty(SyncBoxId))
             {
-                MessageBox.Show("The SyncBox ID must be a positive decimal number convertible to an unsigned integer <= 18446744073709551615.");
+                MessageBox.Show("The SyncBox ID must not be specified.");
                 this.IsSyncBoxIdFocused = true;
                 return;
             }
 
             // Validate the Device ID.
-            if (String.IsNullOrEmpty(DeviceId) ||
-                !Utilities.ConvertStringToUlong(DeviceId, out value) ||
-                value == 0)
+            if (String.IsNullOrEmpty(DeviceId))
             {
-                MessageBox.Show("The Device ID must be a positive decimal number convertible to an unsigned integer <= 18446744073709551615.");
+                MessageBox.Show("The Device ID must be specified.");
                 this.IsDeviceIdFocused = true;
                 return;
             }
@@ -523,7 +522,10 @@ namespace CloudApiPublicSamples.ViewModels
                 if (errorFromSyncBoxStart != null)
                 {
                     _syncBox = null;
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncBoxStart, Message = String.Format("Error starting the SyncBox: {0}.", startStatus.ToString()) });
+                    if (NotifyException != null)
+                    {
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncBoxStart, Message = String.Format("Error starting the SyncBox: {0}.", startStatus.ToString()) });
+                    }
                 }
                 else
                 {
@@ -556,7 +558,10 @@ namespace CloudApiPublicSamples.ViewModels
             if (!_settingsInitial.Equals(_settingsCurrent))
             {
                 // Notify the view to put up a MessageBox saying that the settings have changed.  Does the user want to exit anyway?
-                NotifySettingsChanged(this, new NotificationEventArgs<string, bool> { Completed = UserWantsToExit });
+                if (NotifySettingsChanged != null)
+                {
+                    NotifySettingsChanged(this, new NotificationEventArgs<string, bool> { Completed = UserWantsToExit });
+                }
             }
             else
             {

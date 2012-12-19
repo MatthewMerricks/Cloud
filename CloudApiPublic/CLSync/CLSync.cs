@@ -109,6 +109,7 @@ namespace CloudApiPublic
         {
             try
             {
+                _trace.writeToLog(1, "CLSync: Starting...");
                 if (settings == null)
                 {
                     throw new NullReferenceException("settings cannot be null");

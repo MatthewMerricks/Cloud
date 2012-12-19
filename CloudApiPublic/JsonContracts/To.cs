@@ -19,7 +19,15 @@ namespace CloudApiPublic.JsonContracts
     {
         [DataMember(Name = CLDefinitions.CLSyncEvents)]
         public Event[] Events { get; set; }
+
         [DataMember(Name = CLDefinitions.CLSyncID)]
         public string SyncId { get; set; }
+
+        [DataMember(Name = CLDefinitions.JsonAccountFieldSyncBoxId, IsRequired = false)]
+        public string SyncBoxId { get; set; }
+
+        [DataMember(Name = CLDefinitions.QueryStringDeviceUUId, IsRequired = false)]
+        public string DeviceId { get; set; }
+
     }
 }

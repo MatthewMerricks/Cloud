@@ -51,8 +51,8 @@ namespace CloudApiPublic.Interfaces
 
         /// <summary>
         /// The application secret private key.
-        /// TODO: This should not be stored in the settings.  It should be retrieved dynamically from the developer's server.
         /// </summary>
+        /// <remarks>NOTE: This should not be stored in the settings.  It should be retrieved dynamically from the developer's server.</remarks>
         string ApplicationSecret { get; }
 
         /// <summary>

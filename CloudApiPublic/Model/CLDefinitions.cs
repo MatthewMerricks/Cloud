@@ -71,7 +71,7 @@ namespace CloudApiPublic.Model
         public const string CLMetaDataServerURL = HttpPrefix + @"mds.cliff.cloudburrito.com";
 
         // Notifications
-        public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com/events";
+        public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com";
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";
@@ -101,13 +101,6 @@ namespace CloudApiPublic.Model
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd-edge.cloudburrito.com";
 #endif  // !CLIFF_SERVERS
 #endif  // !PRODUCTION_BACKEND
-
-        // Public keys
-        public const string sdk_client_id = "8f5e73a72874b8664e8e7a6c7f5c2f50faa32c3c2f170810d7a1049f43c708df";
-        public const string client_id = "7d5352411711b2435c3d5e8f7bcf9ee71e956637ef3efe47024ec56ab5164a07";
-
-        //TODO: Secrets.  Bury these.
-        public const string client_secret = "3c52734df439f457e4d6750662708108ebdaa13182ef4aed3238626474be444d";
 
         // Twitter page
         public const string CLTwitterPageUrl = "http://twitter.com/clouddotcom";
@@ -171,7 +164,7 @@ namespace CloudApiPublic.Model
         // Json account fields
         public const string JsonAccountFieldId = "id";
         public const string JsonAccountFieldName = "name";
-        public const string JsonAccountFieldUserId = "user_id";
+        public const string JsonAccountFieldSyncBoxId = "sync_box_id";
         public const string JsonAccountFieldCreatedAt = "created_at";
 
         // client_param fields
@@ -184,7 +177,7 @@ namespace CloudApiPublic.Model
 
         // Query string keys
         public const string QueryStringDeviceUUId = "device_uuid";
-        public const string QueryStringUserId = "user_id";
+        public const string QueryStringSyncBoxId = "sync_box_id";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
@@ -198,6 +191,9 @@ namespace CloudApiPublic.Model
 
         // HttpWebRequest Header Append
         public const string HeaderAppendToken = "Token token=";
+        public const string HeaderAppendCWS0 = "CWS0 ";
+        public const string HeaderAppendKey = "key=";
+        public const string HeaderAppendSignature = "signature=";
         public const string HeaderAppendContentTypeJson = "application/json";
         public const string HeaderAppendContentTypeBinary = "application/octet-stream";
         public const string HeaderAppendContentEncoding = "UTF8";

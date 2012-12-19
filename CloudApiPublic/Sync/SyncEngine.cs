@@ -3634,6 +3634,8 @@ namespace CloudApiPublic.Sync
                         // create the json Sync To object for the request body
                         To syncTo = new To()
                         {
+                            SyncBoxId = this.syncSettings.SyncBoxId,
+                            DeviceId = this.syncSettings.Udid,
                             SyncId = syncString, // previous sync id, server should send all newer events
                             Events = currentBatch.Select(currentEvent => new Event() // fill in the events from the current batch, requires reselection
                             {
@@ -5081,7 +5083,9 @@ namespace CloudApiPublic.Sync
                         PushResponse deserializedResponse;
                         Push requestPush = new Push()
                             {
-                                LastSyncId = syncString
+                                LastSyncId = syncString,
+                                SyncBoxId = this.syncSettings.SyncBoxId,
+                                DeviceId = this.syncSettings.Udid
                             };
                         CLError errorFromPostSyncFromCloud = httpRestClient.PostSyncFromCloud(requestPush, HttpTimeoutMilliseconds, out status, out deserializedResponse);
                         if (errorFromPostSyncFromCloud != null)

@@ -237,7 +237,7 @@ namespace CloudApiPublic.REST
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((settings.SyncRoot ?? string.Empty), true) + "/")),
 
                         // query string parameter for the current user id, should not need escaping since it should be an integer in string format, but do it anyways
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringUserId, Uri.EscapeDataString(settings.SyncBoxId))
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, Uri.EscapeDataString(settings.SyncBoxId))
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
@@ -464,13 +464,14 @@ namespace CloudApiPublic.REST
             httpRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
             httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = settings.ClientVersion; // set client version
-            httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendToken +
-                             CLDefinitions.WrapInDoubleQuotes(
+            httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
+                                CLDefinitions.HeaderAppendKey +
+                                settings.ApplicationKey + ", " +
+                                CLDefinitions.HeaderAppendSignature +
                                         GenerateAuthorizationHeaderToken(
                                             settings,
                                             httpMethod: httpRequest.Method,
-                                            pathAndQueryStringAndFragment: CLDefinitions.MethodPathUpload,
-                                            serverUrl: CLDefinitions.CLUploadDownloadServerURL));   // set the authentication token
+                                            pathAndQueryStringAndFragment: serverMethodPath);   // set the authentication token
             httpRequest.SendChunked = false; // do not send chunked
             httpRequest.Timeout = timeoutMilliseconds; // set timeout by input parameter, timeout does not apply to the amount of time it takes to perform uploading or downloading of a file
 
@@ -1395,7 +1396,7 @@ namespace CloudApiPublic.REST
         /// <param name="pathAndQueryStringAndFragment">The HTTP path, query string and fragment.  The path is required.</param>
         /// <param name="serverUrl">The server URL.</param>
         /// <returns></returns>
-        private string GenerateAuthorizationHeaderToken(ISyncSettingsAdvanced settings, string httpMethod, string pathAndQueryStringAndFragment, string serverUrl)
+        internal string GenerateAuthorizationHeaderToken(ISyncSettingsAdvanced settings, string httpMethod, string pathAndQueryStringAndFragment)
         {
             string toReturn = String.Empty;
             try
@@ -1417,12 +1418,10 @@ namespace CloudApiPublic.REST
                 }
 
                 // Build the string that we will hash.
-                string stringToHash = String.Format("{0}{1}{2}{3}{4}{5}{6}{7}{8}",
+                string stringToHash = String.Format("{0}{1}{2}{3}{4}{5}{6}",
                         CLDefinitions.AuthorizationFormatType,
                         "\n",
                         httpMethod.ToUpper(),
-                        "\n",
-                        serverUrl.Replace('\\', '/'),
                         "\n",
                         methodPath,
                         "\n",

@@ -17,7 +17,7 @@ namespace CloudApiPublic.JsonContracts
     [DataContract]
     public sealed class PurgePending
     {
-        [DataMember(Name = CLDefinitions.QueryStringUserId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.QueryStringSyncBoxId, IsRequired = false)]
         public string UserId { get; set; }
 
         [DataMember(Name = CLDefinitions.QueryStringDeviceUUId, IsRequired = false)]
