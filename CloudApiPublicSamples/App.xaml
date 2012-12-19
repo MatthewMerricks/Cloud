@@ -1,9 +1,0 @@
-﻿<Application x:Class="CloudSdkSyncSample.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:CloudSdkSyncSample.ViewModels"
-             xmlns:views="clr-namespace:CloudSdkSyncSample.Views">
-    <Application.Resources>
-         
-    </Application.Resources>
-</Application>

@@ -6631,6 +6631,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       . Chuck's ruby test client:
         o Main module: https://github.com/CloudCom/ruby-cloud-client/blob/master/spec/client_api_spec.rb
         o signed_request method: https://github.com/CloudCom/ruby-cloud-client/blob/master/lib/ruby-cloud-client/rest_client/request.rb
+        o Signing functions: https://github.com/CloudCom/ruby-cloud-client/blob/master/lib/ruby-cloud-client/signature/v0.rb
         o Fixed client: client_id, client_secret.  
           - What is this?  What does it represent?
           - I believe this is a bootstrap into the new world.  It is the existing WindowsClient client_id and
@@ -6639,12 +6640,15 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
         o User: first_name, last_name, email, password
         o device: friendly_name, device_uuid, os_type, os_version, app_version.
           - What is device_uuid?  Who assigns it?
+          - The device_uuid is assigned by the developer, and the developer must keep it unique to the device.
         o CloudApi.oauth.register:
+          - Do this if this user has not registered.
           - Request: user, device, client_id, client_secret
-          - Response: Only that it gets success.
+          - Response: uuid: This is the ID of this user.  e.g.: 42
           - This is like the existing registration request.
           - I believe this just creates the client_id record on the auth server if it doesn't exist.
         o CloudApi.oauth.login:
+          - Do this if this user has alreadyt registered.
           - Request: user.email, user.password, client.client_id, client.client_secret
           - Response: Must be successful, and returns a unique user_id.  e.g.: 42.
         o CloudAPI.auth.account_details
@@ -6699,8 +6703,8 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - Windows Phone 8 Build videos: http://channel9.msdn.com/Events/Build/2012/2-013
     - Time-waster: Trying to get the VPN working on my home machine.  I was sort of successful.  At least it works the same
       as my work machine, except that the session continually resets.
-    - Developer documentation: http://developer.cliff.cloudburrito.com
-    - Platform documentation: https://platform-auth.cliff.cloudburrito.com/
+    - Cliff Developer documentation: https://developer.cliff.cloudburrito.com
+    - Cliff Platform documentation: https://platform-auth.cliff.cloudburrito.com/
   o 11/30/12 Fri: 
     - 7:45 - 18:30
     - Moved the TODO list to PivotalTracker.
@@ -6714,7 +6718,339 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - Debugging an intialization error with David.  It works after building on my machine.
     - Debugging a problem with PinToTaskBar.vbs.
   o 12/1/12 Sat: (home)
-    - 5:305 - 
+    - 5:30 - 13:00
+    - Fixed the .vbs trace file.  It was failing on a trace file locking issue.
+    - The badges work again after objectizing IconOverlay and starting it in CLSync.  Pushed this to master.
+    - Next project: Fix the PubSubServer cleanup.  Currently the watcher task watches subscribed processes by process ID.  Those process IDs can be recycled.
+      This should really be done by a keep-alive algorithm.  One symptom of this: The badge icons remain if Cloud.exe is just killed, rather than exiting
+      normally.  That is because the badging dictionaries are not cleaned up in the BadgeCom modules.  Also consider: There are three layers: 1) The
+      badging module (e.g., BadgeComFail.cpp), 2) The interface module (CBadgeNetPubSubEvents.cpp), and 3) the PubSubServer (PubSubServer.cpp).
+      At the moment, the CBadgeNetPubSubEvents watcher thread is checking the subscriptions in CleanUpUnusedResources.  What new design should I use?
+      . Create a new event from the interface back to the badging module (OnWatcherThreadTimerTick).  This will fire periodically and run on the
+        interface watcher thread.
+      . Move the badge dictionary and all management of that into a new class (CBadges).  Instances of this class will be allocated by the four
+        Explorer badging modules (BadgeComFail, ...).
+      . The current events and the new event will be routed to the new CBadges objects by the badging modules.
+      . Change the local badging dictionary, and mange it by CBadges:
+        o Dictionary: active badge list (all for this particular badge type)
+          - string BadgePath
+          - std::vector<GUID>: List of message senders who sent this particular badge path (and this particular badge type).
+      . Create a new class representing a reference-counted sender (CSender)
+        o guidSender
+        o referenceCount    
+        o countWatcherTestAlivesResetOnActive
+      . Add a new vector (Senders):    
+        o std::vector<CSender>: active senders being watched.
+      . Add a guidSender field to the event, and support that through all of the code.
+      . Event: Receive an AddBadgePath event.  That has the following info:
+        o BadgeType
+        o Path
+        o guidSender
+      . Process the AddBadgePath event under the lock.
+            if this is our badge type
+              locate the CBadgeInfo element in the badging dictionary by the input path
+              if found
+                add this guidSender to the vector of senders who sent this badgePath/badgeType
+              else not found
+                create an empty vector of senders who sent this badgepath/badgeType
+                add this guidSender to the vector of senders who sent this badgePath/badgeType
+                add this pair (path, vectorOfSenders) to the badging dictionary.
+              endelse not found
+            endif this is our badge type
+            locate this CSender in the Senders vector
+            if found
+              increment the reference count for this sender
+            else not found
+              construct a new CSender to represent this sender (referenceCount: 0, guidSender)
+              add this guidSender to the watched senders vector
+            endelse not found
+      . Process the RemoveBadgePath event under the lock.
+            if this is our badge type
+              locate the CBadgeInfo element in the badging dictionary by the input path
+              if found
+                locate this guidSender in the vector of senders who sent this badgePath/badgeType
+                if found
+                  remove this guidSender from the vector of senders who sent this badgePath/badgeType
+                  locate this CSender in the Senders vector
+                  if found
+                    decrement the reference count for this sender
+                    if the reference count is now <= 0
+                      remove this CSender from the Senders vector
+                    endif the reference count is now <= 0
+                  else not found
+                    ; don't worry about this error
+                  endelse not found
+                else not found
+                  ; don't worry about this error
+                endelse not found
+                if the sender list for this badgePath is now empty
+                  remove this pair (path, CBadgeInfo) from the badges dictionary
+                endif the sender list for this badgePath is now empty
+              else not found
+                ; don't worry about this error
+              endelse not found
+            endif this is our badge type
+      . On a watcher timer tick under a lock:
+            loop through the Senders vector
+              if countWatcherTestAlivesResetOnActive >= max count
+                ; this sender is dead
+                call RemoveBadgesForSender(guidSender)
+                remove this CSender element from the Senders vector (watch iterator validity)
+              else countWatcherTestAlivesResetOnActive < max count
+                ; this sender is alive
+                increment the countWatcherTestAlivesResetOnActive
+                send a "AreYouAlive" event to this guidSender.
+              endelse countWatcherTestAlivesResetOnActive < max count
+            endloop through the Senders vector
+      . On a "YesIAmAlive" event:
+            locate this CSender element in the senders vector
+            if found
+              reset the countWatcherTestAlivesResetOnActive field in this element
+            else not found
+              ; ignore this error
+            endelse not found
+    - This project is straight forward, but not trivial to implement and test, and it does not affect the normal user experience.  Delay this project.
+    - Instead, fix the bug where all badge requests are being stored in each of the 4 shell extension modules.  Done.
+    - Went through all of the code and added LogErrors in exception handling.  Still needs to be reviewed and build.
+  o 12/2/12 Sun: (home)
+    - 5:30 - 14:30
+    - Tested the LogErrors changes.  It works.  Pushed to master.
+    - Simulating mouse move to remove the systray icon: http://www.computersecurityarticles.info/security/refreshing-the-taskbar-notification-area/
+    - Restoring icon after Explorer restart: http://social.msdn.microsoft.com/Forums/en/vblanguage/thread/bfdd29e8-f842-42cb-9204-f81f78212551
+    - Simple UserControl: http://www.c-sharpcorner.com/uploadfile/mahesh/user-control-in-wpf/
+    - I fixed the "restart explorer loses the systray NotifyIcon" bug.  Pushed to master.
+  o 12/3/12 Mon:
+    - 6:30 - 18:30
+    - Cloud.exe supports only a single SyncBox.  How should we enhance it to support multiple, always using the SDK?
+      . Two methods:
+        o Run multiple instances.
+        o Run a single instance.
+      . In the first case, the instances don't talk, and would run pretty much as they do today, but is that optimum?
+      . The biggest issue I can think of right now is the integration of the status infomation.  Does each instance have its own growl and status window?  
+        How do the growls compete for screen space?How does the user distinguish amoung these competing growls to determine what is happening?  Is
+        each growl and status window identified by its Cloud folder?  Some other ID?
+      . Maybe it is better to run one instance.  Could that instance then coordinate the growls?
+      . The single instance app would create multiple instances of CLSync, one for each synced folder.
+      . The app would get all of the status information from all of the SyncBoxes, and could consolidate the info into a single growl and status window.
+      . The growl would show consolidated information, and if clicked would show the consolidated status window.
+      . It should be possible for the user to use the status window to show the status of a particular SyncBox.  Implement this via a combobox
+        that lists the active SyncBox folder paths, and "All SyncBoxes".
+      . The app preferences would include properties for how many upload threads and download threads.
+      . How should those threads be spread across the SyncBoxes?  Evenly distributed?  Round robin?
+      . Each SyncBox requires its own key and secret.  Those are allocated by the developer.  We need UI to manage the multiple SyncBoxes.
+      . The shell integration has "Show Cloud Folder" everywhere.  What does that mean when there are multiple SyncBoxes.  It will need to display
+        a list of the SyncBoxes with the last folder shown so the user usually only needs to press Enter to get to the folder.
+      . Ditto for Share to the Cloud folder.
+      . What should the UI look like?
+        o The default installation would install only a single SyncBox (syncing the Cloud folder as it does today).
+        o It seems that the main page (register or login) should be replaced with a screen that asks the user to paste in the key and secret, but
+          that wouldn't be easy for most users, especially the beta users, because the installation would be a two-step process (use the web site to allocate
+          the key and secret), then install Cloud and paste in the key and secret.
+        o Should we leave the registration and login in there to automatically download the key and secret as it happens now?
+        o Let's leave it that way for now.
+        o The advanced path should allow the user to select all of the SyncBoxes, and the selective sync areas.
+        o The Preferences should allow the user to change those selections.
+        o The UI for managing the SyncBoxes should be the same (setup or preferences).
+        o The selective sync area UI would be "within" the SyncBox.
+        o Select SyncBoxes dialog:
+          - List of selected SyncBox folder paths (singly-select).
+          - Unlink button (if a SyncBox folder path is selected).  Clicking this button removes the SyncBox folder from the list, and unlinks this device from that SyncBox ID on the server.
+          - Properties button (if a SyncBox folder path is selected).  Clicking this button brings up the SyncBox Properties modal dialog.
+          - New SyncBox Folder path textbox, with a browse button and an Add button.  The browse button brings up the folder selector. The user can type a path
+            or browse to select one.  The Add button is active when the textbox has something in it.
+          - Clicking the Add button invokes the error checking, and will add the path to the ListBox.
+          - Cancel button: If any changes have been made, warns the user.  The user can stay on the dialog with the active changes, or close the dialog and lose any changes.
+          - OK button: Saves the changes and closes the dialog.  If in Preferences mode, this also stops and/or (re)starts any of the modified SyncBoxes.
+        o SyncBox Properties modal dialog:
+          - Allows the user to modify the properties of a particular SyncBox.
+          - This is mostly used for selective sync.  A selective sync folder specifies that the folder and all of its subfolders will not participate in sync.  All of the
+            files and folders will be badged with the selective sync badge (a "minus sign").
+          - List of Selective Sync folder paths within this SyncBox folder (could include the root of the SyncBox folder).
+          - Remove button (if a Selective Sync folder path is selected).  Clicking this button removes the folder from the list.
+          - New Selective Sync Folder path textbox, with a browse button and an Add button.  The browse button brings up the folder selector. The user can type a path
+            or browse to select one.  The Add button is active when the textbox has something in it.
+          - Clicking the Add button invokes the error checking, and will add the path to the ListBox.
+          - Cancel button: If any changes have been made, warns the user.  The user can stay on the dialog with the active changes, or close the dialog and lose any changes.
+          - OK button: Saves the changes and closes the dialog.
+          - Closing the dialog returns to the Select SyncBoxes dialog.
+      . Unlinking will now reference a single SyncBox.  Unlinking one leaves the others running.
+    - Start on the project to move to the cliff servers.  Coding and researching...
+  o 12/4/12 Tue:
+    - 6:30 - 18:30
+    - About secure strings: http://social.msdn.microsoft.com/Forums/en-US/Vsexpressvcs/thread/da562486-5f2e-48fc-b985-305dfab2ac95/
+    - Cloud Auth Signature documentation: https://cloudcom2.podio.com/servers/item/22363038
+    - Coding the switch to the cliff servers.  The SyncBoxList function is coded.
+  o 12/5/12 Wed:
+    - 6:30 - 18:30
+    - The protocol to implement is below.  See "Chuck's ruby test client:" above for the details.
+          if this is a new user
+            send an "old" register request
+            response contains a uuid
+          else this is not a new user
+            send an "old" login request
+            response contains a uuid
+          endelse this is not a new user
+          send an account_details request(uuid)
+          response contains an account_id
+          send a list applications(account_id)
+          response contains a list of applications
+          if the list contains one application
+            set application_id to this application
+          elseif the list contains zero applications
+            send create application request
+            response contains the application ID
+            set application_id to this application
+          endelseif the list contains zero applications
+          else the list has > 1 application
+            error
+          endelse the list has > 1 application
+          send sync service enable request(account_id, application_id, service_type_id)
+          send syncbox list request(application_id)
+          response contains list of syncboxes
+          if syncbox list contains one element
+            set syncbox_id to that element
+          elseif syncbox list contains zero elements
+            send create syncbox request(application_id)
+            response contains the syncbox_id
+            set syncbox_id to the returned syncbox_id
+          else syncbox list contains >1 elements
+            error
+          endelse syncbox list contains >1 elements
+          The syncbox_id is now used everywhere the old uuid was used.
+    - The platform auth server ruby code: https://github.com/CloudCom/platform-auth/blob/master/app/controllers/api/v1/application_sync_box_controller.rb
+    - The output of MIDL doesn't depend on platform: http://stackoverflow.com/questions/6277134/net-com-interop-with-32-and-64-bit-platforms
+    - Sidetracked onto an important bug: crash in Publish in PubSubServer.  Even though all paths are bracketed in try/catch, a memory access error is
+      still killing the app.
+  o 12/6/12 Thu:
+    - 6:30 - 17:45
+    - Using a static mutex to avoid the "non copyable" problem: http://stackoverflow.com/questions/5070161/designing-a-thread-safe-copyable-class
+    - Good explanation of copy and assignment operator overloads: http://www.codeproject.com/Questions/205205/WhyplusweplusneedplustheplusCopyplusConstructorplu
+    - Another bug: The system tray NotifyIcon restore is not working.
+    - Capturing the TaskbarCreated windows message: http://www.bigresource.com/VB-Restore-Tray-Icons-After-Explorer-Crash-6ANXXxOKEM.html
+    - Auth signature documentation: https://cloudcom2.podio.com/servers/item/22363038
+    - Fixed a lot of stuff:
+        1) Fixed the app crash when an exception occurs in one of the COM objects.
+        2) Fixed a bug in CLAppDelegate.cs.  The SyncBox was not being properly unlinked.
+        3) Removed optimization in the primary C# and C++ projects.
+        4) Fixed an intermittent crash in the PubSubServer in Publish and Subscribe.  Used a local pointer to reference the semaphore rather than an offset_ptr.
+        5) Added code to uninstall to delete the SyncBox database folders for all users.
+        6) Fixed a bug on XP.  Removed path handling involving "\\\\?\\" prefixes.
+        7) Changed a comment in the upd error log.  Said "Error in upload".  Should have been "Error in download".
+        8) Fixed a bug in the support to recover the systray Cloud icon when Explorer is recycled.  Properly used RegisterWindowMessage to capture the TaskBarCreate Windows message.
+        9) Added TestDeployment command files to more easily transfer builds to in-house test machines.
+        10) Removed dead commented-out code from IconOverlay.cs.
+        11) Reworked trace in RegisterCom.
+  o 12/7/12 Fri:
+    - 6:45 - 16:45
+    - Gary was let go today.
+    - Working on moving to the cliff servers....
+    - Moved everything to my samsumg laptop for the cruise...
+  o 12/9/12 Sun: (on cruise)
+    - 12:45 - 14:15
+    - Coding the HTTP protocol to move to the cliff servers...
+  o 12/10/12 Mon: (on cruise)
+    - 13:00 - 16:45
+    - 17:30 - 18:15
+    - Coding the HTTP protocol to get connected to the cliff servers.  Work in progress...  Pushed to 20121209WorkOnMoveToCliff.
+  o 12/12/12 Wed: (on cruise)
+    - 11:45 - 16:45
+    - I talked with Gus and Steve yesterday.  We are not working on the "product" clients (Mac OS X or Windows).  It is not necessary
+      to hook them up to the cliff servers at this point, so I will abandon my work on doint that.  Everything is committed to
+      branch 20121209WorkOnMoveToCliff.  I switched to master, synced it and made new branch 20121212A0ProposeHttpRestApiForm.
+    - We need both synchronous and asynchronous interfaces.  Make a new module and start mocking up the API.
+    - I did that, but David beat me to it and produced most of an implementation.
+  o 12/13/12 Thu: (on cruise)
+    - About 4 hours on and off.
+    - MVVM QuickStarts: http://msdn.microsoft.com/en-us/library/gg430857(v=pandp.40).aspx
+    - What should the simplest sample app look like?
+      . The app will have its own settings (associated only with the user and the app).
+      . Run the app:
+        o Home page:
+          - The fields on this page (including Advanced) come from the Settings.
+	  - Initially, the settings are empty, and so are the fields.  Defaults will be supplied where appropriate.
+	  - Text box: Application key: Pasted from the DashBoard.
+	  - Text box: Application secret: Pasted from the DashBoard.
+	  - Text box: SyncBox ID: Pasted from the DashBoard.
+	  - Text box: SyncBox folder.
+	  - Button by the above TextBox: Browse for SyncBox folder, with create folder active.
+	  - Link: Help page on web.
+	  - Button: Advanced
+	    . Brings up a modal dialog or wizard for providing additional settings values.
+	  - Button: Start Syncing
+	    . Links to server and starts syncing, or presents a modal error message and stays on same home page.
+	    . If successful, presents the modal Sync Status Window on top (uploads/downloads and messages).   The Home Page stays visible underneath.
+	  - Button: Stop Syncing
+	    . Pauses syncing.
+	    . The user can start/stop at will.  The buttons are enabled/disabled as necesary.
+	  - Button: Show Sync Status
+	    . Presents the modal Sync Status Window.
+	  - Button: Exit
+	    . Stops syncing and exits the application.
+      . Run the app linked:
+        o As above, but with settings filled in.
+      . Sync Status Window
+        o Modal window
+        o Real-time status of up to N uploads and N downloads (scrollable).
+	o Message area (scrolling sync status messages (events and errors)).
+	o Button: Done: Closes the Sync Status Window.
+      . All of this code is provided in source, so it shouldn't be dependent on much.
+  o 12/14/12 Fri: (on cruise)
+    - About 4 hours on and off.
+    - Dashboard: https://web.cliff.cloudburrito.com
+  o 12/15/12 Sat: (on cruise)
+    - About 4 hours on and off.
+    - How to design the settings objects for the sample app?
+      . While editing, I need a "working" copy of the settings.
+      . Also while editing, I need the "initial" copy of the settings
+      . The settings have been changed if a deep comparison of the working and initial copies are different.
+      . When the user clicks Save, the working copy is saved to the User's isolated storage settings, and the initial settings are set to the working settings (those saved).
+      . I also need an implementation of ISyncSettingsAdvanced to present to the SyncBox constructor.
+      . That implementation will pull the settings from the isolated storage settings.
+      . That's done.  I implemented a deep comparison (Equals()) for the Settings object.
+    - Add UniqueDeviceId to the primary fields.  Done.
+    - Delete the FriendlyDeviceName Settings property.
+    - What about the Advanced options dialog?
+      . The following fields should be supported:
+		public string TempDownloadFolderFullPath { get; set; }
+		public string DatabaseFileFullPath { get; set; }
+		public bool LogErrors { get; set; }
+		public TraceType TraceType { get; set; }
+		public string TraceFilesFullPath { get; set; }
+		public bool TraceExcludeAuthorization { get; set; }
+		public int TraceLevel { get; set; }
+  o 12/16/12 Sun:
+    - Off.
+  o 12/17/12 Mon:
+    - 6:30 - 18:30
+    - Combobox friendly enums: http://www.codeproject.com/Articles/29495/Binding-and-Using-Friendly-Enums-in-WPF
+    - Handling the Window Closing event in a ViewModel: http://www.codeproject.com/Articles/73251/Handling-a-Window-s-Closed-and-Closing-events-in-t
+    - All about ICommand: http://www.codeproject.com/Articles/274982/Commands-in-MVVM
+    - Simple notifications in WPF: http://blogs.planetcloud.co.uk/mygreatdiscovery/post/Sending-notifications-in-WPF-MVVM-applications.aspx
+    - Simple notifications in WPF (2): http://blog.tonysneed.com/2011/01/28/tackling-the-problem-of-modal-dialogs-in-mvvm/
+    - The sample app UI is complete.  Still need CLSync start/stop and integration with the HTTP REST API and the cliff servers.
+  o 12/18/12 Tue:
+    - 5:30 - 8:00  (Home)
+    - 8:30 - 9:00  (Home)
+    - 10:30 - 18:30 (Work)
+    - Integrating CLHttpRest API into SyncEngine for the SDK and the new cliff servers.
+    - All integrated and it builds.  Testing.  Current problem: The SQL Server CE runtime DLLs don't load into the sample program.
+  o 12/19/12 Wed:
+    - 6:30 - 18:30
+    - ToDo list manager: https://www.pivotaltracker.com/
+    - Debugging through the CLHttpRest calls:
+      . TODO: settings.ClientVersion is empty. CLHttpRest line 466.
+      . TODO(Done): Check UI validity on every character change to textbox.
+    - The sample app works and badges.  I made a poor-man's installation package and sent it out.
+    - Switch to the SDK installation project.  Try to use only InstallShield to register BadgeCom.
+    - TODO: Change the folder browser to start in the C: drive root directory.  It can't be used to navigate up.
+    - Program that emulates regsvr32: http://support.microsoft.com/kb/207132
+    - I have the base installation working (InstallShield), but the same old problem registering BadgeCom.  I'll have to modify RegisterCom???
+
+
+            
+        
+        
+          
 
 
 
@@ -7331,7 +7667,13 @@ MORE GIT (3/7/12)
   - Delete branch
     . Remoteley: git push origin --delete 20120831A0PushedUiNewArtworkComplete
     . Localley git branch -d 20120831A0PushedUiNewArtworkComplete
-
+  - Conflicts occur in the 3rdParty DLLs that are built.
+    . git checkout --theirs 3rdParty/bin/Release64/ContextMenuComLib.dll  (or --ours)
+    . git add -f 3rdParty/bin/Release64/ContextMenuComLib.dll
+  - Reset master to match the remote master.
+    . git fetch origin
+    . git reset --hard origin/master
+    
 WINDBG (8/30/12)
   - To debug CLR on an exeption:
     . .load C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319\SOS.dll (x64)
@@ -7364,6 +7706,8 @@ WINDBG (8/30/12)
     . .load c:\trash\scott\sos.dll
     . .cordll -ve -u -l ( for verbose load info)
     . !clrstack (to test it)
+  - Symbol path: SRV*your local folder for symbols*http://msdl.microsoft.com/download/symbols
+        SRV*C:\Symbols*http://msdl.microsoft.com/download/symbols
 
 
 
