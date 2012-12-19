@@ -1,9 +1,9 @@
 ﻿using CloudApiPublic.Interfaces;
 using CloudApiPublic.Static;
-using CloudApiPublicSamples.Models;
-using CloudApiPublicSamples.Support;
-using CloudApiPublicSamples.Views;
-using CloudApiPublicSamples.Static;
+using CloudSdkSyncSample.Models;
+using CloudSdkSyncSample.Support;
+using CloudSdkSyncSample.Views;
+using CloudSdkSyncSample.Static;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,7 +18,7 @@ using System.Windows.Threading;
 using CloudApiPublic;
 using CloudApiPublic.Model;
 
-namespace CloudApiPublicSamples.ViewModels
+namespace CloudSdkSyncSample.ViewModels
 {
     public class MainViewModel : WorkspaceViewModel
     {

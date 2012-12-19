@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 
-namespace CloudApiPublicSamples.Static
+namespace CloudSdkSyncSample.Static
 {
    public static class FocusExtension
    {

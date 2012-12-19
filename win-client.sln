@@ -56,7 +56,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContextMenuNET", "ContextMe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ContextMenuCOM", "ContextMenuCOM\ContextMenuCOM.vcxproj", "{1B8FEEA2-C6DB-4070-9409-C51B26CA30DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudApiPublicSamples", "CloudApiPublicSamples\CloudApiPublicSamples.csproj", "{40A9C587-10CD-4979-A289-2B06F550DB51}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudSdkSyncSample", "CloudApiPublicSamples\CloudSdkSyncSample.csproj", "{40A9C587-10CD-4979-A289-2B06F550DB51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

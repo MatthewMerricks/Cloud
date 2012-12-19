@@ -1,5 +1,5 @@
-﻿using CloudApiPublicSamples.ViewModels;
-using CloudApiPublicSamples.Views;
+﻿using CloudSdkSyncSample.ViewModels;
+using CloudSdkSyncSample.Views;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -7,7 +7,7 @@ using System.Data;
 using System.Linq;
 using System.Windows;
 
-namespace CloudApiPublicSamples
+namespace CloudSdkSyncSample
 {
     /// <summary>
     /// Interaction logic for App.xaml

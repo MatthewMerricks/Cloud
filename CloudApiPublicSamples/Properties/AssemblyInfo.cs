@@ -7,11 +7,11 @@ using System.Windows;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("CloudApiPublicSamples")]
+[assembly: AssemblyTitle("CloudSdkSyncSample")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Cloud.com")]
-[assembly: AssemblyProduct("CloudApiPublicSamples")]
+[assembly: AssemblyProduct("CloudSdkSyncSample")]
 [assembly: AssemblyCopyright("Copyright © Cloud.com.  All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

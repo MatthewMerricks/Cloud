@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublicSamples.Models
+namespace CloudSdkSyncSample.Models
 {
     public sealed class SettingsAvancedImpl : ISyncSettingsAdvanced
     {

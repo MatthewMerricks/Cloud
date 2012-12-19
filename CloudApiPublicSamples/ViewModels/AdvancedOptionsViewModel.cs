@@ -1,7 +1,7 @@
 ﻿using CloudApiPublic.Interfaces;
 using CloudApiPublic.Static;
-using CloudApiPublicSamples.Models;
-using CloudApiPublicSamples.Support;
+using CloudSdkSyncSample.Models;
+using CloudSdkSyncSample.Support;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +11,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace CloudApiPublicSamples.ViewModels
+namespace CloudSdkSyncSample.ViewModels
 {
     public class AdvancedOptionsViewModel : WorkspaceViewModel
     {

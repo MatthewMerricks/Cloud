@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Input;
 
-namespace CloudApiPublicSamples.Support
+namespace CloudSdkSyncSample.Support
 {
     /// <summary>
     /// A command whose sole purpose is to relay its functionality to other objects by invoking delegates. The

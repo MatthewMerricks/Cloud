@@ -11,11 +11,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using CloudApiPublicSamples.ViewModels;
-using CloudApiPublicSamples.Static;
+using CloudSdkSyncSample.ViewModels;
+using CloudSdkSyncSample.Static;
 using System.ComponentModel;
 
-namespace CloudApiPublicSamples.Views
+namespace CloudSdkSyncSample.Views
 {
     /// <summary>
     /// Interaction logic for AdvancedOptions.xaml
