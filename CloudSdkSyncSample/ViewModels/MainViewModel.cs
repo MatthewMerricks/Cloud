@@ -1,5 +1,6 @@
 ﻿using CloudApiPublic.Interfaces;
 using CloudApiPublic.Static;
+using CloudApiPublic.Support;
 using CloudSdkSyncSample.Models;
 using CloudSdkSyncSample.Support;
 using CloudSdkSyncSample.Views;
@@ -25,13 +26,13 @@ namespace CloudSdkSyncSample.ViewModels
         #region Fields
         
         // RelayCommands
-        RelayCommand _commandBrowseSyncBoxFolder;
-        RelayCommand _commandShowAdvancedOptions;
-        RelayCommand _commandSaveSettings;
-        RelayCommand _commandShowSyncStatus;
-        RelayCommand _commandStartSyncing;
-        RelayCommand _commandStopSyncing;
-        RelayCommand _commandExit;
+        RelayCommand<object> _commandBrowseSyncBoxFolder;
+        RelayCommand<object> _commandShowAdvancedOptions;
+        RelayCommand<object> _commandSaveSettings;
+        RelayCommand<object> _commandShowSyncStatus;
+        RelayCommand<object> _commandStartSyncing;
+        RelayCommand<object> _commandStopSyncing;
+        RelayCommand<object> _commandExit;
 
         // Private fields
         private Settings _settingsCurrent = null;
@@ -255,7 +256,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandBrowseSyncBoxFolder == null)
                 {
-                    _commandBrowseSyncBoxFolder = new RelayCommand(
+                    _commandBrowseSyncBoxFolder = new RelayCommand<object>(
                         param => this.BrowseSyncBoxFolder(),
                         param => { return true; }
                         );
@@ -273,7 +274,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandShowAdvancedOptions == null)
                 {
-                    _commandShowAdvancedOptions = new RelayCommand(
+                    _commandShowAdvancedOptions = new RelayCommand<object>(
                         param => this.ShowAdvancedOptions(),
                         param => { return true; }
                         );
@@ -291,7 +292,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandSaveSettings== null)
                 {
-                    _commandSaveSettings = new RelayCommand(
+                    _commandSaveSettings = new RelayCommand<object>(
                         param => this.SaveSettings(),
                         param => this.CanSaveSettings
                         );
@@ -309,7 +310,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandShowSyncStatus == null)
                 {
-                    _commandShowSyncStatus = new RelayCommand(
+                    _commandShowSyncStatus = new RelayCommand<object>(
                         param => this.ShowSyncStatus(),
                         param => this.CanShowSyncStatus
                         );
@@ -327,7 +328,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandStartSyncing== null)
                 {
-                    _commandStartSyncing = new RelayCommand(
+                    _commandStartSyncing = new RelayCommand<object>(
                         param => this.StartSyncing(),
                         param => this.CanStartSyncing
                         );
@@ -345,7 +346,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandStopSyncing == null)
                 {
-                    _commandStopSyncing = new RelayCommand(
+                    _commandStopSyncing = new RelayCommand<object>(
                         param => this.StopSyncing(),
                         param => this.CanStopSyncing
                         );
@@ -363,7 +364,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandExit == null)
                 {
-                    _commandExit = new RelayCommand(
+                    _commandExit = new RelayCommand<object>(
                         param => this.Exit(),
                         param => { return true; }
                         );

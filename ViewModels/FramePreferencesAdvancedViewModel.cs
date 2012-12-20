@@ -328,13 +328,13 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user has selected a new cloud folder path.  Create the new cloud folder
         /// </summary>
-        private RelayCommand<string> _framePreferencesAdvancedViewModel_CreateCloudFolderCommand;
-        public RelayCommand<string> FramePreferencesAdvancedViewModel_CreateCloudFolderCommand
+        private GalaSoft.MvvmLight.Command.RelayCommand<string> _framePreferencesAdvancedViewModel_CreateCloudFolderCommand;
+        public GalaSoft.MvvmLight.Command.RelayCommand<string> FramePreferencesAdvancedViewModel_CreateCloudFolderCommand
         {
             get
             {
                 return _framePreferencesAdvancedViewModel_CreateCloudFolderCommand
-                    ?? (_framePreferencesAdvancedViewModel_CreateCloudFolderCommand = new RelayCommand<string>(
+                    ?? (_framePreferencesAdvancedViewModel_CreateCloudFolderCommand = new GalaSoft.MvvmLight.Command.RelayCommand<string>(
                                             (path) =>
                                             {
                                                 // The user selected the new location to house the Cloud folder.  Put up another

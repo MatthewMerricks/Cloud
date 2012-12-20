@@ -62,6 +62,9 @@ Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "CloudSetupSdkSyncSample", "
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudSdkSyncSample", "CloudSdkSyncSample\CloudSdkSyncSample.csproj", "{40A9C587-10CD-4979-A289-2B06F550DB51}"
+	ProjectSection(ProjectDependencies) = postProject
+		{84373324-5261-45D7-AA92-5C4A88C07233} = {84373324-5261-45D7-AA92-5C4A88C07233}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1559,7 +1562,6 @@ Global
 		{FF6CD9B0-4DAE-4652-8A1B-D1B6B5177191}.Release64|Itanium.ActiveCfg = SingleImage
 		{FF6CD9B0-4DAE-4652-8A1B-D1B6B5177191}.Release64|Itanium.Build.0 = SingleImage
 		{FF6CD9B0-4DAE-4652-8A1B-D1B6B5177191}.Release64|Mixed Platforms.ActiveCfg = SingleImage
-		{FF6CD9B0-4DAE-4652-8A1B-D1B6B5177191}.Release64|Mixed Platforms.Build.0 = SingleImage
 		{FF6CD9B0-4DAE-4652-8A1B-D1B6B5177191}.Release64|Win32.ActiveCfg = SingleImage
 		{FF6CD9B0-4DAE-4652-8A1B-D1B6B5177191}.Release64|Win32.Build.0 = SingleImage
 		{FF6CD9B0-4DAE-4652-8A1B-D1B6B5177191}.Release64|x64.ActiveCfg = SingleImage
@@ -1661,7 +1663,6 @@ Global
 		{40A9C587-10CD-4979-A289-2B06F550DB51}.Release64|ARM.ActiveCfg = Release|Any CPU
 		{40A9C587-10CD-4979-A289-2B06F550DB51}.Release64|Itanium.ActiveCfg = Release|Any CPU
 		{40A9C587-10CD-4979-A289-2B06F550DB51}.Release64|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{40A9C587-10CD-4979-A289-2B06F550DB51}.Release64|Mixed Platforms.Build.0 = Release|Any CPU
 		{40A9C587-10CD-4979-A289-2B06F550DB51}.Release64|Win32.ActiveCfg = Release|Any CPU
 		{40A9C587-10CD-4979-A289-2B06F550DB51}.Release64|x64.ActiveCfg = Release|Any CPU
 		{40A9C587-10CD-4979-A289-2B06F550DB51}.ReleaseARM|Any CPU.ActiveCfg = Release|Any CPU

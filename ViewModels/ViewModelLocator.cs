@@ -27,7 +27,7 @@ using GalaSoft.MvvmLight.Messaging;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Dialog.Implementors.Wpf.MVVM.Services;
 using System.Windows;
-using CloudApiPrivate.Model;
+using CloudApiPublic.Model;
 
 
 namespace win_client.ViewModels
@@ -96,10 +96,6 @@ namespace win_client.ViewModels
             SimpleIoc.Default.Register<DialogPreferencesNetworkProxiesViewModel>();
             SimpleIoc.Default.Register<DialogPreferencesNetworkBandwidthViewModel>();
             SimpleIoc.Default.Register<DialogCheckForUpdatesViewModel>();
-
-            // EventMessageReceiver
-            // (also doubles as WindowSyncStatusViewModel)
-            SimpleIoc.Default.Register<CloudApiPrivate.EventMessageReceiver.EventMessageReceiver>(() => CloudApiPrivate.EventMessageReceiver.EventMessageReceiver.Instance);
 
             // GenericAppMessageSender
             SimpleIoc.Default.Register<GenericAppMessageSender>(() => GenericAppMessageSender.Instance);
@@ -489,11 +485,11 @@ namespace win_client.ViewModels
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",
             Justification = "This non-static member is needed for data binding purposes.")]
-        public CloudApiPrivate.EventMessageReceiver.EventMessageReceiver EventMessageReceiver
+        public CloudApiPublic.EventMessageReceiver.EventMessageReceiver EventMessageReceiver
         {
             get
             {
-                return ServiceLocator.Current.GetInstance<CloudApiPrivate.EventMessageReceiver.EventMessageReceiver>();
+                return ServiceLocator.Current.GetInstance<CloudApiPublic.EventMessageReceiver.EventMessageReceiver>();
             }
         }
 

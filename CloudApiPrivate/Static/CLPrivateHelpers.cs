@@ -19,33 +19,6 @@ namespace CloudApiPrivate.Static
 {
     public class CLPrivateHelpers
     {
-        public static string FormatBytes(long bytes)
-        {
-            if (bytes == 1)
-            {
-                return "1 Byte"; // special case to remove the plural
-            }
-
-            const int scale = 1024;
-            long max = (long)Math.Pow(scale, FormatBytesOrders.Length - 1);
-
-            foreach (string order in FormatBytesOrders)
-            {
-                if (bytes > max)
-                {
-                    return string.Format("{0:##.##} {1}", decimal.Divide(bytes, max), order);
-                }
-                else if (bytes == max)
-                {
-                    return string.Format("1 {0}", order);
-                }
-
-                max /= scale;
-            }
-            return "0 Bytes"; // default for bytes that are less than or equal to zero
-        }
-        private static readonly string[] FormatBytesOrders = new string[] { "GB", "MB", "KB", "Bytes" };
-
         /// <summary>
         /// Deserialize JSON to a hierarchical Dictionary<string, object>.
         /// </summary>

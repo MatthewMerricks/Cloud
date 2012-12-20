@@ -13,7 +13,7 @@
                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 xmlns:receiver="clr-namespace:CloudApiPrivate.EventMessageReceiver;assembly=CloudApiPrivate"
+                 xmlns:receiver="clr-namespace:CloudApiPublic.EventMessageReceiver;assembly=CloudApiPublic"
                  xmlns:common="clr-namespace:win_client.Common"
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  mc:Ignorable="d"

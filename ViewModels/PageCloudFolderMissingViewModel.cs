@@ -454,13 +454,13 @@ namespace win_client.ViewModels
         /// <summary>
         /// The user has selected a new cloud folder path.  Create the new cloud folder
         /// </summary>
-        private RelayCommand<string> _pageCloudFolderMissingViewModel_CreateCloudFolderCommand;
-        public RelayCommand<string> PageCloudFolderMissingViewModel_CreateCloudFolderCommand
+        private GalaSoft.MvvmLight.Command.RelayCommand<string> _pageCloudFolderMissingViewModel_CreateCloudFolderCommand;
+        public GalaSoft.MvvmLight.Command.RelayCommand<string> PageCloudFolderMissingViewModel_CreateCloudFolderCommand
         {
             get
             {
                 return _pageCloudFolderMissingViewModel_CreateCloudFolderCommand
-                    ?? (_pageCloudFolderMissingViewModel_CreateCloudFolderCommand = new RelayCommand<string>(
+                    ?? (_pageCloudFolderMissingViewModel_CreateCloudFolderCommand = new GalaSoft.MvvmLight.Command.RelayCommand<string>(
                                             (path) =>
                                             {
                                                 // Create the new cloud folder.

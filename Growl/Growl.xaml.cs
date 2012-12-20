@@ -6,7 +6,7 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 //
 
-using CloudApiPrivate.EventMessageReceiver;
+using CloudApiPublic.EventMessageReceiver;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPublic.Model;
 using System;
@@ -43,7 +43,7 @@ namespace win_client.Growl
         }
         private static readonly GenericHolder<RunningState> WasShutDown = new GenericHolder<RunningState>(RunningState.NeverStarted);
 
-        private static readonly EventMessageReceiver Receiver = EventMessageReceiver.Instance;
+        private static readonly EventMessageReceiver Receiver = EventMessageReceiver.GetInstance(null, null);
 
         public static CLError StartGrowlService()
         {

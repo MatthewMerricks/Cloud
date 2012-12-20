@@ -78,7 +78,6 @@
     <Compile Include="Static\FocusExtension.cs" />
     <Compile Include="Static\FolderBrowserExtension.cs" />
     <Compile Include="Support\Notification.cs" />
-    <Compile Include="Support\RelayCommand.cs" />
     <Compile Include="Support\Utilities.cs" />
     <Compile Include="ViewModels\AdvancedOptionsViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />

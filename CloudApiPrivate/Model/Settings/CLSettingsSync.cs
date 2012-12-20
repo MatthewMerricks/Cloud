@@ -84,6 +84,37 @@ namespace CloudApiPrivate.Model.Settings
                 return Settings.Instance.Udid;
             }
         }
+        /// <summary>
+        /// Application secret.
+        /// </summary>
+        /// <remarks>NOTE: This should not be stored in the settings.  It should be retrieved dynamically from the developer's server.</remarks>
+        public string ApplicationKey
+        {
+            get
+            {
+                //TODO: Fix this.
+                return "";
+            }
+        }
+
+        public string ApplicationSecret
+        {
+            get
+            {
+                //TODO: Fix this.
+                return "";
+            }
+        }
+
+        public string SyncBoxId
+        {
+            get
+            {
+                //TODO: Fix this.
+                return "";
+            }
+        }
+
         public string Uuid
         {
             get

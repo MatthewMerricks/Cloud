@@ -1,5 +1,6 @@
 ﻿using CloudApiPublic.Interfaces;
 using CloudApiPublic.Static;
+using CloudApiPublic.Support;
 using CloudSdkSyncSample.Models;
 using CloudSdkSyncSample.Support;
 using System;
@@ -18,11 +19,11 @@ namespace CloudSdkSyncSample.ViewModels
         #region Fields
         
         // RelayCommands
-        RelayCommand _commandOk;
-        RelayCommand _commandCancel;
-        RelayCommand _commandBrowseTempDownloadFolder;
-        RelayCommand _commandBrowseDatabaseFolder;
-        RelayCommand _commandBrowseTraceFolder;
+        RelayCommand<object> _commandOk;
+        RelayCommand<object> _commandCancel;
+        RelayCommand<object> _commandBrowseTempDownloadFolder;
+        RelayCommand<object> _commandBrowseDatabaseFolder;
+        RelayCommand<object> _commandBrowseTraceFolder;
         
 
         private Settings _settingsCurrent;
@@ -278,7 +279,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandOk == null)
                 {
-                    _commandOk = new RelayCommand(
+                    _commandOk = new RelayCommand<object>(
                         param => this.Ok(),
                         param => this.CanOk
                         );
@@ -296,7 +297,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandCancel == null)
                 {
-                    _commandCancel = new RelayCommand(
+                    _commandCancel = new RelayCommand<object>(
                         param => this.Cancel(),
                         param => { return true; }
                         );
@@ -314,7 +315,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandBrowseTempDownloadFolder == null)
                 {
-                    _commandBrowseTempDownloadFolder = new RelayCommand(
+                    _commandBrowseTempDownloadFolder = new RelayCommand<object>(
                         param => this.BrowseTempDownloadFolder(),
                         param => { return true; }
                         );
@@ -332,7 +333,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandBrowseDatabaseFolder == null)
                 {
-                    _commandBrowseDatabaseFolder = new RelayCommand(
+                    _commandBrowseDatabaseFolder = new RelayCommand<object>(
                         param => this.BrowseDatabaseFolder(),
                         param => { return true; }
                         );
@@ -350,7 +351,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_commandBrowseTraceFolder == null)
                 {
-                    _commandBrowseTraceFolder = new RelayCommand(
+                    _commandBrowseTraceFolder = new RelayCommand<object>(
                         param => this.BrowseTraceFolder(),
                         param => { return true; }
                         );

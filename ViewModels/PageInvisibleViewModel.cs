@@ -36,6 +36,7 @@ using win_client.ViewModelHelpers;
 using System.Windows.Threading;
 using System.Diagnostics;
 using CloudApiPrivate.Common;
+using CloudApiPublic.EventMessageReceiver;
 
 
 namespace win_client.ViewModels
@@ -330,6 +331,8 @@ namespace win_client.ViewModels
                                             {
                                                 // Open RateBar graph window for upload/download status and logs
                                                 WindowSyncStatus win = new WindowSyncStatus();
+                                                EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings);
+                                                win.DataContext = vm;
                                                 win.ShowInTaskbar = true;
                                                 win.ShowActivated = true;
                                                 win.Visibility = Visibility.Visible;
@@ -343,7 +346,6 @@ namespace win_client.ViewModels
                                             }));
             }
         }
-
 
         /// <summary>
         /// Gets the ExitApplicationCommand.
@@ -427,6 +429,28 @@ namespace win_client.ViewModels
             });
 
             return false;                // cancel the automatic Window close.
+        }
+
+        /// <summary>
+        /// Called by the EventMessageReceiver on construction and destruction to set the historic bandwidth settings.
+        /// </summary>
+        /// <param name="historicUploadBandwidthBitsPS"></param>
+        /// <param name="historicDownloadBandwidthBitsPS"></param>
+        private void OnSetHistoricBandwidthSettings(double historicUploadBandwidthBitsPS, double historicDownloadBandwidthBitsPS)
+        {
+            Settings.Instance.HistoricUploadBandwidthBitsPS = historicUploadBandwidthBitsPS;
+            Settings.Instance.HistoricDownloadBandwidthBitsPS = historicDownloadBandwidthBitsPS;
+        }
+
+        /// <summary>
+        /// Called by the EventMessageReceiver on construction and destruction to get the historic bandwidth settings.
+        /// </summary>
+        /// <param name="historicUploadBandwidthBitsPS"></param>
+        /// <param name="historicDownloadBandwidthBitsPS"></param>
+        private void OnGetHistoricBandwidthSettings(out double historicUploadBandwidthBitsPS, out double historicDownloadBandwidthBitsPS)
+        {
+            historicUploadBandwidthBitsPS = Settings.Instance.HistoricUploadBandwidthBitsPS;
+            historicDownloadBandwidthBitsPS = Settings.Instance.HistoricDownloadBandwidthBitsPS;
         }
 
         #endregion

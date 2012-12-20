@@ -1,4 +1,5 @@
 ﻿using CloudSdkSyncSample.Support;
+using CloudApiPublic.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace CloudSdkSyncSample.ViewModels
     {
         #region Fields
 
-        RelayCommand _closeCommand;
+        RelayCommand<object> _closeCommand;
 
         #endregion // Fields
 
@@ -39,7 +40,7 @@ namespace CloudSdkSyncSample.ViewModels
             get
             {
                 if (_closeCommand == null)
-                    _closeCommand = new RelayCommand(param => this.OnRequestClose());
+                    _closeCommand = new RelayCommand<object>(param => this.OnRequestClose());
 
                 return _closeCommand;
             }

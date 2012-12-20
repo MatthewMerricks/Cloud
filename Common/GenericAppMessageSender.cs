@@ -5,9 +5,8 @@
 //  Created by DavidBruck.
 //  Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPrivate.Model;
-using CloudApiPrivate.Static;
 using CloudApiPublic.Static;
+using CloudApiPublic.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;

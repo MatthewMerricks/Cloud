@@ -32,7 +32,7 @@ using CloudApiPrivate.Common;
 using System.Diagnostics;
 using CloudApiPublic.Model;
 using System.Collections.Specialized;
-using CloudApiPrivate.EventMessageReceiver;
+using CloudApiPublic.EventMessageReceiver;
 
 namespace win_client.Views
 {
@@ -68,7 +68,6 @@ namespace win_client.Views
                 global::System.Windows.Application.Current.Shutdown(0);
             }
 
-            _vm = (EventMessageReceiver)this.DataContext;
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus constructor: Exit.");
         }
 
@@ -79,6 +78,9 @@ namespace win_client.Views
 
         void WindowSyncStatus_Loaded(object sender, RoutedEventArgs e)
         {
+            // Get the ViewModel
+            _vm = (EventMessageReceiver)this.DataContext;
+
             // Register for messages
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Loaded: Entry.");
             this.cmdDone.Focus();
