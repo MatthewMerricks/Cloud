@@ -39,6 +39,7 @@ STDMETHODIMP CPubSubServer::Initialize()
 		{
 	        _pSegment = new managed_windows_shared_memory(open_or_create, GetSharedMemoryNameWithVersion().c_str(), 1024000);
 		}
+       	CLTRACE(9, "PubSubServer: Initialize: Segment: %x.", _pSegment);
     }
     catch (std::exception &ex)
     {
@@ -262,15 +263,20 @@ STDMETHODIMP CPubSubServer::Subscribe(
         ULONG threadId = GetCurrentThreadId();
 
         // An allocator convertible to any allocator<T, segment_manager_t> type.
+	    CLTRACE(9, "PubSubServer: Subscribe: Call get_segment_manager. _pSegment: %x.", _pSegment);
         void_allocator alloc_inst(_pSegment->get_segment_manager());
+	    CLTRACE(9, "PubSubServer: Subscribe: After call to get_segment_manager.");
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
+	    CLTRACE(9, "PubSubServer: Subscribe: Call find_or_construct.  _pSegment: %x.", _pSegment);
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
+	    CLTRACE(9, "PubSubServer: Subscribe: After call to find_or_construct. pBase: %x.", pBase);
 
 	    pBase->mutexSharedMemory_.lock();
 		try
 		{
 			// Look for this subscription.
+	        CLTRACE(9, "PubSubServer: Subscribe: Inside lock.");
 			eventtype_map_guid_subscription_map::iterator outItEventType;
 			guid_subscription_map::iterator outItSubscription;
 			offset_ptr<Subscription> outOptrFoundSubscription;

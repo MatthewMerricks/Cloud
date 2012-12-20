@@ -77,7 +77,8 @@ namespace CloudApiPublic.Support
         /// <param name="FileExtensionWithoutPeriod">e.g.: "log".</param>
         /// <param name="TraceLevel">0: No trace.  Enter 1 for most important traces.  Higher numbers for greater detail.</param>
         /// <param name="LogErrors">The Settings LogErrors setting.</param>
-        public static void Initialize(string TraceLocation, string TraceCategory, string FileExtensionWithoutPeriod, int TraceLevel, bool LogErrors)
+        /// <param name="willForceReset">true: Change the trace settings with these parameters.</param>
+        public static void Initialize(string TraceLocation, string TraceCategory, string FileExtensionWithoutPeriod, int TraceLevel, bool LogErrors, bool willForceReset = false)
         {
             try
             {
@@ -96,8 +97,8 @@ namespace CloudApiPublic.Support
 
                 lock (_instanceLocker)
                 {
-                    // Initialize only once
-                    if (_traceLocation == null)
+                    // Save the settings if we should.
+                    if (willForceReset || (_traceLocation == null))
                     {
                         _maxPriority = TraceLevel;
                         _fileExtensionWithoutPeriod = FileExtensionWithoutPeriod;

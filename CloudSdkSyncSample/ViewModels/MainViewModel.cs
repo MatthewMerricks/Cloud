@@ -18,6 +18,7 @@ using System.Windows.Interop;
 using System.Windows.Threading;
 using CloudApiPublic;
 using CloudApiPublic.Model;
+using CloudApiPublic.EventMessageReceiver;
 
 namespace CloudSdkSyncSample.ViewModels
 {
@@ -68,6 +69,9 @@ namespace CloudSdkSyncSample.ViewModels
             _settingsInitial = new Settings();
             _settingsCurrent.GetSavedSettings();
             _settingsInitial.GetSavedSettings();
+
+            // Initialize trace
+            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors);
         }
 
         #endregion
@@ -491,6 +495,9 @@ namespace CloudSdkSyncSample.ViewModels
             Properties.Settings.Default.Save();
 
             _settingsInitial = new Settings(_settingsCurrent);          // Saved.  Initial is now current.
+
+            // Reinitialize trace
+            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors, willForceReset: true);
         }
 
         /// <summary>
@@ -498,7 +505,30 @@ namespace CloudSdkSyncSample.ViewModels
         /// </summary>
         public void ShowSyncStatus()
         {
-            MessageBox.Show("ShowSyncStatus");
+            // Open RateBar graph window for upload/download status and logs
+            SyncStatusView win = new SyncStatusView();
+            EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings);
+            win.DataContext = vm;
+            win.ShowInTaskbar = true;
+            win.ShowActivated = true;
+            win.Visibility = Visibility.Visible;
+            win.WindowStyle = WindowStyle.ThreeDBorderWindow;
+            win.Show();
+            win.Topmost = true;
+            win.Topmost = false;
+            win.Focus();
+        }
+
+        private void OnSetHistoricBandwidthSettings(double historicUploadBandwidthBitsPS, double historicDownloadBandwidthBitsPS)
+        {
+            Properties.Settings.Default.HistoricUploadBandwidthBitsPS = historicUploadBandwidthBitsPS;
+            Properties.Settings.Default.HistoricDownloadBandwidthBitsPS = historicDownloadBandwidthBitsPS;
+        }
+
+        private void OnGetHistoricBandwidthSettings(out double historicUploadBandwidthBitsPS, out double historicDownloadBandwidthBitsPS)
+        {
+            historicUploadBandwidthBitsPS = Properties.Settings.Default.HistoricUploadBandwidthBitsPS;
+            historicDownloadBandwidthBitsPS = Properties.Settings.Default.HistoricDownloadBandwidthBitsPS;
         }
 
         /// <summary>

@@ -480,21 +480,7 @@ namespace win_client.ViewModels
         }
 
         /// <summary>
-        /// Gets the EventMessageReceiver property.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
-            "CA1822:MarkMembersAsStatic",
-            Justification = "This non-static member is needed for data binding purposes.")]
-        public CloudApiPublic.EventMessageReceiver.EventMessageReceiver EventMessageReceiver
-        {
-            get
-            {
-                return ServiceLocator.Current.GetInstance<CloudApiPublic.EventMessageReceiver.EventMessageReceiver>();
-            }
-        }
-
-        /// <summary>
-        /// Gets the EventMessageReceiver property.
+        /// Gets the GenericAppMessageSender property.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
             "CA1822:MarkMembersAsStatic",

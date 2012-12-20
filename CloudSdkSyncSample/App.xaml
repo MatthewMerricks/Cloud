@@ -4,6 +4,9 @@
              xmlns:vm="clr-namespace:CloudSdkSyncSample.ViewModels"
              xmlns:views="clr-namespace:CloudSdkSyncSample.Views">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <vm:ViewModelLocator x:Key="Locator" />
+            <Style x:Key="unused" />
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

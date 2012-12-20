@@ -1,11 +1,4 @@
-﻿//
-//  WindowSyncStatus.xaml.cs
-//  Cloud Windows
-//
-//  Created by BobS.
-//  Copyright (c) Cloud.com. All rights reserved.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -17,26 +10,17 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Navigation;
-using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Data;
-using win_client.Common;
-using win_client.ViewModels;
-using Dialog.Abstractions.Wpf.Intefaces;
-using Xceed.Wpf.Toolkit;
-using CleanShutdown.Messaging;
 using System.Windows.Threading;
-using CloudApiPrivate.Model.Settings;
-using CleanShutdown.Helpers;
 using CloudApiPublic.Support;
-using CloudApiPrivate.Common;
 using System.Diagnostics;
 using CloudApiPublic.Model;
 using System.Collections.Specialized;
-using CloudApiPrivate.EventMessageReceiver;
+using CloudApiPublic.EventMessageReceiver;
 
-namespace win_client.Views
+namespace CloudSdkSyncSample.Views
 {
-    public partial class WindowSyncStatus : Window, IModalWindow
+    public partial class SyncStatusView : Window
     {
         private DispatcherTimer _timer;
         private bool _isVisible = false;
@@ -44,16 +28,13 @@ namespace win_client.Views
         private static CLTrace _trace = CLTrace.Instance;
         private EventMessageReceiver _vm = null;
 
-        public WindowSyncStatus()
+        public SyncStatusView()
         {
             try
             {
                 _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus constructor: Entry. Call InitializeComponent.");
                 InitializeComponent();
                 _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus constructor: Back from InitializeComponent.");
-
-                // Register for messages
-                CLAppMessages.Message_WindowSyncStatus_ShouldClose.Register(this, OnMessage_WindowSyncStatus_ShouldClose);
 
                 Loaded += WindowSyncStatus_Loaded;
                 Unloaded += WindowSyncStatus_Unloaded;
@@ -62,38 +43,49 @@ namespace win_client.Views
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
                 System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (WindowSyncStatus).  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode));
                 global::System.Windows.Application.Current.Shutdown(0);
             }
 
-            _vm = (EventMessageReceiver)this.DataContext;
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus constructor: Exit.");
-        }
-
-        private void OnMessage_WindowSyncStatus_ShouldClose(string obj)
-        {
-            this.Close();
         }
 
         void WindowSyncStatus_Loaded(object sender, RoutedEventArgs e)
         {
-            // Register for messages
+            // Get the ViewModel
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Loaded: Entry.");
+            _vm = (EventMessageReceiver)this.DataContext;
+
+            // Register for messages
+            MessageSender.Instance.NotifySyncStatusWindowShouldClose += OnNotifySyncStatusWindowShouldClose;
+
+            // Focus to the button.
             this.cmdDone.Focus();
 
         }
 
+        /// <summary>
+        /// This window should close.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void OnNotifySyncStatusWindowShouldClose(object sender, Support.NotificationEventArgs e)
+        {
+            this.Close();
+        }
+
         void WindowSyncStatus_Unloaded(object sender, RoutedEventArgs e)
         {
+            // Unregister for messages
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Unloaded: Entry.");
+            MessageSender.Instance.NotifySyncStatusWindowShouldClose -= OnNotifySyncStatusWindowShouldClose;
         }
 
         void WindowSyncStatus_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Closing: Entry.");
-            Messenger.Default.Unregister(this);
         }
 
 

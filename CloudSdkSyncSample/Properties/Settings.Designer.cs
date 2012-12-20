@@ -166,5 +166,29 @@ namespace CloudSdkSyncSample.Properties {
                 this["TraceLevel"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double HistoricUploadBandwidthBitsPS {
+            get {
+                return ((double)(this["HistoricUploadBandwidthBitsPS"]));
+            }
+            set {
+                this["HistoricUploadBandwidthBitsPS"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double HistoricDownloadBandwidthBitsPS {
+            get {
+                return ((double)(this["HistoricDownloadBandwidthBitsPS"]));
+            }
+            set {
+                this["HistoricDownloadBandwidthBitsPS"] = value;
+            }
+        }
     }
 }

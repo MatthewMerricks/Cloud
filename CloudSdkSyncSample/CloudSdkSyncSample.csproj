@@ -38,6 +38,10 @@
     <ApplicationIcon>Artwork\cloud.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="RateBar, Version=1.0.4671.22690, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\3rdParty\bin\Release\RateBar.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.SqlServerCe, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
@@ -61,6 +65,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Support\MessageSender.cs" />
+    <Compile Include="ViewModels\ViewModelLocator.cs" />
+    <Compile Include="Views\SyncStatusView.xaml.cs">
+      <DependentUpon>SyncStatusView.xaml</DependentUpon>
+    </Compile>
     <Page Include="Views\AdvancedOptionsView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -90,6 +99,10 @@
       <DependentUpon>MainView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\SyncStatusView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
