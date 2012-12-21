@@ -37,7 +37,9 @@ STDMETHODIMP CPubSubServer::Initialize()
     	CLTRACE(9, "PubSubServer: Initialize: Entry");
 		if (_pSegment == NULL)
 		{
-               _pSegment = new managed_windows_shared_memory(open_or_create, GetSharedMemoryNameWithVersion().c_str(), 1024000);
+            std::string strSharedMemoryName = "Local\\";
+            strSharedMemoryName.append(GetSharedMemoryNameWithVersion());
+            _pSegment = new managed_windows_shared_memory(open_or_create, strSharedMemoryName.c_str(), 1024000);
 		}
        	CLTRACE(9, "PubSubServer: Initialize: Segment: %x.", _pSegment);
     }
