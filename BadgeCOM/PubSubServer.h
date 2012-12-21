@@ -26,6 +26,8 @@
 #include <boost\thread.hpp>
 #include <boost\foreach.hpp>
 #include <boost\format.hpp>
+#include <functional>
+#include <boost/functional/hash.hpp>
 #include "Trace.h"
 #include "BadgeCOM_i.h"
 
@@ -98,8 +100,8 @@ public:
 		wchar_string				FullPath_;                  // the full path associated with this event
 
 		// Constructor
-		EventMessage(EnumEventType EventType, EnumEventSubType EventSubType, ULONG ProcessId, ULONG ThreadId, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, const void_allocator &void_alloc) :
-				EventType_(EventType), EventSubType_(EventSubType), ProcessId_(ProcessId), ThreadId_(ThreadId), BadgeType_(BadgeType), FullPath_(*FullPath, void_alloc) {}
+		EventMessage(EnumEventType EventType, EnumEventSubType EventSubType, ULONG ProcessId, ULONG ThreadId, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, const wchar_string::allocator_type &allocator) :
+				EventType_(EventType), EventSubType_(EventSubType), ProcessId_(ProcessId), ThreadId_(ThreadId), BadgeType_(BadgeType), FullPath_(*FullPath, allocator) {}
 	};
 
 	// Event allocators
@@ -122,7 +124,7 @@ public:
 		EventMessage_vector		    events_;					// a vector of events,
 
 		// Constructor
-		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const void_allocator &void_alloc) :
+		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const EventMessage_vector::allocator_type &allocator) :
                             uSignature_(0xCACACACACACACACA),
 							uSubscribingProcessId_(uSubscribingProcessId), 
 							uSubscribingThreadId_(uSubscribingThreadId),
@@ -131,7 +133,7 @@ public:
 							fDestructed_(false),
 							fWaiting_(false),
 							fCancelled_(false),
-							events_(void_alloc)
+							events_(allocator)
 		{
 			// The interprocess_semaphore object is marked not copyable, and this prevented compilation.  Change it to a pointer
 			// reference to allow the object to be copied to get past the compiler error.  The actual semaphore should be allocated in
@@ -157,11 +159,11 @@ public:
  	// Define the types related to Subscription
 	typedef boost::interprocess::allocator<Subscription, segment_manager_t>                      subscription_allocator;     // allocator for allocating Subscription
 	typedef boost::interprocess::allocator<GUID, segment_manager_t>								guid_allocator;			// allocator for allocating GUID
-	typedef std::pair<GUID, Subscription>														pair_guid_subscription;	// a pair of GUID, Subscription
+	typedef std::pair<const GUID, Subscription>													pair_guid_subscription;	// a pair of GUID, Subscription
 	typedef boost::interprocess::allocator<EnumEventType, segment_manager_t>					eventtype_allocator;	// allocator for allocating EnumEventType
 	typedef boost::interprocess::allocator<pair_guid_subscription, segment_manager_t>			pair_guid_subscription_allocator;  // allocator for pair_guid_subscription
 	typedef boost::unordered_map<GUID, Subscription, boost::hash<GUID>, std::equal_to<GUID>, pair_guid_subscription_allocator>  guid_subscription_map;  // a map of GUID => Subscription
-	typedef std::pair<EnumEventType, guid_subscription_map>										pair_eventtype_pair_guid_subscription;  // a pair(EnumEventType, pair(GUID, Subscription))
+	typedef std::pair<const EnumEventType, guid_subscription_map>								pair_eventtype_pair_guid_subscription;  // a pair(EnumEventType, pair(GUID, Subscription))
 	typedef boost::interprocess::allocator<pair_eventtype_pair_guid_subscription, segment_manager_t>  pair_eventtype_pair_guid_subscription_allocator;  // allocator for pair(EnumEventType, pair(GUID, Subscription))
 	typedef boost::unordered_map<EnumEventType, guid_subscription_map, boost::hash<int>, std::equal_to<int>, pair_eventtype_pair_guid_subscription_allocator> eventtype_map_guid_subscription_map;  // a map(EnumEventType, map<GUID, Subscription)>
 	typedef boost::interprocess::vector<Subscription, subscription_allocator>                    subscription_vector;    // a vector of Subscriptions
@@ -174,12 +176,15 @@ public:
 	{
 	public:
 		// Put any required global data here.
+        ULONG                       uSignature_;                 // 0xACACACACACACACAC
 		interprocess_mutex  mutexSharedMemory_;  // lock to protect the whole Base object
 		eventtype_map_guid_subscription_map subscriptions_;      // a vector of Subscription (the active subscriptions)
 
-		Base(eventtype_map_guid_subscription_map::size_type size_type,
-				const eventtype_map_guid_subscription_map::allocator_type &allocator_type)
-				: subscriptions_(size_type, boost::hash<int>(), std::equal_to<int>(), allocator_type) {}
+		Base(eventtype_map_guid_subscription_map::size_type initialBucketCount,
+				const eventtype_map_guid_subscription_map::allocator_type &allocator)
+				: 
+            uSignature_(0xACACACACACACACAC),
+            subscriptions_(initialBucketCount, boost::hash<int>(), std::equal_to<int>(), allocator) {}
 	};
 
 	// Definition of the map holding all of the data.  There will just be a single map element with key "base".  The value

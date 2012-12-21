@@ -37,7 +37,7 @@ STDMETHODIMP CPubSubServer::Initialize()
     	CLTRACE(9, "PubSubServer: Initialize: Entry");
 		if (_pSegment == NULL)
 		{
-	        _pSegment = new managed_windows_shared_memory(open_or_create, GetSharedMemoryNameWithVersion().c_str(), 1024000);
+               _pSegment = new managed_windows_shared_memory(open_or_create, GetSharedMemoryNameWithVersion().c_str(), 1024000);
 		}
        	CLTRACE(9, "PubSubServer: Initialize: Segment: %x.", _pSegment);
     }
@@ -253,6 +253,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
 	    CLTRACE(9, "PubSubServer: Subscribe: Entry. EventType: %d. GUID: %ls. TimeoutMilliseconds: %d.", EventType, CComBSTR(guidSubscriber), TimeoutMilliseconds);
         Base *pBase = NULL;
+        size_t sizeofBase = sizeof(Base);
 	    bool fSubscriptionFound;
 	    subscription_vector::iterator itFoundSubscription;
 
@@ -269,7 +270,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
 	    CLTRACE(9, "PubSubServer: Subscribe: Call find_or_construct.  _pSegment: %x.", _pSegment);
-        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
+        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, _pSegment->get_allocator<Base>());
 	    CLTRACE(9, "PubSubServer: Subscribe: After call to find_or_construct. pBase: %x.", pBase);
 
 	    pBase->mutexSharedMemory_.lock();
