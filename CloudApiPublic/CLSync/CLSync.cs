@@ -117,6 +117,9 @@ namespace CloudApiPublic
 
                 _syncSettings = settings.CopySettings();
 
+                // Initialize trace in case it is not already initialized.
+                CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
+
                 CLError checkBadPath = Helpers.CheckForBadPath(_syncSettings.SyncRoot);
                 if (checkBadPath != null)
                 {
@@ -133,9 +136,6 @@ namespace CloudApiPublic
                     status = CLSyncStartStatus.ErrorLongRootPath;
                     return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.GrabFirstException());
                 }
-
-                // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
 
                 System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncSettings.SyncRoot);
                 if (!rootInfo.Exists)

@@ -19,7 +19,7 @@ static const char * _ksBaseSharedMemoryObjectName = "Base";					// the name of t
 static const int _knMaxEventsInEventQueue = 1000;							// maximum number of events allowed in a subscription's event queue
 static const int _knShortRetries = 5;										// number of retries when giving up short amounts of CPU
 static const int _knShortRetrySleepMs = 50;									// time to wait when giving up short amounts of CPU
-static const int _knOuterMapBuckets = 10;									// number of buckets for the unordered_map<EventType, unordered_map<GUID, Subscription>>.
+static const int _knOuterMapBuckets = 3;									// number of buckets for the unordered_map<EventType, unordered_map<GUID, Subscription>>.
 static const int _knInnerMapBuckets = 100;									// number of buckets for the unordered_map<GUID, Subscription>.
 
 // Static constant initializers
@@ -37,9 +37,10 @@ STDMETHODIMP CPubSubServer::Initialize()
     	CLTRACE(9, "PubSubServer: Initialize: Entry");
 		if (_pSegment == NULL)
 		{
-            std::string strSharedMemoryName = "Local\\";
-            strSharedMemoryName.append(GetSharedMemoryNameWithVersion());
-            _pSegment = new managed_windows_shared_memory(open_or_create, strSharedMemoryName.c_str(), 1024000);
+			void *shm_base = 0;
+            _pSegment = new managed_windows_shared_memory(open_or_create, GetSharedMemoryNameWithVersion().c_str(), 1024000, shm_base);
+			shm_base = _pSegment->get_address();
+			CLTRACE(9, "PubSubServer: Initialize: shm_base: %x.", shm_base);
 		}
        	CLTRACE(9, "PubSubServer: Initialize: Segment: %x.", _pSegment);
     }
@@ -255,7 +256,6 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
 	    CLTRACE(9, "PubSubServer: Subscribe: Entry. EventType: %d. GUID: %ls. TimeoutMilliseconds: %d.", EventType, CComBSTR(guidSubscriber), TimeoutMilliseconds);
         Base *pBase = NULL;
-        size_t sizeofBase = sizeof(Base);
 	    bool fSubscriptionFound;
 	    subscription_vector::iterator itFoundSubscription;
 
@@ -272,7 +272,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
 	    CLTRACE(9, "PubSubServer: Subscribe: Call find_or_construct.  _pSegment: %x.", _pSegment);
-        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, _pSegment->get_allocator<Base>());
+        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 	    CLTRACE(9, "PubSubServer: Subscribe: After call to find_or_construct. pBase: %x.", pBase);
 
 	    pBase->mutexSharedMemory_.lock();

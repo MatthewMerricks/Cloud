@@ -54,7 +54,8 @@ inline windows_mutex::windows_mutex()
    sync_handles &handles =
       windows_intermodule_singleton<sync_handles>::get();
    //Create mutex with the initial count
-   bool open_or_created;
+   // RKS: Original line: bool open_or_created;
+   bool open_or_created = false;             // RKS: Initialize.  See: http://michalhr.ehost.pl/blog/?tag=boost-interprocess
    (void)handles.obtain_mutex(this->id_, &open_or_created);
    //The mutex must be created, never opened
    assert(open_or_created);

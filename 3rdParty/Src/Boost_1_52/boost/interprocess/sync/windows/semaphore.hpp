@@ -53,7 +53,8 @@ inline windows_semaphore::windows_semaphore(unsigned int initialCount)
    sync_handles &handles =
       windows_intermodule_singleton<sync_handles>::get();
    //Force smeaphore creation with the initial count
-   bool open_or_created;
+   // RKS: Original line: bool open_or_created;
+   bool open_or_created = false;             // RKS: Initialize.  See: http://michalhr.ehost.pl/blog/?tag=boost-interprocess
    handles.obtain_semaphore(this->id_, initialCount, &open_or_created);
    //The semaphore must be created, never opened
    assert(open_or_created);

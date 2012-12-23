@@ -100,8 +100,10 @@ public:
 		wchar_string				FullPath_;                  // the full path associated with this event
 
 		// Constructor
-		EventMessage(EnumEventType EventType, EnumEventSubType EventSubType, ULONG ProcessId, ULONG ThreadId, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, const wchar_string::allocator_type &allocator) :
-				EventType_(EventType), EventSubType_(EventSubType), ProcessId_(ProcessId), ThreadId_(ThreadId), BadgeType_(BadgeType), FullPath_(*FullPath, allocator) {}
+		EventMessage(EnumEventType EventType, EnumEventSubType EventSubType, ULONG ProcessId, ULONG ThreadId, 
+				EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, const wchar_string::allocator_type &allocator) :
+				EventType_(EventType), EventSubType_(EventSubType), ProcessId_(ProcessId), ThreadId_(ThreadId), 
+					BadgeType_(BadgeType), FullPath_(*FullPath, allocator) {}
 	};
 
 	// Event allocators
@@ -124,7 +126,8 @@ public:
 		EventMessage_vector		    events_;					// a vector of events,
 
 		// Constructor
-		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, const EventMessage_vector::allocator_type &allocator) :
+		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, 
+									const EventMessage_vector::allocator_type &allocator) :
                             uSignature_(0xCACACACACACACACA),
 							uSubscribingProcessId_(uSubscribingProcessId), 
 							uSubscribingThreadId_(uSubscribingThreadId),
@@ -175,16 +178,19 @@ public:
 	class Base
 	{
 	public:
+		uint64_t reserved1_, reserved2_;
 		// Put any required global data here.
         ULONG                       uSignature_;                 // 0xACACACACACACACAC
 		interprocess_mutex  mutexSharedMemory_;  // lock to protect the whole Base object
-		eventtype_map_guid_subscription_map subscriptions_;      // a vector of Subscription (the active subscriptions)
+		eventtype_map_guid_subscription_map subscriptions_;      // a map of [GUID, Subscription] (the active subscriptions)
 
 		Base(eventtype_map_guid_subscription_map::size_type initialBucketCount,
 				const eventtype_map_guid_subscription_map::allocator_type &allocator)
 				: 
-            uSignature_(0xACACACACACACACAC),
-            subscriptions_(initialBucketCount, boost::hash<int>(), std::equal_to<int>(), allocator) {}
+			reserved1_(0),
+			reserved2_(0),
+			uSignature_(0xACACACACACACACAC),
+			subscriptions_(initialBucketCount, boost::hash<int>(), std::equal_to<int>(), allocator) {}
 	};
 
 	// Definition of the map holding all of the data.  There will just be a single map element with key "base".  The value
