@@ -127,7 +127,7 @@ public:
 
 		// Constructor
 		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, 
-									const EventMessage_vector::allocator_type &allocator) :
+									const void_allocator &allocator) :
                             uSignature_(0xCACACACACACACACA),
 							uSubscribingProcessId_(uSubscribingProcessId), 
 							uSubscribingThreadId_(uSubscribingThreadId),
@@ -185,7 +185,7 @@ public:
 		eventtype_map_guid_subscription_map subscriptions_;      // a map of [GUID, Subscription] (the active subscriptions)
 
 		Base(eventtype_map_guid_subscription_map::size_type initialBucketCount,
-				const eventtype_map_guid_subscription_map::allocator_type &allocator)
+				const void_allocator &allocator)
 				: 
 			reserved1_(0),
 			reserved2_(0),
@@ -195,7 +195,8 @@ public:
 
 	// Definition of the map holding all of the data.  There will just be a single map element with key "base".  The value
 	// will be a complex container containing any required global data, plus the map<EventType, map<GUID, Subscription>>.
-	typedef boost::interprocess::allocator<Base, segment_manager_t>                              base_allocator;       // allocator for allocating Base
+	typedef boost::interprocess::allocator<Base, segment_manager_t>		base_allocator;       // allocator for allocating Base
+	typedef boost::interprocess::vector<Base, base_allocator>			base_vector;          // a vector of Base
 
 	// Public OLE accessible methods
     STDMETHOD(Initialize)();

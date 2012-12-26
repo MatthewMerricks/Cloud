@@ -19,8 +19,8 @@ static const char * _ksBaseSharedMemoryObjectName = "Base";					// the name of t
 static const int _knMaxEventsInEventQueue = 1000;							// maximum number of events allowed in a subscription's event queue
 static const int _knShortRetries = 5;										// number of retries when giving up short amounts of CPU
 static const int _knShortRetrySleepMs = 50;									// time to wait when giving up short amounts of CPU
-static const int _knOuterMapBuckets = 3;									// number of buckets for the unordered_map<EventType, unordered_map<GUID, Subscription>>.
-static const int _knInnerMapBuckets = 100;									// number of buckets for the unordered_map<GUID, Subscription>.
+static const int _knOuterMapBuckets = 11;									// number of buckets for the unordered_map<EventType, unordered_map<GUID, Subscription>>.
+static const int _knInnerMapBuckets = 11;									// number of buckets for the unordered_map<GUID, Subscription>.
 
 // Static constant initializers
 managed_windows_shared_memory *CPubSubServer::_pSegment = NULL;						// pointer to the shared memory segment
@@ -39,8 +39,14 @@ STDMETHODIMP CPubSubServer::Initialize()
 		{
 			void *shm_base = 0;
             _pSegment = new managed_windows_shared_memory(open_or_create, GetSharedMemoryNameWithVersion().c_str(), 1024000, shm_base);
+			segment_manager_t *segm = _pSegment->get_segment_manager();
 			shm_base = _pSegment->get_address();
 			CLTRACE(9, "PubSubServer: Initialize: shm_base: %x.", shm_base);
+			bool fIsSane = segm->check_sanity();
+			if (!fIsSane)
+			{
+				throw new std::exception("ERROR: Shared memory segment is corrupted.");
+			}
 		}
        	CLTRACE(9, "PubSubServer: Initialize: Segment: %x.", _pSegment);
     }
@@ -255,7 +261,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 	    }
 
 	    CLTRACE(9, "PubSubServer: Subscribe: Entry. EventType: %d. GUID: %ls. TimeoutMilliseconds: %d.", EventType, CComBSTR(guidSubscriber), TimeoutMilliseconds);
-        Base *pBase = NULL;
+		Base *pBase = NULL;
 	    bool fSubscriptionFound;
 	    subscription_vector::iterator itFoundSubscription;
 
