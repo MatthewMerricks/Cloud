@@ -13,13 +13,15 @@
             <RowDefinition Height="10"/>
             <RowDefinition Height="40"/>
             <RowDefinition Height="10"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="40"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="40"/>
         </Grid.ColumnDefinitions>
-        <GroupBox Header="Required Settings" HorizontalAlignment="Stretch" Margin="0,20,0,0" Grid.Row="1" Grid.Column="1">
+        <GroupBox Header="Required Settings" HorizontalAlignment="Stretch" Margin="0,35,0,0" Grid.Row="1" Grid.Column="1">
             <StackPanel Orientation="Vertical" Margin="5,10,5,5">
                 <!-- SyncBox Folder -->
                 <Grid>
@@ -46,19 +48,21 @@
                         Text="{Binding AppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          ext:FocusExtension.IsFocused="{Binding IsAppSecretFocused}"
                         ToolTip="Paste from Cloud DashBoard."/>
-                <!-- SyncBox ID -->
-                <Label Content="SyncBox _ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
-                <TextBox x:Name="tbSyncBoxId" Margin="10,0,0,0" Width="175" HorizontalAlignment="Left"
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <!-- SyncBox ID -->
+                    <Label Content="SyncBox _ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
+                    <TextBox x:Name="tbSyncBoxId" Margin="10,0,0,0" Width="175" HorizontalAlignment="Left"
                          Text="{Binding SyncBoxId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          ext:FocusExtension.IsFocused="{Binding IsSyncBoxIdFocused}"
                          ToolTip="Paste from Cloud DashBoard."/>
-                <!-- Unique Device ID -->
-                <Label Content="Unique _Device ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
-                <TextBox x:Name="tbDeviceId" Margin="10,0,0,0"  Width="175" HorizontalAlignment="Left"
+                    <!-- Unique Device ID -->
+                    <Label Content="Unique _Device ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
+                    <TextBox x:Name="tbDeviceId" Margin="10,0,0,0"  Width="175" HorizontalAlignment="Left"
                          Text="{Binding DeviceId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          ext:FocusExtension.IsFocused="{Binding IsDeviceIdFocused}"
                          ToolTip="A numeric ID for this device.  Must be unique for this SyncBox ID."/>
-                <StackPanel Orientation="Horizontal" Margin="10,10,0,0">
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="10,20,0,0">
                     <Button x:Name="cmdShowAdvancedOptions" HorizontalAlignment="Left" Width="130" Height="40"
                             Command="{Binding Path=CommandShowAdvancedOptions, Mode=OneTime}" 
                             ToolTip="Click to set advanced options.">
@@ -73,23 +77,35 @@
             </StackPanel>
         </GroupBox>
         <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
-            <Button x:Name="cmdSyncStatus" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
-                        Command="{Binding Path=CommandShowSyncStatus, Mode=OneTime}" 
-                        ToolTip="Click to show sync status.">
-                <AccessText Text="Sync Stat_us..."/>
+            <Button x:Name="cmdInstallBadging" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
+                        Command="{Binding Path=CommandInstallBadging, Mode=OneTime}" 
+                        ToolTip="Click to install badging support.">
+                <AccessText Text="_Install Badging"/>
             </Button>
+            <Button x:Name="cmdUninstallBadging" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
+                        Command="{Binding Path=CommandUninstallBadging, Mode=OneTime}" 
+                        ToolTip="Click to install badging support.">
+                <AccessText Text="_Uninstall Badging"/>
+            </Button>
+        </StackPanel>
+        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
             <Button x:Name="cmdStartSyncing" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
                         Command="{Binding Path=CommandStartSyncing, Mode=OneTime}" 
                         ToolTip="Click to start syncing the SyncBox.">
                 <AccessText Text="Sta_rt Syncing"/>
             </Button>
-            <Button x:Name="cmdStopSyncing" HorizontalAlignment="Right" Width="100"
+            <Button x:Name="cmdStopSyncing" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
                         Command="{Binding Path=CommandStopSyncing, Mode=OneTime}" 
                         ToolTip="Click to stop syncing the SyncBox.">
                 <AccessText Text="Sto_p Syncing"/>
             </Button>
+            <Button x:Name="cmdSyncStatus" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
+                        Command="{Binding Path=CommandShowSyncStatus, Mode=OneTime}" 
+                        ToolTip="Click to show sync status.">
+                <AccessText Text="Sync Stat_us..."/>
+            </Button>
         </StackPanel>
-        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="cmdExit" HorizontalAlignment="Right" Width="75"
                         Command="{Binding Path=CommandExit, Mode=OneTime}" 
                         ToolTip="Click to stop syncing and exit the application.">

@@ -52,7 +52,7 @@ namespace CloudSdkSyncSample.Views
 
         private void OnNotifyException(object sender, Support.NotificationEventArgs<CloudApiPublic.Model.CLError> e)
         {
-            MessageBox.Show(String.Format("Error starting the synchronization process. Message: {0}.", e.Message), "Sync Start Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(String.Format("Error: {0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         private void OnMainView_Unloaded(object sender, RoutedEventArgs e)

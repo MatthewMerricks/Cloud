@@ -30,6 +30,8 @@ namespace CloudSdkSyncSample.ViewModels
         RelayCommand<object> _commandBrowseSyncBoxFolder;
         RelayCommand<object> _commandShowAdvancedOptions;
         RelayCommand<object> _commandSaveSettings;
+        RelayCommand<object> _commandInstallBadging;
+        RelayCommand<object> _commandUninstallBadging;
         RelayCommand<object> _commandShowSyncStatus;
         RelayCommand<object> _commandStartSyncing;
         RelayCommand<object> _commandStopSyncing;
@@ -306,6 +308,42 @@ namespace CloudSdkSyncSample.ViewModels
         }
 
         /// <summary>
+        /// Returns a command that installs the BadgeCom badging COM object.
+        /// </summary>
+        public ICommand CommandInstallBadging
+        {
+            get
+            {
+                if (_commandInstallBadging == null)
+                {
+                    _commandInstallBadging = new RelayCommand<object>(
+                        param => this.InstallBadging(),
+                        param => { return true; }
+                        );
+                }
+                return _commandInstallBadging;
+            }
+        }
+
+        /// <summary>
+        /// Returns a command that uninstalls the BadgeCom badging COM object.
+        /// </summary>
+        public ICommand CommandUninstallBadging
+        {
+            get
+            {
+                if (_commandUninstallBadging == null)
+                {
+                    _commandUninstallBadging = new RelayCommand<object>(
+                        param => this.UninstallBadging(),
+                        param => { return true; }
+                        );
+                }
+                return _commandUninstallBadging;
+            }
+        }
+
+        /// <summary>
         /// Returns a command that shows the Sync Status window.
         /// </summary>
         public ICommand CommandShowSyncStatus
@@ -498,6 +536,140 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Reinitialize trace
             CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors, willForceReset: true);
+        }
+
+        /// <summary>
+        /// Install the badging COM support.
+        /// </summary>
+        private void InstallBadging()
+        {
+            Process regsvr32Process = null;
+            try
+            {
+                // Determine the path to the proper 64- or 32-bit .dll file to register.
+                string commandArguments = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                if (IntPtr.Size == 4)
+                {
+                    // 32-bit 
+                    commandArguments += "\\x86\\BadgeCom.dll";
+                }
+                else
+                {
+                    // 64-bit 
+                    commandArguments += "\\amd64\\BadgeCom.dll";
+                }
+                commandArguments = "/s " + commandArguments;
+
+                // Build the command line: regsvr32 <path to the proper BadgeCom.dll>
+                string commandProgram = "regsvr32";
+
+                // Launch the process
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.FileName = commandProgram;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.Arguments = commandArguments;
+                regsvr32Process = Process.Start(startInfo);
+
+                // Wait for the process to exit
+                if (regsvr32Process.WaitForExit(5000))
+                {
+                    // Process has exited.  Get the return code.
+                    int retCode = regsvr32Process.ExitCode;
+                    if (retCode != 0)
+                    {
+                        // Error return code
+                        CLError error = new Exception(String.Format("Error registering BadgeCom.dll.  Code: {0}.", retCode)); 
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error registering BadgeCom.dll." });
+                    }
+                }
+                else
+                {
+                    // Timed out.
+                    CLError error = new Exception("Error: Timeout registering BadgeCom.dll.");
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Timeout registering BadgeCom.dll." });
+                }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Exception registering BadgeCom.dll." });
+            }
+            finally
+            {
+                if (regsvr32Process != null)
+                {
+                    regsvr32Process.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Uninstall the badging COM support.
+        /// </summary>
+        private void UninstallBadging()
+        {
+            Process regsvr32Process = null;
+            try
+            {
+                // Determine the path to the proper 64- or 32-bit .dll file to register.
+                string commandArguments = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                if (IntPtr.Size == 4)
+                {
+                    // 32-bit 
+                    commandArguments += "\\x86\\BadgeCom.dll";
+                }
+                else
+                {
+                    // 64-bit 
+                    commandArguments += "\\amd64\\BadgeCom.dll";
+                }
+                commandArguments = "/u /s " + commandArguments;
+
+                // Build the command line: regsvr32 <path to the proper BadgeCom.dll>
+                string commandProgram = "regsvr32";
+
+                // Launch the process
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.FileName = commandProgram;
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.Arguments = commandArguments;
+                regsvr32Process = Process.Start(startInfo);
+
+                // Wait for the process to exit
+                if (regsvr32Process.WaitForExit(5000))
+                {
+                    // Process has exited.  Get the return code.
+                    int retCode = regsvr32Process.ExitCode;
+                    if (retCode != 0)
+                    {
+                        // Error return code
+                        CLError error = new Exception(String.Format("Error unregistering BadgeCom.dll.  Code: {0}.", retCode));
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error unregistering BadgeCom.dll." });
+                    }
+                }
+                else
+                {
+                    // Timed out.
+                    CLError error = new Exception("Error: Timeout registering BadgeCom.dll.");
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Timeout unregistering BadgeCom.dll." });
+                }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Exception unregistering BadgeCom.dll." });
+            }
+            finally
+            {
+                if (regsvr32Process != null)
+                {
+                    regsvr32Process.Close();
+                }
+            }
         }
 
         /// <summary>

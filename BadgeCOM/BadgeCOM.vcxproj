@@ -883,7 +883,9 @@
     <PostBuildEvent>
       <Command>copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
-copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb</Command>
+copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
+copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
+copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).pdb</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -929,6 +931,8 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(T
       <Command>copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
 copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
+copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
+copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1311,7 +1315,9 @@ tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configurati
     <PostBuildEvent>
       <Command>copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
-copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb</Command>
+copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
+copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
+copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|ARM'">
