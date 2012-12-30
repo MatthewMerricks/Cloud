@@ -1,0 +1,266 @@
+   ' CloudSetupSdkSyncSampleCleanup.vbs
+   ' Parameter: None
+   ' Call as "C:\Windows\SysWOW64\cscript.exe" //B //T:30 //Nologo "<path to this CloudSetupSdkSyncSampleCleanup.vbs file>"
+   
+   Option Explicit
+
+   Const ForReading = 1
+   Const ForWriting = 2
+   Const ForAppending = 8
+   Const DeleteReadOnly = true
+   
+   Dim objFileSys
+   Dim objShell
+ 
+   ' Global variables
+   Dim shouldTrace
+   Dim logFileFullPath
+   Dim sTempFolderPath
+   Dim sProgramFilesCloudSdkSyncSamplePath
+   Dim sProgramFilesCloudComPath
+   Dim sScriptFile
+   Dim programFilesX86Path
+   Dim sApplicationDataLocalFolderPath
+   Dim folderCloudSdkSyncSample
+   Dim folderCloudSdkSyncSampleFiles
+   Dim folderCloudCom
+   Dim folderCloudComFiles
+   Dim g_sFolderPath
+   
+   Set objFileSys = wscript.CreateObject("Scripting.FileSystemObject") 
+   Set objShell = wscript.createObject("wscript.shell") 
+ 
+   shouldTrace = True
+
+   ' Pad a number with leading zeros
+   Function PadDigits(n, totalDigits) 
+       PadDigits = Right(string(totalDigits,"0") & n, totalDigits) 
+   End Function 
+    
+   sApplicationDataLocalFolderPath = objShell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
+   Dim currentYear
+   Dim currentMonth
+   Dim currentDay
+   currentYear = Year(Date)
+   currentMonth = PadDigits(Month(Date), 2)
+   currentDay = PadDigits(Day(Date), 2)
+   logFileFullPath = sApplicationDataLocalFolderPath & "\Cloud\Trace-" & currentYear & "-" & PadDigits(currentMonth, 2) & "-" & PadDigits(currentDay, 2) & "-" & "CloudSetupSdkSyncSamplCleanupVbs.log"
+  
+    ' Trace function
+    Sub WriteLog(LogMessage)
+        If shouldTrace Then
+            ' Write to DbgView
+            wscript.echo Now() & ": " & LogMessage
+
+            On Error Resume Next 
+
+            fFinished = False
+            Do
+                Dim objLogFile
+                Dim fFinished
+
+                ' Try to open the log file
+                Set objLogFile = objFileSys.OpenTextFile(logFileFullPath, ForAppending, TRUE)
+                If Err.Number = 70 Then
+                    ' The file is locked
+                    wscript.Sleep 50
+                ElseIf Err.Number <> 0 then
+                    wscript.Echo  "CloudSetupSdkSyncSampleCleanup: WriteLog: Unexpected Error #: " & Err.Number
+                    fFinished = True
+                Else
+                    ' The file opened.  Write to it.
+                    fFinished = True
+                    objLogFile.Writeline(Now() & ": " & LogMessage)
+                    objLogFile.Close
+                    set objLogFile = Nothing
+                End If
+                Err.Clear
+            Loop until fFinished
+
+            On Error GoTo 0
+        End If
+    End Sub
+
+   ' Check to see if a process is running   
+   Function IsProcessRunning(processPath, processFileNameExt)
+      IsProcessRunning = False
+      Dim colProcesses
+      Dim refProcess
+      Dim objWMIService
+
+      WriteLog "CloudSetupSdkSyncSampleCleanup: IsProcessRunning: Entry. processPath: " & processPath
+      Set objWMIService = GetObject("winmgmts:\\.\root\CIMV2") 
+      Set colProcesses = objWMIService.ExecQuery( "SELECT * FROM Win32_Process")
+
+      WriteLog "CloudSetupSdkSyncSampleCleanup: IsProcessRunning: Loop through executing processes."
+      For Each refProcess In colProcesses
+         WriteLog "CloudSetupSdkSyncSampleCleanup: IsProcessRunning: Process name <" & refProcess.Name & ">, ExecutablePath <" & refProcess.ExecutablePath & ">."
+         If UCase(refProcess.ExecutablePath) = UCase(processPath & "\" & processFileNameExt) And UCase(refProcess.Name) = UCase(processFileNameExt) Then
+            WriteLog "CloudSetupSdkSyncSampleCleanup: IsProcessRunning: The process " & processFileNameExt & " is running."
+            IsProcessRunning = True
+            Exit For
+         End If
+      Next
+      WriteLog "CloudSetupSdkSyncSampleCleanup: IsProcessRunning: Exit rc: " & IsProcessRunning
+   End Function
+
+   ' From http://csi-windows.com/toolkit/csi-getosbits
+   Function CSI_GetOSBits() 
+      CSI_GetOSBits = GetObject("winmgmts:root\cimv2:Win32_Processor='cpu0'").AddressWidth 
+   End Function
+
+   ' Delete a folder and handle any exception.
+   Class TryDeleteFolder
+        ' Constructor
+        Private Sub Class_Initialize
+            WriteLog "CloudSetupSdkSyncSampleCleanup: TryDeleteFolder: Constructor entry.  Delete folder at path: <" & g_sFolderPath & ">." 
+            objFileSys.DeleteFolder g_sFolderPath, True
+        End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
+            ' Catch
+            Select Case Err.Number
+                Case Else WriteLog "CloudSetupSdkSyncSampleCleanup: TryDeleteFolder: Unhandled error " & Err.Number & " occurred."
+            End Select
+        Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
+            ' Finally
+            WriteLog "CloudSetupSdkSyncSampleCleanup: TryDeleteFolder: Exiting constructor."
+        End Sub 
+    End Class    
+
+    ' Delete a folder with retry
+    Sub DeleteFolderWithRetry(folderPath)
+        Dim index
+        WriteLog "CloudSetupSdkSyncSampleCleanup: DeleteFolderWithRetry: Delete folder at path: <" & folderPath & ">." 
+        for index = 1 to 3
+            g_sFolderPath = folderPath
+            With New TryDeleteFolder : End With
+            if Err.Number = 0 then
+                exit for
+            end if
+            WScript.Sleep 100
+        Next
+    End Sub
+
+   '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  MAIN PROGRAM @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+   ' This process is launched by Cloud to restart after changing something fundamental.  e.g., Unlinking.  It will:
+   '   o Wait for CloudSetupSdkSyncSampleSupport2.exe to exit.  Kill it if it takes too long.
+   '   o Delete the CloudSetupSdkSyncSampleSupport2.exe and remove any empty installation directories.
+   '
+   ' Try pattern
+   Class CloudSetupSdkSyncSampleCleanup
+      Private Sub Class_Initialize
+         WriteLog("CloudSetupSdkSyncSampleCleanup: Constructor entry.")
+
+         Dim index
+         Dim index2
+
+         ' Determine the program files directory to use
+         WriteLog("CloudSetupSdkSyncSampleCleanup: OS Platform: " & CSI_GetOsBits() & "-bits.")
+         if CSI_GetOsBits() = "32" then
+             programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES%")
+             if programFilesX86Path = "%PROGRAMFILES%" then
+                 WriteLog("CloudSetupSdkSyncSampleCleanup: Main: ERROR: Please set environment variable %PROGRAMFILES%.")
+                 Exit Sub
+             end if
+         else
+             programFilesX86Path = objShell.ExpandEnvironmentStrings("%PROGRAMFILES(X86)%")
+             if programFilesX86Path = "%PROGRAMFILES(X86)%" then
+                 WriteLog("CloudSetupSdkSyncSampleCleanup: Main: ERROR: Please set environment variable %PROGRAMFILES(X86)%.")
+                 Exit Sub
+             end if
+         end if
+         WriteLog("CloudSetupSdkSyncSampleCleanup: Main: programFilesX86Path: " & programFilesX86Path)
+
+		 ' Set the installation directory paths
+		 sProgramFilesCloudComPath = programFilesX86Path & "\Cloud.com"
+		 sProgramFilesCloudSdkSyncSamplePath = sProgramFilesCloudComPath & "\CloudSdkSyncSample"
+
+         ' Get the user's temp directory path
+         sTempFolderPath = objFileSys.GetSpecialFolder(2)
+
+         ' Wait for CloudSetupSdkSyncSampleSupport2.exe to exit.  Don't wait too long.
+         index = 0
+         WriteLog("CloudSetupSdkSyncSampleCleanup: Main: Wait for CloudSetupSdkSyncSampleSupport2.exe to exit.")
+         Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\CloudSdkSyncSample", "CloudSetupSdkSyncSampleSupport2.exe")
+             wscript.Sleep 500
+             index = index + 1
+             if index > 10 then			' 5 seconds
+                 WriteLog "CloudSetupSdkSyncSampleCleanup: ERROR: CloudSetupSdkSyncSampleSupport2 did not exit.  Timed out.  Kill it now."
+                 objShell.Run "taskkill /f /im CloudSetupSdkSyncSampleSupport2.exe", 0, true
+
+                 ' Wait for Cloud to exit
+                 WriteLog "CloudSetupSdkSyncSampleCleanup: Wait for CloudSetupSdkSyncSampleSupport2 to exit."
+                 index2 = 0
+                 Do While IsProcessRunning(programFilesX86Path & "\Cloud.com\CloudSdkSyncSample", "CloudSetupSdkSyncSampleSupport2.exe")
+                     Wscript.Sleep 500
+                     index2 = index2 + 1
+                     if index2 > 10 then			' 5 seconds
+                         WriteLog "CloudSetupSdkSyncSampleCleanup: ERROR: CloudSetupSdkSyncSampleSupport2 did not exit after killing it.  Timed out."
+                         Exit Do
+                      end if
+                 Loop
+                 Exit Do
+             end if
+         Loop
+         WriteLog "CloudSetupSdkSyncSampleCleanup: After wait for CloudSetupSdkSyncSampleSupport2 to exit."
+
+		 ' Delete the CloudSetupSdkSyncSampleSupport2.exe file.
+ 		 If objFileSys.FileExists(sProgramFilesCloudSdkSyncSamplePath & "\CloudSetupSdkSyncSampleSupport2.exe") Then
+		     WriteLog "CloudSetupSdkSyncSampleCleanup: Delete file: " & sProgramFilesCloudSdkSyncSamplePath & "\CloudSetupSdkSyncSampleSupport2.exe"
+		     objFileSys.DeleteFile sProgramFilesCloudSdkSyncSamplePath & "\CloudSetupSdkSyncSampleSupport2.exe", True
+		 End If
+
+         ' Deleting folders will fail if it is our current directory.  Change to the user's Temp directory to avoid this problem.
+         WriteLog "CloudSetupSdkSyncSampleCleanup: Change to the temp directory: " & sTempFolderPath
+         objShell.CurrentDirectory = sTempFolderPath
+
+         ' If the CloudSdkSyncSample directory is empty, delete it.
+         WriteLog "CloudSetupSdkSyncSampleCleanup: Does CloudSdkSyncSample directory exist?"
+         If objFileSys.FolderExists(sProgramFilesCloudSdkSyncSamplePath & "\") Then
+            WriteLog "CloudSetupSdkSyncSampleCleanup: Check for files in the CloudSdkSyncSample directory."
+            set folderCloudSdkSyncSample = objFileSys.GetFolder(sProgramFilesCloudSdkSyncSamplePath & "\")
+            Set folderCloudSdkSyncSampleFiles = folderCloudSdkSyncSample.Files
+            If folderCloudSdkSyncSampleFiles.Count = 0 Then
+               WriteLog "CloudSetupSdkSyncSampleCleanup: Delete folder: " & sProgramFilesCloudSdkSyncSamplePath & "\"
+               DeleteFolderWithRetry sProgramFilesCloudSdkSyncSamplePath
+            End If
+         End If
+
+         ' If the Cloud.Com directory is empty, delete it.
+         WriteLog "CloudSetupSdkSyncSampleCleanup: Does Cloud.com directory exist?"
+         If objFileSys.FolderExists(sProgramFilesCloudComPath & "\") Then
+            WriteLog "CloudSetupSdkSyncSampleCleanup: Check for files in the Cloud.com directory."
+            set folderCloudCom = objFileSys.GetFolder(sProgramFilesCloudComPath & "\")
+            Set folderCloudComFiles = folderCloudCom.Files
+            If folderCloudComFiles.Count = 0 Then
+               WriteLog "CloudSetupSdkSyncSampleCleanup: Delete folder: " & sProgramFilesCloudComPath & "\"
+               DeleteFolderWithRetry sProgramFilesCloudComPath
+            End If
+         End If
+
+         WriteLog "CloudSetupSdkSyncSampleCleanup: Exit normally"
+      End Sub : Private Sub CatchErr : If Err.Number = 0 Then Exit Sub
+          ' Catch
+          WriteLog("CloudSetupSdkSyncSampleCleanup: Unhandled error " & Err.Number & " occurred.")
+      Err.Clear : End Sub : Private Sub Class_Terminate : CatchErr
+          ' Finally
+          WriteLog("CloudSetupSdkSyncSampleCleanup: Exiting constructor (finally).")
+
+          ' Delete ourselves.  This is possible because VBS runs everything out of memory.
+          sScriptFile = Wscript.ScriptFullName
+          WriteLog "CloudSetupSdkSyncSampleCleanup: CloudSetupSdkSyncSampleCleanup.vbs full path: " & sScriptFIle
+          objFileSys.DeleteFile sScriptFile, True
+      End Sub 
+   End Class
+   
+   ' Drive the main program
+   WriteLog("CloudSetupSdkSyncSampleCleanup: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+   WriteLog("CloudSetupSdkSyncSampleCleanup: Drive the main program.")
+   With New CloudSetupSdkSyncSampleCleanup : End With
+   WriteLog("CloudSetupSdkSyncSampleCleanup: Exit 0.")
+   
+   ' No tracing after this
+   set objShell = Nothing
+   set objFileSys = Nothing
+   wscript.Quit 0
+
+

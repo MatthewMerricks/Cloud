@@ -14,10 +14,16 @@ void \hyperlink{class_cloud_api_public_1_1_support_1_1_c_l_trace_a48d83268eca0ea
 \subsection*{Static Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-static void \hyperlink{class_cloud_api_public_1_1_support_1_1_c_l_trace_a01ee05e2bb4b135b85f6046209c1b55e}{Initialize} (string Trace\-Directory, string Trace\-Category, string File\-Extension\-Without\-Period, int Trace\-Level)
+static void \hyperlink{class_cloud_api_public_1_1_support_1_1_c_l_trace_a5d7f8ca5bf5a4d75549d860fef87045b}{Initialize} (string Trace\-Location, string Trace\-Category, string File\-Extension\-Without\-Period, int Trace\-Level, bool Log\-Errors, bool will\-Force\-Reset=false)
 \begin{DoxyCompactList}\small\item\em Call this function before any other \hyperlink{class_cloud_api_public_1_1_support_1_1_c_l_trace}{C\-L\-Trace} call. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Properties}
 \begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_cloud_api_public_1_1_support_1_1_c_l_trace_addcbdd62159c831362a9cc3d1f48bae5}{string {\bfseries Trace\-Location}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}}\label{class_cloud_api_public_1_1_support_1_1_c_l_trace_addcbdd62159c831362a9cc3d1f48bae5}
+
+\item 
+\hypertarget{class_cloud_api_public_1_1_support_1_1_c_l_trace_a10a8a85df179fc24c31ed4485e5296a2}{bool {\bfseries Log\-Errors}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}}\label{class_cloud_api_public_1_1_support_1_1_c_l_trace_a10a8a85df179fc24c31ed4485e5296a2}
+
 \item 
 static \hyperlink{class_cloud_api_public_1_1_support_1_1_c_l_trace}{C\-L\-Trace} \hyperlink{class_cloud_api_public_1_1_support_1_1_c_l_trace_a0861d3bda40d01c666acb82cef1cb595}{Instance}\hspace{0.3cm}{\ttfamily  \mbox{[}get\mbox{]}}
 \begin{DoxyCompactList}\small\item\em An Log\-Writer instance that exposes a single instance \end{DoxyCompactList}\end{DoxyCompactItemize}
@@ -29,29 +35,35 @@ A Logging class implementing the Singleton pattern
 
 
 \subsection{Member Function Documentation}
-\hypertarget{class_cloud_api_public_1_1_support_1_1_c_l_trace_a01ee05e2bb4b135b85f6046209c1b55e}{\index{Cloud\-Api\-Public\-::\-Support\-::\-C\-L\-Trace@{Cloud\-Api\-Public\-::\-Support\-::\-C\-L\-Trace}!Initialize@{Initialize}}
+\hypertarget{class_cloud_api_public_1_1_support_1_1_c_l_trace_a5d7f8ca5bf5a4d75549d860fef87045b}{\index{Cloud\-Api\-Public\-::\-Support\-::\-C\-L\-Trace@{Cloud\-Api\-Public\-::\-Support\-::\-C\-L\-Trace}!Initialize@{Initialize}}
 \index{Initialize@{Initialize}!CloudApiPublic::Support::CLTrace@{Cloud\-Api\-Public\-::\-Support\-::\-C\-L\-Trace}}
 \subsubsection[{Initialize}]{\setlength{\rightskip}{0pt plus 5cm}static void Cloud\-Api\-Public.\-Support.\-C\-L\-Trace.\-Initialize (
 \begin{DoxyParamCaption}
-\item[{string}]{Trace\-Directory, }
+\item[{string}]{Trace\-Location, }
 \item[{string}]{Trace\-Category, }
 \item[{string}]{File\-Extension\-Without\-Period, }
-\item[{int}]{Trace\-Level}
+\item[{int}]{Trace\-Level, }
+\item[{bool}]{Log\-Errors, }
+\item[{bool}]{will\-Force\-Reset = {\ttfamily false}}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_support_1_1_c_l_trace_a01ee05e2bb4b135b85f6046209c1b55e}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_support_1_1_c_l_trace_a5d7f8ca5bf5a4d75549d860fef87045b}
 
 
 Call this function before any other \hyperlink{class_cloud_api_public_1_1_support_1_1_c_l_trace}{C\-L\-Trace} call. 
 
 
 \begin{DoxyParams}{Parameters}
-{\em Trace\-Directory} & The full path of the trace directory.\\
+{\em Trace\-Location} & The full path of the trace directory.\\
 \hline
 {\em Trace\-Category} & The name of the trace category.\\
 \hline
 {\em File\-Extension\-Without\-Period} & e.\-g.\-: \char`\"{}log\char`\"{}.\\
 \hline
 {\em Trace\-Level} & 0\-: No trace. Enter 1 for most important traces. Higher numbers for greater detail.\\
+\hline
+{\em Log\-Errors} & The Settings Log\-Errors setting.\\
+\hline
+{\em will\-Force\-Reset} & true\-: Change the trace settings with these parameters.\\
 \hline
 \end{DoxyParams}
 \hypertarget{class_cloud_api_public_1_1_support_1_1_c_l_trace_a48d83268eca0ea148c25094b3b343192}{\index{Cloud\-Api\-Public\-::\-Support\-::\-C\-L\-Trace@{Cloud\-Api\-Public\-::\-Support\-::\-C\-L\-Trace}!write\-To\-Log@{write\-To\-Log}}

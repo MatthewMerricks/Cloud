@@ -17,14 +17,11 @@ See how easy it is\-:
         \textcolor{comment}{// Set the parameters for your SyncBox.}
         ISyncSettings settings = \textcolor{keyword}{new} SyncSettings(
             SyncBoxFolderFullPath: \textcolor{stringliteral}{"<full path of SyncBox folder>"},
-            RegistrationInfoApplicationId: \textcolor{stringliteral}{"..."},   \textcolor{comment}{// provided by the
+            RegistrationInfoApplicationId: \textcolor{stringliteral}{"..."},   \textcolor{comment}{// provided by the registration process}
+            RegistrationInfoSyncBoxId: \textcolor{stringliteral}{"..."},       \textcolor{comment}{// provided by the application developer through the
        registration process}
-            RegistrationInfoSyncBoxId: \textcolor{stringliteral}{"..."},       \textcolor{comment}{// provided by the
-       application developer through the registration process}
-            RegistrationInfoDeviceId: \textcolor{stringliteral}{"..."},        \textcolor{comment}{// provided by the
-       registration process}
-            DatabaseFileFullPath: \textcolor{stringliteral}{"<full path and filename.ext of the database
-       file>"},
+            RegistrationInfoDeviceId: \textcolor{stringliteral}{"..."},        \textcolor{comment}{// provided by the registration process}
+            DatabaseFolderFullPath: \textcolor{stringliteral}{"<full path of the folder to contain the database file IndexDB.sdf>"},
                 );
         
         \textcolor{comment}{// Construct the SyncBox object with the settings.}
@@ -49,8 +46,7 @@ See how easy it is\-:
         \textcolor{keywordflow}{switch} (e.Message.MessageType)
         \{
             \textcolor{keywordflow}{case} EnumMessageType.Informational:
-                MessageBox.Show(\textcolor{stringliteral}{"Informational message: "} + e.Message.Message);
-        \textcolor{comment}{// example only}
+                MessageBox.Show(\textcolor{stringliteral}{"Informational message: "} + e.Message.Message);  \textcolor{comment}{// example only}
                 \textcolor{keywordflow}{break};
 
             \textcolor{keywordflow}{case} EnumMessageType.SyncStarted:

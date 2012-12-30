@@ -1,11 +1,13 @@
 var searchData=
 [
-  ['databasefile',['DatabaseFile',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced.html#a16054154b37da7455f410a3b8f074a27',1,'CloudApiPublic::Interfaces::ISyncSettingsAdvanced']]],
+  ['databasefolder',['DatabaseFolder',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced.html#a3e0380120ac6062772306878cb2a948c',1,'CloudApiPublic::Interfaces::ISyncSettingsAdvanced']]],
+  ['default',['Default',['../class_cloud_api_public_1_1_event_message_receiver_1_1_binding_evaluator_1_1_default.html',1,'CloudApiPublic::EventMessageReceiver::BindingEvaluator']]],
+  ['delaychangeobservablecollection_3c_20t_20_3e',['DelayChangeObservableCollection&lt; T &gt;',['../class_cloud_api_public_1_1_event_message_receiver_1_1_delay_change_observable_collection_3_01_t_01_4.html',1,'CloudApiPublic::EventMessageReceiver']]],
   ['delaycompleted',['DelayCompleted',['../class_cloud_api_public_1_1_support_1_1_delay_processable_3_01_t_01_4.html#a9605535bcda38d09fc9aece45f7b4003',1,'CloudApiPublic::Support::DelayProcessable&lt; T &gt;']]],
   ['delayprocessable',['DelayProcessable',['../class_cloud_api_public_1_1_support_1_1_delay_processable_3_01_t_01_4.html#a6152750dbaa593d7be67346effeabc8f',1,'CloudApiPublic::Support::DelayProcessable&lt; T &gt;']]],
   ['delayprocessable_3c_20t_20_3e',['DelayProcessable&lt; T &gt;',['../class_cloud_api_public_1_1_support_1_1_delay_processable_3_01_t_01_4.html',1,'CloudApiPublic::Support']]],
   ['deletebadgepath',['DeleteBadgePath',['../struct_cloud_api_public_1_1_model_1_1_delete_badge_path.html',1,'CloudApiPublic::Model']]],
-  ['deletebadgepath',['DeleteBadgePath',['../class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay.html#a866f6571484e3d57489973d13560af79',1,'CloudApiPublic::BadgeNET::IconOverlay']]],
+  ['deletebadgepath',['DeleteBadgePath',['../class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay.html#ac996129efd6ab91fffec1ffa5dedda43',1,'CloudApiPublic::BadgeNET::IconOverlay']]],
   ['dependencies',['Dependencies',['../class_cloud_api_public_1_1_model_1_1_file_change_with_dependencies.html#ab84bcbd3ecbc8923314249d2a131502b',1,'CloudApiPublic.Model.FileChangeWithDependencies.Dependencies()'],['../class_cloud_api_public_1_1_static_1_1_trace_file_change.html#ae59a01ca9928f8ffe53da95ff4fa62b1',1,'CloudApiPublic.Static.TraceFileChange.Dependencies()']]],
   ['dependenciescount',['DependenciesCount',['../class_cloud_api_public_1_1_model_1_1_file_change_with_dependencies.html#aba0e8e759d2d91d0184e9a824d31772b',1,'CloudApiPublic::Model::FileChangeWithDependencies']]],
   ['dependencyassignment',['dependencyAssignment',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object.html#a2b36076284fea39198c49ac28decae44',1,'CloudApiPublic::Interfaces::ISyncDataObject']]],
@@ -14,7 +16,13 @@ var searchData=
   ['devicename',['DeviceName',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced.html#a6c77d27d7e668673e0739f84d500e5f4',1,'CloudApiPublic::Interfaces::ISyncSettingsAdvanced']]],
   ['direction',['Direction',['../class_cloud_api_public_1_1_model_1_1_file_change.html#ae9286566d391fe9d646db55e20b1ccab',1,'CloudApiPublic.Model.FileChange.Direction()'],['../class_cloud_api_public_1_1_static_1_1_communication_entry.html#a1ce7240a45fbab0747aed47f1cdd65fe',1,'CloudApiPublic.Static.CommunicationEntry.Direction()']]],
   ['disconnectpushnotificationserver',['DisconnectPushNotificationServer',['../class_cloud_api_public_1_1_push_notification_1_1_c_l_notification.html#a121fca2675b1ac57dac038554edf8fb9',1,'CloudApiPublic::PushNotification::CLNotification']]],
-  ['disposebothschedulers',['DisposeBothSchedulers',['../class_cloud_api_public_1_1_sync_1_1_http_scheduler.html#a5b654a57f79ca5b29982a697e017814e',1,'CloudApiPublic::Sync::HttpScheduler']]],
+  ['displayelapsedtime',['DisplayElapsedTime',['../class_cloud_api_public_1_1_event_message_receiver_1_1_status_1_1_c_l_status_file_transfer_base_3_01_t_01_4.html#ab5f586d4dbd56f0ec9d461c36744579f',1,'CloudApiPublic::EventMessageReceiver::Status::CLStatusFileTransferBase&lt; T &gt;']]],
+  ['displayfilesize',['DisplayFileSize',['../class_cloud_api_public_1_1_event_message_receiver_1_1_status_1_1_c_l_status_file_transfer_base_3_01_t_01_4.html#a2641d33254dfd9e214cea124a567f5f4',1,'CloudApiPublic::EventMessageReceiver::Status::CLStatusFileTransferBase&lt; T &gt;']]],
+  ['displayrateatcurrentsample',['DisplayRateAtCurrentSample',['../class_cloud_api_public_1_1_event_message_receiver_1_1_status_1_1_c_l_status_file_transfer.html#a16f8a7d7676dc5dff1d75289a244bf71',1,'CloudApiPublic.EventMessageReceiver.Status.CLStatusFileTransfer.DisplayRateAtCurrentSample()'],['../class_cloud_api_public_1_1_event_message_receiver_1_1_status_1_1_c_l_status_file_transfer_base_3_01_t_01_4.html#ad7f354c525c4060e21a1e646d3f2a1d2',1,'CloudApiPublic.EventMessageReceiver.Status.CLStatusFileTransferBase&lt; T &gt;.DisplayRateAtCurrentSample()']]],
+  ['displaytimeleft',['DisplayTimeLeft',['../class_cloud_api_public_1_1_event_message_receiver_1_1_status_1_1_c_l_status_file_transfer_base_3_01_t_01_4.html#a4f0c2965e2912df7055003da9f5e8f09',1,'CloudApiPublic::EventMessageReceiver::Status::CLStatusFileTransferBase&lt; T &gt;']]],
   ['donotaddtosqlindex',['DoNotAddToSQLIndex',['../class_cloud_api_public_1_1_model_1_1_file_change.html#aa979e65ac9cd9783870afe5b25137296',1,'CloudApiPublic::Model::FileChange']]],
-  ['download',['Download',['../class_cloud_api_public_1_1_json_contracts_1_1_download.html',1,'CloudApiPublic::JsonContracts']]]
+  ['download',['Download',['../class_cloud_api_public_1_1_json_contracts_1_1_download.html',1,'CloudApiPublic::JsonContracts']]],
+  ['downloadedmessage',['DownloadedMessage',['../class_cloud_api_public_1_1_event_message_receiver_1_1_downloaded_message.html',1,'CloudApiPublic::EventMessageReceiver']]],
+  ['downloadfile',['DownloadFile',['../class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest.html#a6a22cb358a297f8562f550a1f89be51d',1,'CloudApiPublic::REST::CLHttpRest']]],
+  ['downloadingmessage',['DownloadingMessage',['../class_cloud_api_public_1_1_event_message_receiver_1_1_downloading_message.html',1,'CloudApiPublic::EventMessageReceiver']]]
 ];

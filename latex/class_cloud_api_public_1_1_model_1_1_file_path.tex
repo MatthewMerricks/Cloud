@@ -15,35 +15,29 @@ Self-\/referencing file path storage, each instance contains a name and a link t
 \begin{DoxyCompactList}\small\item\em Copies a \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} structure (recurvisely includes parent directories) such as for modifications \end{DoxyCompactList}\item 
 override string \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_a806dd9bf2dad9a537a87330001ba0752}{To\-String} ()
 \begin{DoxyCompactList}\small\item\em Overridden To\-String returns a full path representation of the current instance (i.\-e. \char`\"{}\-C\-:\textbackslash{}\-A\textbackslash{}\-B\textbackslash{}\-C\textbackslash{}\-D.\-txt\char`\"{}) \end{DoxyCompactList}\item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a695712bfd6b6293199e04085b04e2f50}{string {\bfseries Get\-Relative\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} relative\-Root, bool replace\-With\-Forward\-Slashes)}\label{class_cloud_api_public_1_1_model_1_1_file_path_a695712bfd6b6293199e04085b04e2f50}
-
-\item 
+string \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_a695712bfd6b6293199e04085b04e2f50}{Get\-Relative\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} relative\-Root, bool replace\-With\-Forward\-Slashes)
+\begin{DoxyCompactList}\small\item\em Builds a string portion of a path after a specified relative root to the end of this \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, possibly swapping the slashes for communication \end{DoxyCompactList}\item 
 \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_aa9f2baee747ea9b26c875e9f572c7519}{Find\-Overlapping\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} other\-Path)
 \begin{DoxyCompactList}\small\item\em Returns the overlap of current path with another path, if any \end{DoxyCompactList}\item 
-bool \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_af19b6d43f8a02c8ea4b28e8a1fbd89b2}{Contains} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} inner\-Path)
+bool \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_a130748c71b8f0258ef9031d32f9e8ff6}{Contains} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} inner\-Path, bool insensitive\-Name\-Search=false)
 \begin{DoxyCompactList}\small\item\em Determines whether or not an inner path is contained within the current path (including if both are perfectly equal) \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Static Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a207de9e47985b6aebd7ff55402cad10c}{static implicit {\bfseries operator File\-Path} (Directory\-Info directory)}\label{class_cloud_api_public_1_1_model_1_1_file_path_a207de9e47985b6aebd7ff55402cad10c}
-
-\item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a487405c44f1fdfb000153cff0b5fb82c}{static implicit {\bfseries operator File\-Path} (File\-Info file)}\label{class_cloud_api_public_1_1_model_1_1_file_path_a487405c44f1fdfb000153cff0b5fb82c}
-
-\item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a02e6124740c2197434373db93c843932}{static implicit {\bfseries operator File\-Path} (string full\-Path)}\label{class_cloud_api_public_1_1_model_1_1_file_path_a02e6124740c2197434373db93c843932}
-
-\item 
+static implicit \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_a207de9e47985b6aebd7ff55402cad10c}{operator File\-Path} (Directory\-Info directory)
+\begin{DoxyCompactList}\small\item\em Implicitly converts Directory\-Info to \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, loses all data except the path itself \end{DoxyCompactList}\item 
+static implicit \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_a487405c44f1fdfb000153cff0b5fb82c}{operator File\-Path} (File\-Info file)
+\begin{DoxyCompactList}\small\item\em Implicitly converts File\-Info to \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, loses all data except the path itself \end{DoxyCompactList}\item 
+static implicit \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_a02e6124740c2197434373db93c843932}{operator File\-Path} (string full\-Path)
+\begin{DoxyCompactList}\small\item\em Implicitly converts a full path string to \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} by first creating a Directory\-Info (which is then implicitly converted) \end{DoxyCompactList}\item 
 static \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_a546fa862491a9ac6f9f27fefcdcc8e70}{Find\-Overlapping\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} first\-Path, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} second\-Path)
 \begin{DoxyCompactList}\small\item\em Returns the overlap of two paths, if any \end{DoxyCompactList}\item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_ae59cc87c9025226cd9c00578c4b7b453}{static string {\bfseries Get\-Relative\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} full\-Path, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} relative\-Root, bool replace\-With\-Forward\-Slashes)}\label{class_cloud_api_public_1_1_model_1_1_file_path_ae59cc87c9025226cd9c00578c4b7b453}
-
-\item 
-static bool \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_ab3a9513bde83e7c917d385269d421bd4}{Contains} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} outer\-Path, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} inner\-Path)
+static string \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_ae59cc87c9025226cd9c00578c4b7b453}{Get\-Relative\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} full\-Path, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} relative\-Root, bool replace\-With\-Forward\-Slashes)
+\begin{DoxyCompactList}\small\item\em Builds a string portion of a path after a specified relative root to the end of the given full path, possibly swapping the slashes for communication \end{DoxyCompactList}\item 
+static bool \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_a1a4f9140292e984320a720d810a196fd}{Contains} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} outer\-Path, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} inner\-Path, bool insensitive\-Name\-Search=false)
 \begin{DoxyCompactList}\small\item\em Determines whether or not the second path is contained within the first path (including if both are perfectly equal) \end{DoxyCompactList}\item 
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_ac899f6153fd260eec0386a7e141a7896}{static void {\bfseries Apply\-Rename} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} to\-Modify, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} root\-Old\-Path, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} root\-New\-Path)}\label{class_cloud_api_public_1_1_model_1_1_file_path_ac899f6153fd260eec0386a7e141a7896}
-
-\end{DoxyCompactItemize}
+static void \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path_ac899f6153fd260eec0386a7e141a7896}{Apply\-Rename} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} to\-Modify, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} root\-Old\-Path, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} root\-New\-Path)
+\begin{DoxyCompactList}\small\item\em Modifies a \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} to swap a parent structure at a certain point to effectively rename it via an exact path rename or a rename of a parent directory; be careful because it modifies the actual \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} which may be referenced elsewhere and not meant to be changed \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Properties}
 \begin{DoxyCompactItemize}
 \item 
@@ -83,14 +77,37 @@ Construct file path with name of item and optionally a reference to the parent d
 
 
 \subsection{Member Function Documentation}
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_ab3a9513bde83e7c917d385269d421bd4}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!Contains@{Contains}}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_ac899f6153fd260eec0386a7e141a7896}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!Apply\-Rename@{Apply\-Rename}}
+\index{Apply\-Rename@{Apply\-Rename}!CloudApiPublic::Model::FilePath@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}}
+\subsubsection[{Apply\-Rename}]{\setlength{\rightskip}{0pt plus 5cm}static void Cloud\-Api\-Public.\-Model.\-File\-Path.\-Apply\-Rename (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Path}}]{to\-Modify, }
+\item[{{\bf File\-Path}}]{root\-Old\-Path, }
+\item[{{\bf File\-Path}}]{root\-New\-Path}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_ac899f6153fd260eec0386a7e141a7896}
+
+
+Modifies a \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} to swap a parent structure at a certain point to effectively rename it via an exact path rename or a rename of a parent directory; be careful because it modifies the actual \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} which may be referenced elsewhere and not meant to be changed 
+
+
+\begin{DoxyParams}{Parameters}
+{\em to\-Modify} & The path to apply a rename which will be modified\\
+\hline
+{\em root\-Old\-Path} & Previous path which was renamed, either the exact path to rename or a path to a parent directory\\
+\hline
+{\em root\-New\-Path} & The new path of the rename after the change from the root\-Old\-Path name\\
+\hline
+\end{DoxyParams}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a1a4f9140292e984320a720d810a196fd}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!Contains@{Contains}}
 \index{Contains@{Contains}!CloudApiPublic::Model::FilePath@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}}
 \subsubsection[{Contains}]{\setlength{\rightskip}{0pt plus 5cm}static bool Cloud\-Api\-Public.\-Model.\-File\-Path.\-Contains (
 \begin{DoxyParamCaption}
 \item[{{\bf File\-Path}}]{outer\-Path, }
-\item[{{\bf File\-Path}}]{inner\-Path}
+\item[{{\bf File\-Path}}]{inner\-Path, }
+\item[{bool}]{insensitive\-Name\-Search = {\ttfamily false}}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_ab3a9513bde83e7c917d385269d421bd4}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_a1a4f9140292e984320a720d810a196fd}
 
 
 Determines whether or not the second path is contained within the first path (including if both are perfectly equal) 
@@ -105,13 +122,14 @@ Determines whether or not the second path is contained within the first path (in
 \begin{DoxyReturn}{Returns}
 Returns true if the second path is contained within the first path, otherwise false
 \end{DoxyReturn}
-\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_af19b6d43f8a02c8ea4b28e8a1fbd89b2}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!Contains@{Contains}}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a130748c71b8f0258ef9031d32f9e8ff6}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!Contains@{Contains}}
 \index{Contains@{Contains}!CloudApiPublic::Model::FilePath@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}}
 \subsubsection[{Contains}]{\setlength{\rightskip}{0pt plus 5cm}bool Cloud\-Api\-Public.\-Model.\-File\-Path.\-Contains (
 \begin{DoxyParamCaption}
-\item[{{\bf File\-Path}}]{inner\-Path}
+\item[{{\bf File\-Path}}]{inner\-Path, }
+\item[{bool}]{insensitive\-Name\-Search = {\ttfamily false}}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_af19b6d43f8a02c8ea4b28e8a1fbd89b2}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_a130748c71b8f0258ef9031d32f9e8ff6}
 
 
 Determines whether or not an inner path is contained within the current path (including if both are perfectly equal) 
@@ -179,6 +197,86 @@ Returns the overlap of current path with another path, if any
 \begin{DoxyReturn}{Returns}
 Returns overlapped path, if any
 \end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_ae59cc87c9025226cd9c00578c4b7b453}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!Get\-Relative\-Path@{Get\-Relative\-Path}}
+\index{Get\-Relative\-Path@{Get\-Relative\-Path}!CloudApiPublic::Model::FilePath@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}}
+\subsubsection[{Get\-Relative\-Path}]{\setlength{\rightskip}{0pt plus 5cm}static string Cloud\-Api\-Public.\-Model.\-File\-Path.\-Get\-Relative\-Path (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Path}}]{full\-Path, }
+\item[{{\bf File\-Path}}]{relative\-Root, }
+\item[{bool}]{replace\-With\-Forward\-Slashes}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_ae59cc87c9025226cd9c00578c4b7b453}
+
+
+Builds a string portion of a path after a specified relative root to the end of the given full path, possibly swapping the slashes for communication 
+
+
+\begin{DoxyParams}{Parameters}
+{\em full\-Path} & Path to make relative\\
+\hline
+{\em relative\-Root} & Full path to the root base of the relative path to return\\
+\hline
+{\em replace\-With\-Forward\-Slashes} & Whether to replace the default Windows backslash in the resulting path with forward slash for directory seperation\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns the relative path
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a695712bfd6b6293199e04085b04e2f50}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!Get\-Relative\-Path@{Get\-Relative\-Path}}
+\index{Get\-Relative\-Path@{Get\-Relative\-Path}!CloudApiPublic::Model::FilePath@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}}
+\subsubsection[{Get\-Relative\-Path}]{\setlength{\rightskip}{0pt plus 5cm}string Cloud\-Api\-Public.\-Model.\-File\-Path.\-Get\-Relative\-Path (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Path}}]{relative\-Root, }
+\item[{bool}]{replace\-With\-Forward\-Slashes}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_a695712bfd6b6293199e04085b04e2f50}
+
+
+Builds a string portion of a path after a specified relative root to the end of this \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, possibly swapping the slashes for communication 
+
+
+\begin{DoxyParams}{Parameters}
+{\em relative\-Root} & Full path to the root base of the relative path to return\\
+\hline
+{\em replace\-With\-Forward\-Slashes} & Whether to replace the default Windows backslash in the resulting path with forward slash for directory seperation\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns the relative path
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a207de9e47985b6aebd7ff55402cad10c}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!operator File\-Path@{operator File\-Path}}
+\index{operator File\-Path@{operator File\-Path}!CloudApiPublic::Model::FilePath@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}}
+\subsubsection[{operator File\-Path}]{\setlength{\rightskip}{0pt plus 5cm}static implicit Cloud\-Api\-Public.\-Model.\-File\-Path.\-operator {\bf File\-Path} (
+\begin{DoxyParamCaption}
+\item[{Directory\-Info}]{directory}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_a207de9e47985b6aebd7ff55402cad10c}
+
+
+Implicitly converts Directory\-Info to \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, loses all data except the path itself 
+
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a487405c44f1fdfb000153cff0b5fb82c}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!operator File\-Path@{operator File\-Path}}
+\index{operator File\-Path@{operator File\-Path}!CloudApiPublic::Model::FilePath@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}}
+\subsubsection[{operator File\-Path}]{\setlength{\rightskip}{0pt plus 5cm}static implicit Cloud\-Api\-Public.\-Model.\-File\-Path.\-operator {\bf File\-Path} (
+\begin{DoxyParamCaption}
+\item[{File\-Info}]{file}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_a487405c44f1fdfb000153cff0b5fb82c}
+
+
+Implicitly converts File\-Info to \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path}, loses all data except the path itself 
+
+\hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a02e6124740c2197434373db93c843932}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!operator File\-Path@{operator File\-Path}}
+\index{operator File\-Path@{operator File\-Path}!CloudApiPublic::Model::FilePath@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}}
+\subsubsection[{operator File\-Path}]{\setlength{\rightskip}{0pt plus 5cm}static implicit Cloud\-Api\-Public.\-Model.\-File\-Path.\-operator {\bf File\-Path} (
+\begin{DoxyParamCaption}
+\item[{string}]{full\-Path}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_model_1_1_file_path_a02e6124740c2197434373db93c843932}
+
+
+Implicitly converts a full path string to \hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} by first creating a Directory\-Info (which is then implicitly converted) 
+
 \hypertarget{class_cloud_api_public_1_1_model_1_1_file_path_a806dd9bf2dad9a537a87330001ba0752}{\index{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}!To\-String@{To\-String}}
 \index{To\-String@{To\-String}!CloudApiPublic::Model::FilePath@{Cloud\-Api\-Public\-::\-Model\-::\-File\-Path}}
 \subsubsection[{To\-String}]{\setlength{\rightskip}{0pt plus 5cm}override string Cloud\-Api\-Public.\-Model.\-File\-Path.\-To\-String (

@@ -1,0 +1,216 @@
+\hypertarget{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest}{\section{Cloud\-Api\-Public.\-R\-E\-S\-T.\-C\-L\-Http\-Rest Class Reference}
+\label{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest}\index{Cloud\-Api\-Public.\-R\-E\-S\-T.\-C\-L\-Http\-Rest@{Cloud\-Api\-Public.\-R\-E\-S\-T.\-C\-L\-Http\-Rest}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_acb707f3d2f89efa43abf29affe10a821}{Upload\-File} (Stream upload\-Stream, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} change\-To\-Upload, int timeout\-Milliseconds, out C\-L\-Http\-Rest\-Status status, Cancellation\-Token\-Source shutdown\-Token=null)
+\begin{DoxyCompactList}\small\item\em Uploads a file from a provided stream and file upload change \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a6a22cb358a297f8562f550a1f89be51d}{Download\-File} (Before\-Download\-To\-Temp\-File before\-Download\-Callback, object before\-Download\-User\-State, \hyperlink{namespace_cloud_api_public_1_1_r_e_s_t_add2499738a8a21303b4181e302bb26d2}{After\-Download\-To\-Temp\-File} after\-Download\-To\-Temp\-File\-Callback, object after\-Download\-User\-State, string temp\-Download\-Folder\-Path, Send\-Upload\-Download\-Status send\-Upload\-Download\-Status\-Callback, \hyperlink{class_cloud_api_public_1_1_model_1_1_file_change}{File\-Change} change\-To\-Download, int timeout\-Milliseconds, out C\-L\-Http\-Rest\-Status status, out string response\-Body, Cancellation\-Token\-Source shutdown\-Token=null)
+\begin{DoxyCompactList}\small\item\em Downloads a file to a provided stream using a file download change \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a80717799505931b065209f4f52a03433}{Get\-Metadata\-At\-Path} (\hyperlink{class_cloud_api_public_1_1_model_1_1_file_path}{File\-Path} full\-Path, bool is\-Folder, int timeout\-Milliseconds, out C\-L\-Http\-Rest\-Status status, out Json\-Contracts.\-Metadata response)
+\begin{DoxyCompactList}\small\item\em Queries the server at a given file or folder path (must be specified) for existing metadata at that path; outputs C\-L\-Http\-Rest\-Status.\-No\-Content for status if not found on server \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a964dc740ab71bbb31fff41e4c66f2ec5}{Post\-Sync\-To\-Cloud} (\hyperlink{class_cloud_api_public_1_1_json_contracts_1_1_to}{To} sync\-To\-Request, int timeout\-Milliseconds, out C\-L\-Http\-Rest\-Status status, out Json\-Contracts.\-To response)
+\begin{DoxyCompactList}\small\item\em Sends a list of sync events to the server. The events must be batched in groups of 1,000 or less. \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a729ab72259b315d8c0853f30643ec344}{Post\-Sync\-From\-Cloud} (\hyperlink{class_cloud_api_public_1_1_json_contracts_1_1_push}{Push} push\-Request, int timeout\-Milliseconds, out C\-L\-Http\-Rest\-Status status, out Json\-Contracts.\-Push\-Response response)
+\begin{DoxyCompactList}\small\item\em Sends a list of sync events to the server. The events must be batched in groups of 1,000 or less. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_ae50b8fec85a7bc28ab01e8bfdb43aba8}{Create\-And\-Initialize} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_http_settings}{I\-Http\-Settings} settings, out \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest}{C\-L\-Http\-Rest} client)
+\begin{DoxyCompactList}\small\item\em Creates a \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest}{C\-L\-Http\-Rest} client object for H\-T\-T\-P \hyperlink{namespace_cloud_api_public_1_1_r_e_s_t}{R\-E\-S\-T} calls to the server \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_ae50b8fec85a7bc28ab01e8bfdb43aba8}{\index{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}!Create\-And\-Initialize@{Create\-And\-Initialize}}
+\index{Create\-And\-Initialize@{Create\-And\-Initialize}!CloudApiPublic::REST::CLHttpRest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}}
+\subsubsection[{Create\-And\-Initialize}]{\setlength{\rightskip}{0pt plus 5cm}static {\bf C\-L\-Error} Cloud\-Api\-Public.\-R\-E\-S\-T.\-C\-L\-Http\-Rest.\-Create\-And\-Initialize (
+\begin{DoxyParamCaption}
+\item[{{\bf I\-Http\-Settings}}]{settings, }
+\item[{out {\bf C\-L\-Http\-Rest}}]{client}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_ae50b8fec85a7bc28ab01e8bfdb43aba8}
+
+
+Creates a \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest}{C\-L\-Http\-Rest} client object for H\-T\-T\-P \hyperlink{namespace_cloud_api_public_1_1_r_e_s_t}{R\-E\-S\-T} calls to the server 
+
+
+\begin{DoxyParams}{Parameters}
+{\em settings} & Required settings for communication\\
+\hline
+{\em client} & (output) Created \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest}{C\-L\-Http\-Rest} client or default (null) for errors\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error creating the \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest}{C\-L\-Http\-Rest} client, if any
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a6a22cb358a297f8562f550a1f89be51d}{\index{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}!Download\-File@{Download\-File}}
+\index{Download\-File@{Download\-File}!CloudApiPublic::REST::CLHttpRest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}}
+\subsubsection[{Download\-File}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-R\-E\-S\-T.\-C\-L\-Http\-Rest.\-Download\-File (
+\begin{DoxyParamCaption}
+\item[{Before\-Download\-To\-Temp\-File}]{before\-Download\-Callback, }
+\item[{object}]{before\-Download\-User\-State, }
+\item[{{\bf After\-Download\-To\-Temp\-File}}]{after\-Download\-To\-Temp\-File\-Callback, }
+\item[{object}]{after\-Download\-User\-State, }
+\item[{string}]{temp\-Download\-Folder\-Path, }
+\item[{Send\-Upload\-Download\-Status}]{send\-Upload\-Download\-Status\-Callback, }
+\item[{{\bf File\-Change}}]{change\-To\-Download, }
+\item[{int}]{timeout\-Milliseconds, }
+\item[{out C\-L\-Http\-Rest\-Status}]{status, }
+\item[{out string}]{response\-Body, }
+\item[{Cancellation\-Token\-Source}]{shutdown\-Token = {\ttfamily null}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a6a22cb358a297f8562f550a1f89be51d}
+
+
+Downloads a file to a provided stream using a file download change 
+
+
+\begin{DoxyParams}{Parameters}
+{\em before\-Download\-Callback} & Called back before downloading the file.\\
+\hline
+{\em before\-Download\-User\-State} & User state before downloading the file.\\
+\hline
+{\em after\-Download\-To\-Temp\-File\-Callback} & Called back after downloading the file to a temp file in the temp file folder.\\
+\hline
+{\em after\-Download\-User\-State} & User state after downloading the file to a temp file.\\
+\hline
+{\em temp\-Download\-Folder\-Path} & Folder to contain the temp downloaded files.\\
+\hline
+{\em send\-Upload\-Download\-Status\-Callback} & Called back with download status.\\
+\hline
+{\em change\-To\-Download} & File download change, requires the Storage\-Key to be set\\
+\hline
+{\em timeout\-Milliseconds} & Milliseconds before H\-T\-T\-P timeout exception, does not restrict time for the actual file download\\
+\hline
+{\em status} & (output) success/failure status of communication\\
+\hline
+{\em shutdown\-Token} & (optional) Token used to request cancellation of the download.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error that occurred during communication, or null.
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a80717799505931b065209f4f52a03433}{\index{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}!Get\-Metadata\-At\-Path@{Get\-Metadata\-At\-Path}}
+\index{Get\-Metadata\-At\-Path@{Get\-Metadata\-At\-Path}!CloudApiPublic::REST::CLHttpRest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}}
+\subsubsection[{Get\-Metadata\-At\-Path}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-R\-E\-S\-T.\-C\-L\-Http\-Rest.\-Get\-Metadata\-At\-Path (
+\begin{DoxyParamCaption}
+\item[{{\bf File\-Path}}]{full\-Path, }
+\item[{bool}]{is\-Folder, }
+\item[{int}]{timeout\-Milliseconds, }
+\item[{out C\-L\-Http\-Rest\-Status}]{status, }
+\item[{out Json\-Contracts.\-Metadata}]{response}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a80717799505931b065209f4f52a03433}
+
+
+Queries the server at a given file or folder path (must be specified) for existing metadata at that path; outputs C\-L\-Http\-Rest\-Status.\-No\-Content for status if not found on server 
+
+
+\begin{DoxyParams}{Parameters}
+{\em full\-Path} & Full path to where file or folder would exist locally on disk\\
+\hline
+{\em is\-Folder} & Whether the query is for a folder (as opposed to a file/link)\\
+\hline
+{\em timeout\-Milliseconds} & Milliseconds before H\-T\-T\-P timeout exception\\
+\hline
+{\em status} & (output) success/failure status of communication\\
+\hline
+{\em response} & (output) response object from communication\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error that occurred during communication, or null.
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a729ab72259b315d8c0853f30643ec344}{\index{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}!Post\-Sync\-From\-Cloud@{Post\-Sync\-From\-Cloud}}
+\index{Post\-Sync\-From\-Cloud@{Post\-Sync\-From\-Cloud}!CloudApiPublic::REST::CLHttpRest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}}
+\subsubsection[{Post\-Sync\-From\-Cloud}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-R\-E\-S\-T.\-C\-L\-Http\-Rest.\-Post\-Sync\-From\-Cloud (
+\begin{DoxyParamCaption}
+\item[{{\bf Push}}]{push\-Request, }
+\item[{int}]{timeout\-Milliseconds, }
+\item[{out C\-L\-Http\-Rest\-Status}]{status, }
+\item[{out Json\-Contracts.\-Push\-Response}]{response}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a729ab72259b315d8c0853f30643ec344}
+
+
+Sends a list of sync events to the server. The events must be batched in groups of 1,000 or less. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em push\-Request} & The parameters to send to the server.\\
+\hline
+{\em timeout\-Milliseconds} & Milliseconds before H\-T\-T\-P timeout exception\\
+\hline
+{\em status} & (output) success/failure status of communication\\
+\hline
+{\em response} & (output) response object from communication\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error that occurred during communication, or null.
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a964dc740ab71bbb31fff41e4c66f2ec5}{\index{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}!Post\-Sync\-To\-Cloud@{Post\-Sync\-To\-Cloud}}
+\index{Post\-Sync\-To\-Cloud@{Post\-Sync\-To\-Cloud}!CloudApiPublic::REST::CLHttpRest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}}
+\subsubsection[{Post\-Sync\-To\-Cloud}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-R\-E\-S\-T.\-C\-L\-Http\-Rest.\-Post\-Sync\-To\-Cloud (
+\begin{DoxyParamCaption}
+\item[{{\bf To}}]{sync\-To\-Request, }
+\item[{int}]{timeout\-Milliseconds, }
+\item[{out C\-L\-Http\-Rest\-Status}]{status, }
+\item[{out Json\-Contracts.\-To}]{response}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_a964dc740ab71bbb31fff41e4c66f2ec5}
+
+
+Sends a list of sync events to the server. The events must be batched in groups of 1,000 or less. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em sync\-To\-Request} & The array of events to send to the server.\\
+\hline
+{\em timeout\-Milliseconds} & Milliseconds before H\-T\-T\-P timeout exception\\
+\hline
+{\em status} & (output) success/failure status of communication\\
+\hline
+{\em response} & (output) response object from communication\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error that occurred during communication, or null.
+\end{DoxyReturn}
+\hypertarget{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_acb707f3d2f89efa43abf29affe10a821}{\index{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}!Upload\-File@{Upload\-File}}
+\index{Upload\-File@{Upload\-File}!CloudApiPublic::REST::CLHttpRest@{Cloud\-Api\-Public\-::\-R\-E\-S\-T\-::\-C\-L\-Http\-Rest}}
+\subsubsection[{Upload\-File}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-R\-E\-S\-T.\-C\-L\-Http\-Rest.\-Upload\-File (
+\begin{DoxyParamCaption}
+\item[{Stream}]{upload\-Stream, }
+\item[{{\bf File\-Change}}]{change\-To\-Upload, }
+\item[{int}]{timeout\-Milliseconds, }
+\item[{out C\-L\-Http\-Rest\-Status}]{status, }
+\item[{Cancellation\-Token\-Source}]{shutdown\-Token = {\ttfamily null}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_acb707f3d2f89efa43abf29affe10a821}
+
+
+Uploads a file from a provided stream and file upload change 
+
+
+\begin{DoxyParams}{Parameters}
+{\em upload\-Stream} & Stream to upload, if it is a File\-Stream then make sure the file is locked to prevent simultaneous writes\\
+\hline
+{\em change\-To\-Upload} & File upload change, requires Metadata.\-Hashable\-Properties.\-Size, New\-Path, Storage\-Key, and M\-D5 hash to be set\\
+\hline
+{\em timeout\-Milliseconds} & Milliseconds before H\-T\-T\-P timeout exception, does not restrict time for the actual file upload\\
+\hline
+{\em status} & (output) success/failure status of communication\\
+\hline
+{\em shutdown\-Token} & (optional) Token used to request cancellation of the upload.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns any error that occurred during communication, or null.
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+Cloud\-Api\-Public/\-R\-E\-S\-T/C\-L\-Http\-Rest.\-cs\end{DoxyCompactItemize}

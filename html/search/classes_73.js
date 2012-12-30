@@ -8,6 +8,5 @@ var searchData=
   ['stringcrc',['StringCRC',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_string_c_r_c.html',1,'CloudApiPublic::SQLIndexer']]],
   ['sync',['Sync',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_sync.html',1,'CloudApiPublic::SQLIndexer::SqlModel']]],
   ['syncedobject',['SyncedObject',['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_synced_object.html',1,'CloudApiPublic::SQLIndexer']]],
-  ['syncengine',['SyncEngine',['../class_cloud_api_public_1_1_sync_1_1_sync_engine.html',1,'CloudApiPublic::Sync']]],
   ['syncsettings',['SyncSettings',['../class_cloud_api_public_1_1_sync_1_1_sync_settings.html',1,'CloudApiPublic::Sync']]]
 ];
