@@ -34,6 +34,7 @@ using CleanShutdown.Messaging;
 using CleanShutdown.Helpers;
 using CloudApiPrivate.Common;
 using System.Diagnostics;
+using CloudApiPublic.Static;
 
 namespace win_client.ViewModels
 {  
@@ -576,7 +577,7 @@ namespace win_client.ViewModels
 
                 // Stream the CloudRestart.vbs file out to the temp directory
                 _trace.writeToLog(9, "PagePreferencesViewModel: RestartCloud: Call WriteResourceFileToFilesystemFile.");
-                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudRestart", vbsPath);
+                int rc = Helpers.WriteResourceFileToFilesystemFile(storeAssembly, "CloudRestart", vbsPath);
                 if (rc != 0)
                 {
                     _trace.writeToLog(1, "PagePreferencesViewModel: RestartCloud: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100);
@@ -585,7 +586,7 @@ namespace win_client.ViewModels
 
                 // Now we will create a new process to run the VBScript file.
                 _trace.writeToLog(9, "PagePreferencesViewModel: RestartCloud: Build the paths for launching the VBScript file.");
-                string systemFolderPath = CLShortcuts.Get32BitSystemFolderPath();
+                string systemFolderPath = Helpers.Get32BitSystemFolderPath();
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
                 _trace.writeToLog(9, "PagePreferencesViewModel: RestartCloud: Cscript executable path: <{0}>.", cscriptPath);
 

@@ -21,6 +21,7 @@ using System.Threading;
 using System.Diagnostics;
 using Microsoft.Win32;
 using System.Windows;
+using CloudApiPublic.Static;
 
 namespace CloudApiPrivate.Common
 {
@@ -196,7 +197,7 @@ namespace CloudApiPrivate.Common
             {
                 _trace.writeToLog(9, "CLShortcuts: AddCloudAutostartShortcut: Entry.");
                 RegistryKey rkApp = Registry.LocalMachine.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", true);   // Run for all users at startup
-                rkApp.SetValue(CLPrivateDefinitions.CloudAppName, Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe");
+                rkApp.SetValue(CLPrivateDefinitions.CloudAppName, Helpers.Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe");
             }
             catch (Exception ex)
             {
@@ -538,7 +539,7 @@ namespace CloudApiPrivate.Common
 
                 // Stream the PinToTaskbar.vbs file out to the temp directory
                 _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Call WriteResourceFileToFilesystemFile.");
-                int rc = WriteResourceFileToFilesystemFile(storeAssembly, "PinToTaskbar", vbsPath);
+                int rc = Helpers.WriteResourceFileToFilesystemFile(storeAssembly, "PinToTaskbar", vbsPath);
                 if (rc != 0)
                 {
                     _trace.writeToLog(1, "CLShortcuts: PinShowCloudFolderToTaskbar: ERROR: From WriteResourceFileToFilesystemFile.");
@@ -547,12 +548,12 @@ namespace CloudApiPrivate.Common
 
                 // Now create a new process to run the VBScript file.
                 _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Build the paths for launching the VBScript file.");
-                string systemFolderPath = Get32BitSystemFolderPath();
+                string systemFolderPath = Helpers.Get32BitSystemFolderPath();
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
                 _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Cscript executable path: <{0}>.", cscriptPath);
 
                 // Parm 1 should be the full path of the Program Files Cloud installation directory.
-                string parm1Path = Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles;
+                string parm1Path = Helpers.Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles;
                 _trace.writeToLog(9, "CLShortcuts: PinShowCloudFolderToTaskbar: Parm 1: <{0}>.", parm1Path);
 
                 // Parm 2 should be the filename of the .exe or .lnk file that will be pinned to the taskbar (without the extension)
@@ -631,7 +632,7 @@ namespace CloudApiPrivate.Common
         /// </summary>
         public static void LaunchExplorerToFolder(string folderPath)
         {
-            Trace.WriteLine(String.Format("CloudSendTo: LaunchExplorerToFolder: Entry.  Path: <{0}>.", folderPath ?? String.Empty));
+            _trace.writeToLog(9,String.Format("CloudSendTo: LaunchExplorerToFolder: Entry.  Path: <{0}>.", folderPath ?? String.Empty));
             System.Diagnostics.Process process = new System.Diagnostics.Process();
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.UseShellExecute = false;

@@ -29,14 +29,14 @@ namespace CloudSetupSdkSyncSampleSupport
             _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Main: Entry.");
             if (args.Length == 0)
             {
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: Main: No arguments.  Must specify '/i' or 'u'.");
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: Main: No arguments.  Must specify '/i' or '/u'.");
                 return -1;
             }
 
             string firstArg = args[0];
             if (firstArg.Length < 2)
             {
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: Main: Invalid first argument.  Must be '/i' or 'u'.");
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: Main: Invalid first argument.  Must be '/i' or '/u'.");
                 return -2;
             }
             if (firstArg.Substring(1).ToUpper() == "I")
@@ -49,7 +49,7 @@ namespace CloudSetupSdkSyncSampleSupport
             }
             else
             {
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: Main: Invalid first argument {0}.  Must be '/i' or 'u'.", firstArg);
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: Main: Invalid first argument {0}.  Must be '/i' or '/u'.", firstArg);
                 return -3;
             }
 
@@ -71,18 +71,47 @@ namespace CloudSetupSdkSyncSampleSupport
                 // Get the path containing this executabe
                 string pathExecutingProgram = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string pathInstall = Path.GetDirectoryName(pathExecutingProgram);
-                string archiveFile = pathInstall + "\\Docs\\CloudSetupSdkSyncSample.zip";
+                string archiveFile = pathInstall + "\\Docs\\CloudSdkSyncSampleDocs.zip";
                 string outFolder = pathInstall + "\\Docs";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathExecutingProgram: {0}.", pathExecutingProgram);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathInstall: {0}.", pathInstall);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: archiveFile: {0}.", archiveFile);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: outFolder: {0}.", outFolder);
 
+                // Make a /Support directory in the installation directory.  We will copy files needed by uninstall to that directory.
+                Directory.CreateDirectory(pathInstall + "\\Support");
+
                 // Copy this executing program file to a second file.  This is required because the limited edition
                 // of InstallShield only allows custom actions to run during uninstall after all of the installed
                 // files have been deleted.
+                string pathSupport = pathInstall + "\\Support\\CloudSetupSdkSyncSampleSupport.exe";
+                if (File.Exists(pathSupport))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support program file.");
+                    File.Delete(pathSupport);
+                }
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support program file.");
-                File.Copy(pathExecutingProgram, pathInstall + "\\CloudSetupSdkSyncSampleSupport2.exe");
+                File.Copy(pathExecutingProgram, pathSupport);
+
+                // Copy the .config file too.
+                pathSupport = pathInstall + "\\Support\\CloudSetupSdkSyncSampleSupport.exe.config";
+                if (File.Exists(pathSupport))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support program config file.");
+                    File.Delete(pathSupport);
+                }
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support program config file.");
+                File.Copy(pathExecutingProgram + ".config", pathSupport);
+
+                // Also copy the CloudApiPublic DLL to the \Support directory.
+                pathSupport = pathInstall + "\\Support\\CloudApiPublic.dll";
+                if (File.Exists(pathSupport))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support CloudApiPublic.dll file.");
+                    File.Delete(pathSupport);
+                }
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support CloudApiPublic.dll file.");
+                File.Copy(pathInstall + "\\CloudApiPublic.dll", pathSupport);
 
                 // Open the zip file and decompress all of its files and folders
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Unzip the docs file.");
@@ -157,8 +186,8 @@ namespace CloudSetupSdkSyncSampleSupport
 
                 // Schedule cleanup of this executing .exe file and containing directories as possible.
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Call ScheduleCleanup.");
-                ScheduleCleanup();
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Return from ScheduleCleanup.");
+                rcToReturn = ScheduleCleanup();
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Return from ScheduleCleanup. rc: {0}.", rcToReturn);
             }
             catch (Exception ex)
             {
@@ -175,9 +204,10 @@ namespace CloudSetupSdkSyncSampleSupport
         /// process will delete this executing program and clean up the directories if it can.
         /// The .vbs file will delete itself after executing.
         /// </summary>
-        private static void ScheduleCleanup()
+        private static int ScheduleCleanup()
         {
             // Write the self-destructing script to the user's temp directory and launch it.
+            int rcToReturn = 0;
             try
             {
                 // Stream the CloudSetupSdkSyncSampleCleanup.vbs file out to the user's temp directory
@@ -193,7 +223,7 @@ namespace CloudSetupSdkSyncSampleSupport
                 if (storeAssembly == null)
                 {
                     _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: ScheduleCleanup: ERROR: Locating resource file.");
-                    return;
+                    return -300;
                 }
 
                 // Stream the CloudSetupSdkSyncSampleCleanup.vbs file out to the temp directory
@@ -202,7 +232,7 @@ namespace CloudSetupSdkSyncSampleSupport
                 if (rc != 0)
                 {
                     _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: ScheduleCleanup: Error {0} from WriteResourceFileToFilesystemFile.", rc);
-                    return;
+                    return -300 - rc;
                 }
 
                 // Now we will create a new process to run the VBScript file.
@@ -224,9 +254,12 @@ namespace CloudSetupSdkSyncSampleSupport
             }
             catch (Exception ex)
             {
+                rcToReturn = -350;
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: ScheduleCleanup: ERROR: Exception. Msg: {0}.", ex.Message);
             }
+
             _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: ScheduleCleanup: Exit.");
+            return rcToReturn;
         }
     }
 }
