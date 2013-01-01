@@ -5,6 +5,7 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
 using CloudApiPublic.Support;
 using System;
@@ -1448,6 +1449,88 @@ namespace CloudApiPublic.Static
                 // 64-bit 
                 return Environment.GetFolderPath(Environment.SpecialFolder.SystemX86);
             }
+        }
+
+        /// <summary>
+        /// Generate the signed token for the platform auth Authorization header.
+        /// </summary>
+        /// <param name="settings">The settings to use for this generation.</param>
+        /// <param name="httpMethod">The HTTP method.  e.g.: "POST".</param>
+        /// <param name="pathAndQueryStringAndFragment">The HTTP path, query string and fragment.  The path is required.</param>
+        /// <param name="serverUrl">The server URL.</param>
+        /// <returns></returns>
+        internal static string GenerateAuthorizationHeaderToken(ISyncSettingsAdvanced settings, string httpMethod, string pathAndQueryStringAndFragment)
+        {
+            string toReturn = String.Empty;
+            try
+            {
+                string methodPath = String.Empty;
+                string queryString = String.Empty;
+
+                // Determine the methodPath and the queryString
+                char[] delimiterChars = { '?' };
+                string[] parts = pathAndQueryStringAndFragment.Split(delimiterChars);
+                if (parts.Length > 1)
+                {
+                    methodPath = parts[0].Trim();
+                    queryString = parts[parts.Length - 1].Trim();
+                }
+                else
+                {
+                    methodPath = pathAndQueryStringAndFragment;
+                }
+
+                // Build the string that we will hash.
+                string stringToHash = String.Format("{0}{1}{2}{3}{4}{5}{6}",
+                        CLDefinitions.AuthorizationFormatType,
+                        "\n",
+                        httpMethod.ToUpper(),
+                        "\n",
+                        methodPath,
+                        "\n",
+                        queryString);
+
+                // Hash the string
+                System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
+                byte[] secretByte = Encoding.UTF8.GetBytes(settings.ApplicationSecret);
+                HMACSHA256 hmac = new HMACSHA256(secretByte);
+                byte[] stringToHashBytes = encoding.GetBytes(stringToHash);
+                byte[] hashMessage = hmac.ComputeHash(stringToHashBytes);
+                toReturn = ByteToString(hashMessage);
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                CLTrace.Instance.writeToLog(1, "CLGen: Gen: ERROR. Exception.  Msg: <{0}>.", ex.Message);
+            }
+
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Convert a byte array to a string.
+        /// </summary>
+        /// <param name="buff"></param>
+        /// <returns></returns>
+        internal static string ByteToString(byte[] buff)
+        {
+            if (buff == null)
+            {
+                return null;
+            }
+
+            char[] toReturn = new char[buff.Length * 2];
+
+            for (int i = 0; i < buff.Length; i++)
+            {
+                string currentByte = buff[i].ToString("X2"); // hex format
+                int firstCharIndex = i * 2;
+                toReturn[firstCharIndex] = currentByte[0];
+                toReturn[firstCharIndex + 1] = currentByte[1];
+            }
+
+            return new string(toReturn);
         }
     }
 }

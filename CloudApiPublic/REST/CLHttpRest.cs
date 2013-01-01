@@ -84,14 +84,117 @@ namespace CloudApiPublic.REST
         #region public API calls
 
         /// <summary>
+        /// Downloads a file from a provided file download change
+        /// </summary>
+        /// <param name="changeToDownload">File download change, requires Metadata.</param>
+        /// <param name="moveFileUponCompletion"></param>
+        /// <param name="moveFileUponCompletionState"></param>
+        /// <param name="timeoutMilliseconds"></param>
+        /// <param name="status"></param>
+        /// <param name="beforeDownload"></param>
+        /// <param name="beforeDownloadState"></param>
+        /// <param name="shutdownToken"></param>
+        /// <param name="customDownloadFolderFullPath"></param>
+        /// <returns></returns>
+        public CLError DownloadFile(FileChange changeToDownload,
+            AfterDownloadToTempFile moveFileUponCompletion,
+            object moveFileUponCompletionState,
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            BeforeDownloadToTempFile beforeDownload = null,
+            object beforeDownloadState = null,
+            CancellationTokenSource shutdownToken = null,
+            string customDownloadFolderFullPath = null)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the file download, on catch return the error
+            try
+            {
+                // check input parameters (other checks are done on constructing the private download class upon ProcessHttp)
+
+                if (timeoutMilliseconds <= 0)
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                string currentDownloadFolder;
+
+                if (customDownloadFolderFullPath != null)
+                {
+                    currentDownloadFolder = customDownloadFolderFullPath;
+                }
+                else if (settings.TempDownloadFolderFullPath != null)
+                {
+                    currentDownloadFolder = settings.TempDownloadFolderFullPath;
+                }
+                else
+                {
+                    currentDownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" + // located in local AppData
+                        Helpers.GetDefaultNameFromApplicationName() + // name of currently running application
+                        "\\" + settings.SyncBoxId + // unique downloads location for each user
+                        "\\DownloadTemp";
+                }
+
+                CLError badTempFolderError = Helpers.CheckForBadPath(currentDownloadFolder);
+
+                if (badTempFolderError != null)
+                {
+                    throw new AggregateException("The customDownloadFolderFullPath is bad", badTempFolderError.GrabExceptions());
+                }
+
+                if (currentDownloadFolder.Length > 222)
+                {
+                    throw new ArgumentException("Folder path for temp download files is too long by " + (currentDownloadFolder.Length - 222).ToString());
+                }
+
+                // prepare the downloadParams before the ProcessHttp because it does additional parameter checks first
+                downloadParams currentDownload = new downloadParams( // this is a special communication method and requires passing download parameters
+                    moveFileUponCompletion, // callback which should move the file to final location
+                    moveFileUponCompletionState, // userstate for the move file callback
+                    customDownloadFolderFullPath ?? // first try to use a provided custom folder full path
+                        (settings.TempDownloadFolderFullPath ?? // first try to use the temp download location from settings
+                            (Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" +
+                            Helpers.GetDefaultNameFromApplicationName() + // name of currently running application
+                            "\\" + settings.SyncBoxId + // unique downloads location for each user
+                            "\\DownloadTemp")),
+                    HandleUploadDownloadStatus, // private event handler to relay status change events
+                    changeToDownload, // the FileChange describing the download
+                    shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
+                    settings.SyncRoot, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
+                    beforeDownload,
+                    beforeDownloadState);
+
+                // run the actual communication
+                ProcessHttp<JsonContracts.Download, object>(
+                    new Download() // JSON contract to serialize
+                    {
+                        StorageKey = changeToDownload.Metadata.StorageKey // storage key parameter
+                    },
+                    CLDefinitions.CLUploadDownloadServerURL, // server for download
+                    CLDefinitions.MethodPathDownload, // download method path
+                    requestMethod.post, // download is a post
+                    timeoutMilliseconds, // time before communication timeout (does not restrict time
+                    currentDownload, // download-specific parameters holder constructed directly above
+                    okAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status); // reference to update the output success/failure status for the communication
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Uploads a file from a provided stream and file upload change
         /// </summary>
         /// <param name="uploadStream">Stream to upload, if it is a FileStream then make sure the file is locked to prevent simultaneous writes</param>
-        /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, StorageKey, and MD5 hash to be set</param>
+        /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, Metadata.StorageKey, and MD5 hash to be set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload.</param>
-        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UploadFile(Stream uploadStream,
             FileChange changeToUpload,
             int timeoutMilliseconds,
@@ -105,7 +208,7 @@ namespace CloudApiPublic.REST
             {
                 // check input parameters (other checks are done on constructing the private upload class upon ProcessHttp)
 
-                if (!(timeoutMilliseconds > 0))
+                if (timeoutMilliseconds <= 0)
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
@@ -116,79 +219,12 @@ namespace CloudApiPublic.REST
                     CLDefinitions.MethodPathUpload, // path to upload
                     requestMethod.put, // upload is a put
                     timeoutMilliseconds, // time before communication timeout (does not restrict time for the actual file upload)
-                    new upload( // this is a special communication method and requires passing upload parameters
+                    new uploadParams( // this is a special communication method and requires passing upload parameters
                         uploadStream, // stream for file to upload
                         HandleUploadDownloadStatus, // private event handler to relay status change events
                         changeToUpload, // the FileChange describing the upload
                         shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
                         settings.SyncRoot), // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
-                    okCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
-                    ref status); // reference to update the output success/failure status for the communication
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Downloads a file to a provided stream using a file download change
-        /// </summary>
-        /// <param name="beforeDownloadCallback">Called back before downloading the file.</param>
-        /// <param name="beforeDownloadUserState">User state before downloading the file.</param>
-        /// <param name="afterDownloadToTempFileCallback">Called back after downloading the file to a temp file in the temp file folder.</param>
-        /// <param name="afterDownloadUserState">User state after downloading the file to a temp file.</param>
-        /// <param name="tempDownloadFolderPath">Folder to contain the temp downloaded files.</param>
-        /// <param name="sendUploadDownloadStatusCallback">Called back with download status.</param>
-        /// <param name="changeToDownload">File download change, requires the StorageKey to be set</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file download</param>
-        /// <param name="status">(output) success/failure status of communication</param>
-        /// <param name="shutdownToken">(optional) Token used to request cancellation of the download.</param>
-        /// <returns>Returns any error that occurred during communication, or null.</returns>
-        public CLError DownloadFile(
-            BeforeDownloadToTempFile beforeDownloadCallback,
-            object beforeDownloadUserState,
-            AfterDownloadToTempFile afterDownloadToTempFileCallback,
-            object afterDownloadUserState,
-            string tempDownloadFolderPath,
-            SendUploadDownloadStatus sendUploadDownloadStatusCallback,
-            FileChange changeToDownload,
-            int timeoutMilliseconds,
-            out CLHttpRestStatus status,
-            out string responseBody,
-            CancellationTokenSource shutdownToken = null)
-        {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
-            responseBody = "---Incomplete file download---";
-
-            // try/catch to process the file download, on catch return the error
-            try
-            {
-                // check input parameters (other checks are done on constructing the private upload class upon ProcessHttp)
-
-                if (!(timeoutMilliseconds > 0))
-                {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
-                }
-
-                // run the HTTP communication
-                responseBody = ProcessHttp<object, string>(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
-                    CLDefinitions.CLUploadDownloadServerURL,  // Server URL
-                    CLDefinitions.MethodPathDownload, // path to download
-                    requestMethod.post, // download request is an HTTP POST
-                    timeoutMilliseconds, // time before communication timeout (does not restrict time for the actual file upload)
-                    new download(                   // this is a special communication method and requires passing download parameters
-                        BeforeDownloadCallback: beforeDownloadCallback,             // called before download
-                        BeforeDownloadUserState: beforeDownloadUserState,           // user state before download
-                        AfterDownloadCallback: afterDownloadToTempFileCallback,     // called after download to temp file completes
-                        AfterDownloadUserState: afterDownloadUserState,             // user state after download
-                        TempDownloadFolderPath: tempDownloadFolderPath,             // the temp file folder path
-                        StatusCallback: sendUploadDownloadStatusCallback,           // called with download status
-                        ChangeToTransfer: changeToDownload,                         // FileChange representing the file to download
-                        ShutdownToken: shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
-                        SyncRootFullPath: settings.SyncRoot), // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
                     okCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
                     ref status); // reference to update the output success/failure status for the communication
             }
@@ -207,7 +243,7 @@ namespace CloudApiPublic.REST
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetMetadataAtPath(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
@@ -227,7 +263,7 @@ namespace CloudApiPublic.REST
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
-                string serverMethodPath = 
+                string serverMethodPath =
                     (isFolder
                         ? CLDefinitions.MethodPathGetFolderMetadata // if the current metadata is for a folder, then retrieve it from the folder method
                         : CLDefinitions.MethodPathGetFileMetadata) + // else if the current metadata is for a file, then retrieve it from the file method
@@ -257,7 +293,9 @@ namespace CloudApiPublic.REST
             }
             return null;
         }
+        #endregion
 
+        #region internal API calls
         /// <summary>
         /// Sends a list of sync events to the server.  The events must be batched in groups of 1,000 or less.
         /// </summary>
@@ -266,7 +304,7 @@ namespace CloudApiPublic.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, or null.</returns>
-        public CLError PostSyncToCloud(To syncToRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.To response)
+        internal CLError PostSyncToCloud(To syncToRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.To response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -304,6 +342,7 @@ namespace CloudApiPublic.REST
 
             return null;
         }
+
         /// <summary>
         /// Sends a list of sync events to the server.  The events must be batched in groups of 1,000 or less.
         /// </summary>
@@ -312,7 +351,7 @@ namespace CloudApiPublic.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, or null.</returns>
-        public CLError PostSyncFromCloud(Push pushRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PushResponse response)
+        internal CLError PostSyncFromCloud(Push pushRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PushResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -329,7 +368,6 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-
 
                 // run the HTTP communication and store the response object to the output parameter
                 string serverMethodPath = CLDefinitions.MethodPathSyncFrom;
@@ -352,9 +390,6 @@ namespace CloudApiPublic.REST
             return null;
         }
 
-        #endregion
-
-        #region internal API calls
         /// <summary>
         /// Purges any pending changes for the provided user/device combination in the request object (pending file uploads) and outputs the files which were purged
         /// </summary>
@@ -468,7 +503,7 @@ namespace CloudApiPublic.REST
                                 CLDefinitions.HeaderAppendKey +
                                 settings.ApplicationKey + ", " +
                                 CLDefinitions.HeaderAppendSignature +
-                                        GenerateAuthorizationHeaderToken(
+                                        Helpers.GenerateAuthorizationHeaderToken(
                                             settings,
                                             httpMethod: httpRequest.Method,
                                             pathAndQueryStringAndFragment: serverMethodPath);   // set the authentication token
@@ -477,10 +512,10 @@ namespace CloudApiPublic.REST
 
             // declare the bytes for the serialized request body content
             byte[] requestContentBytes;
-            
+
             // for any communication which is not a file upload, determine the bytes which will be sent up in the request
             if (uploadDownload == null ||
-                !(uploadDownload is upload))
+                !(uploadDownload is uploadParams))
             {
                 // if there is no content for the request (such as for an HTTP Get method call), then set the bytes as null
                 if (requestContent == null)
@@ -538,7 +573,7 @@ namespace CloudApiPublic.REST
                 httpRequest.ContentType = CLDefinitions.HeaderAppendContentTypeBinary; // content will be direct binary stream
                 httpRequest.ContentLength = uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0; // content length will be file size
                 httpRequest.Headers[CLDefinitions.HeaderAppendStorageKey] = uploadDownload.ChangeToTransfer.Metadata.StorageKey; // add header for destination location of file
-                httpRequest.Headers[CLDefinitions.HeaderAppendContentMD5] = ((upload)uploadDownload).Hash; // set MD5 content hash for verification of upload stream
+                httpRequest.Headers[CLDefinitions.HeaderAppendContentMD5] = ((uploadParams)uploadDownload).Hash; // set MD5 content hash for verification of upload stream
                 httpRequest.KeepAlive = true; // do not close connection (is this needed?)
                 requestContentBytes = null; // do not write content bytes since they will come from the Stream inside the upload object
             }
@@ -556,7 +591,7 @@ namespace CloudApiPublic.REST
                     serverUrl + serverMethodPath, // location for the server method
                     true, // trace is enabled
                     httpRequest.Headers, // headers of request
-                    ((uploadDownload != null && uploadDownload is upload) // special condition for the request body content based on whether this is a file upload or not
+                    ((uploadDownload != null && uploadDownload is uploadParams) // special condition for the request body content based on whether this is a file upload or not
                         ? "---File upload started---" // truncate the request body content to a predefined string so that the entire uploaded file is not written as content
                         : (requestContentBytes == null // condition on whether there were bytes to write in the request content body
                             ? null // if there were no bytes to write in the request content body, then log for none
@@ -564,7 +599,7 @@ namespace CloudApiPublic.REST
                     null, // no status code for requests
                     settings.TraceExcludeAuthorization, // whether or not to exclude authorization information (like the authentication key)
                     httpRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
-                    ((requestContentBytes != null || (uploadDownload != null && uploadDownload is upload))
+                    ((requestContentBytes != null || (uploadDownload != null && uploadDownload is uploadParams))
                         ? httpRequest.ContentLength.ToString() // if the communication had bytes to upload from an input object or a stream to upload for a file, then set the content length value which would be part of the headers (but cannot be pulled from headers directly)
                         : null), // else if the communication would not have any request content, then log no content length header
                     (httpRequest.Expect == null ? "100-continue" : httpRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
@@ -589,8 +624,8 @@ namespace CloudApiPublic.REST
             else
             {
                 // check to make sure this is in fact an upload or download
-                if (!(uploadDownload is upload)
-                    && !(uploadDownload is download))
+                if (!(uploadDownload is uploadParams)
+                    && !(uploadDownload is downloadParams))
                 {
                     throw new ArgumentException("uploadDownload must be either upload or download");
                 }
@@ -603,34 +638,45 @@ namespace CloudApiPublic.REST
             #endregion
 
             #region write request
-            // if this communication is for a file upload or download, then 
+            // if this communication is for a file upload or download, then process its request accordingly
             if (uploadDownload != null)
             {
                 // get the request stream
                 Stream httpRequestStream = null;
 
-                // finish commenting here
-
+                // try/finally process the upload request (which actually uploads the file) or download request, finally dispose the request stream if it was set
                 try
                 {
-                    if (uploadDownload is upload)
+                    // if the current communication is file upload, then upload the file
+                    if (uploadDownload is uploadParams)
                     {
-                        httpRequestStream = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, true) as Stream;
+                        // grab the upload request stream asynchronously since it can take longer than the provided timeout milliseconds
+                        httpRequestStream = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, upload: true) as Stream;
 
+                        // if there was no request stream retrieved, then the request was cancelled so return cancelled
                         if (httpRequestStream == null)
                         {
                             status = CLHttpRestStatus.Cancelled;
                             return null;
                         }
 
+                        // define a transfer buffer between the file and the upload stream
                         byte[] uploadBuffer = new byte[FileConstants.BufferSize];
+
+                        // declare a count of the bytes read in each buffer read from the file
                         int bytesRead;
+                        // define a count for the total amount of bytes uploaded so far
                         long totalBytesUploaded = 0;
-                        while ((bytesRead = ((upload)uploadDownload).Stream.Read(uploadBuffer, 0, uploadBuffer.Length)) != 0)
+
+                        // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file and store the read byte count
+                        while ((bytesRead = ((uploadParams)uploadDownload).Stream.Read(uploadBuffer, 0, uploadBuffer.Length)) != 0)
                         {
+                            // write the buffer from the file to the upload stream
                             httpRequestStream.Write(uploadBuffer, 0, bytesRead);
+                            // add the number of bytes read on the current buffer transfer to the total bytes uploaded
                             totalBytesUploaded += bytesRead;
 
+                            // check for sync shutdown
                             if (uploadDownload.ShutdownToken != null)
                             {
                                 Monitor.Enter(uploadDownload.ShutdownToken);
@@ -648,18 +694,22 @@ namespace CloudApiPublic.REST
                                 }
                             }
 
+                            // fire event callbacks for status change on uploading
                             uploadDownload.StatusCallback(new CLStatusFileTransferUpdateParameters(
                                     transferStartTime, // time of upload start
                                     storeSizeForStatus, // total size of file
                                     uploadDownload.RelativePathForStatus, // relative path of file
                                     totalBytesUploaded), // bytes uploaded so far
-                                uploadDownload.ChangeToTransfer);
+                                uploadDownload.ChangeToTransfer); // the source of the event (the event itself)
                         }
 
-                        ((upload)uploadDownload).DisposeStream();
+                        // upload is finished so stream can be disposed
+                        ((uploadParams)uploadDownload).DisposeStream();
                     }
+                    // else if the communication is a file download, write the request stream content from the serialized download request object
                     else
                     {
+                        // grab the request stream for writing
                         httpRequestStream = httpRequest.GetRequestStream();
 
                         // write the request for the download
@@ -668,6 +718,7 @@ namespace CloudApiPublic.REST
                 }
                 finally
                 {
+                    // dispose the request stream if it was set
                     if (httpRequestStream != null)
                     {
                         try
@@ -680,6 +731,7 @@ namespace CloudApiPublic.REST
                     }
                 }
             }
+            // else if the communication is neither an upload nor download and there is a serialized request object to write, then get the request stream and write to it
             else if (requestContentBytes != null)
             {
                 using (Stream httpRequestStream = httpRequest.GetRequestStream())
@@ -690,27 +742,35 @@ namespace CloudApiPublic.REST
             #endregion
 
             // define the web response outside the regions "get response" and "process response stream" so it can finally be closed (if it ever gets set); also for trace
-            HttpWebResponse httpResponse = null;
-            string responseBody = null;
-            Stream responseStream = null;
-            Stream serializationStream = null;
+            HttpWebResponse httpResponse = null; // communication response
+            string responseBody = null; // string body content of response (for a string output is used instead of the response stream itself)
+            Stream responseStream = null; // response stream (when the communication output is a deserialized object instead of a simple string representation)
+            Stream serializationStream = null; // a possible copy of the response stream for when the stream has to be used both for trace and for deserializing a return object
 
+            // try/catch/finally get the response and process its stream for output,
+            // on error send a final status event if communication is for upload or download,
+            // finally possibly trace if a string response was used and dispose any response/response streams
             try
             {
                 #region get response
+                // if the communication is a download, then grab the download response asynchronously so its time is not limited to the timeout milliseconds
                 if (uploadDownload != null
-                    && uploadDownload is download)
+                    && uploadDownload is downloadParams)
                 {
+                    // grab the download response asynchronously so its time is not limited to the timeout milliseconds
                     httpResponse = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, false) as HttpWebResponse;
 
+                    // if there was no download response, then it was cancelled so return as such
                     if (httpRequest == null)
                     {
                         status = CLHttpRestStatus.Cancelled;
                         return null;
                     }
                 }
+                // else if the communication is not a download, then grab the response
                 else
                 {
+                    // try/catch grab the communication response, on catch try to pull the response from the exception otherwise rethrow the exception
                     try
                     {
                         httpResponse = (HttpWebResponse)httpRequest.GetResponse();
@@ -729,16 +789,26 @@ namespace CloudApiPublic.REST
                     }
                 }
 
+                // if the status code of the response is not in the provided HashSet of those which represent success,
+                // then try to provide a more specific return status and try to pull the content from the response as a string and throw an exception for invalid status code
                 if (!validStatusCodes.Contains(httpResponse.StatusCode))
                 {
+                    // if response status code is a not found, then set the output status accordingly
                     if (httpResponse.StatusCode == HttpStatusCode.NotFound)
                     {
                         status = CLHttpRestStatus.NotFound;
                     }
+                    // else if response status was not a not found and is a no content, then set the output status accordingly
                     else if (httpResponse.StatusCode == HttpStatusCode.NoContent)
                     {
                         status = CLHttpRestStatus.NoContent;
                     }
+                    // else if the response status was neither a not found nor a no content and is an unauthorized, then set the output state accordingly
+                    else if (httpResponse.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        status = CLHttpRestStatus.NotAuthorized;
+                    }
+                    // else if response status was neither a not found nor a no content and is within the range of a server error (5XX), then set the output status accordingly
                     else if (((HttpStatusCode)(((int)httpResponse.StatusCode) - (((int)httpResponse.StatusCode) % 100))) == HttpStatusCode.InternalServerError)
                     {
                         status = CLHttpRestStatus.ServerError;
@@ -763,9 +833,9 @@ namespace CloudApiPublic.REST
                     }
 
                     // throw the exception for an invalid response
-                    throw new Exception(String.Format("Invalid HTTP response status code at URL {0}, MethodPath {1}", 
-                                    (serverUrl ?? "{missing serverUrl"), 
-                                    (serverMethodPath ?? "{missing serverMethodPath")) + 
+                    throw new Exception(String.Format("Invalid HTTP response status code at URL {0}, MethodPath {1}",
+                                    (serverUrl ?? "{missing serverUrl"),
+                                    (serverMethodPath ?? "{missing serverMethodPath")) +
                                     ": " + ((int)httpResponse.StatusCode).ToString() +
                                     (responseBody == null ? string.Empty
                                         : Environment.NewLine + "Response:" + Environment.NewLine +
@@ -774,20 +844,26 @@ namespace CloudApiPublic.REST
                 #endregion
 
                 #region process response stream
+                // define an object for the communication return, defaulting to null
                 Tout toReturn = null;
+
+                // if the communication was an upload or a download, then process the response stream for a download (which is the download itself) or use a predefined return for an upload
                 if (uploadDownload != null)
                 {
-                    if (uploadDownload is upload)
+                    // if communication is an upload, then use a predefined return
+                    if (uploadDownload is uploadParams)
                     {
                         // set body as successful value
                         responseBody = "---File upload complete---";
 
+                        // if we can use a string output for the return, then use it
                         if (typeof(Tout) == typeof(string)
                             || typeof(Tout) == typeof(object))
                         {
                             toReturn = (Tout)((object)responseBody);
                         }
                     }
+                    // else if communication is a download, then process the actual download itself
                     else
                     {
                         // set the response body to a value that will be displayed if the actual response fails to process
@@ -796,10 +872,14 @@ namespace CloudApiPublic.REST
                         // create a new unique id for the download
                         Guid newTempFile = Guid.NewGuid();
 
-                        ((download)uploadDownload).BeforeDownloadCallback(newTempFile, ((download)uploadDownload).BeforeDownloadUserState);
+                        // if a callback was provided to fire before a download starts, then fire it
+                        if (((downloadParams)uploadDownload).BeforeDownloadCallback != null)
+                        {
+                            ((downloadParams)uploadDownload).BeforeDownloadCallback(newTempFile, ((downloadParams)uploadDownload).BeforeDownloadUserState);
+                        }
 
                         // calculate location for downloading the file
-                        string newTempFileString = ((download)uploadDownload).TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
+                        string newTempFileString = ((downloadParams)uploadDownload).TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
 
                         // get the stream of the download
                         using (Stream downloadResponseStream = httpResponse.GetResponseStream())
@@ -821,9 +901,9 @@ namespace CloudApiPublic.REST
                                     // append the count of the read bytes on this buffer transfer to the total downloaded
                                     totalBytesDownloaded += read;
 
+                                    // check for sync shutdown
                                     if (uploadDownload.ShutdownToken != null)
                                     {
-                                        // check for sync shutdown
                                         Monitor.Enter(uploadDownload.ShutdownToken);
                                         try
                                         {
@@ -839,13 +919,14 @@ namespace CloudApiPublic.REST
                                         }
                                     }
 
+                                    // fire event callbacks for status change on uploading
                                     uploadDownload.StatusCallback(
                                         new CLStatusFileTransferUpdateParameters(
                                                 transferStartTime, // start time for download
                                                 storeSizeForStatus, // total file size
                                                 uploadDownload.RelativePathForStatus, // relative path of file
                                                 totalBytesDownloaded), // current count of completed download bytes
-                                            uploadDownload.ChangeToTransfer);
+                                        uploadDownload.ChangeToTransfer); // the source of the event, the event itself
                                 }
                                 // flush file stream to finish the file
                                 tempFileStream.Flush();
@@ -860,18 +941,21 @@ namespace CloudApiPublic.REST
                         Helpers.RunActionWithRetries(() => System.IO.File.SetLastAccessTimeUtc(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime), true);
                         Helpers.RunActionWithRetries(() => System.IO.File.SetLastWriteTimeUtc(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime), true);
 
+
                         // fire callback to perform the actual move of the temp file to the final destination
-                        ((download)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
+                        ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
                             uploadDownload.ChangeToTransfer,
                             ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
-                            ((download)uploadDownload).AfterDownloadUserState, // timer for failure queue
+                            ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
                             newTempFile); // id for the downloaded file
 
+                        // if the after downloading callback set the response to null, then replace it saying it was null
                         if (responseBody == null)
                         {
                             responseBody = "---responseBody set to null---";
                         }
 
+                        // if a string can be output as the return type, then return the response (which is not the actual download, but a simple string status representation)
                         if (typeof(Tout) == typeof(string)
                             || typeof(Tout) == typeof(object))
                         {
@@ -879,11 +963,15 @@ namespace CloudApiPublic.REST
                         }
                     }
                 }
+                // else if the communication was neither an upload nor a download, then process the response stream for return
                 else
                 {
+                    // declare the serializer which will be used to deserialize the response content for output
                     DataContractJsonSerializer outSerializer;
+                    // try to get the serializer for the output by the type of output from dictionary and if successful, process response content as stream to deserialize
                     if (SerializableResponseTypes.TryGetValue(typeof(Tout), out outSerializer))
                     {
+                        // grab the stream for response content
                         responseStream = httpResponse.GetResponseStream();
 
                         // set the stream for processing the response by a copy of the communication stream (if trace enabled) or the communication stream itself (if trace is not enabled)
@@ -910,9 +998,12 @@ namespace CloudApiPublic.REST
                         // deserialize the response content into the appropriate json contract object
                         toReturn = (Tout)outSerializer.ReadObject(serializationStream);
                     }
+                    // else if the output type is not in the dictionary of those serializable and if the output type is either object or string,
+                    // then process the response content as a string to output directly
                     else if (typeof(Tout) == typeof(string)
                         || (typeof(Tout) == typeof(object)))
                     {
+                        // grab the stream from the response content
                         responseStream = httpResponse.GetResponseStream();
 
                         // create a reader for the response content
@@ -922,21 +1013,58 @@ namespace CloudApiPublic.REST
                             toReturn = (Tout)((object)purgeResponseStreamReader.ReadToEnd());
                         }
                     }
+                    // else if the output type is not in the dictionary of those serializable and if the output type is also neither object nor string,
+                    // then throw an argument exception
                     else
                     {
                         throw new ArgumentException("Tout is not a serializable output type nor object/string");
                     }
                 }
 
+                // if the code has not thrown an exception by now then it was successful so mark it so in the output
                 status = CLHttpRestStatus.Success;
+                // return any object set to return for the response, if any
                 return toReturn;
                 #endregion
             }
+            catch
+            {
+                // if there was an event for the upload or download, then fire the event callback for a final transfer status
+                if (uploadDownload != null
+                    && (uploadDownload is uploadParams
+                        || uploadDownload is downloadParams))
+                {
+                    // try/catch fire the event callback for final transfer status, silencing errors
+                    try
+                    {
+                        uploadDownload.StatusCallback(
+                            new CLStatusFileTransferUpdateParameters(
+                                transferStartTime, // retrieve the upload start time
+
+                                // need to send a file size which matches the total uploaded bytes so they are equal to cancel the status
+                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+
+                                // try to build the same relative path that would be used in the normal status, falling back first to the full path then to an empty string
+                                uploadDownload.RelativePathForStatus,
+
+                                // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
+                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0),
+                            uploadDownload.ChangeToTransfer); // sender of event (the event itself)
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                // rethrow
+                throw;
+            }
             finally
             {
-                // for communication logging, log communication
+                // for communication logging, log communication if it hasn't already been logged in stream deserialization or dispose the serialization stream
                 if ((settings.TraceType & TraceType.Communication) == TraceType.Communication)
                 {
+                    // if there was no stream set for deserialization, then the response was handled as a string and needs to be logged here as such
                     if (serializationStream == null)
                     {
                         // log communication for string body
@@ -951,6 +1079,7 @@ namespace CloudApiPublic.REST
                             (int)httpResponse.StatusCode, // status code of the response
                             settings.TraceExcludeAuthorization); // whether to include authorization in the trace (such as the authentication key)
                     }
+                    // else if there was a stream set for deserialization then the response was already logged, but it still needs to be disposed here
                     else if (serializationStream != null)
                     {
                         try
@@ -963,6 +1092,7 @@ namespace CloudApiPublic.REST
                     }
                 }
 
+                // if there was a response stream retrieved then try to dispose it
                 if (responseStream != null)
                 {
                     try
@@ -974,6 +1104,7 @@ namespace CloudApiPublic.REST
                     }
                 }
 
+                // if there was a response retrieved then try to close it
                 if (httpResponse != null)
                 {
                     try
@@ -987,8 +1118,10 @@ namespace CloudApiPublic.REST
             }
         }
 
+        // a dual-function wrapper for making asynchronous calls for either retrieving an upload request stream or retrieving a download response
         private static object AsyncGetUploadRequestStreamOrDownloadResponse(CancellationTokenSource shutdownToken, HttpWebRequest httpRequest, bool upload)
         {
+            // declare the output object which would be either a Stream for upload request or an HttpWebResponse for a download response
             object toReturn;
 
             // create new async holder used to make async http calls synchronous
@@ -1000,14 +1133,19 @@ namespace CloudApiPublic.REST
             // lock on async holder for modification
             lock (requestOrResponseHolder)
             {
+                // create a callback which handles the IAsyncResult style used in wrapping an asyncronous method to make it synchronous
                 AsyncCallback requestOrResponseCallback = new AsyncCallback(MakeAsyncRequestSynchronous);
+
+                // if this helper was called for an upload, then the action is for the request stream
                 if (upload)
                 {
-                    // begin upload request asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
+                    // begin getting the upload request stream asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
                     requestOrResponseAsyncResult = httpRequest.BeginGetRequestStream(requestOrResponseCallback, requestOrResponseHolder);
                 }
+                // else if this helper was called for a download, then the action is for the response
                 else
                 {
+                    // begin getting the download response asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
                     requestOrResponseAsyncResult = httpRequest.BeginGetResponse(requestOrResponseCallback, requestOrResponseHolder);
                 }
 
@@ -1027,12 +1165,15 @@ namespace CloudApiPublic.REST
                 return null;
             }
 
+            // if this helper was called for an upload, then the action is for the request stream
             if (upload)
             {
                 toReturn = httpRequest.EndGetRequestStream(requestOrResponseAsyncResult);
             }
+            // else if this helper was called for a download, then the action is for the response
             else
             {
+                // try/catch to retrieve the response and on catch try to pull the response from the exception otherwise rethrow the exception
                 try
                 {
                     toReturn = httpRequest.EndGetResponse(requestOrResponseAsyncResult);
@@ -1047,6 +1188,8 @@ namespace CloudApiPublic.REST
                     toReturn = ex.Response;
                 }
             }
+
+            // output the retrieved request stream or the retrieved response
             return toReturn;
         }
 
@@ -1181,6 +1324,7 @@ namespace CloudApiPublic.REST
             }
         }
 
+        // simple enumeration of currently supported HTTP methods
         private enum requestMethod : byte
         {
             put,
@@ -1188,8 +1332,12 @@ namespace CloudApiPublic.REST
             post
         }
 
+        // class which is inherited by both the class for storing upload parameters and the class for storing download parameters, with the common properties between them
         private abstract class uploadDownloadParams
         {
+            /// <summary>
+            /// Path for the file where it would look on disk after truncating the location of the sync directory from the beginning
+            /// </summary>
             public string RelativePathForStatus
             {
                 get
@@ -1199,6 +1347,9 @@ namespace CloudApiPublic.REST
             }
             private readonly string _relativePathForStatus;
 
+            /// <summary>
+            /// A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)
+            /// </summary>
             public SendUploadDownloadStatus StatusCallback
             {
                 get
@@ -1208,6 +1359,9 @@ namespace CloudApiPublic.REST
             }
             private readonly SendUploadDownloadStatus _statusCallback;
 
+            /// <summary>
+            /// UserState object which is required for calling the StatusCallback for sending status information events
+            /// </summary>
             public FileChange ChangeToTransfer
             {
                 get
@@ -1217,6 +1371,9 @@ namespace CloudApiPublic.REST
             }
             private readonly FileChange _changeToTransfer;
 
+            /// <summary>
+            /// A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it
+            /// </summary>
             public CancellationTokenSource ShutdownToken
             {
                 get
@@ -1226,8 +1383,17 @@ namespace CloudApiPublic.REST
             }
             private readonly CancellationTokenSource _shutdownToken;
 
+            /// <summary>
+            /// The constructor for this abstract base object with all parameters corresponding to all properties
+            /// </summary>
+            /// <param name="StatusCallback">A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)</param>
+            /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events</param>
+            /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
+            /// <param name="SyncRootFullPath">Full path to the root directory being synced</param>
             public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath)
             {
+                // check for required parameters and error out if not set
+
                 if (ChangeToTransfer == null)
                 {
                     throw new NullReferenceException("ChangeToTransfer cannot be null");
@@ -1240,20 +1406,38 @@ namespace CloudApiPublic.REST
                 {
                     throw new NullReferenceException("ChangeToTransfer Metadata HashableProperties Size cannot be null");
                 }
+                if (((long)ChangeToTransfer.Metadata.HashableProperties.Size) < 0)
+                {
+                    throw new ArgumentException("ChangeToTransfer Metadata HashableProperties Size must be greater than or equal to zero");
+                }
+                if (ChangeToTransfer.Metadata.StorageKey == null)
+                {
+                    throw new ArgumentException("ChangeToTransfer Metadata StorageKey cannot be null");
+                }
                 if (ChangeToTransfer.NewPath == null)
                 {
                     throw new NullReferenceException("ChangeToTransfer NewPath cannot be null");
                 }
+                if (StatusCallback == null)
+                {
+                    throw new NullReferenceException("StatusCallback cannot be null");
+                }
+
+                // set the readonly properties for this instance from the construction parameters
 
                 this._statusCallback = StatusCallback;
                 this._changeToTransfer = ChangeToTransfer;
-                this._relativePathForStatus = this.ChangeToTransfer.NewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false);
+                this._relativePathForStatus = this.ChangeToTransfer.NewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
                 this._shutdownToken = ShutdownToken;
             }
         }
 
-        private sealed class download : uploadDownloadParams
+        // class for storing download properties which inherits abstract base uploadDownloadParams which stores more necessary properties
+        private sealed class downloadParams : uploadDownloadParams
         {
+            /// <summary>
+            /// A non-required (possibly null) event handler for before a download starts
+            /// </summary>
             public BeforeDownloadToTempFile BeforeDownloadCallback
             {
                 get
@@ -1263,6 +1447,9 @@ namespace CloudApiPublic.REST
             }
             private readonly BeforeDownloadToTempFile _beforeDownloadCallback;
 
+            /// <summary>
+            /// UserState object passed through as-is when the BeforeDownloadCallback handler is fired
+            /// </summary>
             public object BeforeDownloadUserState
             {
                 get
@@ -1272,6 +1459,9 @@ namespace CloudApiPublic.REST
             }
             private readonly object _beforeDownloadUserState;
 
+            /// <summary>
+            /// Event handler for after a download completes which needs to move the file from the temp location to its final location and set the response body to "---Completed file download---"
+            /// </summary>
             public AfterDownloadToTempFile AfterDownloadCallback
             {
                 get
@@ -1281,6 +1471,9 @@ namespace CloudApiPublic.REST
             }
             private readonly AfterDownloadToTempFile _afterDownloadCallback;
 
+            /// <summary>
+            /// UserState object passed through as-is when the AfterDownloadCallback handler is fired
+            /// </summary>
             public object AfterDownloadUserState
             {
                 get
@@ -1290,6 +1483,9 @@ namespace CloudApiPublic.REST
             }
             private readonly object _afterDownloadUserState;
 
+            /// <summary>
+            /// Full path location to the directory where temporary download files will be stored
+            /// </summary>
             public string TempDownloadFolderPath
             {
                 get
@@ -1299,25 +1495,54 @@ namespace CloudApiPublic.REST
             }
             private readonly string _tempDownloadFolderPath;
 
-            public download(BeforeDownloadToTempFile BeforeDownloadCallback, object BeforeDownloadUserState, AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath)
+            /// <summary>
+            /// The sole constructor for this class with all parameters corresponding to all properties in this class and within its base class uploadDownloadParams
+            /// </summary>
+            /// <param name="StatusCallback">A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)</param>
+            /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events</param>
+            /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
+            /// <param name="SyncRootFullPath">Full path to the root directory being synced</param>
+            /// <param name="AfterDownloadCallback">Event handler for after a download completes which needs to move the file from the temp location to its final location and set the response body to "---Completed file download---"</param>
+            /// <param name="AfterDownloadUserState">UserState object passed through as-is when the AfterDownloadCallback handler is fired</param>
+            /// <param name="TempDownloadFolderPath">Full path location to the directory where temporary download files will be stored</param>
+            /// <param name="BeforeDownloadCallback">A non-required (possibly null) event handler for before a download starts</param>
+            /// <param name="BeforeDownloadUserState">UserState object passed through as-is when the BeforeDownloadCallback handler is fired</param>
+            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
                 : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath)
             {
-                this._beforeDownloadCallback = BeforeDownloadCallback;
-                this._beforeDownloadUserState = BeforeDownloadUserState;
-                this._afterDownloadCallback = AfterDownloadCallback;
-                this._afterDownloadUserState = AfterDownloadUserState;
-                this._tempDownloadFolderPath = TempDownloadFolderPath;
-
+                // additional checks for parameters which were not already checked via the abstract base constructor
 
                 if (base.ChangeToTransfer.Direction != SyncDirection.From)
                 {
                     throw new ArgumentException("Invalid ChangeToTransfer Direction for a download: " + base.ChangeToTransfer.Direction.ToString());
                 }
+                //// I changed my mind about this one. We can allow the before download callback to be null.
+                //// But, the after download callback is still required since that needs to perform the actual file move operation from temp directory to final location.
+                //if (BeforeDownloadCallback == null)
+                //{
+                //    throw new NullReferenceException("BeforeDownloadCallback cannot be null");
+                //}
+                if (AfterDownloadCallback == null)
+                {
+                    throw new NullReferenceException("AfterDownloadCallback cannot be null");
+                }
+
+                // set all the readonly fields for public properties by all the parameters which were not passed to the abstract base class
+
+                this._beforeDownloadCallback = BeforeDownloadCallback;
+                this._beforeDownloadUserState = BeforeDownloadUserState;
+                this._afterDownloadCallback = AfterDownloadCallback;
+                this._afterDownloadUserState = AfterDownloadUserState;
+                this._tempDownloadFolderPath = TempDownloadFolderPath;
             }
         }
 
-        private sealed class upload : uploadDownloadParams
+        // class for storing download properties which inherits abstract base uploadDownloadParams which stores more necessary properties
+        private sealed class uploadParams : uploadDownloadParams
         {
+            /// <summary>
+            /// Stream which will be read from to buffer to write into the upload stream, or null if already disposed
+            /// </summary>
             public Stream Stream
             {
                 get
@@ -1329,6 +1554,9 @@ namespace CloudApiPublic.REST
             }
             private readonly Stream _stream;
 
+            /// <summary>
+            /// Disposes Stream for the upload if it was not already disposed and marks that it was disposed; not thread-safe disposal checking
+            /// </summary>
             public void DisposeStream()
             {
                 if (!_streamDisposed)
@@ -1345,6 +1573,9 @@ namespace CloudApiPublic.REST
             }
             private bool _streamDisposed = false;
 
+            /// <summary>
+            /// MD5 hash lowercase hexadecimal string for the entire upload content
+            /// </summary>
             public string Hash
             {
                 get
@@ -1354,9 +1585,19 @@ namespace CloudApiPublic.REST
             }
             private readonly string _hash;
 
-            public upload(Stream Stream, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath)
+            /// <summary>
+            /// The sole constructor for this class with all parameters corresponding to all properties in this class and within its base class uploadDownloadParams
+            /// </summary>
+            /// <param name="StatusCallback">A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)</param>
+            /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events; also used to retrieve the StorageKey and MD5 hash for upload</param>
+            /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
+            /// <param name="SyncRootFullPath">Full path to the root directory being synced</param>
+            /// <param name="Stream">Stream which will be read from to buffer to write into the upload stream, or null if already disposed</param>
+            public uploadParams(Stream Stream, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath)
                 : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath)
             {
+                // additional checks for parameters which were not already checked via the abstract base constructor
+
                 if (Stream == null)
                 {
                     throw new Exception("Stream cannot be null");
@@ -1381,109 +1622,71 @@ namespace CloudApiPublic.REST
                     throw new NullReferenceException("ChangeToTransfer must have an MD5 hash");
                 }
 
+                // set the readonly field for the public property by all the parameters which were not passed to the abstract base class
+
                 this._stream = Stream;
             }
         }
         #endregion
-
-        #region Support
-        
-        /// <summary>
-        /// Generate the signed token for the platform auth Authorization header.
-        /// </summary>
-        /// <param name="settings">The settings to use for this generation.</param>
-        /// <param name="httpMethod">The HTTP method.  e.g.: "POST".</param>
-        /// <param name="pathAndQueryStringAndFragment">The HTTP path, query string and fragment.  The path is required.</param>
-        /// <param name="serverUrl">The server URL.</param>
-        /// <returns></returns>
-        internal string GenerateAuthorizationHeaderToken(ISyncSettingsAdvanced settings, string httpMethod, string pathAndQueryStringAndFragment)
-        {
-            string toReturn = String.Empty;
-            try
-            {
-                string methodPath = String.Empty;
-                string queryString = String.Empty;
-
-                // Determine the methodPath and the queryString
-                char[] delimiterChars = { '?' };
-                string[] parts = pathAndQueryStringAndFragment.Split(delimiterChars);
-                if (parts.Length > 1)
-                {
-                    methodPath = parts[0].Trim();
-                    queryString = parts[parts.Length - 1].Trim();
-                }
-                else
-                {
-                    methodPath = pathAndQueryStringAndFragment;
-                }
-
-                // Build the string that we will hash.
-                string stringToHash = String.Format("{0}{1}{2}{3}{4}{5}{6}",
-                        CLDefinitions.AuthorizationFormatType,
-                        "\n",
-                        httpMethod.ToUpper(),
-                        "\n",
-                        methodPath,
-                        "\n",
-                        queryString);
-
-                // Hash the string
-                System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
-                byte[] secretByte = Encoding.UTF8.GetBytes(settings.ApplicationSecret);
-                HMACSHA256 hmac = new HMACSHA256(secretByte);
-                byte[] stringToHashBytes = encoding.GetBytes(stringToHash);
-                byte[] hashMessage = hmac.ComputeHash(stringToHashBytes);
-                toReturn = ByteToString(hashMessage);
-            }
-            catch (Exception ex)
-            {
-                CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                CLTrace.Instance.writeToLog(1, "CLGen: Gen: ERROR. Exception.  Msg: <{0}>.", ex.Message);
-            }
-
-            return toReturn;
-        }
-
-        /// <summary>
-        /// Convert a byte array to a string.
-        /// </summary>
-        /// <param name="buff"></param>
-        /// <returns></returns>
-        private string ByteToString(byte[] buff)
-        {
-            string sbinary = "";
-
-            for (int i = 0; i < buff.Length; i++)
-            {
-                sbinary += buff[i].ToString("X2"); // hex format
-            }
-            return (sbinary);
-        }
-
-        #endregion
     }
 
-    //TODO: Should this be internal?
-    public delegate void SendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource);
-    public delegate void BeforeDownloadToTempFile(Guid tempId, object UserState);
+
     /// <summary>
-    /// 
+    /// Handler called whenever progress has been made uploading or downloading a file or if the file was cancelled or completed
     /// </summary>
-    /// <param name="tempFileFullPath"></param>
-    /// <param name="downloadChange"></param>
-    /// <param name="responseBody">Reference to string used to trace communication, should be set to "---Completed file download---" upon successfully moving the file to its destination</param>
-    /// <param name="UserState"></param>
-    /// <param name="tempId"></param>
+    /// <param name="status">The parameters which describe the progress itself</param>
+    /// <param name="eventSource">The FileChange describing the change to upload or download</param>
+    internal delegate void SendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource);
+
+    /// <param name="tempId">Unique ID created for the file and used as the file's name in the temp download directory</param>
+    /// <param name="UserState">Object passed through from the download method call specific to before download</param>
+    public delegate void BeforeDownloadToTempFile(Guid tempId, object UserState);
+
+    /// <summary>
+    /// ¡¡ Action required: move the completed download file from the temp directory to the final destination !!
+    /// Handler called after a file download completes with the id used as the file name in the originally provided temporary download folder,
+    /// passes through UserState, passes the download change itself, gives a constructed full path where the downloaded file can be found in the temp folder,
+    /// and references a string which should be set to something useful for communications trace to denote a completed file such as "---Completed file download---" (but only set after the file was succesfully moved)
+    /// </summary>
+    /// <param name="tempFileFullPath">Full path to where the downloaded file can be found in the temp folder (which needs to be moved)</param>
+    /// <param name="downloadChange">The download change itself</param>
+    /// <param name="responseBody">Reference to string used to trace communication, should be set to something useful to read in communications trace such as "---Completed file download---" (but only after the file was successfully moved)</param>
+    /// <param name="UserState">Object passed through from the download method call specific to after download</param>
+    /// <param name="tempId">Unique ID created for the file and used as the file's name in the temp download directory</param>
     public delegate void AfterDownloadToTempFile(string tempFileFullPath, FileChange downloadChange, ref string responseBody, object UserState, Guid tempId);
 
+    /// <summary>
+    /// Status from a call to one of the CLHttpRest communications methods
+    /// </summary>
     public enum CLHttpRestStatus : byte
     {
+        /// <summary>
+        /// Method completed without error and has a normal response
+        /// </summary>
         Success,
+        /// <summary>
+        /// Method invoked a not found (404) response from the server
+        /// </summary>
         NotFound,
+        /// <summary>
+        /// Method invoked a server error (5xx) response from the server
+        /// </summary>
         ServerError,
+        /// <summary>
+        /// Method had some other problem with parameters processed locally or parameters sent up to the server
+        /// </summary>
         BadRequest,
+        /// <summary>
+        /// Method was cancelled via a provided cancellation token before completion
+        /// </summary>
         Cancelled,
-        NoContent
+        /// <summary>
+        /// Method completed without error but has no response; it means that no data exists for given parameter(s)
+        /// </summary>
+        NoContent,
+        /// <summary>
+        /// Method invoked an unauthorized (401) resposne from the server
+        /// </summary>
+        NotAuthorized
     }
 }

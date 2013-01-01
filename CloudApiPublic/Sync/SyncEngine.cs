@@ -118,7 +118,7 @@ namespace CloudApiPublic.Sync
             this.ErrorProcessingMillisecondInterval = ErrorProcessingMillisecondInterval;
             #endregion
         }
-        
+
         // Timer to handle wait callbacks to requeue failures to reprocess
         private ProcessingQueuesTimer FailureTimer
         {
@@ -174,9 +174,6 @@ namespace CloudApiPublic.Sync
 
         // build a default location for temp downloads by path in current user's non-roaming application data plus the name of the currently running application
         private readonly string DefaultTempDownloadsPath;
-
-        //TODO: Find a better way to detect that a file was successfully downloaded.  Use an enum.
-        private const string kFileDownloadCompletedOk = "---Completed file download---";
 
         // EventHandler for when the _failureTimer hits the end of its timer;
         // state object must be the Function which adds failed items to the FileMonitor processing queue
@@ -625,7 +622,7 @@ namespace CloudApiPublic.Sync
                                     preprocessedEventIds.Add(topLevelChange.FileChange.EventId);
 
                                     // declare storage for the event id if it processes succesfully
-                                    Nullable<long> successfulEventId; 
+                                    Nullable<long> successfulEventId;
                                     // declare storage for an upload or download task if one will need to be started
                                     Nullable<AsyncUploadDownloadTask> asyncTask;
 
@@ -884,7 +881,7 @@ namespace CloudApiPublic.Sync
                                 Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
                                 Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
                             }
-                            
+
                             // if there are completed changes, then loop through them to process success
                             if (completedChanges != null)
                             {
@@ -913,10 +910,10 @@ namespace CloudApiPublic.Sync
                             }
 
                             Func<FileChangeMerge, FileChangeMerge> setToAddToSQL = toAdd =>
-                                {
-                                    toAdd.MergeTo.DoNotAddToSQLIndex = false;
-                                    return toAdd;
-                                };
+                            {
+                                toAdd.MergeTo.DoNotAddToSQLIndex = false;
+                                return toAdd;
+                            };
 
                             // Merge in server values into DB (storage key, revision, etc) and add new Sync From events
                             syncData.mergeToSql(
@@ -1006,7 +1003,7 @@ namespace CloudApiPublic.Sync
                                         // between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared;
                                         // Store any error returned
                                         CLError postCommunicationDependencyError = syncData.dependencyAssignment(
-                                            
+
                                             // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
                                             (incompleteChanges ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
                                                 .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.Stream))
@@ -1653,7 +1650,7 @@ namespace CloudApiPublic.Sync
                                     appendErrors += errorToQueue.Stream;
                                 }
                             }
-                            
+
                             // if an error was queued, then start the failure queue timer
                             if (atLeastOneErrorAdded)
                             {
@@ -1997,39 +1994,34 @@ namespace CloudApiPublic.Sync
                         throw new NullReferenceException("storeFileChange must have a StorageKey");
                     }
 
-                    // hash is used in http header for MD5 validation of content stream
-                    string hash;
-                    CLError retrieveHashError = castState.FileToUpload.GetMD5LowercaseString(out hash);
-                    if (retrieveHashError != null)
+                    if (castState.RestClient == null)
                     {
-                        throw new AggregateException("Unable to retrieve MD5 from storeFileChange", retrieveHashError.GrabExceptions());
-                    }
-                    if (hash == null)
-                    {
-                        throw new NullReferenceException("storeFileChange must have a hash");
+                        throw new NullReferenceException("DownloadTaskState must contain RestClient");
                     }
 
-                    // Upload the file
-                    CLHttpRestStatus status;
-                    CLError errorFromUploadFile = castState.RestClient.UploadFile(
-                            castState.UploadStream,
-                            castState.FileToUpload,
-                            castState.HttpTimeoutMilliseconds ?? int.MaxValue,
-                            out status,
-                            castState.ShutdownToken);
-                    if (errorFromUploadFile != null)
+                    // declare the status for performing a rest communication
+                    CLHttpRestStatus uploadStatus;
+                    // upload the file using the REST client, storing any error that occurs
+                    CLError uploadError = castState.RestClient.UploadFile(castState.UploadStream, // stream for upload
+                        castState.FileToUpload, // upload change
+                        (int)castState.HttpTimeoutMilliseconds, // milliseconds before communication timeout (does not apply to the amount of time it takes to actually upload the file)
+                        out uploadStatus, // output the status of communication
+                        castState.ShutdownToken); // pass in the shutdown token for the optional parameter so it can be cancelled
+
+                    // if an error occurred while uploading the file, rethrow the error
+                    if (uploadError != null)
                     {
-                        throw new AggregateException("Error uploading file", errorFromUploadFile.GrabExceptions());
+                        throw new AggregateException("An error occurred uploading a file: " + uploadError.errorDescription, uploadError.GrabExceptions());
                     }
 
-                    // The upload was successful (no exceptions), but it may still have a reportable error.
-                    if (status == CLHttpRestStatus.Cancelled)
+                    // for advanced trace, UploadDownloadSuccess
+                    if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings);
+                        Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
                     }
 
-                    // Handle a successful upload.
-                    return HandleSuccessfulUpload(castState);
+                    // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
+                    return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncSettings);
                 }
                 catch
                 {
@@ -2045,40 +2037,6 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
-                // if there was an event for the upload, then fire the event callback for a final transfer status
-                if (castState.FileToUpload != null)
-                {
-                    // try/catch fire the event callback for final transfer status, silencing errors
-                    try
-                    {
-                        // fire the event callback for the final transfer status
-                        MessageEvents.UpdateFileUpload(castState.FileToUpload, // sender of event (the event itself)
-                            castState.FileToUpload.EventId, // event id to uniquely identify this transfer
-                            new CLStatusFileTransferUpdateParameters(
-                                getStartTime(startTimeHolder), // retrieve the upload start time
-
-                                // need to send a file size which matches the total uploaded bytes so they are equal to cancel the status
-                                (castState.FileToUpload.Metadata == null
-                                    ? 0 // if the event has no metadata, then use 0 as size
-                                    : castState.FileToUpload.Metadata.HashableProperties.Size ?? 0), // else if the event has metadata, then grab the size or use 0
-
-                                // try to build the same relative path that would be used in the normal status, falling back first to the full path then to an empty string
-                                (castState.FileToUpload.NewPath == null
-                                    ? string.Empty
-                                    : castState.SyncSettings == null
-                                        ? castState.FileToUpload.NewPath.ToString()
-                                        : castState.FileToUpload.NewPath.GetRelativePath((castState.SyncSettings.SyncRoot ?? string.Empty), false) ?? string.Empty),
-
-                                // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
-                                (castState.FileToUpload.Metadata == null
-                                    ? 0 // if the event has no metadata, then use 0 as total uploaded bytes
-                                    : castState.FileToUpload.Metadata.HashableProperties.Size ?? 0))); // else if the event has metadata, then use the size as total uploaded bytes or use 0
-                    }
-                    catch
-                    {
-                    }
-                }
-
                 // if the error was any that are not recoverable, display a message to the user for the serious problem and return
 
                 if (castState == null)
@@ -2156,108 +2114,6 @@ namespace CloudApiPublic.Sync
                     castState.RemoveFileChangeEvents(castState.FileToUpload);
                 }
             }
-        }
-
-        /// <summary>
-        /// Handle a successful upload operation.
-        /// </summary>
-        /// <param name="castState"></param>
-        /// <returns></returns>
-        private static EventIdAndCompletionProcessor HandleSuccessfulUpload(UploadTaskState castState)
-        {
-            // for advanced trace, UploadDownloadSuccess
-            if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-            {
-                Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
-            }
-
-            // try to cast the current event as one with dependencies
-            FileChangeWithDependencies toCompleteWithDependencies = castState.FileToUpload as FileChangeWithDependencies;
-            // if the current event was one with dependencies and has at least one dependency, then queue dependencies for processing
-            if (toCompleteWithDependencies != null
-                && toCompleteWithDependencies.DependenciesCount > 0)
-            {
-                // create a holder for a list of events which could not be added for processing
-                GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
-                // add dependencies to processing queue on event source, storing any error that occurs
-                CLError err = castState.SyncData.addChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, // dependencies to add to processing queue
-                    /* add to top */true, // add changes to top of processing queue
-                    errList); // holder for list of changes which failed to add to processing queue
-
-                // if the holder for errors has a value, then queue changes in error to failure queue
-                if (errList.Value != null)
-                {
-                    // define a bool for whether at least one change was added to the processing queue, defaulting to false
-                    bool atLeastOneFailureAdded = false;
-
-                    // lock on failure queue timer locker for modifying failure queue
-                    lock (castState.FailureTimer.TimerRunningLocker)
-                    {
-                        // loop through changes in error from adding to processing queue
-                        foreach (FileChange currentError in errList.Value)
-                        {
-                            // enqueue change in error to failure queue
-                            castState.FailedChangesQueue.Enqueue(currentError);
-
-                            // mark that an error was added to the failure queue
-                            atLeastOneFailureAdded = true;
-                        }
-
-                        // if at least one error was added to the failure queue, start the failure queue timer
-                        if (atLeastOneFailureAdded)
-                        {
-                            castState.FailureTimer.StartTimerIfNotRunning();
-                        }
-                    }
-                }
-
-                // if an error occurred adding dependencies to the processing queue in the event source,
-                // then add the dependencies to the failed changes queue if they haven't already been added and also log the error
-                if (err != null)
-                {
-                    // if dependencies have not already been added to the failure queue, then add them
-                    if (errList.Value == null)
-                    {
-                        // try/catch to add dependencies to failure queue, on catch aggregate the exception to the error to be logged
-                        try
-                        {
-                            // lock on failure queue timer locker for modifying the failure queue
-                            lock (castState.FailureTimer.TimerRunningLocker)
-                            {
-                                // define a bool for whether an event was added to the failure queue, defaulting to false
-                                bool atLeastOneFailureAdded = false;
-
-                                // loop through dependencies
-                                foreach (FileChange currentDependency in toCompleteWithDependencies.Dependencies)
-                                {
-                                    // add the current dependency to the failure queue
-                                    castState.FailedChangesQueue.Enqueue(currentDependency);
-
-                                    // mark that a dependency was added to the failure queue
-                                    atLeastOneFailureAdded = true;
-                                }
-
-                                // if at least one dependency was added to the failure queue, then start the failure queue timer
-                                if (atLeastOneFailureAdded)
-                                {
-                                    castState.FailureTimer.StartTimerIfNotRunning();
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            // aggregate the error queing dependencies to the failure queue with the existing error
-                            err += ex;
-                        }
-                    }
-
-                    // log the error
-                    err.LogErrors(castState.SyncSettings.TraceLocation, castState.SyncSettings.LogErrors);
-                }
-            }
-
-            // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
-            return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncSettings);
         }
 
         // code to handle cleanup when an error occurred during upload
@@ -2473,6 +2329,11 @@ namespace CloudApiPublic.Sync
                     throw new NullReferenceException("DownloadTaskState must contain FailedChangesQueue");
                 }
 
+                if (castState.RestClient == null)
+                {
+                    throw new NullReferenceException("DownloadTaskState must contain RestClient");
+                }
+
                 // check for sync shutdown
                 Monitor.Enter(castState.ShutdownToken);
                 try
@@ -2575,7 +2436,7 @@ namespace CloudApiPublic.Sync
                 // define the response body for download, defaulting to null
                 string responseBody = null;
 
-                // if an existing file already exists which matches the current download, then move the existing file instead of starting a new download
+                // if a file already exists which matches the current download, then move the existing file instead of starting a new download
                 if (newTempFile != null)
                 {
                     // calculate and store the path for the existing file
@@ -2595,38 +2456,44 @@ namespace CloudApiPublic.Sync
                         castState.TempDownloadFolderPath); // path to the folder containing temp downloads
                 }
 
-                // Start the download process.
-                CLHttpRestStatus status;
-                BeforeDownloadToTempFile beforeDownloadToTempFileCallback = OnBeforeDownloadToTempFile;
-                AfterDownloadToTempFile afterDownloadToTempFileCallback = OnAfterDownloadToTempFile;
-                SendUploadDownloadStatus sendUploadDownloadStatusCallback = OnSendUploadDownloadStatus;
-                CLError errorFromDownloadFile = castState.RestClient.DownloadFile(
-                        beforeDownloadCallback: beforeDownloadToTempFileCallback,
-                        beforeDownloadUserState: castState,
-                        afterDownloadToTempFileCallback: afterDownloadToTempFileCallback,
-                        afterDownloadUserState: castState,
-                        tempDownloadFolderPath: castState.TempDownloadFolderPath,
-                        sendUploadDownloadStatusCallback: sendUploadDownloadStatusCallback,
-                        changeToDownload: castState.FileToDownload,
-                        timeoutMilliseconds: castState.HttpTimeoutMilliseconds ?? int.MaxValue,
-                        status: out status,
-                        responseBody: out responseBody,
-                        shutdownToken: castState.ShutdownToken);
-                if (errorFromDownloadFile != null)
+                // declare the enumeration to store the state of the download
+                CLHttpRestStatus downloadStatus;
+                // perform the download of the file, storing any error that occurs
+                CLError downloadError = castState.RestClient.DownloadFile(castState.FileToDownload, // the download change
+                    OnAfterDownloadToTempFile, // handler for when downloading completes, needs to move the file to the final location and update the status string message
+                    new OnAfterDownloadToTempFileState() // userstate which will be passed along when the callback is fired when downloading completes
+                    {
+                        FailureTimer = castState.FailureTimer, // pass-through the timer for the failure queue
+                        MoveCompletedDownload = castState.MoveCompletedDownload // pass-through the delegate to fire which moves the file from the temporary download location to the final location
+                    },
+                    castState.HttpTimeoutMilliseconds ?? 0, // milliseconds before communication throws exception from timeout, excludes the time it takes to actually download the file
+                    out downloadStatus, // output the status of the communication
+                    OnBeforeDownloadToTempFile, // handler for when downloading is going to start, which stores the new download id to a local dictionary
+                    new OnBeforeDownloadToTempFileState() // userstate which will be passed along when the callback is fired before downloading starts
+                    {
+                        currentDownloads = currentDownloads, // pass-through the dictionary of current downloads
+                        FileToDownload = castState.FileToDownload, // pass-through the file change itself
+                        MD5 = castState.MD5 // pass-through the MD5 hash of the file
+                    },
+                    castState.ShutdownToken, // the cancellation token which can cause the download to stop in the middle
+                    castState.TempDownloadFolderPath); // the full path to the folder which will contain all the temporary-downloaded files
+
+                // if there was an error while downloading, rethrow the error
+                if (downloadError != null)
                 {
-                    throw new AggregateException("Error downloading file", errorFromDownloadFile.GrabExceptions());
+                    throw new AggregateException("An error occurred downloading a file", downloadError.GrabExceptions());
                 }
 
                 // The download was successful (no exceptions), but it may have been cancelled.
-                if (status == CLHttpRestStatus.Cancelled)
+                if (downloadStatus == CLHttpRestStatus.Cancelled)
                 {
                     return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings, castState.TempDownloadFolderPath);
                 }
 
-                // Check to see that the file downloaded OK.
-                if (!responseBody.Equals(kFileDownloadCompletedOk, StringComparison.InvariantCulture))
+                // if the download was not a success throw an error
+                if (downloadStatus != CLHttpRestStatus.Success)
                 {
-                    throw new Exception("The downloaded temp file was not successfully moved to its permanent location");
+                    throw new Exception("The return status from downloading a file was not successful: CLHttpRestStatus." + downloadStatus.ToString());
                 }
 
                 // return the success
@@ -2634,15 +2501,13 @@ namespace CloudApiPublic.Sync
                     castState.SyncData, // event source to handle callback for completing the event
                     castState.SyncSettings, // settings for tracing and logging errors
                     castState.TempDownloadFolderPath); // location of folder for temp downloads
-
             }
             catch (Exception ex)
             {
                 // for advanced trace, UploadDownloadFailure
                 if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, 
-                        FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
+                    Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
                 }
 
                 // if there was a download event, then fire the eventhandler for finishing the status of the transfer
@@ -2729,7 +2594,7 @@ namespace CloudApiPublic.Sync
                 else
                 {
                     // wrap the error to execute for cleanup
-                    ExecutableException<PossiblyStreamableFileChangeWithSyncData> wrappedEx = new ExecutableException<PossiblyStreamableFileChangeWithSyncData>(ProcessDownloadError, // callback with the code to handle cleanup
+                    ExecutableException<PossiblyStreamableFileChangeWithSyncData> wrappedEx = new ExecutableException<PossiblyStreamableFileChangeWithSyncData>(ProcessUploadError, // callback with the code to handle cleanup
                         new PossiblyStreamableFileChangeWithSyncData(castState.FailedChangesQueue, // failure queue for reprocessing failed events
                             (byte)castState.MaxNumberOfFailureRetries, // how many times to retry on failure before stopping
                             (byte)castState.MaxNumberOfNotFounds, // how many not found errors can occur before presuming the event was cancelled out
@@ -2757,117 +2622,111 @@ namespace CloudApiPublic.Sync
         }
 
         /// <summary>
-        /// Called by CLHttpRest DownloadFile() before actually downloading the file.  Add this file to the cache.
+        /// ¡¡ Action required: move the completed download file from the temp directory to the final destination !!
+        /// Handler called after a file download completes with the id used as the file name in the originally provided temporary download folder,
+        /// passes through UserState, passes the download change itself, gives a constructed full path where the downloaded file can be found in the temp folder,
+        /// and references a string which should be set to something useful for communications trace to denote a completed file such as "---Completed file download---" (but only set after the file was succesfully moved)
         /// </summary>
-        /// <param name="newTempFile"></param>
-        /// <param name="UserState"></param>
-        private static void OnBeforeDownloadToTempFile(Guid newTempFile, object UserState)
+        /// <param name="tempFileFullPath">Full path to where the downloaded file can be found in the temp folder (which needs to be moved)</param>
+        /// <param name="downloadChange">The download change itself</param>
+        /// <param name="responseBody">Reference to string used to trace communication, should be set to something useful to read in communications trace such as "---Completed file download---" (but only after the file was successfully moved)</param>
+        /// <param name="UserState">Object passed through from the download method call specific to after download</param>
+        /// <param name="tempId">Unique ID created for the file and used as the file's name in the temp download directory</param>
+        private static void OnAfterDownloadToTempFile(string tempFileFullPath, FileChange downloadChange, ref string responseBody, object UserState, Guid tempId)
         {
-            try
+            OnAfterDownloadToTempFileState castState = UserState as OnAfterDownloadToTempFileState;
+
+            if (castState == null)
             {
-                DownloadTaskState castState = UserState as DownloadTaskState;
-                if (castState == null)
-                {
-                    return;
-                }
-
-                // declare a mapping of file sizes to download ids and hashes
-                Dictionary<long, List<DownloadIdAndMD5>> currentDownloads;
-
-                // lock on the map of temp download folder to downloaded id maps to retrieve current download id map
-                lock (TempDownloads)
-                {
-                    // try to retrieve the current download id map for the current temp download folder and if unsuccesful, then add a new download id map
-                    if (!TempDownloads.TryGetValue(castState.TempDownloadFolderPath, out currentDownloads))
-                    {
-                        TempDownloads.Add(castState.TempDownloadFolderPath,
-                            currentDownloads = new Dictionary<long, List<DownloadIdAndMD5>>());
-                    }
-                }
-                // lock on current download id map for modification
-                lock (currentDownloads)
-                {
-                    // if current download id map contains downloads for the current file size, then add the new download to the existing list
-                    if (currentDownloads.ContainsKey((long)castState.FileToDownload.Metadata.HashableProperties.Size))
-                    {
-                        currentDownloads[(long)castState.FileToDownload.Metadata.HashableProperties.Size].Add(new DownloadIdAndMD5((Guid)newTempFile, castState.MD5));
-                    }
-                    // else if current download id map does not contain downloads for the current file size,
-                    // create the new list of downloads with the new download as its initial value
-                    else
-                    {
-                        currentDownloads.Add((long)castState.FileToDownload.Metadata.HashableProperties.Size,
-                            new List<DownloadIdAndMD5>(new DownloadIdAndMD5[]
-                                                {
-                                                    new DownloadIdAndMD5((Guid)newTempFile, castState.MD5)
-                                                }));
-                    }
-                }
+                throw new NullReferenceException("UserState must be castable as OnAfterDownloadToTempFileState");
             }
-            catch (Exception ex)
+            if (castState.FailureTimer == null)
             {
-                // log the error
-                ((CLError)new Exception("Error adding a download file to the download cache", ex)).LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                throw new NullReferenceException("UserState must have FailureTimer");
+            }
+            if (castState.MoveCompletedDownload == null)
+            {
+                throw new NullReferenceException("UserState must have MoveCompletedDownload");
+            }
+
+            // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
+            // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
+            // attributes to set: creation time, last modified time, and last access time
+
+            Helpers.RunActionWithRetries(() => System.IO.File.SetCreationTimeUtc(tempFileFullPath, downloadChange.Metadata.HashableProperties.CreationTime), true);
+            Helpers.RunActionWithRetries(() => System.IO.File.SetLastAccessTimeUtc(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime), true);
+            Helpers.RunActionWithRetries(() => System.IO.File.SetLastWriteTimeUtc(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime), true);
+
+            // fire callback to perform the actual move of the temp file to the final destination
+            castState.MoveCompletedDownload(tempFileFullPath, // location of temp file
+                downloadChange, // download event
+                ref responseBody, // reference to response string (sets to "completed" on success)
+                castState.FailureTimer, // timer for failure queue
+                tempId); // id for the downloaded file
+        }
+
+        private sealed class OnAfterDownloadToTempFileState
+        {
+            public ProcessingQueuesTimer FailureTimer { get; set; }
+            public MoveCompletedDownloadDelegate MoveCompletedDownload { get; set; }
+        }
+
+        private static void OnBeforeDownloadToTempFile(Guid tempId, object UserState)
+        {
+            OnBeforeDownloadToTempFileState castState = UserState as OnBeforeDownloadToTempFileState;
+
+            if (castState == null)
+            {
+                throw new NullReferenceException("UserState must be castable as OnBeforeDownloadToTempFileState");
+            }
+            if (castState.FileToDownload == null)
+            {
+                throw new NullReferenceException("UserState FileToDownload must not be null");
+            }
+            if (castState.FileToDownload.Metadata == null)
+            {
+                throw new NullReferenceException("UserState FileToDownload Metadata must not be null");
+            }
+            if (castState.MD5 == null)
+            {
+                throw new NullReferenceException("UserState MD5 must not be null");
+            }
+            if (castState.MD5.Length != 16)
+            {
+                throw new ArgumentException("UserState MD5 must be a 16-length byte array for the MD5 hash of the file");
+            }
+            if (castState.currentDownloads == null)
+            {
+                throw new NullReferenceException("UserState currentDownloads must not be null");
+            }
+
+            // lock on current download id map for modification
+            lock (castState.currentDownloads)
+            {
+                // if current download id map contains downloads for the current file size, then add the new download to the existing list
+                if (castState.currentDownloads.ContainsKey((long)castState.FileToDownload.Metadata.HashableProperties.Size))
+                {
+                    castState.currentDownloads[(long)castState.FileToDownload.Metadata.HashableProperties.Size].Add(new DownloadIdAndMD5(tempId, castState.MD5));
+                }
+                // else if current download id map does not contain downloads for the current file size,
+                // create the new list of downloads with the new download as its initial value
+                else
+                {
+                    castState.currentDownloads.Add((long)castState.FileToDownload.Metadata.HashableProperties.Size,
+                        new List<DownloadIdAndMD5>(new DownloadIdAndMD5[]
+                                            {
+                                                new DownloadIdAndMD5(tempId, castState.MD5)
+                                            }));
+                }
             }
         }
 
-        /// <summary>
-        /// Called by CLHttpRest:DownloadFile() after the download to the temp file is complete.  Move the temp file to its permanent position.
-        /// </summary>
-        /// <param name="newTempFileString">The full path of the temp file.</param>
-        /// <param name="downloadChange">The FileChange representing the downloaded file.</param>
-        /// <param name="responseBody">The response body.  Input and output.</param>
-        /// <param name="UserState">The user state.</param>
-        /// <param name="newTempFile">The GUID of the temp file.</param>
-        private static void OnAfterDownloadToTempFile(string newTempFileString, FileChange downloadChange, ref string responseBody, object UserState, Guid newTempFile)
+        private sealed class OnBeforeDownloadToTempFileState
         {
-            try
-            {
-                DownloadTaskState castState = UserState as DownloadTaskState;
-                if (castState == null)
-                {
-                    return;
-                }
-
-                // fire callback to perform the actual move of the temp file to the final destination
-                castState.MoveCompletedDownload(newTempFileString, // location of temp file
-                    castState.FileToDownload, // download event
-                    ref responseBody, // reference to response string (sets to "completed" on success)
-                    castState.FailureTimer, // timer for failure queue
-                    (Guid)newTempFile); // id for the downloaded file
-            }
-            catch (Exception ex)
-            {
-                // log the error
-                ((CLError)new Exception("Error moving a temporary downloaded file to its permanent position", ex)).LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-            }
-
+            public FileChange FileToDownload { get; set; }
+            public byte[] MD5 { get; set; }
+            public Dictionary<long, List<DownloadIdAndMD5>> currentDownloads { get; set; }
         }
-
-        /// <summary>
-        /// Called by CLHttpRest:DownloadFile() as the file is being downloaded.
-        /// </summary>
-        /// <param name="status">The file download status.</param>
-        /// <param name="eventSource">The event representing the file being downloaded.</param>
-        private static void OnSendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource)
-        {
-            try 
-        	{	        
-                // fire eventhandler for status change on transfer
-                MessageEvents.UpdateFileDownload(eventSource, // sender of event (the event itself)
-                    eventSource.EventId, // the event id which can uniquely identify the download
-                    new CLStatusFileTransferUpdateParameters(
-                        status.TransferStartTime,   // start time for download
-                        status.ByteSize,      // total file size
-                        status.RelativePath,  // relative path of file
-                        status.ByteProgress));   // current count of completed download bytes
-        	}
-	        catch  // silent
-	        {
-        	}
-        }
-
-
 
         // code to handle cleanup when an error occurred during upload
         private static void ProcessDownloadError(PossiblyStreamableFileChangeWithSyncData exceptionState, AggregateException exceptions)
@@ -3001,7 +2860,7 @@ namespace CloudApiPublic.Sync
                 {
                     // define bool for whether a change was added to the failure queue, defaulting to false
                     bool atLeastOneErrorAdded = false;
-                    
+
                     // lock on the failure queue timer for modifications to the failure queue
                     lock (exceptionState.DownloadErrorTimer)
                     {
@@ -3313,7 +3172,7 @@ namespace CloudApiPublic.Sync
                 }
 
                 // record the download completion response
-                responseBody = kFileDownloadCompletedOk;
+                responseBody = "---Completed file download---";
 
                 // try cast download event as one with dependencies
                 FileChangeWithDependencies toCompleteWithDependencies = completedDownload as FileChangeWithDependencies;
@@ -3388,7 +3247,7 @@ namespace CloudApiPublic.Sync
                                 failureTimer.StartTimerIfNotRunning();
                             }
                         }
-                        
+
                         // log the error
                         ((CLError)new Exception("Error adding dependencies of a completed file download to the processing queue", ex)).LogErrors(syncSettings.TraceLocation, syncSettings.LogErrors);
                     }
@@ -3481,7 +3340,7 @@ namespace CloudApiPublic.Sync
                         // create a list to store the changes which are currently uploading or downloading
                         List<FileChange> runningUpDownChanges = new List<FileChange>();
                         // retrieve the changes which are currently uploading or downloading via UpDownEvent (all under the UpDownEvent locker)
-                        RunUpDownEvent(new FileChange.UpDownEventArgs(currentUpDown =>
+                        RunUnDownEvent(new FileChange.UpDownEventArgs(currentUpDown =>
                             runningUpDownChanges.Add(currentUpDown)));
 
                         // initialize the runningUpDownChangesDict and store any error that occurs in the process
@@ -3516,7 +3375,7 @@ namespace CloudApiPublic.Sync
                         DeviceId = syncSettings.Udid,
                         UserId = syncSettings.SyncBoxId
                     };
-                    
+
                     // declare the json contract object for the response content
                     PurgePendingResponse purgeResponse;
                     // declare the success/failure status for the communication
@@ -3634,8 +3493,6 @@ namespace CloudApiPublic.Sync
                         // create the json Sync To object for the request body
                         To syncTo = new To()
                         {
-                            SyncBoxId = this.syncSettings.SyncBoxId,
-                            DeviceId = this.syncSettings.Udid,
                             SyncId = syncString, // previous sync id, server should send all newer events
                             Events = currentBatch.Select(currentEvent => new Event() // fill in the events from the current batch, requires reselection
                             {
@@ -3723,13 +3580,26 @@ namespace CloudApiPublic.Sync
                             }).ToArray() // selected into a new array
                         };
 
-                        // Send the request and get the response.
-                        CLHttpRestStatus status;
+                        // declare the status for the sync to http operation
+                        CLHttpRestStatus syncToStatus;
+                        // declare the json contract object for the response content
                         To currentBatchResponse;
-                        CLError errorFromPostSyncToCloud = httpRestClient.PostSyncToCloud(syncTo, HttpTimeoutMilliseconds, out status, out currentBatchResponse);
-                        if (errorFromPostSyncToCloud != null)
+                        // perform a sync to of the current batch of changes, storing any error
+                        CLError syncToError = httpRestClient.PostSyncToCloud(syncTo, // request object with current batch of changes to upload and current sync id
+                            HttpTimeoutMilliseconds, // milliseconds before communication would timeout for each operation
+                            out syncToStatus, // output the status of the communication
+                            out currentBatchResponse); // output the response object from a successful communication
+
+                        // if an error occurred performing sync to, rethrow the error
+                        if (syncToError != null)
                         {
-                            throw new AggregateException("Error from sync_to request or response", errorFromPostSyncToCloud.GrabExceptions());
+                            throw new AggregateException("An error occurred in SyncTo communication", syncToError.GrabExceptions());
+                        }
+
+                        // if sync to was not successful, throw an error
+                        if (syncToStatus != CLHttpRestStatus.Success)
+                        {
+                            throw new Exception("SyncTo communication was not successful: CLHttpRestStatus." + syncToStatus.ToString());
                         }
 
                         // validate a couple fields in the response which are required for processing
@@ -3832,7 +3702,7 @@ namespace CloudApiPublic.Sync
                             {
                                 // if the current Sync From event's path is found in the paths for Sync To events, then add the current Sync From event index as duplicate
                                 if (eventsByPath.Contains(
-                                    
+
                                     // append Sync From event relative path to the root path to build the full path for comparison
                                     (syncSettings.SyncRoot ?? string.Empty) + "\\" +
                                     (deserializedResponse.Events[currentEventIndex].Metadata.RelativePathWithoutEnclosingSlashes ?? deserializedResponse.Events[currentEventIndex].Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')))
@@ -3862,7 +3732,7 @@ namespace CloudApiPublic.Sync
                     Dictionary<long, PossiblyStreamableAndPossiblyChangedFileChangeWithError[]> changesInErrorList = new Dictionary<long, PossiblyStreamableAndPossiblyChangedFileChangeWithError[]>();
                     // create a hashset for storing Streams which are synchronously disposed because they are not needed
                     HashSet<Stream> completedStreams = new HashSet<Stream>();
-                    
+
                     // declare a dictionary for already visited Sync From renames so if metadata was found for a rename in an event then later renames can carry forward the metadata
                     FilePathDictionary<FileMetadata> alreadyVisitedRenames;
                     // initialize the visited renames dictionary, storing any error that occurs
@@ -3982,13 +3852,13 @@ namespace CloudApiPublic.Sync
 
                                 // create a FileChange with dependencies using a new FileChange from the stored FileChange data (except metadata) and adding the MD5 hash (null for non-files)
                                 currentChange = CreateFileChangeFromBaseChangePlusHash(new FileChange()
-                                    {
-                                        Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To), // Sync From events have no status while Sync To events have status
-                                        EventId = currentEvent.Header.EventId ?? 0, // The "client_reference" field from the communication which was set from a Sync To event or left out for Sync From, null-coallesce for the second case
-                                        NewPath = findNewPath, // The full path for the event
-                                        OldPath = findOldPath, // The previous path for rename events, or null for everything else
-                                        Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action) // The FileChange type parsed from the event action
-                                    },
+                                {
+                                    Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To), // Sync From events have no status while Sync To events have status
+                                    EventId = currentEvent.Header.EventId ?? 0, // The "client_reference" field from the communication which was set from a Sync To event or left out for Sync From, null-coallesce for the second case
+                                    NewPath = findNewPath, // The full path for the event
+                                    OldPath = findOldPath, // The previous path for rename events, or null for everything else
+                                    Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action) // The FileChange type parsed from the event action
+                                },
                                     findHash); // The MD5 hash, or null for non-files
 
                                 // set the previous FileChange which was matched to the current event, first from the previous FileChange calculated for no event metadata or null if no "client_reference" was returned or finally search it from the communicated events by event id
@@ -4048,7 +3918,7 @@ namespace CloudApiPublic.Sync
 
                                         // loop through previously visited renamed Metadata, the FileChanges in the current UpDownEvent changes, the failure changes, and the currently processing changes where the OldPath matches the current event's previous path
                                         foreach (FileChange findMetadata in
-                                            
+
                                             // search the already visited Sync From rename events by the current event's previous path for when multiple rename events in a communication batch keep moving the metadata forward
                                             (alreadyVisitedRenames.TryGetValue(currentChange.OldPath, out foundOldPathMetadataOnly)
                                                 ? new[] { new FileChange() // if a match is found, then include the found result
@@ -4056,7 +3926,7 @@ namespace CloudApiPublic.Sync
                                                         Metadata = foundOldPathMetadataOnly, // metadata to move forward
                                                     }}
                                                 : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
-                                            
+
                                             // search the current UpDownEvents for one matching the current event's previous path (comparing against the UpDownEvent's NewPath)
                                             .Concat((getRunningUpDownChangesDict().TryGetValue(currentChange.OldPath, out foundOldPath)
                                                 ? new FileChange[] { foundOldPath } // if a match is found, then include the found result
@@ -4131,30 +4001,56 @@ namespace CloudApiPublic.Sync
                                                 // if the change is a Sync From, then try to grab the metadata from the server at the new destination for the rename to use to create a new creation event at the new path
                                                 if (currentChange.Direction == SyncDirection.From)
                                                 {
-                                                    // grab the metadata from the server for the current path and whether or not the current event represents a folder
-                                                    JsonContracts.Metadata newMetadata = GetMetadataAtPath(currentChange.NewPath, currentChange.Metadata.HashableProperties.IsFolder);
+                                                    // declare the status of communication from getting metadata
+                                                    CLHttpRestStatus getNewMetadataStatus;
+                                                    // declare the response object of the actual metadata when returned
+                                                    JsonContracts.Metadata newMetadata;
+                                                    // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
+                                                    CLError getNewMetadataError = httpRestClient.GetMetadataAtPath(currentChange.NewPath,
+                                                        currentChange.Metadata.HashableProperties.IsFolder,
+                                                        HttpTimeoutMilliseconds,
+                                                        out getNewMetadataStatus,
+                                                        out newMetadata);
+
+                                                    // if an error occurred getting metadata, rethrow the error
+                                                    if (getNewMetadataError != null)
+                                                    {
+                                                        throw new AggregateException("An error occurred retrieving metadata", getNewMetadataError.GrabExceptions());
+                                                    }
+
+                                                    // if there was no content, then the metadata was not found at the given path so throw an error
+                                                    if (getNewMetadataStatus == CLHttpRestStatus.NoContent)
+                                                    {
+                                                        throw new Exception("Metadata not found for given path");
+                                                    }
+
+                                                    // if the communication was not successful, then throw an error with the bad status
+                                                    if (getNewMetadataStatus != CLHttpRestStatus.Success)
+                                                    {
+                                                        throw new Exception("Retrieving metadata did not return successful status: CLHttpRestStatus." + getNewMetadataStatus.ToString());
+                                                    }
 
                                                     // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
                                                     FileChangeWithDependencies newPathCreation = CreateFileChangeFromBaseChangePlusHash(new FileChange()
+                                                    {
+                                                        Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
+                                                        NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
+                                                        Type = FileChangeType.Created, // a create to download a new file or process a new folder
+                                                        Metadata = new FileMetadata()
                                                         {
-                                                            Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
-                                                            NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
-                                                            Type = FileChangeType.Created, // a create to download a new file or process a new folder
-                                                            Metadata = new FileMetadata()
-                                                            {
-                                                                //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
+                                                            //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
-                                                                HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
-                                                                    newMetadata.ModifiedDate, // last modified time for this file system object
-                                                                    newMetadata.CreatedDate, // creation time for this file system object
-                                                                    newMetadata.Size), // file size or null for folders
-                                                                Revision = newMetadata.Revision, // file revision or null for folders
-                                                                StorageKey = newMetadata.StorageKey, // file storage key or null for folders
-                                                                LinkTargetPath = (newMetadata.TargetPath == null
-                                                                    ? null // if server metadata does not have a shortcut file target path, then use null
-                                                                    : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
-                                                            }
-                                                        },
+                                                            HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
+                                                                newMetadata.ModifiedDate, // last modified time for this file system object
+                                                                newMetadata.CreatedDate, // creation time for this file system object
+                                                                newMetadata.Size), // file size or null for folders
+                                                            Revision = newMetadata.Revision, // file revision or null for folders
+                                                            StorageKey = newMetadata.StorageKey, // file storage key or null for folders
+                                                            LinkTargetPath = (newMetadata.TargetPath == null
+                                                                ? null // if server metadata does not have a shortcut file target path, then use null
+                                                                : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                        }
+                                                    },
                                                         newMetadata.Hash); // file MD5 hash or null for folder
 
                                                     // make sure to add change to SQL
@@ -4342,27 +4238,27 @@ namespace CloudApiPublic.Sync
 
                                     // define an action to add the current FileChange to the list of incomplete changes, including any Stream and whether or not the FileChange requires updating the event source database
                                     Action<Dictionary<long, List<PossiblyStreamableAndPossiblyChangedFileChange>>, FileChangeWithDependencies, Stream, bool> AddToIncompleteChanges = (innerIncompleteChangesList, innerCurrentChange, innerCurrentStream, innerMetadataIsDifferent) =>
-                                        {
-                                            // wrap the current change for adding to the incomplete changes list
-                                            PossiblyStreamableAndPossiblyChangedFileChange addChange = new PossiblyStreamableAndPossiblyChangedFileChange(innerMetadataIsDifferent,
-                                                innerCurrentChange,
-                                                innerCurrentStream);
+                                    {
+                                        // wrap the current change for adding to the incomplete changes list
+                                        PossiblyStreamableAndPossiblyChangedFileChange addChange = new PossiblyStreamableAndPossiblyChangedFileChange(innerMetadataIsDifferent,
+                                            innerCurrentChange,
+                                            innerCurrentStream);
 
-                                            // if the incomplete change's map already contains the current change's event id, then add the current change to the existing list
-                                            if (innerIncompleteChangesList.ContainsKey(innerCurrentChange.EventId))
-                                            {
-                                                innerIncompleteChangesList[innerCurrentChange.EventId].Add(addChange);
-                                            }
-                                            // else if the incomplete change's map does not already contain the current change's event id, then create a new list with only the current change and add it to the map for the current change's event id
-                                            else
-                                            {
-                                                innerIncompleteChangesList.Add(innerCurrentChange.EventId,
-                                                    new List<PossiblyStreamableAndPossiblyChangedFileChange>(new[]
+                                        // if the incomplete change's map already contains the current change's event id, then add the current change to the existing list
+                                        if (innerIncompleteChangesList.ContainsKey(innerCurrentChange.EventId))
+                                        {
+                                            innerIncompleteChangesList[innerCurrentChange.EventId].Add(addChange);
+                                        }
+                                        // else if the incomplete change's map does not already contain the current change's event id, then create a new list with only the current change and add it to the map for the current change's event id
+                                        else
+                                        {
+                                            innerIncompleteChangesList.Add(innerCurrentChange.EventId,
+                                                new List<PossiblyStreamableAndPossiblyChangedFileChange>(new[]
                                                         {
                                                             addChange
                                                         }));
-                                            }
-                                        };
+                                        }
+                                    };
 
                                     // switch on direction of change first (Sync From versus Sync To)
                                     switch (currentChange.Direction)
@@ -4672,17 +4568,17 @@ namespace CloudApiPublic.Sync
                                                             FileChangeWithDependencies reparentConflict;
                                                             // initialize and set the rename change with a new FileChange for moving the conflict file to the new conflict path and include the conflict creation change as a dependency, storing any error that occurs
                                                             CLError reparentCreateError = FileChangeWithDependencies.CreateAndInitialize(new FileChange()
+                                                            {
+                                                                Direction = SyncDirection.From, // rename the file locally (Sync From)
+                                                                Metadata = new FileMetadata()
                                                                 {
-                                                                    Direction = SyncDirection.From, // rename the file locally (Sync From)
-                                                                    Metadata = new FileMetadata()
-                                                                    {
-                                                                        HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
-                                                                        LinkTargetPath = currentChange.Metadata.LinkTargetPath // copy shortcut target path from the conflicted file
-                                                                    },
-                                                                    NewPath = currentChange.NewPath, // use the new conflict path as the rename destination
-                                                                    OldPath = originalConflictPath, // use the location of the current conflicted file as move from location
-                                                                    Type = FileChangeType.Renamed // this operation is a move
-                                                                }, new[] { currentChange }, // add the creation at the new location as a dependency to the rename
+                                                                    HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
+                                                                    LinkTargetPath = currentChange.Metadata.LinkTargetPath // copy shortcut target path from the conflicted file
+                                                                },
+                                                                NewPath = currentChange.NewPath, // use the new conflict path as the rename destination
+                                                                OldPath = originalConflictPath, // use the location of the current conflicted file as move from location
+                                                                Type = FileChangeType.Renamed // this operation is a move
+                                                            }, new[] { currentChange }, // add the creation at the new location as a dependency to the rename
                                                                 out reparentConflict); // output the new rename change
                                                             // if an error occurred creating the FileChange for the rename operation, rethrow the error
                                                             if (reparentCreateError != null)
@@ -5078,20 +4974,19 @@ namespace CloudApiPublic.Sync
                         // Contains errors only for rename changes where the original file/folder to rename was not found locally (can get converted to new create events)
                         // Should not give any completed changes
 
-                        // Send the request and get the response.
-                        CLHttpRestStatus status;
+                        // declare the status of the sync from communication
+                        CLHttpRestStatus syncFromStatus;
+                        // declare the json contract object for the deserialized response
                         PushResponse deserializedResponse;
-                        Push requestPush = new Push()
+                        // perform the sync from communication, storing any error that occurs
+                        CLError syncFromError = httpRestClient.PostSyncFromCloud(
+                            new Push() // use a new push request
                             {
-                                LastSyncId = syncString,
-                                SyncBoxId = this.syncSettings.SyncBoxId,
-                                DeviceId = this.syncSettings.Udid
-                            };
-                        CLError errorFromPostSyncFromCloud = httpRestClient.PostSyncFromCloud(requestPush, HttpTimeoutMilliseconds, out status, out deserializedResponse);
-                        if (errorFromPostSyncFromCloud != null)
-                        {
-                            throw new AggregateException("Error from sync_from request or response", errorFromPostSyncFromCloud.GrabExceptions());
-                        }
+                                LastSyncId = syncString // fill in the last sync id
+                            },
+                            HttpTimeoutMilliseconds, // milliseconds before http communication will timeout on an operation
+                            out syncFromStatus, // output the status of the communication
+                            out deserializedResponse); // output the response object resulting from the operation
 
                         // record the latest sync id from the deserialized response
                         newSyncId = deserializedResponse.SyncId;
@@ -5127,7 +5022,7 @@ namespace CloudApiPublic.Sync
 
                         // create a list for storing rename changes where the old file/folder was not found to rename
                         List<PossiblyStreamableAndPossiblyChangedFileChange> renameNotFounds = new List<PossiblyStreamableAndPossiblyChangedFileChange>();
-                    
+
                         // declare a dictionary for already visited Sync From renames so if metadata was found for a rename in an event then later renames can carry forward the metadata
                         FilePathDictionary<FileMetadata> alreadyVisitedRenames;
                         // initialize the visited renames dictionary, storing any error that occurs
@@ -5244,32 +5139,57 @@ namespace CloudApiPublic.Sync
                                 // if no metadata was returned from the database, then throw an error if the change originated on the client or otherwise try to grab the metadata from the server for a new creation event at the final destination of the rename
                                 if (syncStateMetadata == null)
                                 {
-                                    // grab the metadata from the server for the current path and whether or not the current event represents a folder
-                                    JsonContracts.Metadata newMetadata = GetMetadataAtPath(currentChange.NewPath, currentChange.Metadata.HashableProperties.IsFolder);
+                                    // declare the status of communication from getting metadata
+                                    CLHttpRestStatus getNewMetadataStatus;
+                                    // declare the response object of the actual metadata when returned
+                                    JsonContracts.Metadata newMetadata;
+                                    // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
+                                    CLError getNewMetadataError = httpRestClient.GetMetadataAtPath(currentChange.NewPath,
+                                        currentChange.Metadata.HashableProperties.IsFolder,
+                                        HttpTimeoutMilliseconds,
+                                        out getNewMetadataStatus,
+                                        out newMetadata);
+
+                                    // if an error occurred getting metadata, rethrow the error
+                                    if (getNewMetadataError != null)
+                                    {
+                                        throw new AggregateException("An error occurred retrieving metadata", getNewMetadataError.GrabExceptions());
+                                    }
+
+                                    // if there was no content, then the metadata was not found at the given path so throw an error
+                                    if (getNewMetadataStatus == CLHttpRestStatus.NoContent)
+                                    {
+                                        throw new Exception("Metadata not found for given path");
+                                    }
+
+                                    // if the communication was not successful, then throw an error with the bad status
+                                    if (getNewMetadataStatus != CLHttpRestStatus.Success)
+                                    {
+                                        throw new Exception("Retrieving metadata did not return successful status: CLHttpRestStatus." + getNewMetadataStatus.ToString());
+                                    }
 
                                     // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
                                     FileChangeWithDependencies newPathCreation = CreateFileChangeFromBaseChangePlusHash(new FileChange()
+                                        {
+                                            Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
+                                            NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
+                                            Type = FileChangeType.Created, // a create to download a new file or process a new folder
+                                            Metadata = new FileMetadata()
                                             {
-                                                Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
-                                                NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
-                                                Type = FileChangeType.Created, // a create to download a new file or process a new folder
-                                                Metadata = new FileMetadata()
-                                                {
-                                                    //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
+                                                //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
-                                                    HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
-                                                        newMetadata.ModifiedDate, // last modified time for this file system object
-                                                        newMetadata.CreatedDate, // creation time for this file system object
-                                                        newMetadata.Size), // file size or null for folders
-                                                    Revision = newMetadata.Revision, // file revision or null for folders
-                                                    StorageKey = newMetadata.StorageKey, // file storage key or null for folders
-                                                    LinkTargetPath = (newMetadata.TargetPath == null
-                                                        ? null // if server metadata does not have a shortcut file target path, then use null
-                                                        : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
-                                                }
-                                            },
-                                            newMetadata.Hash); // file MD5 hash or null for folder
-
+                                                HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
+                                                    newMetadata.ModifiedDate, // last modified time for this file system object
+                                                    newMetadata.CreatedDate, // creation time for this file system object
+                                                    newMetadata.Size), // file size or null for folders
+                                                Revision = newMetadata.Revision, // file revision or null for folders
+                                                StorageKey = newMetadata.StorageKey, // file storage key or null for folders
+                                                LinkTargetPath = (newMetadata.TargetPath == null
+                                                    ? null // if server metadata does not have a shortcut file target path, then use null
+                                                    : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                            }
+                                        },
+                                        newMetadata.Hash); // file MD5 hash or null for folder
 
                                     // make sure to add change to SQL
                                     newPathCreation.DoNotAddToSQLIndex = false;
@@ -5337,7 +5257,7 @@ namespace CloudApiPublic.Sync
                     // do not process any communication (instead set output as empty)
                     else
                     {
-                        incompleteChanges =  Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>();
+                        incompleteChanges = Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>();
                         newSyncId = null; // the null sync id is used to check on the calling method whether communication occurred
                     }
 
@@ -5371,7 +5291,7 @@ namespace CloudApiPublic.Sync
 
             // try cast the current level change
             FileChangeWithDependencies currentChangeWithDependencies = currentChangeToAdd as FileChangeWithDependencies;
-            
+
             // if the current level change successfully cast as one with dependencies and has at least one dependency, then recurse this method for each dependency
             if (currentChangeWithDependencies != null
                 && currentChangeWithDependencies.DependenciesCount > 0)
@@ -5383,39 +5303,6 @@ namespace CloudApiPublic.Sync
                     AddChangeToDictionary(fillDict, currentChangeDependency);
                 }
             }
-        }
-
-        // communication method to retrieve a json contract object for metadata for a file or folder from the server at a specified path
-        private JsonContracts.Metadata GetMetadataAtPath(FilePath getMetadataPath, bool isFolder)
-        {
-            try 
-	        {	        
-                // Make the request to the server.
-                CLHttpRestStatus status;
-                JsonContracts.Metadata response = Helpers.DefaultForType<JsonContracts.Metadata>();
-                CLError errorFromGetMetadataAtPath = httpRestClient.GetMetadataAtPath(
-                        fullPath: getMetadataPath,
-                        isFolder: isFolder,
-                        timeoutMilliseconds: HttpTimeoutMilliseconds,
-                        status: out status,
-                        response: out response);
-                if (errorFromGetMetadataAtPath != null)
-                {
-                    throw new AggregateException("Error getting metadata at path", errorFromGetMetadataAtPath.GrabExceptions());
-                }
-
-                if (status == CLHttpRestStatus.NoContent)
-                {
-                    return Helpers.DefaultForType<JsonContracts.Metadata>();
-                }
-
-                return response;
-            }
-	        catch (Exception ex)
-	        {
-                ((CLError)new Exception("Error from GetMetadataAtPath", ex)).LogErrors(syncSettings.TraceLocation, syncSettings.LogErrors);
-                throw;
-        	} 
         }
 
         // helper method which takes a FileChange and a hash string and creates a new FileChange with dependencies and sets the hash as the MD5 bytes; also copies over dependencies if any
@@ -5654,7 +5541,7 @@ namespace CloudApiPublic.Sync
             }
         }
         // fire the UpDown event to receive the provided callback (passed in the provided event args on construction) for each FileChange subscribed to the event
-        private void RunUpDownEvent(FileChange.UpDownEventArgs callback)
+        private void RunUnDownEvent(FileChange.UpDownEventArgs callback)
         {
             // lock on local UpDownEvent locker for firing local UpDownEvent
             lock (UpDownEventLocker)

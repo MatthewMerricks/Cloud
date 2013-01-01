@@ -184,15 +184,15 @@ namespace CloudApiPublic.PushNotification
                                     customHeaderItems: new List<KeyValuePair<string, string>>()
                                             {
                                                 new KeyValuePair<string, string>(
-                                                        CLDefinitions.HeaderKeyAuthorization, 
-                                                        CLDefinitions.HeaderAppendCWS0 +
-                                                            CLDefinitions.HeaderAppendKey +
-                                                            _syncSettings.ApplicationKey + ", " +
-                                                            CLDefinitions.HeaderAppendSignature +
-                                                            _restclient.GenerateAuthorizationHeaderToken(
-                                                                    settings: _syncSettings,
-                                                                    httpMethod: CLDefinitions.HeaderAppendMethodGet, 
-                                                                    pathAndQueryStringAndFragment: pathAndQueryStringAndFragment))
+                                                    CLDefinitions.HeaderKeyAuthorization, 
+                                                    CLDefinitions.HeaderAppendCWS0 +
+                                                        CLDefinitions.HeaderAppendKey +
+                                                        _syncSettings.ApplicationKey + ", " +
+                                                        CLDefinitions.HeaderAppendSignature +
+                                                        Helpers.GenerateAuthorizationHeaderToken(
+                                                            settings: _syncSettings,
+                                                            httpMethod: CLDefinitions.HeaderAppendMethodGet, 
+                                                            pathAndQueryStringAndFragment: pathAndQueryStringAndFragment))
                                             },
                                     userAgent: String.Empty,
                                     origin: String.Empty,

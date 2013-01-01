@@ -126,7 +126,7 @@ namespace SyncTests.SyncImplementations
         /// <summary>
         /// Should be null-coallesced to an empty string wherever used
         /// </summary>
-        public string CloudRoot
+        public string SyncRoot
         {
             get
             {
