@@ -321,7 +321,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandInstallBadging = new RelayCommand<object>(
                         param => this.InstallBadging(),
-                        param => { return true; }
+                        param => this.CanInstallBadging
                         );
                 }
                 return _commandInstallBadging;
@@ -339,7 +339,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandUninstallBadging = new RelayCommand<object>(
                         param => this.UninstallBadging(),
-                        param => { return true; }
+                        param => this.CanUninstallBadging
                         );
                 }
                 return _commandUninstallBadging;
@@ -891,6 +891,28 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
+        /// <summary>
+        /// Returns true if the Install Badging button should be active.
+        /// </summary>
+        private bool CanInstallBadging
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the Uninstall Badging button should be active.
+        /// </summary>
+        private bool CanUninstallBadging
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
         #endregion
 
         #region Private Support Functions
@@ -1002,7 +1024,7 @@ namespace CloudSdkSyncSample.ViewModels
                                     parent => parent.Id,
                                     parent => (int)(uint)parent["ProcessId"],
                                     (outer, inner) => new ProcessWithPath(outer, (string)inner["ExecutablePath"]))
-                                .Any(parent => parent.Path.Equals(explorerLocation, StringComparison.InvariantCultureIgnoreCase));
+                                .Any(parent => string.Equals(parent.Path, explorerLocation, StringComparison.InvariantCultureIgnoreCase));
                         }
                     }
                     else

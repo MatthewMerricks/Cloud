@@ -4045,7 +4045,7 @@
 		<row><td>ID_STRING4</td><td>1033</td><td>Cloud</td><td>0</td><td/><td>-1642051088</td></row>
 		<row><td>ID_STRING5</td><td>1033</td><td>STARTC~1|Start CloudSdkSyncSample</td><td>0</td><td/><td>-1642030544</td></row>
 		<row><td>ID_STRING6</td><td>1033</td><td>UNINST~1|Uninstall Cloud SDK</td><td>0</td><td/><td>-1642044848</td></row>
-		<row><td>ID_STRING7</td><td>1033</td><td>SHOWDO~1|Show Documentation</td><td>0</td><td/><td>279034183</td></row>
+		<row><td>ID_STRING7</td><td>1033</td><td>SHOWSD~1|Show SDK Documentation</td><td>0</td><td/><td>279046799</td></row>
 		<row><td>ID_STRING8</td><td>1033</td><td>VSCLOU~1|VS CloudSdkSyncSample Solution</td><td>0</td><td/><td>279036359</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>-1642060529</td></row>
 	</table>
