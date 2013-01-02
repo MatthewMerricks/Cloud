@@ -37,7 +37,7 @@ namespace CloudApiPublic.JsonContracts
             }
             set
             {
-                if (value == null)
+                if (string.IsNullOrEmpty(value))
                 {
                     CreatedDate = null;
                 }
@@ -66,7 +66,7 @@ namespace CloudApiPublic.JsonContracts
             }
             set
             {
-                if (value == null)
+                if (string.IsNullOrEmpty(value))
                 {
                     ModifiedDate = null;
                 }

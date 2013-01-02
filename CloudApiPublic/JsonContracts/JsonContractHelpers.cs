@@ -14,7 +14,7 @@ using System.Text;
 
 namespace CloudApiPublic.JsonContracts
 {
-    public static class JsonContractHelpers
+    internal static class JsonContractHelpers
     {
         public static DataContractJsonSerializer PushSerializer
         {
@@ -148,19 +148,18 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _purgePendingSerializer = null;
         private static readonly object PurgePendingSerializerLocker = new object();
 
-        public static DataContractJsonSerializer PurgePendingResponseSerializer
+        public static DataContractJsonSerializer PendingResponseSerializer
         {
             get
             {
-                lock (PurgePendingResponseSerializerLocker)
+                lock (PendingResponseSerializerLocker)
                 {
-                    return _purgePendingResponseSerializer
-                        ?? (_purgePendingResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.PurgePendingResponse)));
+                    return _pendingResponseSerializer
+                        ?? (_pendingResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.PendingResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _purgePendingResponseSerializer = null;
-        private static readonly object PurgePendingResponseSerializerLocker = new object();
-
+        private static DataContractJsonSerializer _pendingResponseSerializer = null;
+        private static readonly object PendingResponseSerializerLocker = new object();
     }
 }

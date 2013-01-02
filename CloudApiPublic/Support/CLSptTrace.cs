@@ -105,12 +105,12 @@ namespace CloudApiPublic.Support
                         _traceCategory = TraceCategory;
                         _traceLocation = TraceLocation;
                         _logErrors = LogErrors;
-                        _instance.writeToLog(1, "CLSptTrace: Initialize: Trace initialized, TraceLevel: {0}. Extension: {1}. Category: {2}. Dir: {3}.", 
+                        Instance.writeToLog(1, "CLSptTrace: Initialize: Trace initialized, TraceLevel: {0}. Extension: {1}. Category: {2}. Dir: {3}.", 
                                 TraceLevel, FileExtensionWithoutPeriod, TraceCategory, TraceLocation);
                     }
                     else
                     {
-                        _instance.writeToLog(1, "CLSptTrace: Initialize: Trace already initialized.");
+                        Instance.writeToLog(1, "CLSptTrace: Initialize: Trace already initialized.");
                     }
                 }
             }

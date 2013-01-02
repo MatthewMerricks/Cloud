@@ -32,6 +32,7 @@ using Microsoft.Win32.SafeHandles;
 using CloudSendTo.Static;
 using System.IO;
 using System.Drawing;
+using CloudApiPublic.Static;
 
 
 namespace CloudSendTo
@@ -46,22 +47,22 @@ namespace CloudSendTo
         /// <param name="args"></param>
         static void Main(string[] args)
         {
-            Trace.WriteLine("CloudSendTo: Main: Entry.");
+            global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Entry.");
             for (int i = 0; i < args.Length; i++)
             {
-                Trace.WriteLine(String.Format("CloudSendTo: Main: Arg[{0}] = <{1}>.", i, args[i]));
+                global::System.Diagnostics.Trace.WriteLine(String.Format("CloudSendTo: Main: Arg[{0}] = <{1}>.", i, args[i]));
             }
 
             // Just exit if there are no arguments
             if (args.Length <= 0)
             {
-                Trace.WriteLine("CloudSendTo: Main: ERROR: No arguments.");
+                global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: ERROR: No arguments.");
                 return;
             }
 
             SafeFileHandle clientPipeHandle = null;
 	        int createRetryCount = 3;
-            string cloudExeFile = CLShortcuts.Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe";
+            string cloudExeFile = Helpers.Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe";
 	
 	        try
 	        {
@@ -70,10 +71,10 @@ namespace CloudSendTo
 			    bool pipeConnectionFailed = false;
 
     	        // Check to see if the Cloud.exe program is there.  Don't add the menu item if we can't start Cloud.
-		        Trace.WriteLine("CloudSendTo: Main: Check to make sure the Cloud.exe is present.");
+		        global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Check to make sure the Cloud.exe is present.");
                 if (!File.Exists(cloudExeFile))
                 {
-			        Trace.WriteLine("CloudSendTo: Main: Cloud.exe is not present.  Return.");
+			        global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Cloud.exe is not present.  Return.");
                     return;
 		        }
 
@@ -83,7 +84,7 @@ namespace CloudSendTo
 			    // Try to open the named pipe identified by the pipe name.
 			    while (!pipeConnectionFailed)
 			    {
-				    Trace.WriteLine("CloudSendTo: Main: Top of CreateFile loop.  Try to open the pipe.");
+				    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Top of CreateFile loop.  Try to open the pipe.");
                     clientPipeHandle =  NativeMethods.CreateFile(
                                         fileName: pipeName, // Pipe name
 					                    fileAccess: FileAccess.Write, // Write access
@@ -97,7 +98,7 @@ namespace CloudSendTo
 				    // If the pipe handle is opened successfully then break out to continue
 				    if (clientPipeHandle != null && !clientPipeHandle.IsInvalid)
 				    {
-					    Trace.WriteLine("CloudSendTo: Main: Opened successfully.");
+					    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Opened successfully.");
 					    break;
 				    }
 				    // Pipe open not successful, find out if it should try again
@@ -105,21 +106,21 @@ namespace CloudSendTo
 				    {
 					    // store not successful reason
                         int lastError = Marshal.GetLastWin32Error();
-					    Trace.WriteLine(String.Format("CloudSendTo: Main: Open failed with code {0}.", lastError));
+					    global::System.Diagnostics.Trace.WriteLine(String.Format("CloudSendTo: Main: Open failed with code {0}.", lastError));
 
 					    // This is the normal path when the application is not running (lastError will equal ERROR_FILE_NOT_FOUND)
 					    // Start the cloud process on the first attempt or increment a retry counter up to a certain point;
 					    // after 10 seconds of retrying, display an error message and stop trying
                         if (NativeMethods.ERROR_FILE_NOT_FOUND == lastError)
 					    {
-						    Trace.WriteLine("CloudSendTo: Main: The file was not found.  Have we started Cloud?");
+						    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: The file was not found.  Have we started Cloud?");
 						    if (!cloudProcessStarted)
 						    {
 							    // We haven't tried to start Cloud yet.  Maybe it is already running??
-							    Trace.WriteLine("CloudSendTo: Main: See if Cloud is running.");
+							    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: See if Cloud is running.");
 							    if (isCloudAppRunning())
 							    {
-								    Trace.WriteLine("CloudSendTo: Main: Cloud is running.");
+								    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Cloud is running.");
 								    cloudProcessStarted = true;
 							    }
 							    else
@@ -129,7 +130,7 @@ namespace CloudSendTo
                                     string errorMsg = String.Empty;
                                     try 
 	                                {	        
-								        Trace.WriteLine("CloudSendTo: Main: Cloud was not running.  Start it.");
+								        global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Cloud was not running.  Start it.");
                                         ProcessStartInfo startInfo = new ProcessStartInfo();
                                         startInfo.UseShellExecute = false;
                                         startInfo.FileName = cloudExeFile;
@@ -139,19 +140,19 @@ namespace CloudSendTo
 	                                catch (Exception ex)
 	                                {
                                         errorMsg = ex.Message;
-								        Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: Exception. Msg: <{0}>.", errorMsg));
+								        global::System.Diagnostics.Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: Exception. Msg: <{0}>.", errorMsg));
                                         processCloudExe = null;   // should not be necessary
 	                                }
 
 								    if (processCloudExe != null)
 								    {
-									    Trace.WriteLine("CloudSendTo: Main: Start was successful.");
+									    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Start was successful.");
 									    cloudProcessStarted = true;
 								    }
 								    else
 								    {
 									    // Error from ExecuteProcess
-									    Trace.WriteLine("CloudSendTo: Main: Error <{0}> from ExecuteProcess.  Tell the user.", errorMsg);
+									    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Error <{0}> from ExecuteProcess.  Tell the user.", errorMsg);
                                         MessageBox.Show("Cloud could not be started, operation cancelled. " + errorMsg, "Oh Snap!");
 
 									    // Exit now
@@ -162,7 +163,7 @@ namespace CloudSendTo
 						    }
 						    else if (cloudStartTries > 99)
 						    {
-							    Trace.WriteLine("CloudSendTo: Main: Too many retries, and Cloud should be running.  Tell the user.");
+							    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Too many retries, and Cloud should be running.  Tell the user.");
                                 MessageBox.Show("Cloud did not respond after ten seconds, operation cancelled.", "Oh Snap!");
 
 							    // Exit now
@@ -171,7 +172,7 @@ namespace CloudSendTo
 						    }
 						    else
 						    {
-							    Trace.WriteLine("CloudSendTo: Main: Wait 100 ms.");
+							    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Wait 100 ms.");
 							    cloudStartTries++;
 							    Thread.Sleep(100);
 						    }
@@ -179,27 +180,27 @@ namespace CloudSendTo
 						    // Close the pipe handle.  It will be recreated when we loop back up.
                             clientPipeHandle.Close();
                             clientPipeHandle = null;
-						    Trace.WriteLine("CloudSendTo: Main: Loop back up for a retry.");
+						    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Loop back up for a retry.");
 					    }
 					    // pipe is busy
                         else if (NativeMethods.ERROR_PIPE_BUSY == lastError)
 					    {
 						    // if waiting for a pipe does not complete in 2 seconds, exit  (by setting pipeConnectionFailed to true)
-			    		    Trace.WriteLine("CloudSendTo: Main: Error is pipe_busy. Wait for it for 2 seconds.");
+			    		    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Error is pipe_busy. Wait for it for 2 seconds.");
                             if (!NativeMethods.WaitNamedPipe(pipeName, 2000))
 						    {
 							    lastError = Marshal.GetLastWin32Error();
-		    				    Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: after wait.  Code: {0}.  Maybe we should retry.", lastError));
+		    				    global::System.Diagnostics.Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: after wait.  Code: {0}.  Maybe we should retry.", lastError));
 							    if (createRetryCount-- > 0)
 							    {
 								    // We should retry
-								    Trace.WriteLine("CloudSendTo: Main: Loop to retry the CreateFile.");
+								    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Loop to retry the CreateFile.");
                                     clientPipeHandle.Close();
                                     clientPipeHandle = null;
 							    }
 							    else
 							    {
-								    Trace.WriteLine("CloudSendTo: Main: ERROR: Out of retries.  CreateFile failed.  Tell the user.");
+								    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: ERROR: Out of retries.  CreateFile failed.  Tell the user.");
 
 								    // Tell the user with an ugly MessageBox!!!
                                     MessageBox.Show("Cloud is busy, operation cancelled: Error: " + lastError.ToString(), "Oh Snap!");
@@ -212,7 +213,7 @@ namespace CloudSendTo
 						    else
 						    {
 							    // The wait succeeded.  We should retry the CreateFile
-							    Trace.WriteLine("CloudSendTo: Main: Wait successful.  Loop to retry the CreateFile.");
+							    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Wait successful.  Loop to retry the CreateFile.");
                                 clientPipeHandle.Close();
                                 clientPipeHandle = null;
 						    }
@@ -221,7 +222,7 @@ namespace CloudSendTo
 					    else
 					    {
 						    // Tell the user with an ugly MessageBox!!!
-						    Trace.WriteLine("CloudSendTo: Main: Unknown error.  Tell the user.");
+						    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Unknown error.  Tell the user.");
                             MessageBox.Show("Cloud is busy, operation cancelled: Error: " + lastError.ToString(), "Oh Snap!");
 
 						    // Exit now
@@ -235,7 +236,7 @@ namespace CloudSendTo
 			    if (!pipeConnectionFailed)
 			    {
 				    // Get the coordinates of the current Explorer window
-				    Trace.WriteLine("CloudSendTo: Main: Pipe connection successful.  Get the window info.");
+				    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Pipe connection successful.  Get the window info.");
                     IntPtr hwnd = NativeMethods.GetActiveWindow();
 
                     global::CloudSendTo.Static.NativeMethods.RECT rMyRect;
@@ -257,7 +258,7 @@ namespace CloudSendTo
 				    //		]
 				    // }
 
-				    Trace.WriteLine(String.Format("CloudSendTo: Main: Add the window screen rectangle (LTRB): {0},{1},{2},{3}.", rMyRect.left, rMyRect.top, rMyRect.right, rMyRect.bottom));
+				    global::System.Diagnostics.Trace.WriteLine(String.Format("CloudSendTo: Main: Add the window screen rectangle (LTRB): {0},{1},{2},{3}.", rMyRect.left, rMyRect.top, rMyRect.right, rMyRect.bottom));
                     ContextMenuObject root = new ContextMenuObject();
                     root.rectExplorerWindowCoordinates = new ContextMenuNET.RECT();
                     root.rectExplorerWindowCoordinates.left = rMyRect.left;
@@ -266,7 +267,7 @@ namespace CloudSendTo
                     root.rectExplorerWindowCoordinates.bottom = rMyRect.bottom;
 
 				    // Add the selected paths
-				    Trace.WriteLine("CloudSendTo: Main: Add the selected paths.");
+				    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Add the selected paths.");
                     root.asSelectedPaths = new List<string>();
                     for (int i = 0; i < args.Length; i++)
                     {
@@ -280,29 +281,29 @@ namespace CloudSendTo
                     bool success = true;
                     try 
 	                {
-				        Trace.WriteLine("CloudSendTo: Main: Write the JSON to the pipe.");
+				        global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Write the JSON to the pipe.");
                         NamedPipeServerStream pipeStream = new NamedPipeServerStream(direction: PipeDirection.Out, isAsync: false, isConnected: true, safePipeHandle: new SafePipeHandle(clientPipeHandle.DangerousGetHandle(), true));
                         StreamWriter writer = new StreamWriter(pipeStream);
-                        Trace.WriteLine(String.Format("CloudSendTo: Main: Payload: <{0}>.", payloadToSend));
+                        global::System.Diagnostics.Trace.WriteLine(String.Format("CloudSendTo: Main: Payload: <{0}>.", payloadToSend));
                         writer.WriteLine(payloadToSend);
                         writer.Flush();
 	                }
 	                catch (Exception ex)
 	                {
-				        Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: Exception(2). Msg: {0}.", ex.Message));
+				        global::System.Diagnostics.Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: Exception(2). Msg: {0}.", ex.Message));
                         success = false;
 	                }
                     
                     if (success)
 				    {
 					    // Successful
-					    Trace.WriteLine("CloudSendTo: Main: Write successful.");
+					    global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Write successful.");
 				    }
 				    else
 				    {
 					    // Error writing to the pipe
                         int lastError = Marshal.GetLastWin32Error();
-					    Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: Writing to pipe.  Code: {0}. Tell the user.", lastError));
+					    global::System.Diagnostics.Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: Writing to pipe.  Code: {0}. Tell the user.", lastError));
                         MessageBox.Show("An error occurred while communicating with Cloud (2), operation cancelled: Error: " + lastError.ToString(), "Oh Snap!");
 
 				    }
@@ -311,18 +312,18 @@ namespace CloudSendTo
 
 	        catch (Exception ex)
 	        {
-                Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: Exception. Msg: {0}.", ex.Message));
+                global::System.Diagnostics.Trace.WriteLine(String.Format("CloudSendTo: Main: ERROR: Exception. Msg: {0}.", ex.Message));
 	        }
 
 	        // Close the pipe handle
             if (clientPipeHandle != null)
 	        {
-		        Trace.WriteLine("CloudSendTo: Main: Close the pipe handle.");
+		        global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Close the pipe handle.");
                 clientPipeHandle.Close();
                 clientPipeHandle = null;
 	        }
 
-	        Trace.WriteLine("CloudSendTo: Main: Exit.");
+	        global::System.Diagnostics.Trace.WriteLine("CloudSendTo: Main: Exit.");
         }
 
         /// <summary>

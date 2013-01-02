@@ -163,7 +163,9 @@ namespace CloudApiPublic.Model
                 }
 
                 return new FilePath(fullPath.Substring(lastSlash + 1),
-                    fullPath.Substring(0, lastSlash + 1));
+                    (lastSlash == -1
+                        ? null
+                        : fullPath.Substring(0, lastSlash + 1)));
             }
             else
             {

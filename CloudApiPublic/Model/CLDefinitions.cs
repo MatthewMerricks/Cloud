@@ -112,9 +112,15 @@ namespace CloudApiPublic.Model
         public const string MethodPathUpload = "/1/put_file";                                // POST
         public const string MethodPathSyncTo = "/1/sync/to_cloud";                           // POST
         public const string MethodPathPurgePending = "/1/file/purge/pending";                // POST
+        public const string MethodPathGetPending = "/1/file/pending";                        // GET
         public const string MethodPathGetFileMetadata = "/1/file/metadata";                  // GET
         public const string MethodPathGetFolderMetadata = "/1/folder/metadata";              // GET
         public const string MethodPathSyncBoxList = "/1/sync_box/list";                      // POST
+
+        #region one-off
+        public const string MethodPathOneOffFileAdd = "/1/file/add";                         // POST
+        // finish writing one-offs here...
+        #endregion
 
         public const string AuthorizationFormatType = "CWS0";
 #else   // !CLIFF_SERVERS

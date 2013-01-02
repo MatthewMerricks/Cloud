@@ -15,7 +15,7 @@ using CloudApiPublic.Model;
 namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public sealed class Push
+    internal sealed class Push
     {
         [DataMember(Name = CLDefinitions.CLMetadataCloudPath, IsRequired = false)]
         public string RelativeRootPath

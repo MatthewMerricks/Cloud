@@ -15,7 +15,7 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public sealed class To
+    internal sealed class To
     {
         [DataMember(Name = CLDefinitions.CLSyncEvents)]
         public Event[] Events { get; set; }

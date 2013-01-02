@@ -15,7 +15,7 @@ using CloudApiPublic.Model;
 namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public sealed class PushResponse
+    internal sealed class PushResponse
     {
         [DataMember(Name = CLDefinitions.CLSyncEvents, IsRequired = false)]
         public Event[] Events { get; set; }

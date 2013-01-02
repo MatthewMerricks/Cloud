@@ -291,22 +291,6 @@ namespace CloudApiPublic.Sync
             // lock to prevent multiple simultaneous syncing on the current SyncEngine
             lock (RunLocker)
             {
-                //try
-                //{
-                //    if (syncData == null)
-                //    {
-                //        throw new NullReferenceException("syncData cannot be null");
-                //    }
-                //    if (syncSettings == null)
-                //    {
-                //        throw new NullReferenceException("syncSettings cannot be null");
-                //    }
-                //}
-                //catch (Exception ex)
-                //{
-                //    return ex;
-                //}
-
                 // declare error which will be aggregated with exceptions and returned
                 CLError toReturn = null;
                 // declare a string which provides better line-range information for the last state when an error is logged
@@ -3377,7 +3361,7 @@ namespace CloudApiPublic.Sync
                     };
 
                     // declare the json contract object for the response content
-                    PurgePendingResponse purgeResponse;
+                    PendingResponse purgeResponse;
                     // declare the success/failure status for the communication
                     CLHttpRestStatus purgeStatus;
                     // purge pending communication with the purge request content, storing any error that occurs
@@ -3577,7 +3561,9 @@ namespace CloudApiPublic.Sync
                                         ? null // null for a null shortcut target path
                                         : currentEvent.FileChange.Metadata.LinkTargetPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true)) // for a shortcut pointing to a place within the root, this is a path relative to the root with slashes switched for the NewPath; otherwise this is the actual shortcut target path
                                 }
-                            }).ToArray() // selected into a new array
+                            }).ToArray(), // selected into a new array
+                            SyncBoxId = syncSettings.SyncBoxId, // pass in the sync box id
+                            DeviceId = syncSettings.Udid // pass in the device id
                         };
 
                         // declare the status for the sync to http operation
@@ -3585,7 +3571,7 @@ namespace CloudApiPublic.Sync
                         // declare the json contract object for the response content
                         To currentBatchResponse;
                         // perform a sync to of the current batch of changes, storing any error
-                        CLError syncToError = httpRestClient.PostSyncToCloud(syncTo, // request object with current batch of changes to upload and current sync id
+                        CLError syncToError = httpRestClient.SyncToCloud(syncTo, // request object with current batch of changes to upload and current sync id
                             HttpTimeoutMilliseconds, // milliseconds before communication would timeout for each operation
                             out syncToStatus, // output the status of the communication
                             out currentBatchResponse); // output the response object from a successful communication
@@ -4006,11 +3992,11 @@ namespace CloudApiPublic.Sync
                                                     // declare the response object of the actual metadata when returned
                                                     JsonContracts.Metadata newMetadata;
                                                     // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
-                                                    CLError getNewMetadataError = httpRestClient.GetMetadataAtPath(currentChange.NewPath,
-                                                        currentChange.Metadata.HashableProperties.IsFolder,
-                                                        HttpTimeoutMilliseconds,
-                                                        out getNewMetadataStatus,
-                                                        out newMetadata);
+                                                    CLError getNewMetadataError = httpRestClient.GetMetadataAtPath(currentChange.NewPath, // path to query
+                                                        currentChange.Metadata.HashableProperties.IsFolder, // whether path represents a folder (as opposed to a file or shortcut)
+                                                        HttpTimeoutMilliseconds, // milliseconds before communication would expire on an operation
+                                                        out getNewMetadataStatus, // output the status of communication
+                                                        out newMetadata); // output the resulting metadata, if any is found
 
                                                     // if an error occurred getting metadata, rethrow the error
                                                     if (getNewMetadataError != null)
@@ -4979,10 +4965,12 @@ namespace CloudApiPublic.Sync
                         // declare the json contract object for the deserialized response
                         PushResponse deserializedResponse;
                         // perform the sync from communication, storing any error that occurs
-                        CLError syncFromError = httpRestClient.PostSyncFromCloud(
+                        CLError syncFromError = httpRestClient.SyncFromCloud(
                             new Push() // use a new push request
                             {
-                                LastSyncId = syncString // fill in the last sync id
+                                LastSyncId = syncString, // fill in the last sync id
+                                DeviceId = syncSettings.Udid, // fill in the device id
+                                SyncBoxId = syncSettings.SyncBoxId // fill in the sync box id
                             },
                             HttpTimeoutMilliseconds, // milliseconds before http communication will timeout on an operation
                             out syncFromStatus, // output the status of the communication

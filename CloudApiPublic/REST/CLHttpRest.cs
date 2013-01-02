@@ -39,7 +39,7 @@ namespace CloudApiPublic.REST
         {
             { typeof(JsonContracts.Metadata), JsonContractHelpers.GetMetadataResponseSerializer },
             { typeof(JsonContracts.NotificationResponse), JsonContractHelpers.NotificationResponseSerializer },
-            { typeof(JsonContracts.PurgePendingResponse), JsonContractHelpers.PurgePendingResponseSerializer },
+            { typeof(JsonContracts.PendingResponse), JsonContractHelpers.PendingResponseSerializer },
             { typeof(JsonContracts.PushResponse), JsonContractHelpers.PushResponseSerializer },
             { typeof(JsonContracts.To), JsonContractHelpers.ToSerializer }
         };
@@ -82,7 +82,6 @@ namespace CloudApiPublic.REST
         #endregion
 
         #region public API calls
-
         /// <summary>
         /// Downloads a file from a provided file download change
         /// </summary>
@@ -257,6 +256,11 @@ namespace CloudApiPublic.REST
                 {
                     throw new NullReferenceException("fullPath cannot be null");
                 }
+                CLError pathError = Helpers.CheckForBadPath(fullPath);
+                if (pathError != null)
+                {
+                    throw new AggregateException("fullPath is not in the proper format", pathError.GrabExceptions());
+                }
                 if (!(timeoutMilliseconds > 0))
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
@@ -272,7 +276,7 @@ namespace CloudApiPublic.REST
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((settings.SyncRoot ?? string.Empty), true) + "/")),
 
-                        // query string parameter for the current user id, should not need escaping since it should be an integer in string format, but do it anyways
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format, but do it anyways
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, Uri.EscapeDataString(settings.SyncBoxId))
                     });
 
@@ -293,6 +297,65 @@ namespace CloudApiPublic.REST
             }
             return null;
         }
+
+        /// <summary>
+        /// Queries the server for a given sync box and device to get all files which are still pending upload
+        /// </summary>
+        /// <param name="deviceId">Id of the device</param>
+        /// <param name="syncBoxId">Id of the sync box</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetAllPending(string deviceId, string syncBoxId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the pending query, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // build the location of the pending retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathGetPending + // get pending
+                    Helpers.QueryStringBuilder(new[] // grab parameters by query string (since this method is an HTTP GET)
+                    {
+                        // query string parameter for the id of the device, escaped as needed for the URI
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceUUId, Uri.EscapeDataString(deviceId)),
+                        
+                        // query string parameter for the current sync box od, should not need escaping since it should be an integer in string format, but do it anyways
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, Uri.EscapeDataString(settings.SyncBoxId)),
+                    });
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = ProcessHttp<object, JsonContracts.PendingResponse>(null, // HTTP Get method does not have content
+                    CLDefinitions.CLMetaDataServerURL,   // base domain is the MDS server
+                    serverMethodPath, // path to get pending
+                    requestMethod.get, // get pending is a get
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    okAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status); // reference to update the output success/failure status for the communication
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.PendingResponse>();
+                return ex;
+            }
+            return null;
+        }
+
+        //// will be used to communicate one-offs
+        //public CLError CommunicateSingleChange(FileChange toCommunicate, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Event response)
+        //{
+
+        //}
         #endregion
 
         #region internal API calls
@@ -304,7 +367,7 @@ namespace CloudApiPublic.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, or null.</returns>
-        internal CLError PostSyncToCloud(To syncToRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.To response)
+        internal CLError SyncToCloud(To syncToRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.To response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -351,7 +414,7 @@ namespace CloudApiPublic.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, or null.</returns>
-        internal CLError PostSyncFromCloud(Push pushRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PushResponse response)
+        internal CLError SyncFromCloud(Push pushRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PushResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -398,7 +461,7 @@ namespace CloudApiPublic.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError PurgePending(JsonContracts.PurgePending request, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PurgePendingResponse response)
+        internal CLError PurgePending(JsonContracts.PurgePending request, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -416,7 +479,7 @@ namespace CloudApiPublic.REST
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                response = ProcessHttp<JsonContracts.PurgePending, JsonContracts.PurgePendingResponse>(request, // json contract object for purge pending method
+                response = ProcessHttp<JsonContracts.PurgePending, JsonContracts.PendingResponse>(request, // json contract object for purge pending method
                     CLDefinitions.CLMetaDataServerURL, CLDefinitions.MethodPathPurgePending, // purge pending address
                     requestMethod.post, // purge pending is a post operation
                     timeoutMilliseconds, // set the timeout for the operation
@@ -426,7 +489,7 @@ namespace CloudApiPublic.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.PurgePendingResponse>();
+                response = Helpers.DefaultForType<JsonContracts.PendingResponse>();
                 return ex;
             }
             return null;

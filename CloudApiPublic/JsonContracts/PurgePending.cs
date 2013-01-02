@@ -15,7 +15,7 @@ using CloudApiPublic.Model;
 namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public sealed class PurgePending
+    internal sealed class PurgePending
     {
         [DataMember(Name = CLDefinitions.QueryStringSyncBoxId, IsRequired = false)]
         public string UserId { get; set; }

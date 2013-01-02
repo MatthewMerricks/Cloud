@@ -893,12 +893,10 @@ namespace CloudApiPublic.Static
         /// Root of path cannot represent anything besides a drive letter (i.e. \RelativePath\);
         /// Root of path cannot represent anything besides a fixed drive or a removable disk (i.e. net use X: \\computer name\share name)
         /// </summary>
-        /// <param name="syncRootFullPath">Full path of directory to sync</param>
+        /// <param name="rootPathObject">Full path of directory to sync</param>
         /// <returns>Returns an error if the provided path was bad, otherwise null</returns>
-        public static CLError CheckForBadPath(string syncRootFullPath)
+        public static CLError CheckForBadPath(FilePath rootPathObject)
         {
-            FilePath rootPathObject = syncRootFullPath;
-
             try
             {
                 FilePath checkForEmptyName = rootPathObject;
@@ -1488,13 +1486,17 @@ namespace CloudApiPublic.Static
                         "\n",
                         methodPath,
                         "\n",
-                        queryString);
+
+                        //// cannot use query string due to server bug, they are using an unescaped uri for hashing
+                        //queryString
+
+                        // temporary only until server bug is fixed and original URI is used for hash instead of using one unescaped
+                        Uri.UnescapeDataString(queryString));
 
                 // Hash the string
-                System.Text.UTF8Encoding encoding = new System.Text.UTF8Encoding();
                 byte[] secretByte = Encoding.UTF8.GetBytes(settings.ApplicationSecret);
                 HMACSHA256 hmac = new HMACSHA256(secretByte);
-                byte[] stringToHashBytes = encoding.GetBytes(stringToHash);
+                byte[] stringToHashBytes = Encoding.UTF8.GetBytes(stringToHash);
                 byte[] hashMessage = hmac.ComputeHash(stringToHashBytes);
                 toReturn = ByteToString(hashMessage);
             }
