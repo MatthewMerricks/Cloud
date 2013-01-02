@@ -429,7 +429,7 @@ namespace CloudApiPublic.Sync
                         // advanced trace, SyncRunInitialErrors
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.FileChange));
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.FileChange));
                         }
 
                         // update last status
@@ -774,8 +774,8 @@ namespace CloudApiPublic.Sync
                         // for advanced trace, log SyncRunPreprocessedEventsSynchronous and SyncRunPreprocessedEventsAsynchronous
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
                         }
 
                         // after each loop where more FileChanges from previous dependencies are processed,
@@ -815,8 +815,8 @@ namespace CloudApiPublic.Sync
                         // for advanced trace, SyncRunRequeuedFailuresBeforeCommunication and SyncRunChangesForCommunication
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.FileChange));
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.FileChange));
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
                         }
 
                         // update latest status
@@ -861,9 +861,9 @@ namespace CloudApiPublic.Sync
                             // for advanced trace, CommunicationCompletedChanges, CommunicationIncompletedChanges, and CommunicationChangesInError
                             if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
-                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
-                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
+                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
+                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
+                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
                             }
 
                             // if there are completed changes, then loop through them to process success
@@ -957,7 +957,7 @@ namespace CloudApiPublic.Sync
                                 // For advanced trace, SyncRunPostCommunicationDequeuedFailures
                                 if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                 {
-                                    Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
+                                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
                                 }
 
                                 // Declare enumerable for errors to set after dependency calculations
@@ -1051,8 +1051,8 @@ namespace CloudApiPublic.Sync
                                         // For advanced trace, DependencyAssignmentOutputChanges and DependencyAssignmentTopLevelErrors
                                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                         {
-                                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
-                                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
+                                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
+                                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
                                         }
 
                                         // outputChanges now excludes any FileChanges which overlapped with the existing list of thingsThatWereDependenciesToQueue
@@ -1188,7 +1188,7 @@ namespace CloudApiPublic.Sync
                             // advanced trace, SyncRunPostCommunicationSynchronous
                             if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
+                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
                             }
 
                             // update latest status
@@ -1349,7 +1349,7 @@ namespace CloudApiPublic.Sync
                             // advanced trace, SyncRunPostCommunicationAsynchronous
                             if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
+                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
                             }
 
                             // for any FileChange which was asynchronously queued for file upload or download,
@@ -1413,7 +1413,7 @@ namespace CloudApiPublic.Sync
                         // advanced trace, SyncRunEndThingsThatWereDependenciesToQueue
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
                         }
                     }
                     // on catch, add dependencies to failure queue
@@ -1463,7 +1463,7 @@ namespace CloudApiPublic.Sync
                 if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow
                     && errorsToQueue != null) // <-- fixed a parameter exception on the Enumerable.Select extension method used in the trace statement
                 {
-                    Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.FileChange));
+                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.FileChange));
                 }
 
                 // errorsToQueue is no longer used (all its errors were added back to the failure queue)
@@ -2001,7 +2001,7 @@ namespace CloudApiPublic.Sync
                     // for advanced trace, UploadDownloadSuccess
                     if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
+                        ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
                     }
 
                     // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
@@ -2012,7 +2012,7 @@ namespace CloudApiPublic.Sync
                     // advanced trace, UploadDownloadFailure
                     if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToUpload == null ? null : new FileChange[] { castState.FileToUpload }));
+                        ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToUpload == null ? null : new FileChange[] { castState.FileToUpload }));
                     }
 
                     // rethrow
@@ -2491,7 +2491,8 @@ namespace CloudApiPublic.Sync
                 // for advanced trace, UploadDownloadFailure
                 if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    Trace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
+                    ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, 
+                        FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
                 }
 
                 // if there was a download event, then fire the eventhandler for finishing the status of the transfer
@@ -3109,7 +3110,7 @@ namespace CloudApiPublic.Sync
                 // For advanced trace, UploadDownloadSuccess
                 if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    Trace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
+                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
                 }
 
                 // Pull the location of the temp download folder by finding the directory path portion before the name of the downloaded file

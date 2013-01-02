@@ -4045,6 +4045,8 @@
 		<row><td>ID_STRING4</td><td>1033</td><td>Cloud</td><td>0</td><td/><td>-1642051088</td></row>
 		<row><td>ID_STRING5</td><td>1033</td><td>STARTC~1|Start CloudSdkSyncSample</td><td>0</td><td/><td>-1642030544</td></row>
 		<row><td>ID_STRING6</td><td>1033</td><td>UNINST~1|Uninstall Cloud SDK</td><td>0</td><td/><td>-1642044848</td></row>
+		<row><td>ID_STRING7</td><td>1033</td><td>SHOWSD~1|Show SDK Documentation</td><td>0</td><td/><td>279046799</td></row>
+		<row><td>ID_STRING8</td><td>1033</td><td>VSCLOU~1|VS CloudSdkSyncSample Solution</td><td>0</td><td/><td>279036359</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>-1642060529</td></row>
 	</table>
 
@@ -4751,6 +4753,8 @@ QwBEAF8AUgBPAE0AAQBFAHgAcAByAGUAcwBzAA==
 		<col def="i2">InstallMode</col>
 		<row><td>NewShortcut1</td><td>ISX_DEFAULTCOMPONENT2</td><td/><td>newfolder2</td><td>2</td></row>
 		<row><td>NewShortcut2</td><td>ISX_DEFAULTCOMPONENT2</td><td/><td>newfolder2</td><td>2</td></row>
+		<row><td>NewShortcut3</td><td>ISX_DEFAULTCOMPONENT2</td><td/><td>newfolder2</td><td>2</td></row>
+		<row><td>NewShortcut4</td><td>ISX_DEFAULTCOMPONENT2</td><td/><td>newfolder2</td><td>2</td></row>
 	</table>
 
 	<table name="RemoveIniFile">
@@ -4838,6 +4842,8 @@ QwBEAF8AUgBPAE0AAQBFAHgAcAByAGUAcwBzAA==
 		<col def="I4">ISAttributes</col>
 		<row><td>NewShortcut1</td><td>newfolder2</td><td>##ID_STRING5##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[INSTALLDIR]CloudSdkSyncSample.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut2</td><td>newfolder2</td><td>##ID_STRING6##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[SystemFolder]MsiExec.exe</td><td>/x [ProductCode]</td><td/><td/><td>NewShortcut2_431FEEF588F3485E99EB34316A95EC2D.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut3</td><td>newfolder2</td><td>##ID_STRING7##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[DOCS]index.html</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut4</td><td>newfolder2</td><td>##ID_STRING8##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[CLOUDSDKSYNCSAMPLE1]CloudSdkSyncSample.sln</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">

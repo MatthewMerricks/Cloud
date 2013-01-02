@@ -93,7 +93,7 @@ namespace CloudApiPublic.EventMessageReceiver
             {
                 if (ListMessages.Count >= MaxStatusMessages)
                 {
-                    for (int currentDeleteIndex = ListMessages.Count - MaxStatusMessages; currentDeleteIndex >= 0; currentDeleteIndex++)
+                    for (int currentDeleteIndex = ListMessages.Count - MaxStatusMessages; currentDeleteIndex >= 0; currentDeleteIndex--)
                     {
                         ListMessages.RemoveAt(currentDeleteIndex);
                     }

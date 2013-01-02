@@ -139,22 +139,6 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
-        public bool TraceExcludeAuthorization
-        {
-            get { return _settingsCurrent.TraceExcludeAuthorization; }
-            set
-            {
-                if (value == _settingsCurrent.TraceExcludeAuthorization)
-                {
-                    return;
-                }
-
-                _settingsCurrent.TraceExcludeAuthorization = value;
-
-                base.OnPropertyChanged("TraceExcludeAuthorization");
-            }
-        }
-
         public string TraceLevel
         {
             get { return _settingsCurrent.TraceLevel.ToString(); }
@@ -401,9 +385,12 @@ namespace CloudSdkSyncSample.ViewModels
             // Validate the TraceType
             ulong value;
             if (String.IsNullOrEmpty(TraceType) ||
-                !Utilities.ConvertStringToUlong(TraceType, out value))
+                !Utilities.ConvertStringToUlong(TraceType, out value) ||
+                value > 7 ||
+                value == 2 ||
+                value == 6)
             {
-                MessageBox.Show("The TraceType is a bit mask.  It must be a non-negative decimal number convertible to an unsigned integer <= 18446744073709551615.");
+                MessageBox.Show("The TraceType is a bit mask.  It must be a non-negative decimal number with value 0, 1, 3, 4, 5 or 7.");
                 this.IsTraceTypeFocused = true;
                 return;
             }
@@ -423,7 +410,7 @@ namespace CloudSdkSyncSample.ViewModels
             _settingsCaller.LogErrors = LogErrors;
             _settingsCaller.TraceType = (TraceType)Convert.ToInt32(TraceType);
             _settingsCaller.TraceFolderFullPath = TraceFolderFullPath;
-            _settingsCaller.TraceExcludeAuthorization = TraceExcludeAuthorization;
+            _settingsCaller.TraceExcludeAuthorization = (Convert.ToInt32(TraceType) & Convert.ToInt32(CloudApiPublic.Static.TraceType.AddAuthorization)) == 0 ? true : false;
             _settingsCaller.TraceLevel = Convert.ToInt32(TraceLevel);
 
             // Close the window

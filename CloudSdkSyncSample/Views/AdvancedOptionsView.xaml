@@ -75,11 +75,6 @@
                     <CheckBox Content="Log Errors" Margin="10,10,0,0"
                                     IsChecked="{Binding LogErrors, Mode=TwoWay}"
                                     ToolTip="Check to log errors to an error trace file."/>
-                    <CheckBox Content="Exclude Authorization Information" Margin="10,10,0,0" 
-                                    IsChecked="{Binding TraceExcludeAuthorization, Mode=TwoWay}"
-                                    ToolTip="Check to exclude authorization information in the trace files."/>
-
-                    
                 </StackPanel>
 
             </GroupBox>

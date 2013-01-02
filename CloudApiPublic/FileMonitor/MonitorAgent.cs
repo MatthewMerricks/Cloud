@@ -1574,14 +1574,14 @@ namespace CloudApiPublic.FileMonitor
 
             if ((_syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                Trace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
+                ComTrace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
                     {
                         FileChangeWithDependencies selectedWithoutDependencies;
                         FileChangeWithDependencies.CreateAndInitialize(removeDependencies, null, out selectedWithoutDependencies);
                         return selectedWithoutDependencies;
                     }))(currentQueuedChange.Key.MergeTo)));
-                Trace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
-                Trace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                ComTrace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                ComTrace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
             }
 
             return toReturn;
@@ -2580,7 +2580,7 @@ namespace CloudApiPublic.FileMonitor
         {
             if ((_syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                Trace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
+                ComTrace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
             }
 
             // lock on queue to prevent conflicting updates/reads
@@ -2981,7 +2981,7 @@ namespace CloudApiPublic.FileMonitor
 
                     if ((_syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        Trace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
+                        ComTrace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.Udid, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
                     }
 
                     // clear out batch for merge for next set of remaining operations

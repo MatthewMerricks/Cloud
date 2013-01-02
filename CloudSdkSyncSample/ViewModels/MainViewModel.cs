@@ -19,6 +19,8 @@ using System.Windows.Threading;
 using CloudApiPublic;
 using CloudApiPublic.Model;
 using CloudApiPublic.EventMessageReceiver;
+using System.Threading;
+using System.Management;
 
 namespace CloudSdkSyncSample.ViewModels
 {
@@ -45,6 +47,7 @@ namespace CloudSdkSyncSample.ViewModels
         private bool _windowClosed = false;
         private CLSync _syncBox = null;
         private readonly object _locker = new object();
+        private static readonly CLTrace _trace = CLTrace.Instance;
 
         #endregion
 
@@ -318,7 +321,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandInstallBadging = new RelayCommand<object>(
                         param => this.InstallBadging(),
-                        param => { return true; }
+                        param => this.CanInstallBadging
                         );
                 }
                 return _commandInstallBadging;
@@ -336,7 +339,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandUninstallBadging = new RelayCommand<object>(
                         param => this.UninstallBadging(),
-                        param => { return true; }
+                        param => this.CanUninstallBadging
                         );
                 }
                 return _commandUninstallBadging;
@@ -501,7 +504,6 @@ namespace CloudSdkSyncSample.ViewModels
             }
 
             // Validate the SyncBox ID.
-            ulong value;
             if (String.IsNullOrEmpty(SyncBoxId))
             {
                 MessageBox.Show("The SyncBox ID must not be specified.");
@@ -546,6 +548,9 @@ namespace CloudSdkSyncSample.ViewModels
             Process regsvr32Process = null;
             try
             {
+                // Stop Explorer
+                StopExplorer();
+
                 // Determine the path to the proper 64- or 32-bit .dll file to register.
                 string commandArguments = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                 if (IntPtr.Size == 4)
@@ -558,6 +563,7 @@ namespace CloudSdkSyncSample.ViewModels
                     // 64-bit 
                     commandArguments += "\\amd64\\BadgeCom.dll";
                 }
+                commandArguments = "\"" + commandArguments + "\"";
                 commandArguments = "/s " + commandArguments;
 
                 // Build the command line: regsvr32 <path to the proper BadgeCom.dll>
@@ -570,6 +576,7 @@ namespace CloudSdkSyncSample.ViewModels
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
+                _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run regsvr32. Program: {0}. Arguments: {1}.", commandProgram, commandArguments);
                 regsvr32Process = Process.Start(startInfo);
 
                 // Wait for the process to exit
@@ -580,7 +587,8 @@ namespace CloudSdkSyncSample.ViewModels
                     if (retCode != 0)
                     {
                         // Error return code
-                        CLError error = new Exception(String.Format("Error registering BadgeCom.dll.  Code: {0}.", retCode)); 
+                        CLError error = new Exception(String.Format("Error registering BadgeCom.dll.  Code: {0}.", retCode));
+                        _trace.writeToLog(1, "MainViewModel: InstallBadging: Error registering BadgeCom.dll. Code: {0}.", retCode);
                         NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error registering BadgeCom.dll." });
                     }
                 }
@@ -588,20 +596,31 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     // Timed out.
                     CLError error = new Exception("Error: Timeout registering BadgeCom.dll.");
+                    _trace.writeToLog(1, "MainViewModel: InstallBadging: Error. Timeout registering BadgeCom.dll.");
                     NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Timeout registering BadgeCom.dll." });
                 }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
+                _trace.writeToLog(1, "MainViewModel: InstallBadging: Error. Exception: Msg: {0}.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Exception registering BadgeCom.dll." });
             }
             finally
             {
-                if (regsvr32Process != null)
+                try
                 {
-                    regsvr32Process.Close();
+                    if (regsvr32Process != null)
+                    {
+                        regsvr32Process.Close();
+                    }
                 }
+                catch
+                {
+                }
+
+                // Start Explorer again
+                StartExplorer();
             }
         }
 
@@ -613,6 +632,9 @@ namespace CloudSdkSyncSample.ViewModels
             Process regsvr32Process = null;
             try
             {
+                // Stop Explorer
+                StopExplorer();
+
                 // Determine the path to the proper 64- or 32-bit .dll file to register.
                 string commandArguments = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                 if (IntPtr.Size == 4)
@@ -625,6 +647,7 @@ namespace CloudSdkSyncSample.ViewModels
                     // 64-bit 
                     commandArguments += "\\amd64\\BadgeCom.dll";
                 }
+                commandArguments = "\"" + commandArguments + "\"";
                 commandArguments = "/u /s " + commandArguments;
 
                 // Build the command line: regsvr32 <path to the proper BadgeCom.dll>
@@ -648,6 +671,7 @@ namespace CloudSdkSyncSample.ViewModels
                     {
                         // Error return code
                         CLError error = new Exception(String.Format("Error unregistering BadgeCom.dll.  Code: {0}.", retCode));
+                        _trace.writeToLog(1, "MainViewModel: UninstallBadging: Error unregistering BadgeCom.dll. Code: {0}.", retCode);
                         NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error unregistering BadgeCom.dll." });
                     }
                 }
@@ -655,20 +679,31 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     // Timed out.
                     CLError error = new Exception("Error: Timeout registering BadgeCom.dll.");
+                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: Error: Timeout unregistering BadgeCom.dll.");
                     NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Timeout unregistering BadgeCom.dll." });
                 }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
+                _trace.writeToLog(1, "MainViewModel: UninstallBadging: Error. Exception: Msg: {0}.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Exception unregistering BadgeCom.dll." });
             }
             finally
             {
-                if (regsvr32Process != null)
+                try
                 {
-                    regsvr32Process.Close();
+                    if (regsvr32Process != null)
+                    {
+                        regsvr32Process.Close();
+                    }
                 }
+                catch
+                {
+                }
+
+                // Start Explorer again
+                StartExplorer();
             }
         }
 
@@ -856,6 +891,28 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
+        /// <summary>
+        /// Returns true if the Install Badging button should be active.
+        /// </summary>
+        private bool CanInstallBadging
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the Uninstall Badging button should be active.
+        /// </summary>
+        private bool CanUninstallBadging
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
         #endregion
 
         #region Private Support Functions
@@ -864,6 +921,147 @@ namespace CloudSdkSyncSample.ViewModels
         {
             // For C-style hex notation (0xFF) use @"\A\b(0[xX])?[0-9a-fA-F]+\b\Z"
             return System.Text.RegularExpressions.Regex.IsMatch(test, @"\A\b[0-9a-fA-F]+\b\Z");
+        }
+
+        /// <summary>
+        /// Start Explorer
+        /// </summary>
+        /// <returns>string: The path to the Explorer.exe file.</returns>
+        private static void StartExplorer()
+        {
+            try
+            {
+                // Start Explorer
+                string explorerLocation = String.Empty;
+                explorerLocation = "\"" + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe") + "\"";
+                _trace.writeToLog(9, "MainViewModel: StartExplorer: Entry. Explorer location: <{0}>.", explorerLocation);
+                ProcessStartInfo taskStartInfo = new ProcessStartInfo();
+                taskStartInfo.CreateNoWindow = true;
+                taskStartInfo.UseShellExecute = false;
+                taskStartInfo.FileName = explorerLocation;
+                taskStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                taskStartInfo.Arguments = String.Empty;
+                _trace.writeToLog(9, "MainViewModel: StartExplorer: Start explorer.");
+                Process.Start(taskStartInfo);
+
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: StartExplorer: ERROR: Exception: Msg: <{0}.", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Stop Explorer
+        /// </summary>
+        /// <returns>string: The path to the Explorer.exe file.</returns>
+        private static string StopExplorer()
+        {
+            string explorerLocation = String.Empty;
+            try
+            {
+                // Kill Explorer
+                explorerLocation = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
+                _trace.writeToLog(9, "MainViewModel: StopExplorer: Entry. Explorer location: <{0}>.", explorerLocation);
+                ProcessStartInfo taskKillInfo = new ProcessStartInfo();
+                taskKillInfo.CreateNoWindow = true;
+                taskKillInfo.UseShellExecute = false;
+                taskKillInfo.FileName = "cmd.exe";
+                taskKillInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                taskKillInfo.Arguments = "/C taskkill /F /IM explorer.exe";
+                _trace.writeToLog(9, "MainViewModel: StopExplorer: Start the command.");
+                Process.Start(taskKillInfo);
+
+                // Wait for all Explorer processes to stop.
+                const int maxProcessWaits = 40; // corresponds to trying for 20 seconds (if each iteration waits 500 milliseconds)
+                for (int waitCounter = 0; waitCounter < maxProcessWaits; waitCounter++)
+                {
+                    // For some reason this won't work unless we wait here for a bit.
+                    Thread.Sleep(500);
+                    if (!IsExplorerRunning(explorerLocation))
+                    {
+                        _trace.writeToLog(9, "MainViewModel: StopExplorer: Explorer is not running.  Break.");
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: StopExplorer: ERROR: Exception: Msg: <{0}.", ex.Message);
+            }
+            _trace.writeToLog(9, "MainViewModel: StopExplorer: Return. explorerLocation: <{0}>.", explorerLocation);
+            return explorerLocation;
+        }
+
+        /// <summary>
+        /// Test whether Explorer is running.
+        /// </summary>
+        /// <param name="explorerLocation"></param>
+        /// <returns></returns>
+        private static bool IsExplorerRunning(string explorerLocation)
+        {
+            bool isExplorerRunning = false;         // assume not running
+
+            try
+            {
+                _trace.writeToLog(9, "MainViewModel: IsExplorerRunning: Entry. explorerLocation: <{0}>.", explorerLocation);
+                string wmiQueryString = "SELECT ProcessId, ExecutablePath FROM Win32_Process";
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(wmiQueryString))
+                {
+                    if (searcher != null)
+                    {
+                        _trace.writeToLog(9, "MainViewModel: IsExplorerRunning: searcher not null. Get the results.");
+                        using (ManagementObjectCollection results = searcher.Get())
+                        {
+                            _trace.writeToLog(9, "MainViewModel: IsExplorerRunning: Run the query.");
+                            isExplorerRunning = Process.GetProcesses()
+                                .Where(parent => parent.ProcessName.Equals("explorer", StringComparison.InvariantCultureIgnoreCase))
+                                .Join(results.Cast<ManagementObject>(),
+                                    parent => parent.Id,
+                                    parent => (int)(uint)parent["ProcessId"],
+                                    (outer, inner) => new ProcessWithPath(outer, (string)inner["ExecutablePath"]))
+                                .Any(parent => string.Equals(parent.Path, explorerLocation, StringComparison.InvariantCultureIgnoreCase));
+                        }
+                    }
+                    else
+                    {
+                        // searcher is null.
+                        _trace.writeToLog(1, "MainViewModel: IsExplorerRunning: ERROR: searcher is null.");
+                        return isExplorerRunning;           // assume Explorer is not running.
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: IsExplorerRunning: ERROR: Exception: Msg: <{0}>.", ex.Message);
+            }
+
+            return isExplorerRunning;
+        }
+
+        private class ProcessWithPath
+        {
+            public Process Process { get; private set; }
+            public string Path { get; private set; }
+
+            public ProcessWithPath(Process process, string path)
+            {
+                this.Process = process;
+                this.Path = path;
+            }
+
+            public override string ToString()
+            {
+                return (this.Process == null
+                    ? "null"
+                    : this.Process.ProcessName);
+            }
         }
 
         #endregion

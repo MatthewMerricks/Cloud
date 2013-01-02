@@ -20,7 +20,7 @@ using CloudApiPublic.Model;
 
 namespace CloudApiPublic.Static
 {
-    public static class Trace
+    public static class ComTrace
     {
         #region public methods
         public static void LogCommunication(string traceLocation, string UserDeviceId, string SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, Stream body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)

@@ -121,7 +121,7 @@ namespace CloudSdkSyncSample.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("CommunicationIncludeAuthorization, FileChangeFlow")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Communication, FileChangeFlow")]
         public global::CloudApiPublic.Static.TraceType TraceType {
             get {
                 return ((global::CloudApiPublic.Static.TraceType)(this["TraceType"]));
