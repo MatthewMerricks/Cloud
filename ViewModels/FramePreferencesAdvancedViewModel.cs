@@ -474,7 +474,7 @@ namespace win_client.ViewModels
 
                 // Stream the CloudMoveCloudFolder.vbs file out to the temp directory
                 _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: Call WriteResourceFileToFilesystemFile.");
-                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudMoveCloudFolder", vbsPath);
+                int rc = Helpers.WriteResourceFileToFilesystemFile(storeAssembly, "CloudMoveCloudFolder", vbsPath);
                 if (rc != 0)
                 {
                     _trace.writeToLog(1, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100);
@@ -484,7 +484,7 @@ namespace win_client.ViewModels
 
                 // Now we will create a new process to run the VBScript file.
                 _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: Build the paths for launching the VBScript file.");
-                string systemFolderPath = CLShortcuts.Get32BitSystemFolderPath();
+                string systemFolderPath = Helpers.Get32BitSystemFolderPath();
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
                 _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: ScheduleCloudFolderMove: Cscript executable path: <{0}>.", cscriptPath);
 

@@ -329,7 +329,7 @@ namespace RegisterCom
                 }
 
                 // Register BadgeCOM.dll in the ProgramFiles CommonFiles folder.
-                string pathRegistration = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
+                string pathRegistration = Helpers.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
 
                 _trace.writeToLog(9, "RegisterCom: Main: Call RegisterAssembly. Path: <{0}>.", pathRegistration);
                 rcLocal = RegisterAssembly(pathRegistration);
@@ -345,7 +345,7 @@ namespace RegisterCom
 
                 // Register ContextMenuCOM.dll in the ProgramFiles CommonFiles folder.
                 _trace.writeToLog(9, "RegisterCom: Main: Call RegisterAssembly. Path: <{0}>.", pathRegistration);
-                pathRegistration = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\ContextMenuCOM.dll";
+                pathRegistration = Helpers.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\ContextMenuCOM.dll";
                 rcLocal = RegisterAssembly(pathRegistration);
                 if (rcLocal != 0)
                 {
@@ -433,9 +433,9 @@ namespace RegisterCom
         private static int CopyFilesNeededForUninstall()
         {
             // Determine the directories to use.
-            string fromDirectory = CLShortcuts.Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles;
-            string to32BitDirectory = CLShortcuts.Get32BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon;
-            string to64BitDirectory = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon;
+            string fromDirectory = Helpers.Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles;
+            string to32BitDirectory = Helpers.Get32BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon;
+            string to64BitDirectory = Helpers.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon;
 
             try 
         	{
@@ -585,7 +585,7 @@ namespace RegisterCom
                 try
                 {
                     // The BadgeCOM.dll was registered in the ProgramFiles CommonFiles directory.  Find it there and unregister it.
-                    string pathToCopiedBadgeCOM = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
+                    string pathToCopiedBadgeCOM = Helpers.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\BadgeCOM.dll";
                     if (File.Exists(pathToCopiedBadgeCOM))
                     {
                         // Unregister BadgeCOM
@@ -608,7 +608,7 @@ namespace RegisterCom
                 try
                 {
                     // The ContextMenuCOM.dll was registered in the ProgramFiles CommonFiles directory.  Find it there and unregister it.
-                    string pathToCopiedContextMenuCOM = CLShortcuts.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\ContextMenuCOM.dll";
+                    string pathToCopiedContextMenuCOM = Helpers.Get64BitCommonProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFilesCommon + "\\ContextMenuCOM.dll";
                     if (File.Exists(pathToCopiedContextMenuCOM))
                     {
                         // Unregister ContextMenuCOM
@@ -870,7 +870,7 @@ namespace RegisterCom
 
                 // Stream the CloudClean.vbs file out to the temp directory
                 _trace.writeToLog(9, "RegisterCom: FinalizeUninstall: Call WriteResourceFileToFilesystemFile.");
-                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudCleanVbs", vbsPath);
+                int rc = Helpers.WriteResourceFileToFilesystemFile(storeAssembly, "CloudCleanVbs", vbsPath);
                 if (rc != 0)
                 {
                     _trace.writeToLog(1, "RegisterCom: FinalizeUninstall: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100);
@@ -879,14 +879,14 @@ namespace RegisterCom
                 
                 // Now we will create a new process to run the VBScript file.
                 _trace.writeToLog(9, "RegisterCom: FinalizeUninstall: Build the paths for launching the VBScript file.");
-                string systemFolderPath = CLShortcuts.Get32BitSystemFolderPath();
+                string systemFolderPath = Helpers.Get32BitSystemFolderPath();
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
                 _trace.writeToLog(9, "RegisterCom: FinalizeUninstall: Cscript executable path: <{0}>.", cscriptPath);
 
-                string parm1Path = CLShortcuts.Get32BitProgramFilesFolderPath();
+                string parm1Path = Helpers.Get32BitProgramFilesFolderPath();
                 _trace.writeToLog(9, "RegisterCom: FinalizeUninstall: Parm 1: <{0}>.", parm1Path);
 
-                string parm2Path = CLShortcuts.Get64BitProgramFilesFolderPath();
+                string parm2Path = Helpers.Get64BitProgramFilesFolderPath();
                 _trace.writeToLog(9, "RegisterCom: FinalizeUninstall: Parm 2: <{0}>.", parm2Path);
 
                 string parm3Path = Environment.GetEnvironmentVariable("SystemRoot");

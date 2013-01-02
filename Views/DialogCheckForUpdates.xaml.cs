@@ -31,6 +31,7 @@ using CloudApiPublic.Support;
 using CloudApiPrivate.Common;
 using System.Diagnostics;
 using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 
 namespace win_client.Views
 {
@@ -477,7 +478,7 @@ namespace win_client.Views
 
                 // Stream the CloudInstallUpdate.vbs file out to the temp directory
                 _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Call WriteResourceFileToFilesystemFile.");
-                int rc = CLShortcuts.WriteResourceFileToFilesystemFile(storeAssembly, "CloudInstallUpdate", vbsPath);
+                int rc = Helpers.WriteResourceFileToFilesystemFile(storeAssembly, "CloudInstallUpdate", vbsPath);
                 if (rc != 0)
                 {
                     _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: ERROR: From WriteResourceFileToFilesystemFile. rc: {0}.", rc + 100);
@@ -486,7 +487,7 @@ namespace win_client.Views
 
                 // Now we will create a new process to run the VBScript file.
                 _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Build the paths for launching the VBScript file.");
-                string systemFolderPath = CLShortcuts.Get32BitSystemFolderPath();
+                string systemFolderPath = Helpers.Get32BitSystemFolderPath();
                 string cscriptPath = systemFolderPath + "\\cscript.exe";
                 _trace.writeToLog(1, "DialogCheckForUpdates: StartCloudUpdaterAndExitNow: Cscript executable path: <{0}>.", cscriptPath);
 

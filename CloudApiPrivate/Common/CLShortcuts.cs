@@ -632,7 +632,7 @@ namespace CloudApiPrivate.Common
         /// </summary>
         public static void LaunchExplorerToFolder(string folderPath)
         {
-            global::System.Diagnostics.Trace.WriteLine(String.Format("CloudSendTo: LaunchExplorerToFolder: Entry.  Path: <{0}>.", folderPath ?? String.Empty));
+            _trace.writeToLog(9,String.Format("CloudSendTo: LaunchExplorerToFolder: Entry.  Path: <{0}>.", folderPath ?? String.Empty));
             System.Diagnostics.Process process = new System.Diagnostics.Process();
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.UseShellExecute = false;

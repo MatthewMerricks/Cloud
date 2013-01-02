@@ -38,6 +38,10 @@
     <ApplicationIcon>Artwork\cloud.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CloudApiPublic, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\CloudApiPublic\bin\Release\CloudApiPublic.dll</HintPath>
+    </Reference>
     <Reference Include="RateBar, Version=1.0.4671.22690, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\3rdParty\bin\Release\RateBar.dll</HintPath>
@@ -141,16 +145,11 @@
   <ItemGroup>
     <Resource Include="Artwork\WinClient_CloudSetup_bg_650x485.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Resource Include="cloud.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
-      <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
-      <Name>CloudApiPublic</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
