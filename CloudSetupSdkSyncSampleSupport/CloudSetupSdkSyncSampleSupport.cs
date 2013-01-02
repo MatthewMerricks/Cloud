@@ -113,8 +113,74 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support CloudApiPublic.dll file.");
                 File.Copy(pathInstall + "\\CloudApiPublic.dll", pathSupport);
 
-                // Open the zip file and decompress all of its files and folders
+                // Open the documentation zip file and decompress all of its files and folders
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Unzip the docs file.");
+                FileStream fs = File.OpenRead(archiveFile);
+                zf = new ZipFile(fs);
+                foreach (ZipEntry zipEntry in zf)
+                {
+                    if (!zipEntry.IsFile)
+                    {
+                        continue;           // Ignore directories
+                    }
+                    String entryFileName = zipEntry.Name;
+                    byte[] buffer = new byte[4096];     // 4K is optimum
+                    Stream zipStream = zf.GetInputStream(zipEntry);
+
+                    String fullZipToPath = Path.Combine(outFolder, entryFileName);
+                    string directoryName = Path.GetDirectoryName(fullZipToPath);
+                    if (directoryName.Length > 0)
+                    {
+                        Directory.CreateDirectory(directoryName);
+                    }
+
+                    // Unzip file in buffered chunks. This is just as fast as unpacking to a buffer the full size
+                    // of the file, but does not waste memory.
+                    // The "using" will close the stream even if an exception occurs.
+                    using (FileStream streamWriter = File.Create(fullZipToPath))
+                    {
+                        StreamUtils.Copy(zipStream, streamWriter, buffer);
+                    }
+                }
+
+                // Close the .zip file
+                zf.IsStreamOwner = true; // Makes close also shut the underlying stream
+                zf.Close(); // Ensure we release resources
+                zf = null;
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Done unzipping the docs file.");
+
+                // Delete the .zip file
+                File.Delete(archiveFile);
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: Install: ERROR: Exception. Msg: {0}.", ex.Message);
+                rcToReturn = -100;
+                return rcToReturn;
+            }
+            finally
+            {
+                if (zf != null)
+                {
+                    zf.IsStreamOwner = true; // Makes close also shut the underlying stream
+                    zf.Close(); // Ensure we release resources
+                    zf = null;
+                }
+            }
+
+            // Unzip the CloudSdkSyncSample source files and solution
+            try
+            {
+                string pathExecutingProgram = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string pathInstall = Path.GetDirectoryName(pathExecutingProgram);
+                string archiveFile = pathInstall + "\\CloudSdkSyncSample\\CloudSdkSyncSampleSource.zip";
+                string outFolder = pathInstall + "\\CloudSdkSyncSample";
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathExecutingProgram(2): {0}.", pathExecutingProgram);
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathInstall(2): {0}.", pathInstall);
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: archiveFile(2): {0}.", archiveFile);
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: outFolder(2): {0}.", outFolder);
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Unzip the CloudSdkSyncSample source file.");
+
                 FileStream fs = File.OpenRead(archiveFile);
                 zf = new ZipFile(fs);
                 foreach (ZipEntry zipEntry in zf)
@@ -140,12 +206,20 @@ namespace CloudSetupSdkSyncSampleSupport
                         StreamUtils.Copy(zipStream, streamWriter, buffer);
                     }
                 }
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Done unzipping the docs file.");
+
+                // Close the .zip file
+                zf.IsStreamOwner = true; // Makes close also shut the underlying stream
+                zf.Close(); // Ensure we release resources
+                zf = null;
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Done unzipping the CloudSdkSyncSample source file.");
+
+                // Delete the .zip file
+                File.Delete(archiveFile);
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: Install: ERROR: Exception. Msg: {0}.", ex.Message);
-                rcToReturn = -100;
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: Install: ERROR: Exception(2). Msg: {0}.", ex.Message);
+                rcToReturn = -101;
             }
             finally
             {
@@ -153,6 +227,7 @@ namespace CloudSetupSdkSyncSampleSupport
                 {
                     zf.IsStreamOwner = true; // Makes close also shut the underlying stream
                     zf.Close(); // Ensure we release resources
+                    zf = null;
                 }
             }
 
@@ -173,15 +248,23 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Entry.");
                 string pathInstall = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                 string docsFolder = pathInstall + "\\Docs";
+                string sourceFolder = pathInstall + "\\CloudSdkSyncSample";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: pathInstall: {0}.", pathInstall);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: docsFolder: {0}.", docsFolder);
-
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: sourceFolder: {0}.", sourceFolder);
 
                 // Delete the Docs directory
                 if (Directory.Exists(docsFolder))
                 {
                     _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Delete the docs folder.");
                     Directory.Delete(docsFolder, recursive: true);
+                }
+
+                // Delete the source directory (CloudSdkSyncSample)
+                if (Directory.Exists(sourceFolder))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Delete the source folder.");
+                    Directory.Delete(sourceFolder, recursive: true);
                 }
 
                 // Schedule cleanup of this executing .exe file and containing directories as possible.

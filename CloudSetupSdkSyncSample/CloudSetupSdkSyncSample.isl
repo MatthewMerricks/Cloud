@@ -357,6 +357,7 @@
 		<row><td>ISX_DEFAULTCOMPONENT4</td><td>{9A01B732-1336-4971-AEA0-42AA0145D846}</td><td>MICROSOFT.VC90.CRT1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT5</td><td>{834E7B3D-BEA3-48B1-87D1-7B36B724B0E5}</td><td>DOCS</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT6</td><td>{EA752021-9B1B-44AC-BC21-AD6A9D7BB491}</td><td>SystemFolder</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT7</td><td>{DC87535E-241D-460F-B6BB-3E684544EDD5}</td><td>CLOUDSDKSYNCSAMPLE1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Microsoft.Net.Http.dll</td><td>{20D4236B-6353-4F21-88E5-0C3662BB5C30}</td><td>INSTALLDIR</td><td>2</td><td/><td>microsoft.net.http.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Newtonsoft.Json.dll</td><td>{FCE8B763-683B-4429-A8BD-E2B1EAB0FF30}</td><td>INSTALLDIR</td><td>2</td><td/><td>newtonsoft.json.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SimpleJson.dll</td><td>{E30FF9AA-4A6E-4417-987D-3C4F87DF9C90}</td><td>INSTALLDIR</td><td>2</td><td/><td>simplejson.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1177,6 +1178,7 @@
 		<row><td>AppDataFolder</td><td>TARGETDIR</td><td>.:APPLIC~1|Application Data</td><td/><td>0</td><td/></row>
 		<row><td>CLOUD.COM</td><td>ProgramFilesFolder</td><td>CLOUD_~1|Cloud.com</td><td/><td>0</td><td/></row>
 		<row><td>CLOUDSDKSYNCSAMPLE</td><td>CLOUD.COM</td><td>CLOUDS~1|CloudSdkSyncSample</td><td/><td>0</td><td/></row>
+		<row><td>CLOUDSDKSYNCSAMPLE1</td><td>INSTALLDIR</td><td>CLOUDS~1|CloudSdkSyncSample</td><td/><td>0</td><td/></row>
 		<row><td>CLOUDSETUPSDKSYNCSAMPLESUPPORT</td><td>INSTALLDIR</td><td>CLOUDS~1|CloudSetupSdkSyncSampleSupport</td><td/><td>0</td><td/></row>
 		<row><td>CommonAppDataFolder</td><td>TARGETDIR</td><td>.:Common~1|CommonAppData</td><td/><td>0</td><td/></row>
 		<row><td>CommonFilesFolder</td><td>TARGETDIR</td><td>.:Common</td><td/><td>0</td><td/></row>
@@ -1927,6 +1929,7 @@
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT4</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT5</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT6</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT7</td></row>
 		<row><td>AlwaysInstall</td><td>Microsoft.Net.Http.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Newtonsoft.Json.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SimpleJson.dll</td></row>
@@ -1972,6 +1975,7 @@
 		<row><td>cloudsdksyncsample.pdb</td><td>ISX_DEFAULTCOMPONENT2</td><td>CLOUDS~1.PDB|CloudSdkSyncSample.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\CloudSdkSyncSample.pdb</td><td>1</td><td/></row>
 		<row><td>cloudsdksyncsample.primary_o</td><td>CloudSdkSyncSample.Primary_output1</td><td>CloudSdkSyncSample.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSdkSyncSample1&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudsdksyncsampledocs.zip</td><td>ISX_DEFAULTCOMPONENT5</td><td>CLOUDS~1.ZIP|CloudSdkSyncSampleDocs.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\html\CloudSdkSyncSampleDocs.zip</td><td>1</td><td/></row>
+		<row><td>cloudsdksyncsamplesource.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CLOUDS~1.ZIP|CloudSdkSyncSampleSource.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\CloudSdkSyncSampleSource.zip</td><td>1</td><td/></row>
 		<row><td>cloudsetupsdksyncsamplesuppo</td><td>CloudSetupSdkSyncSampleSupport.Primary_output</td><td>CloudSetupSdkSyncSampleSupport.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSetupSdkSyncSampleSupport&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudtracelevel.ini</td><td>ISX_DEFAULTCOMPONENT2</td><td>CLOUDT~1.INI|CloudTraceLevel.ini</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\TraceConfig\CloudTraceLevel.ini</td><td>1</td><td/></row>
 		<row><td>enabletrace.ini</td><td>ISX_DEFAULTCOMPONENT2</td><td>ENABLE~1.INI|EnableTrace.ini</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\TraceConfig\EnableTrace.ini</td><td>1</td><td/></row>
@@ -2280,6 +2284,7 @@
 		<row><td>ISX_DEFAULTCOMPONENT4</td><td/><td/><td>_38583AAF_5309_42FB_BB27_8150947EEC60_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT5</td><td/><td/><td>_16C71368_C1B5_4ED8_978C_6263F2413FB5_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT6</td><td/><td/><td>_D6087B11_E45D_409E_A52B_0877EF4EA871_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT7</td><td/><td/><td>_65641DE9_18B9_4CAE_83BC_50E0E8CF570C_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Microsoft.Net.Http.dll</td><td/><td/><td>_4F6D9D88_9C49_4EDC_A4BB_F3B7749A4992_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Newtonsoft.Json.dll</td><td/><td/><td>_8C3EEDA4_0CD5_4176_8E90_544E00632969_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SimpleJson.dll</td><td/><td/><td>_68321164_B34A_4719_83E5_F4BA7F18125B_FILTER</td><td/><td/><td/><td/></row>
@@ -2643,6 +2648,7 @@
 		<col key="yes" def="s72">ISProductConfiguration_</col>
 		<col key="yes" def="s72">Property</col>
 		<col def="L255">Value</col>
+		<row><td>Express</td><td>SetupFileName</td><td>CloudSdkSetup</td></row>
 	</table>
 
 	<table name="ISRelease">
@@ -2933,7 +2939,7 @@
 		<col def="I2">Encoded</col>
 		<col def="S0">Comment</col>
 		<col def="I4">TimeStamp</col>
-		<row><td>COMPANY_NAME</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>-31446542</td></row>
+		<row><td>COMPANY_NAME</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>144818611</td></row>
 		<row><td>DN_AlwaysInstall</td><td>1033</td><td>Always Install</td><td>0</td><td/><td>-1642060529</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_COLOR</td><td>1033</td><td>The color settings of your system are not adequate for running [ProductName].</td><td>0</td><td/><td>-1642060529</td></row>
 		<row><td>IDPROP_EXPRESS_LAUNCH_CONDITION_DOTNETVERSION40CLIENT</td><td>1033</td><td>Microsoft .NET Framework 4.0 Client Package or greater needs to be installed for this installation to continue.</td><td>0</td><td/><td>-1642050129</td></row>
@@ -4033,8 +4039,8 @@
 		<row><td>IDS__TargetReq_DESC_PROCESSOR</td><td>1033</td><td>The processor is not adequate for running [ProductName].</td><td>0</td><td/><td>-1642060529</td></row>
 		<row><td>IDS__TargetReq_DESC_RAM</td><td>1033</td><td>The amount of RAM is not adequate for running [ProductName].</td><td>0</td><td/><td>-1642060529</td></row>
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>-1642060529</td></row>
-		<row><td>ID_STRING1</td><td>1033</td><td>http://www.Cloud.com.com</td><td>0</td><td/><td>-31446542</td></row>
-		<row><td>ID_STRING2</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>-31446542</td></row>
+		<row><td>ID_STRING1</td><td>1033</td><td>http://www.Cloud.com.com</td><td>0</td><td/><td>144818611</td></row>
+		<row><td>ID_STRING2</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>144818611</td></row>
 		<row><td>ID_STRING3</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>-1642059280</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>Cloud</td><td>0</td><td/><td>-1642051088</td></row>
 		<row><td>ID_STRING5</td><td>1033</td><td>STARTC~1|Start CloudSdkSyncSample</td><td>0</td><td/><td>-1642030544</td></row>
@@ -4283,7 +4289,7 @@ QwBEAF8AUgBPAE0AAQBFAHgAcAByAGUAcwBzAA==
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{65861209-25BE-4E87-B971-7962D25CA4A5}</td></row>
 		<row><td>ISUSSignature</td><td>{191E5117-09B8-4425-8EDA-93DB7879F0F5}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant,viewAppFiles,viewProject,viewRealSetupDesign,viewSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService,viewFeatureFiles,viewObjects,viewShortcuts,viewISToday,viewAppV,viewDependencies,viewCE,viewRelease,viewCustomActions,viewRegistry,viewIniFiles,viewTextFiles,viewXMLConfig,viewFileExtensions,viewEnvironmentVariables,viewVRoots,viewSQLServer,viewComponentServices,viewSystemSearch,viewSupportFiles</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewAppFiles,viewProject,viewRealSetupDesign,viewSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService,viewFeatureFiles,viewObjects,viewShortcuts,viewISToday,viewAppV,viewDependencies,viewCE,viewRelease,viewCustomActions,viewRegistry,viewIniFiles,viewTextFiles,viewXMLConfig,viewFileExtensions,viewEnvironmentVariables,viewVRoots,viewSQLServer,viewComponentServices,viewSystemSearch,viewSupportFiles,viewInstallScriptStd</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>
