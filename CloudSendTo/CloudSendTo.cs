@@ -32,6 +32,7 @@ using Microsoft.Win32.SafeHandles;
 using CloudSendTo.Static;
 using System.IO;
 using System.Drawing;
+using CloudApiPublic.Static;
 
 
 namespace CloudSendTo
@@ -61,7 +62,7 @@ namespace CloudSendTo
 
             SafeFileHandle clientPipeHandle = null;
 	        int createRetryCount = 3;
-            string cloudExeFile = CLShortcuts.Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe";
+            string cloudExeFile = Helpers.Get32BitProgramFilesFolderPath() + CLPrivateDefinitions.CloudFolderInProgramFiles + "\\" + CLPrivateDefinitions.CloudAppName + ".exe";
 	
 	        try
 	        {

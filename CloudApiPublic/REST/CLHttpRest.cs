@@ -549,7 +549,7 @@ namespace CloudApiPublic.REST
             if ((settings.TraceType & TraceType.Communication) == TraceType.Communication)
             {
                 // trace communication for the current request
-                Trace.LogCommunication(settings.TraceLocation, // location of trace file
+                ComTrace.LogCommunication(settings.TraceLocation, // location of trace file
                     settings.Udid, // device id
                     settings.SyncBoxId, // user id
                     CommunicationEntryDirection.Request, // direction is request
@@ -895,7 +895,7 @@ namespace CloudApiPublic.REST
                         if ((settings.TraceType & TraceType.Communication) == TraceType.Communication)
                         {
                             // log communication for stream body
-                            Trace.LogCommunication(settings.TraceLocation, // trace file location
+                            ComTrace.LogCommunication(settings.TraceLocation, // trace file location
                                 settings.Udid, // device id
                                 settings.SyncBoxId, // user id
                                 CommunicationEntryDirection.Response, // communication direction is response
@@ -940,7 +940,7 @@ namespace CloudApiPublic.REST
                     if (serializationStream == null)
                     {
                         // log communication for string body
-                        Trace.LogCommunication(settings.TraceLocation, // trace file location
+                        ComTrace.LogCommunication(settings.TraceLocation, // trace file location
                             settings.Udid, // device id
                             settings.SyncBoxId, // user id
                             CommunicationEntryDirection.Response, // communication direction is response

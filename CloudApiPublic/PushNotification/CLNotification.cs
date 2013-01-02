@@ -162,7 +162,7 @@ namespace CloudApiPublic.PushNotification
                     //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on _syncSettings.TraceExcludeAuthorization !!
                     if ((_syncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                     {
-                        Trace.LogCommunication(_syncSettings.TraceLocation,
+                        ComTrace.LogCommunication(_syncSettings.TraceLocation,
                             _syncSettings.Udid,
                             _syncSettings.SyncBoxId,
                             CommunicationEntryDirection.Request,
@@ -587,7 +587,7 @@ namespace CloudApiPublic.PushNotification
 
                 if ((_innerSyncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                 {
-                    Trace.LogCommunication(_innerSyncSettings.TraceLocation,
+                    ComTrace.LogCommunication(_innerSyncSettings.TraceLocation,
                         _innerSyncSettings.Udid,
                         _innerSyncSettings.SyncBoxId,
                         CommunicationEntryDirection.Response,

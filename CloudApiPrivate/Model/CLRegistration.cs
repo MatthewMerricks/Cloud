@@ -184,7 +184,7 @@ namespace CloudApiPrivate.Model
 
             if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
             {
-                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                     Settings.Settings.Instance.Udid,
                     Settings.Settings.Instance.Uuid,
                     CommunicationEntryDirection.Request,
@@ -257,7 +257,7 @@ namespace CloudApiPrivate.Model
 
                         if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
-                            Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                                 Settings.Settings.Instance.Udid,
                                 Settings.Settings.Instance.Uuid,
                                 CommunicationEntryDirection.Response,
@@ -297,7 +297,7 @@ namespace CloudApiPrivate.Model
                 {
                     if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                     {
-                        Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                        ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                             Settings.Settings.Instance.Udid,
                             Settings.Settings.Instance.Uuid,
                             CommunicationEntryDirection.Response,
@@ -524,7 +524,7 @@ namespace CloudApiPrivate.Model
 
             if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
             {
-                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                     Settings.Settings.Instance.Udid,
                     Settings.Settings.Instance.Uuid,
                     CommunicationEntryDirection.Request,
@@ -597,7 +597,7 @@ namespace CloudApiPrivate.Model
 
                         if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
-                            Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                                 Settings.Settings.Instance.Udid,
                                 Settings.Settings.Instance.Uuid,
                                 CommunicationEntryDirection.Response,
@@ -637,7 +637,7 @@ namespace CloudApiPrivate.Model
                 {
                     if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                     {
-                        Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                        ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                             Settings.Settings.Instance.Udid,
                             Settings.Settings.Instance.Uuid,
                             CommunicationEntryDirection.Response,
@@ -850,7 +850,7 @@ namespace CloudApiPrivate.Model
 
                 if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                 {
-                    Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                    ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                         Settings.Settings.Instance.Udid,
                         Settings.Settings.Instance.Uuid,
                         CommunicationEntryDirection.Request,
@@ -923,7 +923,7 @@ namespace CloudApiPrivate.Model
 
                             if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                             {
-                                Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                                ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                                     Settings.Settings.Instance.Udid,
                                     Settings.Settings.Instance.Uuid,
                                     CommunicationEntryDirection.Response,
@@ -963,7 +963,7 @@ namespace CloudApiPrivate.Model
                     {
                         if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
-                            Trace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
                                 Settings.Settings.Instance.Udid,
                                 Settings.Settings.Instance.Uuid,
                                 CommunicationEntryDirection.Response,
