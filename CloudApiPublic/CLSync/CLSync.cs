@@ -301,6 +301,7 @@ namespace CloudApiPublic
             // Pass this event on to the file monitor.
             if (_monitor != null)
             {
+                _trace.writeToLog(9, "CLSync: OnNotificationPerformManualSyncFrom: Send a Perform Manual SyncFrom to monitor.");
                 _monitor.PushNotification(e.Message);
             }
         }
@@ -315,6 +316,7 @@ namespace CloudApiPublic
             // Let the file monitor know about this event.
             if (_monitor != null)
             {
+                _trace.writeToLog(9, "CLSync: OnNotificationPerformManualSyncFrom: Send a Perform PushNotification to monitor.");
                 _monitor.PushNotification(e.Message);
             }
         }

@@ -40,6 +40,7 @@ CBadgeIconSelective::CBadgeIconSelective()
 
 	    // Allocate the PubSubEvents system, subscribe to events, and send an initialization event to BadgeNet.
 		CLTRACE(9, "CBadgeIconSelective: CBadgeIconSelective: Entry. Start the subscription threads.");
+        _fIsInitialized = false;
 	    InitializeBadgeNetPubSubEventsViaThread();
     }
     catch (std::exception &ex)
@@ -201,6 +202,12 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 
     try
     {
+        // No badging if not initialized
+        if (!_fIsInitialized)
+        {
+            return result;
+        }
+
 	    // Should this path be badged?  It will be badged this exact path is found in the the badging dictionary,
 	    // and if the current badgeType value matches this icon handler.
 		CLTRACE(9, "CBadgeIconSelective: IsMemberOf: Entry. Path: <%ls>.", pwszPath);
@@ -452,12 +459,16 @@ void CBadgeIconSelective::InitializeBadgeNetPubSubEvents()
 		_pBadgeNetPubSubEvents->FireEventSubscriptionWatcherFailed.connect(boost::bind(&CBadgeIconSelective::OnEventSubscriptionWatcherFailed, this));
 
 		// Subscribe to the events from BadgeNet
-		_pBadgeNetPubSubEvents->SubscribeToBadgeNetEvents();
+		_fIsInitialized = _pBadgeNetPubSubEvents->SubscribeToBadgeNetEvents();
 
 		// Tell BadgeNet we just initialized.
-		BSTR dummy(L"");
-		CLTRACE(9, "CBadgeIconSelective: InitializeBadgeNetPubSubEvents: Call PublishEventToBadgeNet.");
-		_pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, &dummy /* not used */);
+		// Tell BadgeNet we just initialized.
+        if (_fIsInitialized)
+        {
+			BSTR dummy(L"");
+			CLTRACE(9, "CBadgeIconSelective: InitializeBadgeNetPubSubEvents: Call PublishEventToBadgeNet.");
+			_pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, &dummy /* not used */);
+        }
 	}
 	catch(std::exception &ex)
 	{

@@ -285,7 +285,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandShowAdvancedOptions = new RelayCommand<object>(
                         param => this.ShowAdvancedOptions(),
-                        param => { return true; }
+                        param => this.CanAdvancedOptions
                         );
                 }
                 return _commandShowAdvancedOptions;
@@ -411,7 +411,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandExit = new RelayCommand<object>(
                         param => this.Exit(),
-                        param => { return true; }
+                        param => this.CanExit
                         );
                 }
                 return _commandExit;
@@ -781,6 +781,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_syncBox != null)
                 {
+                    CLSync.PermanentShutdownHttpSchedulers();
                     _syncStarted = false;
                     _syncBox.Stop();
                     _syncBox = null;
@@ -803,6 +804,9 @@ namespace CloudSdkSyncSample.ViewModels
             }
             else
             {
+                // Stop syncing if it has been started.
+                StopSyncing();
+
                 // Close the window
                 _windowClosed = true;
                 CloseCommand.Execute(null);
@@ -906,6 +910,28 @@ namespace CloudSdkSyncSample.ViewModels
         /// Returns true if the Uninstall Badging button should be active.
         /// </summary>
         private bool CanUninstallBadging
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the Exit button should be active.
+        /// </summary>
+        private bool CanExit
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the Advanced Options button should be active.
+        /// </summary>
+        private bool CanAdvancedOptions
         {
             get
             {

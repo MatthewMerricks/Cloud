@@ -70,7 +70,6 @@ namespace CloudApiPublic.PushNotification
         /// </summary>
         private static readonly Dictionary<string, CLNotification> NotificationClientsRunning = new Dictionary<string, CLNotification>();
 
-
         private const int MillisecondManualPollingInterval = 20000;
 
         /// <summary>
@@ -282,7 +281,7 @@ namespace CloudApiPublic.PushNotification
             }
         }
 
-        private void FallbackToManualPolling(object state)
+        private static void FallbackToManualPolling(object state)
         {
             _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Entry.");
             CLNotification castState = state as CLNotification;
@@ -319,11 +318,25 @@ namespace CloudApiPublic.PushNotification
                     return;
                 }
 
+                lock (castState)
+                {
+                    if (!castState._isInitialized)
+                    {
+                        _trace.writeToLog(9, "CLNotification: FallbackToManualPolling (2): Return.");
+
+                        castState._pushConnected = false;
+                        castState._serviceStarted = false;
+                        castState.CleanWebSocketAndRestart(castState._connection, doNotRestart: true);
+
+                        return;
+                    }
+                }
+
                 CLError storeManualPollingError = null;
                 try
                 {
                     _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Call PerformManualSyncFrom.");
-                    PerformManualSyncFrom();
+                    castState.PerformManualSyncFrom();
 
                     manualPollSuccessful = true;
                 }
@@ -331,7 +344,7 @@ namespace CloudApiPublic.PushNotification
                 {
                     storeManualPollingError = ex;
                     _trace.writeToLog(1, "CLNotification: FallbackToManualPolling: ERROR: Exception occurred trying to reconnect to push after manually polling. Msg: <{0}>, Code: {1}.", storeManualPollingError.errorDescription, storeManualPollingError.errorCode);
-                    storeManualPollingError.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                    storeManualPollingError.LogErrors(castState._syncSettings.TraceLocation, castState._syncSettings.LogErrors);
                 }
 
                 if (manualPollingIteration == 0)
@@ -363,18 +376,18 @@ namespace CloudApiPublic.PushNotification
                             // Force logging errors in the serious case where a message had to be displayed
                             _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Put up an ugly MessageBox to the user.");
                             forceErrors = true;
-                            if (!_syncSettings.LogErrors)
+                            if (!castState._syncSettings.LogErrors)
                             {
-                                storeManualPollingError.LogErrors(_syncSettings.TraceLocation, true);
+                                storeManualPollingError.LogErrors(castState._syncSettings.TraceLocation, true);
                             }
 
                             // Serious error, unable to reconnect to push notification AND unable to manually poll
-                            if (ConnectionError != null)
+                            if (castState.ConnectionError != null)
                             {
                                 NotificationErrorEventArgs err = new NotificationErrorEventArgs();
                                 err.ErrorWebSockets = innerEx;
                                 err.ErrorManualPoll = storeManualPollingError;
-                                ConnectionError(this, err);
+                                castState.ConnectionError(castState, err);
                             }
                         }
                         else
@@ -385,7 +398,7 @@ namespace CloudApiPublic.PushNotification
                             Thread.Sleep(MillisecondManualPollingInterval);
                         }
 
-                        error.LogErrors(_syncSettings.TraceLocation, forceErrors || _syncSettings.LogErrors);
+                        error.LogErrors(castState._syncSettings.TraceLocation, forceErrors || castState._syncSettings.LogErrors);
                     }
                 }
                 else
@@ -462,107 +475,110 @@ namespace CloudApiPublic.PushNotification
 
         private void CleanWebSocketAndRestart(WebSocket sender, bool doNotRestart = false)
         {
-            lock (this)
+            if (sender != null)
             {
-                _faultCount++;
-                _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Entry. doNotRestart: {0}. faultCount: {1}.", doNotRestart, _faultCount);
-                if (_faultCount >= CLDefinitions.PushNotificationFaultLimitBeforeFallback)
+                lock (this)
                 {
-                    _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: Set doNotRestart.");
-                    doNotRestart = true;
-                }
+                    _faultCount++;
+                    _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Entry. doNotRestart: {0}. faultCount: {1}.", doNotRestart, _faultCount);
+                    if (_faultCount >= CLDefinitions.PushNotificationFaultLimitBeforeFallback)
+                    {
+                        _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: Set doNotRestart.");
+                        doNotRestart = true;
+                    }
 
-                if (urlReceiver != null)
-                {
+                    if (urlReceiver != null)
+                    {
+                        try
+                        {
+                            _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Remove OnConnectionReceived.");
+                            sender.MessageReceived -= urlReceiver.OnConnectionReceived;
+                            urlReceiver = null;
+                        }
+                        catch
+                        {
+                            _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception.");
+                        }
+                    }
+
                     try
                     {
-                        _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Remove OnConnectionReceived.");
-                        sender.MessageReceived -= urlReceiver.OnConnectionReceived;
-                        urlReceiver = null;
+                        _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Removed OnConnectionClosed.");
+                        sender.Closed -= OnConnectionClosed;
                     }
                     catch
                     {
-                        _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception.");
+                        _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception(2).");
                     }
-                }
 
-                try
-                {
-                    _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Removed OnConnectionClosed.");
-                    sender.Closed -= OnConnectionClosed;
-                }
-                catch
-                {
-                    _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception(2).");
-                }
-
-                try
-                {
-                    _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Remove OnConnectionError.");
-                    sender.Error -= OnConnectionError;
-                }
-                catch
-                {
-                    _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception(3).");
-                }
-
-                try
-                {
-                    _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Remove OnConnectionOpened.");
-                    sender.Opened -= OnConnectionOpened;
-                }
-                catch
-                {
-                    _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception(4).");
-                }
-
-                try
-                {
-                    _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Close Sender.");
-                    sender.Close();
-                }
-                catch
-                {
-                    _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception(5).");
-                }
-
-                try
-                {
-                    _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Set pushConnected and _serviceStarted false.");
-                    _pushConnected = false;
-                    _serviceStarted = false;
-                    if (_connection != null
-                        && _connection == sender)
-                    {
-                        _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Set _connection null.");
-                        _connection = null;
-                    }
-                }
-                catch
-                {
-                    _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception(6).");
-                }
-
-                if (doNotRestart)
-                {
-                    _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: doNotRestart (FallbackToManualPolling)");
-
-                    ThreadPool.UnsafeQueueUserWorkItem(FallbackToManualPolling, this);
-                }
-                else
-                {
                     try
                     {
-                        _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Attempt restart.  Call ConnectPushNotificationServer.");
-                        ConnectPushNotificationServer();
+                        _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Remove OnConnectionError.");
+                        sender.Error -= OnConnectionError;
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        CLError error = ex;
-                        error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                        _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR. Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                        _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception(3).");
+                    }
+
+                    try
+                    {
+                        _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Remove OnConnectionOpened.");
+                        sender.Opened -= OnConnectionOpened;
+                    }
+                    catch
+                    {
+                        _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception(4).");
+                    }
+
+                    try
+                    {
+                        _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Close Sender.");
+                        sender.Close();
+                    }
+                    catch
+                    {
+                        _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception(5).");
+                    }
+
+                    try
+                    {
+                        _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Set pushConnected and _serviceStarted false.");
+                        _pushConnected = false;
+                        _serviceStarted = false;
+                        if (_connection != null
+                            && _connection == sender)
+                        {
+                            _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Set _connection null.");
+                            _connection = null;
+                        }
+                    }
+                    catch
+                    {
+                        _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR: Exception(6).");
+                    }
+
+                    if (doNotRestart)
+                    {
+                        _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: doNotRestart (FallbackToManualPolling)");
 
                         ThreadPool.UnsafeQueueUserWorkItem(FallbackToManualPolling, this);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            _trace.writeToLog(9, "CLNotification: CleanWebSocketAndRestart: Attempt restart.  Call ConnectPushNotificationServer.");
+                            ConnectPushNotificationServer();
+                        }
+                        catch (Exception ex)
+                        {
+                            CLError error = ex;
+                            error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                            _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR. Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+
+                            ThreadPool.UnsafeQueueUserWorkItem(FallbackToManualPolling, this);
+                        }
                     }
                 }
             }
@@ -648,7 +664,7 @@ namespace CloudApiPublic.PushNotification
                         if (_connection != null)
                         {
                             _trace.writeToLog(9, "CLNotification: DisconnectPushNotificationServer: Call CleanWebSocketAndRestart.");
-                            CleanWebSocketAndRestart(_connection, true);
+                            CleanWebSocketAndRestart(_connection, doNotRestart: true);
                             _trace.writeToLog(1, "CLNotification: DisconnectPushNotificationServer: After call to CleanWebSocketAndRestart.");
                         }
                     }
@@ -668,7 +684,11 @@ namespace CloudApiPublic.PushNotification
             {
                 NotificationClientsRunning.Remove(_syncSettings.SyncBoxId);
             }
-            _isInitialized = false;
+
+            lock (this)
+            {
+                _isInitialized = false;
+            }
         }
     }
 }

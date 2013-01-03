@@ -81,13 +81,18 @@ namespace CloudSdkSyncSample.Views
             // Unregister for messages
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Unloaded: Entry.");
             MessageSender.Instance.NotifySyncStatusWindowShouldClose -= OnNotifySyncStatusWindowShouldClose;
+
+            // Unload the event receiver
+            if (_vm != null)
+            {
+                _vm.Dispose();
+                _vm = null;
+            }
         }
 
         void WindowSyncStatus_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Closing: Entry.");
         }
-
-
     }
 }

@@ -136,16 +136,12 @@ namespace CloudApiPublic.BadgeNET
         /// <summary>
         /// Start a thread which will subscribe to BadgeCom_Initialization events.  
         /// </summary>
-        public void SubscribeToBadgeComInitializationEvents()
+        /// <returns>bool: true: Successfully subscribed.</returns>
+        public bool SubscribeToBadgeComInitializationEvents()
         {
+            bool fIsStartedOk = false;
             try
             {
-                // Don't bother if not initialized.
-                if (!_fIsInitialized)
-                {
-                    return;
-                }
-
                 // Start the subscribing thread.
                 _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribeToBadgeComInitializationEvents: Entry.");
                 bool startedOk = StartSubscribingThread();
@@ -153,6 +149,7 @@ namespace CloudApiPublic.BadgeNET
                 if (startedOk)
                 {
                     StartWatchingThread();
+                    fIsStartedOk = true;
                 }
                 else
                 {
@@ -165,6 +162,8 @@ namespace CloudApiPublic.BadgeNET
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribeToBadgeComInitializationEvents: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
+
+            return fIsStartedOk;
         }
 
         #endregion
