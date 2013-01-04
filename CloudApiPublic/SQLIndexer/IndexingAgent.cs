@@ -2316,7 +2316,7 @@ namespace CloudApiPublic.SQLIndexer
                 foreach (FileChange possibleDeletion in possibleDeletions)
                 {
                     bool foundDeletedParent = false;
-                    FilePath levelToCheck = possibleDeletion.NewPath;
+                    FilePath levelToCheck = possibleDeletion.NewPath.Parent;
                     while (levelToCheck.Contains(baseComparePath))
                     {
                         GenericHolder<bool> parentDeletion;

@@ -23,7 +23,10 @@ namespace CloudApiPublic.Model
         public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
         public const int AppVersion = 0;
 
-        public const int ManualPollingIterationsBeforeConnectingPush = 10;
+
+        //TODO: Change this value back to 10 when server side events or Websockets are properly implemented.
+        //public const int ManualPollingIterationsBeforeConnectingPush = 10;
+        public const int ManualPollingIterationsBeforeConnectingPush = int.MaxValue;
         public const double ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
         public const int PushNotificationFaultLimitBeforeFallback = 5;
 #if PRODUCTION_BACKEND
@@ -71,7 +74,11 @@ namespace CloudApiPublic.Model
         public const string CLMetaDataServerURL = HttpPrefix + @"mds.cliff.cloudburrito.com";
 
         // Notifications
-        public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com";
+        //TODO: For now, WebSockets is not supported because of a problem on the server side. 
+        // We have changed the URL below to an invalid address to force a failover to manual
+        // polling until we have implemented server side events.
+        //public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com";
+        public const string CLNotificationServerURL = @"ws://xxxxxxxx.cloudburrito.com";
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";

@@ -572,10 +572,14 @@ namespace CloudSdkSyncSample.ViewModels
                 // Launch the process
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.CreateNoWindow = true;
-                startInfo.UseShellExecute = false;
+                startInfo.UseShellExecute = true;
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
+                if (System.Environment.OSVersion.Version.Major >= 6)
+                {
+                    startInfo.Verb = "runas";
+                }
                 _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run regsvr32. Program: {0}. Arguments: {1}.", commandProgram, commandArguments);
                 regsvr32Process = Process.Start(startInfo);
 
@@ -656,10 +660,14 @@ namespace CloudSdkSyncSample.ViewModels
                 // Launch the process
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.CreateNoWindow = true;
-                startInfo.UseShellExecute = false;
+                startInfo.UseShellExecute = true;
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
+                if (System.Environment.OSVersion.Version.Major >= 6)
+                {
+                    startInfo.Verb = "runas";
+                }
                 regsvr32Process = Process.Start(startInfo);
 
                 // Wait for the process to exit
@@ -781,7 +789,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_syncBox != null)
                 {
-                    CLSync.PermanentShutdownHttpSchedulers();
+                    CLSync.ShutdownSchedulers();
                     _syncStarted = false;
                     _syncBox.Stop();
                     _syncBox = null;

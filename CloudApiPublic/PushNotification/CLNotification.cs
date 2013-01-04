@@ -70,7 +70,9 @@ namespace CloudApiPublic.PushNotification
         /// </summary>
         private static readonly Dictionary<string, CLNotification> NotificationClientsRunning = new Dictionary<string, CLNotification>();
 
-        private const int MillisecondManualPollingInterval = 20000;
+        //TODO: Change this polling interval back to 20 seconds when server side events and/or WebSockets have been implemented.
+        //private const int MillisecondManualPollingInterval = 20000;
+        private const int MillisecondManualPollingInterval = 2000;
 
         /// <summary>
         /// Access Instance to get the push notification server object for this client.
@@ -155,7 +157,7 @@ namespace CloudApiPublic.PushNotification
                 try
                 {
                     string url = CLDefinitions.CLNotificationServerURL;
-                    string pathAndQueryStringAndFragment = String.Format("/1/sync/subscribe?sync_box_id={0}&device={1}", _syncSettings.SyncBoxId, _syncSettings.Udid);
+                    string pathAndQueryStringAndFragment = String.Format("/1/sync/subscribe?sync_box_id={0}&device={1}&sender={2}", _syncSettings.SyncBoxId, _syncSettings.Udid, _syncSettings.Udid);
                     _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>. QueryString: {1}.", url, pathAndQueryStringAndFragment);
 
                     //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on _syncSettings.TraceExcludeAuthorization !!
@@ -176,6 +178,7 @@ namespace CloudApiPublic.PushNotification
                     string webSocketOpenStatus = "Entered action to open WebSocket";
                     lock (this)
                     {
+                        _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Allocate WebSocket.");
                         _connection = new WebSocket(
                                     uri: url + pathAndQueryStringAndFragment,
                                     subProtocol: null,
@@ -210,6 +213,7 @@ namespace CloudApiPublic.PushNotification
                                 webSocketOpenStatus = "Attached connection closed handler";
                                 try
                                 {
+                                    _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Allocate MessageReceiver.");
                                     urlReceiver = new MessageReceiver(url, _syncSettings, (sender, e) =>
                                     {
                                         if (NotificationReceived != null)
@@ -222,30 +226,36 @@ namespace CloudApiPublic.PushNotification
                                     webSocketOpenStatus = "Attached connection received handler";
                                     try
                                     {
+                                        _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Open the connection.");
                                         _connection.Open();
                                         _pushConnected = true;
                                         _serviceStarted = true;
+                                        _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Connection opened.");
                                     }
                                     catch
                                     {
+                                        _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: ERROR. Exception on connection open.");
                                         _connection.MessageReceived -= urlReceiver.OnConnectionReceived;
                                         throw;
                                     }
                                 }
                                 catch
                                 {
+                                    _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: ERROR. Exception allocation MessageReceiver.");
                                     _connection.Closed -= OnConnectionClosed;
                                     throw;
                                 }
                             }
                             catch
                             {
+                                _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: ERROR. Exception subscribing to ConnectionClosed.");
                                 _connection.Error -= OnConnectionError;
                                 throw;
                             }
                         }
                         catch (Exception ex)
                         {
+                            _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: ERROR. Exception subscribing to ConnectionError.");
                             _connection.Opened -= OnConnectionOpened;
                             try
                             {
@@ -253,6 +263,7 @@ namespace CloudApiPublic.PushNotification
                             }
                             catch
                             {
+                                _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: ERROR. Exception from connection Close.");
                             }
                             _connection = null;
                             throw new AggregateException("Error creating and opening WebSocket with last successful state: " + webSocketOpenStatus, ex);
@@ -277,6 +288,7 @@ namespace CloudApiPublic.PushNotification
 
             lock (this)
             {
+                _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Mark _isInitialized.");
                 _isInitialized = true;
             }
         }

@@ -80,7 +80,7 @@ namespace win_client.Services.Badging
                 //// HttpScheduler was made internal, this call is now available statically in CLSync
                 //HttpScheduler.DisposeBothSchedulers();
 
-                CloudApiPublic.CLSync.PermanentShutdownHttpSchedulers();
+                CloudApiPublic.CLSync.ShutdownSchedulers();
             }
             catch (Exception ex)
             {

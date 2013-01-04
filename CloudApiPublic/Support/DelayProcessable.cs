@@ -28,7 +28,7 @@ namespace CloudApiPublic.Support
         /// When locked on the container instance (that was passed in as DelayCompletedLocker parameter on construction),
         /// this boolean can be used to tell if the delay has completed (and processing has begun)
         /// </summary>
-        public bool DelayCompleted { get; private set; }
+        internal bool DelayCompleted { get; private set; }
         #endregion
 
         #region private fields
@@ -77,7 +77,7 @@ namespace CloudApiPublic.Support
         /// <summary>
         /// ¡¡ Must restart application after running this before processing can run again !!
         /// </summary>
-        public static void TerminateAllProcessing()
+        internal static void TerminateAllProcessing()
         {
             ProcessTerminationLocker.EnterWriteLock();
             try
@@ -99,7 +99,7 @@ namespace CloudApiPublic.Support
         /// <param name="userstate">Optional userstate passed upon processing the action</param>
         /// <param name="millisecondWait">Wait time in milliseconds before action is processed</param>
         /// <param name="maxDelays">Maximum times processing can be delayed before it processes anyways</param>
-        public void ProcessAfterDelay(Action<T, object, int> toProcess, object userstate, int millisecondWait, int maxDelays, Action<CLError, T, object, int> errorHandler = null)
+        internal void ProcessAfterDelay(Action<T, object, int> toProcess, object userstate, int millisecondWait, int maxDelays, Action<CLError, T, object, int> errorHandler = null)
         {
             // Throw error when object is not processable
             if (!IsProcessable)
@@ -165,7 +165,7 @@ namespace CloudApiPublic.Support
         /// Resets the delay on an action that was previous timer-delayed to fire,
         /// must be called after the action has been set for processing
         /// </summary>
-        public void SetDelayBackToInitialValue()
+        internal void SetDelayBackToInitialValue()
         {
             // Throw error when object is not processable
             if (!IsProcessable)
@@ -227,7 +227,7 @@ namespace CloudApiPublic.Support
         /// </summary>
         /// <param name="toEnqueue">Action to run on preprocessing</param>
         /// <returns>Returns true if action is accepted for preprocessing, otherwise false means action will not be run</returns>
-        public bool EnqueuePreprocessingAction(Action<T> toEnqueue, Action<CLError, T> errorHandler = null)
+        internal bool EnqueuePreprocessingAction(Action<T> toEnqueue, Action<CLError, T> errorHandler = null)
         {
             if (toEnqueue == null)
             {

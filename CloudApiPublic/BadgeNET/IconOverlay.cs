@@ -155,7 +155,7 @@ namespace CloudApiPublic.BadgeNET
                         {
                             CLError error = ex;
                             error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>.", ex.Message);
 
                             if (castState != null)
                             {
@@ -184,7 +184,7 @@ namespace CloudApiPublic.BadgeNET
                         {
                             CLError error = ex;
                             error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>.", ex.Message);
                         }
                         _trace.writeToLog(9, "IconOverlay: threadInit: Exit thread.");
                     }));
@@ -318,7 +318,7 @@ namespace CloudApiPublic.BadgeNET
                     {
                         CLError error = ex;
                         error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                        _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR: threadRestart exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                        _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR: threadRestart exception: Msg: <{0}>.", ex.Message);
                         isInitialized = false;
                     }
                 }));
@@ -334,7 +334,7 @@ namespace CloudApiPublic.BadgeNET
             {
                 CLError error = ex;
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 isInitialized = false;
             }
         }

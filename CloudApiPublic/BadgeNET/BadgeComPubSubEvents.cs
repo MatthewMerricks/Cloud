@@ -40,7 +40,7 @@ namespace CloudApiPublic.BadgeNET
         private const int _knTimeBetweenWatchingThreadChecksMs = 20000;             // time between checks on the subscribing thread
         private const int _knShortRetries = 5;										// number of retries when giving up short amounts of CPU
         private const int _knShortRetrySleepMs = 50;								// time to wait when giving up short amounts of CPU
-        private const int _knWaitForSubscriberThreadToStartSleepMs = 5000;			// time to wait for the Subscriber thread to start.
+        private const int _knWaitForSubscriberThreadToStartSleepMs = 60000;			// time to wait for the Subscriber thread to start.
         private Guid _guidSubscriber;
         private Thread _threadSubscribing = null;
         private Thread _threadWatching = null;
@@ -178,14 +178,14 @@ namespace CloudApiPublic.BadgeNET
             try
             {
                 // Don't bother if not initialized.
+                _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Entry.");
                 if (!_fIsInitialized)
                 {
+                    _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: Not initialized.");
                     return;
                 }
 
                 bool fSemaphoreReleased = false;
-
-                _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Entry.");
 
                 // Loop waiting for events.
                 while (true)
@@ -200,6 +200,7 @@ namespace CloudApiPublic.BadgeNET
                     EnumEventSubType outEventSubType;
                     EnumCloudAppIconBadgeType outBadgeType;
                     string outFullPath;
+                    _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Call Subscribe.");
                     EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscriber, _knSubscriptionTimeoutMs,
                                  out outEventSubType, out outBadgeType, out outFullPath);
                     if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_GOT_EVENT)
@@ -517,8 +518,8 @@ namespace CloudApiPublic.BadgeNET
             try
             {
                 // The subscription should complete before the watching thread starts
-                _semWaitForSubscriptionThreadStart = new Semaphore(0, 1);
-                _semWatcher = new Semaphore(0, 1);
+                _semWaitForSubscriptionThreadStart = new Semaphore(initialCount: 0, maximumCount: 1);
+                _semWatcher = new Semaphore(initialCount: 0, maximumCount: 1);
 
                 lock (_locker)
                 {
