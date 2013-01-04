@@ -31,6 +31,7 @@ managed_windows_shared_memory *CPubSubServer::_pSegment = NULL;						// pointer 
 STDMETHODIMP CPubSubServer::Initialize()
 {
     HRESULT result = S_OK;
+    char *pszExceptionStateTracker = "Start";
 
     try
     {
@@ -38,13 +39,17 @@ STDMETHODIMP CPubSubServer::Initialize()
 		if (_pSegment == NULL)
 		{
 			void *shm_base = 0;
+            pszExceptionStateTracker = "Call open_or_create";
             _pSegment = new managed_windows_shared_memory(open_or_create, GetSharedMemoryNameWithVersion().c_str(), 1024000, shm_base);
+            pszExceptionStateTracker = "Call get_segment_manager";
 			segment_manager_t *segm = _pSegment->get_segment_manager();
+            pszExceptionStateTracker = "Call get_address";
 			shm_base = _pSegment->get_address();
 			CLTRACE(9, "PubSubServer: Initialize: shm_base: %x.", shm_base);
 			bool fIsSane = segm->check_sanity();
 			if (!fIsSane)
 			{
+                pszExceptionStateTracker = "Throw";
 				throw new std::exception("ERROR: Shared memory segment is corrupted.");
 			}
 		}
@@ -52,12 +57,12 @@ STDMETHODIMP CPubSubServer::Initialize()
     }
     catch (std::exception &ex)
     {
-		CLTRACE(1, "PubSubServer: Initialize: ERROR: Exception.  Message: %s.", ex.what());
+		CLTRACE(1, "PubSubServer: Initialize: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         result = E_FAIL;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: Initialize: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: Initialize: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
         result = E_FAIL;
     }
 
@@ -77,6 +82,7 @@ STDMETHODIMP CPubSubServer::Initialize()
 STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType EventSubType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, EnumPubSubServerPublishReturnCodes *returnValue)
 {
     EnumPubSubServerPublishReturnCodes nResult = RC_PUBLISH_OK;                // assume no error
+    char *pszExceptionStateTracker = "Start";
 
     try
     {
@@ -95,9 +101,11 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 
         // Open the shared memory segment, or create it if it is not there.  This is atomic.
         // An allocator convertible to any allocator<T, segment_manager_t> type.
+        pszExceptionStateTracker = "Call alloc_inst";
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
+        pszExceptionStateTracker = "Call find_or_construct";
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 
 		// We want to add this event to the queue for each of the scriptions waiting for this event type, but
@@ -115,6 +123,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		try
 		{
 			// Locate the inner map for this event type.
+            pszExceptionStateTracker = "Locate inner map";
 			eventtype_map_guid_subscription_map::iterator itMapOuter = pBase->subscriptions_.find(EventType);
 			if (itMapOuter != pBase->subscriptions_.end())
 			{
@@ -130,18 +139,19 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		}
 		catch (std::exception &ex)
 		{
-			CLTRACE(1, "PubSubServer: Publish: ERROR: Exception(lock).  Message: %s.", ex.what());
+			CLTRACE(1, "PubSubServer: Publish: ERROR: Exception(lock).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
             nResult = RC_PUBLISH_ERROR;
 		}
         catch (...)
         {
-		    CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception(lock).");
+		    CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception(lock). Tracker: %s.", pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
             nResult = RC_PUBLISH_ERROR;
         }
 
 		// Now iterate through the subscribers attempting to deliver the event to each.
+        pszExceptionStateTracker = "Iterate thru subscribers";
 		for (std::vector<GUID>::iterator itGuid = subscribers.begin(); itGuid != subscribers.end(); ++itGuid)
 		{
 			for (int nRetry = 0; nRetry < _knShortRetries; ++nRetry)
@@ -157,6 +167,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 					eventtype_map_guid_subscription_map::iterator outItEventType;
 					guid_subscription_map::iterator outItSubscription;
 					offset_ptr<Subscription> outOptrFoundSubscription;
+                    pszExceptionStateTracker = "Call FindSubscription";
 					bool fFoundSubscription = FindSubscription(EventType, *itGuid, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
 					if (fFoundSubscription)
 					{
@@ -197,13 +208,13 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 				}
 				catch (std::exception &ex)
 				{
-					CLTRACE(1, "PubSubServer: Publish: ERROR: Exception(lock, 2).  Message: %s.", ex.what());
+					CLTRACE(1, "PubSubServer: Publish: ERROR: Exception(lock, 2).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 					pBase->mutexSharedMemory_.unlock();
                     nResult = RC_PUBLISH_ERROR;
 				}
                 catch (...)
                 {
-		            CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception(lock, 2).");
+		            CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception(lock, 2). Tracker: %s.", pszExceptionStateTracker);
 					pBase->mutexSharedMemory_.unlock();
                     nResult = RC_PUBLISH_ERROR;
                 }
@@ -221,12 +232,12 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
     }
     catch(std::exception &ex)
     {
-		CLTRACE(1, "PubSubServer: Publish: ERROR: Exception.  Message: %s.", ex.what());
+		CLTRACE(1, "PubSubServer: Publish: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         nResult = RC_PUBLISH_ERROR;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
         nResult = RC_PUBLISH_ERROR;
     }
 
@@ -251,6 +262,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
             EnumPubSubServerSubscribeReturnCodes *returnValue)
 {
     EnumPubSubServerSubscribeReturnCodes nResult;
+    char *pszExceptionStateTracker = "Start";
 
     try
     {
@@ -273,11 +285,13 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
         // An allocator convertible to any allocator<T, segment_manager_t> type.
 	    CLTRACE(9, "PubSubServer: Subscribe: Call get_segment_manager. _pSegment: %x.", _pSegment);
+        pszExceptionStateTracker = "Call get_segment_manager";
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 	    CLTRACE(9, "PubSubServer: Subscribe: After call to get_segment_manager.");
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
 	    CLTRACE(9, "PubSubServer: Subscribe: Call find_or_construct.  _pSegment: %x.", _pSegment);
+        pszExceptionStateTracker = "Call find_or_construct";
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 	    CLTRACE(9, "PubSubServer: Subscribe: After call to find_or_construct. pBase: %x.", pBase);
 
@@ -289,11 +303,13 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			eventtype_map_guid_subscription_map::iterator outItEventType;
 			guid_subscription_map::iterator outItSubscription;
 			offset_ptr<Subscription> outOptrFoundSubscription;
+            pszExceptionStateTracker = "Call FindSubscription";
 			fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
 			if (fSubscriptionFound)
 			{
 				// Found our subscription.  Make sure that it has not been previously cancelled.  If so, remove the subscription.
 				CLTRACE(9, "PubSubServer: Subscribe: Found our subscription.");
+                pszExceptionStateTracker = "Subscription found";
 				if (outOptrFoundSubscription->fCancelled_)
 				{
 					CLTRACE(9, "PubSubServer: Subscribe: Warning: Already cancelled.  Erase the subscription.");
@@ -329,11 +345,13 @@ STDMETHODIMP CPubSubServer::Subscribe(
 				// Our specific subscription was not found.  We will need to add it.
 				// First, locate the event type element in the outer map<EventType, map<GUID, Subscription>>.  The record may not be there.
 				CLTRACE(9, "PubSubServer: Subscribe: Our specific subscription was not found.");
+                pszExceptionStateTracker = "Subscription not found";
 				eventtype_map_guid_subscription_map::iterator itMapOuter = pBase->subscriptions_.find(EventType);
 				if (itMapOuter != pBase->subscriptions_.end())
 				{
 					// The event type record was found in the outer map.  Add a pair_guid_subscription record to the inner map.
 					CLTRACE(9, "PubSubServer: Subscribe: The EventType record was found in the outer map.  Construct an inner map pair_guid_subscription and add it to the inner map.");
+                    pszExceptionStateTracker = "Add an inner map";
 					std::pair<guid_subscription_map::iterator, bool> retvalEmplace;
 					retvalEmplace = itMapOuter->second.emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, alloc_inst)));
 					retvalEmplace.first->second.fWaiting_ = true;
@@ -343,6 +361,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 				{
 					// The event type was not found in the outer map.  Construct an inner map<GUID, Subscription> and add it to the outer map.
 					CLTRACE(9, "PubSubServer: Subscribe: The EventType record was not found in the outer map.  Construct and add it.");
+                    pszExceptionStateTracker = "Construct an inner map";
 					std::pair<guid_subscription_map::iterator, bool> retvalEmplace;
 					guid_subscription_map *mapGuidSubscription = _pSegment->construct<guid_subscription_map>(anonymous_instance)(_knInnerMapBuckets, boost::hash<GUID>(), std::equal_to<GUID>(), alloc_inst);
 					if (mapGuidSubscription == NULL)
@@ -383,24 +402,26 @@ STDMETHODIMP CPubSubServer::Subscribe(
 		}
 		catch (std::exception &ex)
 		{
-			CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock, 3).  Message: %s.", ex.what());
+			CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock, 3).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
             nResult = RC_SUBSCRIBE_ERROR;
 		}
         catch (...)
         {
-		    CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception(lock, 3).");
+		    CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception(lock, 3). Tracker: %s.", pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
             nResult = RC_SUBSCRIBE_ERROR;
         }
 
         // Wait if we should.
+        pszExceptionStateTracker = "Wait";
         if (fWaitRequired)
         {
             if (TimeoutMilliseconds != 0)
             {
                 // Wait for a matching event to arrive.  Use a timed wait.
 				CLTRACE(9, "PubSubServer: Subscribe: Wait with timeout. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore local addr: %x.", processId, threadId, CComBSTR(guidSubscriber), pFoundSemaphore);
+                pszExceptionStateTracker = "Call timed_wait";
                 boost::posix_time::ptime tNow(boost::posix_time::microsec_clock::universal_time());
                 bool fDidNotTimeOut = pFoundSemaphore->timed_wait(tNow + boost::posix_time::milliseconds(TimeoutMilliseconds));
                 if (fDidNotTimeOut)
@@ -418,12 +439,14 @@ STDMETHODIMP CPubSubServer::Subscribe(
             {
                 // Wait forever for a matching event to arrive.
 				CLTRACE(9, "PubSubServer: Subscribe: Wait forever for an event to arrive. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore addr: %x.", processId, threadId, CComBSTR(guidSubscriber), pFoundSemaphore);
+                pszExceptionStateTracker = "Call wait";
                 pFoundSemaphore->wait();
 				CLTRACE(9, "PubSubServer: Subscribe: Got an event or posted by a cancel(2).  Return code 'try again'.");
                 nResult = RC_SUBSCRIBE_TRY_AGAIN;
             }
 
             // Dropped out of the wait.  Lock again.
+            pszExceptionStateTracker = "Lock";
       	    pBase->mutexSharedMemory_.lock();
 			try
 			{
@@ -431,6 +454,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 				eventtype_map_guid_subscription_map::iterator outItEventType;
 				guid_subscription_map::iterator outItSubscription;
 				offset_ptr<Subscription> outOptrFoundSubscription;
+                pszExceptionStateTracker = "Call FindSubscription2";
 				fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
 				if (fSubscriptionFound)
 				{
@@ -458,13 +482,13 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			}
 			catch (std::exception &ex)
 			{
-				CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock, 4).  Message: %s.", ex.what());
+				CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock, 4).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
                 nResult = RC_SUBSCRIBE_ERROR;
 			}
             catch (...)
             {
-		        CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception(lock, 4).");
+		        CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception(lock, 4). Tracker: %s.", pszExceptionStateTracker);
 			    pBase->mutexSharedMemory_.unlock();
                 nResult = RC_SUBSCRIBE_ERROR;
             }
@@ -472,12 +496,12 @@ STDMETHODIMP CPubSubServer::Subscribe(
     }
     catch (std::exception &ex)
     {
-		CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception.  Message: %s.", ex.what());
+		CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         nResult = RC_SUBSCRIBE_ERROR;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
         nResult = RC_SUBSCRIBE_ERROR;
     }
 
@@ -491,6 +515,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue)
 {
     EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes nResult = RC_CANCELBYPROCESSID_NOT_FOUND;
+    char *pszExceptionStateTracker = "Start";
 
     try
     {
@@ -505,9 +530,11 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 	    std::vector<UniqueSubscription> subscriptionIdsForProcess;		// list of subscriptions belonging to this process
 
         // An allocator convertible to any allocator<T, segment_manager_t> type.
+        pszExceptionStateTracker = "Call alloc_inst";
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
+        pszExceptionStateTracker = "Call find_or_construct";
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 
 		// Loop until we don't find any subscriptions for this process
@@ -516,6 +543,7 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 			pBase->mutexSharedMemory_.lock();
 			try
 			{
+                pszExceptionStateTracker = "Call clear";
 				subscriptionIdsForProcess.clear();
 
 				// Look for any subscriptions belonging to this process.  Build up a local list of the subscriptions that we will cancel.
@@ -554,6 +582,7 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
             }
 
 			// We are done if there are no subscriptions to cancel
+            pszExceptionStateTracker = "Subscriptions gathered";
 			if (subscriptionIdsForProcess.size() <= 0)
 			{
 				break;
@@ -581,12 +610,12 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
     }
     catch (std::exception &ex)
     {
-		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Exception.  Message: %s.", ex.what());
+		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         nResult = RC_CANCELBYPROCESSID_ERROR;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
         nResult = RC_CANCELBYPROCESSID_ERROR;
     }
 
@@ -600,6 +629,7 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, GUID guidSubscriber, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue)
 {
     EnumPubSubServerCancelWaitingSubscriptionReturnCodes nResult;
+    char *pszExceptionStateTracker = "Start";
 
     try
     {
@@ -613,9 +643,11 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
         Base *pBase = NULL;
 
         // An allocator convertible to any allocator<T, segment_manager_t> type.
+        pszExceptionStateTracker = "Call alloc_inst";
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
+        pszExceptionStateTracker = "Call find_or_construct";
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 
 	    pBase->mutexSharedMemory_.lock();
@@ -625,6 +657,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 			eventtype_map_guid_subscription_map::iterator outItEventType;
 			guid_subscription_map::iterator outItSubscription;
 			offset_ptr<Subscription> outOptrFoundSubscription;
+            pszExceptionStateTracker = "Call FindSubscription";
 			bool fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
 			if (fSubscriptionFound)
 			{
@@ -648,6 +681,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 					pBase->mutexSharedMemory_.lock();
 
 					// We released the lock.  The subscription might have moved.  Locate it again.
+                    pszExceptionStateTracker = "Call FindSubscription2";
 					fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
 					if (fSubscriptionFound)
 					{
@@ -710,25 +744,25 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 		}
 		catch (std::exception &ex)
 		{
-			CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Exception(lock).  Message: %s.", ex.what());
+			CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Exception(lock).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
 			nResult = RC_CANCEL_ERROR;
 		}
         catch (...)
         {
-		    CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Bad exception(lock).");
+		    CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Bad exception(lock). Tracker: %s.", pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
 			nResult = RC_CANCEL_ERROR;
         }
     }
     catch (std::exception &ex)
     {
-		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Exception.  Message: %s.", ex.what());
+		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         nResult = RC_CANCEL_ERROR;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
         nResult = RC_CANCEL_ERROR;
     }
 
@@ -913,6 +947,7 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
 /// </summary>
 STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnusedResourcesReturnCodes *returnValue)
 {
+    char *pszExceptionStateTracker = "Start";
 	try
 	{
 	    if (_pSegment == NULL || returnValue == NULL)
@@ -929,9 +964,11 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 		if (_pSegment != NULL)
 		{
 			// An allocator convertible to any allocator<T, segment_manager_t> type.
+            pszExceptionStateTracker = "Call alloc_inst";
 			void_allocator alloc_inst(_pSegment->get_segment_manager());
 
 			// Construct the shared memory Base image and initiliaze it.  This is atomic.
+            pszExceptionStateTracker = "Call find_or_construct";
 	        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 
 			pBase->mutexSharedMemory_.lock();
@@ -978,13 +1015,13 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 			}
 			catch (std::exception &ex)
 			{
-				CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Exception(lock).  Message: %s.", ex.what());
+				CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Exception(lock).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
                 *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
 			}
             catch (...)
             {
-		        CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Bad exception(lock).");
+		        CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Bad exception(lock). Tracker: %s.", pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
                 *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
             }
@@ -993,12 +1030,12 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 	}
 	catch (std::exception &ex)
 	{
-		CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Exception.  Message: %s.", ex.what());
+		CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
 	}
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
         *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
     }
 
@@ -1011,6 +1048,7 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 /// </summary>
 STDMETHODIMP CPubSubServer::Terminate()
 {
+    char *pszExceptionStateTracker = "Start";
 	try
 	{
 	    // Remove any subscriptions owned by this instance
@@ -1020,15 +1058,18 @@ STDMETHODIMP CPubSubServer::Terminate()
 		if (_pSegment != NULL)
 		{
 			// An allocator convertible to any allocator<T, segment_manager_t> type.
+            pszExceptionStateTracker = "Call alloc_inst";
 			void_allocator alloc_inst(_pSegment->get_segment_manager());
 
 			// Construct the shared memory Base image and initiliaze it.  This is atomic.
+            pszExceptionStateTracker = "Call find_or_construct";
 	        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
 
 			pBase->mutexSharedMemory_.lock();
 			try
 			{
 				// Delete all of the subscriptions made by this instance.
+                pszExceptionStateTracker = "Delete subscriptions";
 				for (std::vector<UniqueSubscription>::iterator it = _trackedSubscriptionIds.begin(); it != _trackedSubscriptionIds.end(); ++it)
 				{
 					CLTRACE(9, "PubSubServer: Terminate: Call DeleteSubscriptionById.");
@@ -1056,12 +1097,12 @@ STDMETHODIMP CPubSubServer::Terminate()
 			}
 			catch (std::exception &ex)
 			{
-				CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception(lock).  Message: %s.", ex.what());
+				CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception(lock).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
 			}
             catch (...)
             {
-		        CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception(lock).");
+		        CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception(lock). Tracker: %s.", pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
             }
 
@@ -1069,14 +1110,15 @@ STDMETHODIMP CPubSubServer::Terminate()
 	}
 	catch (std::exception &ex)
 	{
-		CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception.  Message: %s.", ex.what());
+		CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 	}
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
     }
 
 	// Release the shared memory segment if all instances are finished with it.
+    pszExceptionStateTracker = "Release segment";
     try
     {
 		if (_pSegment != NULL)
@@ -1087,11 +1129,11 @@ STDMETHODIMP CPubSubServer::Terminate()
     }
     catch (std::exception &ex)
     {
-		CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception(2).  Message: %s.", ex.what());
+		CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception(2).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception(2).");
+		CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception(2). Tracker: %s.", pszExceptionStateTracker);
     }
 
 	CLTRACE(9, "PubSubServer: Terminate: Exit.");

@@ -55,7 +55,7 @@ public:
     // Methods
 	void Initialize();
     void PublishEventToBadgeNet(EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, BSTR *fullPath);
-    void SubscribeToBadgeNetEvents();
+    bool SubscribeToBadgeNetEvents();
     static void SubscribingThreadProc(LPVOID pUserState);
     static void WatchingThreadProc(LPVOID pUserState);
     static void CBadgeNetPubSubEvents::HandleWatchingThreadException(CBadgeNetPubSubEvents *pThis);

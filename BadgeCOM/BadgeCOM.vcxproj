@@ -219,7 +219,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <UseOfAtl>Dynamic</UseOfAtl>
+    <UseOfAtl>Static</UseOfAtl>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
@@ -292,7 +292,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <UseOfAtl>Dynamic</UseOfAtl>
+    <UseOfAtl>Static</UseOfAtl>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
@@ -896,6 +896,7 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(Pl
       <PreprocessorDefinitions>X86;WIN32;_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)3rdParty\src\Boost_1_52</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -929,10 +930,23 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(Pl
     </Link>
     <PostBuildEvent>
       <Command>copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
+if errorlevel 1 goto BuildEventFailed
 tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
+if errorlevel 1 goto BuildEventFailed
 copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
+if errorlevel 1 goto BuildEventFailed
 copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
+if errorlevel 1 goto BuildEventFailed
 copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb
+if errorlevel 1 goto BuildEventFailed
+REM Exit properly because the build will not fail
+REM unless the final step exits with an error code
+goto BuildEventOK
+:BuildEventFailed
+echo POSTBUILDSTEP for $(ProjectName) FAILED
+exit 1
+:BuildEventOK
+echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -1280,7 +1294,7 @@ tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configurati
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)3rdParty\src\Boost_1_52</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>

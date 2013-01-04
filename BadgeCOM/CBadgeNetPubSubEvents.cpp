@@ -191,8 +191,10 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, Enum
 /// <summary>
 /// Start a thread which will subscribe to events from BadgeNet.  
 /// </summary>
-void CBadgeNetPubSubEvents::SubscribeToBadgeNetEvents()
+/// <returns>bool: true is success</returns>
+bool CBadgeNetPubSubEvents::SubscribeToBadgeNetEvents()
 {
+    bool fIsStartedOk = false;
 	try
 	{
 		// Start the threads.
@@ -201,6 +203,7 @@ void CBadgeNetPubSubEvents::SubscribeToBadgeNetEvents()
 		if (startedOk)
 		{
 			StartWatchingThread();
+            fIsStartedOk = true;
 		}
 		else
 		{
@@ -215,6 +218,8 @@ void CBadgeNetPubSubEvents::SubscribeToBadgeNetEvents()
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: ERROR: Bad exception.");
     }
+
+    return fIsStartedOk;
 }
 
 /// <summary>

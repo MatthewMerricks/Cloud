@@ -940,8 +940,20 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(T
     </Link>
     <PostBuildEvent>
       <Command>copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
+if errorlevel 1 goto BuildEventFailed
 tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
+if errorlevel 1 goto BuildEventFailed
 copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
+if errorlevel 1 goto BuildEventFailed
+REM Exit properly because the build will not fail
+REM unless the final step exits with an error code
+goto BuildEventOK
+:BuildEventFailed
+echo POSTBUILDSTEP for $(ProjectName) FAILED
+exit 1
+:BuildEventOK
+echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
+
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

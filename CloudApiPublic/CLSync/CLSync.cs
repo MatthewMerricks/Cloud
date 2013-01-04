@@ -158,10 +158,8 @@ namespace CloudApiPublic
                 CLError iconOverlayError = _iconOverlay.Initialize(settings);
                 if (iconOverlayError != null)
                 {
+                    // Failure to start badging does not prevent syncing.  Just log it.
                     _trace.writeToLog(1, "CLSync: Start: ERROR: Exception. Msg: {0}. Code: {1}.", iconOverlayError.errorDescription, iconOverlayError.errorCode);
-                    ReleaseResources();
-                    status = CLSyncStartStatus.ErrorUnknown;
-                    return iconOverlayError;
                 }
 
                 // Start the indexer.
@@ -188,11 +186,13 @@ namespace CloudApiPublic
                 }
 
                 // Hook up the events
+                _trace.writeToLog(9, "CLSync: Start: Hook up events.");
                 _notifier.NotificationReceived += OnNotificationReceived;
                 _notifier.NotificationPerformManualSyncFrom += OnNotificationPerformManualSyncFrom;
                 _notifier.ConnectionError += OnNotificationConnectionError;
 
                 // Create the http rest client
+                _trace.writeToLog(9, "CLSync: Start: Create rest client.");
                 CLHttpRest httpRestClient;
                 CLError createRestClientError = CLHttpRest.CreateAndInitialize(_syncSettings, out httpRestClient);
                 if (createRestClientError != null)
@@ -301,6 +301,7 @@ namespace CloudApiPublic
             // Pass this event on to the file monitor.
             if (_monitor != null)
             {
+                _trace.writeToLog(9, "CLSync: OnNotificationPerformManualSyncFrom: Send a Perform Manual SyncFrom to monitor.");
                 _monitor.PushNotification(e.Message);
             }
         }
@@ -315,6 +316,7 @@ namespace CloudApiPublic
             // Let the file monitor know about this event.
             if (_monitor != null)
             {
+                _trace.writeToLog(9, "CLSync: OnNotificationPerformManualSyncFrom: Send a Perform PushNotification to monitor.");
                 _monitor.PushNotification(e.Message);
             }
         }
@@ -420,11 +422,15 @@ namespace CloudApiPublic
         }
 
         /// <summary>
-        /// Shuts down the HttpScheduler; after shutdown it cannot be used again
+        /// Call when application is shutting down.
         /// </summary>
-        public static void PermanentShutdownHttpSchedulers()
+        public static void ShutdownSchedulers()
         {
+            // Shuts down the HttpScheduler; after shutdown it cannot be used again
             HttpScheduler.DisposeBothSchedulers();
+
+            // Shuts down the sync FileChange delay processing
+            DelayProcessable<FileChange>.TerminateAllProcessing();
         }
     }
 }

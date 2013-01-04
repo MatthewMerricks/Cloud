@@ -9,8 +9,6 @@
 
 #pragma once
 #include "resource.h"       // main symbols
-
-
 #include "BadgeCOM_i.h"
 #include "CBadgeNetPubSubEvents.h"
 #include <boost\unordered_map.hpp>
@@ -65,6 +63,7 @@ private:
     CBadgeNetPubSubEvents *_pBadgeNetPubSubEvents;
     boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType> _mapBadges;             // the dictionary of fullPath->badgeType
     HANDLE _threadSubscriptionRestart;
+    bool _fIsInitialized;
 
     // Private methods
     void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType);

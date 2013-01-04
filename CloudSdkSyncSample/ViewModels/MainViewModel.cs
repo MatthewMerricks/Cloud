@@ -285,7 +285,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandShowAdvancedOptions = new RelayCommand<object>(
                         param => this.ShowAdvancedOptions(),
-                        param => { return true; }
+                        param => this.CanAdvancedOptions
                         );
                 }
                 return _commandShowAdvancedOptions;
@@ -411,7 +411,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandExit = new RelayCommand<object>(
                         param => this.Exit(),
-                        param => { return true; }
+                        param => this.CanExit
                         );
                 }
                 return _commandExit;
@@ -572,10 +572,14 @@ namespace CloudSdkSyncSample.ViewModels
                 // Launch the process
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.CreateNoWindow = true;
-                startInfo.UseShellExecute = false;
+                startInfo.UseShellExecute = true;
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
+                if (System.Environment.OSVersion.Version.Major >= 6)
+                {
+                    startInfo.Verb = "runas";
+                }
                 _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run regsvr32. Program: {0}. Arguments: {1}.", commandProgram, commandArguments);
                 regsvr32Process = Process.Start(startInfo);
 
@@ -656,10 +660,14 @@ namespace CloudSdkSyncSample.ViewModels
                 // Launch the process
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.CreateNoWindow = true;
-                startInfo.UseShellExecute = false;
+                startInfo.UseShellExecute = true;
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
+                if (System.Environment.OSVersion.Version.Major >= 6)
+                {
+                    startInfo.Verb = "runas";
+                }
                 regsvr32Process = Process.Start(startInfo);
 
                 // Wait for the process to exit
@@ -781,6 +789,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_syncBox != null)
                 {
+                    CLSync.ShutdownSchedulers();
                     _syncStarted = false;
                     _syncBox.Stop();
                     _syncBox = null;
@@ -803,6 +812,9 @@ namespace CloudSdkSyncSample.ViewModels
             }
             else
             {
+                // Stop syncing if it has been started.
+                StopSyncing();
+
                 // Close the window
                 _windowClosed = true;
                 CloseCommand.Execute(null);
@@ -906,6 +918,28 @@ namespace CloudSdkSyncSample.ViewModels
         /// Returns true if the Uninstall Badging button should be active.
         /// </summary>
         private bool CanUninstallBadging
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the Exit button should be active.
+        /// </summary>
+        private bool CanExit
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the Advanced Options button should be active.
+        /// </summary>
+        private bool CanAdvancedOptions
         {
             get
             {

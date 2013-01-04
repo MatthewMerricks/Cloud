@@ -155,7 +155,7 @@ namespace CloudApiPublic.BadgeNET
                         {
                             CLError error = ex;
                             error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>.", ex.Message);
 
                             if (castState != null)
                             {
@@ -169,7 +169,11 @@ namespace CloudApiPublic.BadgeNET
                         {
                             // Start listening for BadgeCom initialization events.
                             _trace.writeToLog(9, "IconOverlay: threadInit: Subscribe to BadgeCom init events.");
-                            _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
+                            bool fIsSubscribed = _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
+                            if (!fIsSubscribed)
+                            {
+                                throw new Exception("Subscription failed");
+                            }
 
                             // Send our badging dictionary to the BadgeCom subscribers.
                             _trace.writeToLog(9, "IconOverlay: threadInit: Send badging dictionary.");
@@ -180,7 +184,7 @@ namespace CloudApiPublic.BadgeNET
                         {
                             CLError error = ex;
                             error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                            _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>.", ex.Message);
                         }
                         _trace.writeToLog(9, "IconOverlay: threadInit: Exit thread.");
                     }));
@@ -300,7 +304,11 @@ namespace CloudApiPublic.BadgeNET
 
                         // Start listening for BadgeCom initialization events.
                         _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Subscribe to BadgeCom init events.");
-                        _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
+                        bool fIsSubscribed = _badgeComPubSubEvents.SubscribeToBadgeComInitializationEvents();
+                        if (!fIsSubscribed)
+                        {
+                            throw new Exception("Subscription failed");
+                        }
 
                         // Send our badging database to all of the BadgeCom subscribers.
                         _trace.writeToLog(9, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Send badging database.");
@@ -310,20 +318,24 @@ namespace CloudApiPublic.BadgeNET
                     {
                         CLError error = ex;
                         error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                        _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR: threadRestart exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                        _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR: threadRestart exception: Msg: <{0}>.", ex.Message);
+                        isInitialized = false;
                     }
-
                 }));
 
                 // Start the thread, but don't wait for it to complete because the current thread is the CBadgeComPubSubEvents Watcher thread, and that thread must be killed by the restart logic above.
-                threadRestart.SetApartmentState(ApartmentState.MTA);
-                threadRestart.Start();
+                if (isInitialized)
+                {
+                    threadRestart.SetApartmentState(ApartmentState.MTA);
+                    threadRestart.Start();
+                }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: <{0}>, Code: {1}.", ex.Message);
+                _trace.writeToLog(1, "IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                isInitialized = false;
             }
         }
 
