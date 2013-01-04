@@ -57,11 +57,14 @@ namespace CloudApiPublic.Static
         Renamed
     }
 
+    /// <summary>
+    /// readonly fields holding constants related to files
+    /// </summary>
     public static class FileConstants
     {
-        public const long InvalidUtcTimeTicks = 504911232000000000;//number determined by practice
-        public static readonly byte[] EmptyBuffer = new byte[0];
-        public const int BufferSize = 4096;//posts online seem to suggest between 1kb and 12kb is optimal for a FileStream buffer, 4kb seems commonly used
+        public const long InvalidUtcTimeTicks = 504911232000000000; //number determined by practice
+        public static readonly byte[] EmptyBuffer = new byte[0]; // empty buffer is used to complete an MD5 hash
+        public const int BufferSize = 4096; //posts online seem to suggest between 1kb and 12kb is optimal for a FileStream buffer, 4kb seems commonly used
     }
 
     public enum EventMessageLevel

@@ -42,7 +42,7 @@ namespace CloudApiPublic.Interfaces
         /// <summary>
         /// Device id (each SyncBox may contain multiple devices, each with a unique id within the SyncBox).
         /// </summary>
-        string Udid { get; }
+        string DeviceId { get; }
 
         /// <summary>
         /// The public key that identifies this application.
@@ -58,7 +58,7 @@ namespace CloudApiPublic.Interfaces
         /// <summary>
         /// The unique ID of this SyncBox assigned by the auth server.
         /// </summary>
-        string SyncBoxId { get; }
+        Nullable<long> SyncBoxId { get; }
 
         /// <summary>
         /// User id, provided by server upon authentication

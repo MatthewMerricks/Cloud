@@ -144,6 +144,8 @@ namespace CloudApiPublic.Static
     public partial class TraceFileChange
     {
 
+        private string serverIdField;
+
         private long eventIdField;
 
         private bool eventIdFieldSpecified;
@@ -179,6 +181,19 @@ namespace CloudApiPublic.Static
         private string storageKeyField;
 
         private TraceFileChange[] dependenciesField;
+
+        /// <remarks />
+        public string ServerId
+        {
+            get
+            {
+                return this.serverIdField;
+            }
+            set
+            {
+                this.serverIdField = value;
+            }
+        }
 
         /// <remarks />
         public long EventId
@@ -459,7 +474,9 @@ namespace CloudApiPublic.Static
 
         private int threadIdField;
 
-        private string syncBoxId;
+        private long syncBoxIdField;
+
+        private bool syncBoxIdFieldSpecified;
 
         /// <remarks/>
         public int Type
@@ -514,15 +531,29 @@ namespace CloudApiPublic.Static
         }
 
         /// <remarks/>
-        public string SyncBoxId
+        public long SyncBoxId
         {
             get
             {
-                return this.syncBoxId;
+                return this.syncBoxIdField;
             }
             set
             {
-                this.syncBoxId = value;
+                this.syncBoxIdField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool SyncBoxIdSpecified
+        {
+            get
+            {
+                return this.syncBoxIdFieldSpecified;
+            }
+            set
+            {
+                this.syncBoxIdFieldSpecified = value;
             }
         }
     }

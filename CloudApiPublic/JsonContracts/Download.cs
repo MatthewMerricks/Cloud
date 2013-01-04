@@ -15,7 +15,7 @@ using CloudApiPublic.Model;
 namespace CloudApiPublic.JsonContracts
 {
     [DataContract]
-    public sealed class Download
+    internal sealed class Download
     {
         [DataMember(Name = CLDefinitions.CLMetadataStorageKey, IsRequired = false)]
         public string StorageKey { get; set; }

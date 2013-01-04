@@ -23,7 +23,7 @@ namespace CloudApiPublic.Static
     public static class ComTrace
     {
         #region public methods
-        public static void LogCommunication(string traceLocation, string UserDeviceId, string SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, Stream body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, Stream body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
         {
             string bodyString = null;
             if (traceEnabled
@@ -55,7 +55,7 @@ namespace CloudApiPublic.Static
                 connectionHeader);
         }
 
-        public static void LogCommunication(string traceLocation, string UserDeviceId, string SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
         {
             if (traceEnabled
                 && !string.IsNullOrWhiteSpace(UserDeviceId)
@@ -100,7 +100,7 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static void LogCommunication(string traceLocation, string UserDeviceId, string SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, HttpHeaders defaultHeaders = null, HttpHeaders messageHeaders = null, HttpContent body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, HttpHeaders defaultHeaders = null, HttpHeaders messageHeaders = null, HttpContent body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
         {
             if (traceEnabled
                 && !string.IsNullOrWhiteSpace(DomainAndMethodUri))
@@ -896,7 +896,7 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static void LogFileChangeFlow(string traceLocation, string UserDeviceId, string SyncBoxId, FileChangeFlowEntryPositionInFlow position, IEnumerable<FileChange> changes)
+        public static void LogFileChangeFlow(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, FileChangeFlowEntryPositionInFlow position, IEnumerable<FileChange> changes)
         {
             try
             {
@@ -910,7 +910,8 @@ namespace CloudApiPublic.Static
                     Time = DateTime.UtcNow,
                     ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
                     ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId,
-                    SyncBoxId = SyncBoxId,
+                    SyncBoxId = SyncBoxId ?? 0,
+                    SyncBoxIdSpecified = SyncBoxId != null,
                     PositionInFlow = position,
                     FileChanges = traceChangesArray
                 };
@@ -956,6 +957,7 @@ namespace CloudApiPublic.Static
 
                             currentArray[currentIndex] = new TraceFileChange()
                             {
+                                ServerId = currentChange.Metadata.ServerId,
                                 EventId = currentChange.EventId,
                                 EventIdSpecified = currentChange.EventId != 0,
                                 NewPath = currentChange.NewPath.ToString(),
@@ -1011,7 +1013,7 @@ namespace CloudApiPublic.Static
 
         #region private methods
         // the calling method should wrap this private helper in a try/catch
-        private static void LogCommunication(string traceLocation, string UserDeviceId, string SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, IEnumerable<KeyValuePair<string, string>> headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
+        private static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, IEnumerable<KeyValuePair<string, string>> headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
         {
             if (!string.IsNullOrEmpty(body)
                 && excludeAuthorization)
@@ -1043,7 +1045,8 @@ namespace CloudApiPublic.Static
                 Time = DateTime.UtcNow,
                 ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
                 ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId,
-                SyncBoxId = SyncBoxId,
+                SyncBoxId = SyncBoxId ?? 0,
+                SyncBoxIdSpecified = SyncBoxId != null,
                 Direction = Direction,
                 Uri = DomainAndMethodUri,
                 Headers = (headers == null
@@ -1066,12 +1069,12 @@ namespace CloudApiPublic.Static
         }
         // the calling method should wrap this private helper in a try/catch
         [MethodImpl(MethodImplOptions.Synchronized)]
-        private static void WriteLogEntry(Entry logEntry, string traceLocation, string UserDeviceId, string SyncBoxId)
+        private static void WriteLogEntry(Entry logEntry, string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId)
         {
             string logLocation = Helpers.CheckLogFileExistance(traceLocation, SyncBoxId, UserDeviceId, "Sync", "xml",
-                new Action<TextWriter, string, string, string>((logWriter, finalLocation, innerUserId, innerDeviceId) =>
+                new Action<TextWriter, string, Nullable<long>, string>((logWriter, finalLocation, innerSyncBoxId, innerDeviceId) =>
                 {
-                    logWriter.Write(LogXmlStart(finalLocation, "UDid: {" + innerDeviceId + "}, UUid: {" + innerUserId + "}"));
+                    logWriter.Write(LogXmlStart(finalLocation, "UDid: {" + innerDeviceId + "}, SyncBoxId: {" + innerSyncBoxId + "}"));
                 }),
                 new Action<TextWriter>((logWriter) =>
                 {

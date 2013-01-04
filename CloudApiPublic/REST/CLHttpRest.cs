@@ -13,6 +13,7 @@ using CloudApiPublic.Static;
 using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
 using CloudApiPublic.Support;
+using System.Linq.Expressions;
 
 namespace CloudApiPublic.REST
 {
@@ -34,6 +35,27 @@ namespace CloudApiPublic.REST
                 HttpStatusCode.Accepted
             });
 
+        private static readonly Dictionary<Type, DataContractJsonSerializer> SerializableRequestTypes = new Dictionary<Type, DataContractJsonSerializer>()
+        {
+            { typeof(JsonContracts.Download), JsonContractHelpers.DownloadSerializer },
+            { typeof(JsonContracts.PurgePending), JsonContractHelpers.PurgePendingSerializer },
+            { typeof(JsonContracts.Push), JsonContractHelpers.PushSerializer },
+            { typeof(JsonContracts.To), JsonContractHelpers.ToSerializer },
+            
+            #region one-offs
+            { typeof(JsonContracts.FolderAdd), JsonContractHelpers.FolderAddSerializer },
+
+            { typeof(JsonContracts.FileAdd), JsonContractHelpers.FileAddSerializer },
+            { typeof(JsonContracts.FileModify), JsonContractHelpers.FileModifySerializer },
+
+            { typeof(JsonContracts.FileOrFolderDelete), JsonContractHelpers.FileOrFolderDeleteSerializer },
+            { typeof(JsonContracts.FileOrFolderMove), JsonContractHelpers.FileOrFolderMoveSerializer },
+            { typeof(JsonContracts.FileOrFolderUndelete), JsonContractHelpers.FileOrFolderUndeleteSerializer },
+            #endregion
+
+            { typeof(JsonContracts.FileCopy), JsonContractHelpers.FileCopySerializer }
+        };
+
         // dictionary to find which Json contract serializer to use given a provided input type
         private static readonly Dictionary<Type, DataContractJsonSerializer> SerializableResponseTypes = new Dictionary<Type, DataContractJsonSerializer>()
         {
@@ -41,7 +63,10 @@ namespace CloudApiPublic.REST
             { typeof(JsonContracts.NotificationResponse), JsonContractHelpers.NotificationResponseSerializer },
             { typeof(JsonContracts.PendingResponse), JsonContractHelpers.PendingResponseSerializer },
             { typeof(JsonContracts.PushResponse), JsonContractHelpers.PushResponseSerializer },
-            { typeof(JsonContracts.To), JsonContractHelpers.ToSerializer }
+            { typeof(JsonContracts.To), JsonContractHelpers.ToSerializer },
+            { typeof(JsonContracts.Event), JsonContractHelpers.EventSerializer },
+            { typeof(JsonContracts.FileVersion[]), JsonContractHelpers.FileVersionsSerializer },
+            { typeof(JsonContracts.UsedBytes), JsonContractHelpers.UsedBytesSerializer }
         };
         #endregion
 
@@ -165,7 +190,7 @@ namespace CloudApiPublic.REST
                     beforeDownloadState);
 
                 // run the actual communication
-                ProcessHttp<JsonContracts.Download, object>(
+                ProcessHttp(
                     new Download() // JSON contract to serialize
                     {
                         StorageKey = changeToDownload.Metadata.StorageKey // storage key parameter
@@ -213,7 +238,7 @@ namespace CloudApiPublic.REST
                 }
 
                 // run the HTTP communication
-                ProcessHttp<object, object>(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
+                ProcessHttp(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
                     CLDefinitions.CLUploadDownloadServerURL,  // Server URL
                     CLDefinitions.MethodPathUpload, // path to upload
                     requestMethod.put, // upload is a put
@@ -265,6 +290,14 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
+                if (settings.SyncBoxId == null)
+                {
+                    throw new NullReferenceException("settings SyncBoxId cannot be null");
+                }
+                if (string.IsNullOrEmpty(settings.SyncRoot))
+                {
+                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                }
 
                 // build the location of the metadata retrieval method on the server dynamically
                 string serverMethodPath =
@@ -276,12 +309,12 @@ namespace CloudApiPublic.REST
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((settings.SyncRoot ?? string.Empty), true) + "/")),
 
-                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format, but do it anyways
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, Uri.EscapeDataString(settings.SyncBoxId))
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString())
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
-                response = ProcessHttp<object, JsonContracts.Metadata>(null, // HTTP Get method does not have content
+                response = ProcessHttp<JsonContracts.Metadata>(null, // HTTP Get method does not have content
                     CLDefinitions.CLMetaDataServerURL,   // base domain is the MDS server
                     serverMethodPath, // path to query metadata (dynamic based on file or folder)
                     requestMethod.get, // query metadata is a get
@@ -301,13 +334,11 @@ namespace CloudApiPublic.REST
         /// <summary>
         /// Queries the server for a given sync box and device to get all files which are still pending upload
         /// </summary>
-        /// <param name="deviceId">Id of the device</param>
-        /// <param name="syncBoxId">Id of the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllPending(string deviceId, string syncBoxId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
+        public CLError GetAllPending(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -320,6 +351,14 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
+                if (string.IsNullOrEmpty(settings.DeviceId))
+                {
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+                if (settings.SyncBoxId == null)
+                {
+                    throw new NullReferenceException("settings SyncBoxId cannot be null");
+                }
 
                 // build the location of the pending retrieval method on the server dynamically
                 string serverMethodPath =
@@ -327,14 +366,14 @@ namespace CloudApiPublic.REST
                     Helpers.QueryStringBuilder(new[] // grab parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the id of the device, escaped as needed for the URI
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceUUId, Uri.EscapeDataString(deviceId)),
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(settings.DeviceId)),
                         
-                        // query string parameter for the current sync box od, should not need escaping since it should be an integer in string format, but do it anyways
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, Uri.EscapeDataString(settings.SyncBoxId)),
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString())
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
-                response = ProcessHttp<object, JsonContracts.PendingResponse>(null, // HTTP Get method does not have content
+                response = ProcessHttp<JsonContracts.PendingResponse>(null, // HTTP Get method does not have content
                     CLDefinitions.CLMetaDataServerURL,   // base domain is the MDS server
                     serverMethodPath, // path to get pending
                     requestMethod.get, // get pending is a get
@@ -351,11 +390,606 @@ namespace CloudApiPublic.REST
             return null;
         }
 
-        //// will be used to communicate one-offs
-        //public CLError CommunicateSingleChange(FileChange toCommunicate, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Event response)
-        //{
+        /// <summary>
+        /// Posts a single FileChange to the server to update the sync box in the cloud.
+        /// May still require uploading a file with a returned storage key if the Header.Status property in response is "upload" or "uploading".
+        /// Check Header.Status property in response for errors or conflict.
+        /// </summary>
+        /// <param name="toCommunicate">Single FileChange to send</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError PostFileChange(FileChange toCommunicate, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Event response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the file change post, on catch return the error
+            try
+            {
+                // check input parameters
 
-        //}
+                if (toCommunicate == null)
+                {
+                    throw new NullReferenceException("toCommunicate cannot be null");
+                }
+                if (toCommunicate.Direction == SyncDirection.From)
+                {
+                    throw new ArgumentException("toCommunicate Direction is not To the server");
+                }
+                if (toCommunicate.Metadata == null)
+                {
+                    throw new NullReferenceException("toCommunicate Metadata cannot be null");
+                }
+                if (toCommunicate.Type == FileChangeType.Modified
+                    && toCommunicate.Metadata.HashableProperties.IsFolder)
+                {
+                    throw new ArgumentException("toCommunicate cannot be both a folder and of type Modified");
+                }
+                if (settings.DeviceId == null)
+                {
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+                if (settings.SyncRoot == null)
+                {
+                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                }
+                if (settings.SyncBoxId == null)
+                {
+                    throw new NullReferenceException("settings SyncBoxId cannot be null");
+                }
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // build the location of the one-off method on the server dynamically
+                string serverMethodPath;
+                object requestContent;
+
+                // set server method path and the request content dynamically based on whether change is a file or folder and based on the type of change
+                switch (toCommunicate.Type)
+                {
+                    // file or folder created
+                    case FileChangeType.Created:
+
+                        // check additional parameters for file or folder creation
+
+                        if (toCommunicate.NewPath == null)
+                        {
+                            throw new NullReferenceException("toCommunicate NewPath cannot be null");
+                        }
+
+                        // if change is a folder, set path and create request content for folder creation
+                        if (toCommunicate.Metadata.HashableProperties.IsFolder)
+                        {
+                            serverMethodPath = CLDefinitions.MethodPathOneOffFolderCreate;
+
+                            requestContent = new JsonContracts.FolderAdd()
+                            {
+                                CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
+                                DeviceId = settings.DeviceId,
+                                RelativePath = toCommunicate.NewPath.GetRelativePath(settings.SyncRoot, true) + "/",
+                                SyncBoxId = settings.SyncBoxId
+                            };
+                        }
+                        // else if change is a file, set path and create request content for file creation
+                        else
+                        {
+                            string addHashString;
+                            CLError addHashStringError = toCommunicate.GetMD5LowercaseString(out addHashString);
+                            if (addHashStringError != null)
+                            {
+                                throw new AggregateException("Error retrieving toCommunicate MD5 lowercase string", addHashStringError.GrabExceptions());
+                            }
+
+                            // check additional parameters for file creation
+
+                            if (string.IsNullOrEmpty(addHashString))
+                            {
+                                throw new NullReferenceException("MD5 lowercase string retrieved from toCommunicate cannot be null, set via toCommunicate.SetMD5");
+                            }
+                            if (toCommunicate.Metadata.HashableProperties.Size == null)
+                            {
+                                throw new NullReferenceException("toCommunicate Metadata HashableProperties Size cannot be null");
+                            }
+
+                            serverMethodPath = CLDefinitions.MethodPathOneOffFileCreate;
+
+                            requestContent = new JsonContracts.FileAdd()
+                            {
+                                CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
+                                DeviceId = settings.DeviceId,
+                                Hash = addHashString,
+                                MimeType = toCommunicate.Metadata.MimeType,
+                                ModifiedDate = toCommunicate.Metadata.HashableProperties.LastTime,
+                                RelativePath = toCommunicate.NewPath.GetRelativePath(settings.SyncRoot, true),
+                                Size = toCommunicate.Metadata.HashableProperties.Size,
+                                SyncBoxId = settings.SyncBoxId
+                            };
+                        }
+                        break;
+
+                    case FileChangeType.Deleted:
+
+                        // check additional parameters for file or folder deletion
+
+                        if (toCommunicate.NewPath == null
+                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerId))
+                        {
+                            throw new NullReferenceException("Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null");
+                        }
+
+                        // file deletion and folder deletion share a json contract object for deletion
+                        requestContent = new JsonContracts.FileOrFolderDelete()
+                        {
+                            DeviceId = settings.DeviceId,
+                            RelativePath = (toCommunicate.NewPath == null
+                                ? null
+                                : toCommunicate.NewPath.GetRelativePath(settings.SyncRoot, true) +
+                                    (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
+                            ServerId = toCommunicate.Metadata.ServerId,
+                            SyncBoxId = settings.SyncBoxId
+                        };
+
+                        // server method path switched from whether change is a folder or not
+                        serverMethodPath = (toCommunicate.Metadata.HashableProperties.IsFolder
+                            ? CLDefinitions.MethodPathOneOffFolderDelete
+                            : CLDefinitions.MethodPathOneOffFileDelete);
+                        break;
+
+                    case FileChangeType.Modified:
+
+                        // grab MD5 hash string and rethrow any error that occurs
+
+                        string modifyHashString;
+                        CLError modifyHashStringError = toCommunicate.GetMD5LowercaseString(out modifyHashString);
+                        if (modifyHashStringError != null)
+                        {
+                            throw new AggregateException("Error retrieving toCommunicate MD5 lowercase string", modifyHashStringError.GrabExceptions());
+                        }
+
+                        // check additional parameters for file modification
+
+                        if (string.IsNullOrEmpty(modifyHashString))
+                        {
+                            throw new NullReferenceException("MD5 lowercase string retrieved from toCommunicate cannot be null, set via toCommunicate.SetMD5");
+                        }
+                        if (toCommunicate.Metadata.HashableProperties.Size == null)
+                        {
+                            throw new NullReferenceException("toCommunicate Metadata HashableProperties Size cannot be null");
+                        }
+                        if (toCommunicate.NewPath == null
+                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerId))
+                        {
+                            throw new NullReferenceException("Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null");
+                        }
+                        if (string.IsNullOrEmpty(toCommunicate.Metadata.Revision))
+                        {
+                            throw new NullReferenceException("toCommunicate Metadata Revision cannot be null");
+                        }
+
+                        // there is no folder modify, so json contract object and server method path for modify are only for files
+
+                        requestContent = new JsonContracts.FileModify()
+                        {
+                            CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
+                            DeviceId = settings.DeviceId,
+                            Hash = modifyHashString,
+                            MimeType = toCommunicate.Metadata.MimeType,
+                            ModifiedDate = toCommunicate.Metadata.HashableProperties.LastTime,
+                            RelativePath = (toCommunicate.NewPath == null
+                                ? null
+                                : toCommunicate.NewPath.GetRelativePath(settings.SyncRoot, true)),
+                            Revision = toCommunicate.Metadata.Revision,
+                            ServerId = toCommunicate.Metadata.ServerId,
+                            Size = toCommunicate.Metadata.HashableProperties.Size,
+                            SyncBoxId = settings.SyncBoxId
+                        };
+
+                        serverMethodPath = CLDefinitions.MethodPathOneOffFileModify;
+                        break;
+
+                    case FileChangeType.Renamed:
+
+                        // check additional parameters for file or folder move (rename)
+
+                        if (toCommunicate.NewPath == null
+                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerId))
+                        {
+                            throw new NullReferenceException("Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null");
+                        }
+                        if (toCommunicate.OldPath == null)
+                        {
+                            throw new NullReferenceException("toCommunicate OldPath cannot be null");
+                        }
+
+                        // file move (rename) and folder move (rename) share a json contract object for move (rename)
+                        requestContent = new JsonContracts.FileOrFolderMove()
+                        {
+                            DeviceId = settings.DeviceId,
+                            RelativeFromPath = toCommunicate.OldPath.GetRelativePath(settings.SyncRoot, true) +
+                                (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty),
+                            RelativeToPath = (toCommunicate.NewPath == null
+                                ? null
+                                : toCommunicate.NewPath.GetRelativePath(settings.SyncRoot, true)
+                                    + (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
+                            ServerId = toCommunicate.Metadata.ServerId,
+                            SyncBoxId = settings.SyncBoxId
+                        };
+
+                        // server method path switched on whether change is a folder or not
+                        serverMethodPath = (toCommunicate.Metadata.HashableProperties.IsFolder
+                            ? CLDefinitions.MethodPathOneOffFolderMove
+                            : CLDefinitions.MethodPathOneOffFileMove);
+                        break;
+
+                    default:
+                        throw new ArgumentException("toCommunicate Type is an unknown FileChangeType: " + toCommunicate.Type.ToString());
+                }
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = ProcessHttp<JsonContracts.Event>(requestContent, // dynamic type of request content based on method path
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    requestMethod.post, // one-off methods are all posts
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    okAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status); // reference to update the output success/failure status for the communication
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.Event>();
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Queries the server for a given sync box and device to get all files which are still pending upload
+        /// </summary>
+        /// <param name="deletionChange">Deletion change which needs to be undone</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError UndoDeletionFileChange(FileChange deletionChange, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Event response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the undeletion, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+                if (deletionChange == null)
+                {
+                    throw new NullReferenceException("deletionChange cannot be null");
+                }
+                if (deletionChange.Direction == SyncDirection.From)
+                {
+                    throw new ArgumentException("deletionChange Direction is not To the server");
+                }
+                if (deletionChange.Metadata == null)
+                {
+                    throw new NullReferenceException("deletionChange Metadata cannot be null");
+                }
+                if (deletionChange.Type != FileChangeType.Deleted)
+                {
+                    throw new ArgumentException("deletionChange is not of Type Deletion");
+                }
+                if (settings.SyncRoot == null)
+                {
+                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                }
+                if (string.IsNullOrEmpty(deletionChange.Metadata.ServerId))
+                {
+                    throw new NullReferenceException("deletionChange Metadata ServerId must not be null");
+                }
+                if (string.IsNullOrEmpty(settings.DeviceId))
+                {
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+                if (settings.SyncBoxId == null)
+                {
+                    throw new NullReferenceException("settings SyncBoxId cannot be null");
+                }
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = ProcessHttp<JsonContracts.Event>(new JsonContracts.FileOrFolderUndelete() // files and folders share a request content object for undelete
+                    {
+                        DeviceId = settings.DeviceId, // device id
+                        ServerId = deletionChange.Metadata.ServerId, // unique id on server
+                        SyncBoxId = settings.SyncBoxId // id of sync box
+                    },
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    (deletionChange.Metadata.HashableProperties.IsFolder // folder/file switch
+                        ? CLDefinitions.MethodPathFolderUndelete // path for folder undelete
+                        : CLDefinitions.MethodPathFileUndelete), // path for file undelete
+                    requestMethod.post, // undelete file or folder is a post
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    okAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status); // reference to update the output success/failure status for the communication
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.Event>();
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Queries the server for all versions of a given file
+        /// </summary>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
+        {
+            return GetFileVersions(fileServerId, timeoutMilliseconds, null, out status, out response, includeDeletedVersions);
+        }
+
+        /// <summary>
+        /// Queries the server for all versions of a given file
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
+        {
+            return GetFileVersions(null, timeoutMilliseconds, pathToFile, out status, out response, includeDeletedVersions);
+        }
+
+        /// <summary>
+        /// Queries the server for all versions of a given file
+        /// </summary>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the undeletion, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+                if (pathToFile == null
+                    && string.IsNullOrEmpty(fileServerId))
+                {
+                    throw new NullReferenceException("Either pathToFile must not be null or fileServerId must not be null or both must not be null");
+                }
+                if (settings.SyncRoot == null)
+                {
+                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                }
+                if (string.IsNullOrEmpty(settings.DeviceId))
+                {
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+                if (settings.SyncBoxId == null)
+                {
+                    throw new NullReferenceException("settings SyncBoxId cannot be null");
+                }
+                
+                // build the location of the metadata retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathFileGetVersions + // get file versions
+                    Helpers.QueryStringBuilder(new[] // both methods grab their parameters by query string (since this method is an HTTP GET)
+                    {
+                        // query string parameter for the device id
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(settings.DeviceId)),
+
+                        // query string parameter for the server id for the file to check, only filled in if it's not null
+                        (string.IsNullOrEmpty(fileServerId)
+                            ? new KeyValuePair<string, string>()
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(fileServerId))),
+
+                        // query string parameter for the path to the file to check, only filled in if it's not null
+                        (pathToFile == null
+                            ? new KeyValuePair<string, string>()
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(pathToFile.GetRelativePath(settings.SyncRoot, true)))),
+
+                        // query string parameter for whether to include delete versions in the check, but only set if it's not default (if it's false)
+                        (includeDeletedVersions
+                            ? new KeyValuePair<string, string>()
+                            : new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false")),
+
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString())
+                    });
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = ProcessHttp<JsonContracts.FileVersion[]>(null, // get file versions has no request content
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // use a dynamic method path because it needs query string parameters
+                    requestMethod.get, // get file versions is a get
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    okAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status); // reference to update the output success/failure status for the communication
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.FileVersion[]>();
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Grabs the bytes used by the sync box and the bytes which are pending for upload
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetUsedBytes(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.UsedBytes response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the undeletion, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+                if (string.IsNullOrEmpty(settings.DeviceId))
+                {
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+                if (settings.SyncBoxId == null)
+                {
+                    throw new NullReferenceException("settings SyncBoxId cannot be null");
+                }
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = ProcessHttp<JsonContracts.UsedBytes>(null, // getting used bytes requires no request content
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.MethodPathGetUsedBytes + // path to get used bytes
+                        Helpers.QueryStringBuilder(new[]
+                        {
+                            new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(settings.DeviceId)), // device id, escaped since it's a user-input
+                            new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString()) // sync box id, not escaped since it's from an integer
+                        }),
+                    requestMethod.get, // getting used bytes is a get
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    okAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status); // reference to update the output success/failure status for the communication
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.UsedBytes>();
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Copies a file on the server to another location
+        /// </summary>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="copyTargetPath">Location where file shoule be copied to</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError CopyFile(string fileServerId, int timeoutMilliseconds, FilePath copyTargetPath, out CLHttpRestStatus status, out JsonContracts.Event response)
+        {
+            return CopyFile(fileServerId, timeoutMilliseconds, null, copyTargetPath, out status, out response);
+        }
+
+        /// <summary>
+        /// Copies a file on the server to another location
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Location of existing file to copy from</param>
+        /// <param name="copyTargetPath">Location where file shoule be copied to</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError CopyFile(int timeoutMilliseconds, FilePath pathToFile, FilePath copyTargetPath, out CLHttpRestStatus status, out JsonContracts.Event response)
+        {
+            return CopyFile(null, timeoutMilliseconds, pathToFile, copyTargetPath, out status, out response);
+        }
+
+        /// <summary>
+        /// Copies a file on the server to another location
+        /// </summary>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Location of existing file to copy from</param>
+        /// <param name="copyTargetPath">Location where file shoule be copied to</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError CopyFile(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, FilePath copyTargetPath, out CLHttpRestStatus status, out JsonContracts.Event response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the undeletion, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+                if (settings.SyncRoot == null)
+                {
+                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                }
+                if (copyTargetPath == null)
+                {
+                    throw new NullReferenceException("copyTargetPath cannot be null");
+                }
+                if (pathToFile == null
+                    && string.IsNullOrEmpty(fileServerId))
+                {
+                    throw new NullReferenceException("Either pathToFile must not be null or fileServerId must not be null or both must not be null");
+                }
+                if (string.IsNullOrEmpty(settings.DeviceId))
+                {
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+                if (settings.SyncBoxId == null)
+                {
+                    throw new NullReferenceException("settings SyncBoxId cannot be null");
+                }
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = ProcessHttp<JsonContracts.Event>(new JsonContracts.FileCopy() // object for file copy
+                    {
+                        DeviceId = settings.DeviceId, // device id
+                        ServerId = fileServerId, // unique id on server
+                        RelativePath = (pathToFile == null
+                            ? null
+                            : pathToFile.GetRelativePath(settings.SyncRoot, true)), // path of existing file to copy
+                        RelativeToPath = copyTargetPath.GetRelativePath(settings.SyncRoot, true), // location to copy file to
+                        SyncBoxId = settings.SyncBoxId // id of sync box
+                    },
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.MethodPathFileCopy, // path for file copy
+                    requestMethod.post, // file copy is a post
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    okAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status); // reference to update the output success/failure status for the communication
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.Event>();
+                return ex;
+            }
+            return null;
+        }
         #endregion
 
         #region internal API calls
@@ -387,7 +1021,7 @@ namespace CloudApiPublic.REST
 
                 // run the HTTP communication and store the response object to the output parameter
                 string serverMethodPath = CLDefinitions.MethodPathSyncTo;
-                response = ProcessHttp<object, JsonContracts.To>(
+                response = ProcessHttp<JsonContracts.To>(
                     syncToRequest,
                     CLDefinitions.CLMetaDataServerURL,   // base domain is the MDS server
                     serverMethodPath, // path to query metadata (dynamic based on file or folder)
@@ -434,9 +1068,9 @@ namespace CloudApiPublic.REST
 
                 // run the HTTP communication and store the response object to the output parameter
                 string serverMethodPath = CLDefinitions.MethodPathSyncFrom;
-                response = ProcessHttp<object, JsonContracts.PushResponse>(
-                    pushRequest,
-                    CLDefinitions.CLMetaDataServerURL,   // base domain is the MDS server
+                response = ProcessHttp<JsonContracts.PushResponse>(
+                    pushRequest, // object to write as request content to the server
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query metadata (dynamic based on file or folder)
                     requestMethod.post, // sync_to is a post
                     timeoutMilliseconds, // time before communication timeout
@@ -456,12 +1090,11 @@ namespace CloudApiPublic.REST
         /// <summary>
         /// Purges any pending changes for the provided user/device combination in the request object (pending file uploads) and outputs the files which were purged
         /// </summary>
-        /// <param name="request">Object to store the user/device combination to purge</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError PurgePending(JsonContracts.PurgePending request, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
+        internal CLError PurgePending(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -470,16 +1103,24 @@ namespace CloudApiPublic.REST
             {
                 // check input parameters
 
-                if (request == null)
+                if (string.IsNullOrEmpty(settings.DeviceId))
                 {
-                    throw new NullReferenceException("request cannot be null");
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+                if (settings.SyncBoxId == null)
+                {
+                    throw new NullReferenceException("settings SyncBoxId cannot be null");
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                response = ProcessHttp<JsonContracts.PurgePending, JsonContracts.PendingResponse>(request, // json contract object for purge pending method
+                response = ProcessHttp<JsonContracts.PendingResponse>(new JsonContracts.PurgePending() // json contract object for purge pending method
+                    {
+                        DeviceId = settings.DeviceId,
+                        SyncBoxId = settings.SyncBoxId
+                    },
                     CLDefinitions.CLMetaDataServerURL, CLDefinitions.MethodPathPurgePending, // purge pending address
                     requestMethod.post, // purge pending is a post operation
                     timeoutMilliseconds, // set the timeout for the operation
@@ -522,19 +1163,37 @@ namespace CloudApiPublic.REST
             }
         }
 
-        // main HTTP REST routine helper method which processes the actual communication
-        // Tin should be the type of the JSON contract object to serialize and send up if any, otherwise use string/object type
-        // Tout should be the type of the JSON contract object which can be deserialized from the return response of the server if any, otherwise use string/object type which will be filled in as the entire string response
-        private Tout ProcessHttp<Tin, Tout>(Tin requestContent, // JSON contract object to serialize and send up as the request content, if any
+        // forwards to the main HTTP REST routine helper method which processes the actual communication, but only where the return type is object
+        private object ProcessHttp(object requestContent, // JSON contract object to serialize and send up as the request content, if any
             string serverUrl, // the server URL
-            string serverMethodPath,    // the server method path
+            string serverMethodPath, // the server method path
             requestMethod method, // type of HTTP method (get vs. put vs. post)
             int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
             uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
             ref CLHttpRestStatus status) // reference to the successful/failed state of communication
-            where Tin : class // restrict Tin to an object type to allow default null return
-            where Tout : class // restrict Tout to an object type to allow default null return
+        {
+            return ProcessHttp<object>(requestContent,
+                serverUrl,
+                serverMethodPath,
+                method,
+                timeoutMilliseconds,
+                uploadDownload,
+                validStatusCodes,
+                ref status);
+        }
+
+        // main HTTP REST routine helper method which processes the actual communication
+        // T should be the type of the JSON contract object which an be deserialized from the return response of the server if any, otherwise use string/object type which will be filled in as the entire string response
+        private T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+            string serverUrl, // the server URL
+            string serverMethodPath, // the server method path
+            requestMethod method, // type of HTTP method (get vs. put vs. post)
+            int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
+            uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
+            HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
+            ref CLHttpRestStatus status) // reference to the successful/failed state of communication
+            where T : class // restrict T to an object type to allow default null return
         {
             // create the main request object for the provided uri location
             HttpWebRequest httpRequest = (HttpWebRequest)HttpWebRequest.Create(serverUrl + serverMethodPath);
@@ -595,26 +1254,14 @@ namespace CloudApiPublic.REST
                     {
                         // serialize the request object into the stream with the appropriate serializer based on the input type, and if the type is not supported then throw an exception
 
-                        if (requestContent is JsonContracts.Download)
+                        Type requestType = requestContent.GetType();
+                        DataContractJsonSerializer getRequestSerializer;
+                        if (!SerializableRequestTypes.TryGetValue(requestType, out getRequestSerializer))
                         {
-                            JsonContractHelpers.DownloadSerializer.WriteObject(requestMemory, requestContent);
+                            throw new ArgumentException("Unknown requestContent Type: " + requestType.FullName);
                         }
-                        else if (requestContent is JsonContracts.PurgePending)
-                        {
-                            JsonContractHelpers.PurgePendingSerializer.WriteObject(requestMemory, requestContent);
-                        }
-                        else if (requestContent is JsonContracts.Push)
-                        {
-                            JsonContractHelpers.PushSerializer.WriteObject(requestMemory, requestContent);
-                        }
-                        else if (requestContent is JsonContracts.To)
-                        {
-                            JsonContractHelpers.ToSerializer.WriteObject(requestMemory, requestContent);
-                        }
-                        else
-                        {
-                            throw new ArgumentException("Unknown requestContent Type: " + requestContent.GetType().FullName);
-                        }
+
+                        getRequestSerializer.WriteObject(requestMemory, requestContent);
 
                         // grab the string from the serialized data
                         requestString = Encoding.Default.GetString(requestMemory.ToArray());
@@ -637,6 +1284,10 @@ namespace CloudApiPublic.REST
                 httpRequest.ContentLength = uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0; // content length will be file size
                 httpRequest.Headers[CLDefinitions.HeaderAppendStorageKey] = uploadDownload.ChangeToTransfer.Metadata.StorageKey; // add header for destination location of file
                 httpRequest.Headers[CLDefinitions.HeaderAppendContentMD5] = ((uploadParams)uploadDownload).Hash; // set MD5 content hash for verification of upload stream
+                if (!string.IsNullOrEmpty(settings.DeviceId)) // conditionally add device id if available
+                {
+                    httpRequest.Headers[CLDefinitions.QueryStringDeviceId] = settings.DeviceId; // add device id so it will come through on push notifications
+                }
                 httpRequest.KeepAlive = true; // do not close connection (is this needed?)
                 requestContentBytes = null; // do not write content bytes since they will come from the Stream inside the upload object
             }
@@ -648,7 +1299,7 @@ namespace CloudApiPublic.REST
             {
                 // trace communication for the current request
                 ComTrace.LogCommunication(settings.TraceLocation, // location of trace file
-                    settings.Udid, // device id
+                    settings.DeviceId, // device id
                     settings.SyncBoxId, // user id
                     CommunicationEntryDirection.Request, // direction is request
                     serverUrl + serverMethodPath, // location for the server method
@@ -908,7 +1559,7 @@ namespace CloudApiPublic.REST
 
                 #region process response stream
                 // define an object for the communication return, defaulting to null
-                Tout toReturn = null;
+                T toReturn = null;
 
                 // if the communication was an upload or a download, then process the response stream for a download (which is the download itself) or use a predefined return for an upload
                 if (uploadDownload != null)
@@ -920,10 +1571,10 @@ namespace CloudApiPublic.REST
                         responseBody = "---File upload complete---";
 
                         // if we can use a string output for the return, then use it
-                        if (typeof(Tout) == typeof(string)
-                            || typeof(Tout) == typeof(object))
+                        if (typeof(T) == typeof(string)
+                            || typeof(T) == typeof(object))
                         {
-                            toReturn = (Tout)((object)responseBody);
+                            toReturn = (T)((object)responseBody);
                         }
                     }
                     // else if communication is a download, then process the actual download itself
@@ -1019,10 +1670,10 @@ namespace CloudApiPublic.REST
                         }
 
                         // if a string can be output as the return type, then return the response (which is not the actual download, but a simple string status representation)
-                        if (typeof(Tout) == typeof(string)
-                            || typeof(Tout) == typeof(object))
+                        if (typeof(T) == typeof(string)
+                            || typeof(T) == typeof(object))
                         {
-                            toReturn = (Tout)((object)responseBody);
+                            toReturn = (T)((object)responseBody);
                         }
                     }
                 }
@@ -1032,7 +1683,7 @@ namespace CloudApiPublic.REST
                     // declare the serializer which will be used to deserialize the response content for output
                     DataContractJsonSerializer outSerializer;
                     // try to get the serializer for the output by the type of output from dictionary and if successful, process response content as stream to deserialize
-                    if (SerializableResponseTypes.TryGetValue(typeof(Tout), out outSerializer))
+                    if (SerializableResponseTypes.TryGetValue(typeof(T), out outSerializer))
                     {
                         // grab the stream for response content
                         responseStream = httpResponse.GetResponseStream();
@@ -1047,7 +1698,7 @@ namespace CloudApiPublic.REST
                         {
                             // log communication for stream body
                             ComTrace.LogCommunication(settings.TraceLocation, // trace file location
-                                settings.Udid, // device id
+                                settings.DeviceId, // device id
                                 settings.SyncBoxId, // user id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
@@ -1059,12 +1710,12 @@ namespace CloudApiPublic.REST
                         }
 
                         // deserialize the response content into the appropriate json contract object
-                        toReturn = (Tout)outSerializer.ReadObject(serializationStream);
+                        toReturn = (T)outSerializer.ReadObject(serializationStream);
                     }
                     // else if the output type is not in the dictionary of those serializable and if the output type is either object or string,
                     // then process the response content as a string to output directly
-                    else if (typeof(Tout) == typeof(string)
-                        || (typeof(Tout) == typeof(object)))
+                    else if (typeof(T) == typeof(string)
+                        || (typeof(T) == typeof(object)))
                     {
                         // grab the stream from the response content
                         responseStream = httpResponse.GetResponseStream();
@@ -1073,14 +1724,14 @@ namespace CloudApiPublic.REST
                         using (TextReader purgeResponseStreamReader = new StreamReader(responseStream, Encoding.UTF8))
                         {
                             // set the error string from the response
-                            toReturn = (Tout)((object)purgeResponseStreamReader.ReadToEnd());
+                            toReturn = (T)((object)purgeResponseStreamReader.ReadToEnd());
                         }
                     }
                     // else if the output type is not in the dictionary of those serializable and if the output type is also neither object nor string,
                     // then throw an argument exception
                     else
                     {
-                        throw new ArgumentException("Tout is not a serializable output type nor object/string");
+                        throw new ArgumentException("T is not a serializable output type nor object/string");
                     }
                 }
 
@@ -1132,7 +1783,7 @@ namespace CloudApiPublic.REST
                     {
                         // log communication for string body
                         ComTrace.LogCommunication(settings.TraceLocation, // trace file location
-                            settings.Udid, // device id
+                            settings.DeviceId, // device id
                             settings.SyncBoxId, // user id
                             CommunicationEntryDirection.Response, // communication direction is response
                             serverUrl + serverMethodPath, // input parameter method path

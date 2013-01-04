@@ -76,16 +76,16 @@ namespace CloudApiPublic.SQLIndexer
         /// must be started afterwards with StartInitialIndexing
         /// </summary>
         /// <param name="newIndexer">Output indexing agent</param>
-        /// <param name="userId">String id for the user</param>
+        /// <param name="syncBoxId">Sync box ID</param>
         /// <param name="databaseLocation">(optional) A database storage location unique to a particular user</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
-        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, string userId, string databaseLocation = null)
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, Nullable<long> syncBoxId, string databaseLocation = null)
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
             try
             {
-                newIndexer = newAgent = new IndexingAgent(databaseLocation, userId);
+                newIndexer = newAgent = new IndexingAgent(databaseLocation, syncBoxId);
             }
             catch (Exception ex)
             {
@@ -378,6 +378,7 @@ namespace CloudApiPublic.SQLIndexer
                                         : currentSyncState.Value.Value.Value.Path,
                                     Metadata = new FileMetadata()
                                     {
+                                        // TODO: add server id
                                         HashableProperties = new FileMetadataHashableProperties(currentSyncState.Value.Key.Value.IsFolder,
                                             currentSyncState.Value.Key.Value.LastTime,
                                             currentSyncState.Value.Key.Value.CreationTime,
@@ -444,6 +445,7 @@ namespace CloudApiPublic.SQLIndexer
                         {
                             metadata = new FileMetadata()
                             {
+                                // TODO: add server id
                                 HashableProperties = new FileMetadataHashableProperties(foundSync.IsFolder,
                                     foundSync.LastTime,
                                     foundSync.CreationTime,
@@ -512,6 +514,7 @@ namespace CloudApiPublic.SQLIndexer
                                 Type = changeEnums[currentChange.FileChangeTypeEnumId],
                                 Metadata = new FileMetadata()
                                 {
+                                    // TODO: add server id
                                     HashableProperties = new FileMetadataHashableProperties(currentChange.FileSystemObject.IsFolder,
                                         currentChange.FileSystemObject.LastTime,
                                         currentChange.FileSystemObject.CreationTime,
@@ -582,6 +585,7 @@ namespace CloudApiPublic.SQLIndexer
                         FileChangeTypeEnumId = changeEnumsBackward[newEvent.Type],
                         FileSystemObject = new FileSystemObject()
                         {
+                            // TODO: add server id
                             CreationTime = newEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                 ? (Nullable<DateTime>)null
                                 : newEvent.Metadata.HashableProperties.CreationTime,
@@ -997,6 +1001,7 @@ namespace CloudApiPublic.SQLIndexer
                                             currentState.Key.Value.EventId,
                                             new FileMetadata()
                                             {
+                                                // TODO: add server id
                                                 HashableProperties = new FileMetadataHashableProperties(currentState.Key.Value.IsFolder,
                                                     currentState.Key.Value.LastTime,
                                                     currentState.Key.Value.CreationTime,
@@ -1116,6 +1121,7 @@ namespace CloudApiPublic.SQLIndexer
                                                     previousEvent.EventId,
                                                     new FileMetadata()
                                                     {
+                                                        // TODO: add server id
                                                         HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                             previousEvent.FileSystemObject.LastTime,
                                                             previousEvent.FileSystemObject.CreationTime,
@@ -1174,6 +1180,7 @@ namespace CloudApiPublic.SQLIndexer
                                                         previousEvent.EventId,
                                                         new FileMetadata()
                                                         {
+                                                            // TODO: add server id
                                                             HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                                 previousEvent.FileSystemObject.LastTime,
                                                                 previousEvent.FileSystemObject.CreationTime,
@@ -1239,6 +1246,7 @@ namespace CloudApiPublic.SQLIndexer
                                                         previousEvent.EventId,
                                                         new FileMetadata()
                                                         {
+                                                            // TODO: add server id
                                                             HashableProperties = new FileMetadataHashableProperties(previousEvent.FileSystemObject.IsFolder,
                                                                 previousEvent.FileSystemObject.LastTime,
                                                                 previousEvent.FileSystemObject.CreationTime,
@@ -1292,6 +1300,7 @@ namespace CloudApiPublic.SQLIndexer
                                     // Add the file/folder object for the current sync state
                                     objectsToUpdate.Add(new FileSystemObject()
                                     {
+                                        // TODO: add server id
                                         CreationTime = (newSyncState.Value.Item3.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                             ? (Nullable<DateTime>)null
                                             : newSyncState.Value.Item3.HashableProperties.CreationTime),
@@ -1321,6 +1330,7 @@ namespace CloudApiPublic.SQLIndexer
 
                                         objectsToUpdate.Add(new FileSystemObject()
                                         {
+                                            // TODO: add server id
                                             CreationTime = (newSyncState.Value.Item3.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                                 ? (Nullable<DateTime>)null
                                                 : newSyncState.Value.Item3.HashableProperties.CreationTime),
@@ -1671,6 +1681,7 @@ namespace CloudApiPublic.SQLIndexer
                                             FileChange mergedEvent = mergedPair.Key;
 
                                             // Update database object with latest event properties
+                                            // TODO: add server id
                                             currentToModify.FileChangeTypeEnumId = changeEnumsBackward[mergedEvent.Type];
                                             currentToModify.PreviousPath = (mergedEvent.OldPath == null
                                                 ? null
@@ -1745,6 +1756,7 @@ namespace CloudApiPublic.SQLIndexer
                                                 FileChangeTypeEnumId = changeEnumsBackward[identityInsertChange.Key.Type],
                                                 FileSystemObject = new FileSystemObject()
                                                 {
+                                                    // TODO: add server id
                                                     EventId = identityInsertChange.Key.EventId,
                                                     CreationTime = identityInsertChange.Key.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                                         ? (Nullable<DateTime>)null
@@ -2085,17 +2097,17 @@ namespace CloudApiPublic.SQLIndexer
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
-        private IndexingAgent(string databaseLocation, string userId)
+        private IndexingAgent(string databaseLocation, Nullable<long> syncBoxId)
         {
-            if (string.IsNullOrWhiteSpace(userId))
+            if (syncBoxId == null)
             {
-                throw new NullReferenceException("userId cannot be null");
+                throw new NullReferenceException("syncBoxId cannot be null");
             }
 
             this.indexDBLocation = (databaseLocation == null
                 ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
                     "\\" + Helpers.GetDefaultNameFromApplicationName() +
-                    "\\" + userId + // create the default location uniquely for the user
+                    "\\" + ((long)syncBoxId).ToString() + // create the default location uniquely for the user
                     "\\IndexDB.sdf"
                 : new FileInfo(databaseLocation).FullName + "\\IndexDB.sdf");
         }
@@ -2170,6 +2182,7 @@ namespace CloudApiPublic.SQLIndexer
                         // Add the previous sync state to the initial index
                         FileMetadata currentToAdd = new FileMetadata()
                             {
+                                // TODO: add server id
                                 HashableProperties = new FileMetadataHashableProperties(currentSyncState.IsFolder,
                                     currentSyncState.LastTime,
                                     currentSyncState.CreationTime,
@@ -2203,6 +2216,7 @@ namespace CloudApiPublic.SQLIndexer
                         // Add database event to list of changes
                         FileMetadata changeMetadata = new FileMetadata()
                             {
+                                // TODO: add server id
                                 HashableProperties = new FileMetadataHashableProperties(currentEvent.FileSystemObject.IsFolder,
                                     currentEvent.FileSystemObject.LastTime,
                                     currentEvent.FileSystemObject.CreationTime,
@@ -2496,8 +2510,9 @@ namespace CloudApiPublic.SQLIndexer
                         {
                             FileMetadata modifiedMetadata = new FileMetadata()
                                 {
+                                    ServerId = existingFileMetadata.ServerId,
                                     HashableProperties = compareProperties,
-                                    LinkTargetPath = existingFileMetadata.LinkTargetPath,//Todo: needs to check again for new target path
+                                    LinkTargetPath = existingFileMetadata.LinkTargetPath, //Todo: needs to check again for new target path
                                     Revision = existingFileMetadata.Revision,
                                     StorageKey = existingFileMetadata.StorageKey
                                 };

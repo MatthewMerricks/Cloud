@@ -19,6 +19,10 @@ namespace CloudApiPublic.Model
     public sealed class FileMetadata
     {
         /// <summary>
+        /// Uid from server which uniquely represents a file or a folder regardless of where it moves
+        /// </summary>
+        public string ServerId { get; set; }
+        /// <summary>
         /// Section of comparable properties used to determine uniqueness of a file change
         /// </summary>
         public FileMetadataHashableProperties HashableProperties { get; set; }
@@ -34,6 +38,10 @@ namespace CloudApiPublic.Model
         /// Storage key to identify server location for MDS events
         /// </summary>
         public string StorageKey { get; set; }
+        /// <summary>
+        /// Mime type of a file
+        /// </summary>
+        public string MimeType { get; set; }
 
         public RevisionChanger RevisionChanger { get; private set; }
 

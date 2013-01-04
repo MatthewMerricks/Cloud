@@ -1,5 +1,5 @@
 //
-// PurgePendingResponse.cs
+// PendingResponse.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -18,6 +18,6 @@ namespace CloudApiPublic.JsonContracts
     public sealed class PendingResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataFiles, IsRequired = false)]
-        public File[] Files { get; set; }
+        public Metadata[] Files { get; set; }
     }
 }

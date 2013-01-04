@@ -68,7 +68,7 @@ namespace CloudSdkSyncSample.Models
             }
         }
 
-        public string Udid
+        public string DeviceId
         {
             get
             {
@@ -96,11 +96,19 @@ namespace CloudSdkSyncSample.Models
             }
         }
 
-        public string SyncBoxId
+        public Nullable<long> SyncBoxId
         {
             get
             {
-                return Properties.Settings.Default.SyncBoxId;
+                long syncBoxIdParsed;
+                if (long.TryParse(Properties.Settings.Default.SyncBoxId, out syncBoxIdParsed))
+                {
+                    return syncBoxIdParsed;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 

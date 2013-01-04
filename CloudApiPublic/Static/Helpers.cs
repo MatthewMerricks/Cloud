@@ -317,16 +317,20 @@ namespace CloudApiPublic.Static
             IEnumerator<KeyValuePair<string, string>> queryEnumerator = queryStrings.GetEnumerator();
             while (queryEnumerator.MoveNext())
             {
-                if (toReturn == null)
+                if (queryEnumerator.Current.Key != null
+                    || queryEnumerator.Current.Value != null)
                 {
-                    toReturn = new StringBuilder("?");
-                }
-                else
-                {
-                    toReturn.Append("&");
-                }
+                    if (toReturn == null)
+                    {
+                        toReturn = new StringBuilder("?");
+                    }
+                    else
+                    {
+                        toReturn.Append("&");
+                    }
 
-                toReturn.Append(queryEnumerator.Current.Key + "=" + queryEnumerator.Current.Value);
+                    toReturn.Append(queryEnumerator.Current.Key + "=" + queryEnumerator.Current.Value);
+                }
             }
 
             if (toReturn == null)
@@ -964,9 +968,9 @@ namespace CloudApiPublic.Static
         /// <param name="FileExtensionWithoutPeriod">The file extension to use.  e.g., "log" or "xml".</param>
         /// <param name="OnNewTraceFile">An action that will be driven when a new trace file is created.</param>
         /// <param name="OnPreviousCompletion">An action that will be driven on the old trace file when a trace file rolls over.</param>
-        /// <param name="UniqueUserId">The relevant unique user ID, or null</param>
+        /// <param name="SyncBoxId">The relevant sync box id, or null</param>
         /// <returns>string: The full path and filename.ext of the trace file to use.</returns>
-        internal static string CheckLogFileExistance(string TraceLocation, string UniqueUserId, string UserDeviceId, string TraceCategory, string FileExtensionWithoutPeriod, Action<TextWriter, string, string, string> OnNewTraceFile, Action<TextWriter> OnPreviousCompletion)
+        internal static string CheckLogFileExistance(string TraceLocation, Nullable<long> SyncBoxId, string UserDeviceId, string TraceCategory, string FileExtensionWithoutPeriod, Action<TextWriter, string, Nullable<long>, string> OnNewTraceFile, Action<TextWriter> OnPreviousCompletion)
         {
             // Get the last day we created a trace file for this category
             if (String.IsNullOrWhiteSpace(TraceCategory))
@@ -1154,7 +1158,7 @@ namespace CloudApiPublic.Static
                         {
                             using (TextWriter logWriter = File.CreateText(finalLocation))
                             {
-                                OnNewTraceFile(logWriter, finalLocation, UniqueUserId, UserDeviceId);
+                                OnNewTraceFile(logWriter, finalLocation, SyncBoxId, UserDeviceId);
                                 //logWriter.Write(LogXmlStart(finalLocation,
                                 //    "UDid: {" + UserDeviceId + "}, UUid: {" + UniqueUserId + "}"));
                             }
@@ -1479,19 +1483,19 @@ namespace CloudApiPublic.Static
                 }
 
                 // Build the string that we will hash.
-                string stringToHash = String.Format("{0}{1}{2}{3}{4}{5}{6}",
-                        CLDefinitions.AuthorizationFormatType,
-                        "\n",
-                        httpMethod.ToUpper(),
-                        "\n",
-                        methodPath,
-                        "\n",
+                string stringToHash = 
+                        CLDefinitions.AuthorizationFormatType +
+                        "\n" +
+                        httpMethod.ToUpper() +
+                        "\n" +
+                        methodPath +
+                        "\n" +
 
-                        //// cannot use query string due to server bug, they are using an unescaped uri for hashing
+                        //// cannot use query string due to server bug, they are using an unescaped query string for hashing
                         //queryString
 
-                        // temporary only until server bug is fixed and original URI is used for hash instead of using one unescaped
-                        Uri.UnescapeDataString(queryString));
+                        // temporary only until server bug is fixed and original query string is used for hash instead of using one unescaped
+                        Uri.UnescapeDataString(queryString);
 
                 // Hash the string
                 byte[] secretByte = Encoding.UTF8.GetBytes(settings.ApplicationSecret);

@@ -19,14 +19,14 @@ namespace CloudApiPublic.Sync
     /// </summary>
     public sealed class SyncSettings : ISyncSettings
     {
-        public string Udid
+        public string DeviceId
         {
             get
             {
-                return _udid;
+                return _deviceId;
             }
         }
-        private string _udid;
+        private string _deviceId;
 
         public string ApplicationKey
         {
@@ -50,14 +50,14 @@ namespace CloudApiPublic.Sync
         }
         private string _applicationSecret;
 
-        public string SyncBoxId
+        public Nullable<long> SyncBoxId
         {
             get
             {
                 return _syncBoxId;
             }
         }
-        private string _syncBoxId;
+        private Nullable<long> _syncBoxId;
 
         public string ClientVersion
         {
@@ -81,11 +81,11 @@ namespace CloudApiPublic.Sync
                     string udid,
                     string applicationKey,
                     string applicationSecret,
-                    string syncBoxId,
+                    Nullable<long> syncBoxId,
                     string clientVersion,
                     string cloudRoot)
         {
-            this._udid = udid;
+            this._deviceId = udid;
             this._applicationKey = applicationKey;
             this._applicationSecret = applicationSecret;
             this._syncBoxId = syncBoxId;
@@ -157,7 +157,7 @@ namespace CloudApiPublic.Sync
         }
         private int _traceLevel;
 
-        public string Udid
+        public string DeviceId
         {
             get
             {
@@ -184,14 +184,14 @@ namespace CloudApiPublic.Sync
         }
         private string _applicationSecret;
 
-        public string SyncBoxId
+        public Nullable<long> SyncBoxId
         {
             get
             {
                 return _syncBoxId;
             }
         }
-        private string _syncBoxId;
+        private Nullable<long> _syncBoxId;
 
         /// <summary>
         /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
@@ -250,7 +250,7 @@ namespace CloudApiPublic.Sync
                     string udid,
                     string applicationKey,
                     string applicationSecret,
-                    string syncBoxId,
+                    Nullable<long> syncBoxId,
                     string tempDownloadFolderFullPath,
                     string clientVersion,
                     string deviceName,
@@ -284,7 +284,7 @@ namespace CloudApiPublic.Sync
                 toCopy.TraceLocation,
                 toCopy.TraceExcludeAuthorization,
                 toCopy.TraceLevel,
-                toCopy.Udid,
+                toCopy.DeviceId,
                 toCopy.ApplicationKey,
                 toCopy.ApplicationSecret,
                 toCopy.SyncBoxId,
@@ -306,7 +306,7 @@ namespace CloudApiPublic.Sync
                     null,
                     true,
                     0,
-                    toCopy.Udid,
+                    toCopy.DeviceId,
                     toCopy.ApplicationKey,
                     toCopy.ApplicationSecret,
                     toCopy.SyncBoxId,
@@ -334,7 +334,7 @@ namespace CloudApiPublic.Sync
                     toCopy.TraceLocation,
                     toCopy.TraceExcludeAuthorization,
                     toCopy.TraceLevel,
-                    toCopy.Udid,
+                    toCopy.DeviceId,
                     toCopy.ApplicationKey,
                     toCopy.ApplicationSecret,
                     toCopy.SyncBoxId,
@@ -364,7 +364,7 @@ namespace CloudApiPublic.Sync
                         null,
                         true,
                         0,
-                        toCopy.Udid,
+                        toCopy.DeviceId,
                         toCopy.ApplicationKey,
                         toCopy.ApplicationSecret,
                         toCopy.SyncBoxId,

@@ -27,7 +27,7 @@ using CloudApiPublic.REST;
 namespace CloudApiPublic.Sync
 {
     /// <summary>
-    /// Processes events between an input event source (ISyncDataObject) and the server with callbacks for grabbing, rearranging, or updating events; also fires global event callbacks with status
+    /// Processes events between an input event source (ISyncDataObject) such as FileMonitor and the server with callbacks for grabbing, rearranging, or updating events; also fires global event callbacks with status
     /// </summary>
     internal sealed class SyncEngine : IDisposable
     {
@@ -95,9 +95,9 @@ namespace CloudApiPublic.Sync
             // Copy sync settings in case third party attempts to change values without restarting sync 
             this.syncSettings = SyncSettingsExtensions.CopySettings(syncSettings);
 
-            if (string.IsNullOrWhiteSpace(this.syncSettings.SyncBoxId))
+            if (this.syncSettings.SyncBoxId == null)
             {
-                throw new NullReferenceException("syncSettings Uuid cannot be null");
+                throw new NullReferenceException("syncSettings SyncBoxId cannot be null");
             }
 
             // set the Http REST client
@@ -429,7 +429,7 @@ namespace CloudApiPublic.Sync
                         // advanced trace, SyncRunInitialErrors
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.FileChange));
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.FileChange));
                         }
 
                         // update last status
@@ -774,8 +774,8 @@ namespace CloudApiPublic.Sync
                         // for advanced trace, log SyncRunPreprocessedEventsSynchronous and SyncRunPreprocessedEventsAsynchronous
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
                         }
 
                         // after each loop where more FileChanges from previous dependencies are processed,
@@ -815,8 +815,8 @@ namespace CloudApiPublic.Sync
                         // for advanced trace, SyncRunRequeuedFailuresBeforeCommunication and SyncRunChangesForCommunication
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.FileChange));
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.FileChange));
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
                         }
 
                         // update latest status
@@ -861,9 +861,9 @@ namespace CloudApiPublic.Sync
                             // for advanced trace, CommunicationCompletedChanges, CommunicationIncompletedChanges, and CommunicationChangesInError
                             if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
-                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
-                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
+                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
+                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
+                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
                             }
 
                             // if there are completed changes, then loop through them to process success
@@ -957,7 +957,7 @@ namespace CloudApiPublic.Sync
                                 // For advanced trace, SyncRunPostCommunicationDequeuedFailures
                                 if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                 {
-                                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
+                                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
                                 }
 
                                 // Declare enumerable for errors to set after dependency calculations
@@ -1051,8 +1051,8 @@ namespace CloudApiPublic.Sync
                                         // For advanced trace, DependencyAssignmentOutputChanges and DependencyAssignmentTopLevelErrors
                                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                         {
-                                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
-                                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
+                                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
+                                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
                                         }
 
                                         // outputChanges now excludes any FileChanges which overlapped with the existing list of thingsThatWereDependenciesToQueue
@@ -1188,7 +1188,7 @@ namespace CloudApiPublic.Sync
                             // advanced trace, SyncRunPostCommunicationSynchronous
                             if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
+                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
                             }
 
                             // update latest status
@@ -1349,7 +1349,7 @@ namespace CloudApiPublic.Sync
                             // advanced trace, SyncRunPostCommunicationAsynchronous
                             if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
+                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
                             }
 
                             // for any FileChange which was asynchronously queued for file upload or download,
@@ -1413,7 +1413,7 @@ namespace CloudApiPublic.Sync
                         // advanced trace, SyncRunEndThingsThatWereDependenciesToQueue
                         if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
+                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
                         }
                     }
                     // on catch, add dependencies to failure queue
@@ -1463,7 +1463,7 @@ namespace CloudApiPublic.Sync
                 if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow
                     && errorsToQueue != null) // <-- fixed a parameter exception on the Enumerable.Select extension method used in the trace statement
                 {
-                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.FileChange));
+                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.FileChange));
                 }
 
                 // errorsToQueue is no longer used (all its errors were added back to the failure queue)
@@ -2001,7 +2001,7 @@ namespace CloudApiPublic.Sync
                     // for advanced trace, UploadDownloadSuccess
                     if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
+                        ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.DeviceId, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
                     }
 
                     // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
@@ -2012,7 +2012,7 @@ namespace CloudApiPublic.Sync
                     // advanced trace, UploadDownloadFailure
                     if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToUpload == null ? null : new FileChange[] { castState.FileToUpload }));
+                        ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.DeviceId, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToUpload == null ? null : new FileChange[] { castState.FileToUpload }));
                     }
 
                     // rethrow
@@ -2491,7 +2491,7 @@ namespace CloudApiPublic.Sync
                 // for advanced trace, UploadDownloadFailure
                 if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.Udid, castState.SyncSettings.SyncBoxId, 
+                    ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.DeviceId, castState.SyncSettings.SyncBoxId, 
                         FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
                 }
 
@@ -3110,7 +3110,7 @@ namespace CloudApiPublic.Sync
                 // For advanced trace, UploadDownloadSuccess
                 if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.Udid, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
+                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
                 }
 
                 // Pull the location of the temp download folder by finding the directory path portion before the name of the downloaded file
@@ -3352,22 +3352,12 @@ namespace CloudApiPublic.Sync
                 // set the previously recoded sync ID, defaulting to "0" and if it is "0", then purge pending changes on the server
                 if ((syncString = (syncData.getLastSyncId ?? CLDefinitions.CLDefaultSyncID)) == CLDefinitions.CLDefaultSyncID)
                 {
-                    // json contract object for purge pending method
-                    PurgePending purge = new PurgePending()
-                    {
-                        // properties are purposed as named
-
-                        DeviceId = syncSettings.Udid,
-                        UserId = syncSettings.SyncBoxId
-                    };
-
                     // declare the json contract object for the response content
                     PendingResponse purgeResponse;
                     // declare the success/failure status for the communication
                     CLHttpRestStatus purgeStatus;
                     // purge pending communication with the purge request content, storing any error that occurs
                     CLError purgePendingError = httpRestClient.PurgePending(
-                        purge, // purge request content
                         HttpTimeoutMilliseconds, // milliseconds before communication timeout
                         out purgeStatus, // output the success/failure status
                         out purgeResponse); // output the response content (this response content does not get used anywhere later)
@@ -3521,6 +3511,7 @@ namespace CloudApiPublic.Sync
                                 EventId = currentEvent.FileChange.EventId, // this is out local identifier for the event which will be passed as the "client_reference" and returned so we can correlate the response event
                                 Metadata = new Metadata()
                                 {
+                                    ServerId = currentEvent.FileChange.Metadata.ServerId, // the unique id on the server
                                     CreatedDate = currentEvent.FileChange.Metadata.HashableProperties.CreationTime, // when the file system object was created
                                     Deleted = currentEvent.FileChange.Type == FileChangeType.Deleted, // whether or not the file system object is deleted
                                     Hash = ((Func<FileChange, string>)(innerEvent => // hash must be retrieved via function because the appropriate FileChange call has an output parameter (and requires error checking)
@@ -3560,11 +3551,12 @@ namespace CloudApiPublic.Sync
                                     Version = "1.0", // I do not know what value should be placed here
                                     TargetPath = (currentEvent.FileChange.Metadata.LinkTargetPath == null
                                         ? null // null for a null shortcut target path
-                                        : currentEvent.FileChange.Metadata.LinkTargetPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true)) // for a shortcut pointing to a place within the root, this is a path relative to the root with slashes switched for the NewPath; otherwise this is the actual shortcut target path
+                                        : currentEvent.FileChange.Metadata.LinkTargetPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true)), // for a shortcut pointing to a place within the root, this is a path relative to the root with slashes switched for the NewPath; otherwise this is the actual shortcut target path
+                                    MimeType = currentEvent.FileChange.Metadata.MimeType // never retrieved from Windows
                                 }
                             }).ToArray(), // selected into a new array
                             SyncBoxId = syncSettings.SyncBoxId, // pass in the sync box id
-                            DeviceId = syncSettings.Udid // pass in the device id
+                            DeviceId = syncSettings.DeviceId // pass in the device id
                         };
 
                         // declare the status for the sync to http operation
@@ -3771,6 +3763,8 @@ namespace CloudApiPublic.Sync
                                 FilePath findOldPath;
                                 // MD5 hash for the event as a string
                                 string findHash;
+                                // unique id from server
+                                string findServerId;
                                 // Metadata properties for the event
                                 FileMetadataHashableProperties findHashableProperties;
                                 // full path for the target of a shortcut for the event
@@ -3779,6 +3773,8 @@ namespace CloudApiPublic.Sync
                                 string findStorageKey;
                                 // revision for a file event
                                 string findRevision;
+                                // never set on Windows
+                                string findMimeType;
 
                                 // define a FileChange for the previous event which may be found from the events which were sent up to the server, or null as default
                                 Nullable<PossiblyStreamableFileChange> usePreviousFileChange = null;
@@ -3802,6 +3798,8 @@ namespace CloudApiPublic.Sync
                                     {
                                         throw new AggregateException("Error retrieving MD5 hash as lowercase string", hashRetrievalError.GrabExceptions());
                                     }
+                                    // ser the unique server id
+                                    findServerId = nonNullPreviousFileChange.FileChange.Metadata.ServerId;
                                     // set the metadata properties
                                     findHashableProperties = nonNullPreviousFileChange.FileChange.Metadata.HashableProperties;
                                     // set the shortcut target path, or null if the event is not for a shortcut file
@@ -3810,6 +3808,8 @@ namespace CloudApiPublic.Sync
                                     findStorageKey = nonNullPreviousFileChange.FileChange.Metadata.StorageKey;
                                     // set the revision, or null if the event is not for a file
                                     findRevision = nonNullPreviousFileChange.FileChange.Metadata.Revision;
+                                    // never set on Windows
+                                    findMimeType = nonNullPreviousFileChange.FileChange.Metadata.MimeType;
                                 }
                                 // else if the current event has metadata, then set all the properties for the FileChange from the event metadata
                                 else
@@ -3823,6 +3823,8 @@ namespace CloudApiPublic.Sync
                                         : null);
                                     // set the MD5 hash, or null for non-files
                                     findHash = currentEvent.Metadata.Hash;
+                                    // set the unique server id
+                                    findServerId = currentEvent.Metadata.ServerId;
                                     // set the metadata properties
                                     findHashableProperties = new FileMetadataHashableProperties(currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action), // whether the event represents a folder, first try to grab the bool otherwise you can parse it from the action
                                         currentEvent.Metadata.ModifiedDate, // the last time the file system object was modified
@@ -3835,17 +3837,19 @@ namespace CloudApiPublic.Sync
                                     findRevision = currentEvent.Metadata.Revision;
                                     // set the storage key from the current file, or null for non-files
                                     findStorageKey = currentEvent.Metadata.StorageKey;
+                                    // never set on Windows
+                                    findMimeType = currentEvent.Metadata.MimeType;
                                 }
 
                                 // create a FileChange with dependencies using a new FileChange from the stored FileChange data (except metadata) and adding the MD5 hash (null for non-files)
                                 currentChange = CreateFileChangeFromBaseChangePlusHash(new FileChange()
-                                {
-                                    Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To), // Sync From events have no status while Sync To events have status
-                                    EventId = currentEvent.Header.EventId ?? 0, // The "client_reference" field from the communication which was set from a Sync To event or left out for Sync From, null-coallesce for the second case
-                                    NewPath = findNewPath, // The full path for the event
-                                    OldPath = findOldPath, // The previous path for rename events, or null for everything else
-                                    Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action) // The FileChange type parsed from the event action
-                                },
+                                    {
+                                        Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To), // Sync From events have no status while Sync To events have status
+                                        EventId = currentEvent.Header.EventId ?? 0, // The "client_reference" field from the communication which was set from a Sync To event or left out for Sync From, null-coallesce for the second case
+                                        NewPath = findNewPath, // The full path for the event
+                                        OldPath = findOldPath, // The previous path for rename events, or null for everything else
+                                        Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action) // The FileChange type parsed from the event action
+                                    },
                                     findHash); // The MD5 hash, or null for non-files
 
                                 // set the previous FileChange which was matched to the current event, first from the previous FileChange calculated for no event metadata or null if no "client_reference" was returned or finally search it from the communicated events by event id
@@ -3864,10 +3868,12 @@ namespace CloudApiPublic.Sync
                                 // set the metadata for the current FileChange (copying the RevisionChanger if a previous matched FileChange was found)
                                 currentChange.Metadata = new FileMetadata(matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.RevisionChanger) // copy previous RevisionChanger if possible
                                 {
+                                    ServerId = findServerId, // set the server unique id
                                     HashableProperties = findHashableProperties, // set the metadata properties
                                     LinkTargetPath = findLinkTargetPath, // set the full path target of a shortcut file, or null for non-shortcuts
                                     Revision = findRevision, // set the file revision, or null for non-files
-                                    StorageKey = findStorageKey // set the storage key, or null for non-files
+                                    StorageKey = findStorageKey, // set the storage key, or null for non-files
+                                    MimeType = findMimeType // never set on Windows
                                 };
 
                                 // if a matched change was set, then use the Stream from the previous FileChange as the current Stream
@@ -4019,25 +4025,27 @@ namespace CloudApiPublic.Sync
 
                                                     // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
                                                     FileChangeWithDependencies newPathCreation = CreateFileChangeFromBaseChangePlusHash(new FileChange()
-                                                    {
-                                                        Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
-                                                        NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
-                                                        Type = FileChangeType.Created, // a create to download a new file or process a new folder
-                                                        Metadata = new FileMetadata()
                                                         {
-                                                            //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
-
-                                                            HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
-                                                                newMetadata.ModifiedDate, // last modified time for this file system object
-                                                                newMetadata.CreatedDate, // creation time for this file system object
-                                                                newMetadata.Size), // file size or null for folders
-                                                            Revision = newMetadata.Revision, // file revision or null for folders
-                                                            StorageKey = newMetadata.StorageKey, // file storage key or null for folders
-                                                            LinkTargetPath = (newMetadata.TargetPath == null
-                                                                ? null // if server metadata does not have a shortcut file target path, then use null
-                                                                : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
-                                                        }
-                                                    },
+                                                            Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
+                                                            NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
+                                                            Type = FileChangeType.Created, // a create to download a new file or process a new folder
+                                                            Metadata = new FileMetadata()
+                                                            {
+                                                                //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
+                                                            
+                                                                ServerId = currentChange.Metadata.ServerId, // the unique id on the server
+                                                                HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
+                                                                    newMetadata.ModifiedDate, // last modified time for this file system object
+                                                                    newMetadata.CreatedDate, // creation time for this file system object
+                                                                    newMetadata.Size), // file size or null for folders
+                                                                Revision = newMetadata.Revision, // file revision or null for folders
+                                                                StorageKey = newMetadata.StorageKey, // file storage key or null for folders
+                                                                LinkTargetPath = (newMetadata.TargetPath == null
+                                                                    ? null // if server metadata does not have a shortcut file target path, then use null
+                                                                    : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                                MimeType = newMetadata.MimeType // never set on Windows
+                                                            }
+                                                        },
                                                         newMetadata.Hash); // file MD5 hash or null for folder
 
                                                     // make sure to add change to SQL
@@ -4152,6 +4160,10 @@ namespace CloudApiPublic.Sync
                                         // different if the old location is different (for renames)
                                         || !((((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath == null && currentChange.OldPath == null)
                                             || (((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath != null && currentChange.OldPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath, currentChange.OldPath)))
+
+                                        // different if FileChanges have mismatching unique server ids
+                                        || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerId != null && !string.IsNullOrEmpty(currentChange.Metadata.ServerId)
+                                            && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerId != currentChange.Metadata.ServerId)
 
                                         // different if the revision is different
                                         || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision != currentChange.Metadata.Revision
@@ -4278,6 +4290,8 @@ namespace CloudApiPublic.Sync
                                                     if (currentEvent.Header.Status == CLDefinitions.CLEventTypeNotFound
                                                         && currentChange.Type != FileChangeType.Deleted)
                                                     {
+                                                        // clear unique server id
+                                                        currentChange.Metadata.ServerId = null;
                                                         // convert change to creation
                                                         currentChange.Type = FileChangeType.Created;
                                                         // remove old path since creation does not have one
@@ -4288,6 +4302,8 @@ namespace CloudApiPublic.Sync
                                                         currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
                                                         // clear storage key since the server may need to assign a new one when creation is sent
                                                         currentChange.Metadata.StorageKey = null;
+                                                        // clear mime type, which is not set on Windows anyways
+                                                        currentChange.Metadata.MimeType = null;
 
                                                         // wrap the modified current change so it can be added to the changes in error list
                                                         PossiblyStreamableAndPossiblyChangedFileChangeWithError notFoundChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(true, // type was converted so database needs to be updated
@@ -4970,7 +4986,7 @@ namespace CloudApiPublic.Sync
                             new Push() // use a new push request
                             {
                                 LastSyncId = syncString, // fill in the last sync id
-                                DeviceId = syncSettings.Udid, // fill in the device id
+                                DeviceId = syncSettings.DeviceId, // fill in the device id
                                 SyncBoxId = syncSettings.SyncBoxId // fill in the sync box id
                             },
                             HttpTimeoutMilliseconds, // milliseconds before http communication will timeout on an operation
@@ -4994,6 +5010,7 @@ namespace CloudApiPublic.Sync
                                 {
                                     //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
+                                    ServerId = currentEvent.Metadata.ServerId, // unique id on the server
                                     HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
                                         currentEvent.Metadata.ModifiedDate, // grab the last modified time
                                         currentEvent.Metadata.CreatedDate, // grab the time of creation
@@ -5002,7 +5019,8 @@ namespace CloudApiPublic.Sync
                                     StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
                                     LinkTargetPath = (currentEvent.Metadata.TargetPath == null
                                         ? null // if current event is a folder or a file which is not a shortcut, then there is no shortcut target path
-                                        : (syncSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else if the current event is a shortcut file, then grab the shortcut path
+                                        : (syncSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else if the current event is a shortcut file, then grab the shortcut path
+                                    MimeType = currentEvent.Metadata.MimeType // never set on Windows
                                 }
                             },
                             currentEvent.Metadata.Hash), // grab the MD5 hash
@@ -5167,6 +5185,7 @@ namespace CloudApiPublic.Sync
                                             {
                                                 //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
+                                                ServerId = newMetadata.ServerId, // unique id on the server
                                                 HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
                                                     newMetadata.ModifiedDate, // last modified time for this file system object
                                                     newMetadata.CreatedDate, // creation time for this file system object
@@ -5175,7 +5194,8 @@ namespace CloudApiPublic.Sync
                                                 StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                 LinkTargetPath = (newMetadata.TargetPath == null
                                                     ? null // if server metadata does not have a shortcut file target path, then use null
-                                                    : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")) // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                    : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                MimeType = newMetadata.MimeType // never set on Windows
                                             }
                                         },
                                         newMetadata.Hash); // file MD5 hash or null for folder

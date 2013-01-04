@@ -63,13 +63,13 @@ namespace CloudApiPublic.Model
         // a global counter which is interlocked-incremented everytime a FileChange is created
         private static long InMemoryIdCounter = 0;
         // the current FileChange's incremented id
-        public long InMemoryId { get; private set; }
+        internal long InMemoryId { get; private set; }
 
         /// <summary>
         /// Boolean set when already indexed events are requeued in the FileMonitor,
         /// defaults to false
         /// </summary>
-        public bool DoNotAddToSQLIndex
+        internal bool DoNotAddToSQLIndex
         {
             get
             {
@@ -165,8 +165,8 @@ namespace CloudApiPublic.Model
             }
         }
         private byte[] MD5 = null;
-        public byte FailureCounter = 0;
-        public byte NotFoundForStreamCounter = 0;
+        internal byte FailureCounter = 0;
+        internal byte NotFoundForStreamCounter = 0;
 
         // If properties are changed/added/removed, make sure to update FileChangeWithDependencies in the Sync project!!
 

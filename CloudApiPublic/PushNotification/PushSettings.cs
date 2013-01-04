@@ -18,7 +18,7 @@ namespace CloudApiPublic.PushNotification
     /// </summary>
     public sealed class PushSettings : IHttpSettings
     {
-        public string Udid
+        public string DeviceId
         {
             get
             {
@@ -49,20 +49,20 @@ namespace CloudApiPublic.PushNotification
         }
         private string _applicationSecret;
 
-        public string SyncBoxId
+        public Nullable<long> SyncBoxId
         {
             get
             {
                 return _syncBoxId;
             }
         }
-        private string _syncBoxId;
+        private Nullable<long> _syncBoxId;
 
         public PushSettings(
             string udid,
             string applicationKey,
             string applicationSecret,
-            string syncBoxId
+            Nullable<long> syncBoxId
             )
         {
             this._udid = udid;

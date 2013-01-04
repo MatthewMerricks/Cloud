@@ -134,7 +134,7 @@ namespace CloudApiPublic.Support
                     // only trace if trace category was set via initialization to prevent an exception being thrown -David
                     && _traceCategory != null)
                 {
-                    string logFilePath = Helpers.CheckLogFileExistance(TraceLocation: _traceLocation, UniqueUserId: null, UserDeviceId: null, TraceCategory: _traceCategory, 
+                    string logFilePath = Helpers.CheckLogFileExistance(TraceLocation: _traceLocation, SyncBoxId: null, UserDeviceId: null, TraceCategory: _traceCategory, 
                             FileExtensionWithoutPeriod: _fileExtensionWithoutPeriod, OnNewTraceFile: null, OnPreviousCompletion: null);
 
                     int formatParamCount = Regex.Matches(format,

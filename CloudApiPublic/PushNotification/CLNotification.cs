@@ -68,7 +68,7 @@ namespace CloudApiPublic.PushNotification
         /// <summary>
         /// Tracks the subscribed clients via their Settings SyncBoxId.
         /// </summary>
-        private static readonly Dictionary<string, CLNotification> NotificationClientsRunning = new Dictionary<string, CLNotification>();
+        private static readonly Dictionary<Nullable<long>, CLNotification> NotificationClientsRunning = new Dictionary<Nullable<long>, CLNotification>();
 
 
         private const int MillisecondManualPollingInterval = 20000;
@@ -85,19 +85,19 @@ namespace CloudApiPublic.PushNotification
                 throw new NullReferenceException("syncSettings cannot be null");
             }
 
-            if (string.IsNullOrWhiteSpace(syncSettings.SyncBoxId))
+            if (syncSettings.SyncBoxId == null)
             {
                 throw new NullReferenceException("syncSettings SyncBoxId cannot be null");
             }
 
-            if (string.IsNullOrWhiteSpace(syncSettings.Udid))
+            if (string.IsNullOrWhiteSpace(syncSettings.DeviceId))
             {
                 throw new NullReferenceException("syncSettings Udid cannot be null");
             }
 
             lock (NotificationClientsRunning)
             {
-                string storeSyncBoxId = syncSettings.SyncBoxId;
+                Nullable<long> storeSyncBoxId = syncSettings.SyncBoxId;
                 CLNotification toReturn;
                 if (!NotificationClientsRunning.TryGetValue(storeSyncBoxId, out toReturn))
                 {
@@ -156,14 +156,14 @@ namespace CloudApiPublic.PushNotification
                 try
                 {
                     string url = CLDefinitions.CLNotificationServerURL;
-                    string pathAndQueryStringAndFragment = String.Format("/1/sync/subscribe?sync_box_id={0}&device={1}", _syncSettings.SyncBoxId, _syncSettings.Udid);
+                    string pathAndQueryStringAndFragment = String.Format("/1/sync/subscribe?sync_box_id={0}&device={1}", _syncSettings.SyncBoxId, _syncSettings.DeviceId);
                     _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>. QueryString: {1}.", url, pathAndQueryStringAndFragment);
 
                     //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on _syncSettings.TraceExcludeAuthorization !!
                     if ((_syncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                     {
                         ComTrace.LogCommunication(_syncSettings.TraceLocation,
-                            _syncSettings.Udid,
+                            _syncSettings.DeviceId,
                             _syncSettings.SyncBoxId,
                             CommunicationEntryDirection.Request,
                             url + pathAndQueryStringAndFragment,
@@ -588,7 +588,7 @@ namespace CloudApiPublic.PushNotification
                 if ((_innerSyncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                 {
                     ComTrace.LogCommunication(_innerSyncSettings.TraceLocation,
-                        _innerSyncSettings.Udid,
+                        _innerSyncSettings.DeviceId,
                         _innerSyncSettings.SyncBoxId,
                         CommunicationEntryDirection.Response,
                         this._url,
@@ -604,7 +604,7 @@ namespace CloudApiPublic.PushNotification
                     NotificationResponse parsedResponse = JsonContractHelpers.ParseNotificationResponse(e.Message);
                     if (parsedResponse == null
                         || parsedResponse.Body != CLDefinitions.CLNotificationTypeNew
-                        || parsedResponse.Author.ToUpper() != _innerSyncSettings.Udid.ToUpper())
+                        || parsedResponse.Author.ToUpper() != _innerSyncSettings.DeviceId.ToUpper())
                     {
                         _trace.writeToLog(9, "CLNotification: OnConnectionReceived: Send DidReceivePushNotificationFromServer.");
                         if (_notificationReceived != null)
@@ -664,7 +664,7 @@ namespace CloudApiPublic.PushNotification
                 _trace.writeToLog(1, "CLNotification: DisconnectPushNotificationServer: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
 
-            if (_syncSettings != null && !String.IsNullOrWhiteSpace(_syncSettings.SyncBoxId))
+            if (_syncSettings != null && _syncSettings.SyncBoxId != null)
             {
                 NotificationClientsRunning.Remove(_syncSettings.SyncBoxId);
             }

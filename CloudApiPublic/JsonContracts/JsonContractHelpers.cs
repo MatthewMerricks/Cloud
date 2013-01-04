@@ -86,6 +86,20 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _toSerializer = null;
         private static readonly object ToSerializerLocker = new object();
 
+        public static DataContractJsonSerializer EventSerializer
+        {
+            get
+            {
+                lock (EventSerializerLocker)
+                {
+                    return _eventSerializer
+                        ?? (_eventSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Event)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _eventSerializer = null;
+        private static readonly object EventSerializerLocker = new object();
+
         public static DataContractJsonSerializer NotificationResponseSerializer
         {
             get
@@ -161,5 +175,133 @@ namespace CloudApiPublic.JsonContracts
         }
         private static DataContractJsonSerializer _pendingResponseSerializer = null;
         private static readonly object PendingResponseSerializerLocker = new object();
+
+        #region one-off contract serializers
+        public static DataContractJsonSerializer FolderAddSerializer
+        {
+            get
+            {
+                lock (FolderAddSerializerLocker)
+                {
+                    return _folderAddSerializerSerializer
+                        ?? (_folderAddSerializerSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FolderAdd)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _folderAddSerializerSerializer = null;
+        private static readonly object FolderAddSerializerLocker = new object();
+
+        public static DataContractJsonSerializer FileAddSerializer
+        {
+            get
+            {
+                lock (FileAddSerializerLocker)
+                {
+                    return _fileAddSerializerSerializer
+                        ?? (_fileAddSerializerSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileAdd)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileAddSerializerSerializer = null;
+        private static readonly object FileAddSerializerLocker = new object();
+
+        public static DataContractJsonSerializer FileModifySerializer
+        {
+            get
+            {
+                lock (FileModifySerializerLocker)
+                {
+                    return _fileModifySerializerSerializer
+                        ?? (_fileModifySerializerSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileModify)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileModifySerializerSerializer = null;
+        private static readonly object FileModifySerializerLocker = new object();
+
+        public static DataContractJsonSerializer FileOrFolderDeleteSerializer
+        {
+            get
+            {
+                lock (FileOrFolderDeleteSerializerLocker)
+                {
+                    return _fileOrFolderDeleteSerializerSerializer
+                        ?? (_fileOrFolderDeleteSerializerSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileOrFolderDelete)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileOrFolderDeleteSerializerSerializer = null;
+        private static readonly object FileOrFolderDeleteSerializerLocker = new object();
+
+        public static DataContractJsonSerializer FileOrFolderMoveSerializer
+        {
+            get
+            {
+                lock (FileOrFolderMoveSerializerLocker)
+                {
+                    return _fileOrFolderMoveSerializerSerializer
+                        ?? (_fileOrFolderMoveSerializerSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileOrFolderMove)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileOrFolderMoveSerializerSerializer = null;
+        private static readonly object FileOrFolderMoveSerializerLocker = new object();
+
+        public static DataContractJsonSerializer FileOrFolderUndeleteSerializer
+        {
+            get
+            {
+                lock (FileOrFolderUndeleteSerializerLocker)
+                {
+                    return _fileOrFolderUndeleteSerializerSerializer
+                        ?? (_fileOrFolderUndeleteSerializerSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileOrFolderUndelete)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileOrFolderUndeleteSerializerSerializer = null;
+        private static readonly object FileOrFolderUndeleteSerializerLocker = new object();
+
+        public static DataContractJsonSerializer FileVersionsSerializer
+        {
+            get
+            {
+                lock (FileVersionsSerializerLocker)
+                {
+                    return _fileVersionsSerializerSerializer
+                        ?? (_fileVersionsSerializerSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileVersion[])));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileVersionsSerializerSerializer = null;
+        private static readonly object FileVersionsSerializerLocker = new object();
+
+        public static DataContractJsonSerializer UsedBytesSerializer
+        {
+            get
+            {
+                lock (UsedBytesSerializerLocker)
+                {
+                    return _usedBytesSerializerSerializer
+                        ?? (_usedBytesSerializerSerializer = new DataContractJsonSerializer(typeof(JsonContracts.UsedBytes)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _usedBytesSerializerSerializer = null;
+        private static readonly object UsedBytesSerializerLocker = new object();
+
+        public static DataContractJsonSerializer FileCopySerializer
+        {
+            get
+            {
+                lock (FileCopySerializerLocker)
+                {
+                    return _fileCopySerializerSerializer
+                        ?? (_fileCopySerializerSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileCopy)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileCopySerializerSerializer = null;
+        private static readonly object FileCopySerializerLocker = new object();
+        #endregion
     }
 }

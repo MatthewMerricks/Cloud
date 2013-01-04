@@ -135,6 +135,15 @@
     <Compile Include="EventMessageReceiver\WindowSyncStatusViewModel.cs" />
     <Compile Include="FileMonitor\MonitorAgent.cs" />
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
+    <Compile Include="JsonContracts\FileAdd.cs" />
+    <Compile Include="JsonContracts\FileCopy.cs" />
+    <Compile Include="JsonContracts\FileOrFolderDelete.cs" />
+    <Compile Include="JsonContracts\FileModify.cs" />
+    <Compile Include="JsonContracts\FileOrFolderMove.cs" />
+    <Compile Include="JsonContracts\FileOrFolderUndelete.cs" />
+    <Compile Include="JsonContracts\FileVersion.cs" />
+    <Compile Include="JsonContracts\FolderAdd.cs" />
+    <Compile Include="JsonContracts\UsedBytes.cs" />
     <Compile Include="Model\ConstructedHolder.cs" />
     <Compile Include="Model\IMessageSender.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
@@ -151,7 +160,6 @@
     <Compile Include="Interfaces\ISyncSettings.cs" />
     <Compile Include="JsonContracts\Download.cs" />
     <Compile Include="JsonContracts\Event.cs" />
-    <Compile Include="JsonContracts\File.cs" />
     <Compile Include="JsonContracts\Header.cs" />
     <Compile Include="JsonContracts\JsonContractHelpers.cs" />
     <Compile Include="JsonContracts\Metadata.cs" />

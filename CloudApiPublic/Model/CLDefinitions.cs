@@ -117,9 +117,40 @@ namespace CloudApiPublic.Model
         public const string MethodPathGetFolderMetadata = "/1/folder/metadata";              // GET
         public const string MethodPathSyncBoxList = "/1/sync_box/list";                      // POST
 
+        public const string MethodPathGetUsedBytes = "/1/file/used_bytes";                   // GET
+
         #region one-off
-        public const string MethodPathOneOffFileAdd = "/1/file/add";                         // POST
-        // finish writing one-offs here...
+        #region files
+        public const string MethodPathOneOffFileCreate = "/1/file/add";                      // POST
+        public const string MethodPathOneOffFileDelete = "/1/file/delete";                   // POST
+        public const string MethodPathOneOffFileModify = "/1/file/modify";                   // POST
+        public const string MethodPathOneOffFileMove = "/1/file/move";                       // POST
+        /* duplicate functionality to file move:
+        public const string MethodPathOneOffFileRename = "/1/file/rename";                   // POST
+         */
+        #endregion
+
+        #region folders
+        public const string MethodPathOneOffFolderCreate = "/1/folder/add";                  // POST
+        public const string MethodPathOneOffFolderDelete = "/1/folder/delete";               // POST
+        public const string MethodPathOneOffFolderMove = "/1/folder/move";                   // POST
+        /* duplicate functionality to folder move:
+        public const string MethodPathOneOffFolderRename = "/1/folder/rename";               // POST
+         */
+        #endregion
+        #endregion
+
+        #region other file operations
+        public const string MethodPathFileUndelete = "/1/file/undelete";                     // POST
+        public const string MethodPathFileGetVersions = "/1/file/versions";                  // GET
+        public const string MethodPathFileCopy = "/1/file/copy";                             // POST
+        public const string MethodPathGetPictures = "/1/file/pictures";                      // GET
+        #endregion
+
+        #region other folder operations
+        public const string MethodPathGetFolderContents = "/1/folder/contents";              // GET
+        public const string MethodPathGetFolderHierarchy = "/1/folder/hierarchy";            // GET
+        public const string MethodPathFolderUndelete = "/1/folder/undelete";                 // POST
         #endregion
 
         public const string AuthorizationFormatType = "CWS0";
@@ -182,8 +213,9 @@ namespace CloudApiPublic.Model
         public const string JsonClientParamsFieldApplicationNamespace_Value = "com.cloud.product.clients.windows";
 
         // Query string keys
-        public const string QueryStringDeviceUUId = "device_uuid";
+        public const string QueryStringDeviceId = "device_uuid";
         public const string QueryStringSyncBoxId = "sync_box_id";
+        public const string QueryStringIncludeDeleted = "include_deleted";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
@@ -226,7 +258,7 @@ namespace CloudApiPublic.Model
         // Sync Header
         public const string CLSyncEventMetadata = "metadata";
         public const string CLSyncEventHeader = "sync_header";
-        public const string CLEventTypeAddFile = "add_file";
+        public const string CLEventTypeAddFile = "add_file"; // returned upon undeleting a file
         public const string CLEventTypeDeleteFile = "delete_file";
         public const string CLEventTypeModifyFile = "modify_file";
         public const string CLEventTypeRenameFile = "rename_file";
@@ -316,6 +348,8 @@ namespace CloudApiPublic.Model
         public const string CLSyncBoxId = "id";
         public const string CLSyncBoxStorageQuota = "storage_quota";
         public const string CLSyncBoxUpdatedAt = "updated_at";
+        public const string CLSyncBoxStoredBytes = "stored_bytes";
+        public const string CLSyncBoxPendingBytes = "pending_bytes";
 
         // Cloud Sync Status
         public const string CLEventTypeAccepted = "ok";
@@ -333,10 +367,10 @@ namespace CloudApiPublic.Model
         public const string CLMetadataCloudPath = "path";
         public const string CLMetadataFileHash = "file_hash";
         public const string CLMetadataFileRevision = "revision";
-        public const string CLMetadataFileCreateDate = "created_date";
-        public const string CLMetadataFileModifiedDate = "modified_date";
-        public const string CLMetadataFileIsDeleted = "is_deleted";
-        public const string CLMetadataFileIsDirectory = "is_folder";
+        public const string CLMetadataCreateDate = "created_date";
+        public const string CLMetadataModifiedDate = "modified_date";
+        public const string CLMetadataIsDeleted = "is_deleted";
+        public const string CLMetadataIsDirectory = "is_folder";
         public const string CLMetadataFileIsLink = "is_link";
         public const string CLMetadataFileSize = "file_size";
         public const string CLMetadataIsPending = "is_pending";
@@ -344,6 +378,7 @@ namespace CloudApiPublic.Model
         public const string CLMetadataToPath = "to_path";
         public const string CLMetadataLastEventID = "last_event_id";
         public const string CLMetadataStorageKey = "storage_key";
+        public const string CLMetadataFullStorageKey = "full_storage_key";
         public const string CLMetadataFileTarget = "target_path";
         public const string CLMetadataParentPath = "parent_path";
         public const string CLMetadataFileCAttributes = "custom_attributes";
@@ -352,6 +387,7 @@ namespace CloudApiPublic.Model
         public const string CLMetadataVersion = "version";
         public const string CLMetadataFiles = "files";
         public const string CLMetadataFile = "file";
+        public const string CLMetadataServerId = "uid";
 
         // Cloud Events
         public const string CLSyncEvent = "event";

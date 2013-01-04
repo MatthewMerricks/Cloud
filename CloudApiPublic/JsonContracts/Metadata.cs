@@ -18,13 +18,16 @@ namespace CloudApiPublic.JsonContracts
     [DataContract]
     public sealed class Metadata
     {
-        [DataMember(Name = CLDefinitions.CLMetadataFileIsDeleted, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.CLMetadataServerId, IsRequired = false)]
+        public string ServerId { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataIsDeleted, IsRequired = false)]
         public Nullable<bool> Deleted { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataMimeType, IsRequired = false)]
         public string MimeType { get; set; }
         
-        [DataMember(Name = CLDefinitions.CLMetadataFileCreateDate, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.CLMetadataCreateDate, IsRequired = false)]
         public string CreatedDateString
         {
             get
@@ -53,7 +56,7 @@ namespace CloudApiPublic.JsonContracts
         }
         public Nullable<DateTime> CreatedDate { get; set; }
 
-        [DataMember(Name = CLDefinitions.CLMetadataFileModifiedDate, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.CLMetadataModifiedDate, IsRequired = false)]
         public string ModifiedDateString
         {
             get
@@ -184,7 +187,7 @@ namespace CloudApiPublic.JsonContracts
             }
         }
 
-        [DataMember(Name = CLDefinitions.CLMetadataFileIsDirectory, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.CLMetadataIsDirectory, IsRequired = false)]
         public Nullable<bool> IsFolder { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataFileRevision, IsRequired = false)]

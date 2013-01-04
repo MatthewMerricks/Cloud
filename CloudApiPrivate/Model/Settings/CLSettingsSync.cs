@@ -77,7 +77,7 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        public string Udid
+        public string DeviceId
         {
             get
             {

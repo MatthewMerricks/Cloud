@@ -24,9 +24,9 @@ namespace CloudApiPublic.JsonContracts
         public string SyncId { get; set; }
 
         [DataMember(Name = CLDefinitions.JsonAccountFieldSyncBoxId, IsRequired = false)]
-        public string SyncBoxId { get; set; }
+        public Nullable<long> SyncBoxId { get; set; }
 
-        [DataMember(Name = CLDefinitions.QueryStringDeviceUUId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
         public string DeviceId { get; set; }
 
     }

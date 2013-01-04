@@ -18,9 +18,9 @@ namespace CloudApiPublic.JsonContracts
     internal sealed class PurgePending
     {
         [DataMember(Name = CLDefinitions.QueryStringSyncBoxId, IsRequired = false)]
-        public string UserId { get; set; }
+        public Nullable<long> SyncBoxId { get; set; }
 
-        [DataMember(Name = CLDefinitions.QueryStringDeviceUUId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
         public string DeviceId { get; set; }
     }
 }
