@@ -165,6 +165,35 @@ namespace CloudSdkSyncSample.ViewModels
 
         #endregion
 
+        #region IsEnabled Properties
+
+        public bool TbSyncBoxFolderEnabled
+        {
+            get { return !_syncStarted; }
+        }
+
+        public bool TbApplicationKeyEnabled
+        {
+            get { return !_syncStarted; }
+        }
+
+        public bool TbApplicationSecretEnabled
+        {
+            get { return !_syncStarted; }
+        }
+
+        public bool TbSyncBoxIdEnabled
+        {
+            get { return !_syncStarted; }
+        }
+
+        public bool TbUniqueDeviceIdEnabled
+        {
+            get { return !_syncStarted; }
+        }
+
+        #endregion
+
         #region Focus Properties
 
         public bool IsSyncBoxPathFocused
@@ -267,7 +296,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandBrowseSyncBoxFolder = new RelayCommand<object>(
                         param => this.BrowseSyncBoxFolder(),
-                        param => { return true; }
+                        param => this.CanBrowseSyncBoxFolder
                         );
                 }
                 return _commandBrowseSyncBoxFolder;
@@ -519,6 +548,15 @@ namespace CloudSdkSyncSample.ViewModels
                 return;
             }
 
+            // The settings are valid.  Any of this information may have changed, and
+            // we don't want to get the sync databases mixed up.  On changes, set a persistent
+            // request to delete the sync database when the SyncBox is started.  The sync
+            // database will be recreated with the current state of the SyncBox folder.
+            if (ShouldWeRequestSyncDatabaseDeletion())
+            {
+                Properties.Settings.Default.ShouldResetSync = true;
+            }
+
             // Save the values to Settings
             Properties.Settings.Default.SyncBoxFullPath = SyncRoot;
             Properties.Settings.Default.ApplicationKey = AppKey;
@@ -537,7 +575,25 @@ namespace CloudSdkSyncSample.ViewModels
             _settingsInitial = new Settings(_settingsCurrent);          // Saved.  Initial is now current.
 
             // Reinitialize trace
-            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors, willForceReset: true);
+            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, 
+                                _settingsInitial.LogErrors, willForceReset: true);
+        }
+
+        /// <summary>
+        /// Determine whether we should request that the sync database be deleted when the SyncBox is started.
+        /// </summary>
+        private bool ShouldWeRequestSyncDatabaseDeletion()
+        {
+            if (!string.Equals(_settingsCurrent.SyncBoxFullPath, _settingsInitial.SyncBoxFullPath, StringComparison.InvariantCultureIgnoreCase) ||
+                !string.Equals(_settingsCurrent.ApplicationKey, _settingsInitial.ApplicationKey, StringComparison.InvariantCultureIgnoreCase) ||
+                !string.Equals(_settingsCurrent.SyncBoxId, _settingsInitial.SyncBoxId, StringComparison.InvariantCultureIgnoreCase) ||
+                !string.Equals(_settingsCurrent.UniqueDeviceId, _settingsInitial.UniqueDeviceId, StringComparison.InvariantCultureIgnoreCase) ||
+                !string.Equals(_settingsCurrent..DatabaseFolderFullPath, _settingsInitial.DatabaseFolderFullPath, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -758,6 +814,23 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _syncBox = new CLSync();
                     startSyncBox = true;
+
+                    // Reset the sync database if we should
+                    if (Properties.Settings.Default.ShouldResetSync)
+                    {
+                        Properties.Settings.Default.ShouldResetSync = false;
+                        CLError errorFromSyncReset = _syncBox.SyncReset(SettingsAvancedImpl.Instance);
+                        if (errorFromSyncReset != null)
+                        {
+                            _syncBox = null;
+                            startSyncBox = false;
+                            if (NotifyException != null)
+                            {
+                                NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncReset, 
+                                            Message = "Error resetting the SyncBox: {0}." });
+                            }
+                        }
+                    }
                 }
             }
 
@@ -940,6 +1013,17 @@ namespace CloudSdkSyncSample.ViewModels
         /// Returns true if the Advanced Options button should be active.
         /// </summary>
         private bool CanAdvancedOptions
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the SyncBox Folder Browse button should be active.
+        /// </summary>
+        private bool CanBrowseSyncBoxFolder
         {
             get
             {
