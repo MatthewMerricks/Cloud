@@ -45,13 +45,13 @@ STDMETHODIMP CPubSubServer::Initialize()
 			segment_manager_t *segm = _pSegment->get_segment_manager();
             pszExceptionStateTracker = "Call get_address";
 			shm_base = _pSegment->get_address();
-			CLTRACE(9, "PubSubServer: Initialize: shm_base: %x.", shm_base);
-			bool fIsSane = segm->check_sanity();
-			if (!fIsSane)
-			{
-                pszExceptionStateTracker = "Throw";
-				throw new std::exception("ERROR: Shared memory segment is corrupted.");
-			}
+			CLTRACE(9, "PubSubServer: Initialize: shm_base: Address in this process: %x.", shm_base);
+			//bool fIsSane = segm->check_sanity();
+			//if (!fIsSane)
+			//{
+			//	pszExceptionStateTracker = "Throw";
+			//	throw new std::exception("ERROR: Shared memory segment is corrupted.");
+			//}
 		}
        	CLTRACE(9, "PubSubServer: Initialize: Segment: %x.", _pSegment);
     }
