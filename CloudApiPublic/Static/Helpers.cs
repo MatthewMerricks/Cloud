@@ -1277,9 +1277,9 @@ namespace CloudApiPublic.Static
         {
             try
             {
-                _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: Entry: resource: {0}. targetFileFullPath: {1}.", resourceName, targetFileFullPath);
-                _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: storeAssembly.GetName(): <{0}>.", storeAssembly.GetName());
-                _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: storeAssembly.GetName().Name: <{0}>.", storeAssembly.GetName() != null ? storeAssembly.GetName().Name : "ERROR: Not Set!");
+                _trace.writeToLog(9, "Helpers: WriteResourceFileToFilesystemFile: Entry: resource: {0}. targetFileFullPath: {1}.", resourceName, targetFileFullPath);
+                _trace.writeToLog(9, "Helpers: WriteResourceFileToFilesystemFile: storeAssembly.GetName(): <{0}>.", storeAssembly.GetName());
+                _trace.writeToLog(9, "Helpers: WriteResourceFileToFilesystemFile: storeAssembly.GetName().Name: <{0}>.", storeAssembly.GetName() != null ? storeAssembly.GetName().Name : "ERROR: Not Set!");
 
                 Func<Assembly, string, Stream> findStreamIfNull = (assemblyToSearch, fileName) =>
                 {
@@ -1297,7 +1297,7 @@ namespace CloudApiPublic.Static
                 {
                     if (txtStream == null)
                     {
-                        _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: txtStream null.");
+                        _trace.writeToLog(1, "Helpers: WriteResourceFileToFilesystemFile: ERROR: txtStream null.");
                         return 1;
                     }
 
@@ -1308,7 +1308,7 @@ namespace CloudApiPublic.Static
                     {
                         if (txtReader == null)
                         {
-                            _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: txtReader null.");
+                            _trace.writeToLog(1, "Helpers: WriteResourceFileToFilesystemFile: ERROR: txtReader null.");
                             return 2;
                         }
 
@@ -1316,7 +1316,7 @@ namespace CloudApiPublic.Static
                         {
                             if (tempStream == null)
                             {
-                                _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: tempStream null.");
+                                _trace.writeToLog(1, "Helpers: WriteResourceFileToFilesystemFile: ERROR: tempStream null.");
                                 return 3;
                             }
 
@@ -1325,11 +1325,11 @@ namespace CloudApiPublic.Static
 
                             while ((readAmount = txtReader.ReadBlock(streamBuffer, 0, 4096)) > 0)
                             {
-                                _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: Write {0} bytes to the .vbs file.", readAmount);
+                                _trace.writeToLog(9, "Helpers: WriteResourceFileToFilesystemFile: Write {0} bytes to the .vbs file.", readAmount);
                                 tempStream.Write(streamBuffer, 0, readAmount);
                             }
 
-                            _trace.writeToLog(9, "CLShortcuts: WriteResourceFileToFilesystemFile: Finished writing the .vbs file.");
+                            _trace.writeToLog(9, "Helpers: WriteResourceFileToFilesystemFile: Finished writing the .vbs file.");
                         }
                     }
                 }
@@ -1350,11 +1350,11 @@ namespace CloudApiPublic.Static
             {
                 CLError error = ex;
                 error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "Helpers: WriteResourceFileToFilesystemFile: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 return 4;
             }
 
-            _trace.writeToLog(1, "CLShortcuts: WriteResourceFileToFilesystemFile: Exit successfully.");
+            _trace.writeToLog(1, "Helpers: WriteResourceFileToFilesystemFile: Exit successfully.");
             return 0;
         }
 
@@ -1504,7 +1504,7 @@ namespace CloudApiPublic.Static
             {
                 CLError error = ex;
                 error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                CLTrace.Instance.writeToLog(1, "CLGen: Gen: ERROR. Exception.  Msg: <{0}>.", ex.Message);
+                CLTrace.Instance.writeToLog(1, "Helpers: Gen: ERROR. Exception.  Msg: <{0}>.", ex.Message);
             }
 
             return toReturn;
@@ -1533,6 +1533,124 @@ namespace CloudApiPublic.Static
             }
 
             return new string(toReturn);
+        }
+
+        /// <summary>
+        /// Delete all of the files and folders in the given directory, but not the top directory itself.
+        /// </summary>
+        /// <param name="topDirectory">The directory to search.</param>
+        public static void DeleteEverythingInDirectory(string topDirectory)
+        {
+            try
+            {
+                if (Directory.Exists(topDirectory))
+                {
+                    string[] files = Directory.GetFiles(topDirectory);
+                    foreach (string file in files)
+                    {
+                        File.Delete(file);
+                    }
+
+                    var di = new DirectoryInfo(topDirectory);
+                    DirectoryInfo[] subDirs = di.GetDirectories();
+                    foreach (DirectoryInfo dirInfo in subDirs)
+                    {
+                        var directoryName = dirInfo.Name;
+                        var fromPath = Path.Combine(topDirectory, directoryName);
+
+                        // delete all files and folders recursively
+                        Directory.Delete(fromPath, recursive: true);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "Helpers: DeleteEverythingInDirectory: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Get the full path of the folder which will be used to store files while they are downloading.
+        /// </summary>
+        /// <param name="settings">The settings to use.</param>
+        /// <returns>string: The full path of the temp download directory.</returns>
+        /// <remarks>Can throw.</remarks>
+        public static string GetTempFileDownloadPath(ISyncSettingsAdvanced settings)
+        {
+            string toReturn = "";
+            try
+            {
+                // Gather the path info
+                string sAppName = Helpers.GetDefaultNameFromApplicationName().Trim();
+                string sLocalDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Trim();
+                string sUniqueFolderName = settings.SyncBoxId.Trim() + "-" + settings.Udid.Trim();
+                string sDataDir = sLocalDir + "\\" + sAppName + "\\" + sUniqueFolderName;
+                string sTempDownloadDir = sDataDir + "\\" + CLDefinitions.kTempDownloadFolderName;
+
+                // Determine the directory to use for the temporary downloaded files
+                string sTempDownloadFolderToUse;
+                if (!String.IsNullOrWhiteSpace(settings.TempDownloadFolderFullPath))
+                {
+                    sTempDownloadFolderToUse = settings.TempDownloadFolderFullPath.Trim();
+                }
+                else
+                {
+                    sTempDownloadFolderToUse = sTempDownloadDir;
+                }
+
+                toReturn = sTempDownloadFolderToUse;
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                CLTrace.Instance.writeToLog(1, "Helpers: GetTempFileDownloadPath: ERROR. Exception.  Msg: <{0}>.", ex.Message);
+                throw ex;
+            }
+
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Get the full path of the folder which will be used to store the database file.
+        /// </summary>
+        /// <param name="settings">The settings to use.</param>
+        /// <returns>string: The full path of the directory which will be used for the database file.</returns>
+        /// <remarks>Can throw.</remarks>
+        public static string GetDatabasePath(ISyncSettingsAdvanced settings)
+        {
+            string toReturn = "";
+            try
+            {
+                // Gather the path info
+                string sAppName = Helpers.GetDefaultNameFromApplicationName().Trim();
+                string sLocalDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Trim();
+                string sUniqueFolderName = settings.SyncBoxId.Trim() + "-" + settings.Udid.Trim();
+                string sDataDir = sLocalDir + "\\" + sAppName + "\\" + sUniqueFolderName;
+
+                // Determine the database directory to use
+                string sDatabaseDirectoryToUse;
+                if (!String.IsNullOrWhiteSpace(settings.DatabaseFolder))
+                {
+                    sDatabaseDirectoryToUse = settings.DatabaseFolder.Trim();
+                }
+                else
+                {
+                    sDatabaseDirectoryToUse = sDataDir;
+                }
+
+
+                toReturn = sDatabaseDirectoryToUse;
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                CLTrace.Instance.writeToLog(1, "Helpers: GetTempFileDownloadPath: ERROR. Exception.  Msg: <{0}>.", ex.Message);
+                throw ex;
+            }
+
+            return toReturn;
         }
     }
 }

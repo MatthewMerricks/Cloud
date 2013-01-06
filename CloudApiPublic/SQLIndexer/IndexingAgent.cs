@@ -25,6 +25,7 @@ using CloudApiPublic.SQLIndexer.Migrations;
 using CloudApiPublic.SQLIndexer.Static;
 using CloudApiPublic.SQLIndexer.Model;
 using SqlSync = CloudApiPublic.SQLIndexer.SqlModel.Sync;
+using CloudApiPublic.Interfaces;
 
 namespace CloudApiPublic.SQLIndexer
 {
@@ -33,6 +34,7 @@ namespace CloudApiPublic.SQLIndexer
         #region private fields
         // store the path that represents the root of indexing
         private string indexedPath = null;
+        private readonly ISyncSettingsAdvanced _syncSettings = null;
 
         #region SQL CE
         private string indexDBLocation;
@@ -76,16 +78,15 @@ namespace CloudApiPublic.SQLIndexer
         /// must be started afterwards with StartInitialIndexing
         /// </summary>
         /// <param name="newIndexer">Output indexing agent</param>
-        /// <param name="userId">String id for the user</param>
-        /// <param name="databaseLocation">(optional) A database storage location unique to a particular user</param>
+        /// <param name="settings">The settings to use.</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
-        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, string userId, string databaseLocation = null)
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, ISyncSettingsAdvanced settings)
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
             try
             {
-                newIndexer = newAgent = new IndexingAgent(databaseLocation, userId);
+                newIndexer = newAgent = new IndexingAgent(settings);
             }
             catch (Exception ex)
             {
@@ -2085,19 +2086,15 @@ namespace CloudApiPublic.SQLIndexer
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
-        private IndexingAgent(string databaseLocation, string userId)
+        /// <param name="settings">The settings to use.</param>
+        private IndexingAgent(ISyncSettingsAdvanced settings)
         {
-            if (string.IsNullOrWhiteSpace(userId))
+            if (string.IsNullOrWhiteSpace(settings.SyncBoxId))
             {
-                throw new NullReferenceException("userId cannot be null");
+                throw new NullReferenceException("syncBoxId cannot be null");
             }
 
-            this.indexDBLocation = (databaseLocation == null
-                ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                    "\\" + Helpers.GetDefaultNameFromApplicationName() +
-                    "\\" + userId + // create the default location uniquely for the user
-                    "\\IndexDB.sdf"
-                : new FileInfo(databaseLocation).FullName + "\\IndexDB.sdf");
+            this.indexDBLocation = Helpers.GetDatabasePath(settings) + "\\" + CLDefinitions.kSyncDatabaseFileName;
         }
 
         /// <summary>
@@ -2610,6 +2607,21 @@ namespace CloudApiPublic.SQLIndexer
                 // Run dispose on inner managed objects based on disposing condition
                 if (disposing)
                 {
+                    lock (changeEnumsLocker)
+                    {
+                        if (changeEnums != null)
+                        {
+                            changeEnums.Clear();
+                            changeEnums = null;
+                        }
+
+                        if (changeEnumsBackward != null)
+                        {
+                            changeEnumsBackward.Clear();
+                            changeEnumsBackward = null;
+                        }
+                    }
+                    
                     CELocker.Dispose();
                 }
             }

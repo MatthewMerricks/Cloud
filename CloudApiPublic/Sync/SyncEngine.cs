@@ -107,10 +107,7 @@ namespace CloudApiPublic.Sync
             CLTrace.Initialize(this.syncSettings.TraceLocation, "Cloud", "log", this.syncSettings.TraceLevel, this.syncSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "SyncEngine: SyncEngine: Entry.");
 
-            this.DefaultTempDownloadsPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" +
-                Helpers.GetDefaultNameFromApplicationName() + // name of currently running application
-                "\\" + this.syncSettings.SyncBoxId + // unique downloads location for each user
-                "\\DownloadTemp";
+            this.DefaultTempDownloadsPath = Helpers.GetTempFileDownloadPath(this.syncSettings);
 
             this.HttpTimeoutMilliseconds = HttpTimeoutMilliseconds;
             this.MaxNumberOfFailureRetries = MaxNumberOfFailureRetries;

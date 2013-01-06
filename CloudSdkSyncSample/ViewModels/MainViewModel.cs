@@ -169,28 +169,88 @@ namespace CloudSdkSyncSample.ViewModels
 
         public bool TbSyncBoxFolderEnabled
         {
-            get { return !_syncStarted; }
+            get { return _tbSyncBoxFolderEnabled; }
+            set
+            {
+                if (value == _tbSyncBoxFolderEnabled)
+                {
+                    return;
+                }
+
+                _tbSyncBoxFolderEnabled= value;
+
+                base.OnPropertyChanged("TbSyncBoxFolderEnabled");
+            }
         }
+        private bool _tbSyncBoxFolderEnabled = true;
 
         public bool TbApplicationKeyEnabled
         {
-            get { return !_syncStarted; }
+            get { return _tbApplicationKeyEnabled; }
+            set
+            {
+                if (value == _tbApplicationKeyEnabled)
+                {
+                    return;
+                }
+
+                _tbApplicationKeyEnabled = value;
+
+                base.OnPropertyChanged("TbApplicationKeyEnabled");
+            }
         }
+        private bool _tbApplicationKeyEnabled = true;
 
         public bool TbApplicationSecretEnabled
         {
-            get { return !_syncStarted; }
+            get { return _tbApplicationSecretEnabled; }
+            set
+            {
+                if (value == _tbApplicationSecretEnabled)
+                {
+                    return;
+                }
+
+                _tbApplicationSecretEnabled = value;
+
+                base.OnPropertyChanged("TbApplicationSecretEnabled");
+            }
         }
+        private bool _tbApplicationSecretEnabled = true;
 
         public bool TbSyncBoxIdEnabled
         {
-            get { return !_syncStarted; }
+            get { return _tbSyncBoxIdEnabled; }
+            set
+            {
+                if (value == _tbSyncBoxIdEnabled)
+                {
+                    return;
+                }
+
+                _tbSyncBoxIdEnabled = value;
+
+                base.OnPropertyChanged("TbSyncBoxIdEnabled");
+            }
         }
+        private bool _tbSyncBoxIdEnabled = true;
 
         public bool TbUniqueDeviceIdEnabled
         {
-            get { return !_syncStarted; }
+            get { return _tbUniqueDeviceIdEnabled; }
+            set
+            {
+                if (value == _tbUniqueDeviceIdEnabled)
+                {
+                    return;
+                }
+
+                _tbUniqueDeviceIdEnabled = value;
+
+                base.OnPropertyChanged("TbUniqueDeviceIdEnabled");
+            }
         }
+        private bool _tbUniqueDeviceIdEnabled = true;
 
         #endregion
 
@@ -588,7 +648,7 @@ namespace CloudSdkSyncSample.ViewModels
                 !string.Equals(_settingsCurrent.ApplicationKey, _settingsInitial.ApplicationKey, StringComparison.InvariantCultureIgnoreCase) ||
                 !string.Equals(_settingsCurrent.SyncBoxId, _settingsInitial.SyncBoxId, StringComparison.InvariantCultureIgnoreCase) ||
                 !string.Equals(_settingsCurrent.UniqueDeviceId, _settingsInitial.UniqueDeviceId, StringComparison.InvariantCultureIgnoreCase) ||
-                !string.Equals(_settingsCurrent..DatabaseFolderFullPath, _settingsInitial.DatabaseFolderFullPath, StringComparison.InvariantCultureIgnoreCase))
+                !string.Equals(_settingsCurrent.DatabaseFolderFullPath, _settingsInitial.DatabaseFolderFullPath, StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;
             }
@@ -819,6 +879,7 @@ namespace CloudSdkSyncSample.ViewModels
                     if (Properties.Settings.Default.ShouldResetSync)
                     {
                         Properties.Settings.Default.ShouldResetSync = false;
+                        Properties.Settings.Default.Save();
                         CLError errorFromSyncReset = _syncBox.SyncReset(SettingsAvancedImpl.Instance);
                         if (errorFromSyncReset != null)
                         {
@@ -848,7 +909,7 @@ namespace CloudSdkSyncSample.ViewModels
                 }
                 else
                 {
-                    _syncStarted = true;
+                    SetSyncBoxStartedState(isStartedStateToSet: true);
                 }
             }
         }
@@ -862,7 +923,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_syncBox != null)
                 {
-                    CLSync.ShutdownSchedulers();
+                    SetSyncBoxStartedState(isStartedStateToSet: false);
                     _syncStarted = false;
                     _syncBox.Stop();
                     _syncBox = null;
@@ -887,6 +948,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 // Stop syncing if it has been started.
                 StopSyncing();
+                CLSync.ShutdownSchedulers();
 
                 // Close the window
                 _windowClosed = true;
@@ -1182,8 +1244,18 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
+        private void SetSyncBoxStartedState(bool isStartedStateToSet)
+        {
+            _syncStarted = isStartedStateToSet;
+
+            // Set the TextBox dependent properties.
+            TbSyncBoxFolderEnabled = !isStartedStateToSet;
+            TbApplicationKeyEnabled = !isStartedStateToSet;
+            TbApplicationSecretEnabled= !isStartedStateToSet;
+            TbSyncBoxIdEnabled = !isStartedStateToSet;
+            TbUniqueDeviceIdEnabled = !isStartedStateToSet;
+        }
+
         #endregion
-
-
     }
 }

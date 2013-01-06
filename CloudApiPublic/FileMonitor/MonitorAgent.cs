@@ -486,9 +486,7 @@ namespace CloudApiPublic.FileMonitor
                                 {
                                     try
                                     {
-                                        string backupLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                                                "\\Cloud\\DownloadTemp\\" +
-                                                Guid.NewGuid().ToString();
+                                        string backupLocation = Helpers.GetTempFileDownloadPath(_syncSettings) + "\\" + Guid.NewGuid().ToString();
                                         File.Replace(oldPathString,
                                             newPathString,
                                             backupLocation,

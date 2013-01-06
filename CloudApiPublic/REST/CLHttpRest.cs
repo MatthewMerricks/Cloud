@@ -129,10 +129,7 @@ namespace CloudApiPublic.REST
                 }
                 else
                 {
-                    currentDownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" + // located in local AppData
-                        Helpers.GetDefaultNameFromApplicationName() + // name of currently running application
-                        "\\" + settings.SyncBoxId + // unique downloads location for each user
-                        "\\DownloadTemp";
+                    currentDownloadFolder = Helpers.GetTempFileDownloadPath(settings);
                 }
 
                 CLError badTempFolderError = Helpers.CheckForBadPath(currentDownloadFolder);
@@ -152,11 +149,7 @@ namespace CloudApiPublic.REST
                     moveFileUponCompletion, // callback which should move the file to final location
                     moveFileUponCompletionState, // userstate for the move file callback
                     customDownloadFolderFullPath ?? // first try to use a provided custom folder full path
-                        (settings.TempDownloadFolderFullPath ?? // first try to use the temp download location from settings
-                            (Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" +
-                            Helpers.GetDefaultNameFromApplicationName() + // name of currently running application
-                            "\\" + settings.SyncBoxId + // unique downloads location for each user
-                            "\\DownloadTemp")),
+                        Helpers.GetTempFileDownloadPath(settings),
                     HandleUploadDownloadStatus, // private event handler to relay status change events
                     changeToDownload, // the FileChange describing the download
                     shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication

@@ -34,21 +34,21 @@
                 </Grid>
                 <TextBox x:Name="tbSyncBoxFolder" Margin="10,0,0,0" 
                          Text="{Binding SyncRoot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         IsEnabled="{Binding TbSyncBoxFolderEnabled, Mode=OneWay}"
+                         IsEnabled="{Binding TbSyncBoxFolderEnabled}"
                          ext:FocusExtension.IsFocused="{Binding IsSyncBoxPathFocused}"
-                         ToolTip="Enter the full path of the folder to sync." TextChanged="tbSyncBoxFolder_TextChanged"/>
+                         ToolTip="Enter the full path of the folder to sync." />
                 <!-- Application Key -->
                 <Label Content="Application _Key:" Target="{Binding ElementName=tbApplicationKey}"/>
                 <TextBox Name="tbApplicationKey" Margin="10,0,0,0" 
                         Text="{Binding AppKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         IsEnabled="{Binding TbApplicationKeyEnabled, Mode=OneWay}"
+                         IsEnabled="{Binding TbApplicationKeyEnabled}"
                         ext:FocusExtension.IsFocused="{Binding IsAppKeyFocused}"
                         ToolTip="Paste from Cloud DashBoard."/>
                 <!-- Application Secret -->
                 <Label Content="Application _Secret:" Target="{Binding ElementName=tbApplicationSecret}"/>
                 <TextBox x:Name="tbApplicationSecret" Margin="10,0,0,0" 
                         Text="{Binding AppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                        IsEnabled="{Binding TbApplicationSecretEnabled, Mode=OneWay}"
+                        IsEnabled="{Binding TbApplicationSecretEnabled}"
                         ext:FocusExtension.IsFocused="{Binding IsAppSecretFocused}"
                         ToolTip="Paste from Cloud DashBoard."/>
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
@@ -56,14 +56,14 @@
                     <Label Content="SyncBox _ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
                     <TextBox x:Name="tbSyncBoxId" Margin="10,0,0,0" Width="175" HorizontalAlignment="Left"
                          Text="{Binding SyncBoxId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         IsEnabled="{Binding TbSyncBoxIdEnabled, Mode=OneWay}"
+                         IsEnabled="{Binding TbSyncBoxIdEnabled}"
                          ext:FocusExtension.IsFocused="{Binding IsSyncBoxIdFocused}"
                          ToolTip="Paste from Cloud DashBoard."/>
                     <!-- Unique Device ID -->
                     <Label Content="Unique _Device ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
                     <TextBox x:Name="tbDeviceId" Margin="10,0,0,0"  Width="175" HorizontalAlignment="Left"
                          Text="{Binding DeviceId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         IsEnabled="{Binding TbUniqueDeviceIdEnabled, Mode=OneWay}"
+                         IsEnabled="{Binding TbUniqueDeviceIdEnabled}"
                          ext:FocusExtension.IsFocused="{Binding IsDeviceIdFocused}"
                          ToolTip="A numeric ID for this device.  Must be unique for this SyncBox ID."/>
                 </StackPanel>
