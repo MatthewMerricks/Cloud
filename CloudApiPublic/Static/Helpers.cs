@@ -1584,10 +1584,23 @@ namespace CloudApiPublic.Static
             string toReturn = "";
             try
             {
+                if (settings == null)
+                {
+                    throw new NullReferenceException("settings cannot be null");
+                }
+                if (string.IsNullOrEmpty(settings.DeviceId))
+                {
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+                if (settings.SyncBoxId == null)
+                {
+                    throw new NullReferenceException("settings SyncBoxId cannot be null");
+                }
+
                 // Gather the path info
                 string sAppName = Helpers.GetDefaultNameFromApplicationName().Trim();
                 string sLocalDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Trim();
-                string sUniqueFolderName = settings.SyncBoxId.Trim() + "-" + settings.Udid.Trim();
+                string sUniqueFolderName = ((long)settings.SyncBoxId).ToString() +"-" + settings.DeviceId.Trim();
                 string sDataDir = sLocalDir + "\\" + sAppName + "\\" + sUniqueFolderName;
                 string sTempDownloadDir = sDataDir + "\\" + CLDefinitions.kTempDownloadFolderName;
 
@@ -1626,10 +1639,23 @@ namespace CloudApiPublic.Static
             string toReturn = "";
             try
             {
+                if (settings == null)
+                {
+                    throw new NullReferenceException("settings cannot be null");
+                }
+                if (string.IsNullOrEmpty(settings.DeviceId))
+                {
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+                if (settings.SyncBoxId == null)
+                {
+                    throw new NullReferenceException("settings SyncBoxId cannot be null");
+                }
+
                 // Gather the path info
                 string sAppName = Helpers.GetDefaultNameFromApplicationName().Trim();
                 string sLocalDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Trim();
-                string sUniqueFolderName = settings.SyncBoxId.Trim() + "-" + settings.Udid.Trim();
+                string sUniqueFolderName = ((long)settings.SyncBoxId).ToString() + "-" + settings.DeviceId.Trim();
                 string sDataDir = sLocalDir + "\\" + sAppName + "\\" + sUniqueFolderName;
 
                 // Determine the database directory to use

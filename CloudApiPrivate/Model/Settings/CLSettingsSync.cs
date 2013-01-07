@@ -81,7 +81,7 @@ namespace CloudApiPrivate.Model.Settings
         {
             get
             {
-                return Settings.Instance.Udid;
+                return Settings.Instance.DeviceId;
             }
         }
         /// <summary>
@@ -106,12 +106,11 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        public string SyncBoxId
+        public Nullable<long> SyncBoxId
         {
             get
             {
-                //TODO: Fix this.
-                return "";
+                return null;
             }
         }
 
@@ -119,7 +118,7 @@ namespace CloudApiPrivate.Model.Settings
         {
             get
             {
-                return Settings.Instance.Uuid;
+                return Settings.Instance.SyncBoxId;
             }
         }
         public string Akey

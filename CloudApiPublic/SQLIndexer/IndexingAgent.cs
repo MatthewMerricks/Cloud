@@ -2101,7 +2101,7 @@ namespace CloudApiPublic.SQLIndexer
         /// <param name="settings">The settings to use.</param>
         private IndexingAgent(ISyncSettingsAdvanced settings)
         {
-            if (string.IsNullOrWhiteSpace(settings.SyncBoxId))
+            if (settings.SyncBoxId == null)
             {
                 throw new NullReferenceException("syncBoxId cannot be null");
             }

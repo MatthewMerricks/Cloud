@@ -127,13 +127,13 @@ namespace CloudApiPublic
                     return new ArgumentException("CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath", checkBadPath.GrabFirstException());
                 }
 
-                if (String.IsNullOrWhiteSpace(_syncSettings.SyncBoxId))
+                if (_syncSettings.SyncBoxId == null)
                 {
                     _trace.writeToLog(1, "CLSync: SyncReset: ERROR: SyncBoxId must be specified in settings.");
                     return new ArgumentException("SyncBoxId must be specified in settings");
                 }
 
-                if (String.IsNullOrWhiteSpace(_syncSettings.Udid))
+                if (String.IsNullOrWhiteSpace(_syncSettings.DeviceId))
                 {
                     _trace.writeToLog(1, "CLSync: SyncReset: ERROR: Udid must be specified in settings.");
                     return new ArgumentException("Udid must be specified in settings");

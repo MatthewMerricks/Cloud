@@ -184,9 +184,22 @@ namespace CloudApiPrivate.Model
 
             if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
             {
+                Nullable<long> sBoxId;
+                string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                long sBoxIdTemp;
+                if (string.IsNullOrEmpty(sBoxIdString)
+                    || !long.TryParse(sBoxIdString, out sBoxIdTemp))
+                {
+                    sBoxId = null;
+                }
+                else
+                {
+                    sBoxId = sBoxIdTemp;
+                }
+
                 ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                    Settings.Settings.Instance.Udid,
-                    Settings.Settings.Instance.Uuid,
+                    Settings.Settings.Instance.DeviceId,
+                    sBoxId,
                     CommunicationEntryDirection.Request,
                     CLDefinitions.CLRegistrationCreateRequestURLString,
                     true,
@@ -257,9 +270,22 @@ namespace CloudApiPrivate.Model
 
                         if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
+                            Nullable<long> sBoxId;
+                            string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                            long sBoxIdTemp;
+                            if (string.IsNullOrEmpty(sBoxIdString)
+                                || !long.TryParse(sBoxIdString, out sBoxIdTemp))
+                            {
+                                sBoxId = null;
+                            }
+                            else
+                            {
+                                sBoxId = sBoxIdTemp;
+                            }
+
                             ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                                Settings.Settings.Instance.Udid,
-                                Settings.Settings.Instance.Uuid,
+                                Settings.Settings.Instance.DeviceId,
+                                sBoxId,
                                 CommunicationEntryDirection.Response,
                                 CLDefinitions.CLRegistrationCreateRequestURLString,
                                 true,
@@ -297,9 +323,22 @@ namespace CloudApiPrivate.Model
                 {
                     if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                     {
+                        Nullable<long> sBoxId;
+                        string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                        long sBoxIdTemp;
+                        if (string.IsNullOrEmpty(sBoxIdString)
+                            || !long.TryParse(sBoxIdString, out sBoxIdTemp))
+                        {
+                            sBoxId = null;
+                        }
+                        else
+                        {
+                            sBoxId = sBoxIdTemp;
+                        }
+
                         ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                            Settings.Settings.Instance.Udid,
-                            Settings.Settings.Instance.Uuid,
+                            Settings.Settings.Instance.DeviceId,
+                            sBoxId,
                             CommunicationEntryDirection.Response,
                             CLDefinitions.CLRegistrationCreateRequestURLString,
                             true,
@@ -524,9 +563,22 @@ namespace CloudApiPrivate.Model
 
             if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
             {
+                Nullable<long> sBoxId;
+                string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                long sBoxIdTemp;
+                if (string.IsNullOrEmpty(sBoxIdString)
+                    || !long.TryParse(sBoxIdString, out sBoxIdTemp))
+                {
+                    sBoxId = null;
+                }
+                else
+                {
+                    sBoxId = sBoxIdTemp;
+                }
+
                 ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                    Settings.Settings.Instance.Udid,
-                    Settings.Settings.Instance.Uuid,
+                    Settings.Settings.Instance.DeviceId,
+                    sBoxId,
                     CommunicationEntryDirection.Request,
                     CLDefinitions.CLRegistrationLinkRequestURLString,
                     true,
@@ -597,9 +649,22 @@ namespace CloudApiPrivate.Model
 
                         if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
+                            Nullable<long> sBoxId;
+                            string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                            long sBoxIdTemp;
+                            if (string.IsNullOrEmpty(sBoxIdString)
+                                || !long.TryParse(sBoxIdString, out sBoxIdTemp))
+                            {
+                                sBoxId = null;
+                            }
+                            else
+                            {
+                                sBoxId = sBoxIdTemp;
+                            }
+
                             ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                                Settings.Settings.Instance.Udid,
-                                Settings.Settings.Instance.Uuid,
+                                Settings.Settings.Instance.DeviceId,
+                                sBoxId,
                                 CommunicationEntryDirection.Response,
                                 CLDefinitions.CLRegistrationLinkRequestURLString,
                                 true,
@@ -637,9 +702,22 @@ namespace CloudApiPrivate.Model
                 {
                     if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                     {
+                        Nullable<long> sBoxId;
+                        string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                        long sBoxIdTemp;
+                        if (string.IsNullOrEmpty(sBoxIdString)
+                            || !long.TryParse(sBoxIdString, out sBoxIdTemp))
+                        {
+                            sBoxId = null;
+                        }
+                        else
+                        {
+                            sBoxId = sBoxIdTemp;
+                        }
+
                         ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                            Settings.Settings.Instance.Udid,
-                            Settings.Settings.Instance.Uuid,
+                            Settings.Settings.Instance.DeviceId,
+                            sBoxId,
                             CommunicationEntryDirection.Response,
                             CLDefinitions.CLRegistrationLinkRequestURLString,
                             true,
@@ -843,16 +921,29 @@ namespace CloudApiPrivate.Model
                 //string body = String.Format(CLDefinitions.CLRegistrationUnlinkRequestBodyString, CloudApiPrivate.Model.Settings.Settings.Instance.Akey);
                 string body = String.Empty;
 
-                _trace.writeToLog(1, "CLRegistration.cs: Unlink. Udid: <{0}>.", CloudApiPrivate.Model.Settings.Settings.Instance.Udid);
+                _trace.writeToLog(1, "CLRegistration.cs: Unlink. Udid: <{0}>.", CloudApiPrivate.Model.Settings.Settings.Instance.DeviceId);
 
                 HttpContent content = new StringContent(body, Encoding.UTF8);
                 content.Headers.ContentType.MediaType = "application/json";
 
                 if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                 {
+                    Nullable<long> sBoxId;
+                    string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                    long sBoxIdTemp;
+                    if (string.IsNullOrEmpty(sBoxIdString)
+                        || !long.TryParse(sBoxIdString, out sBoxIdTemp))
+                    {
+                        sBoxId = null;
+                    }
+                    else
+                    {
+                        sBoxId = sBoxIdTemp;
+                    }
+
                     ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                        Settings.Settings.Instance.Udid,
-                        Settings.Settings.Instance.Uuid,
+                        Settings.Settings.Instance.DeviceId,
+                        sBoxId,
                         CommunicationEntryDirection.Request,
                         CLDefinitions.CLRegistrationUnlinkRequestURLString,
                         true,
@@ -923,9 +1014,22 @@ namespace CloudApiPrivate.Model
 
                             if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                             {
+                                Nullable<long> sBoxId;
+                                string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                                long sBoxIdTemp;
+                                if (string.IsNullOrEmpty(sBoxIdString)
+                                    || !long.TryParse(sBoxIdString, out sBoxIdTemp))
+                                {
+                                    sBoxId = null;
+                                }
+                                else
+                                {
+                                    sBoxId = sBoxIdTemp;
+                                }
+
                                 ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                                    Settings.Settings.Instance.Udid,
-                                    Settings.Settings.Instance.Uuid,
+                                    Settings.Settings.Instance.DeviceId,
+                                    sBoxId,
                                     CommunicationEntryDirection.Response,
                                     CLDefinitions.CLRegistrationUnlinkRequestURLString,
                                     true,
@@ -963,9 +1067,22 @@ namespace CloudApiPrivate.Model
                     {
                         if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
+                            Nullable<long> sBoxId;
+                            string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                            long sBoxIdTemp;
+                            if (string.IsNullOrEmpty(sBoxIdString)
+                                || !long.TryParse(sBoxIdString, out sBoxIdTemp))
+                            {
+                                sBoxId = null;
+                            }
+                            else
+                            {
+                                sBoxId = sBoxIdTemp;
+                            }
+
                             ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                                Settings.Settings.Instance.Udid,
-                                Settings.Settings.Instance.Uuid,
+                                Settings.Settings.Instance.DeviceId,
+                                sBoxId,
                                 CommunicationEntryDirection.Response,
                                 CLDefinitions.CLRegistrationUnlinkRequestURLString,
                                 true,
