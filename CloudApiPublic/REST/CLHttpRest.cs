@@ -154,10 +154,7 @@ namespace CloudApiPublic.REST
                 }
                 else
                 {
-                    currentDownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" + // located in local AppData
-                        Helpers.GetDefaultNameFromApplicationName() + // name of currently running application
-                        "\\" + settings.SyncBoxId + // unique downloads location for each user
-                        "\\DownloadTemp";
+                    currentDownloadFolder = Helpers.GetTempFileDownloadPath(settings);
                 }
 
                 CLError badTempFolderError = Helpers.CheckForBadPath(currentDownloadFolder);
@@ -177,11 +174,7 @@ namespace CloudApiPublic.REST
                     moveFileUponCompletion, // callback which should move the file to final location
                     moveFileUponCompletionState, // userstate for the move file callback
                     customDownloadFolderFullPath ?? // first try to use a provided custom folder full path
-                        (settings.TempDownloadFolderFullPath ?? // first try to use the temp download location from settings
-                            (Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" +
-                            Helpers.GetDefaultNameFromApplicationName() + // name of currently running application
-                            "\\" + settings.SyncBoxId + // unique downloads location for each user
-                            "\\DownloadTemp")),
+                        Helpers.GetTempFileDownloadPath(settings),
                     HandleUploadDownloadStatus, // private event handler to relay status change events
                     changeToDownload, // the FileChange describing the download
                     shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
@@ -1863,8 +1856,12 @@ namespace CloudApiPublic.REST
                     requestOrResponseAsyncResult = httpRequest.BeginGetResponse(requestOrResponseCallback, requestOrResponseHolder);
                 }
 
-                // wait on the request to become synchronous again
-                Monitor.Wait(requestOrResponseHolder);
+                // if the request was not already completed synchronously, wait on it to complete
+                if (!requestOrResponseHolder.CompletedSynchronously)
+                {
+                    // wait on the request to become synchronous again
+                    Monitor.Wait(requestOrResponseHolder);
+                }
             }
 
             // if there was an error that occurred on the async http call, then rethrow the error
@@ -1912,6 +1909,26 @@ namespace CloudApiPublic.REST
         /// </summary>
         private sealed class AsyncRequestHolder
         {
+            /// <summary>
+            /// Whether IAsyncResult was found to be CompletedSynchronously: if so, do not Monitor.Wait
+            /// </summary>
+            public bool CompletedSynchronously
+            {
+                get
+                {
+                    return _completedSynchronously;
+                }
+            }
+            /// <summary>
+            /// Mark this when IAsyncResult was found to be CompletedSynchronously
+            /// </summary>
+            public void MarkCompletedSynchronously()
+            {
+                _completedSynchronously = true;
+            }
+            // storage for CompletedSynchronously, only marked when true so default to false
+            private bool _completedSynchronously = false;
+
             /// <summary>
             /// cancelation token to check between async calls to cancel out of the operation
             /// </summary>
@@ -1999,12 +2016,24 @@ namespace CloudApiPublic.REST
             // try/catch check for completion or cancellation to pulse the AsyncRequestHolder, on catch mark the exception in the AsyncRequestHolder (which will also pulse out)
             try
             {
-                // if asynchronous task completed, then pulse the AsyncRequestHolder
-                if (makeSynchronous.IsCompleted)
+                // if marked as completed synchronously pass through to the userstate which is used within the callstack to prevent blocking on Monitor.Wait
+                if (makeSynchronous.CompletedSynchronously)
                 {
                     lock (castHolder)
                     {
-                        Monitor.Pulse(castHolder);
+                        castHolder.MarkCompletedSynchronously();
+                    }
+                }
+
+                // if asynchronous task completed, then pulse the AsyncRequestHolder
+                if (makeSynchronous.IsCompleted)
+                {
+                    if (!makeSynchronous.CompletedSynchronously)
+                    {
+                        lock (castHolder)
+                        {
+                            Monitor.Pulse(castHolder);
+                        }
                     }
                 }
                 // else if asychronous task is not completed, then check for cancellation
@@ -2019,9 +2048,12 @@ namespace CloudApiPublic.REST
                         {
                             castHolder.Cancel();
 
-                            lock (castHolder)
+                            if (!makeSynchronous.CompletedSynchronously)
                             {
-                                Monitor.Pulse(castHolder);
+                                lock (castHolder)
+                                {
+                                    Monitor.Pulse(castHolder);
+                                }
                             }
                         }
                     }

@@ -78,15 +78,26 @@ namespace CloudApiPublic.SQLIndexer
         /// must be started afterwards with StartInitialIndexing
         /// </summary>
         /// <param name="newIndexer">Output indexing agent</param>
+<<<<<<< HEAD
+        /// <param name="syncBoxId">Sync box ID</param>
+        /// <param name="databaseLocation">(optional) A database storage location unique to a particular user</param>
+        /// <returns>Returns the error that occurred during creation, if any</returns>
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, Nullable<long> syncBoxId, string databaseLocation = null)
+=======
         /// <param name="settings">The settings to use.</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
         public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, ISyncSettingsAdvanced settings)
+>>>>>>> 20120104A0PushedSwitchToManualPolling
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
             try
             {
+<<<<<<< HEAD
+                newIndexer = newAgent = new IndexingAgent(databaseLocation, syncBoxId);
+=======
                 newIndexer = newAgent = new IndexingAgent(settings);
+>>>>>>> 20120104A0PushedSwitchToManualPolling
             }
             catch (Exception ex)
             {
@@ -2098,15 +2109,30 @@ namespace CloudApiPublic.SQLIndexer
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
+<<<<<<< HEAD
+        private IndexingAgent(string databaseLocation, Nullable<long> syncBoxId)
+        {
+            if (syncBoxId == null)
+=======
         /// <param name="settings">The settings to use.</param>
         private IndexingAgent(ISyncSettingsAdvanced settings)
         {
             if (string.IsNullOrWhiteSpace(settings.SyncBoxId))
+>>>>>>> 20120104A0PushedSwitchToManualPolling
             {
                 throw new NullReferenceException("syncBoxId cannot be null");
             }
 
+<<<<<<< HEAD
+            this.indexDBLocation = (databaseLocation == null
+                ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
+                    "\\" + Helpers.GetDefaultNameFromApplicationName() +
+                    "\\" + ((long)syncBoxId).ToString() + // create the default location uniquely for the user
+                    "\\IndexDB.sdf"
+                : new FileInfo(databaseLocation).FullName + "\\IndexDB.sdf");
+=======
             this.indexDBLocation = Helpers.GetDatabasePath(settings) + "\\" + CLDefinitions.kSyncDatabaseFileName;
+>>>>>>> 20120104A0PushedSwitchToManualPolling
         }
 
         /// <summary>

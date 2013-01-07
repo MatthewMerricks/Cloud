@@ -298,62 +298,98 @@ namespace CloudApiPublic.Model
                                 foreach (KeyValuePair<string, object> currentException in this.errorInfo
                                     .Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception)))
                                 {
+                                    // create a queue for exceptions which need to be logged with stacktrace and recursive inner exception messages
+                                    Queue<Exception> loggableExceptions = new Queue<Exception>();
+
                                     // try cast the current value as an exception
-                                    Exception castException = currentException.Value as Exception;
-                                    if (castException != null)
+                                    Exception castCurrent = currentException.Value as Exception;
+                                    if (castCurrent != null)
                                     {
-                                        // define a string for storing the StackTrace, defaulting to null
-                                        string stack = null;
-                                        // I don't know if it's dangerous to pull out the StackTrace, so I wrap it safely
-                                        try
-                                        {
-                                            stack = castException.StackTrace;
-                                        }
-                                        catch
-                                        {
-                                        }
+                                        loggableExceptions.Enqueue(castCurrent);
+                                    }
 
-                                        // keep track of how many inner exceptions have recursed to increase tab amount
-                                        int tabCounter = 1;
-                                        // define function to build spaces by tab count
-                                        Func<int, string> makeTabs = tabCount =>
-                                            new string(Enumerable.Range(0, 4 * tabCount)// the "4 *" multiplier means each tab is 4 spaces
-                                                .Select(currentTabSpace => ' ')// components of the tab are spaces
-                                                .ToArray());
+                                    // define a boolean for whether this is the outermost exception (pulled from the CLError dictionary)
+                                    bool outermostException = true;
 
-                                        // determines if this exception message was already written by writing errorDescription
-                                        bool foundSameMessage = currentException.Key == CLError.ErrorInfo_Exception
-                                            && castException.Message == this.errorDescription;
+                                    // loop while there are still exceptions to log in the queue
+                                    while (loggableExceptions.Count > 0)
+                                    {
+                                        // dequeue the current exception to log
+                                        Exception dequeuedException = loggableExceptions.Dequeue();
 
-                                        // recurse through inner exceptions, each time with an extra tab appended
-                                        while (castException != null)
+                                        // verify you pulled out an actual exception
+                                        if (dequeuedException != null)
                                         {
-                                            if (foundSameMessage)
+                                            // define a string for storing the StackTrace, defaulting to null
+                                            string stack = null;
+                                            // I don't know if it's dangerous to pull out the StackTrace, so I wrap it safely
+                                            try
                                             {
-                                                foundSameMessage = false;
+                                                stack = dequeuedException.StackTrace;
                                             }
-                                            else
+                                            catch
                                             {
-                                                // write the current exception message to the log after the tabCounter worth of tabs
+                                            }
+
+                                            // keep track of how many inner exceptions have recursed to increase tab amount
+                                            int tabCounter = 1;
+                                            // define function to build spaces by tab count
+                                            Func<int, string> makeTabs = tabCount =>
+                                                new string(Enumerable.Range(0, 4 * tabCount)// the "4 *" multiplier means each tab is 4 spaces
+                                                    .Select(currentTabSpace => ' ')// components of the tab are spaces
+                                                    .ToArray());
+
+                                            // determines if this exception message was already written by writing errorDescription
+                                            bool foundSameMessage = outermostException
+                                                && currentException.Key == CLError.ErrorInfo_Exception
+                                                && dequeuedException.Message == this.errorDescription;
+
+                                            // define that this is no longer the outermost exception since we already used the boolean and any proceeding iterations won't be outermost
+                                            outermostException = false;
+
+                                            // traverse through inner exceptions, each time with an extra tab appended
+                                            while (dequeuedException != null)
+                                            {
+                                                // if we recognized that the message was already logged for a matching exception, then reset the bool
+                                                if (foundSameMessage)
+                                                {
+                                                    foundSameMessage = false;
+                                                }
+                                                // else we did not recognize that the message was already logged to log it
+                                                else
+                                                {
+                                                    // write the current exception message to the log after the tabCounter worth of tabs
+                                                    logWriter.WriteLine(
+                                                        makeTabs(tabCounter) +
+                                                        dequeuedException.Message);
+
+                                                    // increment the tab count so the next message will be more indented
+                                                    tabCounter++;
+                                                }
+
+                                                // if the current exception is an aggregate, then enqueue its inner exceptions to relog (for viewing their stacktrace)
+                                                if (dequeuedException is AggregateException)
+                                                {
+                                                    foreach (Exception aggregatedException in
+                                                        ((AggregateException)dequeuedException).InnerExceptions)
+                                                    {
+                                                        loggableExceptions.Enqueue(aggregatedException);
+                                                    }
+                                                }
+
+                                                // prepare for next inner exception traversal
+                                                dequeuedException = dequeuedException.InnerException;
+                                            }
+
+                                            // if a StackTrace was found,
+                                            // then write it to the log
+                                            if (!string.IsNullOrWhiteSpace(stack))
+                                            {
+                                                // write the StackTrace to the log with 1 tab
                                                 logWriter.WriteLine(
-                                                    makeTabs(tabCounter) +
-                                                    castException.Message);
-
-                                                tabCounter++;
+                                                    makeTabs(1) + "StackTrace:" + Environment.NewLine +
+                                                    stack);
                                             }
-
-                                            // prepare for next inner exception recursion
-                                            castException = castException.InnerException;
-                                        }
-
-                                        // if a StackTrace was found,
-                                        // then write it to the log
-                                        if (!string.IsNullOrWhiteSpace(stack))
-                                        {
-                                            // write the StackTrace to the log with 1 tab
-                                            logWriter.WriteLine(
-                                                makeTabs(1) + "StackTrace:" + Environment.NewLine +
-                                                stack);
                                         }
                                     }
                                 }

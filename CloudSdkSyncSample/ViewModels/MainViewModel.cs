@@ -46,7 +46,9 @@ namespace CloudSdkSyncSample.ViewModels
         private bool _syncStarted = false;
         private bool _windowClosed = false;
         private CLSync _syncBox = null;
-        private readonly object _locker = new object();
+        private SyncStatusView _winSyncStatus = null;
+
+        private static readonly object _locker = new object();
         private static readonly CLTrace _trace = CLTrace.Instance;
 
         #endregion
@@ -68,6 +70,8 @@ namespace CloudSdkSyncSample.ViewModels
                 throw new Exception("mainWindow must not be null");
             }
             _mainWindow = mainWindow;
+            _mainWindow.Topmost = true;
+            _mainWindow.Topmost = false;
 
             // Read in the settings
             _settingsCurrent = new Settings();
@@ -77,6 +81,11 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Initialize trace
             CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors);
+        }
+
+        public MainViewModel()
+        {
+            throw new Exception("Default constructor not supported.");
         }
 
         #endregion
@@ -162,6 +171,95 @@ namespace CloudSdkSyncSample.ViewModels
                 base.OnPropertyChanged("DeviceId");
             }
         }
+
+        #endregion
+
+        #region IsEnabled Properties
+
+        public bool TbSyncBoxFolderEnabled
+        {
+            get { return _tbSyncBoxFolderEnabled; }
+            set
+            {
+                if (value == _tbSyncBoxFolderEnabled)
+                {
+                    return;
+                }
+
+                _tbSyncBoxFolderEnabled= value;
+
+                base.OnPropertyChanged("TbSyncBoxFolderEnabled");
+            }
+        }
+        private bool _tbSyncBoxFolderEnabled = true;
+
+        public bool TbApplicationKeyEnabled
+        {
+            get { return _tbApplicationKeyEnabled; }
+            set
+            {
+                if (value == _tbApplicationKeyEnabled)
+                {
+                    return;
+                }
+
+                _tbApplicationKeyEnabled = value;
+
+                base.OnPropertyChanged("TbApplicationKeyEnabled");
+            }
+        }
+        private bool _tbApplicationKeyEnabled = true;
+
+        public bool TbApplicationSecretEnabled
+        {
+            get { return _tbApplicationSecretEnabled; }
+            set
+            {
+                if (value == _tbApplicationSecretEnabled)
+                {
+                    return;
+                }
+
+                _tbApplicationSecretEnabled = value;
+
+                base.OnPropertyChanged("TbApplicationSecretEnabled");
+            }
+        }
+        private bool _tbApplicationSecretEnabled = true;
+
+        public bool TbSyncBoxIdEnabled
+        {
+            get { return _tbSyncBoxIdEnabled; }
+            set
+            {
+                if (value == _tbSyncBoxIdEnabled)
+                {
+                    return;
+                }
+
+                _tbSyncBoxIdEnabled = value;
+
+                base.OnPropertyChanged("TbSyncBoxIdEnabled");
+            }
+        }
+        private bool _tbSyncBoxIdEnabled = true;
+
+        public bool TbUniqueDeviceIdEnabled
+        {
+            get { return _tbUniqueDeviceIdEnabled; }
+            set
+            {
+                if (value == _tbUniqueDeviceIdEnabled)
+                {
+                    return;
+                }
+
+                _tbUniqueDeviceIdEnabled = value;
+
+                base.OnPropertyChanged("TbUniqueDeviceIdEnabled");
+            }
+        }
+        private bool _tbUniqueDeviceIdEnabled = true;
 
         #endregion
 
@@ -267,7 +365,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandBrowseSyncBoxFolder = new RelayCommand<object>(
                         param => this.BrowseSyncBoxFolder(),
-                        param => { return true; }
+                        param => this.CanBrowseSyncBoxFolder
                         );
                 }
                 return _commandBrowseSyncBoxFolder;
@@ -519,6 +617,15 @@ namespace CloudSdkSyncSample.ViewModels
                 return;
             }
 
+            // The settings are valid.  Any of this information may have changed, and
+            // we don't want to get the sync databases mixed up.  On changes, set a persistent
+            // request to delete the sync database when the SyncBox is started.  The sync
+            // database will be recreated with the current state of the SyncBox folder.
+            if (ShouldWeRequestSyncDatabaseDeletion())
+            {
+                Properties.Settings.Default.ShouldResetSync = true;
+            }
+
             // Save the values to Settings
             Properties.Settings.Default.SyncBoxFullPath = SyncRoot;
             Properties.Settings.Default.ApplicationKey = AppKey;
@@ -537,7 +644,25 @@ namespace CloudSdkSyncSample.ViewModels
             _settingsInitial = new Settings(_settingsCurrent);          // Saved.  Initial is now current.
 
             // Reinitialize trace
-            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors, willForceReset: true);
+            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, 
+                                _settingsInitial.LogErrors, willForceReset: true);
+        }
+
+        /// <summary>
+        /// Determine whether we should request that the sync database be deleted when the SyncBox is started.
+        /// </summary>
+        private bool ShouldWeRequestSyncDatabaseDeletion()
+        {
+            if (!string.Equals(_settingsCurrent.SyncBoxFullPath, _settingsInitial.SyncBoxFullPath, StringComparison.InvariantCultureIgnoreCase) ||
+                !string.Equals(_settingsCurrent.ApplicationKey, _settingsInitial.ApplicationKey, StringComparison.InvariantCultureIgnoreCase) ||
+                !string.Equals(_settingsCurrent.SyncBoxId, _settingsInitial.SyncBoxId, StringComparison.InvariantCultureIgnoreCase) ||
+                !string.Equals(_settingsCurrent.UniqueDeviceId, _settingsInitial.UniqueDeviceId, StringComparison.InvariantCultureIgnoreCase) ||
+                !string.Equals(_settingsCurrent.DatabaseFolderFullPath, _settingsInitial.DatabaseFolderFullPath, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -721,17 +846,22 @@ namespace CloudSdkSyncSample.ViewModels
         public void ShowSyncStatus()
         {
             // Open RateBar graph window for upload/download status and logs
-            SyncStatusView win = new SyncStatusView();
-            EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings);
-            win.DataContext = vm;
-            win.ShowInTaskbar = true;
-            win.ShowActivated = true;
-            win.Visibility = Visibility.Visible;
-            win.WindowStyle = WindowStyle.ThreeDBorderWindow;
-            win.Show();
-            win.Topmost = true;
-            win.Topmost = false;
-            win.Focus();
+            if (_winSyncStatus != null)
+            {
+                _winSyncStatus.ShowInTaskbar = false;
+                _winSyncStatus.ShowActivated = true;
+                _winSyncStatus.WindowStyle = WindowStyle.ThreeDBorderWindow;
+                _winSyncStatus.MinWidth = 800;
+                _winSyncStatus.MinHeight = 600;
+                _winSyncStatus.MaxWidth = 800;
+                _winSyncStatus.MaxHeight = 600;
+                _winSyncStatus.Left = System.Windows.SystemParameters.PrimaryScreenWidth - 800 - 50;
+                _winSyncStatus.Top = System.Windows.SystemParameters.PrimaryScreenHeight - 600 - 50;
+                _winSyncStatus.Show();
+                _winSyncStatus.Topmost = true;
+                _winSyncStatus.Topmost = false;
+                _winSyncStatus.Focus();
+            }
         }
 
         private void OnSetHistoricBandwidthSettings(double historicUploadBandwidthBitsPS, double historicDownloadBandwidthBitsPS)
@@ -751,32 +881,89 @@ namespace CloudSdkSyncSample.ViewModels
         /// </summary>
         public void StartSyncing()
         {
-            bool startSyncBox = false;
-            lock (_locker)
+            try
             {
-                if (_syncBox == null)
+                bool startSyncBox = false;
+                lock (_locker)
                 {
-                    _syncBox = new CLSync();
-                    startSyncBox = true;
-                }
-            }
-
-            if (startSyncBox)
-            {
-                CLSyncStartStatus startStatus;
-                CLError errorFromSyncBoxStart = _syncBox.Start(SettingsAvancedImpl.Instance, out startStatus);
-                if (errorFromSyncBoxStart != null)
-                {
-                    _syncBox = null;
-                    if (NotifyException != null)
+                    if (_syncBox == null)
                     {
-                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncBoxStart, Message = String.Format("Error starting the SyncBox: {0}.", startStatus.ToString()) });
+                        _syncBox = new CLSync();
+                        startSyncBox = true;
+
+                        // Reset the sync database if we should
+                        if (Properties.Settings.Default.ShouldResetSync)
+                        {
+                            Properties.Settings.Default.ShouldResetSync = false;
+                            Properties.Settings.Default.Save();
+                            CLError errorFromSyncReset = _syncBox.SyncReset(SettingsAvancedImpl.Instance);
+                            if (errorFromSyncReset != null)
+                            {
+                                _syncBox = null;
+                                startSyncBox = false;
+                                if (NotifyException != null)
+                                {
+                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From SyncBox.SyncReset: Msg: <{0}.", errorFromSyncReset.errorDescription);
+                                    NotifyException(this, new NotificationEventArgs<CLError>()
+                                    {
+                                        Data = errorFromSyncReset,
+                                        Message = "Error resetting the SyncBox: {0}."
+                                    });
+                                }
+                            }
+                        }
                     }
                 }
-                else
+
+                if (startSyncBox)
                 {
-                    _syncStarted = true;
+                    CLSyncStartStatus startStatus;
+                    CLError errorFromSyncBoxStart = _syncBox.Start(SettingsAvancedImpl.Instance, out startStatus);
+                    if (errorFromSyncBoxStart != null)
+                    {
+                        _syncBox = null;
+                        if (NotifyException != null)
+                        {
+                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From SyncBox.Start: Msg: <{0}.", errorFromSyncBoxStart.errorDescription);
+                            NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncBoxStart, Message = String.Format("Error starting the SyncBox: {0}.", startStatus.ToString()) });
+                        }
+                    }
+                    else
+                    {
+                        lock (_locker)
+                        {
+                            // Sync has started
+                            SetSyncBoxStartedState(isStartedStateToSet: true);
+
+                            // Start an instance of the sync status window and start it hidden.
+                            if (_winSyncStatus == null)
+                            {
+                                _trace.writeToLog(9, "MainViewModel: StartSyncing: Start the sync status window.");
+                                _winSyncStatus = new SyncStatusView();
+                                EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings);
+                                _winSyncStatus.DataContext = vm;
+                                _winSyncStatus.Width = 0;
+                                _winSyncStatus.Height = 0;
+                                _winSyncStatus.MinWidth = 0;
+                                _winSyncStatus.MinHeight = 0;
+                                _winSyncStatus.Left = Int32.MaxValue;
+                                _winSyncStatus.Top = Int32.MaxValue;
+                                _winSyncStatus.ShowInTaskbar = false;
+                                _winSyncStatus.ShowActivated = false;
+                                _winSyncStatus.Visibility = Visibility.Hidden;
+                                _winSyncStatus.WindowStyle = WindowStyle.None;
+                                _winSyncStatus.Owner = _mainWindow;
+                                _winSyncStatus.Show();
+                            }
+                        }
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}.", ex.Message);
             }
         }
 
@@ -787,9 +974,16 @@ namespace CloudSdkSyncSample.ViewModels
         {
             lock (_locker)
             {
+                if (_winSyncStatus != null)
+                {
+                    _winSyncStatus.AllowClose = true;
+                    _winSyncStatus.Close();
+                    _winSyncStatus = null;
+                }
+
                 if (_syncBox != null)
                 {
-                    CLSync.ShutdownSchedulers();
+                    SetSyncBoxStartedState(isStartedStateToSet: false);
                     _syncStarted = false;
                     _syncBox.Stop();
                     _syncBox = null;
@@ -814,6 +1008,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 // Stop syncing if it has been started.
                 StopSyncing();
+                CLSync.ShutdownSchedulers();
 
                 // Close the window
                 _windowClosed = true;
@@ -940,6 +1135,17 @@ namespace CloudSdkSyncSample.ViewModels
         /// Returns true if the Advanced Options button should be active.
         /// </summary>
         private bool CanAdvancedOptions
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the SyncBox Folder Browse button should be active.
+        /// </summary>
+        private bool CanBrowseSyncBoxFolder
         {
             get
             {
@@ -1098,8 +1304,18 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
+        private void SetSyncBoxStartedState(bool isStartedStateToSet)
+        {
+            _syncStarted = isStartedStateToSet;
+
+            // Set the TextBox dependent properties.
+            TbSyncBoxFolderEnabled = !isStartedStateToSet;
+            TbApplicationKeyEnabled = !isStartedStateToSet;
+            TbApplicationSecretEnabled= !isStartedStateToSet;
+            TbSyncBoxIdEnabled = !isStartedStateToSet;
+            TbUniqueDeviceIdEnabled = !isStartedStateToSet;
+        }
+
         #endregion
-
-
     }
 }

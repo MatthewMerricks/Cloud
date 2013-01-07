@@ -486,9 +486,7 @@ namespace CloudApiPublic.FileMonitor
                                 {
                                     try
                                     {
-                                        string backupLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                                                "\\Cloud\\DownloadTemp\\" +
-                                                Guid.NewGuid().ToString();
+                                        string backupLocation = Helpers.GetTempFileDownloadPath(_syncSettings) + "\\" + Guid.NewGuid().ToString();
                                         File.Replace(oldPathString,
                                             newPathString,
                                             backupLocation,
@@ -797,7 +795,8 @@ namespace CloudApiPublic.FileMonitor
                                         Metadata = currentChange.Metadata,
                                         Type = currentChange.Type,
                                         DoNotAddToSQLIndex = currentChange.DoNotAddToSQLIndex,
-                                        EventId = currentChange.EventId
+                                        EventId = currentChange.EventId,
+                                        Direction = currentChange.Direction
                                     }, newProcessingAction);
                             }
                         }
@@ -1393,7 +1392,7 @@ namespace CloudApiPublic.FileMonitor
                                         {
                                             changesToAdd.Add(new KeyValuePair<FileChangeMerge, FileChange>(
                                                 new FileChangeMerge(currentQueuedChange.Value, null),
-                                                mappedOriginalQueuedChange.Key));
+                                                    mappedOriginalQueuedChange.Key));
                                         }
                                     }
                                 };
@@ -2185,7 +2184,8 @@ namespace CloudApiPublic.FileMonitor
                                                 {
                                                     NewPath = pathObject,
                                                     Metadata = newMetadata,
-                                                    Type = FileChangeType.Modified
+                                                    Type = FileChangeType.Modified,
+                                                    Direction = SyncDirection.To // detected that a file or folder was modified locally, so Sync To to update server
                                                 }, startProcessingAction);
                                             }
                                         }
@@ -2207,7 +2207,8 @@ namespace CloudApiPublic.FileMonitor
                                         {
                                             NewPath = pathObject,
                                             Metadata = AllPaths[pathObject],
-                                            Type = FileChangeType.Created
+                                            Type = FileChangeType.Created,
+                                            Direction = SyncDirection.To // detected that a file or folder was created locally, so Sync To to update server
                                         }, startProcessingAction);
                                     }
                                 }
@@ -2219,7 +2220,8 @@ namespace CloudApiPublic.FileMonitor
                                     {
                                         NewPath = pathObject,
                                         Metadata = AllPaths[pathObject],
-                                        Type = FileChangeType.Deleted
+                                        Type = FileChangeType.Deleted,
+                                        Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                     }, startProcessingAction);
                                     // remove index
                                     AllPaths.Remove(pathObject);
@@ -2256,7 +2258,8 @@ namespace CloudApiPublic.FileMonitor
                                         {
                                             NewPath = oldPathObject,
                                             Metadata = AllPaths[oldPathObject],
-                                            Type = FileChangeType.Deleted
+                                            Type = FileChangeType.Deleted,
+                                            Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                         }, startProcessingAction);
                                         // remove index at previous path
                                         AllPaths.Remove(oldPathObject);
@@ -2292,7 +2295,8 @@ namespace CloudApiPublic.FileMonitor
                                                 {
                                                     NewPath = pathObject,
                                                     Metadata = newMetadata,
-                                                    Type = FileChangeType.Modified
+                                                    Type = FileChangeType.Modified,
+                                                    Direction = SyncDirection.To // detected that a file or folder was modified locally, so Sync To to update server
                                                 }, startProcessingAction);
                                             }
                                         }
@@ -2305,7 +2309,8 @@ namespace CloudApiPublic.FileMonitor
                                         {
                                             NewPath = pathObject,
                                             Metadata = AllPaths[pathObject],
-                                            Type = FileChangeType.Deleted
+                                            Type = FileChangeType.Deleted,
+                                            Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                         }, startProcessingAction);
                                         // remove index for new path
                                         AllPaths.Remove(pathObject);
@@ -2322,7 +2327,8 @@ namespace CloudApiPublic.FileMonitor
                                         {
                                             NewPath = oldPath,
                                             Metadata = AllPaths[oldPathObject],
-                                            Type = FileChangeType.Deleted
+                                            Type = FileChangeType.Deleted,
+                                            Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                         }, startProcessingAction);
                                         // remove index at the previous path
                                         AllPaths.Remove(oldPath);
@@ -2351,7 +2357,8 @@ namespace CloudApiPublic.FileMonitor
                                         NewPath = pathObject,
                                         OldPath = oldPath,
                                         Metadata = newMetadata ?? previousMetadata,
-                                        Type = FileChangeType.Renamed
+                                        Type = FileChangeType.Renamed,
+                                        Direction = SyncDirection.To // detected that a file or folder was renamed locally, so Sync To to update server
                                     }, startProcessingAction);
                                 }
                                 // if index does not exist at either the old nor new paths and the file exists
@@ -2371,7 +2378,8 @@ namespace CloudApiPublic.FileMonitor
                                     {
                                         NewPath = pathObject,
                                         Metadata = AllPaths[pathObject],
-                                        Type = FileChangeType.Created
+                                        Type = FileChangeType.Created,
+                                        Direction = SyncDirection.To // detected that a file or folder was created locally, so Sync To to update server
                                     }, startProcessingAction);
                                 }
                             }
@@ -2408,7 +2416,8 @@ namespace CloudApiPublic.FileMonitor
                                             {
                                                 NewPath = pathObject,
                                                 Metadata = newMetadata,
-                                                Type = FileChangeType.Modified
+                                                Type = FileChangeType.Modified,
+                                                Direction = SyncDirection.To // detected that a file or folder was modified locally, so Sync To to update server
                                             }, startProcessingAction);
                                         }
                                     }
@@ -2421,7 +2430,8 @@ namespace CloudApiPublic.FileMonitor
                                     {
                                         NewPath = pathObject,
                                         Metadata = AllPaths[pathObject],
-                                        Type = FileChangeType.Deleted
+                                        Type = FileChangeType.Deleted,
+                                        Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                     }, startProcessingAction);
                                     // remove index
                                     AllPaths.Remove(pathObject);
@@ -2806,7 +2816,8 @@ namespace CloudApiPublic.FileMonitor
                                                 {
                                                     NewPath = toChange.OldPath,
                                                     Type = FileChangeType.Deleted,
-                                                    Metadata = toChange.Metadata
+                                                    Metadata = toChange.Metadata,
+                                                    Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                                 };
                                             if (QueuedChanges.ContainsKey(toChange.OldPath))
                                             {
