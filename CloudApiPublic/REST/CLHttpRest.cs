@@ -174,7 +174,7 @@ namespace CloudApiPublic.REST
                     // if the try cast failed, then show a message box for this unrecoverable error
                     if (castState == null)
                     {
-                        MessageBox.Show("Cannot cast state as " + GetTypeNameEvenForNulls(castState));
+                        MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
                     }
                     // else if the try cast did not fail, then start processing with the input parameters
                     else
@@ -330,8 +330,11 @@ namespace CloudApiPublic.REST
                 // re-pull the result for output in case it was not completed when it was pulled before
                 result = castAResult.Result;
 
-                // Operation is done: if an exception occurred, throw it
-                if (castAResult.Exception != null) throw castAResult.Exception;
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
             }
             catch (Exception ex)
             {
@@ -558,7 +561,7 @@ namespace CloudApiPublic.REST
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
-                    MessageBox.Show("Cannot cast state as " + GetTypeNameEvenForNulls(castState));
+                    MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
                 }
                 // else if the try cast did not fail, then start processing with the input parameters
                 else
@@ -705,8 +708,14 @@ namespace CloudApiPublic.REST
                     castAResult.AsyncWaitHandle.Close();
                 }
 
-                // Operation is done: if an exception occurred, throw it
-                if (castAResult.Exception != null) throw castAResult.Exception;
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
             }
             catch (Exception ex)
             {
@@ -3053,11 +3062,6 @@ namespace CloudApiPublic.REST
 
                 this._stream = Stream;
             }
-        }
-
-        private static string GetTypeNameEvenForNulls<T>(T toName)
-        {
-            return (typeof(T)).Name;
         }
         #endregion
     }

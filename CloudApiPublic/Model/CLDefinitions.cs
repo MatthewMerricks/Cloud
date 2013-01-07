@@ -266,11 +266,13 @@ namespace CloudApiPublic.Model
         public const string CLSyncEventMetadata = "metadata";
         public const string CLSyncEventHeader = "sync_header";
         public const string CLEventTypeAddFile = "add_file"; // returned upon undeleting a file
+        public const string CLEventTypeCopyFile = "copy_file";
         public const string CLEventTypeDeleteFile = "delete_file";
         public const string CLEventTypeModifyFile = "modify_file";
         public const string CLEventTypeRenameFile = "rename_file";
         public const string CLEventTypeMoveFile = "move_file";
         public const string CLEventTypeAddLink = "add_link";
+        public const string CLEventTypeCopyLink = "copy_link";
         public const string CLEventTypeDeleteLink = "delete_link";
         public const string CLEventTypeModifyLink = "modify_link";
         public const string CLEventTypeRenameLink = "rename_link";
@@ -299,7 +301,9 @@ namespace CloudApiPublic.Model
         public static readonly string[] SyncHeaderCreations =
         {
             CLEventTypeAddFile,
+            CLEventTypeCopyFile,
             CLEventTypeAddLink,
+            CLEventTypeCopyLink,
             CLEventTypeAddFolder,
             CLEventTypeAddRange
         };
@@ -338,12 +342,14 @@ namespace CloudApiPublic.Model
         {
             CLEventTypeDeleteFile,
             CLEventTypeAddFile,
+            CLEventTypeCopyFile,
             CLEventTypeRenameFile,
             CLEventTypeMoveFile,
             CLEventTypeModifyFile,
 
             CLEventTypeDeleteLink,
             CLEventTypeAddLink,
+            CLEventTypeCopyLink,
             CLEventTypeRenameLink,
             CLEventTypeMoveLink,
             CLEventTypeModifyLink

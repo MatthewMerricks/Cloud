@@ -69,6 +69,17 @@ namespace CloudApiPublic.Static
         }
 
         /// <summary>
+        /// Gets the name from the type of the input object, even if the input reference is null
+        /// </summary>
+        /// <typeparam name="T">Inferred typed for generic object</typeparam>
+        /// <param name="toName">Possibly null object, make sure it was in the proper reference type (not boxed)</param>
+        /// <returns>Returns the name of the type of the object</returns>
+        public static string GetTypeNameEvenForNulls<T>(T toName)
+        {
+            return (typeof(T)).Name;
+        }
+
+        /// <summary>
         /// MethodInfo for the generic-typed Helpers.DefaultForType(of T); this can be used for compiling dynamic expressions
         /// </summary>
         public static readonly MethodInfo DefaultForTypeInfo = typeof(Helpers)
