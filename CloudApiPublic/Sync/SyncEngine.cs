@@ -107,10 +107,7 @@ namespace CloudApiPublic.Sync
             CLTrace.Initialize(this.syncSettings.TraceLocation, "Cloud", "log", this.syncSettings.TraceLevel, this.syncSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "SyncEngine: SyncEngine: Entry.");
 
-            this.DefaultTempDownloadsPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" +
-                Helpers.GetDefaultNameFromApplicationName() + // name of currently running application
-                "\\" + this.syncSettings.SyncBoxId + // unique downloads location for each user
-                "\\DownloadTemp";
+            this.DefaultTempDownloadsPath = Helpers.GetTempFileDownloadPath(this.syncSettings);
 
             this.HttpTimeoutMilliseconds = HttpTimeoutMilliseconds;
             this.MaxNumberOfFailureRetries = MaxNumberOfFailureRetries;
@@ -2672,11 +2669,22 @@ namespace CloudApiPublic.Sync
             {
                 throw new NullReferenceException("UserState FileToDownload Metadata must not be null");
             }
+
+            byte[] findMD5;
+
             if (castState.MD5 == null)
             {
-                throw new NullReferenceException("UserState MD5 must not be null");
+                if (string.IsNullOrEmpty(castState.FileToDownload.Metadata.Revision))
+                {
+                    throw new NullReferenceException("UserState FileToDownload Metadata Revision must not be null");
+                }
+                findMD5 = Helpers.ParseHexadecimalStringToByteArray(castState.FileToDownload.Metadata.Revision);
             }
-            if (castState.MD5.Length != 16)
+            else
+            {
+                findMD5 = castState.MD5;
+            }
+            if (findMD5 == null || findMD5.Length != 16)
             {
                 throw new ArgumentException("UserState MD5 must be a 16-length byte array for the MD5 hash of the file");
             }
@@ -2691,7 +2699,7 @@ namespace CloudApiPublic.Sync
                 // if current download id map contains downloads for the current file size, then add the new download to the existing list
                 if (castState.currentDownloads.ContainsKey((long)castState.FileToDownload.Metadata.HashableProperties.Size))
                 {
-                    castState.currentDownloads[(long)castState.FileToDownload.Metadata.HashableProperties.Size].Add(new DownloadIdAndMD5(tempId, castState.MD5));
+                    castState.currentDownloads[(long)castState.FileToDownload.Metadata.HashableProperties.Size].Add(new DownloadIdAndMD5(tempId, findMD5));
                 }
                 // else if current download id map does not contain downloads for the current file size,
                 // create the new list of downloads with the new download as its initial value
@@ -2700,7 +2708,7 @@ namespace CloudApiPublic.Sync
                     castState.currentDownloads.Add((long)castState.FileToDownload.Metadata.HashableProperties.Size,
                         new List<DownloadIdAndMD5>(new DownloadIdAndMD5[]
                                             {
-                                                new DownloadIdAndMD5(tempId, castState.MD5)
+                                                new DownloadIdAndMD5(tempId, findMD5)
                                             }));
                 }
             }

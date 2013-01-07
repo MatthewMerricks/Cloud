@@ -682,13 +682,13 @@ namespace RegisterCom
                 {
                     // Delete the database file to force a re-index at the next start.
                     _trace.writeToLog(9, "RegisterCom: UninstallCOM: Start deleting databases.");
-                    FilePath indexDBLocation = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Cloud";
-                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: IndexDBLocation: {0}.", indexDBLocation.ToString());
+                    FilePath fpAppDataLocalCloudDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Cloud";
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: fpAppDataLocalCloudDir: {0}.", fpAppDataLocalCloudDir.ToString());
 
                     // C:\Users\<user>
                     // C:\Documents and Settings\<user>
                     string localUserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: localUserProfile: {0}.", indexDBLocation.ToString());
+                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: localUserProfile: {0}.", fpAppDataLocalCloudDir.ToString());
                     FilePath localUserProfileObject = localUserProfile;
                     // C:\Users\<user>\AppData\Local minus C:\Users\<user> equals \AppData\Local
                     // C:\Documents and Settings\<user>\Local Settings minus C:\Documents and Settings\<user> equals \Local Settings
@@ -715,20 +715,20 @@ namespace RegisterCom
 
                                 // C:\Users\<user>\AppData\Local\Cloud minus C:\Users\<user> equals \AppData\Local\Cloud
                                 // C:\Documents and Settings\<user>\Local Settings\Cloud minus C:\Documents and Settings\<user> equals \Local Settings\Cloud
-                                indexDBLocation.GetRelativePath(localUserProfileObject, false));
+                                fpAppDataLocalCloudDir.GetRelativePath(localUserProfileObject, false));
 
                             // Loop through all of the subdirectories in this user's AppData\Local\Cloud directory.  We are looking for
                             // any SyncBox directories.  These are directories numbered by the SyncBox ID.  Delete the entire
                             // directory if we can.
-                            foreach (DirectoryInfo currentSyncBox in cloudAppData.EnumerateDirectories())
+                            foreach (DirectoryInfo currentScannedSyncBox in cloudAppData.EnumerateDirectories())
                             {
                                 bool fIsSyncBoxDirectory = false;
                                 try
                                 {
                                     // C:\Users\<enumerating user>\AppData\Local\Cloud\<sync box id>\IndexDB.sdf
                                     // C:\Documents and Settings\<enumerating user>\Local Settings\Cloud\<sync box id>\IndexDB.sdf
-                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Top of SyncBox directory loop.  currentSyncBox: {0}.", currentSyncBox.FullName);
-                                    string currentSyncBoxDB = currentSyncBox.FullName + "\\IndexDB.sdf";
+                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Top of SyncBox directory loop.  currentSyncBox: {0}.", currentScannedSyncBox.FullName);
+                                    string currentSyncBoxDB = currentScannedSyncBox.FullName + "\\" + CLDefinitions.kSyncDatabaseFileName;
                                     _trace.writeToLog(9, "RegisterCom: UninstallCOM: currentSyncBoxDB: {0}.", currentSyncBoxDB);
                                     if (File.Exists(currentSyncBoxDB))
                                     {
@@ -748,13 +748,13 @@ namespace RegisterCom
                                 {
                                     // C:\Users\<enumerating user>\AppData\Local\Cloud\<sync box id>\DownloadTemp
                                     // C:\Documents and Settings\<enumerating user>\Local Settings\Cloud\<sync box id>\DownloadTemp
-                                    string currentTempDownloads = currentSyncBox.FullName + "\\DownloadTemp";
+                                    string currentTempDownloads = currentScannedSyncBox.FullName + "\\" + CLDefinitions.kTempDownloadFolderName;
                                     _trace.writeToLog(9, "RegisterCom: UninstallCOM: currentTempDownloads: {0}.", currentTempDownloads);
                                     if (Directory.Exists(currentTempDownloads))
                                     {
                                         _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the currentTempDownloads directory: {0}.", currentTempDownloads);
                                         fIsSyncBoxDirectory = true;
-                                        Directory.Delete(currentTempDownloads, true);
+                                        Directory.Delete(currentTempDownloads, recursive: true);
                                     }
                                 }
                                 catch (Exception ex)
@@ -769,8 +769,8 @@ namespace RegisterCom
                                     // Delete the entire SyncBox directory now.
                                     if (fIsSyncBoxDirectory)
                                     {
-                                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the SyncBox directory.  currentSyncBox: {0}.", currentSyncBox.FullName);
-                                        Directory.Delete(currentSyncBox.FullName);
+                                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the SyncBox directory.  currentSyncBox: {0}.", currentScannedSyncBox.FullName);
+                                        Directory.Delete(currentScannedSyncBox.FullName);
                                     }
                                 }
                                 catch (Exception ex)

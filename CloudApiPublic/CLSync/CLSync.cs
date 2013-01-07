@@ -100,16 +100,15 @@ namespace CloudApiPublic
         }
 
         /// <summary>
-        /// Initialize the SyncBox and start syncing its contents to the Cloud server, and to other devices
-        /// registering the same SyncBox.
+        /// Call this function before calling Start() whenever it is possible that the SyncBox
+        /// folder has changed.  Sync.Start() will rescan the folder and sync the current contents.
         /// </summary>
-        /// <param name="settings"></param>
-        /// <returns></returns>
-        public CLError Start(ISyncSettings settings, out CLSyncStartStatus status)
+        /// <param name="settings">Settings to use.</param>
+        /// <returns>CLError: A possible error, or null.</returns>
+        public CLError SyncReset(ISyncSettings settings)
         {
             try
             {
-                _trace.writeToLog(1, "CLSync: Starting...");
                 if (settings == null)
                 {
                     throw new NullReferenceException("settings cannot be null");
@@ -119,6 +118,80 @@ namespace CloudApiPublic
 
                 // Initialize trace in case it is not already initialized.
                 CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
+                _trace.writeToLog(1, "CLSync: SyncReset: Entry.");
+
+                CLError checkBadPath = Helpers.CheckForBadPath(_syncSettings.SyncRoot);
+                if (checkBadPath != null)
+                {
+                    _trace.writeToLog(1, "CLSync: SyncReset: ERROR: {0}.", checkBadPath.errorDescription);
+                    return new ArgumentException("CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath", checkBadPath.GrabFirstException());
+                }
+
+                if (_syncSettings.SyncBoxId == null)
+                {
+                    _trace.writeToLog(1, "CLSync: SyncReset: ERROR: SyncBoxId must be specified in settings.");
+                    return new ArgumentException("SyncBoxId must be specified in settings");
+                }
+
+                if (String.IsNullOrWhiteSpace(_syncSettings.DeviceId))
+                {
+                    _trace.writeToLog(1, "CLSync: SyncReset: ERROR: Udid must be specified in settings.");
+                    return new ArgumentException("Udid must be specified in settings");
+                }
+
+                int tooLongChars;
+                CLError checkPathLength = Helpers.CheckSyncRootLength(_syncSettings.SyncRoot, out tooLongChars);
+                if (checkPathLength != null)
+                {
+                    _trace.writeToLog(1, "CLSync: SyncReset: ERROR: {0}.", checkPathLength.errorDescription);
+                    return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.GrabFirstException());
+                }
+
+                // Determine the database file with full path
+                string sDatabaseDirectoryToUse = Helpers.GetDatabasePath(_syncSettings);
+                string sDatabaseFile = sDatabaseDirectoryToUse + "\\" + CLDefinitions.kSyncDatabaseFileName;
+
+                // Delete the database file
+                if (System.IO.File.Exists(sDatabaseFile))
+                {
+                    System.IO.File.Delete(sDatabaseFile);
+                }
+
+                // Delete the temp download directory recursively, but not the directory itself.
+                string sTempDownloadFolderToUse = Helpers.GetTempFileDownloadPath(_syncSettings);
+                Helpers.DeleteEverythingInDirectory(sTempDownloadFolderToUse);
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                _trace.writeToLog(1, "CLSync: SyncReset: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+                return ex;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Initialize the SyncBox and start syncing its contents to the Cloud server, and to other devices
+        /// registering the same SyncBox.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        public CLError Start(ISyncSettings settings, out CLSyncStartStatus status)
+        {
+            try
+            {
+                if (settings == null)
+                {
+                    throw new NullReferenceException("settings cannot be null");
+                }
+
+                _syncSettings = settings.CopySettings();
+
+                // Initialize trace in case it is not already initialized.
+                CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
+                _trace.writeToLog(1, "CLSync: Starting...");
 
                 CLError checkBadPath = Helpers.CheckForBadPath(_syncSettings.SyncRoot);
                 if (checkBadPath != null)
@@ -164,7 +237,7 @@ namespace CloudApiPublic
 
                 // Start the indexer.
                 _trace.writeToLog(9, "CLSync: Start: Start the indexer.");
-                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, _syncSettings.SyncBoxId, _syncSettings.DatabaseFolder);
+                CLError indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, _syncSettings);
                 if (indexCreationError != null)
                 {
                     _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, indexCreationError.errorCode);

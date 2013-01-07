@@ -25,6 +25,7 @@ using CloudApiPublic.SQLIndexer.Migrations;
 using CloudApiPublic.SQLIndexer.Static;
 using CloudApiPublic.SQLIndexer.Model;
 using SqlSync = CloudApiPublic.SQLIndexer.SqlModel.Sync;
+using CloudApiPublic.Interfaces;
 
 namespace CloudApiPublic.SQLIndexer
 {
@@ -33,6 +34,7 @@ namespace CloudApiPublic.SQLIndexer
         #region private fields
         // store the path that represents the root of indexing
         private string indexedPath = null;
+        private readonly ISyncSettingsAdvanced _syncSettings = null;
 
         #region SQL CE
         private string indexDBLocation;
@@ -76,16 +78,15 @@ namespace CloudApiPublic.SQLIndexer
         /// must be started afterwards with StartInitialIndexing
         /// </summary>
         /// <param name="newIndexer">Output indexing agent</param>
-        /// <param name="syncBoxId">Sync box ID</param>
-        /// <param name="databaseLocation">(optional) A database storage location unique to a particular user</param>
+        /// <param name="settings">The settings to use.</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
-        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, Nullable<long> syncBoxId, string databaseLocation = null)
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, ISyncSettingsAdvanced settings)
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
             try
             {
-                newIndexer = newAgent = new IndexingAgent(databaseLocation, syncBoxId);
+                newIndexer = newAgent = new IndexingAgent(settings);
             }
             catch (Exception ex)
             {
@@ -2097,19 +2098,15 @@ namespace CloudApiPublic.SQLIndexer
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
-        private IndexingAgent(string databaseLocation, Nullable<long> syncBoxId)
+        /// <param name="settings">The settings to use.</param>
+        private IndexingAgent(ISyncSettingsAdvanced settings)
         {
-            if (syncBoxId == null)
+            if (settings.SyncBoxId == null)
             {
                 throw new NullReferenceException("syncBoxId cannot be null");
             }
 
-            this.indexDBLocation = (databaseLocation == null
-                ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) +
-                    "\\" + Helpers.GetDefaultNameFromApplicationName() +
-                    "\\" + ((long)syncBoxId).ToString() + // create the default location uniquely for the user
-                    "\\IndexDB.sdf"
-                : new FileInfo(databaseLocation).FullName + "\\IndexDB.sdf");
+            this.indexDBLocation = Helpers.GetDatabasePath(settings) + "\\" + CLDefinitions.kSyncDatabaseFileName;
         }
 
         /// <summary>
@@ -2236,7 +2233,8 @@ namespace CloudApiPublic.SQLIndexer
                             OldPath = oldPathObject,
                             Type = changeEnums[currentEvent.FileChangeTypeEnumId],
                             DoNotAddToSQLIndex = true,
-                            EventId = currentEvent.EventId
+                            EventId = currentEvent.EventId,
+                            Direction = (currentEvent.SyncFrom ? SyncDirection.From : SyncDirection.To)
                         });
 
                         switch (changeEnums[currentEvent.FileChangeTypeEnumId])
@@ -2320,7 +2318,8 @@ namespace CloudApiPublic.SQLIndexer
                     {
                         NewPath = deletedPath,
                         Type = FileChangeType.Deleted,
-                        Metadata = indexPaths[deletedPath]
+                        Metadata = indexPaths[deletedPath],
+                        Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                     });
                     pathDeletions.Remove(deletedPath);
                     pathDeletions.Add(deletedPath, new GenericHolder<bool>(true));
@@ -2466,7 +2465,8 @@ namespace CloudApiPublic.SQLIndexer
                         {
                             NewPath = subDirectoryPathObject,
                             Type = FileChangeType.Created,
-                            Metadata = newDirectoryMetadata
+                            Metadata = newDirectoryMetadata,
+                            Direction = SyncDirection.To // detected that a folder was created locally, so Sync To to update server
                         });
 
                         combinedIndexPlusChanges.Add(subDirectoryPathObject, newDirectoryMetadata);
@@ -2521,7 +2521,8 @@ namespace CloudApiPublic.SQLIndexer
                             {
                                 NewPath = currentFilePathObject,
                                 Type = FileChangeType.Modified,
-                                Metadata = modifiedMetadata
+                                Metadata = modifiedMetadata,
+                                Direction = SyncDirection.To // detected that a file was modified locally, so Sync To to update server
                             });
 
                             combinedIndexPlusChanges[currentFilePathObject] = modifiedMetadata;
@@ -2540,7 +2541,8 @@ namespace CloudApiPublic.SQLIndexer
                         {
                             NewPath = currentFilePathObject,
                             Type = FileChangeType.Created,
-                            Metadata = fileCreatedMetadata
+                            Metadata = fileCreatedMetadata,
+                            Direction = SyncDirection.To // detected that a file was created locally, so Sync To to update server
                         });
 
                         combinedIndexPlusChanges.Add(currentFilePathObject, fileCreatedMetadata);
@@ -2581,7 +2583,7 @@ namespace CloudApiPublic.SQLIndexer
                         {
                             existingDeletion = true;
                         }
-                        else
+                        else if (currentUncoveredChange.Value.Direction == SyncDirection.To)
                         {
                             changeList.Remove(currentUncoveredChange.Value);
                             if (currentUncoveredChange.Value.EventId > 0)
@@ -2625,6 +2627,21 @@ namespace CloudApiPublic.SQLIndexer
                 // Run dispose on inner managed objects based on disposing condition
                 if (disposing)
                 {
+                    lock (changeEnumsLocker)
+                    {
+                        if (changeEnums != null)
+                        {
+                            changeEnums.Clear();
+                            changeEnums = null;
+                        }
+
+                        if (changeEnumsBackward != null)
+                        {
+                            changeEnumsBackward.Clear();
+                            changeEnumsBackward = null;
+                        }
+                    }
+                    
                     CELocker.Dispose();
                 }
             }

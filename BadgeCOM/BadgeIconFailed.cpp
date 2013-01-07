@@ -49,7 +49,7 @@ CBadgeIconFailed::CBadgeIconFailed()
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: CBadgeIconFailed: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: CBadgeIconFailed: ERROR: C++ exception.");
     }
 }
 
@@ -79,7 +79,7 @@ CBadgeIconFailed::~CBadgeIconFailed()
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: ~CBadgeIconFailed: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: ~CBadgeIconFailed: ERROR: C++ exception.");
     }
 }
 
@@ -103,13 +103,13 @@ STDMETHODIMP CBadgeIconFailed::GetOverlayInfo(
 
 		*pdwFlags = ISIOI_ICONFILE | ISIOI_ICONINDEX;
 	}
-	catch(const std::exception &ex)
+	catch (const std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeIconFailed: GetOverlayInfo: ERROR: Exception.  Message: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: GetOverlayInfo: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: GetOverlayInfo: ERROR: C++ exception.");
     }
 
 	return S_OK;
@@ -143,7 +143,7 @@ void CBadgeIconFailed::InitializeBadgeNetPubSubEventsViaThread()
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: InitializeBadgeNetPubSubEventsViaThread: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: InitializeBadgeNetPubSubEventsViaThread: ERROR: C++ exception.");
     }
 }
 
@@ -165,7 +165,7 @@ void CBadgeIconFailed::InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserStat
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: InitializeBadgeNetPubSubEventsThreadProc: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: InitializeBadgeNetPubSubEventsThreadProc: ERROR: C++ exception.");
     }
 }
 
@@ -185,7 +185,7 @@ STDMETHODIMP CBadgeIconFailed::GetPriority(int* pPriority)
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: GetPriority: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: GetPriority: ERROR: C++ exception.");
     }
 
 	return S_OK;
@@ -224,7 +224,7 @@ STDMETHODIMP CBadgeIconFailed::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: IsMemberOf: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: IsMemberOf: ERROR: C++ exception.");
     }
 
 	return result;
@@ -248,13 +248,13 @@ void CBadgeIconFailed::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeT
 			SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
 		}
 	}
-	catch(const std::exception &ex)
+	catch (const std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeIconFailed: OnEventAddBadgePath: ERROR: Exception.  Message: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: OnEventAddBadgePath: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: OnEventAddBadgePath: ERROR: C++ exception.");
     }
 }
 
@@ -271,13 +271,13 @@ void CBadgeIconFailed::OnEventRemoveBadgePath(BSTR fullPath)
 		_mapBadges.erase(fullPath);
         SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
 	}
-	catch(const std::exception &ex)
+	catch (const std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeIconFailed: OnEventRemoveBadgePath: ERROR: Exception.  Message: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: OnEventRemoveBadgePath: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: OnEventRemoveBadgePath: ERROR: C++ exception.");
     }
 }
 
@@ -295,13 +295,13 @@ void CBadgeIconFailed::OnEventAddSyncBoxFolderPath(BSTR fullPath)
 		_mapBadges[fullPath] = cloudAppBadgeNone;
         SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
 	}
-	catch(const std::exception &ex)
+	catch (const std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeIconFailed: OnEventAddSyncBoxFolderPath: ERROR: Exception.  Message: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: OnEventAddSyncBoxFolderPath: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: OnEventAddSyncBoxFolderPath: ERROR: C++ exception.");
     }
 }
 
@@ -334,13 +334,13 @@ void CBadgeIconFailed::OnEventRemoveSyncBoxFolderPath(BSTR fullPath)
 			}
 		}
 	}
-	catch(const std::exception &ex)
+	catch (const std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeIconFailed: OnEventRemoveSyncBoxFolderPath: ERROR: Exception.  Message: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: OnEventRemoveSyncBoxFolderPath: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: OnEventRemoveSyncBoxFolderPath: ERROR: C++ exception.");
     }
 }
 
@@ -376,7 +376,7 @@ void CBadgeIconFailed::OnEventSubscriptionWatcherFailed()
 	}
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: OnEventSubscriptionWatcherFailed: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: OnEventSubscriptionWatcherFailed: ERROR: C++ exception.");
     }
 }
 
@@ -414,7 +414,7 @@ void CBadgeIconFailed::SubscriptionRestartThreadProc(LPVOID pUserState)
 	}
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: SubscriptionRestartThreadProc: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: SubscriptionRestartThreadProc: ERROR: C++ exception.");
     }
 
     if (pThis != NULL)
@@ -469,14 +469,14 @@ void CBadgeIconFailed::InitializeBadgeNetPubSubEvents()
 		    _pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, &dummy /* not used */);
         }
 	}
-	catch(const std::exception &ex)
+	catch (const std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeIconFailed: InitializeBadgeNetPubSubEvents: ERROR: Exception.  Message: %s.", ex.what());
         _fIsInitialized = false;
 	}
     catch (...)
     {
-		CLTRACE(1, "CBadgeIconFailed: InitializeBadgeNetPubSubEvents: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeIconFailed: InitializeBadgeNetPubSubEvents: ERROR: C++ exception.");
         _fIsInitialized = false;
     }
     CLTRACE(9, "CBadgeIconFailed: InitializeBadgeNetPubSubEvents: Exit.");

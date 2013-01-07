@@ -190,5 +190,17 @@ namespace CloudSdkSyncSample.Properties {
                 this["HistoricDownloadBandwidthBitsPS"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShouldResetSync {
+            get {
+                return ((bool)(this["ShouldResetSync"]));
+            }
+            set {
+                this["ShouldResetSync"] = value;
+            }
+        }
     }
 }

@@ -478,13 +478,13 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private string _uuid;
-        public string Uuid
+        private string _syncBoxId;
+        public string SyncBoxId
         {
-            get { return _uuid; }
+            get { return _syncBoxId; }
             set
             {
-                _uuid = value;
+                _syncBoxId = value;
                 SettingsBase.Write<string>(kUuid, value);
             }
         }
@@ -511,13 +511,13 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private string _udid;
-        public string Udid
+        private string _deviceId;
+        public string DeviceId
         {
-            get { return _udid; }
+            get { return _deviceId; }
             set {
-                _udid = value;
-                _trace.writeToLog(9, "CLSettings: Instance: Set new Udid: {0}.", _udid);
+                _deviceId = value;
+                _trace.writeToLog(9, "CLSettings: Instance: Set new DeviceId: {0}.", _deviceId);
                 SettingsBase.Write<string>(kUdid, value);
             }
         }
@@ -903,8 +903,8 @@ namespace CloudApiPrivate.Model.Settings
     
             // Account
             _akey = ""; // only available when registered.
-            _uuid = ""; // only available when registered.
-            _udid = "";
+            _syncBoxId = ""; // only available when registered.
+            _deviceId = "";
             _userName = "";
             _userFullName = "";
             _deviceName = "";
@@ -1118,7 +1118,7 @@ namespace CloudApiPrivate.Model.Settings
             isPresent = SettingsBase.ReadIfPresent<string>(kUuid, out tempString);
             if (isPresent)
             {
-                _uuid = tempString;
+                _syncBoxId = tempString;
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kUserName, out tempString);
@@ -1224,8 +1224,8 @@ namespace CloudApiPrivate.Model.Settings
             isPresent = SettingsBase.ReadIfPresent<string>(kUdid, out tempString);
             if (isPresent)
             {
-                _udid = tempString;
-                _trace.writeToLog(9, "CLSettings: Instance: Initialize Udid: {0} from Settings file.", _udid);
+                _deviceId = tempString;
+                _trace.writeToLog(9, "CLSettings: Instance: Initialize Udid: {0} from Settings file.", _deviceId);
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kMainWindowPlacement, out tempString);
@@ -1268,8 +1268,8 @@ namespace CloudApiPrivate.Model.Settings
             //UserFullName = (string)accountInfo[kUserFullName];
             DeviceName = (string)accountInfo[kDeviceName];
             Akey = (string)accountInfo[kAKey];
-            Uuid = (string)accountInfo[kUuid];
-            Udid = (string)accountInfo[kUdid];
+            SyncBoxId = (string)accountInfo[kUuid];
+            DeviceId = (string)accountInfo[kUdid];
         }
 
         /// <summary>
@@ -1299,7 +1299,7 @@ namespace CloudApiPrivate.Model.Settings
             //SettingsBase.Clear();
             Settings.Instance.CompletedSetup = false;       // tested at ExitApplication()
             Settings.Instance.Akey = String.Empty;          // lose the key
-            Settings.Instance.Udid = String.Empty;          // lose the device ID
+            Settings.Instance.DeviceId = String.Empty;          // lose the device ID
             Settings.Instance.ShouldAnimateToSystemTray = true;  // Animate to the system tray after setup just the first time
         }
 

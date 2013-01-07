@@ -22,11 +22,10 @@ namespace CloudSdkSyncSample.Views
 {
     public partial class SyncStatusView : Window
     {
-        private DispatcherTimer _timer;
-        private bool _isVisible = false;
-        private bool _isShuttingDown = false;
         private static CLTrace _trace = CLTrace.Instance;
         private EventMessageReceiver _vm = null;
+
+        public bool AllowClose { get; set; }
 
         public SyncStatusView()
         {
@@ -58,31 +57,15 @@ namespace CloudSdkSyncSample.Views
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Loaded: Entry.");
             _vm = (EventMessageReceiver)this.DataContext;
 
-            // Register for messages
-            MessageSender.Instance.NotifySyncStatusWindowShouldClose += OnNotifySyncStatusWindowShouldClose;
-
             // Focus to the button.
             this.cmdDone.Focus();
 
         }
 
-        /// <summary>
-        /// This window should close.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void OnNotifySyncStatusWindowShouldClose(object sender, Support.NotificationEventArgs e)
-        {
-            this.Close();
-        }
-
         void WindowSyncStatus_Unloaded(object sender, RoutedEventArgs e)
         {
-            // Unregister for messages
-            _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Unloaded: Entry.");
-            MessageSender.Instance.NotifySyncStatusWindowShouldClose -= OnNotifySyncStatusWindowShouldClose;
-
             // Unload the event receiver
+            _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Unloaded: Entry.");
             if (_vm != null)
             {
                 _vm.Dispose();
@@ -93,6 +76,27 @@ namespace CloudSdkSyncSample.Views
         void WindowSyncStatus_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Closing: Entry.");
+            if (!AllowClose)
+            {
+                // Just hide the window on the UI thread
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    this.Width = 0;
+                    this.Height = 0;
+                    this.MinWidth = 0;
+                    this.MinHeight = 0;
+                    this.Left = Int32.MaxValue;
+                    this.Top = Int32.MaxValue;
+                    this.ShowInTaskbar = false;
+                    this.ShowActivated = false;
+                    this.Visibility = Visibility.Hidden;
+                    this.WindowStyle = WindowStyle.None;
+                    this.Show();
+                }));
+
+                // Prevent closing
+                e.Cancel = true;
+            }
         }
     }
 }
