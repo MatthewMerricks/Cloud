@@ -157,7 +157,7 @@ namespace CloudApiPublic.PushNotification
                 try
                 {
                     string url = CLDefinitions.CLNotificationServerURL;
-                    string pathAndQueryStringAndFragment = String.Format("/1/sync/subscribe?sync_box_id={0}&device={1}", _syncSettings.SyncBoxId, _syncSettings.Udid);
+                    string pathAndQueryStringAndFragment = String.Format("/1/sync/subscribe?sync_box_id={0}&device={1}", _syncSettings.SyncBoxId, _syncSettings.DeviceId);
                     _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>. QueryString: {1}.", url, pathAndQueryStringAndFragment);
 
                     //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on _syncSettings.TraceExcludeAuthorization !!
@@ -180,25 +180,25 @@ namespace CloudApiPublic.PushNotification
                     {
                         _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Allocate WebSocket.");
                         _connection = new WebSocket(
-                                    uri: url + pathAndQueryStringAndFragment,
-                                    subProtocol: null,
-                                    cookies: null,
-                                    customHeaderItems: new List<KeyValuePair<string, string>>()
-                                            {
-                                                new KeyValuePair<string, string>(
-                                                    CLDefinitions.HeaderKeyAuthorization, 
-                                                    CLDefinitions.HeaderAppendCWS0 +
-                                                        CLDefinitions.HeaderAppendKey +
-                                                        _syncSettings.ApplicationKey + ", " +
-                                                        CLDefinitions.HeaderAppendSignature +
-                                                        Helpers.GenerateAuthorizationHeaderToken(
-                                                            settings: _syncSettings,
-                                                            httpMethod: CLDefinitions.HeaderAppendMethodGet, 
-                                                            pathAndQueryStringAndFragment: pathAndQueryStringAndFragment))
-                                            },
-                                    userAgent: String.Empty,
-                                    origin: String.Empty,
-                                    version: WebSocketVersion.Rfc6455);
+                            uri: url + pathAndQueryStringAndFragment,
+                            subProtocol: null,
+                            cookies: null,
+                            customHeaderItems: new List<KeyValuePair<string, string>>()
+                                {
+                                    new KeyValuePair<string, string>(
+                                        CLDefinitions.HeaderKeyAuthorization, 
+                                        CLDefinitions.HeaderAppendCWS0 +
+                                            CLDefinitions.HeaderAppendKey +
+                                            _syncSettings.ApplicationKey + ", " +
+                                            CLDefinitions.HeaderAppendSignature +
+                                            Helpers.GenerateAuthorizationHeaderToken(
+                                                settings: _syncSettings,
+                                                httpMethod: CLDefinitions.HeaderAppendMethodGet, 
+                                                pathAndQueryStringAndFragment: pathAndQueryStringAndFragment))
+                                },
+                            userAgent: String.Empty,
+                            origin: String.Empty,
+                            version: WebSocketVersion.Rfc6455);
 
                         webSocketOpenStatus = "Instantiated new WebSocket";
                         _connection.Opened += OnConnectionOpened;

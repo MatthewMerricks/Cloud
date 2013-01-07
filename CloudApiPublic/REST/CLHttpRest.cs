@@ -1,4 +1,11 @@
-﻿using CloudApiPublic.Interfaces;
+﻿//
+// CLHttpRest.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using CloudApiPublic.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +21,7 @@ using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
 using CloudApiPublic.Support;
 using System.Linq.Expressions;
+using System.Windows;
 
 namespace CloudApiPublic.REST
 {
@@ -108,18 +116,280 @@ namespace CloudApiPublic.REST
 
         #region public API calls
         /// <summary>
+        /// Asynchronously starts downloading a file from a provided file download change
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire upon progress changes in download, make sure it processes quickly if the IAsyncResult IsCompleted is false</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="changeToDownload">File download change, requires Metadata.</param>
+        /// <param name="moveFileUponCompletion">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Callback fired when download completes</param>
+        /// <param name="moveFileUponCompletionState">Userstate passed upon firing completed download callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="beforeDownload">(optional) Callback fired before a download starts</param>
+        /// <param name="beforeDownloadState">Userstate passed upon firing before download callback</param>
+        /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
+        /// <param name="customDownloadFolderFullPath">(optional) Full path to a folder where temporary downloads will be stored to override default</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve progress and/or the result</returns>
+        public IAsyncResult BeginDownloadFile(AsyncCallback aCallback,
+            object aState,
+            FileChange changeToDownload,
+            AfterDownloadToTempFile moveFileUponCompletion,
+            object moveFileUponCompletionState,
+            int timeoutMilliseconds,
+            BeforeDownloadToTempFile beforeDownload = null,
+            object beforeDownloadState = null,
+            CancellationTokenSource shutdownToken = null,
+            string customDownloadFolderFullPath = null)
+        {
+            // create a holder for the changing progress of the transfer
+            GenericHolder<TransferProgress> progressHolder = new GenericHolder<TransferProgress>(null);
+
+            // create the asynchronous result to return
+            GenericAsyncResult<DownloadFileResult> toReturn = new GenericAsyncResult<DownloadFileResult>(
+                aCallback,
+                aState,
+                progressHolder);
+
+            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+            Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, IAsyncResult, FileChange, AfterDownloadToTempFile, object, int, Tuple<BeforeDownloadToTempFile, object, CancellationTokenSource, string>> asyncParams =
+                new Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, IAsyncResult, FileChange, AfterDownloadToTempFile, object, int, Tuple<BeforeDownloadToTempFile, object, CancellationTokenSource, string>>(
+                    toReturn,
+                    aCallback,
+                    toReturn,
+                    changeToDownload,
+                    moveFileUponCompletion,
+                    moveFileUponCompletionState,
+                    timeoutMilliseconds,
+                    new Tuple<BeforeDownloadToTempFile, object, CancellationTokenSource, string>(
+                        beforeDownload,
+                        beforeDownloadState,
+                        shutdownToken,
+                        customDownloadFolderFullPath));
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ParameterizedThreadStart(state =>
+                {
+                    // try cast the state as the object with all the input parameters
+                    Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, IAsyncResult, FileChange, AfterDownloadToTempFile, object, int, Tuple<BeforeDownloadToTempFile, object, CancellationTokenSource, string>> castState = state as Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, IAsyncResult, FileChange, AfterDownloadToTempFile, object, int, Tuple<BeforeDownloadToTempFile, object, CancellationTokenSource, string>>;
+                    // if the try cast failed, then show a message box for this unrecoverable error
+                    if (castState == null)
+                    {
+                        MessageBox.Show("Cannot cast state as " + GetTypeNameEvenForNulls(castState));
+                    }
+                    // else if the try cast did not fail, then start processing with the input parameters
+                    else
+                    {
+                        // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                        try
+                        {
+                            // declare the holder for transfer progress changes
+                            GenericHolder<TransferProgress> progress;
+                            // if there was no asynchronous result in the parameters, then the progress holder cannot be grabbed so set it to null
+                            if (castState.Item1 == null)
+                            {
+                                progress = null;
+                            }
+                            // else if there was an asynchronous result in the parameters, then pull the progress holder by try casting the internal state
+                            else
+                            {
+                                progress = castState.Item1.InternalState as GenericHolder<TransferProgress>;
+                            }
+
+                            // declare the output status for communication
+                            CLHttpRestStatus status;
+                            // run the download of the file with the passed parameters, storing any error that occurs
+                            CLError processError = DownloadFile(
+                                castState.Item4,
+                                castState.Item5,
+                                castState.Item6,
+                                castState.Item7,
+                                out status,
+                                castState.Rest.Item1,
+                                castState.Rest.Item2,
+                                castState.Rest.Item3,
+                                castState.Rest.Item4,
+                                castState.Item2,
+                                castState.Item3,
+                                progress);
+
+                            // if there was an asynchronous result in the parameters, then complete it with a new result object
+                            if (castState.Item1 != null)
+                            {
+                                castState.Item1.Complete(
+                                    new DownloadFileResult(
+                                        processError, // any error that may have occurred during processing
+                                        status), // the output status of communication
+                                        sCompleted: false); // processing did not complete synchronously
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // if there was an asynchronous result in the parameters, then pass through the exception to it
+                            if (castState.Item1 != null)
+                            {
+                                castState.Item1.HandleException(
+                                    ex, // the exception which was not handled correctly by the CLError wrapping
+                                    sCompleted: false); // processing did not complete synchronously
+                            }
+                        }
+                    }
+                }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+
+            // return the asynchronous result
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Outputs the latest progress from a file download, returning any error that occurs in the retrieval
+        /// </summary>
+        /// <param name="aResult">Asynchronous result originally returned by BeginDownloadFile</param>
+        /// <param name="progress">(output) Latest progress from a file download, may be null if the download file hasn't started</param>
+        /// <returns>Returns any error that occurred in retrieving the latest progress, if any</returns>
+        public CLError GetProgressDownloadFile(IAsyncResult aResult, out TransferProgress progress)
+        {
+            // try/catch to retrieve the latest progress, on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type of file downloads
+                GenericAsyncResult<DownloadFileResult> castAResult = aResult as GenericAsyncResult<DownloadFileResult>;
+
+                // if try casting the asynchronous result failed, throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // try to cast the asynchronous result internal state as the holder for the progress
+                GenericHolder<TransferProgress> iState = castAResult.InternalState as GenericHolder<TransferProgress>;
+
+                // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
+                if (iState == null)
+                {
+                    throw new Exception("There was an internal error attempting to retrieve the progress, Error 1");
+                }
+
+                // lock on the holder and retrieve the progress for output
+                lock (iState)
+                {
+                    progress = iState.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                progress = Helpers.DefaultForType<TransferProgress>();
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Finishes a file download if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the file download</param>
+        /// <param name="result">(output) The result from the file download</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndDownloadFile(IAsyncResult aResult, out DownloadFileResult result)
+        {
+            // declare the specific type of asynchronous result for file downloads
+            GenericAsyncResult<DownloadFileResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the type for file downloads and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type for file downloads
+                castAResult = aResult as GenericAsyncResult<DownloadFileResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<DownloadFileResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, throw it
+                if (castAResult.Exception != null) throw castAResult.Exception;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Holds result properties
+        /// </summary>
+        public sealed class DownloadFileResult
+        {
+            /// <summary>
+            /// Any error which may have occurred during communication
+            /// </summary>
+            public CLError Error
+            {
+                get
+                {
+                    return _error;
+                }
+            }
+            private readonly CLError _error;
+
+            /// <summary>
+            /// The status resulting from communication
+            /// </summary>
+            public CLHttpRestStatus Status
+            {
+                get
+                {
+                    return _status;
+                }
+            }
+            private readonly CLHttpRestStatus _status;
+
+            // construct with all readonly properties
+            internal DownloadFileResult(CLError Error, CLHttpRestStatus Status)
+            {
+                this._error = Error;
+                this._status = Status;
+            }
+        }
+
+        /// <summary>
         /// Downloads a file from a provided file download change
         /// </summary>
         /// <param name="changeToDownload">File download change, requires Metadata.</param>
-        /// <param name="moveFileUponCompletion"></param>
-        /// <param name="moveFileUponCompletionState"></param>
-        /// <param name="timeoutMilliseconds"></param>
-        /// <param name="status"></param>
-        /// <param name="beforeDownload"></param>
-        /// <param name="beforeDownloadState"></param>
-        /// <param name="shutdownToken"></param>
-        /// <param name="customDownloadFolderFullPath"></param>
-        /// <returns></returns>
+        /// <param name="moveFileUponCompletion">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Callback fired when download completes</param>
+        /// <param name="moveFileUponCompletionState">Userstate passed upon firing completed download callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="beforeDownload">(optional) Callback fired before a download starts</param>
+        /// <param name="beforeDownloadState">Userstate passed upon firing before download callback</param>
+        /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
+        /// <param name="customDownloadFolderFullPath">(optional) Full path to a folder where temporary downloads will be stored to override default</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DownloadFile(FileChange changeToDownload,
             AfterDownloadToTempFile moveFileUponCompletion,
             object moveFileUponCompletionState,
@@ -129,6 +399,35 @@ namespace CloudApiPublic.REST
             object beforeDownloadState = null,
             CancellationTokenSource shutdownToken = null,
             string customDownloadFolderFullPath = null)
+        {
+            // pass through input parameters to the private call (which takes additional parameters we don't wish to expose)
+            return DownloadFile(changeToDownload,
+                moveFileUponCompletion,
+                moveFileUponCompletionState,
+                timeoutMilliseconds,
+                out status,
+                beforeDownload,
+                beforeDownloadState,
+                shutdownToken,
+                customDownloadFolderFullPath,
+                null,
+                null,
+                null);
+        }
+
+        // private helper for DownloadFile which takes additional parameters we don't wish to expose; does the actual processing
+        private CLError DownloadFile(FileChange changeToDownload,
+            AfterDownloadToTempFile moveFileUponCompletion,
+            object moveFileUponCompletionState,
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            BeforeDownloadToTempFile beforeDownload,
+            object beforeDownloadState,
+            CancellationTokenSource shutdownToken,
+            string customDownloadFolderFullPath,
+            AsyncCallback aCallback,
+            IAsyncResult aResult,
+            GenericHolder<TransferProgress> progress)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -142,16 +441,20 @@ namespace CloudApiPublic.REST
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
+                // declare the path for the folder which will store temp download files
                 string currentDownloadFolder;
 
+                // if a specific folder path was passed to use as an override, then store it as the one to use
                 if (customDownloadFolderFullPath != null)
                 {
                     currentDownloadFolder = customDownloadFolderFullPath;
                 }
+                // else if a specified folder path was not passed and a path was specified in settings, then store the one from settings as the one to use
                 else if (settings.TempDownloadFolderFullPath != null)
                 {
                     currentDownloadFolder = settings.TempDownloadFolderFullPath;
                 }
+                // else if a specified folder path was not passed and one did not exist in settings, then build one dynamically to use
                 else
                 {
                     currentDownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create) + "\\" + // located in local AppData
@@ -160,14 +463,17 @@ namespace CloudApiPublic.REST
                         "\\DownloadTemp";
                 }
 
+                // check if the folder for temp downloads represents a bad path
                 CLError badTempFolderError = Helpers.CheckForBadPath(currentDownloadFolder);
 
+                // if the temp download folder is a bad path rethrow the error
                 if (badTempFolderError != null)
                 {
                     throw new AggregateException("The customDownloadFolderFullPath is bad", badTempFolderError.GrabExceptions());
                 }
 
-                if (currentDownloadFolder.Length > 222)
+                // if the folder path for downloads is too long, then throw an exception
+                if (currentDownloadFolder.Length > 222) // 222 calculated by 259 max path length minus 1 character for a folder slash seperator plus 36 characters for (Guid).ToString("N")
                 {
                     throw new ArgumentException("Folder path for temp download files is too long by " + (currentDownloadFolder.Length - 222).ToString());
                 }
@@ -186,8 +492,11 @@ namespace CloudApiPublic.REST
                     changeToDownload, // the FileChange describing the download
                     shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
                     settings.SyncRoot, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
-                    beforeDownload,
-                    beforeDownloadState);
+                    aCallback, // asynchronous callback to fire on progress changes if called via async wrapper
+                    aResult, // asynchronous result to pass when firing the asynchronous callback
+                    progress, // holder for progress data which can be queried by user if called via async wrapper
+                    beforeDownload, // optional callback fired before download starts
+                    beforeDownloadState); // userstate passed when firing download start callback
 
                 // run the actual communication
                 ProcessHttp(
@@ -211,19 +520,280 @@ namespace CloudApiPublic.REST
         }
 
         /// <summary>
+        /// Asynchronously starts uploading a file from a provided stream and file upload change
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire upon progress changes in upload, make sure it processes quickly if the IAsyncResult IsCompleted is false</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="uploadStream">Stream to upload, if it is a FileStream then make sure the file is locked to prevent simultaneous writes</param>
+        /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, Metadata.StorageKey, and MD5 hash to be set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve progress and/or the result</returns>
+        public IAsyncResult BeginUploadFile(AsyncCallback aCallback,
+            object aState,
+            Stream uploadStream,
+            FileChange changeToUpload,
+            int timeoutMilliseconds,
+            CancellationTokenSource shutdownToken = null)
+        {
+            // create a holder for the changing progress of the transfer
+            GenericHolder<TransferProgress> progressHolder = new GenericHolder<TransferProgress>(null);
+
+            // create the asynchronous result to return
+            GenericAsyncResult<UploadFileResult> toReturn = new GenericAsyncResult<UploadFileResult>(
+                aCallback,
+                aState,
+                progressHolder);
+
+            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+            Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, IAsyncResult,  Stream, FileChange, int, CancellationTokenSource> asyncParams =
+                new Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, IAsyncResult, Stream, FileChange, int, CancellationTokenSource>(
+                    toReturn,
+                    aCallback,
+                    toReturn,
+                    uploadStream,
+                    changeToUpload,
+                    timeoutMilliseconds,
+                    shutdownToken);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ParameterizedThreadStart(state =>
+            {
+                // try cast the state as the object with all the input parameters
+                Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, IAsyncResult, Stream, FileChange, int, CancellationTokenSource> castState = state as Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, IAsyncResult, Stream, FileChange, int, CancellationTokenSource>;
+                // if the try cast failed, then show a message box for this unrecoverable error
+                if (castState == null)
+                {
+                    MessageBox.Show("Cannot cast state as " + GetTypeNameEvenForNulls(castState));
+                }
+                // else if the try cast did not fail, then start processing with the input parameters
+                else
+                {
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the holder for transfer progress changes
+                        GenericHolder<TransferProgress> progress;
+                        // if there was no asynchronous result in the parameters, then the progress holder cannot be grabbed so set it to null
+                        if (castState.Item1 == null)
+                        {
+                            progress = null;
+                        }
+                        // else if there was an asynchronous result in the parameters, then pull the progress holder by try casting the internal state
+                        else
+                        {
+                            progress = castState.Item1.InternalState as GenericHolder<TransferProgress>;
+                        }
+
+                        // declare the output status for communication
+                        CLHttpRestStatus status;
+                        // run the download of the file with the passed parameters, storing any error that occurs
+                        CLError processError = UploadFile(
+                            castState.Item4,
+                            castState.Item5,
+                            castState.Item6,
+                            out status,
+                            castState.Item7,
+                            castState.Item2,
+                            castState.Item3,
+                            progress);
+
+                        // if there was an asynchronous result in the parameters, then complete it with a new result object
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.Complete(new UploadFileResult(processError,
+                                status),
+                                sCompleted: false);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // if there was an asynchronous result in the parameters, then pass through the exception to it
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.HandleException(
+                                ex, // the exception which was not handled correctly by the CLError wrapping
+                                false); // processing did not complete synchronously
+                        }
+                    }
+                }
+            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+
+            // return the asynchronous result
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Outputs the latest progress from a file upload, returning any error that occurs in the retrieval
+        /// </summary>
+        /// <param name="aResult">Asynchronous result originally returned by BeginUploadFile</param>
+        /// <param name="progress">(output) Latest progress from a file upload, may be null if the upload file hasn't started</param>
+        /// <returns>Returns any error that occurred in retrieving the latest progress, if any</returns>
+        public CLError GetProgressUploadFile(IAsyncResult aResult, out TransferProgress progress)
+        {
+            // try/catch to retrieve the latest progress, on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type of file uploads
+                GenericAsyncResult<UploadFileResult> castAResult = aResult as GenericAsyncResult<UploadFileResult>;
+
+                // if try casting the asynchronous result failed, throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // try to cast the asynchronous result internal state as the holder for the progress
+                GenericHolder<TransferProgress> iState = castAResult.InternalState as GenericHolder<TransferProgress>;
+
+                // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
+                if (iState == null)
+                {
+                    throw new Exception("There was an internal error attempting to retrieve the progress, Error 2");
+                }
+
+                // lock on the holder and retrieve the progress for output
+                lock (iState)
+                {
+                    progress = iState.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                progress = Helpers.DefaultForType<TransferProgress>();
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Finishes a file upload if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the file upload</param>
+        /// <param name="result">(output) The result from the file upload</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndUploadFile(IAsyncResult aResult, out UploadFileResult result)
+        {
+            // declare the specific type of asynchronous result for file uploads
+            GenericAsyncResult<UploadFileResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the type for file uploads and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type for file uploads
+                castAResult = aResult as GenericAsyncResult<UploadFileResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<UploadFileResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // Operation is done: if an exception occurred, throw it
+                if (castAResult.Exception != null) throw castAResult.Exception;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Holds result properties
+        /// </summary>
+        public sealed class UploadFileResult
+        {
+            /// <summary>
+            /// Any error which may have occurred during communication
+            /// </summary>
+            public CLError Error
+            {
+                get
+                {
+                    return _error;
+                }
+            }
+            private readonly CLError _error;
+
+            /// <summary>
+            /// The status resulting from communication
+            /// </summary>
+            public CLHttpRestStatus Status
+            {
+                get
+                {
+                    return _status;
+                }
+            }
+            private readonly CLHttpRestStatus _status;
+
+            // construct with all readonly properties
+            internal UploadFileResult(CLError Error, CLHttpRestStatus Status)
+            {
+                this._error = Error;
+                this._status = Status;
+            }
+        }
+
+        /// <summary>
         /// Uploads a file from a provided stream and file upload change
         /// </summary>
         /// <param name="uploadStream">Stream to upload, if it is a FileStream then make sure the file is locked to prevent simultaneous writes</param>
         /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, Metadata.StorageKey, and MD5 hash to be set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
         /// <param name="status">(output) success/failure status of communication</param>
-        /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload.</param>
+        /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UploadFile(Stream uploadStream,
             FileChange changeToUpload,
             int timeoutMilliseconds,
             out CLHttpRestStatus status,
             CancellationTokenSource shutdownToken = null)
+        {
+            return UploadFile(
+                uploadStream,
+                changeToUpload,
+                timeoutMilliseconds,
+                out status,
+                shutdownToken,
+                null,
+                null,
+                null);
+        }
+
+        // private helper for UploadFile which takes additional parameters we don't wish to expose; does the actual processing
+        private CLError UploadFile(Stream uploadStream,
+            FileChange changeToUpload,
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            CancellationTokenSource shutdownToken,
+            AsyncCallback aCallback,
+            IAsyncResult aResult,
+            GenericHolder<TransferProgress> progress)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -248,7 +818,10 @@ namespace CloudApiPublic.REST
                         HandleUploadDownloadStatus, // private event handler to relay status change events
                         changeToUpload, // the FileChange describing the upload
                         shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
-                        settings.SyncRoot), // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
+                        settings.SyncRoot, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
+                        aCallback, // asynchronous callback to fire on progress changes if called via async wrapper
+                        aResult, // asynchronous result to pass when firing the asynchronous callback
+                        progress), // holder for progress data which can be queried by user if called via async wrapper
                     okCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
                     ref status); // reference to update the output success/failure status for the communication
             }
@@ -1382,6 +1955,21 @@ namespace CloudApiPublic.REST
                         // define a count for the total amount of bytes uploaded so far
                         long totalBytesUploaded = 0;
 
+                        if (uploadDownload.ProgressHolder != null)
+                        {
+                            lock (uploadDownload.ProgressHolder)
+                            {
+                                uploadDownload.ProgressHolder.Value = new TransferProgress(
+                                    0,
+                                    storeSizeForStatus);
+                            }
+                        }
+
+                        if (uploadDownload.ACallback != null)
+                        {
+                            uploadDownload.ACallback(uploadDownload.AResult);
+                        }
+
                         // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file and store the read byte count
                         while ((bytesRead = ((uploadParams)uploadDownload).Stream.Read(uploadBuffer, 0, uploadBuffer.Length)) != 0)
                         {
@@ -1406,6 +1994,21 @@ namespace CloudApiPublic.REST
                                 {
                                     Monitor.Exit(uploadDownload.ShutdownToken);
                                 }
+                            }
+
+                            if (uploadDownload.ProgressHolder != null)
+                            {
+                                lock (uploadDownload.ProgressHolder)
+                                {
+                                    uploadDownload.ProgressHolder.Value = new TransferProgress(
+                                        totalBytesUploaded,
+                                        storeSizeForStatus);
+                                }
+                            }
+
+                            if (uploadDownload.ACallback != null)
+                            {
+                                uploadDownload.ACallback(uploadDownload.AResult);
                             }
 
                             // fire event callbacks for status change on uploading
@@ -1595,6 +2198,21 @@ namespace CloudApiPublic.REST
                         // calculate location for downloading the file
                         string newTempFileString = ((downloadParams)uploadDownload).TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
 
+                        if (uploadDownload.ProgressHolder != null)
+                        {
+                            lock (uploadDownload.ProgressHolder)
+                            {
+                                uploadDownload.ProgressHolder.Value = new TransferProgress(
+                                    0,
+                                    storeSizeForStatus);
+                            }
+                        }
+
+                        if (uploadDownload.ACallback != null)
+                        {
+                            uploadDownload.ACallback(uploadDownload.AResult);
+                        }
+
                         // get the stream of the download
                         using (Stream downloadResponseStream = httpResponse.GetResponseStream())
                         {
@@ -1631,6 +2249,21 @@ namespace CloudApiPublic.REST
                                         {
                                             Monitor.Exit(uploadDownload.ShutdownToken);
                                         }
+                                    }
+
+                                    if (uploadDownload.ProgressHolder != null)
+                                    {
+                                        lock (uploadDownload.ProgressHolder)
+                                        {
+                                            uploadDownload.ProgressHolder.Value = new TransferProgress(
+                                                totalBytesDownloaded,
+                                                storeSizeForStatus);
+                                        }
+                                    }
+
+                                    if (uploadDownload.ACallback != null)
+                                    {
+                                        uploadDownload.ACallback(uploadDownload.AResult);
                                     }
 
                                     // fire event callbacks for status change on uploading
@@ -2098,13 +2731,52 @@ namespace CloudApiPublic.REST
             private readonly CancellationTokenSource _shutdownToken;
 
             /// <summary>
+            /// Callback which may be provided by a user to fire for status updates
+            /// </summary>
+            public AsyncCallback ACallback
+            {
+                get
+                {
+                    return _aCallback;
+                }
+            }
+            private readonly AsyncCallback _aCallback;
+
+            /// <summary>
+            /// Asynchronous result to be passed upon firing the asynchronous callback
+            /// </summary>
+            public IAsyncResult AResult
+            {
+                get
+                {
+                    return _aResult;
+                }
+            }
+            private readonly IAsyncResult _aResult;
+
+            /// <summary>
+            /// Holder for the progress state which can be queried by the user
+            /// </summary>
+            public GenericHolder<TransferProgress> ProgressHolder
+            {
+                get
+                {
+                    return _progressHolder;
+                }
+            }
+            private readonly GenericHolder<TransferProgress> _progressHolder;
+
+            /// <summary>
             /// The constructor for this abstract base object with all parameters corresponding to all properties
             /// </summary>
             /// <param name="StatusCallback">A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)</param>
             /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events</param>
             /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
             /// <param name="SyncRootFullPath">Full path to the root directory being synced</param>
-            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath)
+            /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
+            /// <param name="AResult">Asynchronous result for firing async callbacks</param>
+            /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
+            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder)
             {
                 // check for required parameters and error out if not set
 
@@ -2143,6 +2815,9 @@ namespace CloudApiPublic.REST
                 this._changeToTransfer = ChangeToTransfer;
                 this._relativePathForStatus = this.ChangeToTransfer.NewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
                 this._shutdownToken = ShutdownToken;
+                this._aCallback = ACallback;
+                this._aResult = AResult;
+                this._progressHolder = ProgressHolder;
             }
         }
 
@@ -2219,10 +2894,13 @@ namespace CloudApiPublic.REST
             /// <param name="AfterDownloadCallback">Event handler for after a download completes which needs to move the file from the temp location to its final location and set the response body to "---Completed file download---"</param>
             /// <param name="AfterDownloadUserState">UserState object passed through as-is when the AfterDownloadCallback handler is fired</param>
             /// <param name="TempDownloadFolderPath">Full path location to the directory where temporary download files will be stored</param>
+            /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
+            /// <param name="AResult">Asynchronous result for firing async callbacks</param>
+            /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
             /// <param name="BeforeDownloadCallback">A non-required (possibly null) event handler for before a download starts</param>
             /// <param name="BeforeDownloadUserState">UserState object passed through as-is when the BeforeDownloadCallback handler is fired</param>
-            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
-                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath)
+            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
+                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath, ACallback, AResult, ProgressHolder)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 
@@ -2307,8 +2985,11 @@ namespace CloudApiPublic.REST
             /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
             /// <param name="SyncRootFullPath">Full path to the root directory being synced</param>
             /// <param name="Stream">Stream which will be read from to buffer to write into the upload stream, or null if already disposed</param>
-            public uploadParams(Stream Stream, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath)
-                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath)
+            /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
+            /// <param name="AResult">Asynchronous result for firing async callbacks</param>
+            /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
+            public uploadParams(Stream Stream, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder)
+                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath, ACallback, AResult, ProgressHolder)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 
@@ -2340,6 +3021,11 @@ namespace CloudApiPublic.REST
 
                 this._stream = Stream;
             }
+        }
+
+        private static string GetTypeNameEvenForNulls<T>(T toName)
+        {
+            return (typeof(T)).Name;
         }
         #endregion
     }

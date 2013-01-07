@@ -150,6 +150,8 @@
     <Compile Include="Model\TransferUpdateArgs.cs" />
     <Compile Include="PushNotification\PushSettings.cs" />
     <Compile Include="REST\CLHttpRest.cs" />
+    <Compile Include="REST\GenericAsyncResult.cs" />
+    <Compile Include="REST\TransferProgress.cs" />
     <Compile Include="Static\CLScrollHelper.cs" />
     <Compile Include="Support\CLCopyFiles.cs" />
     <Compile Include="CLSync\CLSync.cs" />
