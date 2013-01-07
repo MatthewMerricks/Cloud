@@ -69,8 +69,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Support\MessageSender.cs" />
-    <Compile Include="ViewModels\ViewModelLocator.cs" />
     <Compile Include="Views\SyncStatusView.xaml.cs">
       <DependentUpon>SyncStatusView.xaml</DependentUpon>
     </Compile>

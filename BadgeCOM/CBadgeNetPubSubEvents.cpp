@@ -70,13 +70,13 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semWaitForSubscriptionThre
             throw new std::exception("Error creating a class factory for CPubSubServer.  hr: %d.", hr);
         }
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: ERROR: Exception.  Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: ERROR: C++ exception.");
     }
 	CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: Exit."); 
 }
@@ -97,13 +97,13 @@ CBadgeNetPubSubEvents::~CBadgeNetPubSubEvents(void)
         KillSubscribingThread();
         KillWatchingThread();
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: ~CBadgeNetPubSubEvents: ERROR: Exception. Killing threads. Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: ~CBadgeNetPubSubEvents: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: ~CBadgeNetPubSubEvents: ERROR: C++ exception.");
     }
 
     try
@@ -117,13 +117,13 @@ CBadgeNetPubSubEvents::~CBadgeNetPubSubEvents(void)
             _pPubSubServer = NULL;
         }
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: ~CBadgeNetPubSubEvents: ERROR: Exception(2).  Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: ~CBadgeNetPubSubEvents: ERROR: Bad exception(2).");
+		CLTRACE(1, "CBadgeNetPubSubEvents: ~CBadgeNetPubSubEvents: ERROR: C++ exception(2).");
     }
 }
 
@@ -147,13 +147,13 @@ void CBadgeNetPubSubEvents::Initialize()
     		CLTRACE(1, "CBadgeNetPubSubEvents: Initialize: ERROR: From Initialize.  hr: %d.", hr);
         }
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: Initialize: ERROR: Exception.  Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: Initialize: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: Initialize: ERROR: C++ exception.");
     }
 }
 
@@ -178,13 +178,13 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, Enum
     		CLTRACE(1, "CBadgeNetPubSubEvents: PublishEventToBadgeNet: ERROR: From Publish.  hr: %d. Result: %d.", hr, result);
         }
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: PublishEventToBadgeNet: ERROR: Exception.  Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: PublishEventToBadgeNet: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: PublishEventToBadgeNet: ERROR: C++ exception.");
     }
 }
 
@@ -210,13 +210,13 @@ bool CBadgeNetPubSubEvents::SubscribeToBadgeNetEvents()
 			CLTRACE(1, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: ERROR. Subscribing thread did not start.");
 		}
 	}
-	catch (std::exception &ex)
+	catch (const std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: ERROR: Exception.  Message: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: ERROR: C++ exception.");
     }
 
     return fIsStartedOk;
@@ -272,13 +272,13 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Fire event: BadgeNet_AddSyncBoxFolderPath.");
 		                    pThis->FireEventAddSyncBoxFolderPath(bsFullPath);
 						}
-						catch (std::exception &ex)
+						catch (const std::exception &ex)
 						{
 							CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Exception(10).  Message: %s.", ex.what());
 						}
                         catch (...)
                         {
-		                    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Bad exception(10).");
+		                    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: C++ exception(10).");
                         }
                         break;
                     case BadgeNet_RemoveSyncBoxFolderPath:
@@ -287,13 +287,13 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_RemoveSyncBoxFolderPath.");
 		                    pThis->FireEventRemoveSyncBoxFolderPath(bsFullPath);
 						}
-						catch (std::exception &ex)
+						catch (const std::exception &ex)
 						{
 							CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Exception(11).  Message: %s.", ex.what());
 						}
                         catch (...)
                         {
-		                    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Bad exception(11).");
+		                    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: C++ exception(11).");
                         }
                         break;
                     case BadgeNet_AddBadgePath:
@@ -302,13 +302,13 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_AddBadgePath.");
 		                    pThis->FireEventAddBadgePath(bsFullPath, badgeType);
 						}
-						catch (std::exception &ex)
+						catch (const std::exception &ex)
 						{
 							CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Exception(12).  Message: %s.", ex.what());
 						}
                         catch (...)
                         {
-		                    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Bad exception(12).");
+		                    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: C++ exception(12).");
                         }
                         break;
                     case BadgeNet_RemoveBadgePath:
@@ -317,13 +317,13 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_RemoveBadgePath.");
 		                    pThis->FireEventRemoveBadgePath(bsFullPath);
 						}
-						catch (std::exception &ex)
+						catch (const std::exception &ex)
 						{
 							CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Exception(13).  Message: %s.", ex.what());
 						}
                         catch (...)
                         {
-		                    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Bad exception(13).");
+		                    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: C++ exception(13).");
                         }
                         break;
                 }
@@ -374,13 +374,13 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             pThis->_locker.unlock();
         }
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Exception.  Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: C++ exception.");
     }
 	CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: Exit the thread.");
 }
@@ -455,14 +455,14 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
             }
         }
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: Exception.  Message: %s.", ex.what());
         HandleWatchingThreadException(pThis);
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: C++ exception.");
         HandleWatchingThreadException(pThis);
     }
 	CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Watchin thread exit.");
@@ -485,13 +485,13 @@ void CBadgeNetPubSubEvents::HandleWatchingThreadException(CBadgeNetPubSubEvents 
 			pThis->KillSubscribingThread();
 		}
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: HandleWatchingThreadException: ERROR: Exception.  Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: HandleWatchingThreadException: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: HandleWatchingThreadException: ERROR: C++ exception.");
     }
 }
 
@@ -564,13 +564,13 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
 
         _threadSubscribingHandle = NULL;
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: KillSubscribingThread: ERROR: Exception.  Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: KillSubscribingThread: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: KillSubscribingThread: ERROR: C++ exception.");
     }
 }
 
@@ -628,13 +628,13 @@ void CBadgeNetPubSubEvents::KillWatchingThread()
 
         _threadWatchingHandle = NULL;
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: KillWatchingThread: ERROR: Exception.  Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: KillWatchingThread: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: KillWatchingThread: ERROR: C++ exception.");
     }
 }
 
@@ -682,13 +682,13 @@ bool CBadgeNetPubSubEvents::StartSubscribingThread()
 			CLTRACE(1, "BadgeComPubSubEvents: StartSubscribingThread: ERROR: Subscribing thread did not start.");
 		}
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: StartSubscribingThread: ERROR: Exception.  Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: StartSubscribingThread: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: StartSubscribingThread: ERROR: C++ exception.");
     }
 
     return result;
@@ -728,13 +728,13 @@ void CBadgeNetPubSubEvents::StartWatchingThread()
         }
         _locker.unlock();
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "CBadgeNetPubSubEvents: StartWatchingThread: ERROR: Exception.  Message: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "CBadgeNetPubSubEvents: StartWatchingThread: ERROR: Bad exception.");
+		CLTRACE(1, "CBadgeNetPubSubEvents: StartWatchingThread: ERROR: C++ exception.");
     }
 }
 

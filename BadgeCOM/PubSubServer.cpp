@@ -55,14 +55,14 @@ STDMETHODIMP CPubSubServer::Initialize()
 		}
        	CLTRACE(9, "PubSubServer: Initialize: Segment: %x.", _pSegment);
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: Initialize: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         result = E_FAIL;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: Initialize: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
+		CLTRACE(1, "PubSubServer: Initialize: ERROR: C++ exception. Tracker: %s.", pszExceptionStateTracker);
         result = E_FAIL;
     }
 
@@ -137,7 +137,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 
 			pBase->mutexSharedMemory_.unlock();
 		}
-		catch (std::exception &ex)
+		catch (const std::exception &ex)
 		{
 			CLTRACE(1, "PubSubServer: Publish: ERROR: Exception(lock).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
@@ -145,7 +145,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		}
         catch (...)
         {
-		    CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception(lock). Tracker: %s.", pszExceptionStateTracker);
+		    CLTRACE(1, "PubSubServer: Publish: ERROR: C++ exception(lock). Tracker: %s.", pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
             nResult = RC_PUBLISH_ERROR;
         }
@@ -206,7 +206,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 
 					pBase->mutexSharedMemory_.unlock();
 				}
-				catch (std::exception &ex)
+				catch (const std::exception &ex)
 				{
 					CLTRACE(1, "PubSubServer: Publish: ERROR: Exception(lock, 2).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 					pBase->mutexSharedMemory_.unlock();
@@ -214,7 +214,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 				}
                 catch (...)
                 {
-		            CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception(lock, 2). Tracker: %s.", pszExceptionStateTracker);
+		            CLTRACE(1, "PubSubServer: Publish: ERROR: C++ exception(lock, 2). Tracker: %s.", pszExceptionStateTracker);
 					pBase->mutexSharedMemory_.unlock();
                     nResult = RC_PUBLISH_ERROR;
                 }
@@ -230,14 +230,14 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 			}					// end retry loop
 		}						// end subscribers loop
     }
-    catch(std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: Publish: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         nResult = RC_PUBLISH_ERROR;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: Publish: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
+		CLTRACE(1, "PubSubServer: Publish: ERROR: C++ exception. Tracker: %s.", pszExceptionStateTracker);
         nResult = RC_PUBLISH_ERROR;
     }
 
@@ -400,7 +400,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
 			pBase->mutexSharedMemory_.unlock();
 		}
-		catch (std::exception &ex)
+		catch (const std::exception &ex)
 		{
 			CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock, 3).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
@@ -408,7 +408,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 		}
         catch (...)
         {
-		    CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception(lock, 3). Tracker: %s.", pszExceptionStateTracker);
+		    CLTRACE(1, "PubSubServer: Subscribe: ERROR: C++ exception(lock, 3). Tracker: %s.", pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
             nResult = RC_SUBSCRIBE_ERROR;
         }
@@ -480,7 +480,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
 				pBase->mutexSharedMemory_.unlock();
 			}
-			catch (std::exception &ex)
+			catch (const std::exception &ex)
 			{
 				CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock, 4).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
@@ -488,20 +488,20 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			}
             catch (...)
             {
-		        CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception(lock, 4). Tracker: %s.", pszExceptionStateTracker);
+		        CLTRACE(1, "PubSubServer: Subscribe: ERROR: C++ exception(lock, 4). Tracker: %s.", pszExceptionStateTracker);
 			    pBase->mutexSharedMemory_.unlock();
                 nResult = RC_SUBSCRIBE_ERROR;
             }
         }
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         nResult = RC_SUBSCRIBE_ERROR;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: Subscribe: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
+		CLTRACE(1, "PubSubServer: Subscribe: ERROR: C++ exception. Tracker: %s.", pszExceptionStateTracker);
         nResult = RC_SUBSCRIBE_ERROR;
     }
 
@@ -568,7 +568,7 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 
 				pBase->mutexSharedMemory_.unlock();
 			}
-			catch (std::exception &ex)
+			catch (const std::exception &ex)
 			{
 				CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Exception(lock).  Message: %s.", ex.what());
 				pBase->mutexSharedMemory_.unlock();
@@ -576,7 +576,7 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
             }
             catch (...)
             {
-		        CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Bad exception(lock).");
+		        CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: C++ exception(lock).");
 				pBase->mutexSharedMemory_.unlock();
                 nResult = RC_CANCELBYPROCESSID_ERROR;
             }
@@ -608,14 +608,14 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 			}
 		}
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         nResult = RC_CANCELBYPROCESSID_ERROR;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
+		CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR: C++ exception. Tracker: %s.", pszExceptionStateTracker);
         nResult = RC_CANCELBYPROCESSID_ERROR;
     }
 
@@ -742,7 +742,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 
 			pBase->mutexSharedMemory_.unlock();
 		}
-		catch (std::exception &ex)
+		catch (const std::exception &ex)
 		{
 			CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Exception(lock).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
@@ -750,19 +750,19 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 		}
         catch (...)
         {
-		    CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Bad exception(lock). Tracker: %s.", pszExceptionStateTracker);
+		    CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: C++ exception(lock). Tracker: %s.", pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
 			nResult = RC_CANCEL_ERROR;
         }
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         nResult = RC_CANCEL_ERROR;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
+		CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: C++ exception. Tracker: %s.", pszExceptionStateTracker);
         nResult = RC_CANCEL_ERROR;
     }
 
@@ -788,14 +788,14 @@ STDMETHODIMP CPubSubServer::get_SharedMemoryName(BSTR* pVal)
 
         *pVal = SysAllocString(GetSharedMemoryNameWithVersionWide().c_str());                    // the caller must free this memory.
     }
-    catch(std::exception &ex)
+    catch (const std::exception &ex)
     {
         CLTRACE(1, "PubSubServer: get_SharedMemoryName: Exception: %s.", ex.what());
         nResult = E_OUTOFMEMORY;
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: get_SharedMemoryName: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: get_SharedMemoryName: ERROR: C++ exception.");
         nResult = E_OUTOFMEMORY;
     }
 
@@ -843,13 +843,13 @@ void CPubSubServer::DeleteSubscriptionById(Base * pBase, CPubSubServer::UniqueSu
 			}
 		}
 	}
-	catch (std::exception &ex)
+	catch (const std::exception &ex)
 	{
         CLTRACE(1, "PubSubServer: DeleteSubscriptionById: Exception: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: DeleteSubscriptionById: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: DeleteSubscriptionById: ERROR: C++ exception.");
     }
 }
 
@@ -879,13 +879,13 @@ bool CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidSubscribe
 			}
 		}
 	}
-	catch (std::exception &ex)
+	catch (const std::exception &ex)
 	{
         CLTRACE(1, "PubSubServer: FindSubscription: Exception: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: FindSubscription: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: FindSubscription: ERROR: C++ exception.");
     }
 
     return result;
@@ -932,13 +932,13 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
 			}
 		}
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
         CLTRACE(1, "PubSubServer: TraceCurrentStateOfSharedMemory: Exception: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: TraceCurrentStateOfSharedMemory: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: TraceCurrentStateOfSharedMemory: ERROR: C++ exception.");
     }
 }
 
@@ -1013,7 +1013,7 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 
 				pBase->mutexSharedMemory_.unlock();
 			}
-			catch (std::exception &ex)
+			catch (const std::exception &ex)
 			{
 				CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Exception(lock).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
@@ -1021,21 +1021,21 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 			}
             catch (...)
             {
-		        CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Bad exception(lock). Tracker: %s.", pszExceptionStateTracker);
+		        CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: C++ exception(lock). Tracker: %s.", pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
                 *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
             }
 
 		}
 	}
-	catch (std::exception &ex)
+	catch (const std::exception &ex)
 	{
 		CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
         *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
 	}
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
+		CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: C++ exception. Tracker: %s.", pszExceptionStateTracker);
         *returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
     }
 
@@ -1095,26 +1095,26 @@ STDMETHODIMP CPubSubServer::Terminate()
 
 				pBase->mutexSharedMemory_.unlock();
 			}
-			catch (std::exception &ex)
+			catch (const std::exception &ex)
 			{
 				CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception(lock).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
 			}
             catch (...)
             {
-		        CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception(lock). Tracker: %s.", pszExceptionStateTracker);
+		        CLTRACE(1, "PubSubServer: Terminate: ERROR: C++ exception(lock). Tracker: %s.", pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
             }
 
 		}
 	}
-	catch (std::exception &ex)
+	catch (const std::exception &ex)
 	{
 		CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 	}
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception. Tracker: %s.", pszExceptionStateTracker);
+		CLTRACE(1, "PubSubServer: Terminate: ERROR: C++ exception. Tracker: %s.", pszExceptionStateTracker);
     }
 
 	// Release the shared memory segment if all instances are finished with it.
@@ -1127,13 +1127,13 @@ STDMETHODIMP CPubSubServer::Terminate()
 			_pSegment = NULL;
 		}
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception(2).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: Terminate: ERROR: Bad exception(2). Tracker: %s.", pszExceptionStateTracker);
+		CLTRACE(1, "PubSubServer: Terminate: ERROR: C++ exception(2). Tracker: %s.", pszExceptionStateTracker);
     }
 
 	CLTRACE(9, "PubSubServer: Terminate: Exit.");
@@ -1228,7 +1228,7 @@ std::string CPubSubServer::GetSharedMemoryNameWithVersion()
         delete[] versionInfo;
         versionInfo = NULL;
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "PubSubServer: GetSharedMemoryNameWithVersion: ERROR: Exception.  Message: %s.", ex.what());
         if (versionInfo != NULL)
@@ -1239,7 +1239,7 @@ std::string CPubSubServer::GetSharedMemoryNameWithVersion()
     }
     catch (...)
     {
-		CLTRACE(1, "PubSubServer: GetSharedMemoryNameWithVersion: ERROR: Bad exception.");
+		CLTRACE(1, "PubSubServer: GetSharedMemoryNameWithVersion: ERROR: C++ exception.");
         if (versionInfo != NULL)
         {
             delete[] versionInfo;

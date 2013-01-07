@@ -46,10 +46,10 @@ namespace CloudSdkSyncSample.ViewModels
         private bool _syncStarted = false;
         private bool _windowClosed = false;
         private CLSync _syncBox = null;
+        private SyncStatusView _winSyncStatus = null;
 
         private static readonly object _locker = new object();
         private static readonly CLTrace _trace = CLTrace.Instance;
-        private static SyncStatusView _win = null;
 
         #endregion
 
@@ -70,6 +70,8 @@ namespace CloudSdkSyncSample.ViewModels
                 throw new Exception("mainWindow must not be null");
             }
             _mainWindow = mainWindow;
+            _mainWindow.Topmost = true;
+            _mainWindow.Topmost = false;
 
             // Read in the settings
             _settingsCurrent = new Settings();
@@ -844,21 +846,21 @@ namespace CloudSdkSyncSample.ViewModels
         public void ShowSyncStatus()
         {
             // Open RateBar graph window for upload/download status and logs
-            if (_win != null)
+            if (_winSyncStatus != null)
             {
-                _win.ShowInTaskbar = true;
-                _win.ShowActivated = true;
-                _win.WindowStyle = WindowStyle.ThreeDBorderWindow;
-                _win.MinWidth = 800;
-                _win.MinHeight = 600;
-                _win.MaxWidth = 800;
-                _win.MaxHeight = 600;
-                _win.Left = 0;   //&&&&&&&&&
-                _win.Top = 0;    //&&&&&&&&&&&
-                _win.Show();
-                _win.Topmost = true;
-                _win.Topmost = false;
-                _win.Focus();
+                _winSyncStatus.ShowInTaskbar = false;
+                _winSyncStatus.ShowActivated = true;
+                _winSyncStatus.WindowStyle = WindowStyle.ThreeDBorderWindow;
+                _winSyncStatus.MinWidth = 800;
+                _winSyncStatus.MinHeight = 600;
+                _winSyncStatus.MaxWidth = 800;
+                _winSyncStatus.MaxHeight = 600;
+                _winSyncStatus.Left = System.Windows.SystemParameters.PrimaryScreenWidth - 800 - 50;
+                _winSyncStatus.Top = System.Windows.SystemParameters.PrimaryScreenHeight - 600 - 50;
+                _winSyncStatus.Show();
+                _winSyncStatus.Topmost = true;
+                _winSyncStatus.Topmost = false;
+                _winSyncStatus.Focus();
             }
         }
 
@@ -934,24 +936,24 @@ namespace CloudSdkSyncSample.ViewModels
                             SetSyncBoxStartedState(isStartedStateToSet: true);
 
                             // Start an instance of the sync status window and start it hidden.
-                            if (_win == null)
+                            if (_winSyncStatus == null)
                             {
                                 _trace.writeToLog(9, "MainViewModel: StartSyncing: Start the sync status window.");
-                                _win = new SyncStatusView();
+                                _winSyncStatus = new SyncStatusView();
                                 EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings);
-                                _win.DataContext = vm;
-                                _win.Width = 0;
-                                _win.Height = 0;
-                                _win.MinWidth = 0;
-                                _win.MinHeight = 0;
-                                _win.Left = Int32.MaxValue;
-                                _win.Top = Int32.MaxValue;
-                                _win.ShowInTaskbar = false;
-                                _win.ShowActivated = false;
-                                _win.Visibility = Visibility.Hidden;
-                                _win.WindowStyle = WindowStyle.None;
-                                _win.Owner = _mainWindow;
-                                _win.Show();
+                                _winSyncStatus.DataContext = vm;
+                                _winSyncStatus.Width = 0;
+                                _winSyncStatus.Height = 0;
+                                _winSyncStatus.MinWidth = 0;
+                                _winSyncStatus.MinHeight = 0;
+                                _winSyncStatus.Left = Int32.MaxValue;
+                                _winSyncStatus.Top = Int32.MaxValue;
+                                _winSyncStatus.ShowInTaskbar = false;
+                                _winSyncStatus.ShowActivated = false;
+                                _winSyncStatus.Visibility = Visibility.Hidden;
+                                _winSyncStatus.WindowStyle = WindowStyle.None;
+                                _winSyncStatus.Owner = _mainWindow;
+                                _winSyncStatus.Show();
                             }
                         }
                     }
@@ -972,10 +974,11 @@ namespace CloudSdkSyncSample.ViewModels
         {
             lock (_locker)
             {
-                if (_win != null)
+                if (_winSyncStatus != null)
                 {
-                    _win.Close();
-                    _win = null;
+                    _winSyncStatus.AllowClose = true;
+                    _winSyncStatus.Close();
+                    _winSyncStatus = null;
                 }
 
                 if (_syncBox != null)

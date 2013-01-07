@@ -1205,8 +1205,12 @@ namespace CloudApiPublic.REST
                     requestOrResponseAsyncResult = httpRequest.BeginGetResponse(requestOrResponseCallback, requestOrResponseHolder);
                 }
 
-                // wait on the request to become synchronous again
-                Monitor.Wait(requestOrResponseHolder);
+                // if the request was not already completed synchronously, wait on it to complete
+                if (!requestOrResponseHolder.CompletedSynchronously)
+                {
+                    // wait on the request to become synchronous again
+                    Monitor.Wait(requestOrResponseHolder);
+                }
             }
 
             // if there was an error that occurred on the async http call, then rethrow the error
@@ -1254,6 +1258,26 @@ namespace CloudApiPublic.REST
         /// </summary>
         private sealed class AsyncRequestHolder
         {
+            /// <summary>
+            /// Whether IAsyncResult was found to be CompletedSynchronously: if so, do not Monitor.Wait
+            /// </summary>
+            public bool CompletedSynchronously
+            {
+                get
+                {
+                    return _completedSynchronously;
+                }
+            }
+            /// <summary>
+            /// Mark this when IAsyncResult was found to be CompletedSynchronously
+            /// </summary>
+            public void MarkCompletedSynchronously()
+            {
+                _completedSynchronously = true;
+            }
+            // storage for CompletedSynchronously, only marked when true so default to false
+            private bool _completedSynchronously = false;
+
             /// <summary>
             /// cancelation token to check between async calls to cancel out of the operation
             /// </summary>
@@ -1341,12 +1365,24 @@ namespace CloudApiPublic.REST
             // try/catch check for completion or cancellation to pulse the AsyncRequestHolder, on catch mark the exception in the AsyncRequestHolder (which will also pulse out)
             try
             {
-                // if asynchronous task completed, then pulse the AsyncRequestHolder
-                if (makeSynchronous.IsCompleted)
+                // if marked as completed synchronously pass through to the userstate which is used within the callstack to prevent blocking on Monitor.Wait
+                if (makeSynchronous.CompletedSynchronously)
                 {
                     lock (castHolder)
                     {
-                        Monitor.Pulse(castHolder);
+                        castHolder.MarkCompletedSynchronously();
+                    }
+                }
+
+                // if asynchronous task completed, then pulse the AsyncRequestHolder
+                if (makeSynchronous.IsCompleted)
+                {
+                    if (!makeSynchronous.CompletedSynchronously)
+                    {
+                        lock (castHolder)
+                        {
+                            Monitor.Pulse(castHolder);
+                        }
                     }
                 }
                 // else if asychronous task is not completed, then check for cancellation
@@ -1361,9 +1397,12 @@ namespace CloudApiPublic.REST
                         {
                             castHolder.Cancel();
 
-                            lock (castHolder)
+                            if (!makeSynchronous.CompletedSynchronously)
                             {
-                                Monitor.Pulse(castHolder);
+                                lock (castHolder)
+                                {
+                                    Monitor.Pulse(castHolder);
+                                }
                             }
                         }
                     }

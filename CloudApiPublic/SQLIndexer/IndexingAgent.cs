@@ -2219,7 +2219,8 @@ namespace CloudApiPublic.SQLIndexer
                             OldPath = oldPathObject,
                             Type = changeEnums[currentEvent.FileChangeTypeEnumId],
                             DoNotAddToSQLIndex = true,
-                            EventId = currentEvent.EventId
+                            EventId = currentEvent.EventId,
+                            Direction = (currentEvent.SyncFrom ? SyncDirection.From : SyncDirection.To)
                         });
 
                         switch (changeEnums[currentEvent.FileChangeTypeEnumId])
@@ -2303,7 +2304,8 @@ namespace CloudApiPublic.SQLIndexer
                     {
                         NewPath = deletedPath,
                         Type = FileChangeType.Deleted,
-                        Metadata = indexPaths[deletedPath]
+                        Metadata = indexPaths[deletedPath],
+                        Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                     });
                     pathDeletions.Remove(deletedPath);
                     pathDeletions.Add(deletedPath, new GenericHolder<bool>(true));
@@ -2449,7 +2451,8 @@ namespace CloudApiPublic.SQLIndexer
                         {
                             NewPath = subDirectoryPathObject,
                             Type = FileChangeType.Created,
-                            Metadata = newDirectoryMetadata
+                            Metadata = newDirectoryMetadata,
+                            Direction = SyncDirection.To // detected that a folder was created locally, so Sync To to update server
                         });
 
                         combinedIndexPlusChanges.Add(subDirectoryPathObject, newDirectoryMetadata);
@@ -2503,7 +2506,8 @@ namespace CloudApiPublic.SQLIndexer
                             {
                                 NewPath = currentFilePathObject,
                                 Type = FileChangeType.Modified,
-                                Metadata = modifiedMetadata
+                                Metadata = modifiedMetadata,
+                                Direction = SyncDirection.To // detected that a file was modified locally, so Sync To to update server
                             });
 
                             combinedIndexPlusChanges[currentFilePathObject] = modifiedMetadata;
@@ -2522,7 +2526,8 @@ namespace CloudApiPublic.SQLIndexer
                         {
                             NewPath = currentFilePathObject,
                             Type = FileChangeType.Created,
-                            Metadata = fileCreatedMetadata
+                            Metadata = fileCreatedMetadata,
+                            Direction = SyncDirection.To // detected that a file was created locally, so Sync To to update server
                         });
 
                         combinedIndexPlusChanges.Add(currentFilePathObject, fileCreatedMetadata);
@@ -2563,7 +2568,7 @@ namespace CloudApiPublic.SQLIndexer
                         {
                             existingDeletion = true;
                         }
-                        else
+                        else if (currentUncoveredChange.Value.Direction == SyncDirection.To)
                         {
                             changeList.Remove(currentUncoveredChange.Value);
                             if (currentUncoveredChange.Value.EventId > 0)

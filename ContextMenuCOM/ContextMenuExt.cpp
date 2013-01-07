@@ -54,9 +54,13 @@ CContextMenuExt::CContextMenuExt()
 		CLTRACE(9, "ContextMenuExt: CContextMenuExt: Entry.");
 	    m_hRegBmp = LoadBitmap (_AtlBaseModule.GetModuleInstance(), MAKEINTRESOURCE(IDB_BITMAP1) );
 	}
+    catch (const std::exception &ex)
+	{
+		CLTRACE(1, "ContextMenuExt: CContextMenuExt: ERROR: Exception: %s.", ex.what());
+	}
     catch (...)
     {
-		CLTRACE(1, "ContextMenuExt: CContextMenuExt: ERROR: Bad exception.");
+		CLTRACE(1, "ContextMenuExt: CContextMenuExt: ERROR: C++ exception.");
     }
 }
 
@@ -71,9 +75,13 @@ CContextMenuExt::~CContextMenuExt()
 			m_hRegBmp = NULL;
 		}
 	}
+    catch (const std::exception &ex)
+	{
+		CLTRACE(1, "ContextMenuExt: ~CContextMenuExt: ERROR: Exception: %s.", ex.what());
+	}
     catch (...)
     {
-		CLTRACE(1, "ContextMenuExt: ~CContextMenuExt: ERROR: Bad exception.");
+		CLTRACE(1, "ContextMenuExt: ~CContextMenuExt: ERROR: C++ exception.");
     }
 }
 
@@ -183,13 +191,13 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 		CLTRACE(9, "ContextMenuExt: Initialize: Return %d.", hr);
 		return hr;
 	}
-	catch (exception ex)
+    catch (const std::exception &ex)
 	{
 		CLTRACE(1, "ContextMenuExt: Initialize: ERROR: Exception: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "ContextMenuExt: Initialize: ERROR: Bad exception.");
+		CLTRACE(1, "ContextMenuExt: Initialize: ERROR: C++ exception.");
     }
 
 	// Free resources
@@ -213,6 +221,10 @@ IFACEMETHODIMP CContextMenuExt::Initialize(__in_opt PCIDLIST_ABSOLUTE pidlFolder
 		    allocatedStgMedium = false;
 	    }
     }
+    catch (const std::exception &ex)
+	{
+		CLTRACE(1, "ContextMenuExt: Initialize: ERROR: Exception(2): %s.", ex.what());
+	}
     catch (...)
     {
     }
@@ -287,13 +299,13 @@ STDMETHODIMP CContextMenuExt::QueryContextMenu(HMENU hMenu,
 			return MAKE_HRESULT(SEVERITY_SUCCESS, 0, USHORT(IDM_DISPLAY + 1));
 		}
 	}
-	catch (exception ex)
+    catch (const std::exception &ex)
 	{
 		CLTRACE(1, "ContextMenuExt: QueryContextMenu: ERROR: Exception: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "ContextMenuExt: QueryContextMenu: ERROR: Bad exception.");
+		CLTRACE(1, "ContextMenuExt: QueryContextMenu: ERROR: C++ exception.");
     }
 	CLTRACE(9, "ContextMenuExt: QueryContextMenu: Return(2) 0.");
 	return MAKE_HRESULT(SEVERITY_SUCCESS, 0, USHORT(0));
@@ -363,13 +375,13 @@ STDMETHODIMP CContextMenuExt::GetCommandString (
 			}
 		}
 	}
-	catch (exception ex)
+    catch (const std::exception &ex)
 	{
 		CLTRACE(1, "ContextMenuExt: GetCommandString: Exception: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "ContextMenuExt: GetCommandString: ERROR: Bad exception.");
+		CLTRACE(1, "ContextMenuExt: GetCommandString: ERROR: C++ exception.");
     }
 
 	CLTRACE(9, "ContextMenuExt: GetCommandString: Return S_OK.");
@@ -697,13 +709,13 @@ STDMETHODIMP CContextMenuExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 		}
 
 	}
-	catch (exception ex)
+    catch (const std::exception &ex)
 	{
 		CLTRACE(1, "ContextMenuExt: InvokeCommand: ERROR: Exception: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "ContextMenuExt: InvokeCommand: ERROR: Bad exception.");
+		CLTRACE(1, "ContextMenuExt: InvokeCommand: ERROR: C++ exception.");
     }
 
 	// Close the pipe handle
@@ -815,13 +827,13 @@ size_t ExecuteProcess(std::wstring FullPathToExe, std::wstring Parameters)
 
 	    return iReturnVal; 
 	}
-	catch (exception ex)
+    catch (const std::exception &ex)
 	{
 		CLTRACE(1, "ContextMenuExt: ExecuteProcess: ERROR: Exception: %s.", ex.what());
 	}
     catch (...)
     {
-		CLTRACE(1, "ContextMenuExt: ExecuteProcess: ERROR: Bad exception.");
+		CLTRACE(1, "ContextMenuExt: ExecuteProcess: ERROR: C++ exception.");
     }
 
 	CLTRACE(9, "ContextMenuExt: ExecuteProcess: Return -3.");
@@ -913,13 +925,13 @@ std::wstring GetCloudExeFullPath()
 	    cloudExeLocation.append(L"\\Cloud.com\\Cloud\\Cloud.exe\"");
 	    CLTRACE(9, "ContextMenuExt: GetCloudExeFullPath: Return Cloud.exe path <%ls>.", cloudExeLocation.c_str());
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "ContextMenuExt: GetCloudExeFullPath: ERROR: Exception: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "ContextMenuExt: GetCloudExeFullPath: ERROR: Bad exception.");
+		CLTRACE(1, "ContextMenuExt: GetCloudExeFullPath: ERROR: C++ exception.");
     }
 
     return cloudExeLocation;
@@ -941,13 +953,13 @@ bool IsCloudExePresent()
 		    return false;
 	    } 
     }
-    catch (std::exception &ex)
+    catch (const std::exception &ex)
     {
 		CLTRACE(1, "ContextMenuExt: IsCloudExePresent: ERROR: Exception: %s.", ex.what());
     }
     catch (...)
     {
-		CLTRACE(1, "ContextMenuExt: IsCloudExePresent: ERROR: Bad exception.");
+		CLTRACE(1, "ContextMenuExt: IsCloudExePresent: ERROR: C++ exception.");
     }
 
 	CLTRACE(9, "ContextMenuExt: IsCloudExePresent: Cloud.exe exists.  Return.");
