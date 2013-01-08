@@ -1543,7 +1543,8 @@ namespace CloudApiPublic.Static
         /// Delete all of the files and folders in the given directory, but not the top directory itself.
         /// </summary>
         /// <param name="topDirectory">The directory to search.</param>
-        public static void DeleteEverythingInDirectory(string topDirectory)
+        /// <returns>CLError.  An error or null.</returns>
+        public static CLError DeleteEverythingInDirectory(string topDirectory)
         {
             try
             {
@@ -1569,8 +1570,12 @@ namespace CloudApiPublic.Static
             }
             catch (Exception ex)
             {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "Helpers: DeleteEverythingInDirectory: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+                return error;
             }
+            return null;
         }
 
         /// <summary>

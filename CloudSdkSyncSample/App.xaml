@@ -3,4 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:CloudSdkSyncSample.ViewModels"
              xmlns:views="clr-namespace:CloudSdkSyncSample.Views">
+    <Application.Resources>
+        <vm:SyncStatusViewModel x:Key="SyncStatusViewModel" />
+        <Style x:Key="unused" />
+    </Application.Resources>
 </Application>

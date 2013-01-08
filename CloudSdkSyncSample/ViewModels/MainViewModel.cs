@@ -610,9 +610,10 @@ namespace CloudSdkSyncSample.ViewModels
             }
 
             // Validate the Device ID.
-            if (String.IsNullOrEmpty(DeviceId))
+            if (String.IsNullOrEmpty(DeviceId) || 
+                Path.GetInvalidPathChars().Any(x => DeviceId.Contains(x)))
             {
-                MessageBox.Show("The Device ID must be specified.");
+                MessageBox.Show("The Device ID must be specified, and it must be valid as a portion of a folder name.");
                 this.IsDeviceIdFocused = true;
                 return;
             }

@@ -5001,6 +5001,12 @@ namespace CloudApiPublic.Sync
                             out syncFromStatus, // output the status of the communication
                             out deserializedResponse); // output the response object resulting from the operation
 
+                        // if sync from produced an error, rethrow it
+                        if (syncFromError != null)
+                        {
+                            throw new AggregateException("An error occurred during SyncFrom", syncFromError.GrabExceptions());
+                        }
+
                         // record the latest sync id from the deserialized response
                         newSyncId = deserializedResponse.SyncId;
 

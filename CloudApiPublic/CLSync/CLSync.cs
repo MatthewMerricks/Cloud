@@ -169,7 +169,12 @@ namespace CloudApiPublic
 
                 // Delete the temp download directory recursively, but not the directory itself.
                 string sTempDownloadFolderToUse = Helpers.GetTempFileDownloadPath(_syncSettings);
-                Helpers.DeleteEverythingInDirectory(sTempDownloadFolderToUse);
+                CLError errorFromDelete = Helpers.DeleteEverythingInDirectory(sTempDownloadFolderToUse);
+                if (errorFromDelete != null)
+                {
+                    // Just trace this error
+                    _trace.writeToLog(1, "CLSync: SyncReset: ERROR: From DeleteEverythingInDirectory.  Message: {0}.", errorFromDelete.errorDescription);
+                }
             }
             catch (Exception ex)
             {

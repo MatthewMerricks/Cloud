@@ -4,17 +4,14 @@ using CloudApiPublic.Support;
 using CloudSdkSyncSample.Models;
 using CloudSdkSyncSample.Support;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Threading;
+using System.Windows.Input;
 
 namespace CloudSdkSyncSample.ViewModels
 {
-    public class AdvancedOptionsViewModel : WorkspaceViewModel
+    public sealed class AdvancedOptionsViewModel : WorkspaceViewModel
     {
         #region Fields
         
@@ -24,7 +21,6 @@ namespace CloudSdkSyncSample.ViewModels
         RelayCommand<object> _commandBrowseTempDownloadFolder;
         RelayCommand<object> _commandBrowseDatabaseFolder;
         RelayCommand<object> _commandBrowseTraceFolder;
-        
 
         private Settings _settingsCurrent;
         private Settings _settingsCaller;
@@ -344,11 +340,9 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
-        
-
         #endregion
 
-        #region Public Methods
+        #region Support Methods
 
         /// <summary>
         /// The user clicked the OK button.

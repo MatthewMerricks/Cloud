@@ -7,7 +7,7 @@
         xmlns:icHelper="clr-namespace:CloudApiPublic.Static;assembly=CloudApiPublic"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         Width="800" Height="600" MinWidth="800" MinHeight="600"
-        Title="{Binding WindowSyncStatus_Title, Mode=OneWay}"
+        Title="Sync Status"
         Icon="/CloudSdkSyncSample;component/Artwork/cloud.ico">
 
     <!--
@@ -97,7 +97,7 @@
         <Grid Grid.Row="3">
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
                 <Button x:Name="cmdDone" HorizontalAlignment="Left" Width="75" Height="40" Margin="20,0,0,0"
-                        Click="OnClicked" TabIndex="0" IsDefault="True" ToolTip="Click to close this window.">
+                        Command="{Binding CommandDone, Source={StaticResource SyncStatusViewModel}, Mode=OneTime}" TabIndex="0" IsDefault="True" ToolTip="Click to close this window.">
                     <AccessText Text="_Done"/>
                 </Button>
             </StackPanel>
