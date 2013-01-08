@@ -97,8 +97,7 @@
         <Grid Grid.Row="3">
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
                 <Button x:Name="cmdDone" HorizontalAlignment="Left" Width="75" Height="40" Margin="20,0,0,0"
-                            Command="{Binding Path=WindowSyncStatus_DoneCommand, Mode=OneTime}" TabIndex="0"
-                             IsDefault="True" ToolTip="Click to close this window.">
+                        Click="OnClicked" TabIndex="0" IsDefault="True" ToolTip="Click to close this window.">
                     <AccessText Text="_Done"/>
                 </Button>
             </StackPanel>

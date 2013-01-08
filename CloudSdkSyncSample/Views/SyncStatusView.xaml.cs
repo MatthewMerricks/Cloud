@@ -98,5 +98,10 @@ namespace CloudSdkSyncSample.Views
                 e.Cancel = true;
             }
         }
+
+        private void OnClicked(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
     }
 }

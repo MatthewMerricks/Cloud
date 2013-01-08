@@ -576,7 +576,7 @@ namespace CloudSdkSyncSample.ViewModels
             if (String.IsNullOrEmpty(SyncRoot) ||
                 !Directory.Exists(SyncRoot))
             {
-                MessageBox.Show("The SyncBox Folder must be the full path of a valid directory.");
+                MessageBox.Show("The SyncBox Folder must be the full path of a valid directory.  Please create the directory first.");
                 this.IsSyncBoxPathFocused = true;
                 return;
             }

@@ -2576,7 +2576,7 @@ namespace CloudApiPublic.Sync
                 else
                 {
                     // wrap the error to execute for cleanup
-                    ExecutableException<PossiblyStreamableFileChangeWithSyncData> wrappedEx = new ExecutableException<PossiblyStreamableFileChangeWithSyncData>(ProcessUploadError, // callback with the code to handle cleanup
+                    ExecutableException<PossiblyStreamableFileChangeWithSyncData> wrappedEx = new ExecutableException<PossiblyStreamableFileChangeWithSyncData>(ProcessDownloadError, // callback with the code to handle cleanup
                         new PossiblyStreamableFileChangeWithSyncData(castState.FailedChangesQueue, // failure queue for reprocessing failed events
                             (byte)castState.MaxNumberOfFailureRetries, // how many times to retry on failure before stopping
                             (byte)castState.MaxNumberOfNotFounds, // how many not found errors can occur before presuming the event was cancelled out
