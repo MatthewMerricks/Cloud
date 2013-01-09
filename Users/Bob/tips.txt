@@ -7045,9 +7045,123 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - TODO: Change the folder browser to start in the C: drive root directory.  It can't be used to navigate up.
     - Program that emulates regsvr32: http://support.microsoft.com/kb/207132
     - I have the base installation working (InstallShield), but the same old problem registering BadgeCom.  I'll have to modify RegisterCom???
+  o 12/20/12 Thu:
+    - 6:30 - 19:00
+    - Switch onto the sample app sync status window project.  That will show upload/download status as graphics, and the sync messages in a scrolling window.
+    - Refactor CloudApiPrivate:EventMessageReceiver into CloudApiPublic and rebuild.
+    - Refactored RelayCommand from two places into CloudApiPublic and rebuilt.
+    - Interesting ViewModelLocator: http://blog.alner.net/archive/2010/05/06/mvvm-viewmodel-locator-via-wpf-converters.aspx
+    - Very simple ViewModelLocator: http://jevgeni.net/2011/11/10/injecting-viewmodels-to-views-using-a-custom-viewmodellocator/
+    - Thread local storage Codeplex: http://www.codeproject.com/Articles/8113/Thread-Local-Storage-The-C-Way
+    - Shared memory queue implementation?: http://www.badmintonday.com/svn/simulator/simulator/branches/standalone/src/libraries/sharedmemory/sharedmemory.h
+    - Working on a bad bug that just started happening in PubSubServer.  I can't even construct the first "Base" object in shared memory.  It dies with a memory access exception.
+  o 12/21/12 Fri:
+    - 9:30 - 17:30
+    - Nice description of creating a map in shared memory: http://www.boost.org/doc/libs/1_37_0/doc/html/interprocess/quick_guide.html#interprocess.quick_guide.qg_interprocess_map
+    - Storing an unordered map in shared memory: http://www.boost.org/doc/libs/1_49_0/doc/html/interprocess/allocators_containers.html
+    - I worked all day on the find_or_create crash that was occurring on my work development machine.
+      . Rebooting didn't correct it.
+      . Someone is trashing a b-tree header when attempting to initialize an empty unordered_map.
+      . It doensn't happen on my Samsung laptop.
+      . I tried installing Boost 1.52 and using plain vanilla posix shared memory.  That did not crash.  However, it is using file-backed storage.
+        Maybe that's not so bad?
+  o 12/22/12 Sat:
+    - 7:00 - 15:30
+    - Boost 1.52 Windows bug fix: http://web.archiveorange.com/archive/v/NDiIbZxvzjzYKvCoLZZB
+    - Integrate Boost 1.52 into git with the Windows fix and the bug fix above.
+  o 12/23/12 Sun:
+    - 6:00 - 8:00 (home)
+    - 8:45 - 21:30 (home)
+    - TODO: Remove all lock (this).  Bad practice.
+    - An actual example of constructing a complex object in windows shared memory: http://ps3emu.googlecode.com/svn-history/r2/trunk/src/shm.h
+    - Still working on a horrible bug? in find_or_construct in PubSubServer.cpp.
+    - The example above uses structs, rather than classes, and does all of its own struct initialization and management.  Would that work better than
+      trying to construct classes?
+    - What a mess!  It is not my constructors.  The Boost interprocess find_or_construct just can't construct its own shared memory manager.
+      It has to be a Boost bug???????
+    - I didn't check it in because the only changes were constructing a vector of a single Base object.  I will remove that.
+    - The big problem was caused by mapped file shared memory.  When I tried using the standard Posix shared memory support, it created a mapped file
+      in the file system, and even though I switched to the Windows shared memory, the file in the file system was corrupted and causing a crash.
+      Remove the file from the C:\ProgramData\boost_interprocess directory.  See: http://www.boost.org/doc/libs/1_52_0/doc/html/interprocess/sharedmemorybetweenprocesses.html
+  o 1/2/12 Wed:
+    - 6:30 - 18:30
+    - I spent about 20 hours over the vacation in OH working on the sample app installation.  It installs the sample source, executable and supporting dlls.  It also installs and uninstalls BadgeCom.dll.
+    - Shipped the first version of the sample app with install/uninstall.
+    - Debugging a problem.  The whole machine was sluggish.  It looked like the sample app had allocated lots of unmanaged heap space.
+    - Analyze heap memory with windbg: http://windbg.info/doc/1-common-cmds.html#20_memory_heap
+    - More info on heap analysis: http://stackoverflow.com/questions/9023669/how-to-analyze-unclassified-memory-usage-in-windbg
+    - More heap analysis: http://stackoverflow.com/questions/11876516/windbg-address-summary
+  o 1/3/12 Thu:
+    - 7:00 - 18:30
+    - Post Build Step error handling: http://geekswithblogs.net/dchestnutt/archive/2006/05/30/80113.aspx
+    - Statically linking ATL100.dll requires changes in two project places: http://msdn.microsoft.com/en-us/library/ms235284.aspx
+    - The whole day was spent testing the sample app.  I made progress with the UI.  The app now successfully exits, but there are more tweaks necessary to the UI.
+    - The app doesn't properly sync, and there are no other clients (Mac or Web) to test with.  I'm setting up two of my own computers to install and test sync.
+    - Badging is broken again on the Samsung laptop.  I'm getting one of the dreaded "Bad Exceptions".  Those are C++ exceptions for which no info exists.
+    - The badging works on my Win7-64 dev machine, but not on the Samsung laptop also running Win7-64.  I guess I will need to debug it on the Samsung.  :(
+  o 1/4/12 Fri:
+    - 7:30 - 18:30
+    - Debugging the sample app syncing.  Push notification wasn't working, so I changed it temporarily to simply use polling.
+      The same SyncBox with two different device IDs doesn't sync between the devices.  Each of the devices syncs by itself, but
+      not between the devices.  Debugging that.  Made a number of fixes and pushed.
+  o 1/5/12 Sat: (home)
+    - 5:30 - 18:30 (about 2.5 hours of that personal)
+    - Still debugging the lack of syncing.
+    - Changed to fix a problem in the sample app.  It wasn't handling changes of syncbox folder and/or any of the other information properly
+      relative to the sync database.
+      . Don't allow changing the settings if sync is started.
+      . Check all of the changes when the user clicks Save.
+      . If a change in syncboxId is made, locate and delete the .sdf files and the temporary download files directory.
+      . If a change in the syncbox folder is made, do the same.
+      . If a change in the application key is made, do the same.
+      . Don't do that processing if a change in the application secret is made.
+      . What if the user changes the Udid and everything else is the same?
+        o Then we could be using the same database file for two different instances of CLSync.
+	o Rename the DB folder to SyncBoxId+UDid.
+	o If a change is made in the Udid field, delete the info at the new location, as above.
+      . This code tests for changes and sets the Properties.Settings.Default.ShouldDeleteSyncDatabaseFile setting.
+      . After instantiation of CLSync, the setting is inspected and reset, and if set, will call a new CLSync
+        method that will take the settings and delete the temp folder. (SyncReset()). 
+  o 1/6/12 Sun: (home)
+    - 9:00 - 20:00 (1.5 hours personal)
+    - CLSync.SyncReset pseudocode
+      determine the app name as sAppName
+      determine user's AppData\Local directory as sLocalDir
+      determine the unique sSyncBoxIdDeviceId string as "<syncboxid>-<deviceid>"
+      determine the default data directory as sDataDir.  Build as sLocalDir + "\\" + sAppName + "\\" + sSyncBoxIdDeviceId
+      determine the default database directory as sDataDir
+      determine the default temp download directory as sTempDownloadDir.  Build as sDataDir + "\\DownloadTemp".
+      if database folder provided
+        set sDatabaseFolderToUse = database folder provided
+      else database folder not provided
+        set sDatabaseFolderToUse = sDataDir
+      endelse database folder not provided
+      if temp download folder provided
+        set sTempDownloadFolderToUse = temp download folder provided
+      else temp download folder not provided
+        set sTempDownloadFolderToUse = sTempDownloadDir
+      endelse temp download folder not provided
+      set sDatabaseFile = sDatabaseFolderToUse + "IndexDB.sdf"
+      delete sDatabaseFile
+      delete folder sTempDownloadFolderToUse recursively
+    - Getting the size of the current screen: http://blog.fossmo.net/post/How-to-set-the-windows-position-in-WPF.aspx
+  o 1/7/12 Mon:
+    - 6:30 - 19:45
+    - Good tutorial on Dependency Properties: http://www.wpftutorial.net/dependencyproperties.html
+    - Got syncing working again.  Fixed a number of bugs pair debugging with David.
+  o 1/8/12 Tue:
+    - 8:45 - 18:30
+    - Debugged a problem with syncing between devices.  It is a server error I think.  I documented it to Phil.
+    - Fixed a number of issues in the sample app and pushed the results.
 
 
-            
+
+
+
+
+
+    
+        
         
         
           
@@ -7673,6 +7787,8 @@ MORE GIT (3/7/12)
   - Reset master to match the remote master.
     . git fetch origin
     . git reset --hard origin/master
+  - Fix asking for password and user name all the time at the command prompt.
+    . Set environment variable: set HOME=C:\Users\Robertste
     
 WINDBG (8/30/12)
   - To debug CLR on an exeption:

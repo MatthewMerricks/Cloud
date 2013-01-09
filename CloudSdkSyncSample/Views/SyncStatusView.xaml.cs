@@ -17,6 +17,7 @@ using System.Diagnostics;
 using CloudApiPublic.Model;
 using System.Collections.Specialized;
 using CloudApiPublic.EventMessageReceiver;
+using CloudSdkSyncSample.ViewModels;
 
 namespace CloudSdkSyncSample.Views
 {
@@ -24,6 +25,7 @@ namespace CloudSdkSyncSample.Views
     {
         private static CLTrace _trace = CLTrace.Instance;
         private EventMessageReceiver _vm = null;
+        private SyncStatusViewModel _vmCommand = null;
 
         public bool AllowClose { get; set; }
 
@@ -53,13 +55,24 @@ namespace CloudSdkSyncSample.Views
 
         void WindowSyncStatus_Loaded(object sender, RoutedEventArgs e)
         {
-            // Get the ViewModel
+            // Get the EventMessageReceiver ViewModel which will be the DataContext
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Loaded: Entry.");
             _vm = (EventMessageReceiver)this.DataContext;
 
+            // Get our own ViewModel for commands
+            _vmCommand = Application.Current.Resources["SyncStatusViewModel"] as SyncStatusViewModel;
+
+            if (_vmCommand == null)
+            {
+                MessageBox.Show("SyncStatusViewModel is the wrong type", "Error", MessageBoxButton.OK);
+            }
+            else
+            {
+                _vmCommand.NotifySyncStatusWindowShouldClose += OnNotifySyncStatusWindowShouldClose;
+            }
+
             // Focus to the button.
             this.cmdDone.Focus();
-
         }
 
         void WindowSyncStatus_Unloaded(object sender, RoutedEventArgs e)
@@ -70,6 +83,12 @@ namespace CloudSdkSyncSample.Views
             {
                 _vm.Dispose();
                 _vm = null;
+            }
+
+            if (_vmCommand != null)
+            {
+                _vmCommand.NotifySyncStatusWindowShouldClose -= OnNotifySyncStatusWindowShouldClose;
+                _vmCommand = null;
             }
         }
 
@@ -98,5 +117,16 @@ namespace CloudSdkSyncSample.Views
                 e.Cancel = true;
             }
         }
+
+        /// <summary>
+        /// The user clicked the Done button.  Hide this window.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnNotifySyncStatusWindowShouldClose(object sender, Support.NotificationEventArgs e)
+        {
+            this.Close();
+        }
+
     }
 }

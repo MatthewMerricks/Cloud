@@ -72,7 +72,7 @@ namespace CloudApiPublic.PushNotification
 
         //TODO: Change this polling interval back to 20 seconds when server side events and/or WebSockets have been implemented.
         //private const int MillisecondManualPollingInterval = 20000;
-        private const int MillisecondManualPollingInterval = 2000;
+        private const int MillisecondManualPollingInterval = 5000;
 
         /// <summary>
         /// Access Instance to get the push notification server object for this client.
