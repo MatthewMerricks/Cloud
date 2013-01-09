@@ -27,14 +27,19 @@
 ///             DatabaseFolderFullPath: "<full path of the folder to contain the database file IndexDB.sdf>",
 ///                 );
 ///         
-///         // Construct the SyncBox object with the settings.
-///         CLSync box = new CLSync(settings);
+///         // Construct the SyncBox object.
+///         CLSync box = new CLSync();
 /// 
 ///         // Subscribe to the events (notifications).
 ///         box.ActivityMessage += OnActivityMessage;
 ///     
-///         // Start syncing
-///         box.Start(); 
+///         // Start syncing with the settings.
+///         CLSyncStartStatus startStatus;
+///         box.Start(settings, out startStatus ); 
+///         if (startStatus != CLSyncStartStatus.Successful)
+///         {
+///             // Handle error here
+///         }
 ///     
 ///         // ...
 ///     
@@ -66,19 +71,25 @@
 /// }
 /// \endcode
 ///
-/// The code above will silently and automatically sync files in the "SyncBox1" directory with your other devices, and with your SyncBox on the Cloud servers.
+/// The code above will automatically sync files in the "SyncBox1" directory with your other devices related to this SyncBox, and with the SyncBox on the Cloud servers.
 ///
 /// Should you need more extensive control over the syncing process, the API will allow you to implement your own methods for full control, including real time sync status and server push notification.
 ///
 /// \section install_sec Installation
 ///
 /// Get started by following the steps below:
-/// - Browse to the Cloud download page at http://web-edge.cloudburrito.com.
-/// - Click the Download button to download the Windows Cloud client.
-/// - Follow the instructions to install the Cloud client program.
-/// - Run the Cloud.exe program and use it to sign up for a free Cloud account.
-/// - You will find this documentation in "C:\Program Files (x86)\Cloud.com\Cloud\Docs".
-/// - Use Visual Studio to load the sample program at "C:\Program Files (x86)\Cloud.com\Cloud\Samples\SampleSyncBox.sln".
+/// - Browse to the Cloud download page at http://developer.cliff.cloudburrito.com.
+/// - Click the Download button to download the Windows Cloud SDK installation program.
+/// - Follow the instructions to install the Cloud SDK.
+/// - You will find the following items in your Start menu:
+///   . Cloud.com
+///     o Cloud
+///       - Start CloudSdkSyncSample: Starts the pre-built sample program which demonstrates the use of the API provided in the SDK.
+///       - Show SDK Documentation: Launches your default browser to view this documentation.
+///       - 
+/// - Run the CloudSdkSyncSample.exe program and use it to sign up for a free Cloud account.
+/// - You will find this documentation in "C:\Program Files (x86)\Cloud.com\CloudSyncSample\Docs".
+/// - Use Visual Studio to load the sample program at "C:\Program Files (x86)\Cloud.com\Cloud\CloudSdkSyncSample\CloudSdkSyncSampleSyncBox.sln".
 /// - Enjoy!
 /// .
 ///

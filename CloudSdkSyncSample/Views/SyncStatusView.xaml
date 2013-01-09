@@ -10,14 +10,6 @@
         Title="Sync Status"
         Icon="/CloudSdkSyncSample;component/Artwork/cloud.ico">
 
-    <!--
-        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-        xmlns:controls="http://schemas.xceed.com/wpf/xaml/toolkit"
-        xmlns:common="clr-namespace:win_client.Common"
-        xmlns:cmd="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Extras.WPF4"
-        xmlns:Controls="clr-namespace:wyDay.Controls;assembly=AutomaticUpdaterWPF"
-        xmlns:extToolkit="clr-namespace:Xceed.Wpf.Toolkit;assembly=WPFToolkit.Extended"
-    -->
     <Window.Resources>
         <ResourceDictionary>
             <!-- Data template for an upload/download graph -->

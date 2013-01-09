@@ -5,6 +5,7 @@
              xmlns:views="clr-namespace:CloudSdkSyncSample.Views">
     <Application.Resources>
         <vm:SyncStatusViewModel x:Key="SyncStatusViewModel" />
+        <!-- The unused Style below is required because of a bug in the frameworks that refuses to acknowledge a single resource in the Resources collection. -->
         <Style x:Key="unused" />
     </Application.Resources>
 </Application>

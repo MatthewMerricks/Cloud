@@ -421,7 +421,7 @@ namespace CloudSdkSyncSample.ViewModels
             if (String.IsNullOrEmpty(TraceLevel) ||
                 !Utilities.ConvertStringToUlong(TraceLevel, out value))
             {
-                MessageBox.Show("The TraceLevel must be a non-negative decimal number convertible to an unsigned integer <= 18446744073709551615.  If in doubt, use 0 (none) or 9 (full).");
+                MessageBox.Show("The TraceLevel must be a non-negative decimal number convertible to an unsigned integer <= 18446744073709551615.  If in doubt, use 0 (none) or 10 (full).");
                 this.IsTraceLevelFocused = true;
                 return;
             }
