@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using CloudSdkSyncSample.ViewModels;
+using CloudSdkSyncSample.Static;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using CloudSdkSyncSample.ViewModels;
-using CloudSdkSyncSample.Static;
 
 namespace CloudSdkSyncSample.Views
 {
@@ -21,6 +12,8 @@ namespace CloudSdkSyncSample.Views
     /// </summary>
     public partial class MainView : Window
     {
+        #region Constructors
+
         public MainView()
         {
             InitializeComponent();
@@ -28,6 +21,10 @@ namespace CloudSdkSyncSample.Views
             Unloaded += OnMainView_Unloaded;
             Closing += OnMainView_Closing;
         }
+
+        #endregion
+
+        #region Event Handlers
 
         void OnMainView_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -50,11 +47,6 @@ namespace CloudSdkSyncSample.Views
             }
         }
 
-        private void OnNotifyException(object sender, Support.NotificationEventArgs<CloudApiPublic.Model.CLError> e)
-        {
-            MessageBox.Show(String.Format("Error: {0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
         private void OnMainView_Unloaded(object sender, RoutedEventArgs e)
         {
             MainViewModel vm = (MainViewModel)DataContext;
@@ -65,6 +57,10 @@ namespace CloudSdkSyncSample.Views
                 vm.NotifyException -= OnNotifyException;
             }
         }
+
+        #endregion
+
+        #region Notification Handlers
 
         private void OnNotifyBrowseSyncBoxFolder(object sender, Support.NotificationEventArgs e)
         {
@@ -94,5 +90,12 @@ namespace CloudSdkSyncSample.Views
             MessageBoxResult result = MessageBox.Show("Some settings have changed.  Do you want to cancel the changes anyway?", "Cancel Anyway?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             e.Completed(result == MessageBoxResult.Yes);
         }
+
+        private void OnNotifyException(object sender, Support.NotificationEventArgs<CloudApiPublic.Model.CLError> e)
+        {
+            MessageBox.Show(String.Format("Error: {0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        #endregion
     }
 }

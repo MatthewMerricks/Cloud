@@ -1,33 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Shapes;
-using System.Windows.Navigation;
-using System.Windows.Data;
-using System.Windows.Threading;
-using CloudApiPublic.Support;
-using System.Diagnostics;
+﻿using CloudApiPublic.Support;
 using CloudApiPublic.Model;
-using System.Collections.Specialized;
 using CloudApiPublic.EventMessageReceiver;
 using CloudSdkSyncSample.ViewModels;
+using System;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace CloudSdkSyncSample.Views
 {
     public partial class SyncStatusView : Window
     {
+        #region Private Fields
+
         private static CLTrace _trace = CLTrace.Instance;
         private EventMessageReceiver _vm = null;
         private SyncStatusViewModel _vmCommand = null;
+        
+        #endregion
+
+        #region Public Properties
 
         public bool AllowClose { get; set; }
+
+        #endregion
+
+        #region Constructors
 
         public SyncStatusView()
         {
@@ -52,6 +49,10 @@ namespace CloudSdkSyncSample.Views
 
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus constructor: Exit.");
         }
+
+        #endregion
+
+        #region Event Handlers
 
         void WindowSyncStatus_Loaded(object sender, RoutedEventArgs e)
         {
@@ -117,6 +118,8 @@ namespace CloudSdkSyncSample.Views
                 e.Cancel = true;
             }
         }
+
+        #endregion
 
         /// <summary>
         /// The user clicked the Done button.  Hide this window.

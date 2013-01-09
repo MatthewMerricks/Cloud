@@ -44,14 +44,14 @@
                         Text="{Binding AppKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbApplicationKeyEnabled}"
                         ext:FocusExtension.IsFocused="{Binding IsAppKeyFocused}"
-                        ToolTip="Paste from Cloud DashBoard."/>
+                        ToolTip="Paste the application key from your Cloud DashBoard."/>
                 <!-- Application Secret -->
                 <Label Content="Application _Secret:" Target="{Binding ElementName=tbApplicationSecret}"/>
                 <TextBox x:Name="tbApplicationSecret" Margin="10,0,0,0" 
                         Text="{Binding AppSecret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding TbApplicationSecretEnabled}"
                         ext:FocusExtension.IsFocused="{Binding IsAppSecretFocused}"
-                        ToolTip="Paste from Cloud DashBoard."/>
+                        ToolTip="Paste the application secret from your Cloud DashBoard."/>
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <!-- SyncBox ID -->
                     <Label Content="SyncBox _ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
@@ -59,14 +59,14 @@
                          Text="{Binding SyncBoxId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbSyncBoxIdEnabled}"
                          ext:FocusExtension.IsFocused="{Binding IsSyncBoxIdFocused}"
-                         ToolTip="Paste from Cloud DashBoard."/>
+                         ToolTip="Paste the SyncBox ID from your Cloud DashBoard."/>
                     <!-- Unique Device ID -->
                     <Label Content="Unique _Device ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
                     <TextBox x:Name="tbDeviceId" Margin="10,0,0,0"  Width="175" HorizontalAlignment="Left"
                          Text="{Binding DeviceId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbUniqueDeviceIdEnabled}"
                          ext:FocusExtension.IsFocused="{Binding IsDeviceIdFocused}"
-                         ToolTip="A numeric ID for this device.  Must be unique for this SyncBox ID."/>
+                         ToolTip="A unique ID for this device.  Must be unique within this SyncBox ID."/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="10,20,0,0">
                     <Button x:Name="cmdShowAdvancedOptions" HorizontalAlignment="Left" Width="130" Height="40"
@@ -90,7 +90,7 @@
             </Button>
             <Button x:Name="cmdUninstallBadging" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
                         Command="{Binding Path=CommandUninstallBadging, Mode=OneTime}" 
-                        ToolTip="Click to install badging support.">
+                        ToolTip="Click to uninstall badging support.">
                 <AccessText Text="_Uninstall Badging"/>
             </Button>
         </StackPanel>
