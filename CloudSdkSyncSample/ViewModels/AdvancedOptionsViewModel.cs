@@ -405,12 +405,12 @@ namespace CloudSdkSyncSample.ViewModels
             }
 
             // Validate the TraceType
-            ulong value;
+            ulong valueTraceType;
             if (String.IsNullOrEmpty(TraceType) ||
-                !Utilities.ConvertStringToUlong(TraceType, out value) ||
-                value > 7 ||
-                value == 2 ||
-                value == 6)
+                !Utilities.ConvertStringToUlong(TraceType, out valueTraceType) ||
+                valueTraceType > 7 ||
+                valueTraceType == 2 ||
+                valueTraceType == 6)
             {
                 MessageBox.Show("The TraceType is a bit mask.  It must be a non-negative decimal number with value 0, 1, 3, 4, 5 or 7.  If in doubt, use 0 (none) or 5 (full minus authorization information).");
                 this.IsTraceTypeFocused = true;
@@ -419,10 +419,18 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Validate the TraceLevel
             if (String.IsNullOrEmpty(TraceLevel) ||
-                !Utilities.ConvertStringToUlong(TraceLevel, out value))
+                !Utilities.ConvertStringToUlong(TraceLevel, out valueTraceType))
             {
                 MessageBox.Show("The TraceLevel must be a non-negative decimal number convertible to an unsigned integer <= 18446744073709551615.  If in doubt, use 0 (none) or 10 (full).");
                 this.IsTraceLevelFocused = true;
+                return;
+            }
+
+            // LogErrors must not be set if TraceLocation is not set.
+            if (String.IsNullOrEmpty(TraceFolderFullPath) && LogErrors)
+            {
+                MessageBox.Show("The Trace Folder must be set if Log Errors is checked.  Please set the Trace Folder or uncheck Log Errors.");
+                this.IsTraceFolderFullPathFocused = true;
                 return;
             }
 
