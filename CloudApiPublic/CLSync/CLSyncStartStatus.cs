@@ -10,6 +10,15 @@ namespace CloudApiPublic
         ErrorUnknown,
         ErrorLongRootPath,
         ErrorBadRootPath,
+        ErrorAlreadyStarted,
+        ErrorIndexCreation,
+        ErrorStartingNotification,
+        ErrorCreatingRestClient,
+        ErrorCreatingFileMonitor,
+        ErrorStartingFileMonitor,
+        ErrorStartingInitialIndexing,
+        ErrorExceptionStartingFileMonitor,
+        ErrorGeneralSyncStartException,
         Successful
     }
 }

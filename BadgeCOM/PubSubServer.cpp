@@ -14,7 +14,7 @@
 #define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
 
 // Constants
-static const char * _ksSharedMemoryName = "CloudPubSubSharedMemory";		// the name of the shared memory segment
+static const char * _ksSharedMemoryName = "64BDBAC9-709B-4429-A616-A6D4661C78A2";	// the name of the shared memory segment, GUID so it won't be obvious who owns it.
 static const char * _ksBaseSharedMemoryObjectName = "Base";					// the name of the single shared memory object that contains our shared memory data.
 static const int _knMaxEventsInEventQueue = 1000;							// maximum number of events allowed in a subscription's event queue
 static const int _knShortRetries = 5;										// number of retries when giving up short amounts of CPU
