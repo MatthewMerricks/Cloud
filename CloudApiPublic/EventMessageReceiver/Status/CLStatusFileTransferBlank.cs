@@ -13,7 +13,7 @@ using System.Windows;
 
 namespace CloudApiPublic.EventMessageReceiver.Status
 {
-    public sealed class CLStatusFileTransferBlank : CLStatusFileTransferBase<CLStatusFileTransferBlank>
+    internal sealed class CLStatusFileTransferBlank : CLStatusFileTransferBase<CLStatusFileTransferBlank>
     {
         public override Visibility Visibility
         {

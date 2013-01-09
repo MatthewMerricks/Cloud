@@ -13,7 +13,7 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
-    public sealed class UpdatePathArgs : HandleableEventArgs
+    internal sealed class UpdatePathArgs : HandleableEventArgs
     {
         public PathState State
         {

@@ -302,6 +302,10 @@ namespace CloudApiPublic.Sync
                 // try/catch for primary sync logic, exception is aggregated to return
                 try
                 {
+                    // status message
+                    MessageEvents.FireNewEventMessage(respondingToPushNotification,
+                        "Started checking for sync changes to process");
+
                     // check for Sync shutdown
                     Monitor.Enter(FullShutdownToken);
                     try
@@ -440,6 +444,28 @@ namespace CloudApiPublic.Sync
                             toReturn = syncData.grabChangesFromFileSystemMonitor(initialErrors,
                                 out outputChanges,
                                 out outputChangesInError);
+
+                            IEnumerable<PossiblyStreamableFileChange> nonNullOutputChanges = outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>();
+                            int outputChangesCount = nonNullOutputChanges.Count();
+                            IEnumerable<PossiblyPreexistingFileChangeInError> nonNullOutputChangesInError = outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>();
+                            int outputChangesInErrorCount = nonNullOutputChangesInError.Count();
+
+                            // status message
+                            // e.g. "5 changes to process, 1 change waiting to retry"
+                            MessageEvents.FireNewEventMessage(
+                                respondingToPushNotification
+                                    || outputChangesCount != 0,
+                                "Found " +
+                                    outputChangesCount.ToString() +
+                                    " change" + (outputChangesCount == 1 ? string.Empty : "s") + " to process" +
+                                    (outputChangesInErrorCount == 0
+                                        ? string.Empty
+                                        : ", and " +
+                                            outputChangesInErrorCount.ToString() + 
+                                            " change" + (outputChangesInErrorCount == 1 ? " is" : "s are") + " waiting to retry"),
+                                (outputChangesCount == 0
+                                    ? EventMessageLevel.Minor
+                                    : EventMessageLevel.Important));
                         }
                         catch (Exception ex)
                         {
@@ -457,6 +483,12 @@ namespace CloudApiPublic.Sync
                                 FailureTimer.StartTimerIfNotRunning();
                             }
                             errorGrabbingChanges = true;
+
+                            // status message
+                            MessageEvents.FireNewEventMessage(ex,
+                                "An error occurred checking for changes",
+                                EventMessageLevel.Important,
+                                true);
                         }
                     }
 
@@ -775,6 +807,48 @@ namespace CloudApiPublic.Sync
                             ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
                         }
 
+                        // status message(s)
+                        if (synchronouslyPreprocessed.Count != 0)
+                        {
+                            int syncToCount = synchronouslyPreprocessed.Count(syncProcess => syncProcess.Direction == SyncDirection.To);
+                            int syncFromCount = synchronouslyPreprocessed.Count - syncToCount;
+
+                            MessageEvents.FireNewEventMessage(
+                                true,
+                                (syncToCount == 0
+                                    ? string.Empty
+                                    : syncToCount.ToString() +
+                                        " change" + (syncToCount == 1 ? string.Empty : "s") + " synced to server" +
+                                        (syncFromCount == 0
+                                            ? string.Empty
+                                            : " and ")) +
+                                    (syncFromCount == 0
+                                        ? string.Empty
+                                        : syncFromCount.ToString() +
+                                            " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
+                                EventMessageLevel.Important);
+                        }
+                        if (asynchronouslyPreprocessed.Count != 0)
+                        {
+                            int syncToCount = asynchronouslyPreprocessed.Count(syncProcess => syncProcess.Direction == SyncDirection.To);
+                            int syncFromCount = asynchronouslyPreprocessed.Count - syncToCount;
+
+                            MessageEvents.FireNewEventMessage(
+                                true,
+                                (syncToCount == 0
+                                    ? string.Empty
+                                    : syncToCount.ToString() +
+                                        " file" + (syncToCount == 1 ? string.Empty : "s") + " queued for upload" +
+                                        (syncFromCount == 0
+                                            ? string.Empty
+                                            : " and ")) +
+                                    (syncFromCount == 0
+                                        ? string.Empty
+                                        : syncFromCount.ToString() +
+                                            " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
+                                EventMessageLevel.Important);
+                        }
+
                         // after each loop where more FileChanges from previous dependencies are processed,
                         // if any FileChange is synchronously complete or queued for file upload/download then it is removed from errorsToQueue
 
@@ -789,16 +863,20 @@ namespace CloudApiPublic.Sync
                         // outputChanges is not used again,
                         // it is redefined after communication and after reassigning dependencies
 
-                        //// !! the following LINQ looks incredibly inefficient using an order N^2 search
+                        //// !! the following LINQ looks incredibly inefficient using an order N^2 search !!
                         // store the current errors which will not be making it to the next step (communication) to an array
                         PossiblyStreamableAndPossiblyPreexistingErrorFileChange[] errorsToRequeue = errorsToQueue.Where(currentErrorToQueue => !Enumerable.Range(0, changesForCommunication.Length)
                                 .Any(communicationIndex => changesForCommunication[communicationIndex].FileChange == currentErrorToQueue.FileChange))
                             .ToArray();
 
                         // add errors to failure queue (which will exclude changes which were succesfully completed)
-                        toReturn = RequeueFailures(new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>(errorsToRequeue), // all communication errors and some completed events
+                        CLError requeueFailureError = RequeueFailures(new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>(errorsToRequeue), // all communication errors and some completed events
                             successfulEventIds, // completed event ids, used to filter errors to just errors
                             toReturn); // return error to aggregate with more errors
+                        if (requeueFailureError != null)
+                        {
+                            toReturn += new AggregateException("An error occurred requeuing failures from errorsToRequeue", requeueFailureError.GrabExceptions());
+                        }
 
                         // redefine the errors enumeration by all the changes which will be used in the next step (communication)
                         errorsToQueue = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>(changesForCommunication
@@ -1349,8 +1427,56 @@ namespace CloudApiPublic.Sync
                                 ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
                             }
 
+
+                            // status message(s)
+                            if (postCommunicationSynchronousChanges.Count != 0)
+                            {
+                                int syncToCount = postCommunicationSynchronousChanges.Count(syncProcess => syncProcess.Direction == SyncDirection.To);
+                                int syncFromCount = postCommunicationSynchronousChanges.Count - syncToCount;
+
+                                MessageEvents.FireNewEventMessage(
+                                    true,
+                                    (syncToCount == 0
+                                        ? string.Empty
+                                        : syncToCount.ToString() +
+                                            " change" + (syncToCount == 1 ? string.Empty : "s") + " synced to server" +
+                                            (syncFromCount == 0
+                                                ? string.Empty
+                                                : " and ")) +
+                                        (syncFromCount == 0
+                                            ? string.Empty
+                                            : syncFromCount.ToString() +
+                                                " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
+                                    EventMessageLevel.Important);
+                            }
+                            if (postCommunicationAsynchronousChanges.Count != 0)
+                            {
+                                int syncToCount = postCommunicationAsynchronousChanges.Count(syncProcess => syncProcess.Direction == SyncDirection.To);
+                                int syncFromCount = postCommunicationAsynchronousChanges.Count - syncToCount;
+
+                                MessageEvents.FireNewEventMessage(
+                                    true,
+                                    (syncToCount == 0
+                                        ? string.Empty
+                                        : syncToCount.ToString() +
+                                            " file" + (syncToCount == 1 ? string.Empty : "s") + " queued for upload" +
+                                            (syncFromCount == 0
+                                                ? string.Empty
+                                                : " and ")) +
+                                        (syncFromCount == 0
+                                            ? string.Empty
+                                            : syncFromCount.ToString() +
+                                                " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
+                                    EventMessageLevel.Important);
+                            }
+
                             // for any FileChange which was asynchronously queued for file upload or download,
                             // errorsToQueue had that change removed
+
+                            // status message
+                            MessageEvents.FireNewEventMessage(true,
+                                "Finished processing sync changes",
+                                EventMessageLevel.Minor);
 
                             // update latest status
                             syncStatus = "Sync Run async tasks started after communication (end of Sync)";
@@ -2001,6 +2127,11 @@ namespace CloudApiPublic.Sync
                         ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.DeviceId, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
                     }
 
+                    // status message
+                    MessageEvents.FireNewEventMessage(true,
+                        "File finished uploading from path " + castState.FileToUpload.NewPath.ToString(),
+                        EventMessageLevel.Regular);
+
                     // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
                     return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncSettings);
                 }
@@ -2476,6 +2607,11 @@ namespace CloudApiPublic.Sync
                 {
                     throw new Exception("The return status from downloading a file was not successful: CLHttpRestStatus." + downloadStatus.ToString());
                 }
+
+                // status message
+                MessageEvents.FireNewEventMessage(true,
+                    "File finished downloading to path " + castState.FileToDownload.NewPath.ToString(),
+                    EventMessageLevel.Regular);
 
                 // return the success
                 return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
@@ -3408,6 +3544,14 @@ namespace CloudApiPublic.Sync
                     // Anything else should be output as incompleteChanges (changes which still need to be performed such as Sync From events or file uploads);
                     // Mark any new FileChange or any FileChange with altered metadata with a true for return boolean
                     //     (notifies calling method to run MergeToSQL with the updates)
+
+                    // status message
+                    MessageEvents.FireNewEventMessage(
+                        true,
+                        "Communicating " +
+                            communicationArray.Length.ToString() +
+                            " change" + (communicationArray.Length == 1 ? string.Empty : "s") + " to server and checking for any new changes to sync from server",
+                        EventMessageLevel.Regular);
 
                     // build a function which will throw a formatted exception when the FileChange's FileChangeType and the type of file system object (file or folder) do not match
                     Func<bool, FileChangeType, FilePath, string> getArgumentException = (isFolder, changeType, targetPath) =>
@@ -4985,6 +5129,12 @@ namespace CloudApiPublic.Sync
                         // Contains errors only for rename changes where the original file/folder to rename was not found locally (can get converted to new create events)
                         // Should not give any completed changes
 
+                        // status message
+                        MessageEvents.FireNewEventMessage(
+                            true,
+                            "Checking for any new changes to sync from server",
+                            EventMessageLevel.Regular);
+
                         // declare the status of the sync from communication
                         CLHttpRestStatus syncFromStatus;
                         // declare the json contract object for the deserialized response
@@ -5280,6 +5430,12 @@ namespace CloudApiPublic.Sync
                     // do not process any communication (instead set output as empty)
                     else
                     {
+                        // status message
+                        MessageEvents.FireNewEventMessage(
+                            false,
+                            "Nothing to communicate with server",
+                            EventMessageLevel.Minor);
+
                         incompleteChanges = Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>();
                         newSyncId = null; // the null sync id is used to check on the calling method whether communication occurred
                     }
@@ -5292,13 +5448,19 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
+                // status message
+                MessageEvents.FireNewEventMessage(
+                    ex,
+                    "Communication of changes with server had an error",
+                    EventMessageLevel.Important,
+                    true);
+
                 // default all ouputs
 
                 completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                 incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
                 changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
                 newSyncId = Helpers.DefaultForType<string>();
-
 
                 // return the error to the calling method
                 return ex;

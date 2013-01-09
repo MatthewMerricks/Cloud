@@ -14,7 +14,7 @@ using System.Text;
 
 namespace CloudApiPublic.EventMessageReceiver
 {
-    public class DelayChangeObservableCollection<T> : ObservableCollection<T>
+    internal class DelayChangeObservableCollection<T> : ObservableCollection<T>
     {
         int delayLocked = 0;
 

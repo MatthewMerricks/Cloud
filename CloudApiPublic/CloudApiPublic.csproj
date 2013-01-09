@@ -132,6 +132,7 @@
     <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferBase.cs" />
     <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferBlank.cs" />
     <Compile Include="EventMessageReceiver\Status\CLStatusMessage.cs" />
+    <Compile Include="EventMessageReceiver\Status\ICLStatusFileTransfer.cs" />
     <Compile Include="EventMessageReceiver\WindowSyncStatusViewModel.cs" />
     <Compile Include="FileMonitor\MonitorAgent.cs" />
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />

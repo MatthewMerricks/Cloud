@@ -16,9 +16,9 @@ using System.Windows;
 
 namespace CloudApiPublic.EventMessageReceiver.Status
 {
-    public abstract class CLStatusFileTransferBase<T> : NotifiableObject<T> where T : CLStatusFileTransferBase<T>
+    internal abstract class CLStatusFileTransferBase<T> : NotifiableObject<T>, ICLStatusFileTransfer where T : CLStatusFileTransferBase<T>
     {
-        public virtual string CloudRelativePath
+        public virtual string SyncRelativePath
         {
             get
             {

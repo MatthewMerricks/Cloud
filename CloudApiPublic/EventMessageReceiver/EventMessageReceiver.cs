@@ -42,13 +42,18 @@ namespace CloudApiPublic.EventMessageReceiver
         /// <summary>
         /// Singleton pattern instance
         /// </summary>
-        public static EventMessageReceiver GetInstance(GetHistoricBandwidthSettings getHistoricBandwidthSettings, SetHistoricBandwidthSettings setHistoricBandwidthSettings)
+        public static EventMessageReceiver GetInstance(
+            GetHistoricBandwidthSettings getHistoricBandwidthSettings,
+            SetHistoricBandwidthSettings setHistoricBandwidthSettings,
+            Nullable<EventMessageLevel> OverrideImportanceFilterNonErrors = null,
+            Nullable<EventMessageLevel> OverrideImportanceFilterErrors = null,
+            Nullable<int> OverrideDefaultMaxStatusMessages = null)
         {
             // lock for retrieving or creating and retrieving the message receiver
             lock (InstanceLocker)
             {
                 return _instance
-                    ?? (_instance = new EventMessageReceiver(getHistoricBandwidthSettings, setHistoricBandwidthSettings));
+                    ?? (_instance = new EventMessageReceiver(getHistoricBandwidthSettings, setHistoricBandwidthSettings, OverrideImportanceFilterNonErrors, OverrideImportanceFilterErrors, OverrideDefaultMaxStatusMessages));
             }
         }
         // Define the storage for the local message receiver, defaulting to null
@@ -62,7 +67,7 @@ namespace CloudApiPublic.EventMessageReceiver
         /// Retrieves the collection of growl messages for display;
         /// bind with one-time binding when used as ItemSource because reference to collection is readonly
         /// </summary>
-        public DelayChangeObservableCollection<EventMessage> GrowlMessages
+        public ObservableCollection<EventMessage> GrowlMessages
         {
             get
             {
@@ -245,7 +250,12 @@ namespace CloudApiPublic.EventMessageReceiver
         #endregion
 
         // private constructor to match the singleton pattern
-        private EventMessageReceiver(GetHistoricBandwidthSettings getHistoricBandwidthSettings, SetHistoricBandwidthSettings setHistoricBandwidthSettings)
+        private EventMessageReceiver(
+            GetHistoricBandwidthSettings getHistoricBandwidthSettings,
+            SetHistoricBandwidthSettings setHistoricBandwidthSettings,
+            Nullable<EventMessageLevel> OverrideImportanceFilterNonErrors,
+            Nullable<EventMessageLevel> OverrideImportanceFilterErrors,
+            Nullable<int> OverrideDefaultMaxStatusMessages)
         {
             // Save the parameters to private fields.
             _getHistoricBandwidthSettingsDelegate = getHistoricBandwidthSettings;
@@ -254,7 +264,14 @@ namespace CloudApiPublic.EventMessageReceiver
             // changes made upon construction for other partial class portions should be handled via a ConstructedHolder (see the next custom construction setter directly below)
 
             // run custom construction setter method for the partial class portion WindowSyncStatusViewModel
-            WindowSyncStatusViewModelConstructed.MarkConstructed(WindowSyncStatusViewModelConstructionSetters, this);
+            WindowSyncStatusViewModelConstructed.MarkConstructed(WindowSyncStatusViewModelConstructionSetters,
+                new KeyValuePair<KeyValuePair<EventMessageReceiver, Nullable<EventMessageLevel>>, KeyValuePair<Nullable<EventMessageLevel>, Nullable<int>>>(
+                    new KeyValuePair<EventMessageReceiver, Nullable<EventMessageLevel>>(
+                        this,
+                        OverrideImportanceFilterNonErrors),
+                    new KeyValuePair<Nullable<EventMessageLevel>, Nullable<int>>(
+                        OverrideImportanceFilterErrors,
+                        OverrideDefaultMaxStatusMessages)));
 
             // attach handlers for the relevant global messages which may need to be displayed in a growl
             
@@ -305,7 +322,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private void SetDownloadingCount(object sender, SetCountArgs e)
         {
             // lock on the growl messages for modification
-            lock (GrowlMessages)
+            lock (_growlMessages)
             {
                 // declare a bool for whether a new growl message needed to be created
                 bool newMessage;
@@ -339,7 +356,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private void IncrementDownloadedCount(object sender, IncrementCountArgs e)
         {
             // lock on the growl messages for modification
-            lock (GrowlMessages)
+            lock (_growlMessages)
             {
                 // declare a bool for whether a new growl message needed to be created
                 bool newMessage;
@@ -374,7 +391,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private void SetUploadingCount(object sender, SetCountArgs e)
         {
             // lock on the growl messages for modification
-            lock (GrowlMessages)
+            lock (_growlMessages)
             {
                 // declare a bool for whether a new growl message needed to be created
                 bool newMessage;
@@ -408,7 +425,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private void IncrementUploadedCount(object sender, IncrementCountArgs e)
         {
             // lock on the growl messages for modification
-            lock (GrowlMessages)
+            lock (_growlMessages)
             {
                 // declare a bool for whether a new growl message needed to be created
                 bool newMessage;
@@ -501,7 +518,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private void ClosedGrowl(object state)
         {
             // lock on the growl messages for modification and lock on capturing the mouse (since closing the growl will move the mouse outside anyways)
-            lock (GrowlMessages)
+            lock (_growlMessages)
             lock (growlCapturedMouse)
             {
                 // set that the growl should not be visible
@@ -510,7 +527,7 @@ namespace CloudApiPublic.EventMessageReceiver
                 DateTime closeTime = DateTime.UtcNow;
 
                 // loop through the growl messages
-                foreach (EventMessage currentGrowl in GrowlMessages)
+                foreach (EventMessage currentGrowl in _growlMessages)
                 {
                     // mark all the times for fading in and out for the current growl message to the close time
                     currentGrowl.CompleteFadeOut = currentGrowl.StartFadeOut = currentGrowl.FadeInCompletion = closeTime;
@@ -556,7 +573,7 @@ namespace CloudApiPublic.EventMessageReceiver
             if (processEnter)
             {
                 // lock the growl messages to check them
-                lock (GrowlMessages)
+                lock (_growlMessages)
                 {
                     // define the current time for comparisons to growl times
                     DateTime currentTime = DateTime.UtcNow;
@@ -567,7 +584,7 @@ namespace CloudApiPublic.EventMessageReceiver
                     bool foundOpaqueOrFadeOut = false;
 
                     // loop through the growl messages
-                    foreach (EventMessage currentGrowl in GrowlMessages)
+                    foreach (EventMessage currentGrowl in _growlMessages)
                     {
                         // if the current time is before the time the current message would have caused the growl to finish fading in, then check if its fade in completion time is earliest to store
                         if (currentTime.CompareTo(currentGrowl.FadeInCompletion) < 0)
@@ -728,10 +745,10 @@ namespace CloudApiPublic.EventMessageReceiver
                 || pointOnElement.Y >= growlElement.Height) // mouse is to the bottom of the growl's bottom border
             {
                 // lock on growl messages for modification
-                lock (GrowlMessages)
+                lock (_growlMessages)
                 {
                     // if there are any growl messages to modify, then process them to fade out
-                    if (GrowlMessages.Count > 0)
+                    if (_growlMessages.Count > 0)
                     {
                         // store the current time for the basis of all fading time modifications
                         DateTime currentTime = DateTime.UtcNow;
@@ -741,7 +758,7 @@ namespace CloudApiPublic.EventMessageReceiver
                         TimeSpan latestCompleteFadeOut = TimeSpan.Zero;
 
                         // loop though the growl messages
-                        foreach (EventMessage currentGrowl in GrowlMessages)
+                        foreach (EventMessage currentGrowl in _growlMessages)
                         {
                             // declare a time span for how long it would take the current growl to finish fading in if it hasn't faded in already (which would 
                             TimeSpan timeLeftToFadeIn;
@@ -781,7 +798,7 @@ namespace CloudApiPublic.EventMessageReceiver
                         DateTime newCompleteFadeOut = currentTime.Add(latestCompleteFadeOut);
 
                         // loop through the growl messages
-                        foreach (EventMessage currentGrowl in GrowlMessages)
+                        foreach (EventMessage currentGrowl in _growlMessages)
                         {
                             // set the time when the current growl would finish fading in by the time it would starting fading out minus the time it would remain opaque
                             currentGrowl.FadeInCompletion = newStartFadeOut.Subtract(currentGrowl.StartFadeOut.Subtract(currentGrowl.FadeInCompletion));
@@ -825,22 +842,22 @@ namespace CloudApiPublic.EventMessageReceiver
                 }
 
                 // lock on growl messages for modification
-                lock (GrowlMessages)
+                lock (_growlMessages)
                 {
                     // uses an extra lock method on top of ObservableCollection so it will collect all changes and fire a single reset when unlocked
-                    GrowlMessages.LockCollectionChanged();
+                    _growlMessages.LockCollectionChanged();
                     // try/finally to add the message and finally unlock the collection
                     try
                     {
                         // add the current message
-                        GrowlMessages.Add(toAdd);
+                        _growlMessages.Add(toAdd);
                         // may need to start the processing thread which sets the bindable animation times for fading in and out
                         StartMessageTimerIfNeeded();
                     }
                     finally
                     {
                         // uses an extra unlock method on top of ObservableCollection which matches the earlier lock method
-                        GrowlMessages.UnlockCollectionChanged();
+                        _growlMessages.UnlockCollectionChanged();
                     }
                 }
             }
@@ -871,7 +888,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private bool CalculateGrowlFadeTimes()
         {
             // lock on growl messages for checking
-            lock (GrowlMessages)
+            lock (_growlMessages)
             {
                 // store the current time as the base time for animation times
                 DateTime toCompare = DateTime.UtcNow;
@@ -893,7 +910,7 @@ namespace CloudApiPublic.EventMessageReceiver
                 List<EventMessage> completedMessages = new List<EventMessage>();
 
                 // loop through all growl messages
-                foreach (EventMessage currentGrowl in GrowlMessages)
+                foreach (EventMessage currentGrowl in _growlMessages)
                 {
                     // if the current time is earlier than when the current message would finish fading in, then possibly mark that a fade in was found and update the earliest time to fade in and the latest time to start fading out
                     if (DateTime.Compare(toCompare,
@@ -963,7 +980,7 @@ namespace CloudApiPublic.EventMessageReceiver
                 }
 
                 // store the count of messages which will remain displayed in the growl after processing, defaulting to the count of existing growl messages
-                int remainingMessageCount = GrowlMessages.Count;
+                int remainingMessageCount = _growlMessages.Count;
 
                 // if any growl message was found that should be displayed at all (fading in, remaining opaque, or fading out), then mark that the growl should be visible and adjust the animation times for fading in or out
                 if (foundFadeIn
@@ -1112,10 +1129,10 @@ namespace CloudApiPublic.EventMessageReceiver
                     && (toRemoveArray = toRemove.ToArray()).Length > 0)
                 {
                     // lock on growl messages for modification
-                    lock (GrowlMessages)
+                    lock (_growlMessages)
                     {
                         // uses an extra lock method on top of ObservableCollection so it will collect all changes and fire a single reset when unlocked
-                        GrowlMessages.LockCollectionChanged();
+                        _growlMessages.LockCollectionChanged();
 
                         // try/finally to remove the messages and finally unlock the collection
                         try
@@ -1145,13 +1162,13 @@ namespace CloudApiPublic.EventMessageReceiver
                                 }
 
                                 // remove the message at the current index
-                                GrowlMessages.Remove(toRemoveArray[removeIndex]);
+                                _growlMessages.Remove(toRemoveArray[removeIndex]);
                             }
                         }
                         finally
                         {
                             // uses an extra unlock method on top of ObservableCollection which matches the earlier lock method
-                            GrowlMessages.UnlockCollectionChanged();
+                            _growlMessages.UnlockCollectionChanged();
                         }
                     }
                 }
@@ -1214,10 +1231,10 @@ namespace CloudApiPublic.EventMessageReceiver
                     bool terminateProcessing;
 
                     // lock for checking the growl messages
-                    lock (currentReceiver.GrowlMessages)
+                    lock (currentReceiver._growlMessages)
                     {
                         // set whether message processing should terminate by zero growl messages
-                        terminateProcessing = currentReceiver.GrowlMessages.Count == 0;
+                        terminateProcessing = currentReceiver._growlMessages.Count == 0;
                     }
 
                     // if message processing should terminate, then mark the thread no longer running (false)

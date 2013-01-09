@@ -53,7 +53,7 @@ namespace CloudSdkSyncSample.Views
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus constructor: Exit.");
         }
 
-        void WindowSyncStatus_Loaded(object sender, RoutedEventArgs e)
+        private void WindowSyncStatus_Loaded(object sender, RoutedEventArgs e)
         {
             // Get the EventMessageReceiver ViewModel which will be the DataContext
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Loaded: Entry.");
@@ -75,7 +75,7 @@ namespace CloudSdkSyncSample.Views
             this.cmdDone.Focus();
         }
 
-        void WindowSyncStatus_Unloaded(object sender, RoutedEventArgs e)
+        private void WindowSyncStatus_Unloaded(object sender, RoutedEventArgs e)
         {
             // Unload the event receiver
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Unloaded: Entry.");
@@ -92,7 +92,7 @@ namespace CloudSdkSyncSample.Views
             }
         }
 
-        void WindowSyncStatus_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void WindowSyncStatus_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Closing: Entry.");
             if (!AllowClose)
@@ -127,6 +127,5 @@ namespace CloudSdkSyncSample.Views
         {
             this.Close();
         }
-
     }
 }

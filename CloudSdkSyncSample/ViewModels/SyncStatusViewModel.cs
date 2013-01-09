@@ -11,7 +11,6 @@ namespace CloudSdkSyncSample.ViewModels
 {
     public class SyncStatusViewModel
     {
-
         #region Events
 
         public event EventHandler<NotificationEventArgs> NotifySyncStatusWindowShouldClose;
@@ -23,7 +22,7 @@ namespace CloudSdkSyncSample.ViewModels
         /// <summary>
         /// Returns a command that hides the sync status window.
         /// </summary>
-        RelayCommand<object> _commandDone;
+        private RelayCommand<object> _commandDone;
         public ICommand CommandDone
         {
             get

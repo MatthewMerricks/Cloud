@@ -13,7 +13,7 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
-    public sealed class SetBadgeQueuedArgs : HandleableEventArgs
+    internal sealed class SetBadgeQueuedArgs : HandleableEventArgs
     {
         public SetBadge SetBadge
         {

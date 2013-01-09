@@ -32,7 +32,9 @@ namespace CloudApiPublic.EventMessageReceiver
         #region private fields
         private const int MillisecondDelayBetweenUploadParameterProcessing = 500;
         private const int MillisecondDelayBetweenDownloadParameterProcessing = MillisecondDelayBetweenUploadParameterProcessing;
-        private const int MaxStatusMessages = 100;
+        private int MaxStatusMessages;
+        private EventMessageLevel ImportanceFilterNonErrors;
+        private EventMessageLevel ImportanceFilterErrors;
         private static readonly TimeSpan MinimumStartupProcessingTime = TimeSpan.FromSeconds(1d);
 
         // needs to be set from settings upon construction
@@ -89,30 +91,51 @@ namespace CloudApiPublic.EventMessageReceiver
 
         private void AddStatusMessage(object sender, EventMessageArgs e)
         {
-            if (Dispatcher.CurrentDispatcher == Application.Current.Dispatcher)
+            // if this message should not be filtered out, then process adding the status message
+            if (e.IsError
+                    && ((int)e.Level) > ((int)ImportanceFilterErrors) // if this is an error, filter by the error filter
+                || (!e.IsError
+                    && ((int)e.Level) > ((int)ImportanceFilterNonErrors)) // else if this is not an error, filter by the non-error filter
+
+                // I noticed an exception after the application was closed where the Dispatcher had been shut down
+                && Application.Current != null
+                && Application.Current.Dispatcher != null
+                && !Application.Current.Dispatcher.HasShutdownStarted
+                && !Application.Current.Dispatcher.HasShutdownFinished)
             {
-                if (ListMessages.Count >= MaxStatusMessages)
+                // adding the status message must be done under the application dispatcher to change a collection which may be bound to the UI,
+                // so if it is already under the dispather then continue processing otherwise queue this method again under the dispatcher
+
+                if (Dispatcher.CurrentDispatcher == Application.Current.Dispatcher)
                 {
-                    for (int currentDeleteIndex = ListMessages.Count - MaxStatusMessages; currentDeleteIndex >= 0; currentDeleteIndex--)
+                    // once the message count reaches the maximum limit, start removing the oldest messages
+
+                    if (ListMessages.Count >= MaxStatusMessages)
                     {
-                        ListMessages.RemoveAt(currentDeleteIndex);
+                        for (int currentDeleteIndex = ListMessages.Count - MaxStatusMessages; currentDeleteIndex >= 0; currentDeleteIndex--)
+                        {
+                            ListMessages.RemoveAt(currentDeleteIndex);
+                        }
                     }
+
+                    // add the new message to the end
+                    ListMessages.Add(new CLStatusMessage()
+                    {
+                        MessageText = e.Message
+                    });
                 }
-
-                ListMessages.Add(new CLStatusMessage()
+                else
                 {
-                    MessageText = e.Message
-                });
-            }
-            else
-            {
-                Application.Current.Dispatcher.BeginInvoke((Action<object, EventMessageArgs>)AddStatusMessage,
-                    sender,
+                    // run this method again with the same parameters under the dispatcher
+                    Application.Current.Dispatcher.BeginInvoke((Action<object, EventMessageArgs>)AddStatusMessage,
+                        sender,
 
-                    // rebuild event args since it does not make sense to handle the original args asynchronously
-                    new EventMessageArgs(e.Message, e.Level, e.IsError));
+                        // rebuild event args since it does not make sense to handle the original args asynchronously
+                        new EventMessageArgs(e.Message, e.Level, e.IsError));
+                }
             }
 
+            // event is handled
             e.MarkHandled();
         }
         #endregion
@@ -358,7 +381,7 @@ namespace CloudApiPublic.EventMessageReceiver
                         ? thisReceiver.ListFilesUploading
                         : thisReceiver.ListFilesDownloading).Count > existingStatusIndex)
                     {
-                        INotifyPropertyChanged currentNotifyChanged = (isUpload
+                        ICLStatusFileTransfer currentNotifyChanged = (isUpload
                             ? thisReceiver.ListFilesUploading
                             : thisReceiver.ListFilesDownloading)[existingStatusIndex];
                         if (currentNotifyChanged is CLStatusFileTransfer)
@@ -390,7 +413,7 @@ namespace CloudApiPublic.EventMessageReceiver
 
                         dispatchersToFire.Add(new Tuple<Action<bool, CLStatusFileTransfer, int, EventMessageReceiver, GenericHolder<int>>, bool, CLStatusFileTransfer, int, EventMessageReceiver, GenericHolder<int>>((forUpload, innerTransfer, newIndex, innerReceiver, dispatchCounter) =>
                             {
-                                List<INotifyPropertyChanged> fileTransferBases = new List<INotifyPropertyChanged>((forUpload
+                                List<ICLStatusFileTransfer> fileTransferBases = new List<ICLStatusFileTransfer>((forUpload
                                         ? innerReceiver.ListFilesUploading
                                         : innerReceiver.ListFilesDownloading).Take(newIndex)
                                     .Concat((forUpload
@@ -401,7 +424,7 @@ namespace CloudApiPublic.EventMessageReceiver
                                 (forUpload
                                     ? innerReceiver.ListFilesUploading
                                     : innerReceiver.ListFilesDownloading).Clear();
-                                foreach (INotifyPropertyChanged toAdd in fileTransferBases.Take(newIndex))
+                                foreach (ICLStatusFileTransfer toAdd in fileTransferBases.Take(newIndex))
                                 {
                                     (forUpload
                                         ? innerReceiver.ListFilesUploading
@@ -410,7 +433,7 @@ namespace CloudApiPublic.EventMessageReceiver
                                 (forUpload
                                     ? innerReceiver.ListFilesUploading
                                     : innerReceiver.ListFilesDownloading).Add(new CLStatusFileTransferBlank()); // inject a blank as a means of clearing an existing finished transfer
-                                foreach (INotifyPropertyChanged toAdd in fileTransferBases.Skip(newIndex))
+                                foreach (ICLStatusFileTransfer toAdd in fileTransferBases.Skip(newIndex))
                                 {
                                     (forUpload
                                         ? innerReceiver.ListFilesUploading
@@ -442,7 +465,7 @@ namespace CloudApiPublic.EventMessageReceiver
                 else
                 {
                     transferToUpdate.IsDirectionUpload = isUpload;
-                    transferToUpdate.CloudRelativePath = currentParameter.Value.RelativePath;
+                    transferToUpdate.SyncRelativePath = currentParameter.Value.RelativePath;
                     transferToUpdate.FileSizeBytes = currentParameter.Value.ByteSize;
                     transferToUpdate.SamplesTaken++;
                     transferToUpdate.CumulativeBytesTransferred = currentParameter.Value.ByteProgress;
@@ -462,7 +485,8 @@ namespace CloudApiPublic.EventMessageReceiver
                             Application.Current.Dispatcher.BeginInvoke((Action<RateBar.RateGraph, double>)((statusGraph, setDisplayRate) =>
                                 {
                                     statusGraph.RateMaximum = setDisplayRate;
-                                }), transferToUpdate.StatusGraph,
+                                }),
+                                transferToUpdate.StatusGraph,
                                 calculatedDisplayRate);
                         }
                     }
@@ -485,7 +509,7 @@ namespace CloudApiPublic.EventMessageReceiver
 
                         dispatchersToFire.Add(new Tuple<Action<bool, CLStatusFileTransfer, int, EventMessageReceiver, GenericHolder<int>>, bool, CLStatusFileTransfer, int, EventMessageReceiver, GenericHolder<int>>((forUpload, innerTransfer, newIndex, innerReceiver, dispatchCounter) =>
                         {
-                            List<INotifyPropertyChanged> fileTransferBases = new List<INotifyPropertyChanged>((forUpload
+                            List<ICLStatusFileTransfer> fileTransferBases = new List<ICLStatusFileTransfer>((forUpload
                                     ? innerReceiver.ListFilesUploading
                                     : innerReceiver.ListFilesDownloading).Take(newIndex)
                                 .Concat((forUpload
@@ -496,7 +520,7 @@ namespace CloudApiPublic.EventMessageReceiver
                             (forUpload
                                 ? innerReceiver.ListFilesUploading
                                 : innerReceiver.ListFilesDownloading).Clear();
-                            foreach (INotifyPropertyChanged toAdd in fileTransferBases.Take(newIndex))
+                            foreach (ICLStatusFileTransfer toAdd in fileTransferBases.Take(newIndex))
                             {
                                 (forUpload
                                     ? innerReceiver.ListFilesUploading
@@ -506,7 +530,7 @@ namespace CloudApiPublic.EventMessageReceiver
                             (forUpload
                                 ? innerReceiver.ListFilesUploading
                                 : innerReceiver.ListFilesDownloading).Add(innerTransfer);
-                            foreach (INotifyPropertyChanged toAdd in fileTransferBases.Skip(newIndex))
+                            foreach (ICLStatusFileTransfer toAdd in fileTransferBases.Skip(newIndex))
                             {
                                 (forUpload
                                     ? innerReceiver.ListFilesUploading
@@ -541,8 +565,67 @@ namespace CloudApiPublic.EventMessageReceiver
         // -David
         #region construction setters
         private readonly ConstructedHolder WindowSyncStatusViewModelConstructed = new ConstructedHolder();
-        private static void WindowSyncStatusViewModelConstructionSetters(EventMessageReceiver thisReceiver) { thisReceiver.WindowSyncStatusViewModelConstructionSettersInstance(); }
-        private void WindowSyncStatusViewModelConstructionSettersInstance()
+        private static void WindowSyncStatusViewModelConstructionSetters(KeyValuePair<KeyValuePair<EventMessageReceiver, Nullable<EventMessageLevel>>, KeyValuePair<Nullable<EventMessageLevel>, Nullable<int>>> constructionParams)
+        {
+            if (constructionParams.Key.Key == null)
+            {
+                throw new NullReferenceException("constructionParams Key Key cannot be null");
+            }
+            if (constructionParams.Key.Value == null)
+            {
+                if (constructionParams.Value.Key == null)
+                {
+                    if (constructionParams.Value.Value == null)
+                    {
+                        constructionParams.Key.Key.WindowSyncStatusViewModelConstructionSettersInstance();
+                    }
+                    else
+                    {
+                        constructionParams.Key.Key.WindowSyncStatusViewModelConstructionSettersInstance(
+                            MaxStatusMessages: (int)constructionParams.Value.Value);
+                    }
+                }
+                else if (constructionParams.Value.Value == null)
+                {
+                    constructionParams.Key.Key.WindowSyncStatusViewModelConstructionSettersInstance(
+                        ImportanceFilterErrors: (EventMessageLevel)constructionParams.Value.Key);
+                }
+                else
+                {
+                    constructionParams.Key.Key.WindowSyncStatusViewModelConstructionSettersInstance(
+                        ImportanceFilterErrors: (EventMessageLevel)constructionParams.Value.Key,
+                        MaxStatusMessages: (int)constructionParams.Value.Value);
+                }
+            }
+            else if (constructionParams.Value.Key == null)
+            {
+                if (constructionParams.Value.Value == null)
+                {
+                    constructionParams.Key.Key.WindowSyncStatusViewModelConstructionSettersInstance(
+                        ImportanceFilterNonErrors: (EventMessageLevel)constructionParams.Key.Value);
+                }
+                else
+                {
+                    constructionParams.Key.Key.WindowSyncStatusViewModelConstructionSettersInstance(
+                        ImportanceFilterNonErrors: (EventMessageLevel)constructionParams.Key.Value,
+                        MaxStatusMessages: (int)constructionParams.Value.Value);
+                }
+            }
+            else if (constructionParams.Value.Value == null)
+            {
+                constructionParams.Key.Key.WindowSyncStatusViewModelConstructionSettersInstance(
+                    ImportanceFilterNonErrors: (EventMessageLevel)constructionParams.Key.Value,
+                    ImportanceFilterErrors: (EventMessageLevel)constructionParams.Value.Key);
+            }
+            else
+            {
+                constructionParams.Key.Key.WindowSyncStatusViewModelConstructionSettersInstance(
+                    ImportanceFilterNonErrors: (EventMessageLevel)constructionParams.Key.Value,
+                    ImportanceFilterErrors: (EventMessageLevel)constructionParams.Value.Key,
+                    MaxStatusMessages: (int)constructionParams.Value.Value);
+            }
+        }
+        private void WindowSyncStatusViewModelConstructionSettersInstance(EventMessageLevel ImportanceFilterNonErrors = EventMessageLevel.Regular, EventMessageLevel ImportanceFilterErrors = EventMessageLevel.Minor, int MaxStatusMessages = 100)
         {
             // Get the current bandwidth settings.
             if (this._getHistoricBandwidthSettingsDelegate != null)
@@ -553,6 +636,10 @@ namespace CloudApiPublic.EventMessageReceiver
             MessageEvents.NewEventMessage += AddStatusMessage;
             MessageEvents.FileDownloadUpdated += UpdateFileDownload;
             MessageEvents.FileUploadUpdated += UpdateFileUpload;
+
+            this.MaxStatusMessages = MaxStatusMessages;
+            this.ImportanceFilterNonErrors = ImportanceFilterNonErrors;
+            this.ImportanceFilterErrors = ImportanceFilterErrors;
         }
         #endregion
 
@@ -571,26 +658,32 @@ namespace CloudApiPublic.EventMessageReceiver
 
         #region Bindable Properties
 
-        public ObservableCollection<INotifyPropertyChanged> ListFilesDownloading
+        /// <summary>
+        /// Collection of statuses for file transfers for downloads, check (ICLStatusFileTransfer).Visibility for hidden because those are blank placeholders
+        /// </summary>
+        public ObservableCollection<ICLStatusFileTransfer> ListFilesDownloading
         {
             get
             {
                 return _listFilesDownloading;
             }
         }
-        private readonly ObservableCollection<INotifyPropertyChanged> _listFilesDownloading = new ObservableCollection<INotifyPropertyChanged>();
+        private readonly ObservableCollection<ICLStatusFileTransfer> _listFilesDownloading = new ObservableCollection<ICLStatusFileTransfer>();
 
-        public ObservableCollection<INotifyPropertyChanged> ListFilesUploading
+        /// <summary>
+        /// Collection of statuses for file transfers for uploads, check (ICLStatusFileTransfer).Visibility for hidden because those are blank placeholders
+        /// </summary>
+        public ObservableCollection<ICLStatusFileTransfer> ListFilesUploading
         {
             get
             {
                 return _listFilesUploading;
             }
         }
-        private readonly ObservableCollection<INotifyPropertyChanged> _listFilesUploading = new ObservableCollection<INotifyPropertyChanged>();
+        private readonly ObservableCollection<ICLStatusFileTransfer> _listFilesUploading = new ObservableCollection<ICLStatusFileTransfer>();
 
         /// <summary>
-        /// The <see cref="ListMessages" /> property's name.
+        /// Collection of status messages
         /// </summary>
         public ObservableCollection<CLStatusMessage> ListMessages
         {
@@ -601,6 +694,9 @@ namespace CloudApiPublic.EventMessageReceiver
         }
         private readonly ObservableCollection<CLStatusMessage> _listMessages = new ObservableCollection<CLStatusMessage>();
 
+        /// <summary>
+        /// Display title for a sync status window
+        /// </summary>
         public string WindowSyncStatus_Title
         {
             get
@@ -623,8 +719,9 @@ namespace CloudApiPublic.EventMessageReceiver
 
         #region Relay Commands
 
-        // Helper IMessageSender which allows sending CLAppMessages from CloudApiPrivate
-        // -David
+        /// <summary>
+        /// Helper IMessageSender which allows sending CLAppMessages from a private library
+        /// </summary>
         public static IMessageSender MessageSender
         {
             get
@@ -648,7 +745,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private static readonly object MessageSenderLocker = new object();
 
         /// <summary>
-        /// Gets the WindowSyncStatus_DoneCommand.
+        /// Gets the command which sends a close message to <see cref="MessageSender"/>
         /// </summary>
         public ICommand WindowSyncStatus_DoneCommand
         {
@@ -656,16 +753,16 @@ namespace CloudApiPublic.EventMessageReceiver
             {
                 return _windowSyncStatus_DoneCommand
                     ?? (_windowSyncStatus_DoneCommand = new RelayCommand<object>(
-                                          state =>
-                                          {
-                                              MessageSender.Send(MessageSenderType.Message_WindowSyncStatus_ShouldClose);
-                                          }));
+                        state =>
+                        {
+                            MessageSender.Send(MessageSenderType.Message_WindowSyncStatus_ShouldClose);
+                        }));
             }
         }
         private ICommand _windowSyncStatus_DoneCommand;
 
         /// <summary>
-        /// Gets the WindowSyncStatus_ShowLogCommand.
+        /// Gets the command which sends a show log window message to <see cref="MessageSender"/>
         /// </summary>
         public ICommand WindowSyncStatus_ShowLogCommand
         {
@@ -683,7 +780,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private ICommand _windowSyncStatus_ShowLogCommand;
 
         /// <summary>
-        /// Gets the WindowSyncStatus_SaveLogCommand.
+        /// Gets the command which sends a save log window message to <see cref="MessageSender"/>
         /// </summary>
         public ICommand WindowSyncStatus_SaveLogCommand
         {
@@ -701,7 +798,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private ICommand _windowSyncStatus_SaveLogCommand;
 
         /// <summary>
-        /// Gets the WindowSyncStatus_ShowErrorLogCommand.
+        /// Gets the command which sends a show error log window message to <see cref="MessageSender"/>
         /// </summary>
         public ICommand WindowSyncStatus_ShowErrorLogCommand
         {

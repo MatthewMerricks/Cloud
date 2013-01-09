@@ -16,7 +16,7 @@ using System.Linq.Expressions;
 
 namespace CloudApiPublic.EventMessageReceiver.Status
 {
-    public sealed class CLStatusFileTransfer : CLStatusFileTransferBase<CLStatusFileTransfer>
+    internal sealed class CLStatusFileTransfer : CLStatusFileTransferBase<CLStatusFileTransfer>
     {
         // Added for calculation of current rate by samples
         // -David
@@ -45,7 +45,7 @@ namespace CloudApiPublic.EventMessageReceiver.Status
 
         #region Fixed bindable properties
 
-        public override string CloudRelativePath { get; set; }
+        public override string SyncRelativePath { get; set; }
 
         #endregion
 

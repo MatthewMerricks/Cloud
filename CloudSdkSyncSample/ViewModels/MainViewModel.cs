@@ -940,7 +940,7 @@ namespace CloudSdkSyncSample.ViewModels
                             {
                                 _trace.writeToLog(9, "MainViewModel: StartSyncing: Start the sync status window.");
                                 _winSyncStatus = new SyncStatusView();
-                                EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings);
+                                EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings, EventMessageLevel.All, EventMessageLevel.All);
                                 _winSyncStatus.DataContext = vm;
                                 _winSyncStatus.Width = 0;
                                 _winSyncStatus.Height = 0;

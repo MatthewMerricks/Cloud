@@ -327,23 +327,23 @@ namespace win_client.ViewModels
             {
                 return _SyncStatusCommand
                     ?? (_SyncStatusCommand = new RelayCommand(
-                                            () =>
-                                            {
-                                                // Open RateBar graph window for upload/download status and logs
-                                                WindowSyncStatus win = new WindowSyncStatus();
-                                                EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings);
-                                                win.DataContext = vm;
-                                                win.ShowInTaskbar = true;
-                                                win.ShowActivated = true;
-                                                win.Visibility = Visibility.Visible;
-                                                win.WindowStyle = WindowStyle.ThreeDBorderWindow;
-                                                win.SetPlacement(Settings.Instance.MainWindowPlacement);
-                                                _trace.writeToLog(9, "PageInvisibleViewModel: CheckFOrUpdatesCommand: Window coords: {0}, {1}, {2}, {3} (LTWH).", win.Left, win.Top, win.Width, win.Height);
-                                                win.Show();
-                                                win.Topmost = true;
-                                                win.Topmost = false;
-                                                win.Focus();
-                                            }));
+                        () =>
+                        {
+                            // Open RateBar graph window for upload/download status and logs
+                            WindowSyncStatus win = new WindowSyncStatus();
+                            EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings, EventMessageLevel.All, EventMessageLevel.All);
+                            win.DataContext = vm;
+                            win.ShowInTaskbar = true;
+                            win.ShowActivated = true;
+                            win.Visibility = Visibility.Visible;
+                            win.WindowStyle = WindowStyle.ThreeDBorderWindow;
+                            win.SetPlacement(Settings.Instance.MainWindowPlacement);
+                            _trace.writeToLog(9, "PageInvisibleViewModel: CheckFOrUpdatesCommand: Window coords: {0}, {1}, {2}, {3} (LTWH).", win.Left, win.Top, win.Width, win.Height);
+                            win.Show();
+                            win.Topmost = true;
+                            win.Topmost = false;
+                            win.Focus();
+                        }));
             }
         }
 

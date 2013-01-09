@@ -32,7 +32,7 @@ namespace CloudApiPublic.BadgeNET
     /// <summary>
     /// IconOverlay is responsible for keeping a list of badges and synchronizing them with BadgeCOM (the Windows shell extensions for icon overlays)
     /// </summary>
-    public sealed class IconOverlay : IDisposable
+    internal sealed class IconOverlay : IDisposable
     {
         private CLTrace _trace;
         private ISyncSettingsAdvanced _syncSettings;

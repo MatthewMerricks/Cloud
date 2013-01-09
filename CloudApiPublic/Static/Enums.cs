@@ -67,21 +67,43 @@ namespace CloudApiPublic.Static
         public const int BufferSize = 4096; //posts online seem to suggest between 1kb and 12kb is optimal for a FileStream buffer, 4kb seems commonly used
     }
 
-    public enum EventMessageLevel
+    /// <summary>
+    /// Importance of event message from 1 to 9 with enumerated defaults (i.e. 1:Minor to 9:Important)
+    /// </summary>
+    public enum EventMessageLevel : byte
     {
-        Minor = 0,
+        /// <summary>
+        /// Below the lowest importance level, use this as filter to display everything
+        /// </summary>
+        All = 0,
+        /// <summary>
+        /// Importance of 1 out of 9
+        /// </summary>
+        Minor = 1,
+        /// <summary>
+        /// Importance of 5 out of 9
+        /// </summary>
         Regular = 5,
+        /// <summary>
+        /// Importance of 9 out of 9
+        /// </summary>
         Important = 9
     }
 
-    public enum EventHandledLevel
+    /// <summary>
+    /// Describes whether any event handlers were fired for an event and if so, whether any marked that they handled the event in their event args
+    /// </summary>
+    public enum EventHandledLevel : short
     {
         NothingFired = -1,
         FiredButNotHandled = 0,
         IsHandled = 1
     }
 
-    public enum PathState
+    /// <summary>
+    /// Describes how a path should display for badging
+    /// </summary>
+    internal enum PathState : byte
     {
         None,
         Synced,

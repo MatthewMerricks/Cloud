@@ -284,7 +284,7 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static event EventHandler<SetBadgeQueuedArgs> PathStateChanged
+        internal static event EventHandler<SetBadgeQueuedArgs> PathStateChanged
         {
             add
             {
@@ -303,7 +303,7 @@ namespace CloudApiPublic.Static
         }
         private static event EventHandler<SetBadgeQueuedArgs> _pathStateChanged;
         private static readonly object PathStateChangedLocker = new object();
-        public static EventHandledLevel SetPathState(object sender, SetBadge badgeChange)
+        internal static EventHandledLevel SetPathState(object sender, SetBadge badgeChange)
         {
             lock (PathStateChangedLocker)
             {
@@ -322,7 +322,7 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static event EventHandler<FileChangeMergeToStateArgs> FileChangeMergeToStateChanged
+        internal static event EventHandler<FileChangeMergeToStateArgs> FileChangeMergeToStateChanged
         {
             add
             {
@@ -341,7 +341,7 @@ namespace CloudApiPublic.Static
         }
         private static event EventHandler<FileChangeMergeToStateArgs> _fileChangeMergeToStateChanged;
         private static readonly object FileChangeMergeToStateChangedLocker = new object();
-        public static EventHandledLevel ApplyFileChangeMergeToChangeState(object sender, FileChangeMerge mergedFileChanges)
+        internal static EventHandledLevel ApplyFileChangeMergeToChangeState(object sender, FileChangeMerge mergedFileChanges)
         {
             lock (FileChangeMergeToStateChangedLocker)
             {
@@ -360,7 +360,7 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static event EventHandler<SetBadgeQueuedArgs> SetBadgeQueued
+        internal static event EventHandler<SetBadgeQueuedArgs> SetBadgeQueued
         {
             add
             {
@@ -379,7 +379,7 @@ namespace CloudApiPublic.Static
         }
         private static event EventHandler<SetBadgeQueuedArgs> _setBadgeQueued;
         private static readonly object SetBadgeQueuedLocker = new object();
-        public static EventHandledLevel QueueSetBadge(object sender, SetBadge badgeChange)
+        internal static EventHandledLevel QueueSetBadge(object sender, SetBadge badgeChange)
         {
             lock (SetBadgeQueuedLocker)
             {
@@ -398,7 +398,7 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static event EventHandler<BadgePathDeletedArgs> BadgePathDeleted
+        internal static event EventHandler<BadgePathDeletedArgs> BadgePathDeleted
         {
             add
             {
@@ -417,7 +417,7 @@ namespace CloudApiPublic.Static
         }
         private static event EventHandler<BadgePathDeletedArgs> _badgePathDeleted;
         private static readonly object BadgePathDeletedLocker = new object();
-        public static EventHandledLevel DeleteBadgePath(object sender, DeleteBadgePath badgePathDeleted, out bool isDeleted)
+        internal static EventHandledLevel DeleteBadgePath(object sender, DeleteBadgePath badgePathDeleted, out bool isDeleted)
         {
             lock (BadgePathDeletedLocker)
             {
@@ -438,7 +438,7 @@ namespace CloudApiPublic.Static
             }
         }
 
-        public static event EventHandler<BadgePathRenamedArgs> BadgePathRenamed
+        internal static event EventHandler<BadgePathRenamedArgs> BadgePathRenamed
         {
             add
             {
@@ -457,7 +457,7 @@ namespace CloudApiPublic.Static
         }
         private static event EventHandler<BadgePathRenamedArgs> _badgePathRenamed;
         private static readonly object BadgePathRenamedLocker = new object();
-        public static EventHandledLevel RenameBadgePath(object sender, RenameBadgePath badgeRename)
+        internal static EventHandledLevel RenameBadgePath(object sender, RenameBadgePath badgeRename)
         {
             lock (BadgePathRenamedLocker)
             {

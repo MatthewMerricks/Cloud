@@ -13,7 +13,7 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.Model
 {
-    public struct SetBadge
+    internal struct SetBadge
     {
         public FilePath PathToBadge
         {
