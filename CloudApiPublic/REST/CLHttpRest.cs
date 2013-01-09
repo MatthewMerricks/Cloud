@@ -5139,6 +5139,9 @@ namespace CloudApiPublic.REST
     /// <param name="eventSource">The FileChange describing the change to upload or download</param>
     internal delegate void SendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource);
 
+    /// <summary>
+    /// Handler called before a download starts with the temporary file id (used as filename for the download in the temp download folder) and passes through UserState
+    /// </summary>
     /// <param name="tempId">Unique ID created for the file and used as the file's name in the temp download directory</param>
     /// <param name="UserState">Object passed through from the download method call specific to before download</param>
     public delegate void BeforeDownloadToTempFile(Guid tempId, object UserState);
