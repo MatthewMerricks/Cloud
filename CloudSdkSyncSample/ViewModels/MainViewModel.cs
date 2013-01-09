@@ -1,4 +1,7 @@
-﻿using CloudApiPublic.Interfaces;
+﻿using CloudApiPublic;
+using CloudApiPublic.Model;
+using CloudApiPublic.EventMessageReceiver;
+using CloudApiPublic.Interfaces;
 using CloudApiPublic.Static;
 using CloudApiPublic.Support;
 using CloudSdkSyncSample.Models;
@@ -10,15 +13,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Threading;
-using CloudApiPublic;
-using CloudApiPublic.Model;
-using CloudApiPublic.EventMessageReceiver;
 using System.Threading;
 using System.Management;
 
@@ -352,7 +349,7 @@ namespace CloudSdkSyncSample.ViewModels
 
         #endregion
 
-        #region Presentation Properties
+        #region Commands
 
         /// <summary>
         /// Returns a command that browses to select a SyncBox folder.
@@ -383,7 +380,7 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     _commandShowAdvancedOptions = new RelayCommand<object>(
                         param => this.ShowAdvancedOptions(),
-                        param => this.CanAdvancedOptions
+                        param => this.CanShowAdvancedOptions
                         );
                 }
                 return _commandShowAdvancedOptions;
@@ -518,12 +515,12 @@ namespace CloudSdkSyncSample.ViewModels
 
         #endregion
 
-        #region Public Methods
+        #region Action Methods
 
         /// <summary>
         /// Browse to locate a folder to be synced.
         /// </summary>
-        public void BrowseSyncBoxFolder()
+        private void BrowseSyncBoxFolder()
         {
             // Notify the view to put up the folder selector.
             if (NotifyBrowseSyncBoxFolder != null)
@@ -535,7 +532,7 @@ namespace CloudSdkSyncSample.ViewModels
         /// <summary>
         /// Show the advanced options dialog.
         /// </summary>
-        public void ShowAdvancedOptions()
+        private void ShowAdvancedOptions()
         {
             // Show the advanced options as a modal dialog.
             AdvancedOptionsView viewWindow = new AdvancedOptionsView();
@@ -570,9 +567,10 @@ namespace CloudSdkSyncSample.ViewModels
         /// <summary>
         /// Save the settings entered so far.
         /// </summary>
-        public void SaveSettings()
+        private void SaveSettings()
         {
             // Validate the SyncBox full path.
+            SyncRoot = SyncRoot.Trim();
             if (String.IsNullOrEmpty(SyncRoot) ||
                 !Directory.Exists(SyncRoot))
             {
@@ -581,7 +579,18 @@ namespace CloudSdkSyncSample.ViewModels
                 return;
             }
 
+            // Validate the length of the SyncBox full path.
+            int tooLongChars;
+            CLError errorFromLengthCheck = Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
+            if (errorFromLengthCheck != null)
+            {
+                MessageBox.Show(String.Format("The SyncBox Folder is too long by {0} characters.  Please shorten the path.", tooLongChars));
+                this.IsSyncBoxPathFocused = true;
+                return;
+            }
+
             // Validate the App Key.
+            AppKey = AppKey.Trim();
             if (String.IsNullOrEmpty(AppKey) ||
                 !OnlyHexInString(AppKey) ||
                  AppKey.Length != 64)
@@ -592,6 +601,8 @@ namespace CloudSdkSyncSample.ViewModels
             }
 
             // Validate the App Secret.
+            // NOTE: This private key should not be handled this way.  It should be retrieved dynamically from a remote server, or protected in some other way.
+            AppSecret = AppSecret.Trim();
             if (String.IsNullOrEmpty(AppSecret) ||
                 !OnlyHexInString(AppSecret) ||
                  AppSecret.Length != 64)
@@ -602,6 +613,7 @@ namespace CloudSdkSyncSample.ViewModels
             }
 
             // Validate the SyncBox ID.
+            SyncBoxId = SyncBoxId.Trim();
             if (String.IsNullOrEmpty(SyncBoxId))
             {
                 MessageBox.Show("The SyncBox ID must not be specified.");
@@ -610,6 +622,7 @@ namespace CloudSdkSyncSample.ViewModels
             }
 
             // Validate the Device ID.
+            DeviceId = DeviceId.Trim();
             if (String.IsNullOrEmpty(DeviceId) || 
                 Path.GetInvalidPathChars().Any(x => DeviceId.Contains(x)))
             {
@@ -689,8 +702,7 @@ namespace CloudSdkSyncSample.ViewModels
                     // 64-bit 
                     commandArguments += "\\amd64\\BadgeCom.dll";
                 }
-                commandArguments = "\"" + commandArguments + "\"";
-                commandArguments = "/s " + commandArguments;
+                commandArguments = "/s \"" + commandArguments + "\"";
 
                 // Build the command line: regsvr32 <path to the proper BadgeCom.dll>
                 string commandProgram = "regsvr32";
@@ -710,7 +722,7 @@ namespace CloudSdkSyncSample.ViewModels
                 regsvr32Process = Process.Start(startInfo);
 
                 // Wait for the process to exit
-                if (regsvr32Process.WaitForExit(5000))
+                if (regsvr32Process.WaitForExit(20000))
                 {
                     // Process has exited.  Get the return code.
                     int retCode = regsvr32Process.ExitCode;
@@ -777,8 +789,7 @@ namespace CloudSdkSyncSample.ViewModels
                     // 64-bit 
                     commandArguments += "\\amd64\\BadgeCom.dll";
                 }
-                commandArguments = "\"" + commandArguments + "\"";
-                commandArguments = "/u /s " + commandArguments;
+                commandArguments = "/u /s \"" + commandArguments + "\"";
 
                 // Build the command line: regsvr32 <path to the proper BadgeCom.dll>
                 string commandProgram = "regsvr32";
@@ -797,7 +808,7 @@ namespace CloudSdkSyncSample.ViewModels
                 regsvr32Process = Process.Start(startInfo);
 
                 // Wait for the process to exit
-                if (regsvr32Process.WaitForExit(5000))
+                if (regsvr32Process.WaitForExit(20000))
                 {
                     // Process has exited.  Get the return code.
                     int retCode = regsvr32Process.ExitCode;
@@ -812,7 +823,7 @@ namespace CloudSdkSyncSample.ViewModels
                 else
                 {
                     // Timed out.
-                    CLError error = new Exception("Error: Timeout registering BadgeCom.dll.");
+                    CLError error = new Exception("Error: Timeout unregistering BadgeCom.dll.");
                     _trace.writeToLog(1, "MainViewModel: UninstallBadging: Error: Timeout unregistering BadgeCom.dll.");
                     NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Timeout unregistering BadgeCom.dll." });
                 }
@@ -844,7 +855,7 @@ namespace CloudSdkSyncSample.ViewModels
         /// <summary>
         /// Show the Sync Status window.
         /// </summary>
-        public void ShowSyncStatus()
+        private void ShowSyncStatus()
         {
             // Open RateBar graph window for upload/download status and logs
             if (_winSyncStatus != null)
@@ -863,18 +874,6 @@ namespace CloudSdkSyncSample.ViewModels
                 _winSyncStatus.Topmost = false;
                 _winSyncStatus.Focus();
             }
-        }
-
-        private void OnSetHistoricBandwidthSettings(double historicUploadBandwidthBitsPS, double historicDownloadBandwidthBitsPS)
-        {
-            Properties.Settings.Default.HistoricUploadBandwidthBitsPS = historicUploadBandwidthBitsPS;
-            Properties.Settings.Default.HistoricDownloadBandwidthBitsPS = historicDownloadBandwidthBitsPS;
-        }
-
-        private void OnGetHistoricBandwidthSettings(out double historicUploadBandwidthBitsPS, out double historicDownloadBandwidthBitsPS)
-        {
-            historicUploadBandwidthBitsPS = Properties.Settings.Default.HistoricUploadBandwidthBitsPS;
-            historicDownloadBandwidthBitsPS = Properties.Settings.Default.HistoricDownloadBandwidthBitsPS;
         }
 
         /// <summary>
@@ -908,7 +907,7 @@ namespace CloudSdkSyncSample.ViewModels
                                     NotifyException(this, new NotificationEventArgs<CLError>()
                                     {
                                         Data = errorFromSyncReset,
-                                        Message = "Error resetting the SyncBox: {0}."
+                                        Message = String.Format("Error resetting the SyncBox: {0}.", errorFromSyncReset.errorDescription)
                                     });
                                 }
                             }
@@ -925,7 +924,7 @@ namespace CloudSdkSyncSample.ViewModels
                         _syncBox = null;
                         if (NotifyException != null)
                         {
-                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From SyncBox.Start: Msg: <{0}.", errorFromSyncBoxStart.errorDescription);
+                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From SyncBox.Start: Msg: <{0}>.", errorFromSyncBoxStart.errorDescription);
                             NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncBoxStart, Message = String.Format("Error starting the SyncBox: {0}.", startStatus.ToString()) });
                         }
                     }
@@ -964,7 +963,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 CLError error = ex;
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}.", ex.Message);
+                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -1017,29 +1016,9 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
-        /// <summary>
-        /// The user clicked the "X" in the upper right corner of the view window.
-        /// </summary>
-        /// <returns>bool: Prevent the window close.</returns>
-        public bool OnWindowClosing()
-        {
-            if (_windowClosed)
-            {
-                return false;           // allow the window close
-            }
-
-            Dispatcher dispatcher = Application.Current.Dispatcher;
-            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
-            {
-                Exit();
-            });
-
-            return true;                // cancel the window close
-        }
-
         #endregion
 
-        #region Private Helpers
+        #region Command Helpers
 
         /// <summary>
         /// The user was asked (by the view) whether he wants to exit with changed advanced options.  This is the user's answer.
@@ -1135,7 +1114,7 @@ namespace CloudSdkSyncSample.ViewModels
         /// <summary>
         /// Returns true if the Advanced Options button should be active.
         /// </summary>
-        private bool CanAdvancedOptions
+        private bool CanShowAdvancedOptions
         {
             get
             {
@@ -1152,6 +1131,47 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 return !_syncStarted;
             }
+        }
+
+        #endregion
+
+        #region Event Callbacks
+
+        private void OnSetHistoricBandwidthSettings(double historicUploadBandwidthBitsPS, double historicDownloadBandwidthBitsPS)
+        {
+            Properties.Settings.Default.HistoricUploadBandwidthBitsPS = historicUploadBandwidthBitsPS;
+            Properties.Settings.Default.HistoricDownloadBandwidthBitsPS = historicDownloadBandwidthBitsPS;
+        }
+
+        private void OnGetHistoricBandwidthSettings(out double historicUploadBandwidthBitsPS, out double historicDownloadBandwidthBitsPS)
+        {
+            historicUploadBandwidthBitsPS = Properties.Settings.Default.HistoricUploadBandwidthBitsPS;
+            historicDownloadBandwidthBitsPS = Properties.Settings.Default.HistoricDownloadBandwidthBitsPS;
+        }
+
+        #endregion
+
+        #region Public Methods called by view
+        
+        /// <summary>
+        /// The user clicked the "X" in the upper right corner of the view window.
+        /// </summary>
+        /// <returns>bool: Prevent the window close.</returns>
+        public bool OnWindowClosing()
+        {
+            if (_windowClosed)
+            {
+                return false;           // allow the window close
+            }
+
+            // Forward this request to our own Exit method.
+            Dispatcher dispatcher = Application.Current.Dispatcher;
+            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+            {
+                Exit();
+            });
+
+            return true;                // cancel the window close
         }
 
         #endregion
@@ -1190,7 +1210,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 CLError error = ex;
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                _trace.writeToLog(1, "MainViewModel: StartExplorer: ERROR: Exception: Msg: <{0}.", ex.Message);
+                _trace.writeToLog(1, "MainViewModel: StartExplorer: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 
@@ -1232,7 +1252,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 CLError error = ex;
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                _trace.writeToLog(1, "MainViewModel: StopExplorer: ERROR: Exception: Msg: <{0}.", ex.Message);
+                _trace.writeToLog(1, "MainViewModel: StopExplorer: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
             _trace.writeToLog(9, "MainViewModel: StopExplorer: Return. explorerLocation: <{0}>.", explorerLocation);
             return explorerLocation;
@@ -1286,6 +1306,29 @@ namespace CloudSdkSyncSample.ViewModels
             return isExplorerRunning;
         }
 
+        /// <summary>
+        /// Set the SyncBox started state.
+        /// </summary>
+        /// <param name="isStartedStateToSet">The state to set.</param>
+        private void SetSyncBoxStartedState(bool isStartedStateToSet)
+        {
+            _syncStarted = isStartedStateToSet;
+
+            // Set the TextBox dependent properties.
+            TbSyncBoxFolderEnabled = !isStartedStateToSet;
+            TbApplicationKeyEnabled = !isStartedStateToSet;
+            TbApplicationSecretEnabled= !isStartedStateToSet;
+            TbSyncBoxIdEnabled = !isStartedStateToSet;
+            TbUniqueDeviceIdEnabled = !isStartedStateToSet;
+        }
+
+        #endregion
+
+        #region Private Classes
+
+        /// <summary>
+        /// Used by IsExplorerRunning.
+        /// </summary>
         private class ProcessWithPath
         {
             public Process Process { get; private set; }
@@ -1303,18 +1346,6 @@ namespace CloudSdkSyncSample.ViewModels
                     ? "null"
                     : this.Process.ProcessName);
             }
-        }
-
-        private void SetSyncBoxStartedState(bool isStartedStateToSet)
-        {
-            _syncStarted = isStartedStateToSet;
-
-            // Set the TextBox dependent properties.
-            TbSyncBoxFolderEnabled = !isStartedStateToSet;
-            TbApplicationKeyEnabled = !isStartedStateToSet;
-            TbApplicationSecretEnabled= !isStartedStateToSet;
-            TbSyncBoxIdEnabled = !isStartedStateToSet;
-            TbUniqueDeviceIdEnabled = !isStartedStateToSet;
         }
 
         #endregion

@@ -1,6 +1,7 @@
 ﻿using CloudApiPublic.Interfaces;
 using CloudApiPublic.Static;
 using CloudApiPublic.Support;
+using CloudApiPublic.Model;
 using CloudSdkSyncSample.Models;
 using CloudSdkSyncSample.Support;
 using System;
@@ -345,33 +346,60 @@ namespace CloudSdkSyncSample.ViewModels
         #region Support Methods
 
         /// <summary>
-        /// The user clicked the OK button.
+        /// The user clicked the OK button to save the advanced settings.
         /// </summary>
         private void Ok()
         {
             // Validate the temporary download file full path.  OK to be empty.
+            TempDownloadFolderFullPath = TempDownloadFolderFullPath.Trim();
             if (!String.IsNullOrEmpty(TempDownloadFolderFullPath) &&
                 !Directory.Exists(TempDownloadFolderFullPath))
             {
-                MessageBox.Show("The temporary download folder must be the full path of a valid directory.");
+                MessageBox.Show("The temporary download folder must be the full path of a valid directory.  Please create the directory first.");
+                this.IsTempDownloadFolderFullPathFocused = true;
+                return;
+            }
+
+            // Validate the length of the temp download file path.
+            if (TempDownloadFolderFullPath.Length > 0 && TempDownloadFolderFullPath.Length > (259 - 33))             // 259 maximum path length on Windows, minus the length of the temp file names (GUIDs (32 characters)), minus one char for backslash.
+            {
+                MessageBox.Show(String.Format("The temporary download folder is too long by {0} characters.  Please shorten the path.", TempDownloadFolderFullPath.Length - (259 - 33)));
                 this.IsTempDownloadFolderFullPathFocused = true;
                 return;
             }
 
             // Validate the database file path.  OK to be empty.
+            DatabaseFolderFullPath = DatabaseFolderFullPath.Trim();
             if (!String.IsNullOrEmpty(DatabaseFolderFullPath) &&
                 !Directory.Exists(DatabaseFolderFullPath))
             {
-                MessageBox.Show("The database folder must be the full path of a valid directory.");
+                MessageBox.Show("The database folder must be the full path of a valid directory.  Please create the directory first.");
+                this.IsDatabaseFolderFullPathFocused = true;
+                return;
+            }
+
+            // The entire path must be 259 chars or less.  Validate the entire length of the database file path, including the database filename.ext.
+            if (DatabaseFolderFullPath.Length > 0 && DatabaseFolderFullPath.Length > (259 - (CLDefinitions.kSyncDatabaseFileName.Length + 1)))             // 259 maximum path length on Windows, minus the length of the database filename.ext, minus one char for backslash.
+            {
+                MessageBox.Show(String.Format("The database folder path is too long by {0} characters.  Please shorten the path.", DatabaseFolderFullPath.Length - (259 - (CLDefinitions.kSyncDatabaseFileName.Length + 1))));
                 this.IsDatabaseFolderFullPathFocused = true;
                 return;
             }
 
             // Validate the trace files file path.  OK to be empty.
+            TraceFolderFullPath = TraceFolderFullPath.Trim();
             if (!String.IsNullOrEmpty(TraceFolderFullPath) &&
                 !Directory.Exists(TraceFolderFullPath))
             {
                 MessageBox.Show("The trace folder must be the full path of a valid directory.");
+                this.IsTraceFolderFullPathFocused = true;
+                return;
+            }
+
+            // The entire path must be 259 chars or less.  Validate the entire length of the trace file path, including the max trace filename.ext.
+            if (TraceFolderFullPath.Length > 0 && TraceFolderFullPath.Length > (259 - (CLDefinitions.kMaxTraceFilenameExtLength + 1)))             // 259 maximum path length on Windows, minus the max length of a trace filename.ext, minus one char for backslash.
+            {
+                MessageBox.Show(String.Format("The trace folder path is too long by {0} characters.  Please shorten the path.", TraceFolderFullPath.Length - (259 - (CLDefinitions.kMaxTraceFilenameExtLength + 1))));
                 this.IsTraceFolderFullPathFocused = true;
                 return;
             }
@@ -384,7 +412,7 @@ namespace CloudSdkSyncSample.ViewModels
                 value == 2 ||
                 value == 6)
             {
-                MessageBox.Show("The TraceType is a bit mask.  It must be a non-negative decimal number with value 0, 1, 3, 4, 5 or 7.");
+                MessageBox.Show("The TraceType is a bit mask.  It must be a non-negative decimal number with value 0, 1, 3, 4, 5 or 7.  If in doubt, use 0 (none) or 5 (full minus authorization information).");
                 this.IsTraceTypeFocused = true;
                 return;
             }
@@ -393,7 +421,7 @@ namespace CloudSdkSyncSample.ViewModels
             if (String.IsNullOrEmpty(TraceLevel) ||
                 !Utilities.ConvertStringToUlong(TraceLevel, out value))
             {
-                MessageBox.Show("The TraceLevel must be a non-negative decimal number convertible to an unsigned integer <= 18446744073709551615.");
+                MessageBox.Show("The TraceLevel must be a non-negative decimal number convertible to an unsigned integer <= 18446744073709551615.  If in doubt, use 0 (none) or 9 (full).");
                 this.IsTraceLevelFocused = true;
                 return;
             }
@@ -425,7 +453,7 @@ namespace CloudSdkSyncSample.ViewModels
             else
             {
                 // Close the window
-                _windowClosed = true;
+                _windowClosed = true;           // allow the window to close
                 CloseCommand.Execute(null);
             }
         }
@@ -433,7 +461,7 @@ namespace CloudSdkSyncSample.ViewModels
         /// <summary>
         /// The user clicked the "X" in the upper right corner of the view window.
         /// </summary>
-        /// <returns>bool: Prevent the window close.</returns>
+        /// <returns>bool: True: Cancel the window close.</returns>
         public bool OnWindowClosing()
         {
             if (_windowClosed)
@@ -441,6 +469,7 @@ namespace CloudSdkSyncSample.ViewModels
                 return false;           // allow the window close
             }
 
+            // Redirect to our own Cancel function as if the user clicked the Cancel button.
             Dispatcher dispatcher = Application.Current.Dispatcher;
             dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
             {
@@ -459,7 +488,7 @@ namespace CloudSdkSyncSample.ViewModels
             if (willExit)
             {
                 // Close the window
-                _windowClosed = true;
+                _windowClosed = true;           // allow the window to close
                 CloseCommand.Execute(null);
             }
         }
@@ -496,31 +525,8 @@ namespace CloudSdkSyncSample.ViewModels
         #region Private Helpers
 
         /// <summary>
-        /// Returns true if the Browse button should be active to select a SyncBox folder.
+        /// The OK button will be enabled if any of the settings have been changed.
         /// </summary>
-        private bool CanBrowseSyncBoxFolder
-        {
-            get
-            {
-                //TODO: Fill this in.
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the Advanced Options button should be active.
-        /// </summary>
-        private bool CanShowAdvancedOptions
-        {
-            get
-            {
-                //TODO: Fill this in.
-                return true;
-            }
-        }
-
-        #endregion
-
         public bool CanOk
         {
             get
@@ -528,5 +534,7 @@ namespace CloudSdkSyncSample.ViewModels
                 return !_settingsCaller.Equals(_settingsCurrent);
             }
         }
+
+        #endregion
     }
 }

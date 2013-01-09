@@ -433,6 +433,6 @@ namespace CloudApiPublic.Model
         // Folder and file names
         public const string kTempDownloadFolderName = "DownloadTemp";   // the folder to hold temporary downloaded files before moving them to their permanent location.
         public const string kSyncDatabaseFileName = "IndexDB.sdf";
-
+        public const int kMaxTraceFilenameExtLength = 60;               // maximum length of trace filenames (including the extension).
     }
 }

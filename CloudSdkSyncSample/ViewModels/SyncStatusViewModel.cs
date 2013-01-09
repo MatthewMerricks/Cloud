@@ -19,6 +19,7 @@ namespace CloudSdkSyncSample.ViewModels
         #endregion
 
         #region Commands
+
         /// <summary>
         /// Returns a command that hides the sync status window.
         /// </summary>
