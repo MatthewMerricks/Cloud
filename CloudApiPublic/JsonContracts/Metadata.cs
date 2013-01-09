@@ -107,7 +107,7 @@ namespace CloudApiPublic.JsonContracts
                 {
                     if (RelativePath[0] == '/')
                     {
-                        return RelativePath.Substring(1, RelativePath.Length - 2);
+                        return RelativePath.Substring(1, RelativePath.Length - (RelativePath.Length == 1 ? 1 : 2));
                     }
                     else
                     {
@@ -236,5 +236,11 @@ namespace CloudApiPublic.JsonContracts
 
         [DataMember(Name = CLDefinitions.CLMetadataFileSize, IsRequired = false)]
         public Nullable<long> Size { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataItemCount, IsRequired = false)]
+        public ItemCount ItemCount { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataDeletedItemCount, IsRequired = false)]
+        public ItemCount DeletedItemCount { get; set; }
     }
 }

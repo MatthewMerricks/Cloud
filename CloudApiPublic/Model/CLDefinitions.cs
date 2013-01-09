@@ -160,6 +160,8 @@ namespace CloudApiPublic.Model
         public const string MethodPathFolderUndelete = "/1/folder/undelete";                 // POST
         #endregion
 
+        public const string MethodPathSyncBoxUsage = "/1/sync_box/usage";                    // GET
+
         public const string AuthorizationFormatType = "CWS0";
 #else   // !CLIFF_SERVERS
         public const string MethodPathSyncFrom = "/sync/from_cloud";
@@ -223,6 +225,8 @@ namespace CloudApiPublic.Model
         public const string QueryStringDeviceId = "device_uuid";
         public const string QueryStringSyncBoxId = "sync_box_id";
         public const string QueryStringIncludeDeleted = "include_deleted";
+        public const string QueryStringDepth = "depth";
+        public const string QueryStringIncludeCount = "include_count";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
@@ -401,6 +405,15 @@ namespace CloudApiPublic.Model
         public const string CLMetadataFiles = "files";
         public const string CLMetadataFile = "file";
         public const string CLMetadataServerId = "uid";
+        public const string CLMetadataCount = "count";
+        public const string CLMetadataMoreItems = "more_items";
+        public const string CLMetadataLocal = "local";
+        public const string CLMetadataShared = "shared";
+        public const string CLMetadataFolders = "folders";
+        public const string CLMetadataLinks = "links";
+        public const string CLMetadataItemCount = "item_count";
+        public const string CLMetadataDeletedItemCount = "deleted_item_count";
+        public const string CLMetadataObjects = "objects";
 
         // Cloud Events
         public const string CLSyncEvent = "event";

@@ -143,6 +143,11 @@
     <Compile Include="JsonContracts\FileOrFolderUndelete.cs" />
     <Compile Include="JsonContracts\FileVersion.cs" />
     <Compile Include="JsonContracts\FolderAdd.cs" />
+    <Compile Include="JsonContracts\FolderContents.cs" />
+    <Compile Include="JsonContracts\Folders.cs" />
+    <Compile Include="JsonContracts\ItemCount.cs" />
+    <Compile Include="JsonContracts\Pictures.cs" />
+    <Compile Include="JsonContracts\SyncBoxUsage.cs" />
     <Compile Include="JsonContracts\UsedBytes.cs" />
     <Compile Include="Model\ConstructedHolder.cs" />
     <Compile Include="Model\IMessageSender.cs" />
