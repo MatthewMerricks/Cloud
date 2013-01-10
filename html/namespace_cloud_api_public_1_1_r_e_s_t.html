@@ -36,7 +36,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
-      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li class="current"><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
       <li>
@@ -95,34 +94,76 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest.html">CLHttpRest</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Client for manual HTTP communication calls to the Cloud  <a href="class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_r_e_s_t_1_1_transfer_progress.html">TransferProgress</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a2e88365d5d270b184f29d483653bbdb8"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>CLHttpRestStatus</b> : byte { <br/>
-&#160;&#160;<b>Success</b>, 
-<b>NotFound</b>, 
-<b>ServerError</b>, 
-<b>BadRequest</b>, 
+<tr class="memitem:a2e88365d5d270b184f29d483653bbdb8"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#a2e88365d5d270b184f29d483653bbdb8">CLHttpRestStatus</a> : byte { <br/>
+&#160;&#160;<a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#a2e88365d5d270b184f29d483653bbdb8">Success</a>, 
+<a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#a2e88365d5d270b184f29d483653bbdb8">NotFound</a>, 
+<a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#a2e88365d5d270b184f29d483653bbdb8">ServerError</a>, 
+<a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#a2e88365d5d270b184f29d483653bbdb8">BadRequest</a>, 
 <br/>
-&#160;&#160;<b>Cancelled</b>, 
-<b>NoContent</b>
+&#160;&#160;<a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#a2e88365d5d270b184f29d483653bbdb8">Cancelled</a>, 
+<a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#a2e88365d5d270b184f29d483653bbdb8">NoContent</a>, 
+<a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#a2e88365d5d270b184f29d483653bbdb8">NotAuthorized</a>
 <br/>
  }</td></tr>
+<tr class="memdesc:a2e88365d5d270b184f29d483653bbdb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Status from a call to one of the CLHttpRest communications methods  <a href="namespace_cloud_api_public_1_1_r_e_s_t.html#a2e88365d5d270b184f29d483653bbdb8">More...</a><br/></td></tr>
 <tr class="separator:a2e88365d5d270b184f29d483653bbdb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a8d947c611c43ec82d70d9cdbcd34b6ce"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8d947c611c43ec82d70d9cdbcd34b6ce"></a>
-delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>SendUploadDownloadStatus</b> (<a class="el" href="struct_cloud_api_public_1_1_model_1_1_c_l_status_file_transfer_update_parameters.html">CLStatusFileTransferUpdateParameters</a> status, <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html">FileChange</a> eventSource)</td></tr>
-<tr class="separator:a8d947c611c43ec82d70d9cdbcd34b6ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a556d9270cf75b4405d87862034060fac"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a556d9270cf75b4405d87862034060fac"></a>
-delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>BeforeDownloadToTempFile</b> (Guid tempId, object UserState)</td></tr>
+<tr class="memitem:a556d9270cf75b4405d87862034060fac"><td class="memItemLeft" align="right" valign="top">delegate void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#a556d9270cf75b4405d87862034060fac">BeforeDownloadToTempFile</a> (Guid tempId, object UserState)</td></tr>
+<tr class="memdesc:a556d9270cf75b4405d87862034060fac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Handler called before a download starts with the temporary file id (used as filename for the download in the temp download folder) and passes through UserState  <a href="#a556d9270cf75b4405d87862034060fac"></a><br/></td></tr>
 <tr class="separator:a556d9270cf75b4405d87862034060fac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add2499738a8a21303b4181e302bb26d2"><td class="memItemLeft" align="right" valign="top">delegate void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#add2499738a8a21303b4181e302bb26d2">AfterDownloadToTempFile</a> (string tempFileFullPath, <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html">FileChange</a> downloadChange, ref string responseBody, object UserState, Guid tempId)</td></tr>
-<tr class="memdesc:add2499738a8a21303b4181e302bb26d2"><td class="mdescLeft">&#160;</td><td class="mdescRight"> <a href="#add2499738a8a21303b4181e302bb26d2"></a><br/></td></tr>
+<tr class="memdesc:add2499738a8a21303b4181e302bb26d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Handler called after a file download completes with the id used as the file name in the originally provided temporary download folder, passes through UserState, passes the download change itself, gives a constructed full path where the downloaded file can be found in the temp folder, and references a string which should be set to something useful for communications trace to denote a completed file such as "&amp;mdash;Completed file download&amp;mdash;" (but only set after the file was succesfully moved)  <a href="#add2499738a8a21303b4181e302bb26d2"></a><br/></td></tr>
 <tr class="separator:add2499738a8a21303b4181e302bb26d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
+<a class="anchor" id="a2e88365d5d270b184f29d483653bbdb8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="namespace_cloud_api_public_1_1_r_e_s_t.html#a2e88365d5d270b184f29d483653bbdb8">CloudApiPublic.REST.CLHttpRestStatus</a> : byte</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Status from a call to one of the <a class="el" href="class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest.html" title="Client for manual HTTP communication calls to the Cloud ">CLHttpRest</a> communications methods </p>
+<dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
+<tr><td valign="top"><em><a class="anchor" id="a2e88365d5d270b184f29d483653bbdb8"></a>Success</em>&nbsp;</td><td>
+<p>Method completed without error and has a normal response </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a2e88365d5d270b184f29d483653bbdb8"></a>NotFound</em>&nbsp;</td><td>
+<p>Method invoked a not found (404) response from the server </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a2e88365d5d270b184f29d483653bbdb8"></a>ServerError</em>&nbsp;</td><td>
+<p>Method invoked a server error (5xx) response from the server </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a2e88365d5d270b184f29d483653bbdb8"></a>BadRequest</em>&nbsp;</td><td>
+<p>Method had some other problem with parameters processed locally or parameters sent up to the server </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a2e88365d5d270b184f29d483653bbdb8"></a>Cancelled</em>&nbsp;</td><td>
+<p>Method was cancelled via a provided cancellation token before completion </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a2e88365d5d270b184f29d483653bbdb8"></a>NoContent</em>&nbsp;</td><td>
+<p>Method completed without error but has no response; it means that no data exists for given parameter(s) </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a2e88365d5d270b184f29d483653bbdb8"></a>NotAuthorized</em>&nbsp;</td><td>
+<p>Method invoked an unauthorized (401) resposne from the server </p>
+</td></tr>
+</table>
+</dd>
+</dl>
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a class="anchor" id="add2499738a8a21303b4181e302bb26d2"></a>
 <div class="memitem">
@@ -166,14 +207,49 @@ delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>BeforeDownlo
       </table>
 </div><div class="memdoc">
 
-<p></p>
+<p>¡¡ Action required: move the completed download file from the temp directory to the final destination !! Handler called after a file download completes with the id used as the file name in the originally provided temporary download folder, passes through UserState, passes the download change itself, gives a constructed full path where the downloaded file can be found in the temp folder, and references a string which should be set to something useful for communications trace to denote a completed file such as "&amp;mdash;Completed file download&amp;mdash;" (but only set after the file was succesfully moved) </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">tempFileFullPath</td><td></td></tr>
-    <tr><td class="paramname">downloadChange</td><td></td></tr>
-    <tr><td class="paramname">responseBody</td><td>Reference to string used to trace communication, should be set to "&amp;mdash;Completed file download&amp;mdash;" upon successfully moving the file to its destination</td></tr>
-    <tr><td class="paramname">UserState</td><td></td></tr>
-    <tr><td class="paramname">tempId</td><td></td></tr>
+    <tr><td class="paramname">tempFileFullPath</td><td>Full path to where the downloaded file can be found in the temp folder (which needs to be moved)</td></tr>
+    <tr><td class="paramname">downloadChange</td><td>The download change itself</td></tr>
+    <tr><td class="paramname">responseBody</td><td>Reference to string used to trace communication, should be set to something useful to read in communications trace such as "&amp;mdash;Completed file download&amp;mdash;" (but only after the file was successfully moved)</td></tr>
+    <tr><td class="paramname">UserState</td><td>Object passed through from the download method call specific to after download</td></tr>
+    <tr><td class="paramname">tempId</td><td>Unique ID created for the file and used as the file's name in the temp download directory</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a556d9270cf75b4405d87862034060fac"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">delegate void CloudApiPublic.REST.BeforeDownloadToTempFile </td>
+          <td>(</td>
+          <td class="paramtype">Guid&#160;</td>
+          <td class="paramname"><em>tempId</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">object&#160;</td>
+          <td class="paramname"><em>UserState</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Handler called before a download starts with the temporary file id (used as filename for the download in the temp download folder) and passes through UserState </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tempId</td><td>Unique ID created for the file and used as the file's name in the temp download directory</td></tr>
+    <tr><td class="paramname">UserState</td><td>Object passed through from the download method call specific to before download</td></tr>
   </table>
   </dd>
 </dl>
@@ -183,7 +259,7 @@ delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>BeforeDownlo
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jan 2 2013 07:18:03 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jan 10 2013 15:45:56 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

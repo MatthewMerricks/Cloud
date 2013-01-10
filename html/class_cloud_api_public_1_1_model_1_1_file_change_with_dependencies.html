@@ -36,7 +36,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
-      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li>
@@ -171,22 +170,6 @@ Properties</h2></td></tr>
 <tr class="memitem:ae9286566d391fe9d646db55e20b1ccab inherit properties_class_cloud_api_public_1_1_model_1_1_file_change"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_cloud_api_public_1_1_static.html#a8ba5d1f6d06fa058730616f021c8974f">SyncDirection</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html#ae9286566d391fe9d646db55e20b1ccab">Direction</a><code> [get, set]</code></td></tr>
 <tr class="memdesc:ae9286566d391fe9d646db55e20b1ccab inherit properties_class_cloud_api_public_1_1_model_1_1_file_change"><td class="mdescLeft">&#160;</td><td class="mdescRight">Direction of sync (<a class="el" href="namespace_cloud_api_public_1_1_sync.html">Sync</a> To or <a class="el" href="namespace_cloud_api_public_1_1_sync.html">Sync</a> From), defaults to "To"  <a href="#ae9286566d391fe9d646db55e20b1ccab"></a><br/></td></tr>
 <tr class="separator:ae9286566d391fe9d646db55e20b1ccab inherit properties_class_cloud_api_public_1_1_model_1_1_file_change"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a150bd50fceae6c179f1bc34debb933e5 inherit properties_class_cloud_api_public_1_1_model_1_1_file_change"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a150bd50fceae6c179f1bc34debb933e5"></a>
-long&#160;</td><td class="memItemRight" valign="bottom"><b>InMemoryId</b><code> [get, set]</code></td></tr>
-<tr class="separator:a150bd50fceae6c179f1bc34debb933e5 inherit properties_class_cloud_api_public_1_1_model_1_1_file_change"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa979e65ac9cd9783870afe5b25137296 inherit properties_class_cloud_api_public_1_1_model_1_1_file_change"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html#aa979e65ac9cd9783870afe5b25137296">DoNotAddToSQLIndex</a><code> [get, set]</code></td></tr>
-<tr class="memdesc:aa979e65ac9cd9783870afe5b25137296 inherit properties_class_cloud_api_public_1_1_model_1_1_file_change"><td class="mdescLeft">&#160;</td><td class="mdescRight">Boolean set when already indexed events are requeued in the <a class="el" href="namespace_cloud_api_public_1_1_file_monitor.html" title="Monitor a local file system folder as a SyncBox. ">FileMonitor</a>, defaults to false  <a href="#aa979e65ac9cd9783870afe5b25137296"></a><br/></td></tr>
-<tr class="separator:aa979e65ac9cd9783870afe5b25137296 inherit properties_class_cloud_api_public_1_1_model_1_1_file_change"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
-Additional Inherited Members</h2></td></tr>
-<tr class="inherit_header pub_attribs_class_cloud_api_public_1_1_model_1_1_file_change"><td colspan="2" onclick="javascript:toggleInherit('pub_attribs_class_cloud_api_public_1_1_model_1_1_file_change')"><img src="closed.png" alt="-"/>&#160;Public Attributes inherited from <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html">CloudApiPublic.Model.FileChange</a></td></tr>
-<tr class="memitem:a731705220f8c9b1ceb3022bae1bbe02e inherit pub_attribs_class_cloud_api_public_1_1_model_1_1_file_change"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a731705220f8c9b1ceb3022bae1bbe02e"></a>
-byte&#160;</td><td class="memItemRight" valign="bottom"><b>FailureCounter</b> = 0</td></tr>
-<tr class="separator:a731705220f8c9b1ceb3022bae1bbe02e inherit pub_attribs_class_cloud_api_public_1_1_model_1_1_file_change"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7cd99f56c8ec93e35a9dbdcce37d673a inherit pub_attribs_class_cloud_api_public_1_1_model_1_1_file_change"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7cd99f56c8ec93e35a9dbdcce37d673a"></a>
-byte&#160;</td><td class="memItemRight" valign="bottom"><b>NotFoundForStreamCounter</b> = 0</td></tr>
-<tr class="separator:a7cd99f56c8ec93e35a9dbdcce37d673a inherit pub_attribs_class_cloud_api_public_1_1_model_1_1_file_change"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Extension of <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html" title="Class for storing information about a file system change to be passed to the sync service for process...">FileChange</a> to add a property for Dependencies </p>
@@ -366,7 +349,7 @@ byte&#160;</td><td class="memItemRight" valign="bottom"><b>NotFoundForStreamCoun
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jan 2 2013 07:18:03 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jan 10 2013 15:45:56 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

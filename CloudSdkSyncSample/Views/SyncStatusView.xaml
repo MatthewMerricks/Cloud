@@ -46,8 +46,9 @@
     <Grid x:Name="LayoutRoot" Background="#FFEFF4F5">
         <Grid.RowDefinitions>
             <RowDefinition Height="13"/>
-            <RowDefinition Height="Auto" MinHeight="280"/>
+            <RowDefinition Height="140"/>
             <RowDefinition Height="2*"/>
+            <RowDefinition Height="0.09*"/>
             <RowDefinition Height="0.5*"/>
         </Grid.RowDefinitions>
 
@@ -57,8 +58,8 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="File Upload Status" FontSize="8" FontWeight="Bold" HorizontalAlignment="Center"/>
-            <TextBlock Text="File Download Status" FontSize="8" FontWeight="Bold" HorizontalAlignment="Center" Grid.Column="1"/>
+            <TextBlock Text="File Upload Status" FontSize="8" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#ff0f0f0f"/>
+            <TextBlock Text="File Download Status" FontSize="8" FontWeight="Bold" HorizontalAlignment="Center" Grid.Column="1" Foreground="#ff0f0f0f"/>
         </Grid>
         
         <!-- Upload/Download Status -->
@@ -69,24 +70,29 @@
             </Grid.ColumnDefinitions>
 
             <!-- Upload stack -->
-            <ItemsControl ItemsSource="{Binding ListFilesUploading}" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemTemplate="{StaticResource UploadDownloadTemplate}" />
+            <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding ListFilesUploading}" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemTemplate="{StaticResource UploadDownloadTemplate}" />
+            </ScrollViewer>
 
             <!-- Download stack -->
-            <ItemsControl ItemsSource="{Binding ListFilesDownloading}" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.Column="1" ItemTemplate="{StaticResource UploadDownloadTemplate}" />
-
+            <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding ListFilesDownloading}" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.Column="1" ItemTemplate="{StaticResource UploadDownloadTemplate}" />
+            </ScrollViewer>
         </Grid>
 
         <!-- Message area -->
         <Grid Grid.Row="2">
-            <Border BorderBrush="Black" BorderThickness="1">
-                <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
-                    <ItemsControl x:Name="icMessageList" ItemsSource="{Binding ListMessages}" ItemTemplate="{StaticResource MessageListElementTemplate}" Margin="3,3,3,3" 
+                <Border BorderBrush="Black" BorderThickness="1">
+                    <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="icMessageList" ItemsSource="{Binding ListMessages}" ItemTemplate="{StaticResource MessageListElementTemplate}" Margin="3,3,3,3" 
                                icHelper:ItemsControlHelper.ScrollToLastItem="True"  />
-                </ScrollViewer>
-            </Border>
+                    </ScrollViewer>
+                </Border>
         </Grid>
-        
-        <Grid Grid.Row="3">
+
+        <TextBlock Text="Sync Messages" FontSize="8" FontWeight="Bold" HorizontalAlignment="Left" Grid.Row="3"  Foreground="#ff0f0f0f"/>
+
+        <Grid Grid.Row="4">
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">
                 <Button x:Name="cmdDone" HorizontalAlignment="Left" Width="75" Height="40" Margin="20,0,0,0"
                         Command="{Binding CommandDone, Source={StaticResource SyncStatusViewModel}, Mode=OneTime}" TabIndex="0" IsDefault="True" ToolTip="Click to close this window.">

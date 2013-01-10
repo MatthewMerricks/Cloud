@@ -925,8 +925,11 @@ namespace CloudSdkSyncSample.ViewModels
                         if (NotifyException != null)
                         {
                             _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From SyncBox.Start: Msg: <{0}>.", errorFromSyncBoxStart.errorDescription);
-                            NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncBoxStart, Message = String.Format("Error starting the SyncBox: {0}.", startStatus.ToString()) });
                         }
+                    }
+                    if (startStatus != CLSyncStartStatus.Successful)
+                    {
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncBoxStart, Message = String.Format("Error starting the SyncBox: {0}.", startStatus.ToString()) });
                     }
                     else
                     {

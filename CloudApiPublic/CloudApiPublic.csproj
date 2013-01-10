@@ -161,6 +161,7 @@
     <Compile Include="Static\CLScrollHelper.cs" />
     <Compile Include="Support\CLCopyFiles.cs" />
     <Compile Include="CLSync\CLSync.cs" />
+    <Compile Include="Static\CLOsVersionInfo.cs" />
     <Compile Include="Support\RelayCommand.cs" />
     <Compile Include="Sync\SyncSettings.cs" />
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
@@ -249,7 +250,6 @@
     <Compile Include="Static\TraceType.cs" />
     <Compile Include="Model\CLError.cs" />
     <Compile Include="Model\CLDefinitions.cs" />
-    <Compile Include="Support\CLSptOsVersion.cs" />
     <Compile Include="Support\CLSptTrace.cs" />
     <Compile Include="Support\DelayProcessable.cs" />
     <Compile Include="Support\ProcessingQueuesTimer.cs" />

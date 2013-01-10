@@ -1,8 +1,7 @@
 var searchData=
 [
   ['iaddtracesettings',['IAddTraceSettings',['../interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings.html',1,'CloudApiPublic::Interfaces']]],
-  ['iconoverlay',['IconOverlay',['../class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay.html',1,'CloudApiPublic::BadgeNET']]],
-  ['iconoverlay',['IconOverlay',['../class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay.html#acb409bfe425cc155adbd426cf566f87f',1,'CloudApiPublic::BadgeNET::IconOverlay']]],
+  ['iclstatusfiletransfer',['ICLStatusFileTransfer',['../interface_cloud_api_public_1_1_event_message_receiver_1_1_status_1_1_i_c_l_status_file_transfer.html',1,'CloudApiPublic::EventMessageReceiver::Status']]],
   ['iexecutableexception',['IExecutableException',['../interface_cloud_api_public_1_1_sync_1_1_i_executable_exception.html',1,'CloudApiPublic::Sync']]],
   ['ifileresultparent',['IFileResultParent',['../interface_cloud_api_public_1_1_s_q_l_indexer_1_1_model_1_1_i_file_result_parent.html',1,'CloudApiPublic::SQLIndexer::Model']]],
   ['ihttpsettings',['IHttpSettings',['../interface_cloud_api_public_1_1_interfaces_1_1_i_http_settings.html',1,'CloudApiPublic::Interfaces']]],
@@ -12,15 +11,14 @@ var searchData=
   ['imigration',['IMigration',['../interface_cloud_api_public_1_1_s_q_l_indexer_1_1_migrations_1_1_i_migration.html',1,'CloudApiPublic::SQLIndexer::Migrations']]],
   ['incrementcountargs',['IncrementCountArgs',['../class_cloud_api_public_1_1_model_1_1_increment_count_args.html',1,'CloudApiPublic::Model']]],
   ['informationalmessage',['InformationalMessage',['../class_cloud_api_public_1_1_event_message_receiver_1_1_informational_message.html',1,'CloudApiPublic::EventMessageReceiver']]],
-  ['initialize',['Initialize',['../class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay.html#ae53ea5c1723b2220559f9b0aeb6c7048',1,'CloudApiPublic.BadgeNET.IconOverlay.Initialize()'],['../class_cloud_api_public_1_1_support_1_1_c_l_trace.html#a5d7f8ca5bf5a4d75549d860fef87045b',1,'CloudApiPublic.Support.CLTrace.Initialize()']]],
-  ['initializeorreplace',['InitializeOrReplace',['../class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay.html#a53416d509130e2ad22a6c745fcbd1d83',1,'CloudApiPublic::BadgeNET::IconOverlay']]],
+  ['initialize',['Initialize',['../class_cloud_api_public_1_1_support_1_1_c_l_trace.html#a5d7f8ca5bf5a4d75549d860fef87045b',1,'CloudApiPublic::Support::CLTrace']]],
   ['instance',['Instance',['../class_cloud_api_public_1_1_model_1_1_file_path_comparer.html#a72c16461590ae2298b139f86689991c8',1,'CloudApiPublic.Model.FilePathComparer.Instance()'],['../class_cloud_api_public_1_1_support_1_1_c_l_trace.html#a0861d3bda40d01c666acb82cef1cb595',1,'CloudApiPublic.Support.CLTrace.Instance()']]],
-  ['isbadginginitialized',['IsBadgingInitialized',['../class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay.html#a3e729d27b518e1d469e48af8abad7ee9',1,'CloudApiPublic::BadgeNET::IconOverlay']]],
   ['ischild',['IsChild',['../interface_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_i_sql_access.html#a1fd304ea212e06ebaa3a7c420e6c043d',1,'CloudApiPublic.SQLIndexer.SqlModel.ISqlAccess.IsChild()'],['../class_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_sql_access_1_1_sql_access_base.html#adaa12256709e63d6b881804ae45c5531',1,'CloudApiPublic.SQLIndexer.SqlModel.SqlAccess.SqlAccessBase.IsChild()']]],
   ['isfolder',['IsFolder',['../struct_cloud_api_public_1_1_model_1_1_file_metadata_hashable_properties.html#accefde1677467dee8550cbf135e34462',1,'CloudApiPublic.Model.FileMetadataHashableProperties.IsFolder()'],['../class_cloud_api_public_1_1_static_1_1_trace_file_change.html#ad216ac0749ed14b9b6bbc8301509d351',1,'CloudApiPublic.Static.TraceFileChange.IsFolder()']]],
   ['isqlaccess',['ISqlAccess',['../interface_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_i_sql_access.html',1,'CloudApiPublic::SQLIndexer::SqlModel']]],
   ['issyncfrom',['IsSyncFrom',['../class_cloud_api_public_1_1_static_1_1_trace_file_change.html#a8a0e5791268bd7fc8445c8e4aeb7b9b8',1,'CloudApiPublic::Static::TraceFileChange']]],
   ['isyncdataobject',['ISyncDataObject',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object.html',1,'CloudApiPublic::Interfaces']]],
   ['isyncsettings',['ISyncSettings',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings.html',1,'CloudApiPublic::Interfaces']]],
-  ['isyncsettingsadvanced',['ISyncSettingsAdvanced',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced.html',1,'CloudApiPublic::Interfaces']]]
+  ['isyncsettingsadvanced',['ISyncSettingsAdvanced',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced.html',1,'CloudApiPublic::Interfaces']]],
+  ['itemcount',['ItemCount',['../class_cloud_api_public_1_1_json_contracts_1_1_item_count.html',1,'CloudApiPublic::JsonContracts']]]
 ];

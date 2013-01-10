@@ -82,6 +82,9 @@ namespace CloudApiPublic.SQLIndexer.Model
                     out fileData,
                     NativeMethods.FINDEX_SEARCH_OPS.FindExSearchNameMatch,
                     IntPtr.Zero,
+
+                    
+                    // Windows 7 and up or Windows 2008 Server R2 and up (otherwise use FINDEX_ADDITIONAL_FLAGS.None)
                     NativeMethods.FINDEX_ADDITIONAL_FLAGS.FIND_FIRST_EX_LARGE_FETCH);
 
                 if (!searchHandle.IsInvalid)

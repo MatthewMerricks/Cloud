@@ -1,7 +1,7 @@
 var searchData=
 [
   ['iaddtracesettings',['IAddTraceSettings',['../interface_cloud_api_public_1_1_interfaces_1_1_i_add_trace_settings.html',1,'CloudApiPublic::Interfaces']]],
-  ['iconoverlay',['IconOverlay',['../class_cloud_api_public_1_1_badge_n_e_t_1_1_icon_overlay.html',1,'CloudApiPublic::BadgeNET']]],
+  ['iclstatusfiletransfer',['ICLStatusFileTransfer',['../interface_cloud_api_public_1_1_event_message_receiver_1_1_status_1_1_i_c_l_status_file_transfer.html',1,'CloudApiPublic::EventMessageReceiver::Status']]],
   ['iexecutableexception',['IExecutableException',['../interface_cloud_api_public_1_1_sync_1_1_i_executable_exception.html',1,'CloudApiPublic::Sync']]],
   ['ifileresultparent',['IFileResultParent',['../interface_cloud_api_public_1_1_s_q_l_indexer_1_1_model_1_1_i_file_result_parent.html',1,'CloudApiPublic::SQLIndexer::Model']]],
   ['ihttpsettings',['IHttpSettings',['../interface_cloud_api_public_1_1_interfaces_1_1_i_http_settings.html',1,'CloudApiPublic::Interfaces']]],
@@ -14,5 +14,6 @@ var searchData=
   ['isqlaccess',['ISqlAccess',['../interface_cloud_api_public_1_1_s_q_l_indexer_1_1_sql_model_1_1_i_sql_access.html',1,'CloudApiPublic::SQLIndexer::SqlModel']]],
   ['isyncdataobject',['ISyncDataObject',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_data_object.html',1,'CloudApiPublic::Interfaces']]],
   ['isyncsettings',['ISyncSettings',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings.html',1,'CloudApiPublic::Interfaces']]],
-  ['isyncsettingsadvanced',['ISyncSettingsAdvanced',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced.html',1,'CloudApiPublic::Interfaces']]]
+  ['isyncsettingsadvanced',['ISyncSettingsAdvanced',['../interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings_advanced.html',1,'CloudApiPublic::Interfaces']]],
+  ['itemcount',['ItemCount',['../class_cloud_api_public_1_1_json_contracts_1_1_item_count.html',1,'CloudApiPublic::JsonContracts']]]
 ];

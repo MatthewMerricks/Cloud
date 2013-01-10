@@ -36,7 +36,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
-      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li class="current"><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
       <li>
@@ -126,17 +125,31 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:a1aae12ef5817fc325f70c2d46bceb43a"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>CLSyncStartStatus</b> : byte { <b>ErrorUnknown</b>, 
+<tr class="memitem:a1aae12ef5817fc325f70c2d46bceb43a"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>CLSyncStartStatus</b> : byte { <br/>
+&#160;&#160;<b>ErrorUnknown</b>, 
 <b>ErrorLongRootPath</b>, 
 <b>ErrorBadRootPath</b>, 
-<b>Successful</b>
+<b>ErrorAlreadyStarted</b>, 
+<br/>
+&#160;&#160;<b>ErrorIndexCreation</b>, 
+<b>ErrorStartingNotification</b>, 
+<b>ErrorCreatingRestClient</b>, 
+<b>ErrorCreatingFileMonitor</b>, 
+<br/>
+&#160;&#160;<b>ErrorStartingFileMonitor</b>, 
+<b>ErrorStartingInitialIndexing</b>, 
+<b>ErrorExceptionStartingFileMonitor</b>, 
+<b>ErrorGeneralSyncStartException</b>, 
+<br/>
+&#160;&#160;<b>Successful</b>
+<br/>
  }</td></tr>
 <tr class="separator:a1aae12ef5817fc325f70c2d46bceb43a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jan 2 2013 07:18:02 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jan 10 2013 15:45:55 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>
