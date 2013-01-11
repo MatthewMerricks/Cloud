@@ -162,6 +162,7 @@
     <Compile Include="Static\ItemsControlHelper.cs" />
     <Compile Include="Support\CLCopyFiles.cs" />
     <Compile Include="CLSync\CLSync.cs" />
+    <Compile Include="Static\CLOsVersionInfo.cs" />
     <Compile Include="Support\RelayCommand.cs" />
     <Compile Include="CLSync\SyncSettings.cs" />
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
@@ -235,7 +236,6 @@
     <Compile Include="SQLIndexer\SqlModel\SqlAccessor.cs" />
     <Compile Include="SQLIndexer\SqlModel\SqlEnum.cs" />
     <Compile Include="SQLIndexer\SqlModel\Sync.cs" />
-    <Compile Include="SQLIndexer\Static\NativeMethods.cs" />
     <Compile Include="SQLIndexer\StringCRC.cs" />
     <Compile Include="SQLIndexer\SyncedObject.cs" />
     <Compile Include="Static\CLDevices.cs" />
@@ -250,7 +250,6 @@
     <Compile Include="Static\TraceType.cs" />
     <Compile Include="Model\CLError.cs" />
     <Compile Include="Model\CLDefinitions.cs" />
-    <Compile Include="Support\CLSptOsVersion.cs" />
     <Compile Include="Support\CLTrace.cs" />
     <Compile Include="Support\DelayProcessable.cs" />
     <Compile Include="Support\ProcessingQueuesTimer.cs" />
@@ -311,7 +310,9 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="SQLIndexer\Static\" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\amd64\sqlceer40EN.dll">
       <Link>SQLIndexer\SqlCE\amd64\sqlceer40EN.dll</Link>
@@ -342,8 +343,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetFileName)
-copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetFileName)</PostBuildEvent>
+    <PostBuildEvent>copy $(TargetDir)*.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(TargetDir)*.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetName).xml
+copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetName).xml</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

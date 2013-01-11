@@ -17,5 +17,6 @@ var searchData=
   ['beginuploadfile',['BeginUploadFile',['../class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest.html#a28c4e7ed0b7a68212db570de8d4ee3fd',1,'CloudApiPublic::REST::CLHttpRest']]],
   ['bindingandtriggervalue',['BindingAndTriggerValue',['../class_cloud_api_public_1_1_event_message_receiver_1_1_binding_and_trigger_value.html',1,'CloudApiPublic::EventMessageReceiver']]],
   ['bindingevaluator',['BindingEvaluator',['../class_cloud_api_public_1_1_event_message_receiver_1_1_binding_evaluator.html',1,'CloudApiPublic::EventMessageReceiver']]],
+  ['buildversion',['BuildVersion',['../class_cloud_api_public_1_1_static_1_1_o_s_version_info.html#a28bb82539763ef094a44b228db774e06',1,'CloudApiPublic::Static::OSVersionInfo']]],
   ['bytetostring',['ByteToString',['../class_cloud_api_public_1_1_static_1_1_helpers.html#ab5ee515400d33f0152f234e476e92ec9',1,'CloudApiPublic::Static::Helpers']]]
 ];

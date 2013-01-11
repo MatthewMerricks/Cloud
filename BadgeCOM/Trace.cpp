@@ -32,7 +32,7 @@ Trace* Trace::getInstance()
             _single->_wsTraceDirectory.clear();
             _single->_wsTraceDirectory.append(wszBuffer);
 
-            // Build the full path to the trace directory and create it if it doesn't exis5t.
+            // Build the full path to the trace directory and create it if it doesn't exist.
             _single->_wsTraceDirectory.append(L"\\Cloud");
 		    int rc = SHCreateDirectoryExW(NULL, _single->_wsTraceDirectory.c_str(), NULL);
             if (rc != ERROR_SUCCESS && rc != ERROR_ALREADY_EXISTS)
@@ -84,12 +84,12 @@ void Trace::DetermineMaximumTraceLevel()
         }
         else
         {
-            _nMaxPriorityToTrace = 1;               // default the maximum trace priority if the file is not found.
+            _nMaxPriorityToTrace = 0;               // default the maximum trace priority if the file is not found.
         }
     }
     catch (...)
     {
-        _nMaxPriorityToTrace = 1;               // default the maximum trace priority if the file is not found.
+        _nMaxPriorityToTrace = 0;               // default the maximum trace priority if the file is not found.
     }
 }
 

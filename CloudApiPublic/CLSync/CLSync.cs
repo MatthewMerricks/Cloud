@@ -207,6 +207,12 @@ namespace CloudApiPublic
                     _syncSettings = settings.CopySettings();
                 }
 
+                // Check the TraceLocation vs. LogErrors
+                if (string.IsNullOrWhiteSpace(_syncSettings.TraceLocation) && _syncSettings.LogErrors)
+                {
+                    throw new ArgumentException("TraceLocation must be set if LogErrors is checked");
+                }
+
                 // Initialize trace in case it is not already initialized.
                 CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "CLSync: Starting...");

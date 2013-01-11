@@ -1088,9 +1088,11 @@
 	<table name="CreateFolder">
 		<col key="yes" def="s72">Directory_</col>
 		<col key="yes" def="s72">Component_</col>
+		<row><td>AMD64</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>CommonAppDataFolder</td><td>ISO19770_SystemTag</td></row>
 		<row><td>INSTALLDIR</td><td>ISO19770_LocalTag</td></row>
 		<row><td>SystemFolder</td><td>ISX_DEFAULTCOMPONENT6</td></row>
+		<row><td>X86</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 	</table>
 
 	<table name="CustomAction">
@@ -1967,12 +1969,8 @@
 		<col def="S72">ISComponentSubFolder_</col>
 		<row><td>badgecom.dll</td><td>BadgeCOM.dll</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll1</td><td>BadgeCOM.dll1</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
-		<row><td>badgecom.pdb</td><td>ISX_DEFAULTCOMPONENT1</td><td>BadgeCOM.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\BadgeCOM.pdb</td><td>1</td><td/></row>
-		<row><td>badgecom.pdb1</td><td>ISX_DEFAULTCOMPONENT</td><td>BadgeCOM.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release64\BadgeCOM.pdb</td><td>1</td><td/></row>
 		<row><td>cloudapipublic.dll</td><td>CloudApiPublic.dll</td><td>CLOUDA~1.DLL|CloudApiPublic.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\CloudApiPublic.dll</td><td>1</td><td/></row>
-		<row><td>cloudapipublic.pdb</td><td>ISX_DEFAULTCOMPONENT2</td><td>CLOUDA~1.PDB|CloudApiPublic.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\CloudApiPublic.pdb</td><td>1</td><td/></row>
 		<row><td>cloudapipublic.xml</td><td>ISX_DEFAULTCOMPONENT2</td><td>CLOUDA~1.XML|CloudApiPublic.xml</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\CloudApiPublic.xml</td><td>1</td><td/></row>
-		<row><td>cloudsdksyncsample.pdb</td><td>ISX_DEFAULTCOMPONENT2</td><td>CLOUDS~1.PDB|CloudSdkSyncSample.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\CloudSdkSyncSample.pdb</td><td>1</td><td/></row>
 		<row><td>cloudsdksyncsample.primary_o</td><td>CloudSdkSyncSample.Primary_output1</td><td>CloudSdkSyncSample.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSdkSyncSample1&gt;|Built</td><td>3</td><td/></row>
 		<row><td>cloudsdksyncsampledocs.zip</td><td>ISX_DEFAULTCOMPONENT5</td><td>CLOUDS~1.ZIP|CloudSdkSyncSampleDocs.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\html\CloudSdkSyncSampleDocs.zip</td><td>1</td><td/></row>
 		<row><td>cloudsdksyncsamplesource.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CLOUDS~1.ZIP|CloudSdkSyncSampleSource.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\CloudSdkSyncSampleSource.zip</td><td>1</td><td/></row>
@@ -1980,19 +1978,15 @@
 		<row><td>cloudtracelevel.ini</td><td>ISX_DEFAULTCOMPONENT2</td><td>CLOUDT~1.INI|CloudTraceLevel.ini</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\TraceConfig\CloudTraceLevel.ini</td><td>1</td><td/></row>
 		<row><td>enabletrace.ini</td><td>ISX_DEFAULTCOMPONENT2</td><td>ENABLE~1.INI|EnableTrace.ini</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\TraceConfig\EnableTrace.ini</td><td>1</td><td/></row>
 		<row><td>erikej.sqlce40.dll</td><td>ErikEJ.SqlCe40.dll</td><td>ERIKEJ~1.DLL|ErikEJ.SqlCe40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\ErikEJ.SqlCe40.dll</td><td>1</td><td/></row>
-		<row><td>erikej.sqlce40.pdb</td><td>ISX_DEFAULTCOMPONENT2</td><td>ERIKEJ~1.PDB|ErikEJ.SqlCe40.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\ErikEJ.SqlCe40.pdb</td><td>1</td><td/></row>
 		<row><td>microsoft.net.http.dll</td><td>Microsoft.Net.Http.dll</td><td>MICROS~1.DLL|Microsoft.Net.Http.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Net.Http.dll</td><td>1</td><td/></row>
-		<row><td>microsoft.net.http.pdb</td><td>ISX_DEFAULTCOMPONENT2</td><td>MICROS~1.PDB|Microsoft.Net.Http.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Net.Http.pdb</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest</td><td>ISX_DEFAULTCOMPONENT3</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest1</td><td>ISX_DEFAULTCOMPONENT4</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>msvcr90.dll</td><td>msvcr90.dll</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
 		<row><td>msvcr90.dll1</td><td>msvcr90.dll1</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
 		<row><td>newtonsoft.json.dll</td><td>Newtonsoft.Json.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Newtonsoft.Json.dll</td><td>1</td><td/></row>
-		<row><td>newtonsoft.json.pdb</td><td>ISX_DEFAULTCOMPONENT2</td><td>NEWTON~1.PDB|Newtonsoft.Json.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Newtonsoft.Json.pdb</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt</td><td>ISX_DEFAULTCOMPONENT3</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt1</td><td>ISX_DEFAULTCOMPONENT4</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>simplejson.dll</td><td>SimpleJson.dll</td><td>SIMPLE~1.DLL|SimpleJson.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SimpleJson.dll</td><td>1</td><td/></row>
-		<row><td>simplejson.pdb</td><td>ISX_DEFAULTCOMPONENT2</td><td>SIMPLE~1.PDB|SimpleJson.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SimpleJson.pdb</td><td>1</td><td/></row>
 		<row><td>sqlceca40.dll</td><td>sqlceca40.dll</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceca40.dll</td><td>1</td><td/></row>
 		<row><td>sqlceca40.dll1</td><td>sqlceca40.dll1</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceca40.dll</td><td>1</td><td/></row>
 		<row><td>sqlcecompact40.dll</td><td>sqlcecompact40.dll</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlcecompact40.dll</td><td>1</td><td/></row>
@@ -2006,12 +2000,9 @@
 		<row><td>sqlcese40.dll</td><td>sqlcese40.dll</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlcese40.dll</td><td>1</td><td/></row>
 		<row><td>sqlcese40.dll1</td><td>sqlcese40.dll1</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlcese40.dll</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.cor</td><td>SuperSocket.ClientEngine.Core.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Core.dll</td><td>1</td><td/></row>
-		<row><td>supersocket.clientengine.cor1</td><td>ISX_DEFAULTCOMPONENT2</td><td>SUPERS~1.PDB|SuperSocket.ClientEngine.Core.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Core.pdb</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.pro</td><td>SuperSocket.ClientEngine.Protocol.dll</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Protocol.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Protocol.dll</td><td>1</td><td/></row>
-		<row><td>supersocket.clientengine.pro1</td><td>ISX_DEFAULTCOMPONENT2</td><td>SUPERS~1.PDB|SuperSocket.ClientEngine.Protocol.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Protocol.pdb</td><td>1</td><td/></row>
 		<row><td>system.data.sqlserverce.dll</td><td>System.Data.SqlServerCe.dll</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\System.Data.SqlServerCe.dll</td><td>1</td><td/></row>
 		<row><td>websocket4net.dll</td><td>WebSocket4Net.dll</td><td>WEBSOC~1.DLL|WebSocket4Net.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\WebSocket4Net.dll</td><td>1</td><td/></row>
-		<row><td>websocket4net.pdb</td><td>ISX_DEFAULTCOMPONENT2</td><td>WEBSOC~1.PDB|WebSocket4Net.pdb</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\WebSocket4Net.pdb</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">

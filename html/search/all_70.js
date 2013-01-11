@@ -7,6 +7,8 @@ var searchData=
   ['point',['POINT',['../class_cloud_api_public_1_1_static_1_1_native_methods_1_1_p_o_i_n_t.html',1,'CloudApiPublic::Static::NativeMethods']]],
   ['postfilechange',['PostFileChange',['../class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest.html#ad0c2d380bc02589d4413f9bfdc446c5a',1,'CloudApiPublic::REST::CLHttpRest']]],
   ['postfilechangeresult',['PostFileChangeResult',['../class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_1_1_post_file_change_result.html',1,'CloudApiPublic::REST::CLHttpRest']]],
+  ['processorbits',['ProcessorBits',['../class_cloud_api_public_1_1_static_1_1_o_s_version_info.html#a4bba2ec69d883469d2ac7191ad3fa90b',1,'CloudApiPublic::Static::OSVersionInfo']]],
+  ['programbits',['ProgramBits',['../class_cloud_api_public_1_1_static_1_1_o_s_version_info.html#a9471eb197e8223c0c5c9177f22d0dba3',1,'CloudApiPublic::Static::OSVersionInfo']]],
   ['pushnotificationerror',['PushNotificationError',['../class_cloud_api_public_1_1_c_l_sync.html#a986a038f0f504de78c6ea811dacb0b21',1,'CloudApiPublic::CLSync']]],
   ['pushsettings',['PushSettings',['../class_cloud_api_public_1_1_push_notification_1_1_push_settings.html',1,'CloudApiPublic::PushNotification']]]
 ];

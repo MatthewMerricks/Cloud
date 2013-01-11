@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['edition',['Edition',['../class_cloud_api_public_1_1_static_1_1_o_s_version_info.html#ac160c64e6658e388931663a7f2511f9b',1,'CloudApiPublic::Static::OSVersionInfo']]],
   ['encryptstring',['EncryptString',['../class_cloud_api_public_1_1_static_1_1_helpers.html#a5f0d5e1d9aef13be5d22904458c34d80',1,'CloudApiPublic::Static::Helpers']]],
   ['endcopyfile',['EndCopyFile',['../class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest.html#ad0b4cfa1d135f212abd4062607559630',1,'CloudApiPublic::REST::CLHttpRest']]],
   ['enddownloadfile',['EndDownloadFile',['../class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest.html#abd3117622a89b31c4c85c1b955a4a936',1,'CloudApiPublic::REST::CLHttpRest']]],

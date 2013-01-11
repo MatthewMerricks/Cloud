@@ -35,7 +35,7 @@ namespace CloudApiPublic.Model
 
         public string OSType()
         {
-            string osType = OSInfo.Name + " " + OSInfo.Edition + " " + OSInfo.Bits.ToString() + " " +  Resources.Resources.OsBits;
+            string osType = OSVersionInfo.Name + " " + OSVersionInfo.Edition + " " + OSVersionInfo.OSBits.ToString() + " " + Resources.Resources.OsBits;
             return osType;
         }
 
@@ -46,7 +46,7 @@ namespace CloudApiPublic.Model
 
         public string OSVersion()
         {
-            string osVersion = OSInfo.VersionString;
+            string osVersion = OSVersionInfo.VersionString;
             return (osVersion);
         }
 

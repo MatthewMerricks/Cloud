@@ -96,6 +96,7 @@ namespace CloudApiPublic.BadgeNET
                 CLError error = ex;
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: Initialize: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                throw;
             }
         }
 
