@@ -235,7 +235,6 @@
     <Compile Include="SQLIndexer\SqlModel\SqlAccessor.cs" />
     <Compile Include="SQLIndexer\SqlModel\SqlEnum.cs" />
     <Compile Include="SQLIndexer\SqlModel\Sync.cs" />
-    <Compile Include="SQLIndexer\Static\NativeMethods.cs" />
     <Compile Include="SQLIndexer\StringCRC.cs" />
     <Compile Include="SQLIndexer\SyncedObject.cs" />
     <Compile Include="Static\CLDevices.cs" />
@@ -310,7 +309,9 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="SQLIndexer\Static\" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\amd64\sqlceer40EN.dll">
       <Link>SQLIndexer\SqlCE\amd64\sqlceer40EN.dll</Link>

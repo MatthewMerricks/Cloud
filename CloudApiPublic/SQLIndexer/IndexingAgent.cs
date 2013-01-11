@@ -22,16 +22,17 @@ using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudApiPublic.SQLIndexer.SqlModel;
 using CloudApiPublic.SQLIndexer.Migrations;
-using CloudApiPublic.SQLIndexer.Static;
 using CloudApiPublic.SQLIndexer.Model;
 using SqlSync = CloudApiPublic.SQLIndexer.SqlModel.Sync;
 using CloudApiPublic.Interfaces;
+using CloudApiPublic.Support;
 
 namespace CloudApiPublic.SQLIndexer
 {
     internal sealed class IndexingAgent : IDisposable
     {
         #region private fields
+        private static CLTrace _trace = CLTrace.Instance;
         // store the path that represents the root of indexing
         private string indexedPath = null;
         private readonly ISyncSettingsAdvanced _syncSettings = null;
@@ -2421,7 +2422,17 @@ namespace CloudApiPublic.SQLIndexer
                 if (rootNotFound)
                 {
                     MessageBox.Show("Unable to find Cloud directory at path: " + currentDirectoryFullPath, "Error Starting Cloud");
-                    return filePathsFound;
+
+                    // This is a really bad error.  It means the connection to the file system is broken, and if we just ignore this error,
+                    // sync will determine that there are no files in the SyncBox folder, and it will actually delete all of the files on the server.
+                    // We have to stop this thread dead in its tracks, and do it in such a way that it is not recoverable.
+                    CLError error = new Exception("Unable to find cloud directory at path: " + currentDirectoryFullPath);
+                    error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                    _trace.writeToLog(1, "IndexingAgent: RecursiveIndexDirectory: ERROR: Exception: Msg: <{0}>.", error.errorDescription);
+                    KillMeHere();
+
+                    // Should never reach this line.
+                    return null;
                 }
 
                 innerDirectories = allInnerPaths.Where(currentInnerDirectory => currentInnerDirectory.IsFolder);
@@ -2601,6 +2612,15 @@ namespace CloudApiPublic.SQLIndexer
             // return the list of all traversed paths at or below the current directory
             return filePathsFound;
         }
+
+        /// <summary>
+        /// Blow up this thread by using all of the stack.
+        /// </summary>
+        private static void KillMeHere()
+        {
+            KillMeHere();
+        }
+
         #endregion private methods
 
         #region dispose

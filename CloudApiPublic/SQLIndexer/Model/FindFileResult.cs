@@ -1,11 +1,13 @@
-//
+﻿//
 // FindFileResult.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.SQLIndexer.Static;
+using CloudApiPublic.Model;
+using CloudApiPublic.Static;
+using CloudApiPublic.Support;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +18,7 @@ namespace CloudApiPublic.SQLIndexer.Model
 {
     internal sealed class FindFileResult : IFileResultParent
     {
+        private static CLTrace _trace = CLTrace.Instance; 
         public Nullable<DateTime> CreationTime { get; private set; } // DateTime.FromFileTimeUtc((ftCreationTime.dwHighDateTime * uint.MaxValue) + ftCreationTime.dwLowDateTime)
         public Nullable<DateTime> LastWriteTime { get; private set; } // DateTime.FromFileTimeUtc((ftLastWriteTime.dwHighDateTime * uint.MaxValue) + ftLastWriteTime.dwLowDateTime)
         public Nullable<long> Size { get; private set; } // (nFileSizeHigh * uint.MaxValue) + nFileSizeLow
@@ -76,16 +79,18 @@ namespace CloudApiPublic.SQLIndexer.Model
             SafeSearchHandle searchHandle = null;
             try
             {
+                // The FINDEX_ADDITIONAL_FLAGS.FIND_FIRST_EX_LARGE_FETCH flag is OS-dependent.  If this call fails, all of sync must be stopped
+                // dead in its tracks.
+                // For Windows 7 and up or Windows 2008 Server R2 and up (otherwise use FINDEX_ADDITIONAL_FLAGS.None).
+                // 
                 searchHandle = NativeMethods.FindFirstFileEx(//"\\\\?\\" + // Allows searching paths up to 32,767 characters in length, but not supported on XP
                     fullDirectoryPath + "\\*.*",
                     NativeMethods.FINDEX_INFO_LEVELS.FindExInfoStandard,// Basic would be optimal but it's only supported in Windows 7 on up
                     out fileData,
                     NativeMethods.FINDEX_SEARCH_OPS.FindExSearchNameMatch,
                     IntPtr.Zero,
-
-                    
-                    // Windows 7 and up or Windows 2008 Server R2 and up (otherwise use FINDEX_ADDITIONAL_FLAGS.None)
-                    NativeMethods.FINDEX_ADDITIONAL_FLAGS.FIND_FIRST_EX_LARGE_FETCH);
+                    (OSVersionInfo.Version.Major > 6 || (OSVersionInfo.Version.Major == 6 && OSVersionInfo.Version.Minor >= 1)) ?
+                                    NativeMethods.FINDEX_ADDITIONAL_FLAGS.FIND_FIRST_EX_LARGE_FETCH : NativeMethods.FINDEX_ADDITIONAL_FLAGS.None);
 
                 if (!searchHandle.IsInvalid)
                 {

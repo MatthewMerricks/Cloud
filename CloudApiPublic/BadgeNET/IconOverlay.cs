@@ -163,6 +163,7 @@ namespace CloudApiPublic.BadgeNET
                                 nonNullState.Value.Value = false;
                                 nonNullState.Key.Set();
                             }
+                            return;
                         }
 
                         try
@@ -192,7 +193,7 @@ namespace CloudApiPublic.BadgeNET
 
                     threadInit.Start(new KeyValuePair<AutoResetEvent, GenericHolder<bool>>(waitHandleInitialize, initializeSuccessHolder));
 
-                    if (!waitHandleInitialize.WaitOne(5000)
+                    if (!waitHandleInitialize.WaitOne(60000)
                         || !initializeSuccessHolder.Value)
                     {
                         _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit was not started.");

@@ -17,7 +17,7 @@
                 <Grid Background="#FFF2F4F5" Visibility="{Binding Visibility}">
                     <Border BorderBrush="Black" BorderThickness="1" />
                     <StackPanel Orientation="Vertical" Margin="3,2,0,0">
-                        <TextBlock Text="{Binding CloudRelativePath}" FontSize="8"/>
+                        <TextBlock Text="{Binding SyncRelativePath}" FontSize="8"/>
                         <ContentPresenter Height="20" Content="{Binding StatusGraph}" />
                         <Grid Margin="0,1,0,1">
                             <Grid.ColumnDefinitions>

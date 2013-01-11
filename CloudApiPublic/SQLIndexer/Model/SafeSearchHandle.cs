@@ -6,7 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Microsoft.Win32.SafeHandles;
-using CloudApiPublic.SQLIndexer.Static;
+using CloudApiPublic.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
