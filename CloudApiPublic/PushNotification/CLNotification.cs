@@ -112,10 +112,6 @@ namespace CloudApiPublic.PushNotification
         /// </summary>
         private static readonly Dictionary<Nullable<long>, CLNotification> NotificationClientsRunning = new Dictionary<Nullable<long>, CLNotification>();
 
-        //TODO: Change this polling interval back to 20 seconds when server side events and/or WebSockets have been implemented.
-        //private const int MillisecondManualPollingInterval = 20000;
-        private const int MillisecondManualPollingInterval = 5000;
-
         /// <summary>
         /// Access Instance to get the push notification server object for this client.
         /// Then call methods on that instance.
@@ -448,7 +444,7 @@ namespace CloudApiPublic.PushNotification
                             manualPollSuccessful = false;
                             manualPollingIteration = CLDefinitions.ManualPollingIterationsBeforeConnectingPush - 1;
                             _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Decremented manualPollingIteration count: {0}.", manualPollingIteration);
-                            Thread.Sleep(MillisecondManualPollingInterval);
+                            Thread.Sleep(CLDefinitions.ManualPollingIterationPeriodInMilliseconds);
                         }
 
                         error.LogErrors(castState._syncSettings.TraceLocation, forceErrors || castState._syncSettings.LogErrors);
@@ -456,7 +452,7 @@ namespace CloudApiPublic.PushNotification
                 }
                 else
                 {
-                    Thread.Sleep(MillisecondManualPollingInterval);
+                    Thread.Sleep(CLDefinitions.ManualPollingIterationPeriodInMilliseconds);
                 }
             }
         }

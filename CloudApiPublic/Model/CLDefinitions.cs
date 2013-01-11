@@ -26,11 +26,12 @@ namespace CloudApiPublic.Model
         public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
         public const int AppVersion = 0;
 
-
         //TODO: Change this value back to 10 when server side events or Websockets are properly implemented.
         //public const int ManualPollingIterationsBeforeConnectingPush = 10;
         public const int ManualPollingIterationsBeforeConnectingPush = int.MaxValue;
-        public const double ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
+        //TODO: Change this polling interval back to 60 seconds when server side events and/or WebSockets have been implemented.
+        //public const int ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
+        public const int ManualPollingIterationPeriodInMilliseconds = 5000;
         public const int PushNotificationFaultLimitBeforeFallback = 5;
 #if PRODUCTION_BACKEND
 
@@ -73,7 +74,7 @@ namespace CloudApiPublic.Model
         //                                                             "\"client_id\":{8},\"client_secret\":{9}}}";
 
         // Platform Auth
-        public const string CLPlatformAuthServerURL = HttpPrefix + @"platform-auth.cliff.cloudburrito.com";
+        public const string CLPlatformAuthServerURL = HttpPrefix + @"platform.cliff.cloudburrito.com";
 
         // Meta Data
         public const string CLMetaDataServerURL = HttpPrefix + @"mds.cliff.cloudburrito.com";
