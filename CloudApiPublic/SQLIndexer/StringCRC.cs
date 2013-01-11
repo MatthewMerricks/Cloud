@@ -13,7 +13,7 @@ using System.Text;
 
 namespace CloudApiPublic.SQLIndexer
 {
-    public class StringCRC : HashAlgorithm //Core code
+    internal class StringCRC : HashAlgorithm //Core code
     {
         public const UInt32 DefaultPolynomial = 0xedb88320;
         public const UInt32 DefaultSeed = 0xffffffff;

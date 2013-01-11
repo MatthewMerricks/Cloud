@@ -22,7 +22,7 @@ namespace CloudApiPublic.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace CloudApiPublic.Resources {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CloudApiPublic.Resources.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace CloudApiPublic.Resources {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Oops.  We&apos;re sorry, it seems that something went wrong while requesting status from the server..
         /// </summary>
-        public static string ErrorPostingSyncFromServer {
+        internal static string ErrorPostingSyncFromServer {
             get {
                 return ResourceManager.GetString("ErrorPostingSyncFromServer", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Oops.  We&apos;re sorry, it seems that something went wrong while syncing files to the server..
         /// </summary>
-        public static string ErrorPostingSyncToServer {
+        internal static string ErrorPostingSyncToServer {
             get {
                 return ResourceManager.GetString("ErrorPostingSyncToServer", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Oops.  We&apos;re sorry, it seems that something when wrong while starting a server file upload or download. .
         /// </summary>
-        public static string ErrorPuttingUploadOrDownloadToServer {
+        internal static string ErrorPuttingUploadOrDownloadToServer {
             get {
                 return ResourceManager.GetString("ErrorPuttingUploadOrDownloadToServer", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while creating your account.  The error code is {0}..
         /// </summary>
-        public static string ExceptionCreatingUserRegistrationWithCode {
+        internal static string ExceptionCreatingUserRegistrationWithCode {
             get {
                 return ResourceManager.GetString("ExceptionCreatingUserRegistrationWithCode", resourceCulture);
             }
@@ -99,7 +99,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while logging into your account.  The error code is {0}..
         /// </summary>
-        public static string ExceptionLoggingInWithCode {
+        internal static string ExceptionLoggingInWithCode {
             get {
                 return ResourceManager.GetString("ExceptionLoggingInWithCode", resourceCulture);
             }
@@ -108,7 +108,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while removing this device from your account..
         /// </summary>
-        public static string ExceptionUnlinking {
+        internal static string ExceptionUnlinking {
             get {
                 return ResourceManager.GetString("ExceptionUnlinking", resourceCulture);
             }
@@ -117,7 +117,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while removing this device from your account.  The error code is {0}..
         /// </summary>
-        public static string ExceptionUnlinkingWithCode {
+        internal static string ExceptionUnlinkingWithCode {
             get {
                 return ResourceManager.GetString("ExceptionUnlinkingWithCode", resourceCulture);
             }
@@ -126,7 +126,7 @@ namespace CloudApiPublic.Resources {
         /// <summary>
         ///   Looks up a localized string similar to bits.
         /// </summary>
-        public static string OsBits {
+        internal static string OsBits {
             get {
                 return ResourceManager.GetString("OsBits", resourceCulture);
             }

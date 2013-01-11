@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<title>Cloud Windows Client SDK: Package CloudApiPublic.Model</title>
+<title>Cloud Windows Client SDK: CloudApiPublic::Model Namespace Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -84,66 +84,55 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
-<a href="#enum-members">Enumerations</a>  </div>
+<a href="#nested-classes">Classes</a>  </div>
   <div class="headertitle">
-<div class="title">Package CloudApiPublic.Model</div>  </div>
+<div class="title">CloudApiPublic::Model Namespace Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Contains various objects exposed through public API functions.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_path.html">FilePath</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Self-referencing file path storage, each instance contains a name and a link to it's parent, ToString returns a combined representation (i.e. "C:\A\B\C\D.txt"), Implicitly converted from FileInfo and DirectoryInfo  <a href="class_cloud_api_public_1_1_model_1_1_file_path.html#details">More...</a><br/></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Self-referencing file path storage, each instance contains a name and a link to it's parent, ToString returns a combined representation (i.e. "C:\A\B\C\D.txt"), Implicitly converted from a full string path or from FileInfo or DirectoryInfo  <a href="class_cloud_api_public_1_1_model_1_1_file_path.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_path_comparer.html">FilePathComparer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Comparer to be used in all dictionaries or hashsets on <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_path.html" title="Self-referencing file path storage, each instance contains a name and a link to it&#39;s parent...">FilePath</a> objects, also used to perform a deep compare between <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_path.html" title="Self-referencing file path storage, each instance contains a name and a link to it&#39;s parent...">FilePath</a> objects manually  <a href="class_cloud_api_public_1_1_model_1_1_file_path_comparer.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4.html">FilePathDictionary&lt; T &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generic-typed dictionary by <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_path.html" title="Self-referencing file path storage, each instance contains a name and a link to it&#39;s parent...">FilePath</a> ¡¡Not thread-safe, must be locked for synchronized use!! recursively stores directory structure to produce same time order operations as a Dictionary, but allows recursive renaming and deletion operations of everything contained below a given path (use with callbacks to retrieve subsequent renames or deletions)  <a href="class_cloud_api_public_1_1_model_1_1_file_path_dictionary_3_01_t_01_4.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>FilePathDictionary&lt; T &gt;</b></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generic-typed dictionary by <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_path.html" title="Self-referencing file path storage, each instance contains a name and a link to it&#39;s parent...">FilePath</a> ¡¡Not thread-safe, must be locked for synchronized use!! recursively stores directory structure to produce same time order operations as a Dictionary, but allows recursive renaming and deletion operations of everything contained below a given path (use with callbacks to retrieve subsequent renames or deletions) <br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_path_hierarchical_node_3_01_t_01_4.html">FilePathHierarchicalNode&lt; T &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Node to represent a hierarchical representation of FilePaths and their generic-typed values  <a href="class_cloud_api_public_1_1_model_1_1_file_path_hierarchical_node_3_01_t_01_4.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>FilePathHierarchicalNode&lt; T &gt;</b></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Node to represent a hierarchical representation of FilePaths and their generic-typed values <br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_path_hierarchical_node_with_value_3_01_t_01_4.html">FilePathHierarchicalNodeWithValue&lt; T &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extends the generic-typed FilePathHierarchicalNode to store the node Value  <a href="class_cloud_api_public_1_1_model_1_1_file_path_hierarchical_node_with_value_3_01_t_01_4.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>FilePathHierarchicalNodeWithValue&lt; T &gt;</b></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extends the generic-typed FilePathHierarchicalNode to store the node Value <br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_badge_path_deleted_args.html">BadgePathDeletedArgs</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_badge_path_renamed_args.html">BadgePathRenamedArgs</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_account.html">CLAccount</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An object of this class represents a Cloud account.  <a href="class_cloud_api_public_1_1_model_1_1_c_l_account.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>CLDefinitions</b></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_device.html">CLDevice</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_definitions.html">CLDefinitions</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains constants used by Cloud  <a href="class_cloud_api_public_1_1_model_1_1_c_l_definitions.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_json_result_with_error.html">CLJsonResultWithError</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class that represents an error, and supports logging of the error. The error may contain one or more exceptions.  <a href="class_cloud_api_public_1_1_model_1_1_c_l_error.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cloud_api_public_1_1_model_1_1_c_l_status_file_transfer_update_parameters.html">CLStatusFileTransferUpdateParameters</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parameters for a file transfer progress update. If constructed via the default, parameterless constructor then all properties getters will throw an exception.  <a href="struct_cloud_api_public_1_1_model_1_1_c_l_status_file_transfer_update_parameters.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_combined_collection_3_01_t_01_4.html">CombinedCollection&lt; T &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used to represent a new collection from two composite collections  <a href="class_cloud_api_public_1_1_model_1_1_combined_collection_3_01_t_01_4.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_constructed_holder.html">ConstructedHolder</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cloud_api_public_1_1_model_1_1_delete_badge_path.html">DeleteBadgePath</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>CombinedCollection&lt; T &gt;</b></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Used to represent a new collection from two composite collections <br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_event_message_args.html">EventMessageArgs</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains event message properties  <a href="class_cloud_api_public_1_1_model_1_1_event_message_args.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html">FileChange</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Class for storing information about a file system change to be passed to the sync service for processing, implements DelayProcessable to allow timer-delayed action processing (one time only per instance)  <a href="class_cloud_api_public_1_1_model_1_1_file_change.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cloud_api_public_1_1_model_1_1_file_change_merge.html">FileChangeMerge</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do not use the parameterless constructor because the resulting struct will be marked invalid and throw exceptions when retrieving public property values  <a href="struct_cloud_api_public_1_1_model_1_1_file_change_merge.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>FileChangeMerge</b></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Do not use the parameterless constructor because the resulting struct will be marked invalid and throw exceptions when retrieving public property values <br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change_merge_to_state_args.html">FileChangeMergeToStateArgs</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change_with_dependencies.html">FileChangeWithDependencies</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension of <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html" title="Class for storing information about a file system change to be passed to the sync service for process...">FileChange</a> to add a property for Dependencies  <a href="class_cloud_api_public_1_1_model_1_1_file_change_with_dependencies.html#details">More...</a><br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>FileChangeWithDependencies</b></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension of <a class="el" href="class_cloud_api_public_1_1_model_1_1_file_change.html" title="Class for storing information about a file system change to be passed to the sync service for process...">FileChange</a> to add a property for Dependencies <br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_metadata.html">FileMetadata</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Contains data used to compare files or folders along with an MD5 checksum to establish identity  <a href="class_cloud_api_public_1_1_model_1_1_file_metadata.html#details">More...</a><br/></td></tr>
@@ -154,49 +143,33 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_file_metadata_hashable_comparer.html">FileMetadataHashableComparer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Custom comparer for <a class="el" href="struct_cloud_api_public_1_1_model_1_1_file_metadata_hashable_properties.html" title="Comparable properties used to determine uniqueness of a file change ">FileMetadataHashableProperties</a> which generates a better than default hash code for reduced hash conflicts when used in a Dictionary/Hashset  <a href="class_cloud_api_public_1_1_model_1_1_file_metadata_hashable_comparer.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_generic_holder_3_01_t_01_4.html">GenericHolder&lt; T &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>GenericHolder&lt; T &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_handleable_event_args.html">HandleableEventArgs</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">interface &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_sender.html">IMessageSender</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">interface &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_sender_provider.html">IMessageSenderProvider</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_null_message_sender.html">NullMessageSender</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base class for EventArgs which can be marked as handled when fired to EventHandlers  <a href="class_cloud_api_public_1_1_model_1_1_handleable_event_args.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_increment_count_args.html">IncrementCountArgs</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Properties for how much a value was incremented, meaning is according to which event passes these args  <a href="class_cloud_api_public_1_1_model_1_1_increment_count_args.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_notifiable_object_3_01_t_01_4.html">NotifiableObject&lt; T &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>NotifiableObject&lt; T &gt;</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cloud_api_public_1_1_model_1_1_possibly_preexisting_file_change_in_error.html">PossiblyPreexistingFileChangeInError</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>PossiblyPreexistingFileChangeInError</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cloud_api_public_1_1_model_1_1_possibly_streamable_file_change.html">PossiblyStreamableFileChange</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cloud_api_public_1_1_model_1_1_rename_badge_path.html">RenameBadgePath</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_revision_changer.html">RevisionChanger</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct_cloud_api_public_1_1_model_1_1_set_badge.html">SetBadge</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_set_badge_queued_args.html">SetBadgeQueuedArgs</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>PossiblyStreamableFileChange</b></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_set_count_args.html">SetCountArgs</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Properties for what a value was set to, meaning is according to which event passes these args  <a href="class_cloud_api_public_1_1_model_1_1_set_count_args.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_transfer_update_args.html">TransferUpdateArgs</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Properties for a file transfer status update  <a href="class_cloud_api_public_1_1_model_1_1_transfer_update_args.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_model_1_1_update_path_args.html">UpdatePathArgs</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
-Enumerations</h2></td></tr>
-<tr class="memitem:afac2ce379fc3f507edc66ebd96b6ff80"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>MessageSenderType</b> { <b>Message_WindowSyncStatus_ShouldClose</b>
- }</td></tr>
-<tr class="separator:afac2ce379fc3f507edc66ebd96b6ff80"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Contains various objects exposed through public API functions. </p>
+</div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jan 2 2013 07:18:03 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jan 10 2013 18:14:46 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

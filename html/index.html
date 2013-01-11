@@ -97,14 +97,19 @@ Introduction</h1>
 <div class="line">            DatabaseFolderFullPath: <span class="stringliteral">&quot;&lt;full path of the folder to contain the database file IndexDB.sdf&gt;&quot;</span>,</div>
 <div class="line">                );</div>
 <div class="line">        </div>
-<div class="line">        <span class="comment">// Construct the SyncBox object with the settings.</span></div>
-<div class="line">        CLSync box = <span class="keyword">new</span> CLSync(settings);</div>
+<div class="line">        <span class="comment">// Construct the SyncBox object.</span></div>
+<div class="line">        CLSync box = <span class="keyword">new</span> CLSync();</div>
 <div class="line"></div>
 <div class="line">        <span class="comment">// Subscribe to the events (notifications).</span></div>
 <div class="line">        box.ActivityMessage += OnActivityMessage;</div>
 <div class="line">    </div>
-<div class="line">        <span class="comment">// Start syncing</span></div>
-<div class="line">        box.Start(); </div>
+<div class="line">        <span class="comment">// Start syncing with the settings.</span></div>
+<div class="line">        CLSyncStartStatus startStatus;</div>
+<div class="line">        box.Start(settings, out startStatus ); </div>
+<div class="line">        <span class="keywordflow">if</span> (startStatus != CLSyncStartStatus.Successful)</div>
+<div class="line">        {</div>
+<div class="line">            <span class="comment">// Handle error here</span></div>
+<div class="line">        }</div>
 <div class="line">    </div>
 <div class="line">        <span class="comment">// ...</span></div>
 <div class="line">    </div>
@@ -134,18 +139,24 @@ Introduction</h1>
 <div class="line">        }</div>
 <div class="line">    }</div>
 <div class="line">}</div>
-</div><!-- fragment --><p>The code above will silently and automatically sync files in the "SyncBox1" directory with your other devices, and with your SyncBox on the Cloud servers.</p>
+</div><!-- fragment --><p>The code above will automatically sync files in the "SyncBox1" directory with your other devices related to this SyncBox, and with the SyncBox on the Cloud servers.</p>
 <p>Should you need more extensive control over the syncing process, the API will allow you to implement your own methods for full control, including real time sync status and server push notification.</p>
 <h1><a class="anchor" id="install_sec"></a>
 Installation</h1>
 <p>Get started by following the steps below:</p>
 <ul>
-<li>Browse to the Cloud download page at <a href="http://web-edge.cloudburrito.com">http://web-edge.cloudburrito.com</a>.</li>
-<li>Click the Download button to download the Windows Cloud client.</li>
-<li>Follow the instructions to install the Cloud client program.</li>
-<li>Run the Cloud.exe program and use it to sign up for a free Cloud account.</li>
-<li>You will find this documentation in "C:\Program Files (x86)\Cloud.com\Cloud\Docs".</li>
-<li>Use Visual Studio to load the sample program at "C:\Program Files (x86)\Cloud.com\Cloud\Samples\SampleSyncBox.sln".</li>
+<li>Browse to the Cloud download page at <a href="http://developer.cliff.cloudburrito.com">http://developer.cliff.cloudburrito.com</a>.</li>
+<li>Click the Download button to download the Windows Cloud SDK installation program.</li>
+<li>Follow the instructions to install the Cloud SDK.</li>
+<li>You will find the following items in your Start menu: . Cloud.com o Cloud<ul>
+<li>Start CloudSdkSyncSample: Starts the pre-built sample program which demonstrates the use of the API provided in the SDK.</li>
+<li>Show SDK Documentation: Launches your default browser to view this documentation.</li>
+<li></li>
+</ul>
+</li>
+<li>Run the CloudSdkSyncSample.exe program and use it to sign up for a free Cloud account.</li>
+<li>You will find this documentation in "C:\Program Files (x86)\Cloud.com\CloudSyncSample\Docs".</li>
+<li>Use Visual Studio to load the sample program at "C:\Program Files (x86)\Cloud.com\Cloud\CloudSdkSyncSample\CloudSdkSyncSampleSyncBox.sln".</li>
 <li>Enjoy!</li>
 </ul>
 <h1><a class="anchor" id="copyright_sec"></a>
@@ -154,7 +165,7 @@ Copyright (C) Cloud.com.  All Rights Reserved.</h1>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jan 2 2013 07:18:04 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jan 10 2013 18:14:49 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

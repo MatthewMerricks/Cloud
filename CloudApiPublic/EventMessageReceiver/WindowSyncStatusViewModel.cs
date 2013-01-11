@@ -717,104 +717,104 @@ namespace CloudApiPublic.EventMessageReceiver
 
         #endregion
 
-        #region Relay Commands
+        //#region Relay Commands
 
-        /// <summary>
-        /// Helper IMessageSender which allows sending CLAppMessages from a private library
-        /// </summary>
-        public static IMessageSender MessageSender
-        {
-            get
-            {
-                lock (MessageSenderLocker)
-                {
-                    if (_messageSender == null
-                        && Application.Current.Resources.Contains("Locator"))
-                    {
-                        IMessageSenderProvider messageSenderProvider = Application.Current.Resources["Locator"] as IMessageSenderProvider;
-                        if (messageSenderProvider != null)
-                        {
-                            _messageSender = messageSenderProvider.IMessageSender;
-                        }
-                    }
-                    return _messageSender ?? (_messageSender = NullMessageSender.Instance);
-                }
-            }
-        }
-        private static IMessageSender _messageSender = null;
-        private static readonly object MessageSenderLocker = new object();
+        ///// <summary>
+        ///// Helper IMessageSender which allows sending CLAppMessages from a private library
+        ///// </summary>
+        //public static IMessageSender MessageSender
+        //{
+        //    get
+        //    {
+        //        lock (MessageSenderLocker)
+        //        {
+        //            if (_messageSender == null
+        //                && Application.Current.Resources.Contains("Locator"))
+        //            {
+        //                IMessageSenderProvider messageSenderProvider = Application.Current.Resources["Locator"] as IMessageSenderProvider;
+        //                if (messageSenderProvider != null)
+        //                {
+        //                    _messageSender = messageSenderProvider.IMessageSender;
+        //                }
+        //            }
+        //            return _messageSender ?? (_messageSender = NullMessageSender.Instance);
+        //        }
+        //    }
+        //}
+        //private static IMessageSender _messageSender = null;
+        //private static readonly object MessageSenderLocker = new object();
 
-        /// <summary>
-        /// Gets the command which sends a close message to <see cref="MessageSender"/>
-        /// </summary>
-        public ICommand WindowSyncStatus_DoneCommand
-        {
-            get
-            {
-                return _windowSyncStatus_DoneCommand
-                    ?? (_windowSyncStatus_DoneCommand = new RelayCommand<object>(
-                        state =>
-                        {
-                            MessageSender.Send(MessageSenderType.Message_WindowSyncStatus_ShouldClose);
-                        }));
-            }
-        }
-        private ICommand _windowSyncStatus_DoneCommand;
+        ///// <summary>
+        ///// Gets the command which sends a close message to <see cref="MessageSender"/>
+        ///// </summary>
+        //public ICommand WindowSyncStatus_DoneCommand
+        //{
+        //    get
+        //    {
+        //        return _windowSyncStatus_DoneCommand
+        //            ?? (_windowSyncStatus_DoneCommand = new RelayCommand<object>(
+        //                state =>
+        //                {
+        //                    MessageSender.Send(MessageSenderType.Message_WindowSyncStatus_ShouldClose);
+        //                }));
+        //    }
+        //}
+        //private ICommand _windowSyncStatus_DoneCommand;
 
-        /// <summary>
-        /// Gets the command which sends a show log window message to <see cref="MessageSender"/>
-        /// </summary>
-        public ICommand WindowSyncStatus_ShowLogCommand
-        {
-            get
-            {
-                return _windowSyncStatus_ShowLogCommand
-                    ?? (_windowSyncStatus_ShowLogCommand = new RelayCommand<object>(
-                                          state =>
-                                          {
-                                              //TODO: Implement.
-                                              MessageBox.Show("Not implemented.", "Not Implemented!", MessageBoxButton.OK);
-                                          }));
-            }
-        }
-        private ICommand _windowSyncStatus_ShowLogCommand;
+        ///// <summary>
+        ///// Gets the command which sends a show log window message to <see cref="MessageSender"/>
+        ///// </summary>
+        //internal ICommand WindowSyncStatus_ShowLogCommand
+        //{
+        //    get
+        //    {
+        //        return _windowSyncStatus_ShowLogCommand
+        //            ?? (_windowSyncStatus_ShowLogCommand = new RelayCommand<object>(
+        //                                  state =>
+        //                                  {
+        //                                      //TODO: Implement.
+        //                                      MessageBox.Show("Not implemented.", "Not Implemented!", MessageBoxButton.OK);
+        //                                  }));
+        //    }
+        //}
+        //private ICommand _windowSyncStatus_ShowLogCommand;
 
-        /// <summary>
-        /// Gets the command which sends a save log window message to <see cref="MessageSender"/>
-        /// </summary>
-        public ICommand WindowSyncStatus_SaveLogCommand
-        {
-            get
-            {
-                return _windowSyncStatus_SaveLogCommand
-                    ?? (_windowSyncStatus_SaveLogCommand = new RelayCommand<object>(
-                                          state =>
-                                          {
-                                              //TODO: Implement.
-                                              MessageBox.Show("Not implemented.", "Not Implemented!", MessageBoxButton.OK);
-                                          }));
-            }
-        }
-        private ICommand _windowSyncStatus_SaveLogCommand;
+        ///// <summary>
+        ///// Gets the command which sends a save log window message to <see cref="MessageSender"/>
+        ///// </summary>
+        //internal ICommand WindowSyncStatus_SaveLogCommand
+        //{
+        //    get
+        //    {
+        //        return _windowSyncStatus_SaveLogCommand
+        //            ?? (_windowSyncStatus_SaveLogCommand = new RelayCommand<object>(
+        //                                  state =>
+        //                                  {
+        //                                      //TODO: Implement.
+        //                                      MessageBox.Show("Not implemented.", "Not Implemented!", MessageBoxButton.OK);
+        //                                  }));
+        //    }
+        //}
+        //private ICommand _windowSyncStatus_SaveLogCommand;
 
-        /// <summary>
-        /// Gets the command which sends a show error log window message to <see cref="MessageSender"/>
-        /// </summary>
-        public ICommand WindowSyncStatus_ShowErrorLogCommand
-        {
-            get
-            {
-                return _windowSyncStatus_ShowErrorLogCommand
-                    ?? (_windowSyncStatus_ShowErrorLogCommand = new RelayCommand<object>(
-                                          state =>
-                                          {
-                                              //TODO: Implement.
-                                              MessageBox.Show("Not implemented.", "Not Implemented!", MessageBoxButton.OK);
-                                          }));
-            }
-        }
-        private ICommand _windowSyncStatus_ShowErrorLogCommand;
+        ///// <summary>
+        ///// Gets the command which sends a show error log window message to <see cref="MessageSender"/>
+        ///// </summary>
+        //internal ICommand WindowSyncStatus_ShowErrorLogCommand
+        //{
+        //    get
+        //    {
+        //        return _windowSyncStatus_ShowErrorLogCommand
+        //            ?? (_windowSyncStatus_ShowErrorLogCommand = new RelayCommand<object>(
+        //                                  state =>
+        //                                  {
+        //                                      //TODO: Implement.
+        //                                      MessageBox.Show("Not implemented.", "Not Implemented!", MessageBoxButton.OK);
+        //                                  }));
+        //    }
+        //}
+        //private ICommand _windowSyncStatus_ShowErrorLogCommand;
 
-        #endregion
+        //#endregion
     }
 }

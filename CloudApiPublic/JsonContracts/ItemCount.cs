@@ -14,6 +14,9 @@ using CloudApiPublic.Model;
 
 namespace CloudApiPublic.JsonContracts
 {
+    /// <summary>
+    /// An inner object containing item count properties for <see cref="Metadata"/>
+    /// </summary>
     [DataContract]
     public sealed class ItemCount
     {

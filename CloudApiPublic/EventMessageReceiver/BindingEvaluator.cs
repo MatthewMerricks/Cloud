@@ -15,9 +15,15 @@ using System.Windows.Data;
 
 namespace CloudApiPublic.EventMessageReceiver
 {
+    /// <summary>
+    /// Helper object which can trigger a callback upon a data change from a binding (used in routing data changes to EventTriggers).
+    /// </summary>
     public class BindingEvaluator : DependencyObject
     {
-        public class Default
+        /// <summary>
+        /// Special singleton object intance used as binding default instead of null so that the data change callback can be triggered even for a null initial change.
+        /// </summary>
+        public sealed class Default
         {
             public static readonly Default Instance = new Default();
             private Default() { }

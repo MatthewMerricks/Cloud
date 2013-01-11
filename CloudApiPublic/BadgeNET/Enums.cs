@@ -16,7 +16,7 @@ namespace CloudApiPublic.BadgeNET
     /// <summary>
     /// Types of badges for icon overlays, view the associated comment before changing existing enumerated values
     /// </summary>
-    public enum cloudAppIconBadgeType : byte
+    internal enum cloudAppIconBadgeType : byte
     {
         cloudAppBadgeNone = 0, // clears a badge overlay, if any
         cloudAppBadgeSynced = 1, // sets a badge with a checkmark or similar metaphor.

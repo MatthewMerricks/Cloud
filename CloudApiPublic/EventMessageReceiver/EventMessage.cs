@@ -15,6 +15,9 @@ using System.Text;
 
 namespace CloudApiPublic.EventMessageReceiver
 {
+    /// <summary>
+    /// Base class for messages which can be displayed in a growl.
+    /// </summary>
     public abstract class EventMessage : NotifiableObject<EventMessage>
     {
         #region constants

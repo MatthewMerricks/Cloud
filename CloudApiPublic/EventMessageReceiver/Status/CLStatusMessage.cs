@@ -14,7 +14,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Linq.Expressions;
 
-namespace CloudApiPublic.EventMessageReceiver.Status
+namespace CloudApiPublic.EventMessageReceiver
 {
     public sealed class CLStatusMessage : NotifiableObject<CLStatusMessage> 
     {

@@ -104,7 +104,7 @@ namespace win_client.Common
                 CLError err = new CLError();
                 err.errorDomain = CLError.ErrorDomain_Application;
                 err.errorDescription = Resources.Resources.appDelegateExceptionCreatingFolder;
-                err.errorCode = (int)CLError.ErrorCodes.Exception;
+                err.errorCode = (int)CL((int)error.code).ToString()s.Exception;
                 err.errorInfo.Add(CLError.ErrorInfo_Exception, ex);
                 error = err;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);

@@ -14,6 +14,9 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.EventMessageReceiver
 {
+    /// <summary>
+    /// <see cref="EventMessage"/> for current number of files in the process of uploading.
+    /// </summary>
     public sealed class UploadingMessage : EventMessage
     {
         #region EventMessage abstract overrides
@@ -42,12 +45,12 @@ namespace CloudApiPublic.EventMessageReceiver
         private uint CurrentCount;
         #endregion
 
-        public UploadingMessage(uint initialCount)
+        internal UploadingMessage(uint initialCount)
         {
             this.CurrentCount = initialCount;
         }
 
-        public bool SetCount(uint newCount)
+        internal bool SetCount(uint newCount)
         {
             if (this.CurrentCount != newCount)
             {

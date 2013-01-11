@@ -17,7 +17,7 @@ namespace CloudApiPublic.Static
     /// Flagged enumeration used to determine running status of FileMonitor;
     /// File watcher may be running, folder watcher may be running, or both/neither
     /// </summary>
-    public enum MonitorRunning : byte
+    internal enum MonitorRunning : byte
     {
         NotRunning = 0,
         FolderOnlyRunning = 1,
@@ -28,7 +28,7 @@ namespace CloudApiPublic.Static
     /// <summary>
     /// Enumeration to provide information on the returns from starting or stopping the FileMonitor
     /// </summary>
-    public enum MonitorStatus : byte
+    internal enum MonitorStatus : byte
     {
         Started,
         AlreadyStarted,
@@ -60,7 +60,7 @@ namespace CloudApiPublic.Static
     /// <summary>
     /// readonly fields holding constants related to files
     /// </summary>
-    public static class FileConstants
+    internal static class FileConstants
     {
         public const long InvalidUtcTimeTicks = 504911232000000000; //number determined by practice
         public static readonly byte[] EmptyBuffer = new byte[0]; // empty buffer is used to complete an MD5 hash

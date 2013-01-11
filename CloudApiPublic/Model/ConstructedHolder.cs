@@ -12,7 +12,7 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
-    public sealed class ConstructedHolder
+    internal sealed class ConstructedHolder
     {
         public bool IsConstructed
         {

@@ -12,8 +12,14 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
+    /// <summary>
+    /// Base class for EventArgs which can be marked as handled when fired to EventHandlers
+    /// </summary>
     public abstract class HandleableEventArgs : EventArgs
     {
+        /// <summary>
+        /// Whether this EventArgs has been marked as handled
+        /// </summary>
         public bool Handled
         {
             get
@@ -22,6 +28,9 @@ namespace CloudApiPublic.Model
             }
         }
         private bool _handled = false;
+        /// <summary>
+        /// Mark this EventArgs as handled
+        /// </summary>
         public void MarkHandled()
         {
             _handled = true;

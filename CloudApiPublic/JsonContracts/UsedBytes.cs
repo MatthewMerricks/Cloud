@@ -15,6 +15,9 @@ using System.Text;
 
 namespace CloudApiPublic.JsonContracts
 {
+    /// <summary>
+    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetUsedBytes"/>
+    /// </summary>
     [DataContract]
     public sealed class UsedBytes
     {

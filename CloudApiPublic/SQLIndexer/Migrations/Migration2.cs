@@ -1,3 +1,9 @@
+//  Migration2.cs
+//  Cloud Windows
+//
+//  Created by David Bruck.
+//  Copyright (c) Cloud.com. All rights reserved.
+
 using CloudApiPublic.Static;
 using System;
 using System.Collections.Generic;
@@ -8,7 +14,7 @@ using System.Text;
 
 namespace CloudApiPublic.SQLIndexer.Migrations
 {
-    public class Migration2 : IMigration
+    internal class Migration2 : IMigration
     {
         public static Migration2 Instance = new Migration2();
 

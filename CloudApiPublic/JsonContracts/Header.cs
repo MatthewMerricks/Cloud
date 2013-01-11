@@ -14,6 +14,9 @@ using CloudApiPublic.Model;
 
 namespace CloudApiPublic.JsonContracts
 {
+    /// <summary>
+    /// An inner object containing header properties for an <see cref="Event"/>
+    /// </summary>
     [DataContract]
     public sealed class Header
     {

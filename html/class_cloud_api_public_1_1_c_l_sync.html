@@ -106,18 +106,21 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a3bbf0e1f002b7cedd12e16562c071dce"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_c_l_sync.html#a3bbf0e1f002b7cedd12e16562c071dce">WipeIndex</a> ()</td></tr>
 <tr class="memdesc:a3bbf0e1f002b7cedd12e16562c071dce"><td class="mdescLeft">&#160;</td><td class="mdescRight">¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!  <a href="#a3bbf0e1f002b7cedd12e16562c071dce"></a><br/></td></tr>
 <tr class="separator:a3bbf0e1f002b7cedd12e16562c071dce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1b700631eb605ad6e065dc4296fcb912"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_c_l_sync.html#a1b700631eb605ad6e065dc4296fcb912">Start</a> (<a class="el" href="interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings.html">ISyncSettings</a> settings, out CLSyncStartStatus status)</td></tr>
-<tr class="memdesc:a1b700631eb605ad6e065dc4296fcb912"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the SyncBox and start syncing its contents to the Cloud server, and to other devices registering the same SyncBox.  <a href="#a1b700631eb605ad6e065dc4296fcb912"></a><br/></td></tr>
-<tr class="separator:a1b700631eb605ad6e065dc4296fcb912"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81d09690e5f271bf5cb75f86a855e201"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_c_l_sync.html#a81d09690e5f271bf5cb75f86a855e201">SyncReset</a> (<a class="el" href="interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings.html">ISyncSettings</a> settings)</td></tr>
+<tr class="memdesc:a81d09690e5f271bf5cb75f86a855e201"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call this function before calling <a class="el" href="class_cloud_api_public_1_1_c_l_sync.html#a87c00cb5f140959bf0a26a43bdd87cf5" title="Initialize the SyncBox and start syncing its contents to the Cloud server, and to other devices regis...">Start()</a> whenever it is possible that the SyncBox folder has changed. Sync.Start() will rescan the folder and sync the current contents.  <a href="#a81d09690e5f271bf5cb75f86a855e201"></a><br/></td></tr>
+<tr class="separator:a81d09690e5f271bf5cb75f86a855e201"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87c00cb5f140959bf0a26a43bdd87cf5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_c_l_sync.html#a87c00cb5f140959bf0a26a43bdd87cf5">Start</a> (<a class="el" href="interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings.html">ISyncSettings</a> settings, out CLSyncStartStatus status, EventHandler&lt; <a class="el" href="class_cloud_api_public_1_1_push_notification_1_1_notification_event_args.html">NotificationEventArgs</a> &gt; onNotification=null, EventHandler&lt; <a class="el" href="class_cloud_api_public_1_1_push_notification_1_1_notification_error_event_args.html">NotificationErrorEventArgs</a> &gt; onConnectionError=null)</td></tr>
+<tr class="memdesc:a87c00cb5f140959bf0a26a43bdd87cf5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the SyncBox and start syncing its contents to the Cloud server, and to other devices registering the same SyncBox.  <a href="#a87c00cb5f140959bf0a26a43bdd87cf5"></a><br/></td></tr>
+<tr class="separator:a87c00cb5f140959bf0a26a43bdd87cf5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa76639968094d5dec2ec19e10163612f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_c_l_sync.html#aa76639968094d5dec2ec19e10163612f">Stop</a> ()</td></tr>
 <tr class="memdesc:aa76639968094d5dec2ec19e10163612f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop syncing the SyncBox and free resources.  <a href="#aa76639968094d5dec2ec19e10163612f"></a><br/></td></tr>
 <tr class="separator:aa76639968094d5dec2ec19e10163612f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a7a29b0dcbd944c097648ec0f075b29a8"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_c_l_sync.html#a7a29b0dcbd944c097648ec0f075b29a8">PermanentShutdownHttpSchedulers</a> ()</td></tr>
-<tr class="memdesc:a7a29b0dcbd944c097648ec0f075b29a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shuts down the HttpScheduler; after shutdown it cannot be used again  <a href="#a7a29b0dcbd944c097648ec0f075b29a8"></a><br/></td></tr>
-<tr class="separator:a7a29b0dcbd944c097648ec0f075b29a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a150338311c93398031613a014205d319"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_c_l_sync.html#a150338311c93398031613a014205d319">ShutdownSchedulers</a> ()</td></tr>
+<tr class="memdesc:a150338311c93398031613a014205d319"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call when application is shutting down.  <a href="#a150338311c93398031613a014205d319"></a><br/></td></tr>
+<tr class="separator:a150338311c93398031613a014205d319"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="events"></a>
 Events</h2></td></tr>
@@ -129,31 +132,6 @@ Events</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A class used to create a SyncBox to synchronize the contents of a local disk directory. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a7a29b0dcbd944c097648ec0f075b29a8"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void CloudApiPublic.CLSync.PermanentShutdownHttpSchedulers </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Shuts down the HttpScheduler; after shutdown it cannot be used again </p>
-
-</div>
-</div>
 <a class="anchor" id="ae42abebf3134701ec50ea49002eb8291"></a>
 <div class="memitem">
 <div class="memproto">
@@ -205,7 +183,32 @@ Events</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a1b700631eb605ad6e065dc4296fcb912"></a>
+<a class="anchor" id="a150338311c93398031613a014205d319"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void CloudApiPublic.CLSync.ShutdownSchedulers </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Call when application is shutting down. </p>
+
+</div>
+</div>
+<a class="anchor" id="a87c00cb5f140959bf0a26a43bdd87cf5"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -222,7 +225,19 @@ Events</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">out CLSyncStartStatus&#160;</td>
-          <td class="paramname"><em>status</em>&#160;</td>
+          <td class="paramname"><em>status</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">EventHandler&lt; <a class="el" href="class_cloud_api_public_1_1_push_notification_1_1_notification_event_args.html">NotificationEventArgs</a> &gt;&#160;</td>
+          <td class="paramname"><em>onNotification</em> = <code>null</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">EventHandler&lt; <a class="el" href="class_cloud_api_public_1_1_push_notification_1_1_notification_error_event_args.html">NotificationErrorEventArgs</a> &gt;&#160;</td>
+          <td class="paramname"><em>onConnectionError</em> = <code>null</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -270,6 +285,39 @@ Events</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Stop syncing the SyncBox and free resources. </p>
+
+</div>
+</div>
+<a class="anchor" id="a81d09690e5f271bf5cb75f86a855e201"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="class_cloud_api_public_1_1_model_1_1_c_l_error.html">CLError</a> CloudApiPublic.CLSync.SyncReset </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings.html">ISyncSettings</a>&#160;</td>
+          <td class="paramname"><em>settings</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Call this function before calling <a class="el" href="class_cloud_api_public_1_1_c_l_sync.html#a87c00cb5f140959bf0a26a43bdd87cf5" title="Initialize the SyncBox and start syncing its contents to the Cloud server, and to other devices regis...">Start()</a> whenever it is possible that the SyncBox folder has changed. Sync.Start() will rescan the folder and sync the current contents. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">settings</td><td>Settings to use.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>CLError: A possible error, or null.</dd></dl>
 
 </div>
 </div>
@@ -326,7 +374,7 @@ Events</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jan 2 2013 07:18:02 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jan 10 2013 18:14:45 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

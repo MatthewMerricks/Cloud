@@ -667,7 +667,7 @@ namespace RegisterCom
                         registration.UnlinkDeviceWithAccessKey(copyAkey, out error);
                         if (error != null)
                         {
-                            _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Remotely unlinking. Msg: <{0}>. Code: {1}>.", error.errorDescription, error.errorCode);
+                            _trace.writeToLog(1, "RegisterCom: UninstallCOM: ERROR: Remotely unlinking. Msg: <{0}>. Code: {1}>.", error.errorDescription, ((int)error.code).ToString());
                         }
                     }
                 }

@@ -122,6 +122,9 @@ namespace CloudApiPublic.REST
         #endregion
 
         #region base asynchronous result
+        /// <summary>
+        /// Exposes the result properties, must be inherited by a specific result implementation
+        /// </summary>
         public abstract class BaseCLHttpRestResult
         {
             /// <summary>
@@ -156,6 +159,9 @@ namespace CloudApiPublic.REST
             }
         }
 
+        /// <summary>
+        /// Exposes the result properties, must be inherited by a specific result implementation
+        /// </summary>
         public abstract class BaseCLHttpRestResult<T> : BaseCLHttpRestResult
         {
             /// <summary>

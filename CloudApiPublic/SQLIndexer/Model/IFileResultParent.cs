@@ -1,5 +1,5 @@
 //
-// IndexingAgent.cs
+// IFileResultParent.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -12,7 +12,7 @@ using System.Text;
 
 namespace CloudApiPublic.SQLIndexer.Model
 {
-    public interface IFileResultParent
+    internal interface IFileResultParent
     {
         string FullName { get; }
     }

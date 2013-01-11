@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace CloudApiPublic.Model
 {
-     public class CLJsonResultWithError
+    internal class CLJsonResultWithError
     {
         public Dictionary<string, object> JsonResult;
         public CLError Error;

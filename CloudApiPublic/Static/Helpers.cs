@@ -280,7 +280,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <param name="inputStream">Stream to copy and then close</param>
         /// <returns>Returns the copied Stream</returns>
-        public static Stream CopyHttpWebResponseStreamAndClose(Stream inputStream)
+        internal static Stream CopyHttpWebResponseStreamAndClose(Stream inputStream)
         {
             byte[] buffer = new byte[FileConstants.BufferSize];
             MemoryStream ms = new MemoryStream();
@@ -317,7 +317,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <param name="queryStrings">Pairs of keys and values for query string</param>
         /// <returns>Returns query string (with no additional url-encoding of keys or values)</returns>
-        public static string QueryStringBuilder(IEnumerable<KeyValuePair<string, string>> queryStrings)
+        internal static string QueryStringBuilder(IEnumerable<KeyValuePair<string, string>> queryStrings)
         {
             if (queryStrings == null)
             {
@@ -398,7 +398,7 @@ namespace CloudApiPublic.Static
         /// <param name="throwExceptionOnFailure"></param>
         /// <param name="numRetries"></param>
         /// <param name="millisecondsBetweenRetries"></param>
-        public static void RunActionWithRetries(Action toRun, bool throwExceptionOnFailure, int numRetries = 5, int millisecondsBetweenRetries = 50)
+        internal static void RunActionWithRetries(Action toRun, bool throwExceptionOnFailure, int numRetries = 5, int millisecondsBetweenRetries = 50)
         {
             if (toRun == null)
             {
@@ -536,7 +536,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <param name="relativeTo">Element for origin base for the cursor point</param>
         /// <returns>Returns the mouse cursor position relative to the Visual element origin</returns>
-        public static Point CorrectGetPosition(Visual relativeTo)
+        internal static Point CorrectGetPosition(Visual relativeTo)
         {
             try
             {
@@ -957,7 +957,7 @@ namespace CloudApiPublic.Static
 
         #region Choose and Maintain Trace File Names
         
-        public class TraceFile
+        internal class TraceFile
         {
             public DateTime dateFromFileName { get; set; }
             public string fullPath { get; set; }
@@ -1229,7 +1229,6 @@ namespace CloudApiPublic.Static
 
             parameterData.Item1.BeginInvoke(parameterData.Item3, parameterData.Item4);
         }
-
         #endregion
 
         /// <summary>
@@ -1530,7 +1529,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <param name="buff"></param>
         /// <returns></returns>
-        internal static string ByteToString(byte[] buff)
+        public static string ByteToString(byte[] buff)
         {
             if (buff == null)
             {
@@ -1595,7 +1594,7 @@ namespace CloudApiPublic.Static
         /// <param name="settings">The settings to use.</param>
         /// <returns>string: The full path of the temp download directory.</returns>
         /// <remarks>Can throw.</remarks>
-        public static string GetTempFileDownloadPath(ISyncSettingsAdvanced settings)
+        internal static string GetTempFileDownloadPath(ISyncSettingsAdvanced settings)
         {
             string toReturn = "";
             try
@@ -1650,7 +1649,7 @@ namespace CloudApiPublic.Static
         /// <param name="settings">The settings to use.</param>
         /// <returns>string: The full path of the directory which will be used for the database file.</returns>
         /// <remarks>Can throw.</remarks>
-        public static string GetDatabasePath(ISyncSettingsAdvanced settings)
+        internal static string GetDatabasePath(ISyncSettingsAdvanced settings)
         {
             string toReturn = "";
             try

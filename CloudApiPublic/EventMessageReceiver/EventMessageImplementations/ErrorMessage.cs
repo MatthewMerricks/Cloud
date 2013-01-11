@@ -14,6 +14,9 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.EventMessageReceiver
 {
+    /// <summary>
+    /// <see cref="EventMessage"/> for an error.
+    /// </summary>
     public sealed class ErrorMessage : EventMessage
     {
         new private static readonly TimeSpan DefaultOpaqueTime = TimeSpan.FromSeconds(8); // longer time to display error
@@ -39,7 +42,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private string _message;
         #endregion
 
-        public ErrorMessage(string errorMessage)
+        internal ErrorMessage(string errorMessage)
             : base(DateTime.UtcNow,
                 ErrorMessage.DefaultFadeInTime,
                 ErrorMessage.DefaultFadeInPlusOpaqueTime,

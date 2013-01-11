@@ -15,31 +15,40 @@ using System.Runtime.CompilerServices;
 namespace CloudApiPublic.Model
 {
     /// <summary>
-    /// Class that represents an error, and supports logging of the error.  The error may contain multiple exceptions.
+    /// Class that represents an error, and supports logging of the error.  The error may contain one or more exceptions.
     /// </summary>
-    /// <include file='filename' path='tagpath[@name="id"]' />
     public sealed class CLError
     {
-        // Common error codes
+        /// <summary>
+        /// Common error codes
+        /// </summary>
         public enum ErrorCodes : int
         {
             Exception = 9999
         }
 
-        // Error domains
-        public const string ErrorDomain_Application = "Cloud";
-
-        // errorInfo keys
+        /// <summary>
+        /// errorInfo key for exceptions
+        /// </summary>
         public const string ErrorInfo_Exception = "Exception";
-        public const string ErrorInfo_FileStreamToDispose = "FileStream";
+        internal const string ErrorInfo_FileStreamToDispose = "FileStream";
         /// <summary>
         /// errorInfo key for the last recorded status in the Run method in Sync class
         /// </summary>
         public const string ErrorInfo_Sync_Run_Status = "SyncRunStatus";
 
+        /// <summary>
+        /// The application domain
+        /// </summary>
         public string errorDomain;
+        /// <summary>
+        /// The message of the first exception
+        /// </summary>
         public string errorDescription;
-        public int errorCode;
+        /// <summary>
+        /// The error code for the first exception
+        /// </summary>
+        public ErrorCodes code;
         /// <summary>
         /// Returns the dictionary of infoes for the current CLError;
         /// it is never null
@@ -59,20 +68,28 @@ namespace CloudApiPublic.Model
         }
         private Dictionary<string, object> _errorInfo = null;
 
+        /// <summary>
+        /// Constructs an empty error without message, domain, nor code
+        /// </summary>
         public CLError()
         {
             errorDomain = string.Empty;
             errorDescription = string.Empty;
-            errorCode = 0;
+            code = (ErrorCodes)0;
         }
 
+        /// <summary>
+        /// Implicitly converts from an exception. Adds the exception to the dictionary of infoes and sets the message, domain, and code
+        /// </summary>
+        /// <param name="ex">Implictly converted exception</param>
+        /// <returns>Returns CLError resulting from implicit conversion</returns>
         public static implicit operator CLError(Exception ex)
         {
             return new CLError()
             {
-                errorCode = (int)CLError.ErrorCodes.Exception,
+                code = ErrorCodes.Exception,
                 errorDescription = ex.Message,
-                errorDomain = CLError.ErrorDomain_Application,
+                errorDomain = Helpers.GetDefaultNameFromApplicationName(),
                 _errorInfo = new Dictionary<string, object>()
                 {
                     { CLError.ErrorInfo_Exception, ex }
@@ -80,6 +97,12 @@ namespace CloudApiPublic.Model
             };
         }
 
+        /// <summary>
+        /// Aggregation operator to add a first or additional exceptions to a CLError
+        /// </summary>
+        /// <param name="err">Existing error, or null to create a new one via implicit conversion</param>
+        /// <param name="ex">Exception to add or start with</param>
+        /// <returns></returns>
         public static CLError operator +(CLError err, Exception ex)
         {
             if (err == null)
@@ -93,6 +116,9 @@ namespace CloudApiPublic.Model
 
         // Added so we can append FileStream objects which can later be disposed upon error handling
         // -David
+        /// <summary>
+        /// Do not use this implicit operator, other Stream-related operations for CLError are not exposed
+        /// </summary>
         public static CLError operator +(CLError err, Stream fStream)
         {
             if (fStream == null)
@@ -107,17 +133,22 @@ namespace CloudApiPublic.Model
             err.AddFileStream(fStream);
             return err;
         }
-        public const string StreamFirstMessage = "FileStream added first instead of exception";
+        internal const string StreamFirstMessage = "FileStream added first instead of exception";
 
         // Added so we can append FileStream objects which can later be disposed upon error handling
         // -David
-        public void AddFileStream(Stream fStream)
+        internal void AddFileStream(Stream fStream)
         {
             this.errorInfo.Add(CLError.ErrorInfo_FileStreamToDispose +
                     this.errorInfo.Count(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_FileStreamToDispose)).ToString(),
                 fStream);
         }
 
+        /// <summary>
+        /// Appends an exception to this error
+        /// </summary>
+        /// <param name="ex">To append</param>
+        /// <param name="replaceErrorDescription">(optional) Whether the message of this error should be set from the currently appended exception</param>
         public void AddException(Exception ex, bool replaceErrorDescription = false)
         {
             if (ex != null)
@@ -136,7 +167,7 @@ namespace CloudApiPublic.Model
         /// Takes all the FileStream instances out of this error and returns them for disposal
         /// </summary>
         /// <returns>Returns dequeued FileStream objects</returns>
-        public IEnumerable<Stream> DequeueStreams()
+        internal IEnumerable<Stream> DequeueStreams()
         {
             Stream tryCast;
             Func<KeyValuePair<string, object>, Func<string, bool>, Stream> removeAndReturnValue = (currentPair, removeAction) =>
@@ -162,7 +193,7 @@ namespace CloudApiPublic.Model
         /// </summary>
         /// <param name="err">CLError for FileStream dequeue</param>
         /// <returns>Returns dequeued FileStream objects</returns>
-        public static IEnumerable<Stream> DequeueFileStreams(CLError err)
+        internal static IEnumerable<Stream> DequeueFileStreams(CLError err)
         {
             if (err == null)
             {
@@ -409,6 +440,5 @@ namespace CloudApiPublic.Model
                 }
             }
         }
-        private Nullable<DateTime> LastDayLogCreated = null;
     }
 }

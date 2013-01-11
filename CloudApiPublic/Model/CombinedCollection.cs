@@ -18,6 +18,7 @@ namespace CloudApiPublic.Model
     /// Used to represent a new collection from two composite collections
     /// </summary>
     /// <typeparam name="T">Generic type for both composite collections</typeparam>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class CombinedCollection<T> : ICollection<T>
     {
         private ICollection<T> collectionOne;

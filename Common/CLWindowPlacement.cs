@@ -64,7 +64,7 @@ namespace win_client.Common
             {
                 // Parsing placement XML failed. Fail silently.
                 CLError error = ex;
-                _trace.writeToLog(1, "CLWindowPlacement: ExtractWindowPlacementInfo: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLWindowPlacement: ExtractWindowPlacementInfo: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
                 return false;
             }
 
@@ -98,7 +98,7 @@ namespace win_client.Common
                 // Parsing placement XML failed. Fail silently.
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLWindowPlacement: SetPlacement: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLWindowPlacement: SetPlacement: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
             }
         }
 
@@ -123,7 +123,7 @@ namespace win_client.Common
             {
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLWindowPlacement: GetPlacement: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLWindowPlacement: GetPlacement: ERROR: Exception.  Msg: {0}, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
                 return String.Empty;
             }
         }

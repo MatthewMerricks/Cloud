@@ -17,6 +17,7 @@ namespace CloudApiPublic.Model
     /// Node to represent a hierarchical representation of FilePaths and their generic-typed values
     /// </summary>
     /// <typeparam name="T">Generic-typed value</typeparam>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class FilePathHierarchicalNode<T> where T : class// : IFilePathHierarchicalNode<T> where T : class
     {
         /// <summary>
@@ -58,6 +59,7 @@ namespace CloudApiPublic.Model
     /// Extends the generic-typed FilePathHierarchicalNode to store the node Value
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class FilePathHierarchicalNodeWithValue<T> : FilePathHierarchicalNode<T> where T : class
     {
         public override KeyValuePair<FilePath, T> Value

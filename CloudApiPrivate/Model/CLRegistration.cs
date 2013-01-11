@@ -57,7 +57,6 @@ namespace CloudApiPrivate.Model
         #endregion
 
         #region "Public Methods"
-
         /// <summary>
         /// Public method that will asynchronously ask the server to create a new account for this user.
         /// <param name="account">The user's account information</param>
@@ -75,6 +74,7 @@ namespace CloudApiPrivate.Model
 
             // Start the thread to be used to communicate with the server.
             CLError errorFromAsync = null;
+            Fixthis:://use a parameterized action and pass in the parameters to the task start instead of using the other thread's parameters within the anonymous method itself
             Task<bool>.Factory.StartNew(() => CreateNewAccountInternal(outRegistration, account, device, out errorFromAsync)).ContinueWith(task =>
                 {
                     bool isSuccess = true;
@@ -128,7 +128,6 @@ namespace CloudApiPrivate.Model
                 tsMain.Cancel();
             }, ctTimeout);
         }
-
         #endregion
 
         #region "Support Functions"
@@ -401,7 +400,7 @@ namespace CloudApiPrivate.Model
                     // The server returned an errlr
                     retVal = false;
                     error = new CLError();
-                    error.errorCode = 1400;
+                    ((int)error.code).ToString() = 1400;
                     error.errorDescription = String.Format((string)returnDictionary["message"], 1400) + ".";
                     error.errorDomain = CLError.ErrorDomain_Application;
                 }
@@ -438,7 +437,7 @@ namespace CloudApiPrivate.Model
                 // JSON parse error
                 retVal = false;
                 error = new CLError();
-                error.errorCode = 1400;
+                ((int)error.code).ToString() = 1400;
                 error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionCreatingUserRegistrationWithCode, 1400);
                 error.errorDomain = CLError.ErrorDomain_Application;
             }
@@ -811,7 +810,7 @@ namespace CloudApiPrivate.Model
                     // The server returned an errlr
                     retVal = false;
                     error = new CLError();
-                    error.errorCode = 1400;
+                    ((int)error.code).ToString() = 1400;
                     error.errorDescription = String.Format((string)returnDictionary["message"], 1400) + ".";
                     error.errorDomain = CLError.ErrorDomain_Application;
                 }
@@ -848,7 +847,7 @@ namespace CloudApiPrivate.Model
                 // JSON parse error
                 retVal = false;
                 error = new CLError();
-                error.errorCode = 1400;
+                ((int)error.code).ToString() = 1400;
                 error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionLoggingInWithCode, 1400);
                 error.errorDomain = CLError.ErrorDomain_Application;
             }
@@ -1121,7 +1120,7 @@ namespace CloudApiPrivate.Model
             {
                 error += ex;
                 error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                _trace.writeToLog(1, "CLRegistration: UnlinkDeviceWithAccessKey: ERROR: Exception. Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLRegistration: UnlinkDeviceWithAccessKey: ERROR: Exception. Msg: <{0}>. Code: {1}", error.errorDescription, ((int)error.code).ToString());
             }
 
             return isSuccess;

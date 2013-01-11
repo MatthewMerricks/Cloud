@@ -15,7 +15,7 @@ using CloudApiPublic.Support;
 
 namespace CloudApiPublic.Static
 {
-    public static class CLDevices
+    internal static class CLDevices
     {
         private static CLTrace _trace = CLTrace.Instance;
 
@@ -62,7 +62,7 @@ namespace CloudApiPublic.Static
             {
                 CLError error = ex;
                 error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                _trace.writeToLog(1, "CLDevices: GetComputerType: ERROR: Exception: Msg: <{0}>.  Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLDevices: GetComputerType: ERROR: Exception: Msg: <{0}>.  Code: {1}.", error.errorDescription, ((int)error.code).ToString());
 	        }
 
             return returnType;

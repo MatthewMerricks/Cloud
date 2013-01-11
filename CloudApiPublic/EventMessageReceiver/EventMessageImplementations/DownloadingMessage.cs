@@ -14,6 +14,9 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.EventMessageReceiver
 {
+    /// <summary>
+    /// <see cref="EventMessage"/> for current number of files in the process of downloading.
+    /// </summary>
     public sealed class DownloadingMessage : EventMessage
     {
         #region EventMessage abstract overrides
@@ -42,12 +45,12 @@ namespace CloudApiPublic.EventMessageReceiver
         private uint CurrentCount;
         #endregion
 
-        public DownloadingMessage(uint initialCount)
+        internal DownloadingMessage(uint initialCount)
         {
             this.CurrentCount = initialCount;
         }
 
-        public bool SetCount(uint newCount)
+        internal bool SetCount(uint newCount)
         {
             if (this.CurrentCount != newCount)
             {

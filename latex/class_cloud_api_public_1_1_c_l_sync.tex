@@ -13,15 +13,17 @@ A class used to create a Sync\-Box to synchronize the contents of a local disk d
 \begin{DoxyCompactList}\small\item\em Writes a new set of sync states to the database after a sync completes, requires new\-Root\-Path to be set on the first sync or on any sync with a new root path \end{DoxyCompactList}\item 
 \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_a3bbf0e1f002b7cedd12e16562c071dce}{Wipe\-Index} ()
 \begin{DoxyCompactList}\small\item\em ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !! \end{DoxyCompactList}\item 
-\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_a1b700631eb605ad6e065dc4296fcb912}{Start} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} settings, out C\-L\-Sync\-Start\-Status status)
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_a81d09690e5f271bf5cb75f86a855e201}{Sync\-Reset} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} settings)
+\begin{DoxyCompactList}\small\item\em Call this function before calling \hyperlink{class_cloud_api_public_1_1_c_l_sync_a87c00cb5f140959bf0a26a43bdd87cf5}{Start()} whenever it is possible that the Sync\-Box folder has changed. Sync.\-Start() will rescan the folder and sync the current contents. \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_a87c00cb5f140959bf0a26a43bdd87cf5}{Start} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} settings, out C\-L\-Sync\-Start\-Status status, Event\-Handler$<$ \hyperlink{class_cloud_api_public_1_1_push_notification_1_1_notification_event_args}{Notification\-Event\-Args} $>$ on\-Notification=null, Event\-Handler$<$ \hyperlink{class_cloud_api_public_1_1_push_notification_1_1_notification_error_event_args}{Notification\-Error\-Event\-Args} $>$ on\-Connection\-Error=null)
 \begin{DoxyCompactList}\small\item\em Initialize the Sync\-Box and start syncing its contents to the Cloud server, and to other devices registering the same Sync\-Box. \end{DoxyCompactList}\item 
 void \hyperlink{class_cloud_api_public_1_1_c_l_sync_aa76639968094d5dec2ec19e10163612f}{Stop} ()
 \begin{DoxyCompactList}\small\item\em Stop syncing the Sync\-Box and free resources. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Static Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-static void \hyperlink{class_cloud_api_public_1_1_c_l_sync_a7a29b0dcbd944c097648ec0f075b29a8}{Permanent\-Shutdown\-Http\-Schedulers} ()
-\begin{DoxyCompactList}\small\item\em Shuts down the Http\-Scheduler; after shutdown it cannot be used again \end{DoxyCompactList}\end{DoxyCompactItemize}
+static void \hyperlink{class_cloud_api_public_1_1_c_l_sync_a150338311c93398031613a014205d319}{Shutdown\-Schedulers} ()
+\begin{DoxyCompactList}\small\item\em Call when application is shutting down. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Events}
 \begin{DoxyCompactItemize}
 \item 
@@ -36,17 +38,6 @@ A class used to create a Sync\-Box to synchronize the contents of a local disk d
 
 
 \subsection{Member Function Documentation}
-\hypertarget{class_cloud_api_public_1_1_c_l_sync_a7a29b0dcbd944c097648ec0f075b29a8}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Permanent\-Shutdown\-Http\-Schedulers@{Permanent\-Shutdown\-Http\-Schedulers}}
-\index{Permanent\-Shutdown\-Http\-Schedulers@{Permanent\-Shutdown\-Http\-Schedulers}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
-\subsubsection[{Permanent\-Shutdown\-Http\-Schedulers}]{\setlength{\rightskip}{0pt plus 5cm}static void Cloud\-Api\-Public.\-C\-L\-Sync.\-Permanent\-Shutdown\-Http\-Schedulers (
-\begin{DoxyParamCaption}
-{}
-\end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_c_l_sync_a7a29b0dcbd944c097648ec0f075b29a8}
-
-
-Shuts down the Http\-Scheduler; after shutdown it cannot be used again 
-
 \hypertarget{class_cloud_api_public_1_1_c_l_sync_ae42abebf3134701ec50ea49002eb8291}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Record\-Completed\-Sync@{Record\-Completed\-Sync}}
 \index{Record\-Completed\-Sync@{Record\-Completed\-Sync}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
 \subsubsection[{Record\-Completed\-Sync}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-C\-L\-Sync.\-Record\-Completed\-Sync (
@@ -72,14 +63,27 @@ Writes a new set of sync states to the database after a sync completes, requires
 \begin{DoxyReturn}{Returns}
 Returns an error that occurred during recording the sync, if any
 \end{DoxyReturn}
-\hypertarget{class_cloud_api_public_1_1_c_l_sync_a1b700631eb605ad6e065dc4296fcb912}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Start@{Start}}
+\hypertarget{class_cloud_api_public_1_1_c_l_sync_a150338311c93398031613a014205d319}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Shutdown\-Schedulers@{Shutdown\-Schedulers}}
+\index{Shutdown\-Schedulers@{Shutdown\-Schedulers}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
+\subsubsection[{Shutdown\-Schedulers}]{\setlength{\rightskip}{0pt plus 5cm}static void Cloud\-Api\-Public.\-C\-L\-Sync.\-Shutdown\-Schedulers (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}}\label{class_cloud_api_public_1_1_c_l_sync_a150338311c93398031613a014205d319}
+
+
+Call when application is shutting down. 
+
+\hypertarget{class_cloud_api_public_1_1_c_l_sync_a87c00cb5f140959bf0a26a43bdd87cf5}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Start@{Start}}
 \index{Start@{Start}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
 \subsubsection[{Start}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-C\-L\-Sync.\-Start (
 \begin{DoxyParamCaption}
 \item[{{\bf I\-Sync\-Settings}}]{settings, }
-\item[{out C\-L\-Sync\-Start\-Status}]{status}
+\item[{out C\-L\-Sync\-Start\-Status}]{status, }
+\item[{Event\-Handler$<$ {\bf Notification\-Event\-Args} $>$}]{on\-Notification = {\ttfamily null}, }
+\item[{Event\-Handler$<$ {\bf Notification\-Error\-Event\-Args} $>$}]{on\-Connection\-Error = {\ttfamily null}}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_c_l_sync_a1b700631eb605ad6e065dc4296fcb912}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_c_l_sync_a87c00cb5f140959bf0a26a43bdd87cf5}
 
 
 Initialize the Sync\-Box and start syncing its contents to the Cloud server, and to other devices registering the same Sync\-Box. 
@@ -103,6 +107,25 @@ Initialize the Sync\-Box and start syncing its contents to the Cloud server, and
 
 Stop syncing the Sync\-Box and free resources. 
 
+\hypertarget{class_cloud_api_public_1_1_c_l_sync_a81d09690e5f271bf5cb75f86a855e201}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Sync\-Reset@{Sync\-Reset}}
+\index{Sync\-Reset@{Sync\-Reset}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
+\subsubsection[{Sync\-Reset}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-C\-L\-Sync.\-Sync\-Reset (
+\begin{DoxyParamCaption}
+\item[{{\bf I\-Sync\-Settings}}]{settings}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_c_l_sync_a81d09690e5f271bf5cb75f86a855e201}
+
+
+Call this function before calling \hyperlink{class_cloud_api_public_1_1_c_l_sync_a87c00cb5f140959bf0a26a43bdd87cf5}{Start()} whenever it is possible that the Sync\-Box folder has changed. Sync.\-Start() will rescan the folder and sync the current contents. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em settings} & Settings to use.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+C\-L\-Error\-: A possible error, or null.
+\end{DoxyReturn}
 \hypertarget{class_cloud_api_public_1_1_c_l_sync_a3bbf0e1f002b7cedd12e16562c071dce}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Wipe\-Index@{Wipe\-Index}}
 \index{Wipe\-Index@{Wipe\-Index}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
 \subsubsection[{Wipe\-Index}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-C\-L\-Sync.\-Wipe\-Index (

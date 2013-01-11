@@ -13,7 +13,7 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.Model
 {
-    public struct DeleteBadgePath
+    internal struct DeleteBadgePath
     {
         public FilePath PathToDelete
         {

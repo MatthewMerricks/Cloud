@@ -60,7 +60,7 @@ namespace win_client.Services.ContextMenu
             CLError contextMenuServerInitializedError = ContextMenuServer.IsContextMenuServerInitialized(out isContextMenuServerInitialized);
             if (contextMenuServerInitializedError != null)
             {
-                _trace.writeToLog(1, "CLContextMenuService: BeginContextMenuServices: ERROR: From ContextMenuServer.IsBadingInitialized. Msg: <{0}>. Code: {1}.", contextMenuServerInitializedError.errorDescription, contextMenuServerInitializedError.errorCode);
+                _trace.writeToLog(1, "CLContextMenuService: BeginContextMenuServices: ERROR: From ContextMenuServer.IsBadingInitialized. Msg: <{0}>. Code: {1}.", contextMenuServerInitializedError.errorDescription, contextMenuServerInitialized((int)error.code).ToString());
             }
             else
             {
@@ -69,7 +69,7 @@ namespace win_client.Services.ContextMenu
                     CLError initializeError = ContextMenuServer.Initialize(CLSettingsSync.Instance);
                     if (initializeError != null)
                     {
-                        _trace.writeToLog(1, "CLContextMenuService: BeginContextMenuServices: ERROR: From ContextMenuServer.Initialize. Msg: <{0}>. Code: {1}.", initializeError.errorDescription, initializeError.errorCode);
+                        _trace.writeToLog(1, "CLContextMenuService: BeginContextMenuServices: ERROR: From ContextMenuServer.Initialize. Msg: <{0}>. Code: {1}.", initializeError.errorDescription, initialize((int)error.code).ToString());
                     }
                 }
             }
@@ -83,7 +83,7 @@ namespace win_client.Services.ContextMenu
             CLError error = ContextMenuServer.Shutdown();
             if (error != null)
             {
-                _trace.writeToLog(1, "CLContextMenuService: EndContextMenuServices: ERROR: From ContextMenuServer.Shutdown. Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLContextMenuService: EndContextMenuServices: ERROR: From ContextMenuServer.Shutdown. Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
             }
         }
     }

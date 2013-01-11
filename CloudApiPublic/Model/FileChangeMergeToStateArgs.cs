@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
-    public sealed class FileChangeMergeToStateArgs : HandleableEventArgs
+    internal sealed class FileChangeMergeToStateArgs : HandleableEventArgs
     {
         public FileChangeMerge MergedFileChanges
         {

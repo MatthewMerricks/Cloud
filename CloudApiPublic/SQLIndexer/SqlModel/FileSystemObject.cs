@@ -13,7 +13,7 @@ using System.Text;
 namespace CloudApiPublic.SQLIndexer.SqlModel
 {
     [SqlAccess.Class("FileSystemObjects")]
-    public class FileSystemObject
+    internal class FileSystemObject
     {
         public static readonly string Name = (typeof(FileSystemObject)).Name;
 

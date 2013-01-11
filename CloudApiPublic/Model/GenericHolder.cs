@@ -15,6 +15,7 @@ using System.Reflection;
 
 namespace CloudApiPublic.Model
 {
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class GenericHolder<T>
     {
         public T Value { get; set; }

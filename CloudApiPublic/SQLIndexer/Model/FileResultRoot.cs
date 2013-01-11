@@ -12,7 +12,7 @@ using System.Text;
 
 namespace CloudApiPublic.SQLIndexer.Model
 {
-    public sealed class FileResultRoot : IFileResultParent
+    internal sealed class FileResultRoot : IFileResultParent
     {
         private string RootName;
 

@@ -13,9 +13,8 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
-    public sealed class BadgePathDeletedArgs : HandleableEventArgs
+    internal sealed class BadgePathDeletedArgs : HandleableEventArgs
     {
-
         public DeleteBadgePath DeleteBadgePath
         {
             get

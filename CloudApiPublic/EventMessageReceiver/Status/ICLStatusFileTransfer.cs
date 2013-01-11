@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 
-namespace CloudApiPublic.EventMessageReceiver.Status
+namespace CloudApiPublic.EventMessageReceiver
 {
     /// <summary>
     /// Interface for exposed properties on a file transfer status object

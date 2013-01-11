@@ -14,7 +14,7 @@ using System.Text;
 namespace CloudApiPublic.PushNotification
 {
     /// <summary>
-    /// Simple implementation of IPushSettings
+    /// Simple implementation of IHttpSettings
     /// </summary>
     public sealed class PushSettings : IHttpSettings
     {
@@ -25,7 +25,7 @@ namespace CloudApiPublic.PushNotification
                 return _udid;
             }
         }
-        private string _udid;
+        private readonly string _udid;
 
         public string ApplicationKey
         {
@@ -34,7 +34,7 @@ namespace CloudApiPublic.PushNotification
                 return _applicationKey;
             }
         }
-        private string _applicationKey;
+        private readonly string _applicationKey;
 
         /// <summary>
         /// Application secret.
@@ -47,7 +47,7 @@ namespace CloudApiPublic.PushNotification
                 return _applicationSecret;
             }
         }
-        private string _applicationSecret;
+        private readonly string _applicationSecret;
 
         public Nullable<long> SyncBoxId
         {
@@ -56,7 +56,7 @@ namespace CloudApiPublic.PushNotification
                 return _syncBoxId;
             }
         }
-        private Nullable<long> _syncBoxId;
+        private readonly Nullable<long> _syncBoxId;
 
         public PushSettings(
             string udid,

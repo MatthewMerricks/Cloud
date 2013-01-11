@@ -12,6 +12,9 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
+    /// <summary>
+    /// Properties for what a value was set to, meaning is according to which event passes these args
+    /// </summary>
     public sealed class SetCountArgs : HandleableEventArgs
     {
         public uint NewCount
@@ -21,9 +24,9 @@ namespace CloudApiPublic.Model
                 return _newCount;
             }
         }
-        private uint _newCount;
+        private readonly uint _newCount;
 
-        public SetCountArgs(uint newCount)
+        internal SetCountArgs(uint newCount)
         {
             this._newCount = newCount;
         }

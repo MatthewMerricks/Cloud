@@ -13,7 +13,7 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
-    public sealed class BadgePathRenamedArgs : HandleableEventArgs
+    internal sealed class BadgePathRenamedArgs : HandleableEventArgs
     {
         public RenameBadgePath RenameBadgePath
         {

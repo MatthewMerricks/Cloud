@@ -14,6 +14,9 @@ using CloudApiPublic.Model;
 
 namespace CloudApiPublic.JsonContracts
 {
+    /// <summary>
+    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.PostFileChange"/>, <see cref="CloudApiPublic.REST.CLHttpRest.UndoDeletionFileChange"/>, and <see cref="CloudApiPublic.REST.CLHttpRest.CopyFile"/>
+    /// </summary>
     [DataContract]
     public sealed class Event
     {

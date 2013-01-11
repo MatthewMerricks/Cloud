@@ -12,7 +12,7 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
-    public struct RenameBadgePath
+    internal struct RenameBadgePath
     {
         public string FromPath
         {

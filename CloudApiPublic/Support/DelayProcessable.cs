@@ -73,7 +73,7 @@ namespace CloudApiPublic.Support
             this.DelayCompletedLocker = DelayCompletedLocker;
         }
 
-        #region public methods
+        #region internal methods
         /// <summary>
         /// ¡¡ Must restart application after running this before processing can run again !!
         /// </summary>
@@ -222,6 +222,7 @@ namespace CloudApiPublic.Support
                 }
             }
         }
+
         /// <summary>
         /// Adds an action to run before the primary action which will synchronize on the DelayCompletedLocker
         /// </summary>

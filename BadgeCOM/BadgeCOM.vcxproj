@@ -939,6 +939,9 @@ copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(
 if errorlevel 1 goto BuildEventFailed
 copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb
 if errorlevel 1 goto BuildEventFailed
+regsvr32.exe /u /s $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
+REM do not jump to error condition and reset error level since it is fine if regsvr32.exe fails to unregister dll
+set errorlevel=0
 REM Exit properly because the build will not fail
 REM unless the final step exits with an error code
 goto BuildEventOK

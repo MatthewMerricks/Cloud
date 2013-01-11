@@ -14,6 +14,9 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.EventMessageReceiver
 {
+    /// <summary>
+    /// <see cref="EventMessage"/> for number of files which have been uploaded since this message was first created.
+    /// </summary>
     public sealed class UploadedMessage : EventMessage
     {
         #region EventMessage abstract overrides
@@ -42,12 +45,12 @@ namespace CloudApiPublic.EventMessageReceiver
         private uint CurrentCount;
         #endregion
 
-        public UploadedMessage(uint initialCount)
+        internal UploadedMessage(uint initialCount)
         {
             this.CurrentCount = initialCount;
         }
 
-        public void IncrementCount(uint incrementAmount = 1)
+        internal void IncrementCount(uint incrementAmount = 1)
         {
             this.CurrentCount += incrementAmount;
             NotifyPropertyChanged(parent => parent.Message);

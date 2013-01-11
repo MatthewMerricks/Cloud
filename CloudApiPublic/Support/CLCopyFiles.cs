@@ -17,7 +17,10 @@ using CloudApiPublic.Model;
 
 namespace CloudApiPublic.Support
 {
-    public class CLCopyFiles
+    /// <summary>
+    /// Static helper class providing methods to handle file/directory copying with full visual basic-style dialogs
+    /// </summary>
+    public static class CLCopyFiles
     {
         /// <summary>
         /// Copies a file or directory to the target.  Call with the full path of each.
@@ -54,7 +57,7 @@ namespace CloudApiPublic.Support
                 CLError error = ex;
                 error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 CLTrace.Instance.writeToLog(1, "CLCopyFiles: CopyFileOrDirectoryWithUi: ERROR: Exception. Msg: <{0}>, Code: {1} while copying file <{2}> to file <{3}>.", 
-                    error.errorDescription, error.errorCode, source, target);
+                    error.errorDescription, ((int)error.code).ToString(), source, target);
 	        }
         }
     }

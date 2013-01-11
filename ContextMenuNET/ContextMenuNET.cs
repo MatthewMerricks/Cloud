@@ -93,7 +93,7 @@ namespace ContextMenuNET
             {
                 CLError error = ex;
                 error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                _trace.writeToLog(1, "ContextMenuServer: Initialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "ContextMenuServer: Initialize: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
                 return ex;
             }
         }
@@ -145,7 +145,7 @@ namespace ContextMenuNET
             {
                 CLError error = ex;
                 error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                _trace.writeToLog(1, "ContextMenuServer: IsBadgingInitialized: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "ContextMenuServer: IsBadgingInitialized: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
                 isInitialized = Helpers.DefaultForType<bool>();
                 return ex;
             }
@@ -160,7 +160,7 @@ namespace ContextMenuNET
             {
                 CLError error = ex;
                 error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                _trace.writeToLog(1, "ContextMenuServer: pIsBadgingInitialized: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "ContextMenuServer: pIsBadgingInitialized: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
                 isInitialized = Helpers.DefaultForType<bool>();
                 return ex;
             }
@@ -200,7 +200,7 @@ namespace ContextMenuNET
             {
                 CLError error = ex;
                 error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                _trace.writeToLog(1, "ContextMenuServer: pShutdown: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "ContextMenuServer: pShutdown: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
                 return ex;
             }
             return null;
@@ -333,7 +333,7 @@ namespace ContextMenuNET
             {
                 CLError error = ex;
                 error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                _trace.writeToLog(1, "ContextMenuServer: StartContextMenuCOMPipes: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "ContextMenuServer: StartContextMenuCOMPipes: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
             }
         }
         #endregion

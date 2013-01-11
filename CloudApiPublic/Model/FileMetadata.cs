@@ -43,9 +43,11 @@ namespace CloudApiPublic.Model
         /// </summary>
         public string MimeType { get; set; }
 
-        public RevisionChanger RevisionChanger { get; private set; }
+        internal RevisionChanger RevisionChanger { get; private set; }
 
-        public FileMetadata(RevisionChanger revisionChanger = null)
+        public FileMetadata() : this(null) { }
+
+        internal FileMetadata(RevisionChanger revisionChanger)
         {
             if (revisionChanger == null)
             {

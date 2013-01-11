@@ -95,7 +95,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 
-<p>View model for views to display changes from status changes, such as growls and sync status; split into partial classes for view-specific portions (i.e. <a class="el" href="namespace_cloud_api_public_1_1_sync.html">Sync</a> <a class="el" href="namespace_cloud_api_public_1_1_event_message_receiver_1_1_status.html">Status</a> window)  
+<p>View model for views to display changes from status changes, such as growls and sync status; split into partial classes for view-specific portions (i.e. Sync Status window)  
  <a href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#details">More...</a></p>
 <div class="dynheader">
 Inheritance diagram for CloudApiPublic.EventMessageReceiver.EventMessageReceiver:</div>
@@ -120,72 +120,32 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>Dispose</b> ()</td></
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a63842ca35ba9dc442adc8b3dd575033a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html">EventMessageReceiver</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a63842ca35ba9dc442adc8b3dd575033a">GetInstance</a> (GetHistoricBandwidthSettings getHistoricBandwidthSettings, SetHistoricBandwidthSettings setHistoricBandwidthSettings)</td></tr>
-<tr class="memdesc:a63842ca35ba9dc442adc8b3dd575033a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Singleton pattern instance  <a href="#a63842ca35ba9dc442adc8b3dd575033a"></a><br/></td></tr>
-<tr class="separator:a63842ca35ba9dc442adc8b3dd575033a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d3644b0b61a7a62bf80e0693422a595"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html">EventMessageReceiver</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a4d3644b0b61a7a62bf80e0693422a595">GetInstance</a> (GetHistoricBandwidthSettings getHistoricBandwidthSettings, SetHistoricBandwidthSettings setHistoricBandwidthSettings, Nullable&lt; <a class="el" href="namespace_cloud_api_public_1_1_static.html#aafffc00af8d280bc613cd0a306f52a6b">EventMessageLevel</a> &gt; OverrideImportanceFilterNonErrors=null, Nullable&lt; <a class="el" href="namespace_cloud_api_public_1_1_static.html#aafffc00af8d280bc613cd0a306f52a6b">EventMessageLevel</a> &gt; OverrideImportanceFilterErrors=null, Nullable&lt; int &gt; OverrideDefaultMaxStatusMessages=null)</td></tr>
+<tr class="memdesc:a4d3644b0b61a7a62bf80e0693422a595"><td class="mdescLeft">&#160;</td><td class="mdescRight">Singleton pattern instance  <a href="#a4d3644b0b61a7a62bf80e0693422a595"></a><br/></td></tr>
+<tr class="separator:a4d3644b0b61a7a62bf80e0693422a595"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="properties"></a>
 Properties</h2></td></tr>
-<tr class="memitem:ab56088cad1ff2316973873b561ec1018"><td class="memItemLeft" align="right" valign="top">DelayChangeObservableCollection<br class="typebreak"/>
-&lt; <a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message.html">EventMessage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#ab56088cad1ff2316973873b561ec1018">GrowlMessages</a><code> [get]</code></td></tr>
-<tr class="memdesc:ab56088cad1ff2316973873b561ec1018"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the collection of growl messages for display; bind with one-time binding when used as ItemSource because reference to collection is readonly  <a href="#ab56088cad1ff2316973873b561ec1018"></a><br/></td></tr>
-<tr class="separator:ab56088cad1ff2316973873b561ec1018"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a082b999afb6c8b85f4d674a75bf341bb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a082b999afb6c8b85f4d674a75bf341bb">GrowlVisible</a><code> [get, set]</code></td></tr>
-<tr class="memdesc:a082b999afb6c8b85f4d674a75bf341bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves whether the growl messages should be visible (meaning the growl window should not be completely faded out) which should be bound to display visibility; notifies on property change  <a href="#a082b999afb6c8b85f4d674a75bf341bb"></a><br/></td></tr>
-<tr class="separator:a082b999afb6c8b85f4d674a75bf341bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f93b9413622329023074e2974c5c7f1"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a9f93b9413622329023074e2974c5c7f1">SecondsTillFadeIn</a><code> [get, set]</code></td></tr>
-<tr class="memdesc:a9f93b9413622329023074e2974c5c7f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the amount of seconds until the growl messages should be faded in and completely opaque which should be bound to an animation timer; notifies on property change  <a href="#a9f93b9413622329023074e2974c5c7f1"></a><br/></td></tr>
-<tr class="separator:a9f93b9413622329023074e2974c5c7f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74a4bdd5d41cae17fa41ae47900697af"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a74a4bdd5d41cae17fa41ae47900697af">SecondsTillStartFadeOut</a><code> [get, set]</code></td></tr>
-<tr class="memdesc:a74a4bdd5d41cae17fa41ae47900697af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the amount of seconds for the growl messages to remain completely opaque before starting to fade out which should be bound to an animation timer; notifies on property change  <a href="#a74a4bdd5d41cae17fa41ae47900697af"></a><br/></td></tr>
-<tr class="separator:a74a4bdd5d41cae17fa41ae47900697af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acbc67b358faa248a4328980ba6fc958f"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#acbc67b358faa248a4328980ba6fc958f">SecondsTillCompleteFadeOut</a><code> [get, set]</code></td></tr>
-<tr class="memdesc:acbc67b358faa248a4328980ba6fc958f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the amount of seconds before the growl messages completely fade out which should be bound to an animation timer; notifies on property change  <a href="#acbc67b358faa248a4328980ba6fc958f"></a><br/></td></tr>
-<tr class="separator:acbc67b358faa248a4328980ba6fc958f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afce60beabd6d3468cefb6366df1b1a53"><td class="memItemLeft" align="right" valign="top">ICommand&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#afce60beabd6d3468cefb6366df1b1a53">ClickedGrowlCommand</a><code> [get]</code></td></tr>
-<tr class="memdesc:afce60beabd6d3468cefb6366df1b1a53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the command which needs to be passed another ICommand as a command parameter which it will fire with this message receiver as its parameter; this command should be bound to an action for clicking on the growl; this will also trigger the action for closing the growl  <a href="#afce60beabd6d3468cefb6366df1b1a53"></a><br/></td></tr>
-<tr class="separator:afce60beabd6d3468cefb6366df1b1a53"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abd28c2b693c427cd686a5b79e07f99de"><td class="memItemLeft" align="right" valign="top">ICommand&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#abd28c2b693c427cd686a5b79e07f99de">ClosedGrowlCommand</a><code> [get]</code></td></tr>
-<tr class="memdesc:abd28c2b693c427cd686a5b79e07f99de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the command which does not use any parameter which will go through all messages and set their times to expire so the growl will no longer be visible; this command should be bound to an action for closing the growl  <a href="#abd28c2b693c427cd686a5b79e07f99de"></a><br/></td></tr>
-<tr class="separator:abd28c2b693c427cd686a5b79e07f99de"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a468875e6cf137136ec34e64e2ead14b9"><td class="memItemLeft" align="right" valign="top">ICommand&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a468875e6cf137136ec34e64e2ead14b9">MouseEnteredGrowlCommand</a><code> [get]</code></td></tr>
-<tr class="memdesc:a468875e6cf137136ec34e64e2ead14b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves the command which needs the element from the visual tree for the entire growl which will be used to track when the mouse is inside the growl to keep it opaque; this command should be bound to an action for the mouse entering the element from the visual tree for the entire growl  <a href="#a468875e6cf137136ec34e64e2ead14b9"></a><br/></td></tr>
-<tr class="separator:a468875e6cf137136ec34e64e2ead14b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2d3db1835bfcf5614e0a47e7fd850b1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad2d3db1835bfcf5614e0a47e7fd850b1"></a>
-ObservableCollection<br class="typebreak"/>
-&lt; INotifyPropertyChanged &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>ListFilesDownloading</b><code> [get]</code></td></tr>
-<tr class="separator:ad2d3db1835bfcf5614e0a47e7fd850b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af6dc9a7dd86e3ee205413a0ecc12e1ab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af6dc9a7dd86e3ee205413a0ecc12e1ab"></a>
-ObservableCollection<br class="typebreak"/>
-&lt; INotifyPropertyChanged &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>ListFilesUploading</b><code> [get]</code></td></tr>
-<tr class="separator:af6dc9a7dd86e3ee205413a0ecc12e1ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a277fbac4e898ddb41e2a7d8e513269d1"><td class="memItemLeft" align="right" valign="top">ObservableCollection<br class="typebreak"/>
+&lt; ICLStatusFileTransfer &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a277fbac4e898ddb41e2a7d8e513269d1">ListFilesDownloading</a><code> [get]</code></td></tr>
+<tr class="memdesc:a277fbac4e898ddb41e2a7d8e513269d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Collection of statuses for file transfers for downloads, check (ICLStatusFileTransfer).Visibility for hidden because those are blank placeholders  <a href="#a277fbac4e898ddb41e2a7d8e513269d1"></a><br/></td></tr>
+<tr class="separator:a277fbac4e898ddb41e2a7d8e513269d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe8e9a24f12820bf262f28d93af5463c"><td class="memItemLeft" align="right" valign="top">ObservableCollection<br class="typebreak"/>
+&lt; ICLStatusFileTransfer &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#afe8e9a24f12820bf262f28d93af5463c">ListFilesUploading</a><code> [get]</code></td></tr>
+<tr class="memdesc:afe8e9a24f12820bf262f28d93af5463c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Collection of statuses for file transfers for uploads, check (ICLStatusFileTransfer).Visibility for hidden because those are blank placeholders  <a href="#afe8e9a24f12820bf262f28d93af5463c"></a><br/></td></tr>
+<tr class="separator:afe8e9a24f12820bf262f28d93af5463c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5499e363b5a8920bbbb70fe529dd6feb"><td class="memItemLeft" align="right" valign="top">ObservableCollection<br class="typebreak"/>
-&lt; <a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_status_1_1_c_l_status_message.html">CLStatusMessage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a5499e363b5a8920bbbb70fe529dd6feb">ListMessages</a><code> [get]</code></td></tr>
-<tr class="memdesc:a5499e363b5a8920bbbb70fe529dd6feb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a5499e363b5a8920bbbb70fe529dd6feb" title="The ListMessages property&#39;s name. ">ListMessages</a> property's name.  <a href="#a5499e363b5a8920bbbb70fe529dd6feb"></a><br/></td></tr>
+&lt; CLStatusMessage &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a5499e363b5a8920bbbb70fe529dd6feb">ListMessages</a><code> [get]</code></td></tr>
+<tr class="memdesc:a5499e363b5a8920bbbb70fe529dd6feb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Collection of status messages  <a href="#a5499e363b5a8920bbbb70fe529dd6feb"></a><br/></td></tr>
 <tr class="separator:a5499e363b5a8920bbbb70fe529dd6feb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a45b7136a4f3ee4989305d2d27fd65703"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a45b7136a4f3ee4989305d2d27fd65703"></a>
-string&#160;</td><td class="memItemRight" valign="bottom"><b>WindowSyncStatus_Title</b><code> [get, set]</code></td></tr>
+<tr class="memitem:a45b7136a4f3ee4989305d2d27fd65703"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a45b7136a4f3ee4989305d2d27fd65703">WindowSyncStatus_Title</a><code> [get, set]</code></td></tr>
+<tr class="memdesc:a45b7136a4f3ee4989305d2d27fd65703"><td class="mdescLeft">&#160;</td><td class="mdescRight">Display title for a sync status window  <a href="#a45b7136a4f3ee4989305d2d27fd65703"></a><br/></td></tr>
 <tr class="separator:a45b7136a4f3ee4989305d2d27fd65703"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3bf33686da629dae4091e5bf9159e7c6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3bf33686da629dae4091e5bf9159e7c6"></a>
-static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_sender.html">IMessageSender</a>&#160;</td><td class="memItemRight" valign="bottom"><b>MessageSender</b><code> [get]</code></td></tr>
-<tr class="separator:a3bf33686da629dae4091e5bf9159e7c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a464b93353f7142bb7290f357b059c511"><td class="memItemLeft" align="right" valign="top">ICommand&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a464b93353f7142bb7290f357b059c511">WindowSyncStatus_DoneCommand</a><code> [get]</code></td></tr>
-<tr class="memdesc:a464b93353f7142bb7290f357b059c511"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the WindowSyncStatus_DoneCommand.  <a href="#a464b93353f7142bb7290f357b059c511"></a><br/></td></tr>
-<tr class="separator:a464b93353f7142bb7290f357b059c511"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2d3561dbc21714c80eaa066e98fcb0dd"><td class="memItemLeft" align="right" valign="top">ICommand&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a2d3561dbc21714c80eaa066e98fcb0dd">WindowSyncStatus_ShowLogCommand</a><code> [get]</code></td></tr>
-<tr class="memdesc:a2d3561dbc21714c80eaa066e98fcb0dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the WindowSyncStatus_ShowLogCommand.  <a href="#a2d3561dbc21714c80eaa066e98fcb0dd"></a><br/></td></tr>
-<tr class="separator:a2d3561dbc21714c80eaa066e98fcb0dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5c08bb579f16c242941aaded7def336"><td class="memItemLeft" align="right" valign="top">ICommand&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#aa5c08bb579f16c242941aaded7def336">WindowSyncStatus_SaveLogCommand</a><code> [get]</code></td></tr>
-<tr class="memdesc:aa5c08bb579f16c242941aaded7def336"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the WindowSyncStatus_SaveLogCommand.  <a href="#aa5c08bb579f16c242941aaded7def336"></a><br/></td></tr>
-<tr class="separator:aa5c08bb579f16c242941aaded7def336"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a728ae5e0cd9ddbe10a21e79ecec3f464"><td class="memItemLeft" align="right" valign="top">ICommand&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a728ae5e0cd9ddbe10a21e79ecec3f464">WindowSyncStatus_ShowErrorLogCommand</a><code> [get]</code></td></tr>
-<tr class="memdesc:a728ae5e0cd9ddbe10a21e79ecec3f464"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the WindowSyncStatus_ShowErrorLogCommand.  <a href="#a728ae5e0cd9ddbe10a21e79ecec3f464"></a><br/></td></tr>
-<tr class="separator:a728ae5e0cd9ddbe10a21e79ecec3f464"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>View model for views to display changes from status changes, such as growls and sync status; split into partial classes for view-specific portions (i.e. <a class="el" href="namespace_cloud_api_public_1_1_sync.html">Sync</a> <a class="el" href="namespace_cloud_api_public_1_1_event_message_receiver_1_1_status.html">Status</a> window) </p>
+<div class="textblock"><p>View model for views to display changes from status changes, such as growls and sync status; split into partial classes for view-specific portions (i.e. Sync Status window) </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a63842ca35ba9dc442adc8b3dd575033a"></a>
+<a class="anchor" id="a4d3644b0b61a7a62bf80e0693422a595"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -202,7 +162,25 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">SetHistoricBandwidthSettings&#160;</td>
-          <td class="paramname"><em>setHistoricBandwidthSettings</em>&#160;</td>
+          <td class="paramname"><em>setHistoricBandwidthSettings</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Nullable&lt; <a class="el" href="namespace_cloud_api_public_1_1_static.html#aafffc00af8d280bc613cd0a306f52a6b">EventMessageLevel</a> &gt;&#160;</td>
+          <td class="paramname"><em>OverrideImportanceFilterNonErrors</em> = <code>null</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Nullable&lt; <a class="el" href="namespace_cloud_api_public_1_1_static.html#aafffc00af8d280bc613cd0a306f52a6b">EventMessageLevel</a> &gt;&#160;</td>
+          <td class="paramname"><em>OverrideImportanceFilterErrors</em> = <code>null</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Nullable&lt; int &gt;&#160;</td>
+          <td class="paramname"><em>OverrideDefaultMaxStatusMessages</em> = <code>null</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -222,7 +200,7 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
 </div>
 </div>
 <h2 class="groupheader">Property Documentation</h2>
-<a class="anchor" id="afce60beabd6d3468cefb6366df1b1a53"></a>
+<a class="anchor" id="a277fbac4e898ddb41e2a7d8e513269d1"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -230,7 +208,7 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">ICommand CloudApiPublic.EventMessageReceiver.EventMessageReceiver.ClickedGrowlCommand</td>
+          <td class="memname">ObservableCollection&lt;ICLStatusFileTransfer&gt; CloudApiPublic.EventMessageReceiver.EventMessageReceiver.ListFilesDownloading</td>
         </tr>
       </table>
   </td>
@@ -240,11 +218,11 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
 </table>
 </div><div class="memdoc">
 
-<p>Retrieves the command which needs to be passed another ICommand as a command parameter which it will fire with this message receiver as its parameter; this command should be bound to an action for clicking on the growl; this will also trigger the action for closing the growl </p>
+<p>Collection of statuses for file transfers for downloads, check (ICLStatusFileTransfer).Visibility for hidden because those are blank placeholders </p>
 
 </div>
 </div>
-<a class="anchor" id="abd28c2b693c427cd686a5b79e07f99de"></a>
+<a class="anchor" id="afe8e9a24f12820bf262f28d93af5463c"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -252,7 +230,7 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">ICommand CloudApiPublic.EventMessageReceiver.EventMessageReceiver.ClosedGrowlCommand</td>
+          <td class="memname">ObservableCollection&lt;ICLStatusFileTransfer&gt; CloudApiPublic.EventMessageReceiver.EventMessageReceiver.ListFilesUploading</td>
         </tr>
       </table>
   </td>
@@ -262,51 +240,7 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
 </table>
 </div><div class="memdoc">
 
-<p>Retrieves the command which does not use any parameter which will go through all messages and set their times to expire so the growl will no longer be visible; this command should be bound to an action for closing the growl </p>
-
-</div>
-</div>
-<a class="anchor" id="ab56088cad1ff2316973873b561ec1018"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">DelayChangeObservableCollection&lt;<a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message.html">EventMessage</a>&gt; CloudApiPublic.EventMessageReceiver.EventMessageReceiver.GrowlMessages</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">get</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Retrieves the collection of growl messages for display; bind with one-time binding when used as ItemSource because reference to collection is readonly </p>
-
-</div>
-</div>
-<a class="anchor" id="a082b999afb6c8b85f4d674a75bf341bb"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool CloudApiPublic.EventMessageReceiver.EventMessageReceiver.GrowlVisible</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">get</span><span class="mlabel">set</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Retrieves whether the growl messages should be visible (meaning the growl window should not be completely faded out) which should be bound to display visibility; notifies on property change </p>
+<p>Collection of statuses for file transfers for uploads, check (ICLStatusFileTransfer).Visibility for hidden because those are blank placeholders </p>
 
 </div>
 </div>
@@ -318,7 +252,7 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">ObservableCollection&lt;<a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_status_1_1_c_l_status_message.html">CLStatusMessage</a>&gt; CloudApiPublic.EventMessageReceiver.EventMessageReceiver.ListMessages</td>
+          <td class="memname">ObservableCollection&lt;CLStatusMessage&gt; CloudApiPublic.EventMessageReceiver.EventMessageReceiver.ListMessages</td>
         </tr>
       </table>
   </td>
@@ -328,11 +262,11 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
 </table>
 </div><div class="memdoc">
 
-<p>The <a class="el" href="class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver.html#a5499e363b5a8920bbbb70fe529dd6feb" title="The ListMessages property&#39;s name. ">ListMessages</a> property's name. </p>
+<p>Collection of status messages </p>
 
 </div>
 </div>
-<a class="anchor" id="a468875e6cf137136ec34e64e2ead14b9"></a>
+<a class="anchor" id="a45b7136a4f3ee4989305d2d27fd65703"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -340,29 +274,7 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">ICommand CloudApiPublic.EventMessageReceiver.EventMessageReceiver.MouseEnteredGrowlCommand</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">get</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Retrieves the command which needs the element from the visual tree for the entire growl which will be used to track when the mouse is inside the growl to keep it opaque; this command should be bound to an action for the mouse entering the element from the visual tree for the entire growl </p>
-
-</div>
-</div>
-<a class="anchor" id="acbc67b358faa248a4328980ba6fc958f"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">double CloudApiPublic.EventMessageReceiver.EventMessageReceiver.SecondsTillCompleteFadeOut</td>
+          <td class="memname">string CloudApiPublic.EventMessageReceiver.EventMessageReceiver.WindowSyncStatus_Title</td>
         </tr>
       </table>
   </td>
@@ -372,139 +284,7 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
 </table>
 </div><div class="memdoc">
 
-<p>Retrieves the amount of seconds before the growl messages completely fade out which should be bound to an animation timer; notifies on property change </p>
-
-</div>
-</div>
-<a class="anchor" id="a9f93b9413622329023074e2974c5c7f1"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">double CloudApiPublic.EventMessageReceiver.EventMessageReceiver.SecondsTillFadeIn</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">get</span><span class="mlabel">set</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Retrieves the amount of seconds until the growl messages should be faded in and completely opaque which should be bound to an animation timer; notifies on property change </p>
-
-</div>
-</div>
-<a class="anchor" id="a74a4bdd5d41cae17fa41ae47900697af"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">double CloudApiPublic.EventMessageReceiver.EventMessageReceiver.SecondsTillStartFadeOut</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">get</span><span class="mlabel">set</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Retrieves the amount of seconds for the growl messages to remain completely opaque before starting to fade out which should be bound to an animation timer; notifies on property change </p>
-
-</div>
-</div>
-<a class="anchor" id="a464b93353f7142bb7290f357b059c511"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">ICommand CloudApiPublic.EventMessageReceiver.EventMessageReceiver.WindowSyncStatus_DoneCommand</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">get</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Gets the WindowSyncStatus_DoneCommand. </p>
-
-</div>
-</div>
-<a class="anchor" id="aa5c08bb579f16c242941aaded7def336"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">ICommand CloudApiPublic.EventMessageReceiver.EventMessageReceiver.WindowSyncStatus_SaveLogCommand</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">get</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Gets the WindowSyncStatus_SaveLogCommand. </p>
-
-</div>
-</div>
-<a class="anchor" id="a728ae5e0cd9ddbe10a21e79ecec3f464"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">ICommand CloudApiPublic.EventMessageReceiver.EventMessageReceiver.WindowSyncStatus_ShowErrorLogCommand</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">get</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Gets the WindowSyncStatus_ShowErrorLogCommand. </p>
-
-</div>
-</div>
-<a class="anchor" id="a2d3561dbc21714c80eaa066e98fcb0dd"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">ICommand CloudApiPublic.EventMessageReceiver.EventMessageReceiver.WindowSyncStatus_ShowLogCommand</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">get</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Gets the WindowSyncStatus_ShowLogCommand. </p>
+<p>Display title for a sync status window </p>
 
 </div>
 </div>
@@ -515,7 +295,7 @@ static <a class="el" href="interface_cloud_api_public_1_1_model_1_1_i_message_se
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jan 2 2013 07:18:03 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jan 10 2013 18:14:46 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>

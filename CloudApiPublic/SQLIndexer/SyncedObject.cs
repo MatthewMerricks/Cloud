@@ -14,7 +14,7 @@ using CloudApiPublic.Model;
 
 namespace CloudApiPublic.SQLIndexer
 {
-    public class SyncedObject
+    internal class SyncedObject
     {
         public string ServerLinkedPath { get; set; }
         public FileMetadata Metadata { get; set; }

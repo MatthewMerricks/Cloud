@@ -16,7 +16,7 @@ namespace CloudApiPublic.Support
     /// <summary>
     /// Provides detailed information about the host operating system.
     /// </summary>
-    static public class OSInfo
+    static internal class OSInfo
     {
         #region BITS
         /// <summary>

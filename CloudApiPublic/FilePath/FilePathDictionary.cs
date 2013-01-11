@@ -16,6 +16,7 @@ namespace CloudApiPublic.Model
     /// (use with callbacks to retrieve subsequent renames or deletions)
     /// </summary>
     /// <typeparam name="T">Any reference type</typeparam>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed partial class FilePathDictionary<T> : IDictionary<FilePath, T> where T : class
     {
         #region private members

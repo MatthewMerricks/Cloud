@@ -12,7 +12,7 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
-    public class RevisionChanger
+    internal class RevisionChanger
     {
         public event EventHandler<ResolveEventArgs> RevisionChanged;
 

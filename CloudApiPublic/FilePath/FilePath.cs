@@ -11,7 +11,7 @@ namespace CloudApiPublic.Model
     /// Self-referencing file path storage,
     /// each instance contains a name and a link to it's parent,
     /// ToString returns a combined representation (i.e. "C:\A\B\C\D.txt"),
-    /// Implicitly converted from FileInfo and DirectoryInfo
+    /// Implicitly converted from a full string path or from FileInfo or DirectoryInfo
     /// </summary>
     public sealed class FilePath
     {

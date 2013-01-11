@@ -13,6 +13,9 @@ using System.Text;
 
 namespace CloudApiPublic.Static
 {
+    /// <summary>
+    /// Exposes events to receive status notifications from <see cref="CloudApiPublic.CLSync"/>
+    /// </summary>
     public static class MessageEvents
     {
         public static event EventHandler<EventMessageArgs> NewEventMessage

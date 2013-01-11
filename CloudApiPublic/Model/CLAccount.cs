@@ -12,7 +12,7 @@ namespace CloudApiPublic.Model
     /// <summary>
     /// An object of this class represents a Cloud account.
     /// </summary>
-    public class CLAccount
+    internal class CLAccount
     {
         #region "Properties"
 

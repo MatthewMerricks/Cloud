@@ -13,6 +13,9 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.EventMessageReceiver
 {
+    /// <summary>
+    /// <see cref="EventMessage"/> for some information.
+    /// </summary>
     public sealed class InformationalMessage : EventMessage
     {
         #region EventMessage abstract overrides
@@ -34,7 +37,7 @@ namespace CloudApiPublic.EventMessageReceiver
         private string _message;
         #endregion
 
-        public InformationalMessage(string informationalMessage)
+        internal InformationalMessage(string informationalMessage)
             : base()
         {
             this._message = informationalMessage

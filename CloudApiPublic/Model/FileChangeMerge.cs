@@ -15,6 +15,7 @@ namespace CloudApiPublic.Model
     /// <summary>
     /// Do not use the parameterless constructor because the resulting struct will be marked invalid and throw exceptions when retrieving public property values
     /// </summary>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public struct FileChangeMerge
     {
         public FileChange MergeFrom

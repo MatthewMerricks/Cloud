@@ -100,7 +100,7 @@ namespace CloudApiPrivate.Common
             {
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLShortcuts: AddCloudFolderToExplorerFavorites: ERROR: Exception: Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLShortcuts: AddCloudFolderToExplorerFavorites: ERROR: Exception: Msg: {0}, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
             }
         }
 
@@ -128,7 +128,7 @@ namespace CloudApiPrivate.Common
             {
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLShortcuts: RemoveCloudFolderShortcutToFolder: ERROR: Exception: Msg: {0}, Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLShortcuts: RemoveCloudFolderShortcutToFolder: ERROR: Exception: Msg: {0}, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
             }
         }
 

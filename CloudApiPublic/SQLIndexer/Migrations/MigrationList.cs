@@ -1,3 +1,9 @@
+//  MigrationList.cs
+//  Cloud Windows
+//
+//  Created by David Bruck.
+//  Copyright (c) Cloud.com. All rights reserved.
+
 using System;
 using System.Collections.Generic;
 using System.Data.SqlServerCe;
@@ -6,7 +12,7 @@ using System.Text;
 
 namespace CloudApiPublic.SQLIndexer.Migrations
 {
-    public static class MigrationList
+    internal static class MigrationList
     {
         public static IEnumerable<KeyValuePair<int, IMigration>> GetMigrationsAfterVersion(int version)
         {
@@ -40,7 +46,7 @@ namespace CloudApiPublic.SQLIndexer.Migrations
         };
     }
 
-    public interface IMigration
+    internal interface IMigration
     {
         void Apply(SqlCeConnection connection, string indexDBPassword);
     }

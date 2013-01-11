@@ -17,6 +17,7 @@ namespace CloudApiPublic.Model
     /// <summary>
     /// Extension of FileChange to add a property for Dependencies
     /// </summary>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class FileChangeWithDependencies : FileChange
     {
         /// <summary>

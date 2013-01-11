@@ -267,3 +267,40 @@
 ///           }
 ///       }
 /// \endcode
+///
+/// \namespace CloudApiPublic
+/// \brief Contains all public API functions of Cloud for Windows XP through Windows 8. See detailed description.
+///
+/// Primary components:\n
+/// \link CloudApiPublic.CLSync CLSync \endlink performs active sync of files and folders within a specified path to a syncbox in Cloud.\n
+/// \link CloudApiPublic.PushNotification.CLNotification PushNotification.CLNotification \endlink allows manual subscription to push notifications and is used internally by \link CloudApiPublic.CLSync CLSync \endlink.\n
+/// \link CloudApiPublic.REST.CLHttpRest REST.CLHttpRest \endlink allows manual access to Cloud communication methods for file\folder queries, posting changes, and file transfer. It is used internally by \link CloudApiPublic.CLSync CLSync \endlink.\n
+/// \link CloudApiPublic.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes. \link CloudApiPublic.CLSync CLSync \endlink fires event callbacks upon changes.\n
+/// \link CloudApiPublic.Support.CLTrace Support.CLTrace \endlink writes a message to log from a required format string and any object parameter arguments. It is used conditionally by other public API classes when instantiated with advanced settings for trace.
+///
+/// \namespace CloudApiPublic.EventMessageReceiver
+/// \brief Contains the \link CloudApiPublic.EventMessageReceiver.EventMessageReceiver EventMessageReceiver \endlink which acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes.
+///
+/// \namespace CloudApiPublic.Interfaces
+/// \brief Contains interfaces required as inputs for various public API functions.
+///
+/// \namespace CloudApiPublic.JsonContracts
+/// \brief Contains deserialized request or response objects for HTTP REST communication to Cloud.
+///
+/// \namespace CloudApiPublic.Model
+/// \brief Contains various objects exposed through public API functions.
+///
+/// \namespace CloudApiPublic.PushNotification
+/// \brief Contains the \link CloudApiPublic.PushNotification.CLNotification CLNotification \endlink which allows manual subscription to push notifications.
+///
+/// \namespace CloudApiPublic.REST
+/// \brief Contains the \link CloudApiPublic.REST.CLHttpRest CLHttpRest \endlink which allows manual access to Cloud communication methods for file\folder queries, posting changes, and file transfer.
+///
+/// \namespace CloudApiPublic.Static
+/// \brief Contains various static helper classes such as \link CloudApiPublic.Static.Helpers Helpers \endlink
+///
+/// \namespace CloudApiPublic.Support
+/// \brief Contains the \link CloudApiPublic.Support.CLTrace CLTrace \endlink which writes a message to log from a required format string and any object parameter arguments.
+///
+/// \namespace CloudApiPublicSamples
+/// \brief Contains sample code which implements \link CloudApiPublic CloudApiPublic \endlink library and uses it to allow single folder active sync; it also can display status changes.

@@ -193,7 +193,7 @@ namespace CloudApiPublic
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        public CLError Start(ISyncSettings settings, out CLSyncStartStatus status)
+        public CLError Start(ISyncSettings settings, out CLSyncStartStatus status, EventHandler<NotificationEventArgs> onNotification = null, EventHandler<NotificationErrorEventArgs> onConnectionError = null)
         {
             try
             {
@@ -253,7 +253,7 @@ namespace CloudApiPublic
                 if (iconOverlayError != null)
                 {
                     // Failure to start badging does not prevent syncing.  Just log it.
-                    _trace.writeToLog(1, "CLSync: Start: ERROR: Exception. Msg: {0}. Code: {1}.", iconOverlayError.errorDescription, iconOverlayError.errorCode);
+                    _trace.writeToLog(1, "CLSync: Start: ERROR: Exception. Msg: {0}. Code: {1}.", iconOverlayError.errorDescription, ((int)iconOverlayError.code).ToString());
                 }
 
                 // Start the indexer.
@@ -265,7 +265,7 @@ namespace CloudApiPublic
                 }
                 if (indexCreationError != null)
                 {
-                    _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, indexCreationError.errorCode);
+                    _trace.writeToLog(1, "CLSync: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, ((int)indexCreationError.code).ToString());
                     ReleaseResources();
                     status = CLSyncStartStatus.ErrorIndexCreation;
                     return indexCreationError;
@@ -289,7 +289,7 @@ namespace CloudApiPublic
                 // Hook up the events
                 _trace.writeToLog(9, "CLSync: Start: Hook up events.");
                 _notifier.NotificationReceived += OnNotificationReceived;
-                _notifier.NotificationPerformManualSyncFrom += OnNotificationPerformManualSyncFrom;
+                _notifier.NotificationStillDisconnectedPing += OnNotificationPerformManualSyncFrom;
                 _notifier.ConnectionError += OnNotificationConnectionError;
 
                 // Create the http rest client
@@ -298,7 +298,7 @@ namespace CloudApiPublic
                 CLError createRestClientError = CLHttpRest.CreateAndInitialize(_syncSettings, out httpRestClient);
                 if (createRestClientError != null)
                 {
-                    _trace.writeToLog(1, "CLSync: Start: ERROR(3): Msg: {0}. Code: {1}.", createRestClientError.errorDescription, createRestClientError.errorCode);
+                    _trace.writeToLog(1, "CLSync: Start: ERROR(3): Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());
                     lock (_locker)
                     {
                         _indexer.Dispose();
@@ -322,7 +322,7 @@ namespace CloudApiPublic
 
                 if (fileMonitorCreationError != null)
                 {
-                    _trace.writeToLog(1, "CLSync: Start: ERROR(4): Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, fileMonitorCreationError.errorCode);
+                    _trace.writeToLog(1, "CLSync: Start: ERROR(4): Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, ((int)fileMonitorCreationError.code).ToString());
                     lock (_locker)
                     {
                         _indexer.Dispose();
@@ -344,7 +344,7 @@ namespace CloudApiPublic
                                 CLError fileMonitorStartError = _monitor.Start(out returnStatus);
                                 if (fileMonitorStartError != null)
                                 {
-                                    _trace.writeToLog(1, "CLSync: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, fileMonitorStartError.errorCode);
+                                    _trace.writeToLog(1, "CLSync: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, ((int)fileMonitorStartError.code).ToString());
                                     ReleaseResources();
                                     status = CLSyncStartStatus.ErrorStartingFileMonitor;
                                     return fileMonitorStartError;
@@ -355,7 +355,7 @@ namespace CloudApiPublic
                                                 _monitor.GetCurrentPath);
                                 if (indexerStartError != null)
                                 {
-                                    _trace.writeToLog(1, "CLSync: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, indexerStartError.errorCode);
+                                    _trace.writeToLog(1, "CLSync: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, ((int)indexerStartError.code).ToString());
                                     ReleaseResources();
                                     status = CLSyncStartStatus.ErrorStartingInitialIndexing;
                                     return indexerStartError;
@@ -397,7 +397,7 @@ namespace CloudApiPublic
         private void OnNotificationConnectionError(object sender, NotificationErrorEventArgs e)
         {
             // Tell the application
-            _trace.writeToLog(1, "CLSync: OnConnectionError: Entry. ERROR: Manual poll error: <{0}>. Web socket error: <{1}>.", e.ErrorManualPoll.errorDescription, e.ErrorWebSockets.errorDescription);
+            _trace.writeToLog(1, "CLSync: OnConnectionError: Entry. ERROR: Manual poll error: <{0}>. Web socket error: <{1}>.", e.ErrorStillDisconnectedPing.errorDescription, e.ErrorWebSockets.errorDescription);
             if (PushNotificationError != null)
             {
                 _trace.writeToLog(1, "CLSync: OnConnectionError: Notify the application.");

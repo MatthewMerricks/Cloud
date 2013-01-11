@@ -14,6 +14,9 @@ using CloudApiPublic.Model;
 
 namespace CloudApiPublic.JsonContracts
 {
+    /// <summary>
+    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetAllPending"/>
+    /// </summary>
     [DataContract]
     public sealed class PendingResponse
     {

@@ -19,7 +19,7 @@ using System.Text;
 
 namespace CloudApiPublic.SQLIndexer.SqlModel
 {
-    public static class SqlAccessor<T> where T : class
+    internal static class SqlAccessor<T> where T : class
     {
         #region private static members
         // Store the Type for the current generic type
@@ -1390,7 +1390,7 @@ namespace CloudApiPublic.SQLIndexer.SqlModel
         #endregion
     }
 
-    public interface ISqlAccess
+    internal interface ISqlAccess
     {
         /// <summary>
         /// Overrided name of table/property to match name in SQL
@@ -1406,7 +1406,7 @@ namespace CloudApiPublic.SQLIndexer.SqlModel
     /// <summary>
     /// Attribute parent namespace for decorating classes and properties to signify POCO objects/properties that match SQL CE tables/columns
     /// </summary>
-    public static class SqlAccess
+    internal static class SqlAccess
     {
         [AttributeUsage(AttributeTargets.Property)]
         /// <summary>

@@ -12,6 +12,7 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public struct PossiblyPreexistingFileChangeInError
     {
         public bool IsPreexisting

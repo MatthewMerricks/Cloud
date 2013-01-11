@@ -1,35 +1,30 @@
 \hypertarget{namespace_cloud_api_public}{\section{Package Cloud\-Api\-Public}
 \label{namespace_cloud_api_public}\index{Cloud\-Api\-Public@{Cloud\-Api\-Public}}
 }
+
+
+Contains all public A\-P\-I functions of Cloud for Windows X\-P through Windows 8. See detailed description.  
+
+
 \subsection*{Namespaces}
 \begin{DoxyCompactItemize}
 \item 
-package \hyperlink{namespace_cloud_api_public_1_1_badge_n_e_t}{Badge\-N\-E\-T}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_event_message_receiver}{Event\-Message\-Receiver}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_file_monitor}{File\-Monitor}
-\begin{DoxyCompactList}\small\item\em Monitor a local file system folder as a Sync\-Box. \end{DoxyCompactList}\item 
-package \hyperlink{namespace_cloud_api_public_1_1_interfaces}{Interfaces}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_json_contracts}{Json\-Contracts}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_model}{Model}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_push_notification}{Push\-Notification}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_resources}{Resources}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_r_e_s_t}{R\-E\-S\-T}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_s_q_l_indexer}{S\-Q\-L\-Indexer}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_static}{Static}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_support}{Support}
-\item 
-package \hyperlink{namespace_cloud_api_public_1_1_sync}{Sync}
-\end{DoxyCompactItemize}
+namespace \hyperlink{namespace_cloud_api_public_1_1_event_message_receiver}{Event\-Message\-Receiver}
+\begin{DoxyCompactList}\small\item\em Contains the \hyperlink{class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver}{Event\-Message\-Receiver } which acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes. \end{DoxyCompactList}\item 
+namespace \hyperlink{namespace_cloud_api_public_1_1_interfaces}{Interfaces}
+\begin{DoxyCompactList}\small\item\em Contains interfaces required as inputs for various public A\-P\-I functions. \end{DoxyCompactList}\item 
+namespace \hyperlink{namespace_cloud_api_public_1_1_json_contracts}{Json\-Contracts}
+\begin{DoxyCompactList}\small\item\em Contains deserialized request or response objects for H\-T\-T\-P \hyperlink{namespace_cloud_api_public_1_1_r_e_s_t}{R\-E\-S\-T} communication to Cloud. \end{DoxyCompactList}\item 
+namespace \hyperlink{namespace_cloud_api_public_1_1_model}{Model}
+\begin{DoxyCompactList}\small\item\em Contains various objects exposed through public A\-P\-I functions. \end{DoxyCompactList}\item 
+namespace \hyperlink{namespace_cloud_api_public_1_1_push_notification}{Push\-Notification}
+\begin{DoxyCompactList}\small\item\em Contains the \hyperlink{class_cloud_api_public_1_1_push_notification_1_1_c_l_notification}{C\-L\-Notification } which allows manual subscription to push notifications. \end{DoxyCompactList}\item 
+namespace \hyperlink{namespace_cloud_api_public_1_1_r_e_s_t}{R\-E\-S\-T}
+\begin{DoxyCompactList}\small\item\em Contains the \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest}{C\-L\-Http\-Rest } which allows manual access to Cloud communication methods for file queries, posting changes, and file transfer. \end{DoxyCompactList}\item 
+namespace \hyperlink{namespace_cloud_api_public_1_1_static}{Static}
+\begin{DoxyCompactList}\small\item\em Contains various static helper classes such as \hyperlink{class_cloud_api_public_1_1_static_1_1_helpers}{Helpers }. \end{DoxyCompactList}\item 
+namespace \hyperlink{namespace_cloud_api_public_1_1_support}{Support}
+\begin{DoxyCompactList}\small\item\em Contains the \hyperlink{class_cloud_api_public_1_1_support_1_1_c_l_trace}{C\-L\-Trace } which writes a message to log from a required format string and any object parameter arguments. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Classes}
 \begin{DoxyCompactItemize}
 \item 
@@ -38,9 +33,31 @@ class \hyperlink{class_cloud_api_public_1_1_c_l_sync}{C\-L\-Sync}
 \subsection*{Enumerations}
 \begin{DoxyCompactItemize}
 \item 
-enum {\bfseries C\-L\-Sync\-Start\-Status} \-: byte \{ {\bfseries Error\-Unknown}, 
+enum {\bfseries C\-L\-Sync\-Start\-Status} \-: byte \{ \\*
+{\bfseries Error\-Unknown}, 
 {\bfseries Error\-Long\-Root\-Path}, 
 {\bfseries Error\-Bad\-Root\-Path}, 
+{\bfseries Error\-Already\-Started}, 
+\\*
+{\bfseries Error\-Index\-Creation}, 
+{\bfseries Error\-Starting\-Notification}, 
+{\bfseries Error\-Creating\-Rest\-Client}, 
+{\bfseries Error\-Creating\-File\-Monitor}, 
+\\*
+{\bfseries Error\-Starting\-File\-Monitor}, 
+{\bfseries Error\-Starting\-Initial\-Indexing}, 
+{\bfseries Error\-Exception\-Starting\-File\-Monitor}, 
+{\bfseries Error\-General\-Sync\-Start\-Exception}, 
+\\*
 {\bfseries Successful}
  \}
 \end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Contains all public A\-P\-I functions of Cloud for Windows X\-P through Windows 8. See detailed description. Primary components\-:\par
+ \hyperlink{class_cloud_api_public_1_1_c_l_sync}{C\-L\-Sync } performs active sync of files and folders within a specified path to a syncbox in Cloud.\par
+ \hyperlink{class_cloud_api_public_1_1_push_notification_1_1_c_l_notification}{Push\-Notification.\-C\-L\-Notification } allows manual subscription to push notifications and is used internally by \hyperlink{class_cloud_api_public_1_1_c_l_sync}{C\-L\-Sync }.\par
+ \hyperlink{class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest}{R\-E\-S\-T.\-C\-L\-Http\-Rest } allows manual access to Cloud communication methods for file queries, posting changes, and file transfer. It is used internally by \hyperlink{class_cloud_api_public_1_1_c_l_sync}{C\-L\-Sync }.\par
+ \hyperlink{class_cloud_api_public_1_1_event_message_receiver_1_1_event_message_receiver}{Event\-Message\-Receiver.\-Event\-Message\-Receiver } acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes. \hyperlink{class_cloud_api_public_1_1_c_l_sync}{C\-L\-Sync } fires event callbacks upon changes.\par
+ \hyperlink{class_cloud_api_public_1_1_support_1_1_c_l_trace}{Support.\-C\-L\-Trace } writes a message to log from a required format string and any object parameter arguments. It is used conditionally by other public A\-P\-I classes when instantiated with advanced settings for trace. 

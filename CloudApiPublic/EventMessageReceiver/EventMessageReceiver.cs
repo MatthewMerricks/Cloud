@@ -62,12 +62,12 @@ namespace CloudApiPublic.EventMessageReceiver
         private static readonly object InstanceLocker = new object();
         #endregion
 
-        #region public properties
+        #region internal properties (used to be public, but we're not sure about exposing growls)
         /// <summary>
         /// Retrieves the collection of growl messages for display;
         /// bind with one-time binding when used as ItemSource because reference to collection is readonly
         /// </summary>
-        public ObservableCollection<EventMessage> GrowlMessages
+        internal ObservableCollection<EventMessage> GrowlMessages
         {
             get
             {
@@ -80,7 +80,7 @@ namespace CloudApiPublic.EventMessageReceiver
         /// <summary>
         /// Retrieves whether the growl messages should be visible (meaning the growl window should not be completely faded out) which should be bound to display visibility; notifies on property change
         /// </summary>
-        public bool GrowlVisible
+        internal bool GrowlVisible
         {
             // retrieves the visibility
             get
@@ -103,7 +103,7 @@ namespace CloudApiPublic.EventMessageReceiver
         /// <summary>
         /// Retrieves the amount of seconds until the growl messages should be faded in and completely opaque which should be bound to an animation timer; notifies on property change
         /// </summary>
-        public double SecondsTillFadeIn
+        internal double SecondsTillFadeIn
         {
             // retrieves the amount of seconds till complete fade in
             get
@@ -126,7 +126,7 @@ namespace CloudApiPublic.EventMessageReceiver
         /// <summary>
         /// Retrieves the amount of seconds for the growl messages to remain completely opaque before starting to fade out which should be bound to an animation timer; notifies on property change
         /// </summary>
-        public double SecondsTillStartFadeOut
+        internal double SecondsTillStartFadeOut
         {
             // retrieves the amount of seconds to remain completely opaque
             get
@@ -149,7 +149,7 @@ namespace CloudApiPublic.EventMessageReceiver
         /// <summary>
         /// Retrieves the amount of seconds before the growl messages completely fade out which should be bound to an animation timer; notifies on property change
         /// </summary>
-        public double SecondsTillCompleteFadeOut
+        internal double SecondsTillCompleteFadeOut
         {
             // retrieves the amount of seconds before fade out
             get
@@ -174,7 +174,7 @@ namespace CloudApiPublic.EventMessageReceiver
         /// this command should be bound to an action for clicking on the growl;
         /// this will also trigger the action for closing the growl
         /// </summary>
-        public ICommand ClickedGrowlCommand
+        internal ICommand ClickedGrowlCommand
         {
             get
             {
@@ -189,7 +189,7 @@ namespace CloudApiPublic.EventMessageReceiver
         /// Retrieves the command which does not use any parameter which will go through all messages and set their times to expire so the growl will no longer be visible;
         /// this command should be bound to an action for closing the growl
         /// </summary>
-        public ICommand ClosedGrowlCommand
+        internal ICommand ClosedGrowlCommand
         {
             get
             {
@@ -204,7 +204,7 @@ namespace CloudApiPublic.EventMessageReceiver
         /// Retrieves the command which needs the element from the visual tree for the entire growl which will be used to track when the mouse is inside the growl to keep it opaque;
         /// this command should be bound to an action for the mouse entering the element from the visual tree for the entire growl
         /// </summary>
-        public ICommand MouseEnteredGrowlCommand
+        internal ICommand MouseEnteredGrowlCommand
         {
             get
             {

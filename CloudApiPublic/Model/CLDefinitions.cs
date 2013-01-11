@@ -11,6 +11,9 @@
 // Merged 7/3/12
 namespace CloudApiPublic.Model
 {
+    /// <summary>
+    /// Contains constants used by Cloud
+    /// </summary>
     public static class CLDefinitions
     {
         public const string CLRegistrationAccessTokenKey = "access_token";
@@ -52,20 +55,22 @@ namespace CloudApiPublic.Model
 
 #else  // !PRODUCTION_BACKEND
 #if CLIFF_SERVERS
-        // Registration
-        public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/user/create.json";
-        public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
-                                                                    "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6},\"os_platform\":{7}," +
-                                                                    "\"os_version\":{8},\"app_version\":{9}}},\"client_id\":{10},\"client_secret\":{11}}}";
+        //// Current registration is no longer done with username/password
+        ////
+        //// Registration
+        //public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/user/create.json";
+        //public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
+        //                                                            "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6},\"os_platform\":{7}," +
+        //                                                            "\"os_version\":{8},\"app_version\":{9}}},\"client_id\":{10},\"client_secret\":{11}}}";
 
-        // Link/Unlink
-        public const string CLRegistrationUnlinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/unlink.json";
-        public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + "={0}";
+        //// Link/Unlink
+        //public const string CLRegistrationUnlinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/unlink.json";
+        //public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + "={0}";
 
-        public const string CLRegistrationLinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/link.json";
-        public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
-                                                                     "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
-                                                                     "\"client_id\":{8},\"client_secret\":{9}}}";
+        //public const string CLRegistrationLinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/link.json";
+        //public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
+        //                                                             "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
+        //                                                             "\"client_id\":{8},\"client_secret\":{9}}}";
 
         // Platform Auth
         public const string CLPlatformAuthServerURL = HttpPrefix + @"platform-auth.cliff.cloudburrito.com";
@@ -78,7 +83,7 @@ namespace CloudApiPublic.Model
         // We have changed the URL below to an invalid address to force a failover to manual
         // polling until we have implemented server side events.
         //public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com";
-        public const string CLNotificationServerURL = @"ws://xxxxxxxx.cloudburrito.com";
+        public const string CLNotificationServerURL = @"ws://notSupported.cloudburrito.com";
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";

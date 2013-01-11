@@ -157,12 +157,13 @@
     <Compile Include="PushNotification\PushSettings.cs" />
     <Compile Include="REST\CLHttpRest.cs" />
     <Compile Include="REST\GenericAsyncResult.cs" />
+    <Compile Include="REST\RESTSettings.cs" />
     <Compile Include="REST\TransferProgress.cs" />
-    <Compile Include="Static\CLScrollHelper.cs" />
+    <Compile Include="Static\ItemsControlHelper.cs" />
     <Compile Include="Support\CLCopyFiles.cs" />
     <Compile Include="CLSync\CLSync.cs" />
     <Compile Include="Support\RelayCommand.cs" />
-    <Compile Include="Sync\SyncSettings.cs" />
+    <Compile Include="CLSync\SyncSettings.cs" />
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
     <Compile Include="Interfaces\ISyncDataObject.cs" />
     <Compile Include="Interfaces\ISyncSettings.cs" />
@@ -242,15 +243,15 @@
     <Compile Include="Static\Helpers.cs" />
     <Compile Include="Static\MessageEvents.cs" />
     <Compile Include="Static\NativeMethods.cs" />
-    <Compile Include="Static\Trace.cs" />
-    <Compile Include="Static\TraceLog.cs">
-      <DependentUpon>TraceLog.xsd</DependentUpon>
+    <Compile Include="Static\ComTrace.cs" />
+    <Compile Include="Static\Log.cs">
+      <DependentUpon>Log.xsd</DependentUpon>
     </Compile>
     <Compile Include="Static\TraceType.cs" />
     <Compile Include="Model\CLError.cs" />
     <Compile Include="Model\CLDefinitions.cs" />
     <Compile Include="Support\CLSptOsVersion.cs" />
-    <Compile Include="Support\CLSptTrace.cs" />
+    <Compile Include="Support\CLTrace.cs" />
     <Compile Include="Support\DelayProcessable.cs" />
     <Compile Include="Support\ProcessingQueuesTimer.cs" />
     <Compile Include="Sync\ExecutableException.cs" />
@@ -270,13 +271,13 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
+      <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.fr.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
+      <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.fr.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -284,7 +285,7 @@
   <ItemGroup>
     <None Include="Docs\MainPage.dox" />
     <None Include="packages.config" />
-    <None Include="Static\TraceLog.xsd">
+    <None Include="Static\Log.xsd">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
@@ -340,6 +341,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetFileName)
+copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetFileName)</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

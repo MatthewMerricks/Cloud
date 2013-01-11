@@ -1,6 +1,11 @@
 \hypertarget{class_cloud_api_public_1_1_event_message_receiver_1_1_binding_evaluator}{\section{Cloud\-Api\-Public.\-Event\-Message\-Receiver.\-Binding\-Evaluator Class Reference}
 \label{class_cloud_api_public_1_1_event_message_receiver_1_1_binding_evaluator}\index{Cloud\-Api\-Public.\-Event\-Message\-Receiver.\-Binding\-Evaluator@{Cloud\-Api\-Public.\-Event\-Message\-Receiver.\-Binding\-Evaluator}}
 }
+
+
+Helper object which can trigger a callback upon a data change from a binding (used in routing data changes to Event\-Triggers).  
+
+
 Inheritance diagram for Cloud\-Api\-Public.\-Event\-Message\-Receiver.\-Binding\-Evaluator\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -11,7 +16,7 @@ Inheritance diagram for Cloud\-Api\-Public.\-Event\-Message\-Receiver.\-Binding\
 \begin{DoxyCompactItemize}
 \item 
 class \hyperlink{class_cloud_api_public_1_1_event_message_receiver_1_1_binding_evaluator_1_1_default}{Default}
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Special singleton object intance used as binding default instead of null so that the data change callback can be triggered even for a null initial change. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -38,6 +43,11 @@ static readonly Dependency\-Property {\bfseries Result\-Property}
 \hypertarget{class_cloud_api_public_1_1_event_message_receiver_1_1_binding_evaluator_a4cc2aee7740ef07eb1d4e4ba03356a80}{object {\bfseries Result}\hspace{0.3cm}{\ttfamily  \mbox{[}get, set\mbox{]}}}\label{class_cloud_api_public_1_1_event_message_receiver_1_1_binding_evaluator_a4cc2aee7740ef07eb1d4e4ba03356a80}
 
 \end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Helper object which can trigger a callback upon a data change from a binding (used in routing data changes to Event\-Triggers). 
+
 
 
 \subsection{Member Data Documentation}

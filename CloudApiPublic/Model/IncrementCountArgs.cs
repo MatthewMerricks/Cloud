@@ -12,6 +12,9 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
+    /// <summary>
+    /// Properties for how much a value was incremented, meaning is according to which event passes these args
+    /// </summary>
     public sealed class IncrementCountArgs : HandleableEventArgs
     {
         public uint IncrementAmount
@@ -21,9 +24,9 @@ namespace CloudApiPublic.Model
                 return _incrementAmount;
             }
         }
-        private uint _incrementAmount;
+        private readonly uint _incrementAmount;
 
-        public IncrementCountArgs(uint incrementAmount = 1)
+        internal IncrementCountArgs(uint incrementAmount = 1)
         {
             this._incrementAmount = incrementAmount;
         }

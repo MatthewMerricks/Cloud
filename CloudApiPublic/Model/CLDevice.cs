@@ -13,7 +13,7 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.Model
 {
-    public class CLDevice
+    internal class CLDevice
     {
         public string DeviceName { get; set; }
         public string Udid { get; set; }

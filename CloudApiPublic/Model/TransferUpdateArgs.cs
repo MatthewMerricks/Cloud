@@ -12,6 +12,9 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
+    /// <summary>
+    /// Properties for a file transfer status update
+    /// </summary>
     public sealed class TransferUpdateArgs : HandleableEventArgs
     {
         public long EventId
@@ -21,7 +24,7 @@ namespace CloudApiPublic.Model
                 return _eventId;
             }
         }
-        private long _eventId;
+        private readonly long _eventId;
 
         public CLStatusFileTransferUpdateParameters Parameters
         {
@@ -30,9 +33,9 @@ namespace CloudApiPublic.Model
                 return _parameters;
             }
         }
-        private CLStatusFileTransferUpdateParameters _parameters;
+        private readonly CLStatusFileTransferUpdateParameters _parameters;
 
-        public TransferUpdateArgs(long eventId, CLStatusFileTransferUpdateParameters parameters)
+        internal TransferUpdateArgs(long eventId, CLStatusFileTransferUpdateParameters parameters)
         {
             this._eventId = eventId;
             this._parameters = parameters;

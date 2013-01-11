@@ -358,7 +358,7 @@ namespace win_client.AppDelegate
             {
                 error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, error.errorCode);
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
             }
             _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Exit.");
         }
@@ -468,7 +468,7 @@ namespace win_client.AppDelegate
             {
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
+                _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.errorDescription, ((int)error.code).ToString());
             }
         }
 
@@ -497,14 +497,14 @@ namespace win_client.AppDelegate
                     this.UnlinkFromCloudDotComSync(out error);
                     if (error != null)
                     {
-                        _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
+                        _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.errorDescription, ((int)error.code).ToString());
                     }
                 }
                 catch (Exception ex)
                 {
                     error += ex;
                     error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                    _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception(2): Msg: <{0}>. Code: {1}", error.errorDescription, error.errorCode);
+                    _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception(2): Msg: <{0}>. Code: {1}", error.errorDescription, ((int)error.code).ToString());
                 }
             }
 
@@ -795,7 +795,7 @@ namespace win_client.AppDelegate
                 {
                     CLError error = ex;
                     error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                    _trace.writeToLog(1, "CLAppDelegate: LocateMovedCloudFolder: ERROR: Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, error.errorCode);
+                    _trace.writeToLog(1, "CLAppDelegate: LocateMovedCloudFolder: ERROR: Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
                 }
             }
 

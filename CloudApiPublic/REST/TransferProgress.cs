@@ -12,6 +12,9 @@ using System.Text;
 
 namespace CloudApiPublic.REST
 {
+    /// <summary>
+    /// Byte progress for a asynchronously-called file upload or download via <see cref="CLHttpRest"/>
+    /// </summary>
     public sealed class TransferProgress
     {
         public long BytesTransferred

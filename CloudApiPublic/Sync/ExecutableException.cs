@@ -18,7 +18,7 @@ namespace CloudApiPublic.Sync
     /// Generic-typed executable exception which can be handled via an action passed as a construction parameter (along with the typed userstate)
     /// </summary>
     /// <typeparam name="T">Type of input for the handler action as well as the userstate to pass along</typeparam>
-    public sealed class ExecutableException<T> : Exception, IExecutableException
+    internal sealed class ExecutableException<T> : Exception, IExecutableException
     {
         /// <summary>
         /// Userstate passed to the handler action when it is fired

@@ -13,7 +13,7 @@ using System.Text;
 namespace CloudApiPublic.SQLIndexer.SqlModel
 {
     [SqlAccess.Class("Syncs")]
-    public class Sync
+    internal class Sync
     {
         [SqlAccess.Property]
         public string SyncId { get; set; }

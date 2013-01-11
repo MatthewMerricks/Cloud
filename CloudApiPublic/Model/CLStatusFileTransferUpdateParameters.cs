@@ -12,6 +12,9 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
+    /// <summary>
+    /// Parameters for a file transfer progress update. If constructed via the default, parameterless constructor then all properties getters will throw an exception.
+    /// </summary>
     public struct CLStatusFileTransferUpdateParameters
     {
         public DateTime TransferStartTime
@@ -66,7 +69,7 @@ namespace CloudApiPublic.Model
         }
         private long _byteProgress;
 
-        public bool IsValid
+        internal bool IsValid
         {
             get
             {
@@ -75,7 +78,7 @@ namespace CloudApiPublic.Model
         }
         private bool _isValid;
 
-        public CLStatusFileTransferUpdateParameters(DateTime TransferStartTime, long ByteSize, string RelativePath, long ByteProgress)
+        internal CLStatusFileTransferUpdateParameters(DateTime TransferStartTime, long ByteSize, string RelativePath, long ByteProgress)
         {
             this._transferStartTime = TransferStartTime;
             this._byteSize = ByteSize;

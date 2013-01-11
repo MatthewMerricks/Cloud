@@ -14,6 +14,9 @@ using System.Text;
 
 namespace CloudApiPublic.JsonContracts
 {
+    /// <summary>
+    /// Notification from server contained in EventArgs: <see cref="CloudApiPublic.PushNotification.NotificationEventArgs"/> via events in <see cref="CloudApiPublic.PushNotification.CLNotification"/>
+    /// </summary>
     [DataContract]
     public sealed class NotificationResponse
     {

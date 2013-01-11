@@ -14,12 +14,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-/// <Summary>
-/// The FileMonitor implementation of the ISyncDataObject interface.
-/// These methods are called by Sync.
-/// </Summary>
 namespace CloudApiPublic.FileMonitor.SyncImplementation
 {
+    /// <Summary>
+    /// The FileMonitor implementation of the ISyncDataObject interface.
+    /// These methods are called by Sync.
+    /// </Summary>
     internal sealed class SyncData : ISyncDataObject
     {
         private MonitorAgent Monitor;

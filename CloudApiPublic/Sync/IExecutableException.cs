@@ -15,7 +15,7 @@ namespace CloudApiPublic.Sync
     /// <summary>
     /// Interface allowing an exception to be "executed" with an originally provided action and userstate
     /// </summary>
-    public interface IExecutableException
+    internal interface IExecutableException
     {
         /// <summary>
         /// Executes code to handle an exception which was provided as an Action on construction along with original userstate

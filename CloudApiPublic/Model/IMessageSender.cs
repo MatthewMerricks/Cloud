@@ -12,22 +12,22 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
-    public interface IMessageSender
+    internal interface IMessageSender
     {
         void Send(MessageSenderType messageType, params object[] messageParams);
     }
 
-    public interface IMessageSenderProvider
+    internal interface IMessageSenderProvider
     {
         IMessageSender IMessageSender { get; }
     }
 
-    public enum MessageSenderType
+    internal enum MessageSenderType
     {
         Message_WindowSyncStatus_ShouldClose
     }
 
-    public sealed class NullMessageSender : IMessageSender
+    internal sealed class NullMessageSender : IMessageSender
     {
         #region singleton pattern
         public static NullMessageSender Instance

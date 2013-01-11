@@ -13,8 +13,14 @@ using System.Text;
 
 namespace CloudApiPublic.Model
 {
+    /// <summary>
+    /// Contains event message properties
+    /// </summary>
     public sealed class EventMessageArgs : HandleableEventArgs
     {
+        /// <summary>
+        /// The actual message
+        /// </summary>
         public string Message
         {
             get
@@ -22,8 +28,11 @@ namespace CloudApiPublic.Model
                 return _message;
             }
         }
-        private string _message;
+        private readonly string _message;
 
+        /// <summary>
+        /// Whether the message is for an error
+        /// </summary>
         public bool IsError
         {
             get
@@ -31,8 +40,11 @@ namespace CloudApiPublic.Model
                 return _isError;
             }
         }
-        private bool _isError;
+        private readonly bool _isError;
 
+        /// <summary>
+        /// The importance of this message from 1 to 9 (as an enum)
+        /// </summary>
         public EventMessageLevel Level
         {
             get
@@ -40,9 +52,9 @@ namespace CloudApiPublic.Model
                 return _level;
             }
         }
-        private EventMessageLevel _level;
+        private readonly EventMessageLevel _level;
 
-        public EventMessageArgs(string Message, EventMessageLevel Level = EventMessageLevel.Minor, bool IsError = false)
+        internal EventMessageArgs(string Message, EventMessageLevel Level = EventMessageLevel.Minor, bool IsError = false)
         {
             this._message = Message;
             this._level = Level;

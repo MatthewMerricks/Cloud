@@ -13,29 +13,10 @@ using System.Text;
 
 namespace CloudApiPublic.Interfaces
 {
-    /*! \interface CloudApiPublic.Interfaces.ISyncDataObject
-     * 
-     * \section sec Overview
-     * 
-     * Overview of ISyncDataObject
-     * 
-     * \subsection subSec1 Examples
-     * 
-     * Here is an example:
-     * 
-     * \code{.cs}
-     *  using CloudApiPublic.Interfaces;
-     * 
-     *  public sealed class EventSource : ISyncDataObject
-     *  {
-     *      // my interface methods here!
-     *  }
-     * \endcode
-     */
-
     /// <summary>
     /// Interface to implement on an event source to pass to a SyncEngine; do not use any instance of an implementor for more than one SyncEngine
     /// </summary>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public interface ISyncDataObject
     {
         /// <summary>

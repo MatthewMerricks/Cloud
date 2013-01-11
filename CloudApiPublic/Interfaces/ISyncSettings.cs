@@ -13,6 +13,9 @@ using System.Text;
 
 namespace CloudApiPublic.Interfaces
 {
+    /// <summary>
+    /// Never used by itself. Inherited by advanced settings interfaces to add properties which can enable tracing/logging.
+    /// </summary>
     public interface IAddTraceSettings
     {
         /// <summary>
@@ -37,6 +40,9 @@ namespace CloudApiPublic.Interfaces
         int TraceLevel { get; }
     }
 
+    /// <summary>
+    /// Minimal settings for components which only perform communication functions.
+    /// </summary>
     public interface IHttpSettings
     {
         /// <summary>
@@ -71,8 +77,14 @@ namespace CloudApiPublic.Interfaces
         //string Akey { get; }
     }
 
+    /// <summary>
+    /// Advanced settings for components which only perform communication functions. The addition over the basic settings is <see cref="IAddTraceSettings"/>.
+    /// </summary>
     public interface IHttpSettingsAdvanced : IHttpSettings, IAddTraceSettings { }
 
+    /// <summary>
+    /// Basic settings for active sync (<see cref="CloudApiPublic.CLSync"/>). Built on top of <see cref="IHttpSettings"/>.
+    /// </summary>
     public interface ISyncSettings : IHttpSettings
     {
         /// <summary>
@@ -85,6 +97,9 @@ namespace CloudApiPublic.Interfaces
         string SyncRoot { get; }
     }
 
+    /// <summary>
+    /// Advanced settings for active sync (<see cref="CloudApiPublic.CLSync"/>). Built on top of <see cref="IHttpSettings"/>. The addition over basic settings is <see cref="IAddTraceSettings"/>.
+    /// </summary>
     public interface ISyncSettingsAdvanced : ISyncSettings, IAddTraceSettings
     {
         /// <summary>
