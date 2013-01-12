@@ -188,7 +188,7 @@ REM ----------------------
 set ErrorTracker=6
 echo 7z a -tzip CloudSdkSyncSampleDocs.zip ./
 7z a -tzip CloudSdkSyncSampleDocs.zip ./
-echo 7z ErrorLevel: %25errorlevel%25
+echo 7z BuildErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
@@ -219,6 +219,13 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
 set ErrorTracker=11
+echo 7z d CloudSdkSyncSampleSource.zip obj/
+7z d CloudSdkSyncSampleSource.zip obj/
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=12
 echo cd ..
 cd ..
 if errorlevel 1 goto BuildEventFailed
