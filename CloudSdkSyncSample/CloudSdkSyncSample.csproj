@@ -148,8 +148,97 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>echo ************  START POST BUILD STEPS **********************
+REM ------Do this only for the Release build ----------------
+if /I $(ConfigurationName) == Debug goto BuildEventOk
+
+REM ------ Build the documentation ----------------
+REM ----------------------
+set ErrorTracker=1
+echo cd $(SolutionDir)
+cd $(SolutionDir)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=2
+echo del /S /Q html\*.*
+del /S /Q html\*.*
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=3
+echo rd /S /Q html
+rd /S /Q html
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=4
+echo doxygen doxyfile
+doxygen doxyfile
+echo doxygen ErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=5
+echo cd html
+cd html
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=6
+echo 7z a -tzip CloudSdkSyncSampleDocs.zip ./
+7z a -tzip CloudSdkSyncSampleDocs.zip ./
+echo 7z ErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=7
+echo cd .. 
+cd .. 
+echo cd ErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ------ Zip the SDK sample source and VS project ----------------
+REM ----------------------
+set ErrorTracker=8
+echo cd CloudSdkSyncSample
+cd CloudSdkSyncSample
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=9
+echo del CloudSdkSyncSampleSource.zip
+del CloudSdkSyncSampleSource.zip
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=10
+echo 7z a -tzip CloudSdkSyncSampleSource.zip ./
+7z a -tzip CloudSdkSyncSampleSource.zip ./
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=11
+echo cd ..
+cd ..
+if errorlevel 1 goto BuildEventFailed
+
+REM ---- PLACE THIS CODE AT THE END
+REM Exit properly because the build will not fail
+REM unless the final step exits with an error code
+goto BuildEventOK
+:BuildEventFailed
+echo POSTBUILDSTEP for $(ProjectName) FAILED at step %25ErrorTracker%25
+set ErrorTracker=
+echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
+exit 1
+:BuildEventOK
+echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
+echo ************  POST BUILD STEP COMPLETED OK **********************
+exit 0
+
+
+</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
