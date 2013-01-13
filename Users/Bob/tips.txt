@@ -7153,6 +7153,58 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - 8:45 - 18:30
     - Debugged a problem with syncing between devices.  It is a server error I think.  I documented it to Phil.
     - Fixed a number of issues in the sample app and pushed the results.
+  o 1/9/12 Wed:
+    - 6:30 - 18:30
+    - Splunk tailed server logs: http://splunk.cliff.cloudburrito.com/en-US/app/search/flashtimeline?q=search%20host%3D*platform-auth*%20program%3Dnginx&earliest=rt-1m&latest=rt
+    - Phil fixed the server sync bug, and now we are syncing.
+    - David integrated the sync messages.
+    - Fixed a number of bugs.
+    - Reviewed the TODOs and closed a number of them.
+    - Analyzed the possible memory leak.  I don't think we have one, at least not a big one.  If memory is available, the upload/download threads use a lot of it, but that is just what the framework does.
+    - Worked with David on limiting the visibility of various classes.
+  o 1/10/12 Thu:
+    - 7:30 - 18:30
+    - Random keys: e58a7498b9c5a9f02a86b45c73d91ca97f43ae9626bb908ae63f8s908ae63f8s, 7f43ae9626bb908ae63f8s908ae63f8se58a7498b9c5a9f02a86b45c73d91ca9
+    - Sample code from David for SyncStatusView.cs:
+                CloudApiPublic.Static.MessageEvents.NewEventMessage += (/*object*/ sender, /*EventMessageArgs*/ e) =>
+                {
+                };
+            //CloudApiPublic.Static.MessageEvents.FileDownloadUpdated
+            _vm.GrowlMessages.CollectionChanged += (/*object*/ sender, /*System.Collections.Specialized.NotifyCollectionChangedEventArgs*/ e) =>
+                {
+                    foreach (object newItem in e.NewItems ?? System.Linq.Enumerable.Empty<object>())
+                    {
+                        EventMessage castNewItem = newItem as EventMessage;
+                        if (castNewItem != null)
+                        {
+                            switch (castNewItem.Image)
+                            {
+                                case CloudApiPublic.Static.EventMessageImage.Busy:
+                                    DownloadedMessage newDownloaded = castNewItem as DownloadedMessage;
+                                    if (newDownloaded != null)
+                                    {
+                                        newDownloaded.IncrementCount
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                };
+    - I completed a pass through the overall MainPage documenation.
+    - Working on fixing a bug in an indexer call to get directory metadata.  It was failing, but also causing an entire delete of the SyncBox folder!
+  o 1/11/12 Fri:
+    - 8:15 - 18:30
+    - Fixed bug on XP/Vista that was deleting all data in the SyncBox folder.
+    - Testing and working on builds.
+  o 1/12/12 Sat:
+    - 7:00 - 15:00
+    - Post build steps are working properly.
+    - Tested it on all the OSs: XP32, XP64, Vista32, Vista64, Win732, Win764, Win832, Win864.  Only badging on XP64 doesn't work, and by the trace, the shell extension is working properly.  We'll take it as a bug later.
+  o 1/13/12 Sun:
+    - 
+
+
+
 
 
 
