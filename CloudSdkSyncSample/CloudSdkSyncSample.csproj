@@ -146,6 +146,15 @@
   <ItemGroup>
     <Resource Include="Artwork\WinClient_CloudSetup_bg_650x485.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Synced.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Syncing.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>echo ************  START POST BUILD STEPS **********************

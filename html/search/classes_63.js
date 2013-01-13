@@ -8,5 +8,8 @@ var searchData=
   ['clstatusfiletransferupdateparameters',['CLStatusFileTransferUpdateParameters',['../struct_cloud_api_public_1_1_model_1_1_c_l_status_file_transfer_update_parameters.html',1,'CloudApiPublic::Model']]],
   ['clsync',['CLSync',['../class_cloud_api_public_1_1_c_l_sync.html',1,'CloudApiPublic']]],
   ['cltrace',['CLTrace',['../class_cloud_api_public_1_1_support_1_1_c_l_trace.html',1,'CloudApiPublic::Support']]],
-  ['copyfileresult',['CopyFileResult',['../class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_1_1_copy_file_result.html',1,'CloudApiPublic::REST::CLHttpRest']]]
+  ['communicationentry',['CommunicationEntry',['../class_cloud_api_public_1_1_static_1_1_communication_entry.html',1,'CloudApiPublic::Static']]],
+  ['communicationentryheader',['CommunicationEntryHeader',['../class_cloud_api_public_1_1_static_1_1_communication_entry_header.html',1,'CloudApiPublic::Static']]],
+  ['copyfileresult',['CopyFileResult',['../class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_1_1_copy_file_result.html',1,'CloudApiPublic::REST::CLHttpRest']]],
+  ['copyright',['Copyright',['../class_cloud_api_public_1_1_static_1_1_copyright.html',1,'CloudApiPublic::Static']]]
 ];

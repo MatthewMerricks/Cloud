@@ -30,7 +30,7 @@ namespace CloudApiPublic.Static
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.cloud.com/TraceLog.xsd")]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd", IsNullable = false)]
-    internal partial class Log
+    public partial class Log
     {
 
         private Copyright[] copyrightField;
@@ -72,7 +72,7 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class Copyright
+    public partial class Copyright
     {
 
         private string fileNameField;
@@ -141,7 +141,7 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class TraceFileChange
+    public partial class TraceFileChange
     {
 
         private string serverIdField;
@@ -463,7 +463,7 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class Entry
+    public partial class Entry
     {
 
         private int typeField;
@@ -564,7 +564,7 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class FileChangeFlowEntry : Entry
+    public partial class FileChangeFlowEntry : Entry
     {
 
         private FileChangeFlowEntryPositionInFlow positionInFlowField;
@@ -679,7 +679,7 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class CommunicationEntry : Entry
+    public partial class CommunicationEntry : Entry
     {
 
         private CommunicationEntryDirection directionField;
@@ -795,7 +795,7 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class CommunicationEntryHeader
+    public partial class CommunicationEntryHeader
     {
 
         private string keyField;

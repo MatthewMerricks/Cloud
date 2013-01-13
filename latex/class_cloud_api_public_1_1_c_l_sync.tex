@@ -14,8 +14,8 @@ A class used to create a Sync\-Box to synchronize the contents of a local disk d
 \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_a3bbf0e1f002b7cedd12e16562c071dce}{Wipe\-Index} ()
 \begin{DoxyCompactList}\small\item\em ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !! \end{DoxyCompactList}\item 
 \hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_a81d09690e5f271bf5cb75f86a855e201}{Sync\-Reset} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} settings)
-\begin{DoxyCompactList}\small\item\em Call this function before calling \hyperlink{class_cloud_api_public_1_1_c_l_sync_a87c00cb5f140959bf0a26a43bdd87cf5}{Start()} whenever it is possible that the Sync\-Box folder has changed. Sync.\-Start() will rescan the folder and sync the current contents. \end{DoxyCompactList}\item 
-\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_a87c00cb5f140959bf0a26a43bdd87cf5}{Start} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} settings, out C\-L\-Sync\-Start\-Status status, Event\-Handler$<$ \hyperlink{class_cloud_api_public_1_1_push_notification_1_1_notification_event_args}{Notification\-Event\-Args} $>$ on\-Notification=null, Event\-Handler$<$ \hyperlink{class_cloud_api_public_1_1_push_notification_1_1_notification_error_event_args}{Notification\-Error\-Event\-Args} $>$ on\-Connection\-Error=null)
+\begin{DoxyCompactList}\small\item\em Call this function before calling \hyperlink{class_cloud_api_public_1_1_c_l_sync_a1b700631eb605ad6e065dc4296fcb912}{Start()} whenever it is possible that the Sync\-Box folder has changed. Sync.\-Start() will rescan the folder and sync the current contents. \end{DoxyCompactList}\item 
+\hyperlink{class_cloud_api_public_1_1_model_1_1_c_l_error}{C\-L\-Error} \hyperlink{class_cloud_api_public_1_1_c_l_sync_a1b700631eb605ad6e065dc4296fcb912}{Start} (\hyperlink{interface_cloud_api_public_1_1_interfaces_1_1_i_sync_settings}{I\-Sync\-Settings} settings, out C\-L\-Sync\-Start\-Status status)
 \begin{DoxyCompactList}\small\item\em Initialize the Sync\-Box and start syncing its contents to the Cloud server, and to other devices registering the same Sync\-Box. \end{DoxyCompactList}\item 
 void \hyperlink{class_cloud_api_public_1_1_c_l_sync_aa76639968094d5dec2ec19e10163612f}{Stop} ()
 \begin{DoxyCompactList}\small\item\em Stop syncing the Sync\-Box and free resources. \end{DoxyCompactList}\end{DoxyCompactItemize}
@@ -74,16 +74,14 @@ Returns an error that occurred during recording the sync, if any
 
 Call when application is shutting down. 
 
-\hypertarget{class_cloud_api_public_1_1_c_l_sync_a87c00cb5f140959bf0a26a43bdd87cf5}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Start@{Start}}
+\hypertarget{class_cloud_api_public_1_1_c_l_sync_a1b700631eb605ad6e065dc4296fcb912}{\index{Cloud\-Api\-Public\-::\-C\-L\-Sync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}!Start@{Start}}
 \index{Start@{Start}!CloudApiPublic::CLSync@{Cloud\-Api\-Public\-::\-C\-L\-Sync}}
 \subsubsection[{Start}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-L\-Error} Cloud\-Api\-Public.\-C\-L\-Sync.\-Start (
 \begin{DoxyParamCaption}
 \item[{{\bf I\-Sync\-Settings}}]{settings, }
-\item[{out C\-L\-Sync\-Start\-Status}]{status, }
-\item[{Event\-Handler$<$ {\bf Notification\-Event\-Args} $>$}]{on\-Notification = {\ttfamily null}, }
-\item[{Event\-Handler$<$ {\bf Notification\-Error\-Event\-Args} $>$}]{on\-Connection\-Error = {\ttfamily null}}
+\item[{out C\-L\-Sync\-Start\-Status}]{status}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_c_l_sync_a87c00cb5f140959bf0a26a43bdd87cf5}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_c_l_sync_a1b700631eb605ad6e065dc4296fcb912}
 
 
 Initialize the Sync\-Box and start syncing its contents to the Cloud server, and to other devices registering the same Sync\-Box. 
@@ -116,7 +114,7 @@ Stop syncing the Sync\-Box and free resources.
 )\hspace{0.3cm}{\ttfamily [inline]}}}\label{class_cloud_api_public_1_1_c_l_sync_a81d09690e5f271bf5cb75f86a855e201}
 
 
-Call this function before calling \hyperlink{class_cloud_api_public_1_1_c_l_sync_a87c00cb5f140959bf0a26a43bdd87cf5}{Start()} whenever it is possible that the Sync\-Box folder has changed. Sync.\-Start() will rescan the folder and sync the current contents. 
+Call this function before calling \hyperlink{class_cloud_api_public_1_1_c_l_sync_a1b700631eb605ad6e065dc4296fcb912}{Start()} whenever it is possible that the Sync\-Box folder has changed. Sync.\-Start() will rescan the folder and sync the current contents. 
 
 
 \begin{DoxyParams}{Parameters}

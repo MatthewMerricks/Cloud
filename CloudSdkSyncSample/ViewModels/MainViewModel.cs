@@ -938,12 +938,15 @@ namespace CloudSdkSyncSample.ViewModels
                             // Sync has started
                             SetSyncBoxStartedState(isStartedStateToSet: true);
 
+                            // Watch for push notification errors
+                            _syncBox.PushNotificationError += OnPushNotificationError;
+
                             // Start an instance of the sync status window and start it hidden.
                             if (_winSyncStatus == null)
                             {
                                 _trace.writeToLog(9, "MainViewModel: StartSyncing: Start the sync status window.");
                                 _winSyncStatus = new SyncStatusView();
-                                EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings, EventMessageLevel.All, EventMessageLevel.All);
+                                EventMessageReceiver vm = new EventMessageReceiver(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings, EventMessageLevel.All, EventMessageLevel.All);
                                 _winSyncStatus.DataContext = vm;
                                 _winSyncStatus.Width = 0;
                                 _winSyncStatus.Height = 0;
@@ -968,6 +971,22 @@ namespace CloudSdkSyncSample.ViewModels
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Push notification died.  Sync will no longer be notified when files or folders change on other devices.
+        /// Changes made to the files or folders on this device will still be synced to the server, and when that
+        /// occurs the server will return any changes made on other devices.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void OnPushNotificationError(object sender, CloudApiPublic.PushNotification.NotificationErrorEventArgs e)
+        {
+            string errorMsg = "Push notification stopped.  Changes on other devices will no longer be automatically synced to this device.";
+            CLError error = new Exception(errorMsg);
+            error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+            _trace.writeToLog(1, "MainViewModel: OnPushNotificationError: ERROR: Exception: Msg: <{0}>.", error.errorDescription);
+            MessageBox.Show(errorMsg, "Error", MessageBoxButton.OK);
         }
 
         /// <summary>

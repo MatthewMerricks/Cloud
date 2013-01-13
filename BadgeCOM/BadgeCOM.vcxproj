@@ -935,10 +935,10 @@ tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configurati
 if errorlevel 1 goto BuildEventFailed
 copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
 if errorlevel 1 goto BuildEventFailed
-REM copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(TargetName)Lib.dll
-REM if errorlevel 1 goto BuildEventFailed
-REM copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(TargetName)Lib.dll
-REM if errorlevel 1 goto BuildEventFailed
+copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(TargetName)Lib.dll
+if errorlevel 1 goto BuildEventFailed
+copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(TargetName)Lib.dll
+if errorlevel 1 goto BuildEventFailed
 copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
 copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll

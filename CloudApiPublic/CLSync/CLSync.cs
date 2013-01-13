@@ -193,7 +193,7 @@ namespace CloudApiPublic
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        public CLError Start(ISyncSettings settings, out CLSyncStartStatus status, EventHandler<NotificationEventArgs> onNotification = null, EventHandler<NotificationErrorEventArgs> onConnectionError = null)
+        public CLError Start(ISyncSettings settings, out CLSyncStartStatus status)
         {
             try
             {

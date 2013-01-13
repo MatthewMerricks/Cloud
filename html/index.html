@@ -127,7 +127,7 @@ Introduction</h1>
 <div class="line"></div>
 <div class="line">        <span class="comment">// EventMessageReceiver is the ViewModel for your sync status window.  There are three ObservableCollections that</span></div>
 <div class="line">        <span class="comment">// you can bind to: ListFilesDownloading, ListFilesUploading, ListMessages.</span></div>
-<div class="line">        EventMessageReceiver vm = EventMessageReceiver.GetInstance(null, null, <a class="code" href="namespace_cloud_api_public_1_1_static.html#aafffc00af8d280bc613cd0a306f52a6b" title="Importance of event message from 1 to 9 with enumerated defaults (i.e. 1:Minor to 9:Important) ...">EventMessageLevel</a>.All, <a class="code" href="namespace_cloud_api_public_1_1_static.html#aafffc00af8d280bc613cd0a306f52a6b" title="Importance of event message from 1 to 9 with enumerated defaults (i.e. 1:Minor to 9:Important) ...">EventMessageLevel</a>.All);</div>
+<div class="line">        EventMessageReceiver vm = <span class="keyword">new</span> EventMessageReceiver(null, null, <a class="code" href="namespace_cloud_api_public_1_1_static.html#aafffc00af8d280bc613cd0a306f52a6b" title="Importance of event message from 1 to 9 with enumerated defaults (i.e. 1:Minor to 9:Important) ...">EventMessageLevel</a>.All, <a class="code" href="namespace_cloud_api_public_1_1_static.html#aafffc00af8d280bc613cd0a306f52a6b" title="Importance of event message from 1 to 9 with enumerated defaults (i.e. 1:Minor to 9:Important) ...">EventMessageLevel</a>.All);</div>
 <div class="line">        <span class="comment">// Show your sync status window and use vm as the DataContext.</span></div>
 <div class="line">    </div>
 <div class="line">        <span class="comment">// Start syncing with your settings.</span></div>
@@ -148,7 +148,7 @@ Introduction</h1>
 <div class="line">    <span class="comment">// Handle errors from push notification</span></div>
 <div class="line">    <span class="keyword">private</span> <span class="keywordtype">void</span> OnPushNotificaitonError(<span class="keywordtype">object</span> sender, NotificationErrorEventArgs e)</div>
 <div class="line">    {</div>
-<div class="line">        <span class="comment">// Handle an error from push notification</span></div>
+<div class="line">        <span class="comment">// Tell the user that changes made on other devices will no longer be synced automatically to this device.</span></div>
 <div class="line">    }</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>The code above will automatically sync files in the "SyncRoot" directory with your other devices related to this SyncBox, and with the SyncBox on the Cloud servers.</p>
@@ -441,7 +441,7 @@ Sync Change Events</h2>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Jan 12 2013 14:44:29 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jan 13 2013 14:22:47 for Cloud Windows Client SDK by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.2
 </small></address>
