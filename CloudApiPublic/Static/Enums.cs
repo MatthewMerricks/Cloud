@@ -36,6 +36,18 @@ namespace CloudApiPublic.Static
         AlreadyStopped
     }
 
+    [Flags]
+    /// <summary>
+    /// Flagged enumeration for CLSync's current running state
+    /// </summary>
+    public enum CLSyncCurrentState : byte
+    {
+        Idle = 0,
+        CommunicatingChanges = 1,
+        UploadingFiles = 2,
+        DownloadingFiles = 4
+    }
+
     /// <summary>
     /// Enumeration for direction of sync
     /// </summary>

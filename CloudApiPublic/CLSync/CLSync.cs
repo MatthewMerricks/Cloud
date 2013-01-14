@@ -35,6 +35,8 @@ namespace CloudApiPublic
         private static CLTrace _trace = CLTrace.Instance;
         private SyncEngine _syncEngine = null;
         private ISyncSettingsAdvanced _syncSettings = null;
+        private System.Threading.WaitCallback statusUpdated = null;
+        private object statusUpdatedUserState = null;
         private readonly object _locker = new object();
 
         /// <summary>
@@ -42,6 +44,32 @@ namespace CloudApiPublic
         /// no longer functional.
         /// </summary>
         public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
+
+        /// <summary>
+        /// Output the current status of syncing
+        /// </summary>
+        /// <param name="status">(output) Current status of syncing</param>
+        /// <returns>Returns any error which occurred in retrieving the sync status, if any</returns>
+        public CLError GetCLSyncCurrentStatus(out CLSyncCurrentStatus status)
+        {
+            try
+            {
+                lock (_locker)
+                {
+                    if (_syncEngine == null)
+                    {
+                        throw new NullReferenceException("Sync not started");
+                    }
+
+                    return _syncEngine.GetCurrentStatus(out status);
+                }
+            }
+            catch (Exception ex)
+            {
+                status = Helpers.DefaultForType<CLSyncCurrentStatus>();
+                return ex;
+            }
+        }
 
         /// <summary>
         /// Writes a new set of sync states to the database after a sync completes,
@@ -193,7 +221,7 @@ namespace CloudApiPublic
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        public CLError Start(ISyncSettings settings, out CLSyncStartStatus status)
+        public CLError Start(ISyncSettings settings, out CLSyncStartStatus status, System.Threading.WaitCallback statusUpdated = null, object statusUpdatedUserState = null)
         {
             try
             {
@@ -205,6 +233,15 @@ namespace CloudApiPublic
                 lock (_locker)
                 {
                     _syncSettings = settings.CopySettings();
+                    this.statusUpdated = statusUpdated;
+                    if (statusUpdated == null)
+                    {
+                        this.statusUpdatedUserState = null;
+                    }
+                    else
+                    {
+                        this.statusUpdatedUserState = statusUpdatedUserState;
+                    }
                 }
 
                 // Check the TraceLocation vs. LogErrors
@@ -526,6 +563,30 @@ namespace CloudApiPublic
                         _iconOverlay.Shutdown();
                         _iconOverlay = null;
                         _trace.writeToLog(9, "CLSync: ReleaseResources: IconOverlay stopped.");
+                    }
+                    catch (Exception ex)
+                    {
+                        toReturn += ex;
+                    }
+                }
+
+                if (statusUpdated != null)
+                {
+                    try
+                    {
+                        statusUpdated = null;
+                    }
+                    catch (Exception ex)
+                    {
+                        toReturn += ex;
+                    }
+                }
+
+                if (statusUpdatedUserState != null)
+                {
+                    try
+                    {
+                        statusUpdatedUserState = null;
                     }
                     catch (Exception ex)
                     {

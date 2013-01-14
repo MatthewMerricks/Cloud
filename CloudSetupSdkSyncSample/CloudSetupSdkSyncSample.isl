@@ -346,6 +346,7 @@
 		<row><td>CloudApiPublic.dll</td><td>{71361D82-54EC-4DD2-8546-E85C46DD7128}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapipublic.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSdkSyncSample.Primary_output</td><td>{EBB6A51E-A491-49A7-8925-0AECC42ACAE8}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsdksyncsample.primary_o</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSdkSyncSample.Primary_output1</td><td>{5A5C3695-8306-4CCB-8FB8-8C67E2C77534}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsdksyncsample.primary_o</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOMLib.dll</td><td>{7B6DB64A-623F-495F-9B71-57C015EFD708}</td><td>INSTALLDIR</td><td>2</td><td/><td>BadgeCOMLib.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSetupSdkSyncSampleSupport.Primary_output</td><td>{141780DF-BF57-4EEE-A24C-38A146A875DF}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsetupsdksyncsamplesuppo</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ErikEJ.SqlCe40.dll</td><td>{79CA3B54-F108-42D5-9355-50DC49C4528C}</td><td>INSTALLDIR</td><td>2</td><td/><td>erikej.sqlce40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISO19770_LocalTag</td><td>{E4EAE43C-FE39-48A4-8494-FA2F5E9340EA}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1920,6 +1921,7 @@
 		<row><td>AlwaysInstall</td><td>CloudApiPublic.dll</td></row>
 		<row><td>AlwaysInstall</td><td>CloudSdkSyncSample.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>CloudSdkSyncSample.Primary_output1</td></row>
+		<row><td>AlwaysInstall</td><td>BadgeCOMLib.dll</td></row>
 		<row><td>AlwaysInstall</td><td>CloudSetupSdkSyncSampleSupport.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>ErikEJ.SqlCe40.dll</td></row>
 		<row><td>AlwaysInstall</td><td>ISO19770_LocalTag</td></row>
@@ -1972,6 +1974,7 @@
 		<row><td>cloudapipublic.dll</td><td>CloudApiPublic.dll</td><td>CLOUDA~1.DLL|CloudApiPublic.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\CloudApiPublic.dll</td><td>1</td><td/></row>
 		<row><td>cloudapipublic.xml</td><td>ISX_DEFAULTCOMPONENT2</td><td>CLOUDA~1.XML|CloudApiPublic.xml</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\CloudApiPublic.xml</td><td>1</td><td/></row>
 		<row><td>cloudsdksyncsample.primary_o</td><td>CloudSdkSyncSample.Primary_output1</td><td>CloudSdkSyncSample.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSdkSyncSample1&gt;|Built</td><td>3</td><td/></row>
+		<row><td>BadgeCOMLib.dll</td><td>BadgeCOMLib.dll</td><td>BADGEC~1.DLL|BadgeCOMLib.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\BadgeCOMLib.dll</td><td>1</td><td/></row>
 		<row><td>cloudsdksyncsampledocs.zip</td><td>ISX_DEFAULTCOMPONENT5</td><td>CLOUDS~1.ZIP|CloudSdkSyncSampleDocs.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\html\CloudSdkSyncSampleDocs.zip</td><td>1</td><td/></row>
 		<row><td>cloudsdksyncsamplesource.zip</td><td>ISX_DEFAULTCOMPONENT7</td><td>CLOUDS~1.ZIP|CloudSdkSyncSampleSource.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\CloudSdkSyncSampleSource.zip</td><td>1</td><td/></row>
 		<row><td>cloudsetupsdksyncsamplesuppo</td><td>CloudSetupSdkSyncSampleSupport.Primary_output</td><td>CloudSetupSdkSyncSampleSupport.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSetupSdkSyncSampleSupport&gt;|Built</td><td>3</td><td/></row>
@@ -2264,6 +2267,7 @@
 		<row><td>CloudApiPublic.dll</td><td/><td/><td>_DAD65CBD_1323_4646_94BA_480EC7EDEFBF_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudSdkSyncSample.Primary_output</td><td/><td/><td>_29B5337B_FCFC_4F8C_9233_32D366B127C7_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudSdkSyncSample.Primary_output1</td><td/><td/><td>_39EAF770_8E67_4487_B526_0D9489E1FFB8_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>BadgeCOMLib.dll</td><td/><td/><td>_CBE83EDD_75C1_454D_AA1C_B83978788BC0_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudSetupSdkSyncSampleSupport.Primary_output</td><td/><td/><td>_C593ABBB_6C8C_4844_9C04_C6D85845798C_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ErikEJ.SqlCe40.dll</td><td/><td/><td>_CA8F657D_A036_4DD8_B64A_0475FD9F24A7_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISO19770_LocalTag</td><td/><td/><td>_D0EC4797_D2C8_4B0C_8673_3B9E4C63E8E3_FILTER</td><td/><td/><td/><td/></row>
