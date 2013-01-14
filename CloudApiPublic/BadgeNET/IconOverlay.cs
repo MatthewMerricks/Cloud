@@ -163,6 +163,7 @@ namespace CloudApiPublic.BadgeNET
                                 nonNullState.Value.Value = false;
                                 nonNullState.Key.Set();
                             }
+
                             return;
                         }
 

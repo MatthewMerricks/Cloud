@@ -5,6 +5,8 @@ using CloudSdkSyncSample.ViewModels;
 using System;
 using System.Windows;
 using System.Windows.Threading;
+using System.ComponentModel;
+using System.Windows.Media.Animation;
 
 namespace CloudSdkSyncSample.Views
 {
@@ -14,7 +16,7 @@ namespace CloudSdkSyncSample.Views
 
         private static CLTrace _trace = CLTrace.Instance;
         private EventMessageReceiver _vm = null;
-        private SyncStatusViewModel _vmCommand = null;
+        private SyncStatusViewModel _vmOurs = null;
         
         #endregion
 
@@ -52,6 +54,22 @@ namespace CloudSdkSyncSample.Views
 
         #endregion
 
+        #region Public Methods
+
+        /// <summary>
+        /// The sync status has changed.  Pass this event along to our ViewModel.
+        /// </summary>
+        /// <param name="userState">This is the instance of the SyncBox (CLSync) whose status has changed.</param>
+        public void OnSyncStatusUpdated(object userState)
+        {
+            if (_vmOurs != null)
+            {
+                _vmOurs.OnSyncStatusUpdated(userState);
+            }
+        }
+
+        #endregion
+
         #region Event Handlers
 
         private void WindowSyncStatus_Loaded(object sender, RoutedEventArgs e)
@@ -61,19 +79,54 @@ namespace CloudSdkSyncSample.Views
             _vm = (EventMessageReceiver)this.DataContext;
 
             // Get our own ViewModel for commands
-            _vmCommand = Application.Current.Resources["SyncStatusViewModel"] as SyncStatusViewModel;
+            _vmOurs = this.Resources["SyncStatusViewModel"] as SyncStatusViewModel;
 
-            if (_vmCommand == null)
+            if (_vmOurs == null)
             {
                 MessageBox.Show("SyncStatusViewModel is the wrong type", "Error", MessageBoxButton.OK);
             }
             else
             {
-                _vmCommand.NotifySyncStatusWindowShouldClose += OnNotifySyncStatusWindowShouldClose;
+                _vmOurs.NotifySyncStatusWindowShouldClose += OnNotifySyncStatusWindowShouldClose;
+                _vmOurs.PropertyChanged += _vmOurs_PropertyChanged;
             }
 
             // Focus to the button.
             this.cmdDone.Focus();
+        }
+
+        /// <summary>
+        /// The sync status changed.  If it is now syncing, start the animation.  Otherwise, stop the animation.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void _vmOurs_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "SyncStatus")
+            {
+                if (_vmOurs.SyncStatus == Static.SyncStates.Syncing)
+                {
+                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action<SyncStatusView>((view) =>
+                    {
+                        Storyboard storyboard = view.TryFindResource("SyncingIconAnimation") as Storyboard;
+                        if (storyboard != null)
+                        {
+                            storyboard.Begin();
+                        }
+                    }), this);
+                }
+                else
+                {
+                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action<SyncStatusView>((view) =>
+                    {
+                        Storyboard storyboard = view.TryFindResource("SyncingIconAnimation") as Storyboard;
+                        if (storyboard != null)
+                        {
+                            storyboard.Stop();
+                        }
+                    }), this);
+                }
+            }
         }
 
         private void WindowSyncStatus_Unloaded(object sender, RoutedEventArgs e)
@@ -86,10 +139,11 @@ namespace CloudSdkSyncSample.Views
                 _vm = null;
             }
 
-            if (_vmCommand != null)
+            if (_vmOurs != null)
             {
-                _vmCommand.NotifySyncStatusWindowShouldClose -= OnNotifySyncStatusWindowShouldClose;
-                _vmCommand = null;
+                _vmOurs.NotifySyncStatusWindowShouldClose -= OnNotifySyncStatusWindowShouldClose;
+                _vmOurs.PropertyChanged -= _vmOurs_PropertyChanged;
+                _vmOurs = null;
             }
         }
 
@@ -130,5 +184,6 @@ namespace CloudSdkSyncSample.Views
         {
             this.Close();
         }
+
     }
 }

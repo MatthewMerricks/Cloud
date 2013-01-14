@@ -5,6 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:rate="clr-namespace:RateBar;assembly=RateBar"
         xmlns:icHelper="clr-namespace:CloudApiPublic.Static;assembly=CloudApiPublic"
+        xmlns:vm="clr-namespace:CloudSdkSyncSample.ViewModels"
+        xmlns:enums="clr-namespace:CloudSdkSyncSample.Static"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         Width="800" Height="600" MinWidth="800" MinHeight="600"
         Title="Sync Status"
@@ -39,7 +41,19 @@
                     <TextBlock Text="{Binding MessageText}" FontSize="12" />
                 </Grid>
             </DataTemplate>
+            
+            <!-- Animation for the syncing icon -->
+            <Storyboard x:Key="SyncingIconAnimation">
+                <DoubleAnimation Storyboard.TargetName="AnimatedRotateTransform" 
+                                Storyboard.TargetProperty="Angle" 
+                                From="0"        
+                                To="360" 
+                                Duration="0:0:8.0" 
+                                RepeatBehavior="Forever" />
+            </Storyboard>
 
+            <!-- One of the view models for this window. -->
+            <vm:SyncStatusViewModel x:Key="SyncStatusViewModel" />
         </ResourceDictionary>
     </Window.Resources>
 
@@ -192,26 +206,26 @@
                     </Grid>
                     <!-- Global icon area. -->
                     <Grid Grid.Column="2">
-                        <Image x:Name="imgSyncStatus" Source="/CloudSdkSyncSample;component/Artwork/syncing.png" 
-                               Stretch="UniformToFill"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
-                               RenderTransformOrigin="0.5,0.5">
+                        <Image x:Name="imgSyncStatus" Stretch="UniformToFill"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5,0.5">
                             <Image.RenderTransform>
                                 <RotateTransform x:Name="AnimatedRotateTransform" Angle="0" />
                             </Image.RenderTransform>
-                            <Image.Triggers>
-                                <EventTrigger RoutedEvent="Loaded">
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <DoubleAnimation Storyboard.TargetName="AnimatedRotateTransform" 
-                                                 Storyboard.TargetProperty="Angle" 
-                                                 By="10"        
-                                                 To="360" 
-                                                 Duration="0:0:2.0" 
-                                                 RepeatBehavior="Forever" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </EventTrigger>
-                            </Image.Triggers>
+                            <Image.Style>
+                                <Style TargetType="{x:Type Image}">
+                                    <Style.Triggers>
+                                        <!-- Choose the image to use.  Animate the syncing image. -->
+                                        <DataTrigger Binding="{Binding SyncStatus, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}" Value="{x:Static enums:SyncStates.Synced}">
+                                            <Setter Property="Source" Value="/CloudSdkSyncSample;component/Artwork/synced.png" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding SyncStatus, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}" Value="{x:Static enums:SyncStates.Syncing}">
+                                            <Setter Property="Source" Value="/CloudSdkSyncSample;component/Artwork/syncing.png" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding SyncStatus, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}" Value="{x:Static enums:SyncStates.Error}">
+                                            <Setter Property="Source" Value="/CloudSdkSyncSample;component/Artwork/error.png" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
                         </Image>
                     </Grid>
                 </Grid>

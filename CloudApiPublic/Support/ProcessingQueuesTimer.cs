@@ -34,6 +34,7 @@ namespace CloudApiPublic.Support
         private Action<object> OnTimeout;
         private object UserState;
         private int MillisecondTime;
+        private static CLTrace _trace = CLTrace.Instance;
 
         private ManualResetEvent SleepEvent = new ManualResetEvent(false);
 
@@ -82,31 +83,40 @@ namespace CloudApiPublic.Support
                 _timerRunning = true;
                 (new Thread(state =>
                 {
-                    object[] castState = state as object[];
+                    try
+                    {
+                        object[] castState = state as object[];
 
-                    if (castState == null)
-                    {
-                        throw new NullReferenceException("state is not castable as object[]");
-                    }
-                    if (castState.Length != 2)
-                    {
-                        throw new InvalidOperationException("state as an object array does not have a length of 2");
-                    }
-                    Action<object> castStateAction = castState[0] as Action<object>;
-                    if (castStateAction == null)
-                    {
-                        throw new NullReferenceException("The first object in state as an object array is not castable as an Action<object>");
-                    }
-
-                    bool SleepEventNeedsReset = SleepEvent.WaitOne(this.MillisecondTime);
-                    lock (TimerRunningLocker)
-                    {
-                        if (SleepEventNeedsReset)
+                        if (castState == null)
                         {
-                            SleepEvent.Reset();
+                            throw new NullReferenceException("state is not castable as object[]");
                         }
-                        _timerRunning = false;
-                        castStateAction(castState[1]);
+                        if (castState.Length != 2)
+                        {
+                            throw new InvalidOperationException("state as an object array does not have a length of 2");
+                        }
+                        Action<object> castStateAction = castState[0] as Action<object>;
+                        if (castStateAction == null)
+                        {
+                            throw new NullReferenceException("The first object in state as an object array is not castable as an Action<object>");
+                        }
+
+                        bool SleepEventNeedsReset = SleepEvent.WaitOne(this.MillisecondTime);
+                        lock (TimerRunningLocker)
+                        {
+                            if (SleepEventNeedsReset)
+                            {
+                                SleepEvent.Reset();
+                            }
+                            _timerRunning = false;
+                            castStateAction(castState[1]);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        CLError error = ex;
+                        error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                        _trace.writeToLog(1, "ProcessingQueuesTimer: StartTimerIfNotRunning: Inner thread. ERROR: Exception.  Msg: {0}.", error.errorDescription);
                     }
                 })).Start(new object[] { (Action<object>)this.OnTimeout, this.UserState });
             }

@@ -1,5 +1,8 @@
-﻿using CloudApiPublic.EventMessageReceiver;
+﻿using CloudApiPublic;
+using CloudApiPublic.EventMessageReceiver;
+using CloudApiPublic.Static;
 using CloudApiPublic.Support;
+using CloudSdkSyncSample.Static;
 using CloudSdkSyncSample.Support;
 using System;
 using System.Collections.Generic;
@@ -19,8 +22,27 @@ namespace CloudSdkSyncSample.ViewModels
 
         #region Sync Status Properties
 
+        // Sync status property to control the view's sync icon.
         // Upload properties
-        public int TbFilesToUpload
+        public SyncStates SyncStatus
+        {
+            get { return _syncStatus; }
+            set
+            {
+                if (value == _syncStatus)
+                {
+                    return;
+                }
+
+                _syncStatus = value;
+
+                base.OnPropertyChanged("SyncStatus");
+            }
+        }
+        private SyncStates _syncStatus = 0;
+
+        // Upload properties
+        public string TbFilesToUpload
         {
             get { return _tbFilesToUpload; }
             set
@@ -35,9 +57,9 @@ namespace CloudSdkSyncSample.ViewModels
                 base.OnPropertyChanged("TbFilesToUpload");
             }
         }
-        private int _tbFilesToUpload = 0;
+        private string _tbFilesToUpload = "";
 
-        public int TbFilesUploading
+        public string TbFilesUploading
         {
             get { return _tbFilesUploading; }
             set
@@ -52,9 +74,9 @@ namespace CloudSdkSyncSample.ViewModels
                 base.OnPropertyChanged("TbFilesUploading");
             }
         }
-        private int _tbFilesUploading = 0;
+        private string _tbFilesUploading = "";
 
-        public int TbTotalBytesToUpload
+        public string TbTotalBytesToUpload
         {
             get { return _tbTotalBytesToUpload; }
             set
@@ -69,9 +91,9 @@ namespace CloudSdkSyncSample.ViewModels
                 base.OnPropertyChanged("TbTotalBytesToUpload");
             }
         }
-        private int _tbTotalBytesToUpload = 0;
+        private string _tbTotalBytesToUpload = "";
 
-        public int TbBytesLeftToUpload
+        public string TbBytesLeftToUpload
         {
             get { return _tbBytesLeftToUpload; }
             set
@@ -86,10 +108,10 @@ namespace CloudSdkSyncSample.ViewModels
                 base.OnPropertyChanged("TbBytesLeftToUpload");
             }
         }
-        private int _tbBytesLeftToUpload = 0;
+        private string _tbBytesLeftToUpload = "";
 
         // Download properties
-        public int TbFilesToDownload
+        public string TbFilesToDownload
         {
             get { return _tbFilesToDownload; }
             set
@@ -104,9 +126,9 @@ namespace CloudSdkSyncSample.ViewModels
                 base.OnPropertyChanged("TbFilesToDownload");
             }
         }
-        private int _tbFilesToDownload = 0;
+        private string _tbFilesToDownload = "";
 
-        public int TbFilesDownloading
+        public string TbFilesDownloading
         {
             get { return _tbFilesDownloading; }
             set
@@ -121,9 +143,9 @@ namespace CloudSdkSyncSample.ViewModels
                 base.OnPropertyChanged("TbFilesDownloading");
             }
         }
-        private int _tbFilesDownloading = 0;
+        private string _tbFilesDownloading = "";
 
-        public int TbTotalBytesToDownload
+        public string TbTotalBytesToDownload
         {
             get { return _tbTotalBytesToDownload; }
             set
@@ -138,9 +160,9 @@ namespace CloudSdkSyncSample.ViewModels
                 base.OnPropertyChanged("TbTotalBytesToDownload");
             }
         }
-        private int _tbTotalBytesToDownload = 0;
+        private string _tbTotalBytesToDownload = "";
 
-        public int TbBytesLeftToDownload
+        public string TbBytesLeftToDownload
         {
             get { return _tbBytesLeftToDownload; }
             set
@@ -155,7 +177,69 @@ namespace CloudSdkSyncSample.ViewModels
                 base.OnPropertyChanged("TbBytesLeftToDownload");
             }
         }
-        private int _tbBytesLeftToDownload = 0;
+        private string _tbBytesLeftToDownload = "";
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// The sync status has changed.  Get the changed status from the SyncBox.
+        /// </summary>
+        /// <param name="userState">This is the instance of the SyncBox (CLSync) whose status has changed.</param>
+        public void OnSyncStatusUpdated(object userState)
+        {
+            CLSync syncBox = userState as CLSync;
+            if (syncBox != null)
+            {
+                // Set the overall sync status
+                CLSyncCurrentStatus currentStatus;
+                syncBox.GetCLSyncCurrentStatus(out currentStatus);
+                if (currentStatus.CurrentState == CLSyncCurrentState.Idle)
+                {
+                    SyncStatus = SyncStates.Synced;
+                }
+                else
+                {
+                    SyncStatus = SyncStates.Syncing;
+                }
+
+                // Aggregate the upload status
+                long totalByteProgressUpload = 0;
+                long totalBytesQueuedUpload = 0;
+                long totalFilesCurrentlyUploading = 0;
+                foreach (CLSyncTransferringFile indexFile in currentStatus.UploadingFiles)
+                {
+                    totalByteProgressUpload += indexFile.ByteProgress;
+                    totalBytesQueuedUpload += indexFile.TotalByteSize;
+                    totalFilesCurrentlyUploading += (indexFile.ByteProgress > 0) ? 1 : 0;
+                }
+
+                // Aggregate the download status
+                long totalByteProgressDownload = 0;
+                long totalBytesQueuedDownload = 0;
+                long totalFilesCurrentlyDownloading = 0;
+                foreach (CLSyncTransferringFile indexFile in currentStatus.DownloadingFiles)
+                {
+                    totalByteProgressDownload += indexFile.ByteProgress;
+                    totalBytesQueuedDownload += indexFile.TotalByteSize;
+                    totalFilesCurrentlyDownloading += (indexFile.ByteProgress > 0) ? 1 : 0;
+                }
+
+                // Update the properties
+                TbTotalBytesToUpload = String.Format("{0:n0}", totalBytesQueuedUpload);
+                TbTotalBytesToDownload = String.Format("{0:n0}", totalBytesQueuedDownload);
+
+                TbBytesLeftToUpload = String.Format("{0:n0}", totalBytesQueuedUpload - totalByteProgressUpload);
+                TbBytesLeftToDownload = String.Format("{0:n0}", totalBytesQueuedDownload - totalByteProgressDownload);
+
+                TbFilesToUpload = String.Format("{0:n0}", currentStatus.UploadingFiles.Length);
+                TbFilesToDownload = String.Format("{0:n0}", currentStatus.DownloadingFiles.Length);
+
+                TbFilesUploading = String.Format("{0:n0}", totalFilesCurrentlyUploading);
+                TbFilesDownloading = String.Format("{0:n0}", totalFilesCurrentlyDownloading);
+            }
+        }
 
         #endregion
 

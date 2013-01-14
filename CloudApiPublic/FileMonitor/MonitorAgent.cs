@@ -237,6 +237,8 @@ namespace CloudApiPublic.FileMonitor
             CLHttpRest httpRestClient,
             out MonitorAgent newAgent,
             out SyncEngine syncEngine,
+            System.Threading.WaitCallback statusUpdated = null,
+            object statusUpdatedUserState = null,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
@@ -258,7 +260,7 @@ namespace CloudApiPublic.FileMonitor
             try
             {
                 // Create sync engine
-                syncEngine = new SyncEngine(newAgent._syncData, syncSettings, httpRestClient);
+                syncEngine = new SyncEngine(newAgent._syncData, syncSettings, httpRestClient, statusUpdated: statusUpdated, statusUpdatedUserState: statusUpdatedUserState);
             }
             catch (Exception ex)
             {

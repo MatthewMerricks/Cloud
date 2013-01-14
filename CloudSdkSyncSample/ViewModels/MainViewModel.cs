@@ -918,7 +918,7 @@ namespace CloudSdkSyncSample.ViewModels
                 if (startSyncBox)
                 {
                     CLSyncStartStatus startStatus;
-                    CLError errorFromSyncBoxStart = _syncBox.Start(SettingsAvancedImpl.Instance, out startStatus);
+                    CLError errorFromSyncBoxStart = _syncBox.Start(SettingsAvancedImpl.Instance, out startStatus, OnSyncStatusUpdated, _syncBox);
                     if (errorFromSyncBoxStart != null)
                     {
                         _syncBox = null;
@@ -970,6 +970,18 @@ namespace CloudSdkSyncSample.ViewModels
                 CLError error = ex;
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// The sync status for this SyncBox has changed.  Pass this event to the sync status view.
+        /// </summary>
+        /// <param name="userState">This is the instance of CLSync.</param>
+        private void OnSyncStatusUpdated(object userState)
+        {
+            if (_winSyncStatus != null)
+            {
+                _winSyncStatus.OnSyncStatusUpdated(userState);
             }
         }
 
