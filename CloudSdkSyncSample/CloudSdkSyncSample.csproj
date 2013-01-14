@@ -188,7 +188,7 @@ REM ----------------------
 set ErrorTracker=6
 echo 7z a -tzip CloudSdkSyncSampleDocs.zip ./
 7z a -tzip CloudSdkSyncSampleDocs.zip ./
-echo 7z ErrorLevel: %25errorlevel%25
+echo 7z BuildErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
@@ -217,8 +217,29 @@ echo 7z a -tzip CloudSdkSyncSampleSource.zip ./
 7z a -tzip CloudSdkSyncSampleSource.zip ./
 if errorlevel 1 goto BuildEventFailed
 
-REM ----------------------
+REM ----- Delete the obj\ directory in the zip file -----------------
 set ErrorTracker=11
+echo 7z d CloudSdkSyncSampleSource.zip obj/
+7z d CloudSdkSyncSampleSource.zip obj/
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Debug\CloudSdkSyncSample* files in the zip file -----------------
+set ErrorTracker=12
+echo 7z d CloudSdkSyncSampleSource.zip bin\Debug\CloudSdkSyncSample*.*
+7z d CloudSdkSyncSampleSource.zip bin\Debug\CloudSdkSyncSample*.*
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\CloudSdkSyncSample* files in the zip file -----------------
+set ErrorTracker=13
+echo 7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
+7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=14
 echo cd ..
 cd ..
 if errorlevel 1 goto BuildEventFailed
