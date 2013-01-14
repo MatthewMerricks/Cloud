@@ -70,6 +70,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Static\Enums.cs" />
     <Compile Include="ViewModels\SyncStatusViewModel.cs" />
     <Compile Include="Views\SyncStatusView.xaml.cs">
       <DependentUpon>SyncStatusView.xaml</DependentUpon>
@@ -145,6 +146,15 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\WinClient_CloudSetup_bg_650x485.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Synced.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Syncing.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -331,7 +331,7 @@ namespace win_client.ViewModels
                         {
                             // Open RateBar graph window for upload/download status and logs
                             WindowSyncStatus win = new WindowSyncStatus();
-                            EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings, EventMessageLevel.All, EventMessageLevel.All);
+                            EventMessageReceiver vm = new EventMessageReceiver(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings, EventMessageLevel.All, EventMessageLevel.All);
                             win.DataContext = vm;
                             win.ShowInTaskbar = true;
                             win.ShowActivated = true;

@@ -43,7 +43,7 @@ namespace win_client.Growl
         }
         private static readonly GenericHolder<RunningState> WasShutDown = new GenericHolder<RunningState>(RunningState.NeverStarted);
 
-        private static readonly EventMessageReceiver Receiver = EventMessageReceiver.GetInstance(null, null);
+        private static readonly EventMessageReceiver Receiver = new EventMessageReceiver(null, null);
 
         public static CLError StartGrowlService()
         {

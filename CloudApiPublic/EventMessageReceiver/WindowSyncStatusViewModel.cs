@@ -154,7 +154,7 @@ namespace CloudApiPublic.EventMessageReceiver
             {
                 Func<EventMessageReceiver, bool> continueProcessing = checkDisposed =>
                 {
-                    lock (InstanceLocker)
+                    lock (thisReceiver._locker)
                     {
                         return !checkDisposed.isDisposed;
                     }
@@ -244,7 +244,7 @@ namespace CloudApiPublic.EventMessageReceiver
             {
                 Func<EventMessageReceiver, bool> continueProcessing = checkDisposed =>
                 {
-                    lock (InstanceLocker)
+                    lock (thisReceiver._locker)
                     {
                         return !checkDisposed.isDisposed;
                     }

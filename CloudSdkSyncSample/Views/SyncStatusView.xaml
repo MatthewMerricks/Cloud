@@ -5,6 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:rate="clr-namespace:RateBar;assembly=RateBar"
         xmlns:icHelper="clr-namespace:CloudApiPublic.Static;assembly=CloudApiPublic"
+        xmlns:vm="clr-namespace:CloudSdkSyncSample.ViewModels"
+        xmlns:enums="clr-namespace:CloudSdkSyncSample.Static"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         Width="800" Height="600" MinWidth="800" MinHeight="600"
         Title="Sync Status"
@@ -39,17 +41,29 @@
                     <TextBlock Text="{Binding MessageText}" FontSize="12" />
                 </Grid>
             </DataTemplate>
+            
+            <!-- Animation for the syncing icon -->
+            <Storyboard x:Key="SyncingIconAnimation">
+                <DoubleAnimation Storyboard.TargetName="AnimatedRotateTransform" 
+                                Storyboard.TargetProperty="Angle" 
+                                From="0"        
+                                To="360" 
+                                Duration="0:0:8.0" 
+                                RepeatBehavior="Forever" />
+            </Storyboard>
 
+            <!-- One of the view models for this window. -->
+            <vm:SyncStatusViewModel x:Key="SyncStatusViewModel" />
         </ResourceDictionary>
     </Window.Resources>
 
     <Grid x:Name="LayoutRoot" Background="#FFEFF4F5">
         <Grid.RowDefinitions>
             <RowDefinition Height="13"/>
-            <RowDefinition Height="140"/>
+            <RowDefinition Height="120"/>
+            <RowDefinition Height="100"/>
             <RowDefinition Height="2*"/>
-            <RowDefinition Height="0.09*"/>
-            <RowDefinition Height="0.5*"/>
+            <RowDefinition Height="56"/>
         </Grid.RowDefinitions>
 
         <!-- Title for Upload/Download Status section -->
@@ -70,18 +84,157 @@
             </Grid.ColumnDefinitions>
 
             <!-- Upload stack -->
-            <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Auto">
+            <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.Column="0" >
                 <ItemsControl ItemsSource="{Binding ListFilesUploading}" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemTemplate="{StaticResource UploadDownloadTemplate}" />
             </ScrollViewer>
 
             <!-- Download stack -->
-            <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding ListFilesDownloading}" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.Column="1" ItemTemplate="{StaticResource UploadDownloadTemplate}" />
+            <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.Column="1" >
+                <ItemsControl ItemsSource="{Binding ListFilesDownloading}" ScrollViewer.VerticalScrollBarVisibility="Auto" ItemTemplate="{StaticResource UploadDownloadTemplate}" />
             </ScrollViewer>
         </Grid>
 
-        <!-- Message area -->
+        <!-- Global data area -->
         <Grid Grid.Row="2">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <!-- Global has three columns: Left data, right data, icon. -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="7*"/>
+                        <ColumnDefinition Width="7*"/>
+                        <ColumnDefinition Width="2*"/>
+                    </Grid.ColumnDefinitions>
+                    <!-- Global left data. -->
+                    <Grid Grid.Column="0" Margin="8,0,8,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Upload area in right data grid. -->
+                        <!-- Files to upload. -->
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Files to upload:" VerticalAlignment="Center" Grid.Column="0"/>
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" 
+                                       Text="{Binding TbFilesToUpload, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}"/>
+                        </Grid>
+                        <!-- Files uploading. -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Files uploading:" VerticalAlignment="Center" Grid.Column="0" />
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1"  
+                                       Text="{Binding TbFilesUploading, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}"/>
+                        </Grid>
+                        <!-- Total bytes to upload. -->
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Total bytes to upload:" VerticalAlignment="Center" Grid.Column="0" />
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" 
+                                       Text="{Binding TbTotalBytesToUpload, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}"/>
+                        </Grid>
+                        <!-- Bytes left to upload. -->
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Bytes left to upload:" VerticalAlignment="Center" Grid.Column="0" />
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" 
+                                       Text="{Binding TbBytesLeftToUpload, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}"/>
+                        </Grid>
+                    </Grid>
+                    <!-- Global right data. -->
+                    <Grid Grid.Column="1" Margin="8,0,8,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <!-- Download area in right data grid. -->
+                        <!-- Files to upload. -->
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Files to download:" VerticalAlignment="Center" Grid.Column="0" />
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" 
+                                       Text="{Binding TbFilesToDownload, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}"/>
+                        </Grid>
+                        <!-- Files uploading. -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Files downloading:" VerticalAlignment="Center" Grid.Column="0" />
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" 
+                                       Text="{Binding TbFilesDownloading, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}"/>
+                        </Grid>
+                        <!-- Total bytes to upload. -->
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Total bytes to download:" VerticalAlignment="Center" Grid.Column="0" />
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" 
+                                       Text="{Binding TbTotalBytesToDownload, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}"/>
+                        </Grid>
+                        <!-- Bytes left to upload. -->
+                        <Grid Grid.Row="3">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Bytes left to download:" VerticalAlignment="Center" Grid.Column="0" />
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" 
+                                       Text="{Binding TbBytesLeftToDownload, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}"/>
+                        </Grid>
+                    </Grid>
+                    <!-- Global icon area. -->
+                    <Grid Grid.Column="2">
+                        <Image x:Name="imgSyncStatus" Stretch="UniformToFill"  HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RenderTransformOrigin="0.5,0.5">
+                            <Image.RenderTransform>
+                                <RotateTransform x:Name="AnimatedRotateTransform" Angle="0" />
+                            </Image.RenderTransform>
+                            <Image.Style>
+                                <Style TargetType="{x:Type Image}">
+                                    <Style.Triggers>
+                                        <!-- Choose the image to use.  Animate the syncing image. -->
+                                        <DataTrigger Binding="{Binding SyncStatus, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}" Value="{x:Static enums:SyncStates.Synced}">
+                                            <Setter Property="Source" Value="/CloudSdkSyncSample;component/Artwork/synced.png" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding SyncStatus, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}" Value="{x:Static enums:SyncStates.Syncing}">
+                                            <Setter Property="Source" Value="/CloudSdkSyncSample;component/Artwork/syncing.png" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding SyncStatus, Source={StaticResource SyncStatusViewModel}, Mode=OneWay}" Value="{x:Static enums:SyncStates.Error}">
+                                            <Setter Property="Source" Value="/CloudSdkSyncSample;component/Artwork/error.png" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
+                    </Grid>
+                </Grid>
+                    
+            </Border>
+        </Grid>
+
+        <!-- Message area -->
+        <Grid Grid.Row="3">
                 <Border BorderBrush="Black" BorderThickness="1">
                     <ScrollViewer ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <ItemsControl x:Name="icMessageList" ItemsSource="{Binding ListMessages}" ItemTemplate="{StaticResource MessageListElementTemplate}" Margin="3,3,3,3" 
@@ -90,7 +243,7 @@
                 </Border>
         </Grid>
 
-        <TextBlock Text="Sync Messages" FontSize="8" FontWeight="Bold" HorizontalAlignment="Left" Grid.Row="3"  Foreground="#ff0f0f0f"/>
+        <TextBlock Text="Sync Messages" FontSize="8" FontWeight="Bold" HorizontalAlignment="Left" Grid.Row="4"  Foreground="#ff0f0f0f"/>
 
         <Grid Grid.Row="4">
             <StackPanel Orientation="Horizontal" FlowDirection="RightToLeft">

@@ -58,7 +58,7 @@
 ///
 ///         // EventMessageReceiver is the ViewModel for your sync status window.  There are three ObservableCollections that
 ///         // you can bind to: ListFilesDownloading, ListFilesUploading, ListMessages.
-///         EventMessageReceiver vm = EventMessageReceiver.GetInstance(null, null, EventMessageLevel.All, EventMessageLevel.All);
+///         EventMessageReceiver vm = new EventMessageReceiver(null, null, EventMessageLevel.All, EventMessageLevel.All);
 ///         // Show your sync status window and use vm as the DataContext.
 ///     
 ///         // Start syncing with your settings.
@@ -79,7 +79,7 @@
 ///     // Handle errors from push notification
 ///     private void OnPushNotificaitonError(object sender, NotificationErrorEventArgs e)
 ///     {
-///         // Handle an error from push notification
+///         // Tell the user that changes made on other devices will no longer be synced automatically to this device.
 ///     }
 /// }
 /// \endcode

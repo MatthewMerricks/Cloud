@@ -396,7 +396,7 @@ namespace CloudApiPublic.Sync
                         Nullable<DateTime> earliestToKill = null;
                         DateTime killTime = DateTime.UtcNow.Subtract(ThreadStatusTimeoutSpan);
                         List<Guid> removedStatusKeys = null;
-                        foreach (Guid currentStatusKey in nonNullState.Value.Key.Keys.ToArray()) // collection modified exception
+                        foreach (Guid currentStatusKey in nonNullState.Value.Key.Keys)
                         {
                             ThreadStatus currentStatus = nonNullState.Value.Key[currentStatusKey];
 
@@ -431,8 +431,8 @@ namespace CloudApiPublic.Sync
                                 {
                                     outputState |= CLSyncCurrentState.CommunicatingChanges;
                                 }
-                                // condition for active or queued upload/download
-                                else
+                                // condition for active or queued upload/download which haven't failed
+                                else if (!currentStatus.IsError)
                                 {
                                     // condition for active upload
                                     if (((SyncDirection)currentStatus.Direction) == SyncDirection.To)
@@ -467,53 +467,53 @@ namespace CloudApiPublic.Sync
 
                                 removedStatusKeys.Add(currentStatusKey);
                             }
+                        }
 
-                            if (removedStatusKeys != null)
+                        if (removedStatusKeys != null)
+                        {
+                            foreach (Guid removeStatusKey in removedStatusKeys)
                             {
-                                foreach (Guid removeStatusKey in removedStatusKeys)
-                                {
-                                    nonNullState.Value.Key.Remove(removeStatusKey);
-                                }
+                                nonNullState.Value.Key.Remove(removeStatusKey);
                             }
+                        }
 
-                            if (earliestToKill != null)
+                        if (earliestToKill != null)
+                        {
+                            DateTime newKillTime = ((DateTime)earliestToKill).Add(ThreadStatusTimeoutSpan);
+
+                            lock (nonNullState.Key.Value.Value)
                             {
-                                DateTime newKillTime = ((DateTime)earliestToKill).Add(ThreadStatusTimeoutSpan);
-
-                                lock (nonNullState.Key.Value.Value)
+                                if (nonNullState.Key.Value.Value.Value == null
+                                    || nonNullState.Key.Value.Key.Value.CompareTo(newKillTime) <= 0)
                                 {
-                                    if (nonNullState.Key.Value.Value.Value == null
-                                        || nonNullState.Key.Value.Key.Value.CompareTo(newKillTime) <= 0)
+                                    nonNullState.Key.Value.Key.Value = newKillTime;
+
+                                    if (nonNullState.Key.Value.Value.Value != null)
                                     {
-                                        nonNullState.Key.Value.Key.Value = newKillTime;
-
-                                        if (nonNullState.Key.Value.Value.Value != null)
+                                        try
                                         {
-                                            try
-                                            {
-                                                nonNullState.Key.Value.Value.Value.Dispose();
-                                            }
-                                            catch
-                                            {
-                                            }
+                                            nonNullState.Key.Value.Value.Value.Dispose();
                                         }
-
-                                        TimeSpan startTime;
-                                        DateTime timeForTimer = DateTime.UtcNow;
-                                        if (timeForTimer.CompareTo(newKillTime) >= 0)
+                                        catch
                                         {
-                                            startTime = TimeSpan.Zero;
                                         }
-                                        else
-                                        {
-                                            startTime = newKillTime.Subtract(timeForTimer);
-                                        }
-
-                                        nonNullState.Key.Value.Value.Value = new Timer(ProcessKillTimer,
-                                            state,
-                                            startTime,
-                                            NoPeriodTimeSpan);
                                     }
+
+                                    TimeSpan startTime;
+                                    DateTime timeForTimer = DateTime.UtcNow;
+                                    if (timeForTimer.CompareTo(newKillTime) >= 0)
+                                    {
+                                        startTime = TimeSpan.Zero;
+                                    }
+                                    else
+                                    {
+                                        startTime = newKillTime.Subtract(timeForTimer);
+                                    }
+
+                                    nonNullState.Key.Value.Value.Value = new Timer(ProcessKillTimer,
+                                        state,
+                                        startTime,
+                                        NoPeriodTimeSpan);
                                 }
                             }
                         }
@@ -527,6 +527,7 @@ namespace CloudApiPublic.Sync
                             {
                                 try
                                 {
+                                    // Call the optional status changed callback.
                                     nonNullState.Key.Key.Value.Value.Key(nonNullState.Key.Key.Value.Value.Value);
                                 }
                                 catch
@@ -599,9 +600,9 @@ namespace CloudApiPublic.Sync
                         {
                             LastUpdateTime = DateTime.UtcNow
                         }));
-                }
 
-                StartStatusAggregatorIfNotStarted();
+                    StartStatusAggregatorIfNotStarted();
+                }
             }
             catch
             {
@@ -619,9 +620,9 @@ namespace CloudApiPublic.Sync
                         {
                             LastUpdateTime = DateTime.MinValue
                         }));
-                }
 
-                StartStatusAggregatorIfNotStarted();
+                    StartStatusAggregatorIfNotStarted();
+                }
             }
             catch
             {
@@ -642,15 +643,15 @@ namespace CloudApiPublic.Sync
                             RelativePath = relativePath,
                             TotalByteSize = totalByteSize
                         }));
-                }
 
-                StartStatusAggregatorIfNotStarted();
+                    StartStatusAggregatorIfNotStarted();
+                }
             }
             catch
             {
             }
         }
-        private void FileTransferStatusUpdate(Guid threadId, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize)
+        private void FileTransferStatusUpdate(Guid threadId, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize, bool isError)
         {
             try
             {
@@ -667,9 +668,9 @@ namespace CloudApiPublic.Sync
                             RelativePath = relativePath,
                             TotalByteSize = totalByteSize
                         }));
-                }
 
-                StartStatusAggregatorIfNotStarted();
+                    StartStatusAggregatorIfNotStarted();
+                }
             }
             catch
             {
@@ -678,6 +679,19 @@ namespace CloudApiPublic.Sync
         private readonly Queue<KeyValuePair<Guid, ThreadStatus>> StatusChangesQueue = new Queue<KeyValuePair<Guid, ThreadStatus>>();
         private sealed class ThreadStatus
         {
+            public bool IsError
+            {
+                get
+                {
+                    return _isError;
+                }
+                set
+                {
+                    _isError = value;
+                }
+            }
+            private bool _isError = false; // Should only be true if an error occurs during Task processing for a file upload/file download
+
             public Nullable<DateTime> LastUpdateTime
             {
                 get
@@ -2390,9 +2404,22 @@ namespace CloudApiPublic.Sync
 
                         // declare byte array for the event hash for comparison
                         byte[] toCompleteBytes;
-                        // if the hash was retrieved from the event without error and the hash is not null, then continue attempting to compare with local file
-                        if (toComplete.FileChange.GetMD5Bytes(out toCompleteBytes) == null // retrieves hash and check that no error occurred in the attempt
-                            && toCompleteBytes != null) // retrieved hash exists
+                        // if unable to retrieve existing MD5 then set MD5 from revision
+                        if (toComplete.FileChange.GetMD5Bytes(out toCompleteBytes) != null // retrieves hash and set MD5 from revision if error occurred
+                            || toCompleteBytes == null) // or no error occurred retrieving MD5 but there was no MD5 then set MD5 from revision
+                        {
+                            try
+                            {
+                                toCompleteBytes = Helpers.ParseHexadecimalStringToByteArray(toComplete.FileChange.Metadata.Revision);
+                            }
+                            catch
+                            {
+                                toCompleteBytes = null;
+                            }
+                        }
+
+                        // if able to retrieve MD5 from either the GetMD5Bytes or by parsing revision, then check if file already matches on disk
+                        if (toCompleteBytes != null)
                         {
                             // try/catch to compare event has with file on disk, silence exception
                             try
@@ -2526,7 +2553,7 @@ namespace CloudApiPublic.Sync
                             new UploadTaskState()
                             {
                                 // Properties are purposed as named
-
+                                
                                 ThreadId = asyncTaskThreadId,
                                 StatusUpdate = FileTransferStatusUpdate,
                                 FailureTimer = FailureTimer,
@@ -2743,6 +2770,24 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
+                if (castState != null
+                    && castState.FileToUpload != null
+                    && castState.FileToUpload.NewPath != null
+                    && castState.SyncSettings != null
+                    && castState.FileToUpload.Metadata != null
+                    && castState.StatusUpdate != null
+                    && castState.FileToUpload.Metadata.HashableProperties.Size != null)
+                {
+                    castState.StatusUpdate(
+                        castState.ThreadId, // threadId
+                        castState.FileToUpload.EventId, // eventId
+                        SyncDirection.To, // direction
+                        castState.FileToUpload.NewPath.GetRelativePath(castState.SyncSettings.SyncRoot, false), // relativePath
+                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
+                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // totalByteSize
+                        true); // error occurred
+                }
+
                 // if the error was any that are not recoverable, display a message to the user for the serious problem and return
 
                 if (castState == null)
@@ -2811,23 +2856,6 @@ namespace CloudApiPublic.Sync
             }
             finally
             {
-                if (castState != null
-                    && castState.FileToUpload != null
-                    && castState.FileToUpload.NewPath != null
-                    && castState.SyncSettings != null
-                    && castState.FileToUpload.Metadata != null
-                    && castState.StatusUpdate != null
-                    && castState.FileToUpload.Metadata.HashableProperties.Size != null)
-                {
-                    castState.StatusUpdate(
-                        castState.ThreadId, // threadId
-                        castState.FileToUpload.EventId, // eventId
-                        SyncDirection.To, // direction
-                        castState.FileToUpload.NewPath.GetRelativePath(castState.SyncSettings.SyncRoot, false), // relativePath
-                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
-                        (long)castState.FileToUpload.Metadata.HashableProperties.Size); // totalByteSize
-                }
-
                 // if state was succesfully cast and it contains both the event for the file upload and a callback to remove event handlers on the event,
                 // then remove event handlers on the event
                 if (castState != null
@@ -3239,6 +3267,24 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
+                if (castState != null
+                    && castState.FileToDownload != null
+                    && castState.FileToDownload.NewPath != null
+                    && castState.SyncSettings != null
+                    && castState.FileToDownload.Metadata != null
+                    && castState.StatusUpdate != null
+                    && castState.FileToDownload.Metadata.HashableProperties.Size != null)
+                {
+                    castState.StatusUpdate(
+                        castState.ThreadId, // threadId
+                        castState.FileToDownload.EventId, // eventId
+                        SyncDirection.From, // direction
+                        castState.FileToDownload.NewPath.GetRelativePath(castState.SyncSettings.SyncRoot, false), // relativePath
+                        (long)castState.FileToDownload.Metadata.HashableProperties.Size, // byteProgress
+                        (long)castState.FileToDownload.Metadata.HashableProperties.Size, // totalByteSize
+                        true); // error occurred
+                }
+
                 // for advanced trace, UploadDownloadFailure
                 if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
@@ -3347,23 +3393,6 @@ namespace CloudApiPublic.Sync
             }
             finally
             {
-                if (castState != null
-                    && castState.FileToDownload != null
-                    && castState.FileToDownload.NewPath != null
-                    && castState.SyncSettings != null
-                    && castState.FileToDownload.Metadata != null
-                    && castState.StatusUpdate != null
-                    && castState.FileToDownload.Metadata.HashableProperties.Size != null)
-                {
-                    castState.StatusUpdate(
-                        castState.ThreadId, // threadId
-                        castState.FileToDownload.EventId, // eventId
-                        SyncDirection.To, // direction
-                        castState.FileToDownload.NewPath.GetRelativePath(castState.SyncSettings.SyncRoot, false), // relativePath
-                        (long)castState.FileToDownload.Metadata.HashableProperties.Size, // byteProgress
-                        (long)castState.FileToDownload.Metadata.HashableProperties.Size); // totalByteSize
-                }
-
                 // if the state was castable and contained the event and also contained the callback to remove eventhandlers, then remove eventhandlers from the event
                 if (castState != null
                     && castState.FileToDownload != null
@@ -3664,7 +3693,7 @@ namespace CloudApiPublic.Sync
         private sealed class DownloadTaskState
         {
             public Guid ThreadId { get; set; }
-            public Action<Guid, long, SyncDirection, string, long, long> StatusUpdate { get; set; }
+            public Action<Guid, long, SyncDirection, string, long, long, bool> StatusUpdate { get; set; }
             public FileChange FileToDownload { get; set; }
             public byte[] MD5 { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
@@ -3686,7 +3715,7 @@ namespace CloudApiPublic.Sync
         private sealed class UploadTaskState
         {
             public Guid ThreadId { get; set; }
-            public Action<Guid, long, SyncDirection, string, long, long> StatusUpdate { get; set; }
+            public Action<Guid, long, SyncDirection, string, long, long, bool> StatusUpdate { get; set; }
             public FileChange FileToUpload { get; set; }
             public Stream UploadStream { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }

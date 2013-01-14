@@ -929,20 +929,28 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(Pl
       <AdditionalLibraryDirectories>$(SolutionDir)3rdParty\bin\Release\Boost_1_52</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
+      <Command>echo copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
+copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
+echo tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
 tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
 if errorlevel 1 goto BuildEventFailed
+echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
 copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
 if errorlevel 1 goto BuildEventFailed
+echo copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(TargetName)Lib.dll
 copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(TargetName)Lib.dll
 if errorlevel 1 goto BuildEventFailed
+echo copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(TargetName)Lib.dll
 copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(TargetName)Lib.dll
 if errorlevel 1 goto BuildEventFailed
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
 copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
 copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
+echo regsvr32.exe /u /s $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 regsvr32.exe /u /s $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 REM do not jump to error condition and reset error level since it is fine if regsvr32.exe fails to unregister dll
 set errorlevel=0
@@ -954,7 +962,7 @@ echo POSTBUILDSTEP for $(ProjectName) FAILED
 exit 1
 :BuildEventOK
 echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
-</Command>
+exit 0</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseARM|Win32'">

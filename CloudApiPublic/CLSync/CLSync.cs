@@ -219,7 +219,10 @@ namespace CloudApiPublic
         /// Initialize the SyncBox and start syncing its contents to the Cloud server, and to other devices
         /// registering the same SyncBox.
         /// </summary>
-        /// <param name="settings"></param>
+        /// <param name="settings">The options to use.</param>
+        /// <param name="status">The status of the start request.  Check this for errors.</param>
+        /// <param name="statusUpdated">An optional callback which is driven when sync status changes.</param>
+        /// <param name="statusUpdatedUserState">An optional user state which will be passed back to your statusUpdated callback.</param>
         /// <returns></returns>
         public CLError Start(ISyncSettings settings, out CLSyncStartStatus status, System.Threading.WaitCallback statusUpdated = null, object statusUpdatedUserState = null)
         {
@@ -360,7 +363,9 @@ namespace CloudApiPublic
                         _indexer,
                         httpRestClient,
                         out _monitor,
-                        out _syncEngine);
+                        out _syncEngine,
+                        statusUpdated: this.statusUpdated,
+                        statusUpdatedUserState: this.statusUpdatedUserState);
                 }
 
                 if (fileMonitorCreationError != null)
