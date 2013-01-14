@@ -29,9 +29,7 @@ namespace CloudApiPublic.Model
         //TODO: Change this value back to 10 when server side events or Websockets are properly implemented.
         //public const int ManualPollingIterationsBeforeConnectingPush = 10;
         public const int ManualPollingIterationsBeforeConnectingPush = int.MaxValue;
-        //TODO: Change this polling interval back to 60 seconds when server side events and/or WebSockets have been implemented.
-        //public const int ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
-        public const int ManualPollingIterationPeriodInMilliseconds = 5000;
+        public const int ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
         public const int PushNotificationFaultLimitBeforeFallback = 5;
 #if PRODUCTION_BACKEND
 
@@ -80,11 +78,7 @@ namespace CloudApiPublic.Model
         public const string CLMetaDataServerURL = HttpPrefix + @"mds.cliff.cloudburrito.com";
 
         // Notifications
-        //TODO: For now, WebSockets is not supported because of a problem on the server side. 
-        // We have changed the URL below to an invalid address to force a failover to manual
-        // polling until we have implemented server side events.
-        //public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com";
-        public const string CLNotificationServerURL = @"ws://notSupported.cloudburrito.com";
+        public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com";
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";
