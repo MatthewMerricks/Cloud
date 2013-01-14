@@ -34,6 +34,10 @@ namespace CloudApiPublic.Sync
         #region instance fields, all readonly
         // store event source
         private readonly ISyncDataObject syncData;
+        // callback to fire upon any status change
+        private readonly System.Threading.WaitCallback statusUpdated;
+        // userstate to pass to status change callback
+        private readonly object statusUpdatedUserState;
         // store settings source
         private readonly ISyncSettingsAdvanced syncSettings;
         // store client for Http REST communication
@@ -54,13 +58,17 @@ namespace CloudApiPublic.Sync
         /// <param name="syncData">Event source</param>
         /// <param name="syncSettings">Settings source</param>
         /// <param name="httpRestClient">Http client for REST communication</param>
-        /// <param name="HttpTimeoutMilliseconds">Milliseconds to wait before presuming communication failure</param>
-        /// <param name="MaxNumberOfFailureRetries">Number of times to retry an event dependency tree before stopping</param>
-        /// <param name="MaxNumberOfNotFounds">Number of times to retry an event that keeps getting a not found error before presuming the event was cancelled out, should be less than MaxNumberOfFailureRetries</param>
-        /// <param name="ErrorProcessingMillisecondInterval">Milliseconds to delay between each attempt at reprocessing queued failures</param>
+        /// <param name="statusUpdated">(optional) Callback to fire upon update of the running status</param>
+        /// <param name="statusUpdatedUserState">(optional) Userstate to pass to the statusUpdated callback</param>
+        /// <param name="HttpTimeoutMilliseconds">(optional) Milliseconds to wait before presuming communication failure</param>
+        /// <param name="MaxNumberOfFailureRetries">(optional) Number of times to retry an event dependency tree before stopping</param>
+        /// <param name="MaxNumberOfNotFounds">(optional) Number of times to retry an event that keeps getting a not found error before presuming the event was cancelled out, should be less than MaxNumberOfFailureRetries</param>
+        /// <param name="ErrorProcessingMillisecondInterval">(optional) Milliseconds to delay between each attempt at reprocessing queued failures</param>
         public SyncEngine(ISyncDataObject syncData,
             ISyncSettings syncSettings,
             CLHttpRest httpRestClient,
+            System.Threading.WaitCallback statusUpdated = null,
+            object statusUpdatedUserState = null,
             int HttpTimeoutMilliseconds = 180000,// 180 seconds
             byte MaxNumberOfFailureRetries = 20,
             byte MaxNumberOfNotFounds = 10,
@@ -91,6 +99,15 @@ namespace CloudApiPublic.Sync
 
             #region assign instance fields
             this.syncData = syncData;
+            this.statusUpdated = statusUpdated;
+            if (statusUpdated == null)
+            {
+                this.statusUpdatedUserState = null;
+            }
+            else
+            {
+                this.statusUpdatedUserState = statusUpdatedUserState;
+            }
 
             // Copy sync settings in case third party attempts to change values without restarting sync 
             this.syncSettings = SyncSettingsExtensions.CopySettings(syncSettings);
@@ -275,6 +292,471 @@ namespace CloudApiPublic.Sync
             }
         }
 
+        // locker for current status aggregation thread and whether it is running
+        private readonly GenericHolder<bool> StatusAggregatorRunning = new GenericHolder<bool>();
+        private void StartStatusAggregatorIfNotStarted()
+        {
+            lock (StatusAggregatorRunning)
+            {
+                if (!StatusAggregatorRunning.Value)
+                {
+                    StatusAggregatorRunning.Value = true;
+                    ThreadPool.UnsafeQueueUserWorkItem(ProcessStatusAggregation,
+                        new KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>(
+                            new KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>(
+                                new KeyValuePair<GenericHolder<bool>,KeyValuePair<GenericHolder<CLSyncCurrentStatus>,KeyValuePair<WaitCallback,object>>>(
+                                    StatusAggregatorRunning,
+                                    new KeyValuePair<GenericHolder<CLSyncCurrentStatus>,KeyValuePair<WaitCallback,object>>(
+                                        StatusHolder,
+                                        new KeyValuePair<WaitCallback,object>(
+                                            statusUpdated,
+                                            statusUpdatedUserState))),
+                                new KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>(
+                                    threadStateKillTime,
+                                    threadStateKillTimer)),
+                            new KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>(
+                                ThreadsToStatus,
+                                StatusChangesQueue)));
+                }
+            }
+        }
+        private static void ProcessStatusAggregation(object state)
+        {
+            try
+            {
+                Nullable<KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>> castState =
+                    state as Nullable<KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>>;
+
+                if (castState == null)
+                {
+                    throw new Exception("Unable to cast state as correct type");
+                }
+                else
+                {
+                    KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>> nonNullState =
+                        (KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>)castState;
+
+                    Func<GenericHolder<bool>, Queue<KeyValuePair<Guid, ThreadStatus>>, bool> continueProcessing = (threadRunning, statusQueue) =>
+                        {
+                            lock (statusQueue)
+                            {
+                                if (statusQueue.Count > 0)
+                                {
+                                    return true;
+                                }
+
+                                lock (threadRunning)
+                                {
+                                    threadRunning.Value = false;
+                                    return false;
+                                }
+                            }
+                        };
+
+                    do
+                    {
+                        Nullable<KeyValuePair<Guid, ThreadStatus>> currentDequeued;
+                        lock (nonNullState.Value.Value)
+                        {
+                            currentDequeued = nonNullState.Value.Value.Dequeue();
+                        }
+
+                        Func<Queue<KeyValuePair<Guid, ThreadStatus>>, Nullable<KeyValuePair<Guid, ThreadStatus>>> moreToDequeue = statusQueue =>
+                            {
+                                lock (statusQueue)
+                                {
+                                    if (statusQueue.Count > 0)
+                                    {
+                                        return statusQueue.Dequeue();
+                                    }
+                                    else
+                                    {
+                                        return null;
+                                    }
+                                }
+                            };
+
+                        // we are sure there is an item left in the queue since we just dequeued one to start, so no need to apply while condition till after
+                        do
+                        {
+                            KeyValuePair<Guid, ThreadStatus> nonNullDequeued = (KeyValuePair<Guid, ThreadStatus>)currentDequeued;
+
+                            if (nonNullDequeued.Value.LastUpdateTime != null // the thread state for the sync communication thread will always have a last update time
+                                || nonNullDequeued.Value.TotalByteSize != null) // the thread state for a file upload or a file download will always have a total byte size
+                            // the combination of conditions should cover all valid thread states (and not cover a blank ThreadStatus which is used just to trigger a timeout check)
+                            {
+                                nonNullState.Value.Key[nonNullDequeued.Key] = nonNullDequeued.Value;
+                            }
+                        }
+                        while ((currentDequeued = moreToDequeue(nonNullState.Value.Value)) != null);
+
+                        CLSyncCurrentState outputState = CLSyncCurrentState.Idle;
+                        List<CLSyncTransferringFile> outputTransferring = null;
+
+                        Nullable<DateTime> earliestToKill = null;
+                        DateTime killTime = DateTime.UtcNow.Subtract(ThreadStatusTimeoutSpan);
+                        List<Guid> removedStatusKeys = null;
+                        foreach (Guid currentStatusKey in nonNullState.Value.Key.Keys.ToArray()) // collection modified exception
+                        {
+                            ThreadStatus currentStatus = nonNullState.Value.Key[currentStatusKey];
+
+                            if (currentStatus.LastUpdateTime == null
+                                || killTime.CompareTo((DateTime)currentStatus.LastUpdateTime) <= 0)
+                            {
+                                // condition for communicating changes thread and for active upload/download
+                                if (currentStatus.LastUpdateTime != null)
+                                {
+                                    // condition for completed upload/download
+                                    if (currentStatus.ByteProgress != null
+                                        && ((long)currentStatus.ByteProgress) == ((long)currentStatus.TotalByteSize))
+                                    {
+                                        if (removedStatusKeys == null)
+                                        {
+                                            removedStatusKeys = new List<Guid>();
+                                        }
+
+                                        removedStatusKeys.Add(currentStatusKey);
+                                    }
+                                    // condition for communicating changes thread of incomplete/active upload/download
+                                    // and also only if the last update time is earlier than the earliest found so far
+                                    else if (earliestToKill == null
+                                        || ((DateTime)earliestToKill).CompareTo((DateTime)currentStatus.LastUpdateTime) > 0)
+                                    {
+                                        earliestToKill = (DateTime)currentStatus.LastUpdateTime;
+                                    }
+                                }
+
+                                // condition for communicating changes thread
+                                if (currentStatus.TotalByteSize == null)
+                                {
+                                    outputState |= CLSyncCurrentState.CommunicatingChanges;
+                                }
+                                // condition for active or queued upload/download
+                                else
+                                {
+                                    // condition for active upload
+                                    if (((SyncDirection)currentStatus.Direction) == SyncDirection.To)
+                                    {
+                                        outputState |= CLSyncCurrentState.UploadingFiles;
+                                    }
+                                    // condition for active download
+                                    else
+                                    {
+                                        outputState |= CLSyncCurrentState.DownloadingFiles;
+                                    }
+
+                                    if (outputTransferring == null)
+                                    {
+                                        outputTransferring = new List<CLSyncTransferringFile>();
+                                    }
+
+                                    outputTransferring.Add(new CLSyncTransferringFile(
+                                        (long)currentStatus.EventID,
+                                        (SyncDirection)currentStatus.Direction,
+                                        currentStatus.RelativePath,
+                                        currentStatus.ByteProgress ?? 0, // null-coalesce for queued upload/download
+                                        (long)currentStatus.TotalByteSize));
+                                }
+                            }
+                            else
+                            {
+                                if (removedStatusKeys == null)
+                                {
+                                    removedStatusKeys = new List<Guid>();
+                                }
+
+                                removedStatusKeys.Add(currentStatusKey);
+                            }
+
+                            if (removedStatusKeys != null)
+                            {
+                                foreach (Guid removeStatusKey in removedStatusKeys)
+                                {
+                                    nonNullState.Value.Key.Remove(removeStatusKey);
+                                }
+                            }
+
+                            if (earliestToKill != null)
+                            {
+                                DateTime newKillTime = ((DateTime)earliestToKill).Add(ThreadStatusTimeoutSpan);
+
+                                lock (nonNullState.Key.Value.Value)
+                                {
+                                    if (nonNullState.Key.Value.Value.Value == null
+                                        || nonNullState.Key.Value.Key.Value.CompareTo(newKillTime) <= 0)
+                                    {
+                                        nonNullState.Key.Value.Key.Value = newKillTime;
+
+                                        if (nonNullState.Key.Value.Value.Value != null)
+                                        {
+                                            try
+                                            {
+                                                nonNullState.Key.Value.Value.Value.Dispose();
+                                            }
+                                            catch
+                                            {
+                                            }
+                                        }
+
+                                        TimeSpan startTime;
+                                        DateTime timeForTimer = DateTime.UtcNow;
+                                        if (timeForTimer.CompareTo(newKillTime) >= 0)
+                                        {
+                                            startTime = TimeSpan.Zero;
+                                        }
+                                        else
+                                        {
+                                            startTime = newKillTime.Subtract(timeForTimer);
+                                        }
+
+                                        nonNullState.Key.Value.Value.Value = new Timer(ProcessKillTimer,
+                                            state,
+                                            startTime,
+                                            NoPeriodTimeSpan);
+                                    }
+                                }
+                            }
+                        }
+
+                        lock (nonNullState.Key.Key.Value.Key)
+                        {
+                            nonNullState.Key.Key.Value.Key.Value = new CLSyncCurrentStatus(outputState,
+                                outputTransferring);
+
+                            if (nonNullState.Key.Key.Value.Value.Key != null)
+                            {
+                                try
+                                {
+                                    nonNullState.Key.Key.Value.Value.Key(nonNullState.Key.Key.Value.Value.Value);
+                                }
+                                catch
+                                {
+                                }
+                            }
+                        }
+                    }
+                    while (continueProcessing(nonNullState.Key.Key.Key, nonNullState.Value.Value));
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("An error occurred in ProcessStatusAggregation: " + ex.Message);
+            }
+        }
+        private static void ProcessKillTimer(object state)
+        {
+            try
+            {
+                Nullable<KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>> castState =
+                    state as Nullable<KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>>;
+
+                if (castState == null)
+                {
+                    throw new Exception("Unable to cast state as correct type");
+                }
+                else
+                {
+                    KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>> nonNullState =
+                        (KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>)castState;
+
+                    lock (nonNullState.Value.Value)
+                    {
+                        lock (nonNullState.Key.Key.Key)
+                        {
+                            if (!nonNullState.Key.Key.Key.Value)
+                            {
+                                if (nonNullState.Value.Value.Count == 0)
+                                {
+                                    nonNullState.Value.Value.Enqueue(new KeyValuePair<Guid, ThreadStatus>(Guid.Empty, new ThreadStatus()));
+                                }
+
+                                nonNullState.Key.Key.Key.Value = true;
+                                ProcessStatusAggregation(state);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("An error occurred in ProcessKillTimer: " + ex.Message);
+            }
+        }
+        private readonly Dictionary<Guid, ThreadStatus> ThreadsToStatus = new Dictionary<Guid, ThreadStatus>();
+        private static readonly TimeSpan ThreadStatusTimeoutSpan = TimeSpan.FromMinutes(5d);
+        private readonly GenericHolder<DateTime> threadStateKillTime = new GenericHolder<DateTime>(DateTime.MinValue);
+        private readonly GenericHolder<Timer> threadStateKillTimer = new GenericHolder<Timer>(null);
+        private static readonly TimeSpan NoPeriodTimeSpan = TimeSpan.FromMilliseconds(-1d);
+        private void SyncStillRunning(Guid threadId)
+        {
+            try
+            {
+                lock (StatusChangesQueue)
+                {
+                    StatusChangesQueue.Enqueue(new KeyValuePair<Guid, ThreadStatus>(
+                        threadId,
+                        new ThreadStatus()
+                        {
+                            LastUpdateTime = DateTime.UtcNow
+                        }));
+                }
+
+                StartStatusAggregatorIfNotStarted();
+            }
+            catch
+            {
+            }
+        }
+        private void SyncStoppedRunning(Guid threadId)
+        {
+            try
+            {
+                lock (StatusChangesQueue)
+                {
+                    StatusChangesQueue.Enqueue(new KeyValuePair<Guid, ThreadStatus>(
+                        threadId,
+                        new ThreadStatus()
+                        {
+                            LastUpdateTime = DateTime.MinValue
+                        }));
+                }
+
+                StartStatusAggregatorIfNotStarted();
+            }
+            catch
+            {
+            }
+        }
+        private void FileTransferQueued(Guid threadId, long eventId, SyncDirection direction, string relativePath, long totalByteSize)
+        {
+            try
+            {
+                lock (StatusChangesQueue)
+                {
+                    StatusChangesQueue.Enqueue(new KeyValuePair<Guid, ThreadStatus>(
+                        threadId,
+                        new ThreadStatus()
+                        {
+                            Direction = direction,
+                            EventID = eventId,
+                            RelativePath = relativePath,
+                            TotalByteSize = totalByteSize
+                        }));
+                }
+
+                StartStatusAggregatorIfNotStarted();
+            }
+            catch
+            {
+            }
+        }
+        private void FileTransferStatusUpdate(Guid threadId, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize)
+        {
+            try
+            {
+                lock (StatusChangesQueue)
+                {
+                    StatusChangesQueue.Enqueue(new KeyValuePair<Guid, ThreadStatus>(
+                        threadId,
+                        new ThreadStatus()
+                        {
+                            ByteProgress = byteProgress,
+                            Direction = direction,
+                            EventID = eventId,
+                            LastUpdateTime = DateTime.UtcNow,
+                            RelativePath = relativePath,
+                            TotalByteSize = totalByteSize
+                        }));
+                }
+
+                StartStatusAggregatorIfNotStarted();
+            }
+            catch
+            {
+            }
+        }
+        private readonly Queue<KeyValuePair<Guid, ThreadStatus>> StatusChangesQueue = new Queue<KeyValuePair<Guid, ThreadStatus>>();
+        private sealed class ThreadStatus
+        {
+            public Nullable<DateTime> LastUpdateTime
+            {
+                get
+                {
+                    return _lastUpdateTime;
+                }
+                set
+                {
+                    _lastUpdateTime = value;
+                }
+            }
+            private Nullable<DateTime> _lastUpdateTime = null; // Set for sync running thread, but only set for file upload/file download if Task started
+
+            public Nullable<long> EventID
+            {
+                get
+                {
+                    return _eventId;
+                }
+                set
+                {
+                    _eventId = value;
+                }
+            }
+            private Nullable<long> _eventId = null; // Null for sync running thread, but set for file upload/file download
+
+            public Nullable<SyncDirection> Direction
+            {
+                get
+                {
+                    return _direction;
+                }
+                set
+                {
+                    _direction = value;
+                }
+            }
+            private Nullable<SyncDirection> _direction = null; // Null for sync running thread, but set for file upload/file download
+
+            public string RelativePath
+            {
+                get
+                {
+                    return _relativePath;
+                }
+                set
+                {
+                    _relativePath = value;
+                }
+            }
+            private string _relativePath = null; // Null for sync running thread, but set for file upload/file download
+
+            public Nullable<long> ByteProgress
+            {
+                get
+                {
+                    return _byteProgress;
+                }
+                set
+                {
+                    _byteProgress = value;
+                }
+            }
+            private Nullable<long> _byteProgress; // Null for sync running thread, but only set for file upload/file download if the first buffer has cleared
+
+            public Nullable<long> TotalByteSize
+            {
+                get
+                {
+                    return _totalByteSize;
+                }
+                set
+                {
+                    _totalByteSize = value;
+                }
+            }
+            private Nullable<long> _totalByteSize = null; // Null for sync running thread, but set for file upload/file download
+        }
+
         // locker to prevent multiple simultaneous processing of the same SyncEngine
         private readonly object RunLocker = new object();
         /// <summary>
@@ -288,6 +770,8 @@ namespace CloudApiPublic.Sync
             // lock to prevent multiple simultaneous syncing on the current SyncEngine
             lock (RunLocker)
             {
+                Guid runThreadId = Guid.NewGuid();
+
                 // declare error which will be aggregated with exceptions and returned
                 CLError toReturn = null;
                 // declare a string which provides better line-range information for the last state when an error is logged
@@ -302,6 +786,8 @@ namespace CloudApiPublic.Sync
                 // try/catch for primary sync logic, exception is aggregated to return
                 try
                 {
+                    SyncStillRunning(runThreadId);
+
                     // status message
                     MessageEvents.FireNewEventMessage(respondingToPushNotification,
                         "Started checking for sync changes to process");
@@ -394,6 +880,8 @@ namespace CloudApiPublic.Sync
                     }
 
                     syncStatus = "Sync Run temp download files cleaned";
+
+                    SyncStillRunning(runThreadId);
 
                     // check for Sync shutdown
                     Monitor.Enter(FullShutdownToken);
@@ -509,6 +997,8 @@ namespace CloudApiPublic.Sync
                         // update last status
                         syncStatus = "Sync Run grabbed processed changes (with dependencies and final metadata)";
 
+                        SyncStillRunning(runThreadId);
+
                         // check for Sync shutdown
                         Monitor.Enter(FullShutdownToken);
                         try
@@ -607,6 +1097,8 @@ namespace CloudApiPublic.Sync
                             // loop through all changes to process
                             foreach (PossiblyStreamableFileChange topLevelChange in outputChanges)
                             {
+                                SyncStillRunning(runThreadId);
+
                                 // check for Sync shutdown
                                 Monitor.Enter(FullShutdownToken);
                                 try
@@ -762,6 +1254,12 @@ namespace CloudApiPublic.Sync
                                                 // Add the current FileChange's UpDown handler to the local UpDownEvent so the upload or download can be checked for revision comparison with synchronous tasks
                                                 UpDownEvent += topLevelChange.FileChange.FileChange_UpDown;
                                             }
+
+                                            FileTransferQueued(nonNullTask.ThreadId,
+                                                topLevelChange.FileChange.EventId,
+                                                nonNullTask.Direction,
+                                                topLevelChange.FileChange.NewPath.GetRelativePath(syncSettings.SyncRoot, false),
+                                                (long)topLevelChange.FileChange.Metadata.HashableProperties.Size);
 
                                             // try/catch to start the async task, or removing the UpDownEvent handler and rethrowing on exception
                                             try
@@ -1004,6 +1502,8 @@ namespace CloudApiPublic.Sync
                             // update latest status
                             syncStatus = "Sync Run server values merged into database";
 
+                            SyncStillRunning(runThreadId);
+
                             // check for sync shutdown
                             Monitor.Enter(FullShutdownToken);
                             try
@@ -1176,6 +1676,8 @@ namespace CloudApiPublic.Sync
                             // Update latest status
                             syncStatus = "Sync Run post-communication dependencies calculated";
 
+                            SyncStillRunning(runThreadId);
+
                             // Check for sync shutdown
                             Monitor.Enter(FullShutdownToken);
                             try
@@ -1269,6 +1771,8 @@ namespace CloudApiPublic.Sync
                             // update latest status
                             syncStatus = "Sync Run synchronous post-communication operations complete";
 
+                            SyncStillRunning(runThreadId);
+
                             // check for sync shutdown
                             Monitor.Enter(FullShutdownToken);
                             try
@@ -1305,6 +1809,8 @@ namespace CloudApiPublic.Sync
 
                             // update latest status
                             syncStatus = "Sync Run new sync point persisted";
+
+                            SyncStillRunning(runThreadId);
 
                             // check for sync shutdown
                             Monitor.Enter(FullShutdownToken);
@@ -1383,6 +1889,12 @@ namespace CloudApiPublic.Sync
 
                                     // attach the current FileChange's UpDownEvent handler to the local UpDownEvent
                                     AddFileChangeToUpDownEvent(asyncTask.FileChange.FileChange);
+
+                                    FileTransferQueued(asyncTask.Task.ThreadId,
+                                        asyncTask.FileChange.FileChange.EventId,
+                                        asyncTask.Task.Direction,
+                                        asyncTask.FileChange.FileChange.NewPath.GetRelativePath(syncSettings.SyncRoot, false),
+                                        (long)asyncTask.FileChange.FileChange.Metadata.HashableProperties.Size);
 
                                     // try/catch to start the async task, or removing the UpDownEvent handler and rethrowing on exception
                                     try
@@ -1630,10 +2142,62 @@ namespace CloudApiPublic.Sync
                     }
                 }
 
+                SyncStoppedRunning(runThreadId);
+
                 // return error aggregate
                 return toReturn;
             }
         }
+
+        /// <summary>
+        /// Get the current status of this SyncEngine
+        /// </summary>
+        /// <param name="status">(output) Status of this SyncEngine</param>
+        /// <returns>Returns any error that occurred retrieving the status (usually shutdown), if any</returns>
+        public CLError GetCurrentStatus(out CLSyncCurrentStatus status)
+        {
+            try
+            {
+                // check for shutdown
+                bool isShutdown = false;
+                Monitor.Enter(FullShutdownToken);
+                try
+                {
+                    isShutdown = FullShutdownToken.IsCancellationRequested;
+                }
+                catch
+                {
+                }
+                finally
+                {
+                    Monitor.Exit(FullShutdownToken);
+                }
+
+                if (isShutdown)
+                {
+                    throw new ObjectDisposedException("this", "Sync already shutdown");
+                }
+
+                lock (StatusHolder)
+                {
+                    if (StatusHolder.Value == null)
+                    {
+                        status = new CLSyncCurrentStatus(CLSyncCurrentState.Idle, null);
+                    }
+                    else
+                    {
+                        status = StatusHolder.Value;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                status = Helpers.DefaultForType<CLSyncCurrentStatus>();
+                return ex;
+            }
+            return null;
+        }
+        private readonly GenericHolder<CLSyncCurrentStatus> StatusHolder = new GenericHolder<CLSyncCurrentStatus>(null);
 
         /// <summary>
         /// Call this to terminate all sync threads including active uploads and downloads;
@@ -1656,6 +2220,21 @@ namespace CloudApiPublic.Sync
             finally
             {
                 Monitor.Exit(FullShutdownToken);
+            }
+
+            lock (threadStateKillTimer)
+            {
+                if (threadStateKillTimer.Value != null)
+                {
+                    try
+                    {
+                        threadStateKillTimer.Value.Dispose();
+                        threadStateKillTimer.Value = null;
+                    }
+                    catch
+                    {
+                    }
+                }
             }
         }
 
@@ -1876,6 +2455,7 @@ namespace CloudApiPublic.Sync
                         {
                             // not immediately successful
                             immediateSuccessEventId = null;
+                            Guid asyncTaskThreadId = Guid.NewGuid();
                             // create task for download
                             asyncTask = new AsyncUploadDownloadTask(SyncDirection.From, // From direction is for downloads
                                 new Task<EventIdAndCompletionProcessor>(DownloadForTask, // Callback which processes the actual task code when started
@@ -1883,6 +2463,8 @@ namespace CloudApiPublic.Sync
                                     {
                                         // Properties function as named:
 
+                                        ThreadId = asyncTaskThreadId,
+                                        StatusUpdate = FileTransferStatusUpdate,
                                         FailureTimer = FailureTimer,
                                         FileToDownload = toComplete.FileChange,
                                         MD5 = toCompleteBytes,
@@ -1897,7 +2479,8 @@ namespace CloudApiPublic.Sync
                                         FailedChangesQueue = FailedChangesQueue,
                                         RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent,
                                         RestClient = httpRestClient
-                                    }));
+                                    }),
+                                    asyncTaskThreadId);
                         }
                     }
                     // else if the FileChange does not represent a file that needs to be downloaded, then perform the change using the event source (which could perform the action to disk)
@@ -1936,6 +2519,7 @@ namespace CloudApiPublic.Sync
                 {
                     // event needs to be completed asynchronously, no synchronous success to record
                     immediateSuccessEventId = null;
+                    Guid asyncTaskThreadId = Guid.NewGuid();
                     // output new task for file upload
                     asyncTask = new AsyncUploadDownloadTask(SyncDirection.To, // To is direction for uploads
                         new Task<EventIdAndCompletionProcessor>(UploadForTask, // Callback containing code to run for task
@@ -1943,6 +2527,8 @@ namespace CloudApiPublic.Sync
                             {
                                 // Properties are purposed as named
 
+                                ThreadId = asyncTaskThreadId,
+                                StatusUpdate = FileTransferStatusUpdate,
                                 FailureTimer = FailureTimer,
                                 FileToUpload = toComplete.FileChange,
                                 SyncData = syncData,
@@ -1955,7 +2541,8 @@ namespace CloudApiPublic.Sync
                                 FailedChangesQueue = FailedChangesQueue,
                                 RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent,
                                 RestClient = httpRestClient
-                            }));
+                            }),
+                        asyncTaskThreadId);
                 }
                 //  else if FileChange was not a Sync From change nor a Sync To change, throw exception for unknown direction
                 else
@@ -2106,6 +2693,11 @@ namespace CloudApiPublic.Sync
                         throw new NullReferenceException("DownloadTaskState must contain RestClient");
                     }
 
+                    if (castState.StatusUpdate == null)
+                    {
+                        throw new NullReferenceException("DownloadTaskState must contain StatusUpdate");
+                    }
+
                     // declare the status for performing a rest communication
                     CLHttpRestStatus uploadStatus;
                     // upload the file using the REST client, storing any error that occurs
@@ -2113,7 +2705,9 @@ namespace CloudApiPublic.Sync
                         castState.FileToUpload, // upload change
                         (int)castState.HttpTimeoutMilliseconds, // milliseconds before communication timeout (does not apply to the amount of time it takes to actually upload the file)
                         out uploadStatus, // output the status of communication
-                        castState.ShutdownToken); // pass in the shutdown token for the optional parameter so it can be cancelled
+                        castState.ShutdownToken, // pass in the shutdown token for the optional parameter so it can be cancelled
+                        castState.StatusUpdate,
+                        castState.ThreadId);
 
                     // if an error occurred while uploading the file, rethrow the error
                     if (uploadError != null)
@@ -2217,6 +2811,23 @@ namespace CloudApiPublic.Sync
             }
             finally
             {
+                if (castState != null
+                    && castState.FileToUpload != null
+                    && castState.FileToUpload.NewPath != null
+                    && castState.SyncSettings != null
+                    && castState.FileToUpload.Metadata != null
+                    && castState.StatusUpdate != null
+                    && castState.FileToUpload.Metadata.HashableProperties.Size != null)
+                {
+                    castState.StatusUpdate(
+                        castState.ThreadId, // threadId
+                        castState.FileToUpload.EventId, // eventId
+                        SyncDirection.To, // direction
+                        castState.FileToUpload.NewPath.GetRelativePath(castState.SyncSettings.SyncRoot, false), // relativePath
+                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
+                        (long)castState.FileToUpload.Metadata.HashableProperties.Size); // totalByteSize
+                }
+
                 // if state was succesfully cast and it contains both the event for the file upload and a callback to remove event handlers on the event,
                 // then remove event handlers on the event
                 if (castState != null
@@ -2446,6 +3057,11 @@ namespace CloudApiPublic.Sync
                     throw new NullReferenceException("DownloadTaskState must contain RestClient");
                 }
 
+                if (castState.StatusUpdate == null)
+                {
+                    throw new NullReferenceException("DownloadTaskState must contain StatusUpdate");
+                }
+
                 // check for sync shutdown
                 Monitor.Enter(castState.ShutdownToken);
                 try
@@ -2588,7 +3204,9 @@ namespace CloudApiPublic.Sync
                         MD5 = castState.MD5 // pass-through the MD5 hash of the file
                     },
                     castState.ShutdownToken, // the cancellation token which can cause the download to stop in the middle
-                    castState.TempDownloadFolderPath); // the full path to the folder which will contain all the temporary-downloaded files
+                    castState.TempDownloadFolderPath, // the full path to the folder which will contain all the temporary-downloaded files
+                    castState.StatusUpdate,
+                    castState.ThreadId);
 
                 // if there was an error while downloading, rethrow the error
                 if (downloadError != null)
@@ -2729,6 +3347,23 @@ namespace CloudApiPublic.Sync
             }
             finally
             {
+                if (castState != null
+                    && castState.FileToDownload != null
+                    && castState.FileToDownload.NewPath != null
+                    && castState.SyncSettings != null
+                    && castState.FileToDownload.Metadata != null
+                    && castState.StatusUpdate != null
+                    && castState.FileToDownload.Metadata.HashableProperties.Size != null)
+                {
+                    castState.StatusUpdate(
+                        castState.ThreadId, // threadId
+                        castState.FileToDownload.EventId, // eventId
+                        SyncDirection.To, // direction
+                        castState.FileToDownload.NewPath.GetRelativePath(castState.SyncSettings.SyncRoot, false), // relativePath
+                        (long)castState.FileToDownload.Metadata.HashableProperties.Size, // byteProgress
+                        (long)castState.FileToDownload.Metadata.HashableProperties.Size); // totalByteSize
+                }
+
                 // if the state was castable and contained the event and also contained the callback to remove eventhandlers, then remove eventhandlers from the event
                 if (castState != null
                     && castState.FileToDownload != null
@@ -3028,6 +3663,8 @@ namespace CloudApiPublic.Sync
         /// </summary>
         private sealed class DownloadTaskState
         {
+            public Guid ThreadId { get; set; }
+            public Action<Guid, long, SyncDirection, string, long, long> StatusUpdate { get; set; }
             public FileChange FileToDownload { get; set; }
             public byte[] MD5 { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
@@ -3048,6 +3685,8 @@ namespace CloudApiPublic.Sync
         /// </summary>
         private sealed class UploadTaskState
         {
+            public Guid ThreadId { get; set; }
+            public Action<Guid, long, SyncDirection, string, long, long> StatusUpdate { get; set; }
             public FileChange FileToUpload { get; set; }
             public Stream UploadStream { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }

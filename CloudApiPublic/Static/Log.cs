@@ -30,7 +30,8 @@ namespace CloudApiPublic.Static
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.cloud.com/TraceLog.xsd")]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd", IsNullable = false)]
-    internal partial class Log
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public partial class Log
     {
 
         private Copyright[] copyrightField;
@@ -72,7 +73,8 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class Copyright
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public partial class Copyright
     {
 
         private string fileNameField;
@@ -126,6 +128,7 @@ namespace CloudApiPublic.Static
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.cloud.com/TraceLog.xsd")]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public enum CopyrightCopyright
     {
 
@@ -141,7 +144,8 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class TraceFileChange
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public partial class TraceFileChange
     {
 
         private string serverIdField;
@@ -439,6 +443,7 @@ namespace CloudApiPublic.Static
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.cloud.com/TraceLog.xsd")]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public enum TraceFileChangeType
     {
 
@@ -463,7 +468,8 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class Entry
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public partial class Entry
     {
 
         private int typeField;
@@ -564,7 +570,8 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class FileChangeFlowEntry : Entry
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public partial class FileChangeFlowEntry : Entry
     {
 
         private FileChangeFlowEntryPositionInFlow positionInFlowField;
@@ -603,6 +610,7 @@ namespace CloudApiPublic.Static
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.cloud.com/TraceLog.xsd")]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public enum FileChangeFlowEntryPositionInFlow
     {
 
@@ -679,7 +687,8 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class CommunicationEntry : Entry
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public partial class CommunicationEntry : Entry
     {
 
         private CommunicationEntryDirection directionField;
@@ -779,6 +788,7 @@ namespace CloudApiPublic.Static
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
     [System.SerializableAttribute()]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.cloud.com/TraceLog.xsd")]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public enum CommunicationEntryDirection
     {
 
@@ -795,7 +805,8 @@ namespace CloudApiPublic.Static
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.cloud.com/TraceLog.xsd")]
-    internal partial class CommunicationEntryHeader
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public partial class CommunicationEntryHeader
     {
 
         private string keyField;

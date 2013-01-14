@@ -7,6 +7,8 @@ var searchData=
   ['clnotification',['CLNotification',['../class_cloud_api_public_1_1_push_notification_1_1_c_l_notification.html',1,'CloudApiPublic::PushNotification']]],
   ['clstatusfiletransferupdateparameters',['CLStatusFileTransferUpdateParameters',['../struct_cloud_api_public_1_1_model_1_1_c_l_status_file_transfer_update_parameters.html',1,'CloudApiPublic::Model']]],
   ['clsync',['CLSync',['../class_cloud_api_public_1_1_c_l_sync.html',1,'CloudApiPublic']]],
+  ['clsynccurrentstatus',['CLSyncCurrentStatus',['../class_cloud_api_public_1_1_c_l_sync_current_status.html',1,'CloudApiPublic']]],
+  ['clsynctransferringfile',['CLSyncTransferringFile',['../class_cloud_api_public_1_1_c_l_sync_transferring_file.html',1,'CloudApiPublic']]],
   ['cltrace',['CLTrace',['../class_cloud_api_public_1_1_support_1_1_c_l_trace.html',1,'CloudApiPublic::Support']]],
   ['copyfileresult',['CopyFileResult',['../class_cloud_api_public_1_1_r_e_s_t_1_1_c_l_http_rest_1_1_copy_file_result.html',1,'CloudApiPublic::REST::CLHttpRest']]]
 ];

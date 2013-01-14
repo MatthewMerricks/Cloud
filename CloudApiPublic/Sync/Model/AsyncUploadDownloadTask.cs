@@ -27,7 +27,7 @@ namespace CloudApiPublic.Sync.Model
                 return _direction;
             }
         }
-        private SyncDirection _direction;
+        private readonly SyncDirection _direction;
 
         public Task<EventIdAndCompletionProcessor> Task
         {
@@ -40,7 +40,20 @@ namespace CloudApiPublic.Sync.Model
                 return _task;
             }
         }
-        private Task<EventIdAndCompletionProcessor> _task;
+        private readonly Task<EventIdAndCompletionProcessor> _task;
+
+        public Guid ThreadId
+        {
+            get
+            {
+                if (!_isValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid AsyncUploadDownloadTask");
+                }
+                return _threadId;
+            }
+        }
+        private readonly Guid _threadId;
 
         public bool IsValid
         {
@@ -49,9 +62,9 @@ namespace CloudApiPublic.Sync.Model
                 return _isValid;
             }
         }
-        private bool _isValid;
+        private readonly bool _isValid;
 
-        public AsyncUploadDownloadTask(SyncDirection Direction, Task<EventIdAndCompletionProcessor> Task)
+        public AsyncUploadDownloadTask(SyncDirection Direction, Task<EventIdAndCompletionProcessor> Task, Guid ThreadId)
         {
             if (Task == null)
             {
@@ -60,6 +73,7 @@ namespace CloudApiPublic.Sync.Model
 
             this._direction = Direction;
             this._task = Task;
+            this._threadId = ThreadId;
             this._isValid = true;
         }
     }
