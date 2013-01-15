@@ -623,7 +623,7 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Validate the Device ID.
             DeviceId = DeviceId.Trim();
-            if (String.IsNullOrEmpty(DeviceId) || 
+            if (!String.IsNullOrEmpty(DeviceId) && 
                 Path.GetInvalidPathChars().Any(x => DeviceId.Contains(x)))
             {
                 MessageBox.Show("The Device ID must be specified, and it must be valid as a portion of a folder name.");
@@ -927,7 +927,7 @@ namespace CloudSdkSyncSample.ViewModels
                                 setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings,  // optional to persist the historic upload and download bandwidth to the engine
                                 overrideImportanceFilterNonErrors: EventMessageLevel.All,       // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages
                                 overrideImportanceFilterErrors: EventMessageLevel.All,        // optional to filter the error messages delivered to the EventMessageReceiver ListMessages
-                                overrideDefaultMaxStatusMessages: 1000);        // optional to restrict the number of messages in the EventMessageReceiver ListMessages
+                                overrideDefaultMaxStatusMessages: 500);        // optional to restrict the number of messages in the EventMessageReceiver ListMessages
                     if (errorFromSyncBoxStart != null)
                     {
                         _syncBox = null;

@@ -66,7 +66,7 @@
                          Text="{Binding DeviceId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbUniqueDeviceIdEnabled}"
                          ext:FocusExtension.IsFocused="{Binding IsDeviceIdFocused}"
-                         ToolTip="A unique ID for this device.  Must be unique within this SyncBox ID."/>
+                         ToolTip="(Optional) A unique ID for this device.  If specified, it must be unique within this SyncBox ID."/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="10,20,0,0">
                     <Button x:Name="cmdShowAdvancedOptions" HorizontalAlignment="Left" Width="130" Height="40"
