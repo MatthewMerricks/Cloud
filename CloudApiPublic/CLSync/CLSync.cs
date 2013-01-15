@@ -15,6 +15,7 @@ using CloudApiPublic.Model;
 using CloudApiPublic.Support;
 using CloudApiPublic.SQLIndexer;
 using CloudApiPublic.PushNotification;
+using CloudApiPublic.EventMessageReceiver;
 using CloudApiPublic.Static;
 using CloudApiPublic.Sync;
 using CloudApiPublic.BadgeNET;
@@ -38,12 +39,53 @@ namespace CloudApiPublic
         private System.Threading.WaitCallback statusUpdated = null;
         private object statusUpdatedUserState = null;
         private readonly object _locker = new object();
+        private EventMessageReceiver.EventMessageReceiver.GetHistoricBandwidthSettings _getHistoricBandwidthSettings = null;
+        private EventMessageReceiver.EventMessageReceiver.SetHistoricBandwidthSettings _setHistoricBandwidthSettings = null;
+        private Nullable<EventMessageLevel> _overrideImportanceFilterNonErrors = null;
+        private Nullable<EventMessageLevel> _overrideImportanceFilterErrors = null;
+        private Nullable<int> _overrideDefaultMaxStatusMessages = null;
+        private EventMessageReceiver.EventMessageReceiver _statusViewModel = null;
 
         /// <summary>
         /// Event fired when a serious notification error has occurred.  Push notification is
         /// no longer functional.
         /// </summary>
         public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
+
+        /// <summary>
+        /// Get a ViewModel to make viewing the upload/download and message status easier.  The ViewModel exposes ObservableCollections.
+        /// </summary>
+        public CLError GetSyncStatusViewModel(out EventMessageReceiver.EventMessageReceiver statusViewModel)
+        {
+            // Lazy initialization
+            CLError toReturn = null;
+            if (_statusViewModel == null)
+            {
+                // Create the EventMessageReceiver view model.
+                EventMessageReceiver.EventMessageReceiver receiver;
+                toReturn = EventMessageReceiver.EventMessageReceiver.CreateAndInitialize(
+                        SyncBoxId: _syncSettings.SyncBoxId ?? 0,
+                        DeviceId: _syncSettings.DeviceId,
+                        receiver: out receiver,
+                        getHistoricBandwidthSettings: _getHistoricBandwidthSettings,
+                        setHistoricBandwidthSettings: _setHistoricBandwidthSettings,
+                        OverrideImportanceFilterNonErrors: _overrideImportanceFilterNonErrors,
+                        OverrideImportanceFilterErrors: _overrideImportanceFilterErrors,
+                        OverrideDefaultMaxStatusMessages: _overrideDefaultMaxStatusMessages);
+                if (toReturn != null)
+                {
+                    toReturn.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                    _trace.writeToLog(1, "CLSync: StatusViewModel.Get: ERROR: Exception.  Msg: <{0}>.", toReturn.errorDescription);
+                }
+                else
+                {
+                    _statusViewModel = receiver;
+                }
+            }
+
+            statusViewModel = _statusViewModel;
+            return toReturn;
+        }
 
         /// <summary>
         /// Output the current status of syncing
@@ -223,8 +265,22 @@ namespace CloudApiPublic
         /// <param name="status">The status of the start request.  Check this for errors.</param>
         /// <param name="statusUpdated">An optional callback which is driven when sync status changes.</param>
         /// <param name="statusUpdatedUserState">An optional user state which will be passed back to your statusUpdated callback.</param>
-        /// <returns></returns>
-        public CLError Start(ISyncSettings settings, out CLSyncStartStatus status, System.Threading.WaitCallback statusUpdated = null, object statusUpdatedUserState = null)
+        /// <param name="getHistoricBandwidthSettings">An optional callback to retrieve the historic upload and download bandwidth experienced by this SyncBox.</param>
+        /// <param name="setHistoricBandwidthSettings">An optional callback to set the historic upload and download bandwidth experienced by this SyncBox.</param>
+        /// <param name="OverrideImportanceFilterNonErrors">An optional parameter to indicate whether and how to filter non-error messages.</param>
+        /// <param name="OverrideImportanceFilterErrors">An optional parameter to indicate whether and how to filter error messages.</param>
+        /// <param name="OverrideDefaultMaxStatusMessages">An optional parameter to specify the maximum number of status messages to keep in the ListMessages ObservableCollection of status messages.</param>
+        /// <returns>CLError: An error including exception information, or null.</returns>
+        public CLError Start(
+                    ISyncSettings settings, 
+                    out CLSyncStartStatus status, 
+                    System.Threading.WaitCallback statusUpdated = null, 
+                    object statusUpdatedUserState = null,
+                    CloudApiPublic.EventMessageReceiver.EventMessageReceiver.GetHistoricBandwidthSettings getHistoricBandwidthSettings = null,
+                    CloudApiPublic.EventMessageReceiver.EventMessageReceiver.SetHistoricBandwidthSettings setHistoricBandwidthSettings = null,
+                    Nullable<EventMessageLevel> overrideImportanceFilterNonErrors = null,
+                    Nullable<EventMessageLevel> overrideImportanceFilterErrors = null,
+                    Nullable<int> overrideDefaultMaxStatusMessages = null)
         {
             try
             {
@@ -245,6 +301,18 @@ namespace CloudApiPublic
                     {
                         this.statusUpdatedUserState = statusUpdatedUserState;
                     }
+
+                    _getHistoricBandwidthSettings = getHistoricBandwidthSettings;
+                    _setHistoricBandwidthSettings = setHistoricBandwidthSettings;
+                    _overrideImportanceFilterNonErrors = overrideImportanceFilterNonErrors;
+                    _overrideImportanceFilterErrors = overrideImportanceFilterErrors;
+                    _overrideDefaultMaxStatusMessages = overrideDefaultMaxStatusMessages;
+                }
+
+                // Check the SyncBoxId
+                if (_syncSettings.SyncBoxId == null)
+                {
+                    throw new Exception("The SyncBoxId cannot be null");
                 }
 
                 // Check the TraceLocation vs. LogErrors
@@ -274,12 +342,6 @@ namespace CloudApiPublic
                     return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.GrabFirstException());
                 }
 
-                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncSettings.SyncRoot);
-                if (!rootInfo.Exists)
-                {
-                    rootInfo.Create();
-                }
-
                 // Don't start twice.
                 _trace.writeToLog(1, "CLSync: Start: Entry.");
                 if (_isStarted)
@@ -288,6 +350,13 @@ namespace CloudApiPublic
                     _trace.writeToLog(1, "CLSync: Start: ERROR: {0}.", error.errorDescription);
                     status = CLSyncStartStatus.ErrorAlreadyStarted;
                     return error;
+                }
+
+                // Create the SyncBox directory if it doesn't exist
+                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncSettings.SyncRoot);
+                if (!rootInfo.Exists)
+                {
+                    rootInfo.Create();
                 }
 
                 // Start badging
@@ -422,6 +491,7 @@ namespace CloudApiPublic
                     }
                 }
 
+                // Successful now!
                 status = CLSyncStartStatus.Successful;
             }
             catch (Exception ex)

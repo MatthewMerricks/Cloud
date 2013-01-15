@@ -29,15 +29,19 @@ namespace CloudApiPublic.Support
         private static string _traceCategory = null;
         private static string _fileExtensionWithoutPeriod = null;
 
-        // This is a copy of the Settings.TraceLocation setting.
+        /// <summary>
+        /// The full path of the folder where trace files will be placed.
+        /// </summary>
         public string TraceLocation
         {
             get { return _traceLocation; }
             set { _traceLocation = value; }
         }
         private static string _traceLocation;
-        
-        // This is a copy of the Settings.LogErrors setting.
+
+        /// <summary>
+        /// Specifies whether a separate file with only the traced errors will be created.
+        /// </summary>
         public bool LogErrors
         {
             get { return _logErrors; }

@@ -210,9 +210,13 @@ namespace CloudApiPublic.EventMessageReceiver
         // define the time at which the growl will have completed faded out when it will no longer be visible, defaulting to none
         private Nullable<DateTime> lastFadeOutCompletion = null;
 
+        // Identifies this EventMessageReceiver in the MessageEvents filter
+        private readonly long SyncBoxId;
+        private readonly string DeviceId;
+
         // Delegates
-        private GetHistoricBandwidthSettings _getHistoricBandwidthSettingsDelegate = null;
-        private SetHistoricBandwidthSettings _setHistoricBandwidthSettingsDelegate = null;
+        private readonly GetHistoricBandwidthSettings _getHistoricBandwidthSettingsDelegate;
+        private readonly SetHistoricBandwidthSettings _setHistoricBandwidthSettingsDelegate;
 
         #region detecting when mouse is over the growl
         // define a holder for whether the growl is watching for the mouse cursor to go outside the growl, defaulting to not watching (false)
@@ -226,17 +230,69 @@ namespace CloudApiPublic.EventMessageReceiver
 
         #endregion
  
-        // Constructor
-        public EventMessageReceiver(
-            GetHistoricBandwidthSettings getHistoricBandwidthSettings,
-            SetHistoricBandwidthSettings setHistoricBandwidthSettings,
+        /// <summary>
+        /// Create a new EventMessageReceiver ViewModel.  Optionally use this ViewModel with your sync status controls.
+        /// It exposes three ObservableCollections (ListFilesDownloading, ListFilesUploading and ListMessages).
+        /// </summary>
+        /// <param name="SyncBoxId">The ID of the related CLSyncBox.</param>
+        /// <param name="DeviceId">The ID of the related device.</param>
+        /// <param name="receiver">(output) The created EventMessageReceiver, or null.</param>
+        /// <param name="getHistoricBandwidthSettings">(optional) Your callback method to retrieve the historic bandwidth for upload and download from persistent storage.</param>
+        /// <param name="setHistoricBandwidthSettings">(optional) Your callback method to persist the historic bandwidth for upload and download.</param>
+        /// <param name="OverrideImportanceFilterNonErrors">(optional) A parameter to filter the number of non-error messages you will receive.</param>
+        /// <param name="OverrideImportanceFilterErrors">(optional) A parameter to filter the number of error messages you will receive.</param>
+        /// <param name="OverrideDefaultMaxStatusMessages">(optional) The maximum number of messages that will be maintained in ListMessages.</param>
+        /// <returns>CLError: Any error that occurs, with exception information, or null.</returns>
+        public static CLError CreateAndInitialize(
+            long SyncBoxId,
+            string DeviceId,
+            out EventMessageReceiver receiver,
+            GetHistoricBandwidthSettings getHistoricBandwidthSettings = null,
+            SetHistoricBandwidthSettings setHistoricBandwidthSettings = null,
             Nullable<EventMessageLevel> OverrideImportanceFilterNonErrors = null,
             Nullable<EventMessageLevel> OverrideImportanceFilterErrors = null,
             Nullable<int> OverrideDefaultMaxStatusMessages = null)
         {
+            try
+            {
+                receiver = new EventMessageReceiver(SyncBoxId,
+                    DeviceId,
+                    getHistoricBandwidthSettings,
+                    setHistoricBandwidthSettings,
+                    OverrideImportanceFilterNonErrors,
+                    OverrideImportanceFilterErrors,
+                    OverrideDefaultMaxStatusMessages);
+            }
+            catch (Exception ex)
+            {
+                receiver = Helpers.DefaultForType<EventMessageReceiver>();
+                return ex;
+            }
+            return null;
+        }
+        private EventMessageReceiver(
+            long SyncBoxId,
+            string DeviceId,
+            GetHistoricBandwidthSettings getHistoricBandwidthSettings,
+            SetHistoricBandwidthSettings setHistoricBandwidthSettings,
+            Nullable<EventMessageLevel> OverrideImportanceFilterNonErrors,
+            Nullable<EventMessageLevel> OverrideImportanceFilterErrors,
+            Nullable<int> OverrideDefaultMaxStatusMessages)
+        {
+            CLError subscriptionError = MessageEvents.SubscribeMessageReceiver(SyncBoxId,
+                DeviceId,
+                this);
+            if (subscriptionError != null)
+            {
+                throw new AggregateException("Error subscribing this receiver to MessageEvents", subscriptionError.GrabExceptions());
+            }
+
             // Save the parameters to private fields.
             _getHistoricBandwidthSettingsDelegate = getHistoricBandwidthSettings;
             _setHistoricBandwidthSettingsDelegate = setHistoricBandwidthSettings;
+
+            this.SyncBoxId = SyncBoxId;
+            this.DeviceId = DeviceId;
 
             // changes made upon construction for other partial class portions should be handled via a ConstructedHolder (see the next custom construction setter directly below)
 
@@ -249,14 +305,6 @@ namespace CloudApiPublic.EventMessageReceiver
                     new KeyValuePair<Nullable<EventMessageLevel>, Nullable<int>>(
                         OverrideImportanceFilterErrors,
                         OverrideDefaultMaxStatusMessages)));
-
-            // attach handlers for the relevant global messages which may need to be displayed in a growl
-            
-            MessageEvents.NewEventMessage += MessageEvents_NewEventMessage; // informational or error message occurs
-            MessageEvents.DownloadingCountSet += SetDownloadingCount; // when the number of currently downloading files changes
-            MessageEvents.UploadingCountSet += SetUploadingCount; // when the number of currently uploading files changes
-            MessageEvents.DownloadedCountIncremented += IncrementDownloadedCount; // when a file completes downloading
-            MessageEvents.UploadedCountIncremented += IncrementUploadedCount; // when a file completes uploading
         }
 
         public EventMessageReceiver()
@@ -266,7 +314,7 @@ namespace CloudApiPublic.EventMessageReceiver
  
         #region MessageEvents callbacks
         // informational or error message occurs, displayed only if high priority
-        private void MessageEvents_NewEventMessage(object sender, EventMessageArgs e)
+        internal void MessageEvents_NewEventMessage(object sender, EventMessageArgs e)
         {
             // if the message represents an error, then check if the error is not minor in order to display
             if (e.IsError)
@@ -301,7 +349,7 @@ namespace CloudApiPublic.EventMessageReceiver
         }
 
         // when the number of currently downloading files changes, create or update a message for the downloading count
-        private void SetDownloadingCount(object sender, SetCountArgs e)
+        internal void SetDownloadingCount(object sender, SetCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -335,7 +383,7 @@ namespace CloudApiPublic.EventMessageReceiver
         }
 
         // when a file completes downloading, create or update a message for the incrementing completed downloads
-        private void IncrementDownloadedCount(object sender, IncrementCountArgs e)
+        internal void IncrementDownloadedCount(object sender, IncrementCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -370,7 +418,7 @@ namespace CloudApiPublic.EventMessageReceiver
         }
 
         // when the number of currently uploading files changes, create or update a message for the uploading count
-        private void SetUploadingCount(object sender, SetCountArgs e)
+        internal void SetUploadingCount(object sender, SetCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -404,7 +452,7 @@ namespace CloudApiPublic.EventMessageReceiver
         }
 
         // when a file completes uploading, create or update a message for the incrementing uploaded downloads
-        private void IncrementUploadedCount(object sender, IncrementCountArgs e)
+        internal void IncrementUploadedCount(object sender, IncrementCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -460,6 +508,16 @@ namespace CloudApiPublic.EventMessageReceiver
             // lock on instance locker for changing EventMessageReceiver so it cannot be stopped/started simultaneously
             lock (_locker)
             {
+                try
+                {
+                    MessageEvents.UnsubscribeMessageReceiver(
+                        SyncBoxId,
+                        DeviceId);
+                }
+                catch
+                {
+                }
+
                 if (!isDisposed)
                 {
                     // set delay completed so processing will not fire

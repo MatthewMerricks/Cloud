@@ -892,10 +892,22 @@ namespace CloudApiPublic.REST
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
+                // build the location of the metadata retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathUpload + // path to upload
+                    Helpers.QueryStringBuilder(new[] // add DeviceId for file upload
+                    {
+                        (string.IsNullOrEmpty(settings.DeviceId)
+                            ? new KeyValuePair<string, string>()
+                            :
+                                // query string parameter for the device id, needs to be escaped since it's client-defined
+                                new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(settings.DeviceId)))
+                    });
+
                 // run the HTTP communication
                 ProcessHttp(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
                     CLDefinitions.CLUploadDownloadServerURL,  // Server URL
-                    CLDefinitions.MethodPathUpload, // path to upload
+                    serverMethodPath, // dynamic upload path to add device id
                     requestMethod.put, // upload is a put
                     timeoutMilliseconds, // time before communication timeout (does not restrict time for the actual file upload)
                     new uploadParams( // this is a special communication method and requires passing upload parameters
@@ -3862,15 +3874,21 @@ namespace CloudApiPublic.REST
             // direction of communication determines which event to fire
             if (eventSource.Direction == SyncDirection.To)
             {
-                MessageEvents.UpdateFileUpload(eventSource, // source of the event (the event itself)
-                    eventSource.EventId, // the id for the event
-                    status); // the event arguments describing the status change
+                MessageEvents.UpdateFileUpload(
+                    sender: eventSource, // source of the event (the event itself)
+                    eventId: eventSource.EventId, // the id for the event
+                    parameters: status, // the event arguments describing the status change
+                    SyncBoxId: this.settings.SyncBoxId,
+                    DeviceId: this.settings.DeviceId);
             }
             else
             {
-                MessageEvents.UpdateFileDownload(eventSource, // source of the event (the event itself)
-                    eventSource.EventId, // the id for the event
-                    status); // the event arguments describing the status change
+                MessageEvents.UpdateFileDownload(
+                    sender: eventSource, // source of the event (the event itself)
+                    eventId: eventSource.EventId, // the id for the event
+                    parameters: status,  // the event arguments describing the status change
+                    SyncBoxId: this.settings.SyncBoxId,
+                    DeviceId: this.settings.DeviceId);
             }
         }
 
@@ -3995,10 +4013,6 @@ namespace CloudApiPublic.REST
                 httpRequest.ContentLength = uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0; // content length will be file size
                 httpRequest.Headers[CLDefinitions.HeaderAppendStorageKey] = uploadDownload.ChangeToTransfer.Metadata.StorageKey; // add header for destination location of file
                 httpRequest.Headers[CLDefinitions.HeaderAppendContentMD5] = ((uploadParams)uploadDownload).Hash; // set MD5 content hash for verification of upload stream
-                if (!string.IsNullOrEmpty(settings.DeviceId)) // conditionally add device id if available
-                {
-                    httpRequest.Headers[CLDefinitions.QueryStringDeviceId] = settings.DeviceId; // add device id so it will come through on push notifications
-                }
                 httpRequest.KeepAlive = true; // do not close connection (is this needed?)
                 requestContentBytes = null; // do not write content bytes since they will come from the Stream inside the upload object
             }

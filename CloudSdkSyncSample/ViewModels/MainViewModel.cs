@@ -1,6 +1,5 @@
 ﻿using CloudApiPublic;
 using CloudApiPublic.Model;
-using CloudApiPublic.EventMessageReceiver;
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.Static;
 using CloudApiPublic.Support;
@@ -8,6 +7,7 @@ using CloudSdkSyncSample.Models;
 using CloudSdkSyncSample.Support;
 using CloudSdkSyncSample.Views;
 using CloudSdkSyncSample.Static;
+using CloudApiPublic.EventMessageReceiver;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -918,7 +918,16 @@ namespace CloudSdkSyncSample.ViewModels
                 if (startSyncBox)
                 {
                     CLSyncStartStatus startStatus;
-                    CLError errorFromSyncBoxStart = _syncBox.Start(SettingsAvancedImpl.Instance, out startStatus, OnSyncStatusUpdated, _syncBox);
+                    CLError errorFromSyncBoxStart = _syncBox.Start(
+                                settings: SettingsAvancedImpl.Instance,         // the settings to use
+                                status: out startStatus,                        // The completion status of the Start() function
+                                statusUpdated: OnSyncStatusUpdated,             // called when sync status is updated
+                                statusUpdatedUserState: _syncBox,               // the user state passed to the callback above
+                                getHistoricBandwidthSettings: OnGetHistoricBandwidthSettings,  // optional to provide the historic upload and download bandwidth to the engine
+                                setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings,  // optional to persist the historic upload and download bandwidth to the engine
+                                overrideImportanceFilterNonErrors: EventMessageLevel.All,       // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages
+                                overrideImportanceFilterErrors: EventMessageLevel.All,        // optional to filter the error messages delivered to the EventMessageReceiver ListMessages
+                                overrideDefaultMaxStatusMessages: 1000);        // optional to restrict the number of messages in the EventMessageReceiver ListMessages
                     if (errorFromSyncBoxStart != null)
                     {
                         _syncBox = null;
@@ -945,21 +954,31 @@ namespace CloudSdkSyncSample.ViewModels
                             if (_winSyncStatus == null)
                             {
                                 _trace.writeToLog(9, "MainViewModel: StartSyncing: Start the sync status window.");
-                                _winSyncStatus = new SyncStatusView();
-                                EventMessageReceiver vm = new EventMessageReceiver(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings, EventMessageLevel.All, EventMessageLevel.All);
-                                _winSyncStatus.DataContext = vm;
-                                _winSyncStatus.Width = 0;
-                                _winSyncStatus.Height = 0;
-                                _winSyncStatus.MinWidth = 0;
-                                _winSyncStatus.MinHeight = 0;
-                                _winSyncStatus.Left = Int32.MaxValue;
-                                _winSyncStatus.Top = Int32.MaxValue;
-                                _winSyncStatus.ShowInTaskbar = false;
-                                _winSyncStatus.ShowActivated = false;
-                                _winSyncStatus.Visibility = Visibility.Hidden;
-                                _winSyncStatus.WindowStyle = WindowStyle.None;
-                                _winSyncStatus.Owner = _mainWindow;
-                                _winSyncStatus.Show();
+
+                                // Get a ViewModel to provide some of the status information to use on our status window.
+                                EventMessageReceiver vm;
+                                CLError errorFromGetViewModel = _syncBox.GetSyncStatusViewModel(statusViewModel: out vm);
+                                if (errorFromGetViewModel != null)
+                                {
+                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncEngine.GetSyncStatusViewModel: Msg: <{0}>.", errorFromGetViewModel.errorDescription);
+                                }
+                                else
+                                {
+                                    _winSyncStatus = new SyncStatusView();
+                                    _winSyncStatus.DataContext = vm;
+                                    _winSyncStatus.Width = 0;
+                                    _winSyncStatus.Height = 0;
+                                    _winSyncStatus.MinWidth = 0;
+                                    _winSyncStatus.MinHeight = 0;
+                                    _winSyncStatus.Left = Int32.MaxValue;
+                                    _winSyncStatus.Top = Int32.MaxValue;
+                                    _winSyncStatus.ShowInTaskbar = false;
+                                    _winSyncStatus.ShowActivated = false;
+                                    _winSyncStatus.Visibility = Visibility.Hidden;
+                                    _winSyncStatus.WindowStyle = WindowStyle.None;
+                                    _winSyncStatus.Owner = _mainWindow;
+                                    _winSyncStatus.Show();
+                                }
                             }
                         }
                     }

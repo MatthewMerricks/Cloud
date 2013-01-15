@@ -482,12 +482,20 @@ namespace CloudApiPublic.Sync
                 {
                     case SyncDirection.From:
                     // direction for downloads
-                        MessageEvents.SetDownloadingCount(this, (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1));
+                        MessageEvents.SetDownloadingCount(
+                            sender: this, 
+                            newCount: (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1),
+                            SyncBoxId: _syncSettings.SyncBoxId,
+                            DeviceId: _syncSettings.DeviceId);
                         break;
 
                     case SyncDirection.To:
                     // direction for uploads
-                        MessageEvents.SetUploadingCount(this, (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1));
+                        MessageEvents.SetUploadingCount(
+                            sender: this, 
+                            newCount: (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1),
+                            SyncBoxId: _syncSettings.SyncBoxId,
+                            DeviceId: _syncSettings.DeviceId);
                         break;
 
                     default:
@@ -534,12 +542,20 @@ namespace CloudApiPublic.Sync
                         {
                             case SyncDirection.From:
                             // direction for downloads
-                                MessageEvents.SetDownloadingCount(scheduler, taskCount);
+                                MessageEvents.SetDownloadingCount(
+                                    sender: scheduler, 
+                                    newCount: taskCount,
+                                    SyncBoxId: _syncSettings.SyncBoxId,
+                                    DeviceId: _syncSettings.DeviceId);
                                 break;
 
                             case SyncDirection.To:
                             // direction for uploads
-                                MessageEvents.SetUploadingCount(scheduler, taskCount);
+                                MessageEvents.SetUploadingCount(
+                                    sender: scheduler, 
+                                    newCount: taskCount,
+                                    SyncBoxId: _syncSettings.SyncBoxId,
+                                    DeviceId: _syncSettings.DeviceId);
                                 break;
 
                             default:
@@ -644,12 +660,20 @@ namespace CloudApiPublic.Sync
                 {
                     case SyncDirection.From:
                     // direction for downloads
-                        MessageEvents.SetDownloadingCount(scheduler, taskCount);
+                        MessageEvents.SetDownloadingCount(
+                            sender: scheduler, 
+                            newCount: taskCount,
+                            SyncBoxId: _syncSettings.SyncBoxId,
+                            DeviceId: _syncSettings.DeviceId);
                         break;
 
                     case SyncDirection.To:
                     // direction for uploads
-                        MessageEvents.SetUploadingCount(scheduler, taskCount);
+                        MessageEvents.SetUploadingCount(
+                            sender: scheduler, 
+                            newCount: taskCount,
+                            SyncBoxId: _syncSettings.SyncBoxId,
+                            DeviceId: _syncSettings.DeviceId);
                         break;
 
                     default:

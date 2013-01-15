@@ -5,7 +5,7 @@
 /// The Cloud Windows Client SDK allows your application to easily support real time file synchronization services.
 ///
 /// A SyncBox can be thought of as a folder with a hierarhical directory structure.  Any files placed in a SyncBox can be automatically
-/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS, Android and Windows RT).  Your account can have multiple
+/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS and Android).  Your account can have multiple
 /// SyncBoxes, and your application can open multiple SyncBoxes on a device.
 ///
 /// In desktop environments, a SyncBox is tied to a particular local disk directory.  e.g., on Windows, "C:\Users\<UserName>\<YourSyncBoxName>".
@@ -56,18 +56,24 @@
 ///         // Subscribe to errors from push notification.
 ///         box.PushNotificationError += OnPushNotificationError;
 ///
-///         // EventMessageReceiver is the ViewModel for your sync status window.  There are three ObservableCollections that
-///         // you can bind to: ListFilesDownloading, ListFilesUploading, ListMessages.
-///         EventMessageReceiver vm = new EventMessageReceiver(null, null, EventMessageLevel.All, EventMessageLevel.All);
-///         // Show your sync status window and use vm as the DataContext.
-///     
 ///         // Start syncing with your settings.
 ///         CLSyncStartStatus startStatus;
-///         box.Start(theSettingsToUse, out startStatus ); 
+///         box.Start(
+///                             settings: theSettingsToUse,                     // the settings to use
+///                             status: out startStatus,                        // The completion status of the Start() function
+///                             statusUpdated: OnSyncStatusUpdated,             // called when sync status is updated
+///                             statusUpdatedUserState: _syncBox                // the user state passed to the callback above
+///                  );
 ///         if (startStatus != CLSyncStartStatus.Successful)
 ///         {
 ///             // Handle sync start error here
 ///         }
+///     
+///         // CLSyncEngine provides an optional ViewModel to provide data and a graphic RateBar to use on your sync status window.
+///         // There are three ObservableCollections that you can bind to: ListFilesDownloading, ListFilesUploading, ListMessages.
+///         EventMessageReceiver vm = engine.StatusViewModel;           // optional
+///
+///         // Show your sync status window and use vm as the DataContext.
 ///     
 ///         // ...
 ///     
@@ -81,6 +87,16 @@
 ///     {
 ///         // Tell the user that changes made on other devices will no longer be synced automatically to this device.
 ///     }
+///
+///     // Handle sync status message
+        private void OnSyncStatusUpdated(object userState)
+        {
+            if (_winSyncStatus != null)
+            {
+                _winSyncStatus.OnSyncStatusUpdated(userState);
+            }
+        }
+
 /// }
 /// \endcode
 ///
