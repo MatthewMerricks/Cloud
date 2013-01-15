@@ -36,7 +36,7 @@ namespace CloudApiPublic.Sync
         private static bool FromDisposed = false;
         private static bool ToDisposed = false;
 
-        private static ISyncSettingsAdvanced _syncSettings;
+        private static ICLSyncSettingsAdvanced _syncSettings;
         private static bool SyncSettingsSet = false;
         private static readonly object SyncSettingsLocker = new object();
         #endregion
@@ -61,7 +61,7 @@ namespace CloudApiPublic.Sync
         /// <param name="direction">Use From for downloads and To for uploads</param>
         /// <param name="syncSettings">Settings to use for logging errors</param>
         /// <returns>Returns the appropriate instance of HttpScheduler</returns>
-        public static HttpScheduler GetSchedulerByDirection(SyncDirection direction, ISyncSettingsAdvanced syncSettings)
+        public static HttpScheduler GetSchedulerByDirection(SyncDirection direction, ICLSyncSettingsAdvanced syncSettings)
         {
             // switch on input direction so the appropriate output is returned
             switch (direction)

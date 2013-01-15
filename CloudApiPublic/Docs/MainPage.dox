@@ -13,75 +13,44 @@
 /// See how easy it is:
 ///
 /// \code{.cs}
-/// public static class MyApplication
-/// {
-///     // Provide an implementation of ISyncSettings with properties that will return your desired setting values.
-///     private class YourSettings : ISyncSettings
-///     {
-///         public string SyncRoot
-///         {
-///             get { return "<Full path of the folder to sync>"; }
-///         }
-///         public string ApplicationKey
-///         {
-///             get { return "Paste this key from your Cloud developer DashBoard."; }
-///         }
-///         public string ApplicationSecret
-///         {
-///             get { return "Paste this secret from your Cloud developer DashBoard.  Note: This private key should actually be retrieved from a secure location."; }
-///         }
-///         public string SyncBoxId
-///         {
-///             get { return "Paste this ID from your Cloud developer DashBoard."; }
-///         }
-///         public string DeviceId
-///         {
-///             get { return "ThisDevice"; }
-///         }
-///         public string ClientVersion
-///         {
-///             get { return "A friendly name of your application."; }
-///         }
-///     }
+/// using CloudApiPublic;
+/// using CloudApiPublic.Model;
 ///
-///     // Main program
-///     public static int main(string[] args)
-///     {
-///         // Get a reference to your settings.
-///         ISyncSettings theSettingsToUse = new YourSettings();
-///         
-///         // Construct the SyncBox object.
-///         CLSync box = new CLSync();
-/// 
-///         // Subscribe to errors from push notification.
-///         box.PushNotificationError += OnPushNotificationError;
 ///
-///         // EventMessageReceiver is the ViewModel for your sync status window.  There are three ObservableCollections that
-///         // you can bind to: ListFilesDownloading, ListFilesUploading, ListMessages.
-///         EventMessageReceiver vm = EventMessageReceiver.GetInstance(null, null, EventMessageLevel.All, EventMessageLevel.All);
-///         // Show your sync status window and use vm as the DataContext.
-///     
-///         // Start syncing with your settings.
-///         CLSyncStartStatus startStatus;
-///         box.Start(theSettingsToUse, out startStatus ); 
-///         if (startStatus != CLSyncStartStatus.Successful)
-///         {
-///             // Handle sync start error here
-///         }
-///     
-///         // ...
-///     
-///         // Stop syncing
-///         box.Stop();
-///         // ...
-///     }
+///        // Main program
+///        static void Main(string[] args)
+///        {
+///            // Construct the SyncBox
+///            CLSync syncBox = new CLSync();
 ///
-///     // Handle errors from push notification
-///     private void OnPushNotificaitonError(object sender, NotificationErrorEventArgs e)
-///     {
-///         // Handle an error from push notification
-///     }
-/// }
+///            // Declare a status for starting to sync
+///            CLSyncStartStatus startStatus;
+///
+///            // Start syncing with minimal settings
+///            CLError startError = syncBox.Start(
+///                ApplicationKey: "My application key from the Cloud developer Dashboard",
+///                ApplicationSecret: "My application secret from the Cloud developer Dashboard",
+///                SyncBoxId: 123, //The ID created for this SyncBox on the Cloud developer Dashboard,
+///                SyncRoot: "<Full path of the folder to sync>",
+///                Status: out startStatus); // output the status from starting to sync
+///
+///            // If it did not successfully start syncing, handle the error
+///            if (startStatus != CLSyncStartStatus.Successful)
+///            {
+///                string myErrorType = startStatus.ToString(); // Switch on the enumeration to easily handle common errors
+///                string myErrorReason = startError.errorDescription; // Formatted message describing what went wrong
+///            }
+///
+///            // ...
+///
+///            // Stop syncing
+///            syncBox.Stop();
+///
+///            // ... Need to shutdown application
+///
+///            // Shutdown schedulers to immediately stop anything active like an upload or download
+///            CLSync.ShutdownSchedulers();
+///        }
 /// \endcode
 ///
 /// The code above will automatically sync files in the "SyncRoot" directory with your other devices related to this SyncBox, and with the SyncBox on the Cloud servers.
@@ -376,7 +345,7 @@
 ///
 /// Primary components:\n
 /// \link CloudApiPublic.CLSync CLSync \endlink performs active sync of files and folders within a specified path to a syncbox in Cloud.\n
-/// \link CloudApiPublic.PushNotification.CLNotification PushNotification.CLNotification \endlink allows manual subscription to push notifications and is used internally by \link CloudApiPublic.CLSync CLSync \endlink.\n
+/// \internal \link CloudApiPublic.PushNotification.CLNotification PushNotification.CLNotification \endlink allows manual subscription to push notifications and is used internally by \link CloudApiPublic.CLSync CLSync \endlink.\n \endinternal
 /// \link CloudApiPublic.REST.CLHttpRest REST.CLHttpRest \endlink allows manual access to Cloud communication methods for file\folder queries, posting changes, and file transfer. It is used internally by \link CloudApiPublic.CLSync CLSync \endlink.\n
 /// \link CloudApiPublic.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes. \link CloudApiPublic.CLSync CLSync \endlink fires event callbacks upon changes.\n
 /// \link CloudApiPublic.Support.CLTrace Support.CLTrace \endlink writes a message to log from a required format string and any object parameter arguments. It is used conditionally by other public API classes when instantiated with advanced settings for trace.
@@ -394,10 +363,12 @@
 /// \brief Contains various objects exposed through public API functions.
 ///
 /// \namespace CloudApiPublic.PushNotification
-/// \brief Contains the \link CloudApiPublic.PushNotification.CLNotification CLNotification \endlink which allows manual subscription to push notifications.
+/// \brief Contains notification event arguments \internal and the \link CloudApiPublic.PushNotification.CLNotification CLNotification \endlink which allows manual subscription to push notifications. \endinternal
 ///
+/// \internal
 /// \namespace CloudApiPublic.REST
 /// \brief Contains the \link CloudApiPublic.REST.CLHttpRest CLHttpRest \endlink which allows manual access to Cloud communication methods for file\folder queries, posting changes, and file transfer.
+/// \endinternal
 ///
 /// \namespace CloudApiPublic.Static
 /// \brief Contains various static helper classes such as \link CloudApiPublic.Static.Helpers Helpers \endlink

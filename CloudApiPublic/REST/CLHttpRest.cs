@@ -28,7 +28,7 @@ namespace CloudApiPublic.REST
     /// <summary>
     /// Client for manual HTTP communication calls to the Cloud
     /// </summary>
-    public sealed class CLHttpRest
+    internal sealed class CLHttpRest
     {
         #region private static readonly fields
         // hash set for http communication methods which are good when the status is ok, created, or not modified
@@ -86,31 +86,87 @@ namespace CloudApiPublic.REST
         #endregion
 
         #region construct with settings so they do not always need to be passed in
+        /// <summary>
+        /// Settings copied upon creation of this REST client
+        /// </summary>
+        public ICLSyncSettingsAdvanced CopiedSettings
+        {
+            get
+            {
+                return _copiedSettings;
+            }
+        }
         // storage of settings, which should be a copy of settings passed in on construction so they do not change throughout communication
-        private readonly ISyncSettingsAdvanced settings;
+        private readonly ICLSyncSettingsAdvanced _copiedSettings;
+
+        /// <summary>
+        /// Contains authentication information required for all communication and services
+        /// </summary>
+        public CLCredentials Credentials
+        {
+            get
+            {
+                return _credentials;
+            }
+        }
+        private readonly CLCredentials _credentials;
+
+        /// <summary>
+        /// The unique ID of this SyncBox assigned by Cloud
+        /// </summary>
+        public long SyncBoxId
+        {
+            get
+            {
+                return _syncBoxId;
+            }
+        }
+        private readonly long _syncBoxId;
 
         // private constructor requiring settings to copy and store for the life of this http client
-        private CLHttpRest(IHttpSettings settings)
+        private CLHttpRest(CLCredentials credentials, long syncBoxId, ICLSyncSettings settings)
         {
-            if (settings == null)
+            if (credentials == null)
             {
-                throw new NullReferenceException("settings cannot be null");
+                throw new NullReferenceException("credentials cannot be null");
             }
 
-            this.settings = settings.CopySettings();
+            this._credentials = credentials;
+            this._syncBoxId = syncBoxId;
+            if (settings == null)
+            {
+                this._copiedSettings = new AdvancedSyncSettings(
+                    false,
+                    TraceType.NotEnabled,
+                    null,
+                    true,
+                    0,
+                    Environment.MachineName + Guid.NewGuid().ToString("N"),
+                    null,
+                    "SimpleClient01",
+                    Environment.MachineName,
+                    null,
+                    null);
+            }
+            else
+            {
+                this._copiedSettings = settings.CopySettings();
+            }
         }
 
         /// <summary>
         /// Creates a CLHttpRest client object for HTTP REST calls to the server
         /// </summary>
-        /// <param name="settings">Required settings for communication</param>
-        /// <param name="client">(output) Created CLHttpRest client or default (null) for errors</param>
+        /// <param name="credentials">Contains authentication information required for communication</param>
+        /// <param name="syncBoxId">ID of sync box which can be manually synced</param>
+        /// <param name="client">(output) Created CLHttpRest client</param>
+        /// <param name="settings">(optional) Additional settings to override some defaulted parameters</param>
         /// <returns>Returns any error creating the CLHttpRest client, if any</returns>
-        public static CLError CreateAndInitialize(IHttpSettings settings, out CLHttpRest client)
+        public static CLError CreateAndInitialize(CLCredentials credentials, long syncBoxId, out CLHttpRest client, ICLSyncSettings settings = null)
         {
             try
             {
-                client = new CLHttpRest(settings);
+                client = new CLHttpRest(credentials, syncBoxId, settings);
             }
             catch (Exception ex)
             {
@@ -532,14 +588,14 @@ namespace CloudApiPublic.REST
                     currentDownloadFolder = customDownloadFolderFullPath;
                 }
                 // else if a specified folder path was not passed and a path was specified in settings, then store the one from settings as the one to use
-                else if (settings.TempDownloadFolderFullPath != null)
+                else if (_copiedSettings.TempDownloadFolderFullPath != null)
                 {
-                    currentDownloadFolder = settings.TempDownloadFolderFullPath;
+                    currentDownloadFolder = _copiedSettings.TempDownloadFolderFullPath;
                 }
                 // else if a specified folder path was not passed and one did not exist in settings, then build one dynamically to use
                 else
                 {
-                    currentDownloadFolder = Helpers.GetTempFileDownloadPath(settings);
+                    currentDownloadFolder = Helpers.GetTempFileDownloadPath(_copiedSettings, _syncBoxId);
                 }
 
                 // check if the folder for temp downloads represents a bad path
@@ -562,11 +618,11 @@ namespace CloudApiPublic.REST
                     moveFileUponCompletion, // callback which should move the file to final location
                     moveFileUponCompletionState, // userstate for the move file callback
                     customDownloadFolderFullPath ?? // first try to use a provided custom folder full path
-                        Helpers.GetTempFileDownloadPath(settings),
+                        Helpers.GetTempFileDownloadPath(_copiedSettings, _syncBoxId),
                     HandleUploadDownloadStatus, // private event handler to relay status change events
                     changeToDownload, // the FileChange describing the download
                     shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
-                    settings.SyncRoot, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
+                    _copiedSettings.SyncRoot, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
                     aCallback, // asynchronous callback to fire on progress changes if called via async wrapper
                     aResult, // asynchronous result to pass when firing the asynchronous callback
                     progress, // holder for progress data which can be queried by user if called via async wrapper
@@ -903,7 +959,7 @@ namespace CloudApiPublic.REST
                         HandleUploadDownloadStatus, // private event handler to relay status change events
                         changeToUpload, // the FileChange describing the upload
                         shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
-                        settings.SyncRoot, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
+                        _copiedSettings.SyncRoot, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
                         aCallback, // asynchronous callback to fire on progress changes if called via async wrapper
                         aResult, // asynchronous result to pass when firing the asynchronous callback
                         progress, // holder for progress data which can be queried by user if called via async wrapper
@@ -1108,11 +1164,7 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
-                }
-                if (string.IsNullOrEmpty(settings.SyncRoot))
+                if (string.IsNullOrEmpty(_copiedSettings.SyncRoot))
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -1125,10 +1177,10 @@ namespace CloudApiPublic.REST
                     Helpers.QueryStringBuilder(new[] // both methods grab their parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((settings.SyncRoot ?? string.Empty), true) + "/")),
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((_copiedSettings.SyncRoot ?? string.Empty), true) + "/")),
 
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString())
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
@@ -1320,13 +1372,9 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (string.IsNullOrEmpty(settings.DeviceId))
+                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
                     throw new NullReferenceException("settings DeviceId cannot be null");
-                }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
                 }
 
                 // build the location of the pending retrieval method on the server dynamically
@@ -1335,10 +1383,10 @@ namespace CloudApiPublic.REST
                     Helpers.QueryStringBuilder(new[] // grab parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the id of the device, escaped as needed for the URI
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(settings.DeviceId)),
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId)),
                         
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString())
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
@@ -1550,17 +1598,13 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("toCommunicate cannot be both a folder and of type Modified");
                 }
-                if (settings.DeviceId == null)
+                if (_copiedSettings.DeviceId == null)
                 {
                     throw new NullReferenceException("settings DeviceId cannot be null");
                 }
-                if (settings.SyncRoot == null)
+                if (_copiedSettings.SyncRoot == null)
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
-                }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
@@ -1592,9 +1636,9 @@ namespace CloudApiPublic.REST
                             requestContent = new JsonContracts.FolderAdd()
                             {
                                 CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
-                                DeviceId = settings.DeviceId,
-                                RelativePath = toCommunicate.NewPath.GetRelativePath(settings.SyncRoot, true) + "/",
-                                SyncBoxId = settings.SyncBoxId
+                                DeviceId = _copiedSettings.DeviceId,
+                                RelativePath = toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true) + "/",
+                                SyncBoxId = _syncBoxId
                             };
                         }
                         // else if change is a file, set path and create request content for file creation
@@ -1623,13 +1667,13 @@ namespace CloudApiPublic.REST
                             requestContent = new JsonContracts.FileAdd()
                             {
                                 CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
-                                DeviceId = settings.DeviceId,
+                                DeviceId = _copiedSettings.DeviceId,
                                 Hash = addHashString,
                                 MimeType = toCommunicate.Metadata.MimeType,
                                 ModifiedDate = toCommunicate.Metadata.HashableProperties.LastTime,
-                                RelativePath = toCommunicate.NewPath.GetRelativePath(settings.SyncRoot, true),
+                                RelativePath = toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true),
                                 Size = toCommunicate.Metadata.HashableProperties.Size,
-                                SyncBoxId = settings.SyncBoxId
+                                SyncBoxId = _syncBoxId
                             };
                         }
                         break;
@@ -1647,13 +1691,13 @@ namespace CloudApiPublic.REST
                         // file deletion and folder deletion share a json contract object for deletion
                         requestContent = new JsonContracts.FileOrFolderDelete()
                         {
-                            DeviceId = settings.DeviceId,
+                            DeviceId = _copiedSettings.DeviceId,
                             RelativePath = (toCommunicate.NewPath == null
                                 ? null
-                                : toCommunicate.NewPath.GetRelativePath(settings.SyncRoot, true) +
+                                : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true) +
                                     (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
                             ServerId = toCommunicate.Metadata.ServerId,
-                            SyncBoxId = settings.SyncBoxId
+                            SyncBoxId = _syncBoxId
                         };
 
                         // server method path switched from whether change is a folder or not
@@ -1698,17 +1742,17 @@ namespace CloudApiPublic.REST
                         requestContent = new JsonContracts.FileModify()
                         {
                             CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
-                            DeviceId = settings.DeviceId,
+                            DeviceId = _copiedSettings.DeviceId,
                             Hash = modifyHashString,
                             MimeType = toCommunicate.Metadata.MimeType,
                             ModifiedDate = toCommunicate.Metadata.HashableProperties.LastTime,
                             RelativePath = (toCommunicate.NewPath == null
                                 ? null
-                                : toCommunicate.NewPath.GetRelativePath(settings.SyncRoot, true)),
+                                : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true)),
                             Revision = toCommunicate.Metadata.Revision,
                             ServerId = toCommunicate.Metadata.ServerId,
                             Size = toCommunicate.Metadata.HashableProperties.Size,
-                            SyncBoxId = settings.SyncBoxId
+                            SyncBoxId = _syncBoxId
                         };
 
                         serverMethodPath = CLDefinitions.MethodPathOneOffFileModify;
@@ -1731,15 +1775,15 @@ namespace CloudApiPublic.REST
                         // file move (rename) and folder move (rename) share a json contract object for move (rename)
                         requestContent = new JsonContracts.FileOrFolderMove()
                         {
-                            DeviceId = settings.DeviceId,
-                            RelativeFromPath = toCommunicate.OldPath.GetRelativePath(settings.SyncRoot, true) +
+                            DeviceId = _copiedSettings.DeviceId,
+                            RelativeFromPath = toCommunicate.OldPath.GetRelativePath(_copiedSettings.SyncRoot, true) +
                                 (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty),
                             RelativeToPath = (toCommunicate.NewPath == null
                                 ? null
-                                : toCommunicate.NewPath.GetRelativePath(settings.SyncRoot, true)
+                                : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true)
                                     + (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
                             ServerId = toCommunicate.Metadata.ServerId,
-                            SyncBoxId = settings.SyncBoxId
+                            SyncBoxId = _syncBoxId
                         };
 
                         // server method path switched on whether change is a folder or not
@@ -1961,7 +2005,7 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("deletionChange is not of Type Deletion");
                 }
-                if (settings.SyncRoot == null)
+                if (_copiedSettings.SyncRoot == null)
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -1969,21 +2013,17 @@ namespace CloudApiPublic.REST
                 {
                     throw new NullReferenceException("deletionChange Metadata ServerId must not be null");
                 }
-                if (string.IsNullOrEmpty(settings.DeviceId))
+                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
                     throw new NullReferenceException("settings DeviceId cannot be null");
-                }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
                 }
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.Event>(new JsonContracts.FileOrFolderUndelete() // files and folders share a request content object for undelete
                     {
-                        DeviceId = settings.DeviceId, // device id
+                        DeviceId = _copiedSettings.DeviceId, // device id
                         ServerId = deletionChange.Metadata.ServerId, // unique id on server
-                        SyncBoxId = settings.SyncBoxId // id of sync box
+                        SyncBoxId = _syncBoxId // id of sync box
                     },
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     (deletionChange.Metadata.HashableProperties.IsFolder // folder/file switch
@@ -2267,17 +2307,13 @@ namespace CloudApiPublic.REST
                 {
                     throw new NullReferenceException("Either pathToFile must not be null or fileServerId must not be null or both must not be null");
                 }
-                if (settings.SyncRoot == null)
+                if (_copiedSettings.SyncRoot == null)
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
-                if (string.IsNullOrEmpty(settings.DeviceId))
+                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
                     throw new NullReferenceException("settings DeviceId cannot be null");
-                }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
                 }
                 
                 // build the location of the file versions retrieval method on the server dynamically
@@ -2286,7 +2322,7 @@ namespace CloudApiPublic.REST
                     Helpers.QueryStringBuilder(new[]
                     {
                         // query string parameter for the device id
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(settings.DeviceId)),
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId)),
 
                         // query string parameter for the server id for the file to check, only filled in if it's not null
                         (string.IsNullOrEmpty(fileServerId)
@@ -2296,7 +2332,7 @@ namespace CloudApiPublic.REST
                         // query string parameter for the path to the file to check, only filled in if it's not null
                         (pathToFile == null
                             ? new KeyValuePair<string, string>()
-                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(pathToFile.GetRelativePath(settings.SyncRoot, true)))),
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(pathToFile.GetRelativePath(_copiedSettings.SyncRoot, true)))),
 
                         // query string parameter for whether to include delete versions in the check, but only set if it's not default (if it's false)
                         (includeDeletedVersions
@@ -2304,7 +2340,7 @@ namespace CloudApiPublic.REST
                             : new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false")),
 
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString())
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
@@ -2495,13 +2531,9 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (string.IsNullOrEmpty(settings.DeviceId))
+                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
                     throw new NullReferenceException("settings DeviceId cannot be null");
-                }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
                 }
 
                 // run the HTTP communication and store the response object to the output parameter
@@ -2510,8 +2542,8 @@ namespace CloudApiPublic.REST
                     CLDefinitions.MethodPathGetUsedBytes + // path to get used bytes
                         Helpers.QueryStringBuilder(new[]
                         {
-                            new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(settings.DeviceId)), // device id, escaped since it's a user-input
-                            new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString()) // sync box id, not escaped since it's from an integer
+                            new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId)), // device id, escaped since it's a user-input
+                            new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString()) // sync box id, not escaped since it's from an integer
                         }),
                     requestMethod.get, // getting used bytes is a get
                     timeoutMilliseconds, // time before communication timeout
@@ -2785,7 +2817,7 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (settings.SyncRoot == null)
+                if (_copiedSettings.SyncRoot == null)
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -2798,25 +2830,21 @@ namespace CloudApiPublic.REST
                 {
                     throw new NullReferenceException("Either pathToFile must not be null or fileServerId must not be null or both must not be null");
                 }
-                if (string.IsNullOrEmpty(settings.DeviceId))
+                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
                     throw new NullReferenceException("settings DeviceId cannot be null");
-                }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
                 }
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.Event>(new JsonContracts.FileCopy() // object for file copy
                     {
-                        DeviceId = settings.DeviceId, // device id
+                        DeviceId = _copiedSettings.DeviceId, // device id
                         ServerId = fileServerId, // unique id on server
                         RelativePath = (pathToFile == null
                             ? null
-                            : pathToFile.GetRelativePath(settings.SyncRoot, true)), // path of existing file to copy
-                        RelativeToPath = copyTargetPath.GetRelativePath(settings.SyncRoot, true), // location to copy file to
-                        SyncBoxId = settings.SyncBoxId // id of sync box
+                            : pathToFile.GetRelativePath(_copiedSettings.SyncRoot, true)), // path of existing file to copy
+                        RelativeToPath = copyTargetPath.GetRelativePath(_copiedSettings.SyncRoot, true), // location to copy file to
+                        SyncBoxId = _syncBoxId // id of sync box
                     },
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     CLDefinitions.MethodPathFileCopy, // path for file copy
@@ -3004,10 +3032,6 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
-                }
 
                 // build the location of the pictures retrieval method on the server dynamically
                 string serverMethodPath =
@@ -3015,7 +3039,7 @@ namespace CloudApiPublic.REST
                     Helpers.QueryStringBuilder(new[]
                     {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString())
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
@@ -3207,10 +3231,6 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
-                }
 
                 // build the location of the sync box usage retrieval method on the server dynamically
                 string serverMethodPath =
@@ -3218,7 +3238,7 @@ namespace CloudApiPublic.REST
                     Helpers.QueryStringBuilder(new[]
                     {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString())
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
@@ -3415,11 +3435,7 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
-                }
-                if (string.IsNullOrEmpty(settings.SyncRoot))
+                if (string.IsNullOrEmpty(_copiedSettings.SyncRoot))
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -3430,11 +3446,11 @@ namespace CloudApiPublic.REST
                     Helpers.QueryStringBuilder(new[]
                     {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString()),
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString()),
 
                         (hierarchyRoot == null
                             ? new KeyValuePair<string, string>() // do not add extra query string parameter if path is not set
-                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(hierarchyRoot.GetRelativePath(settings.SyncRoot, true) + "/"))) // query string parameter for optional path with escaped value
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(hierarchyRoot.GetRelativePath(_copiedSettings.SyncRoot, true) + "/"))) // query string parameter for optional path with escaped value
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
@@ -3650,11 +3666,7 @@ namespace CloudApiPublic.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
-                }
-                if (string.IsNullOrEmpty(settings.SyncRoot))
+                if (string.IsNullOrEmpty(_copiedSettings.SyncRoot))
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -3665,7 +3677,7 @@ namespace CloudApiPublic.REST
                     Helpers.QueryStringBuilder(new[]
                     {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, ((long)settings.SyncBoxId).ToString()),
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString()),
 
                         (depthLimit == null
                             ? new KeyValuePair<string, string>() // do not add extra query string parameter if depth is not limited
@@ -3673,7 +3685,7 @@ namespace CloudApiPublic.REST
 
                         (contentsRoot == null
                             ? new KeyValuePair<string, string>() // do not add extra query string parameter if path is not set
-                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.GetRelativePath(settings.SyncRoot, true) + "/"))), // query string parameter for optional path with escaped value
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.GetRelativePath(_copiedSettings.SyncRoot, true) + "/"))), // query string parameter for optional path with escaped value
 
                         (includeDeleted
                             ? new KeyValuePair<string, string>() // do not add extra query string parameter if parameter is already the default
@@ -3814,13 +3826,9 @@ namespace CloudApiPublic.REST
             {
                 // check input parameters
 
-                if (string.IsNullOrEmpty(settings.DeviceId))
+                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
                     throw new NullReferenceException("settings DeviceId cannot be null");
-                }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
@@ -3829,8 +3837,8 @@ namespace CloudApiPublic.REST
 
                 response = ProcessHttp<JsonContracts.PendingResponse>(new JsonContracts.PurgePending() // json contract object for purge pending method
                     {
-                        DeviceId = settings.DeviceId,
-                        SyncBoxId = settings.SyncBoxId
+                        DeviceId = _copiedSettings.DeviceId,
+                        SyncBoxId = _syncBoxId
                     },
                     CLDefinitions.CLMetaDataServerURL, CLDefinitions.MethodPathPurgePending, // purge pending address
                     requestMethod.post, // purge pending is a post operation
@@ -3931,13 +3939,13 @@ namespace CloudApiPublic.REST
 
             httpRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-            httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = settings.ClientVersion; // set client version
+            httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = _copiedSettings.ClientVersion; // set client version
             httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
                                 CLDefinitions.HeaderAppendKey +
-                                settings.ApplicationKey + ", " +
+                                _credentials.ApplicationKey + ", " +
                                 CLDefinitions.HeaderAppendSignature +
                                         Helpers.GenerateAuthorizationHeaderToken(
-                                            settings,
+                                            _credentials.ApplicationSecret,
                                             httpMethod: httpRequest.Method,
                                             pathAndQueryStringAndFragment: serverMethodPath);   // set the authentication token
             httpRequest.SendChunked = false; // do not send chunked
@@ -3995,9 +4003,9 @@ namespace CloudApiPublic.REST
                 httpRequest.ContentLength = uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0; // content length will be file size
                 httpRequest.Headers[CLDefinitions.HeaderAppendStorageKey] = uploadDownload.ChangeToTransfer.Metadata.StorageKey; // add header for destination location of file
                 httpRequest.Headers[CLDefinitions.HeaderAppendContentMD5] = ((uploadParams)uploadDownload).Hash; // set MD5 content hash for verification of upload stream
-                if (!string.IsNullOrEmpty(settings.DeviceId)) // conditionally add device id if available
+                if (!string.IsNullOrEmpty(_copiedSettings.DeviceId)) // conditionally add device id if available
                 {
-                    httpRequest.Headers[CLDefinitions.QueryStringDeviceId] = settings.DeviceId; // add device id so it will come through on push notifications
+                    httpRequest.Headers[CLDefinitions.QueryStringDeviceId] = _copiedSettings.DeviceId; // add device id so it will come through on push notifications
                 }
                 httpRequest.KeepAlive = true; // do not close connection (is this needed?)
                 requestContentBytes = null; // do not write content bytes since they will come from the Stream inside the upload object
@@ -4006,12 +4014,12 @@ namespace CloudApiPublic.REST
 
             #region trace request
             // if communication is supposed to be traced, then trace it
-            if ((settings.TraceType & TraceType.Communication) == TraceType.Communication)
+            if ((_copiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
             {
                 // trace communication for the current request
-                ComTrace.LogCommunication(settings.TraceLocation, // location of trace file
-                    settings.DeviceId, // device id
-                    settings.SyncBoxId, // user id
+                ComTrace.LogCommunication(_copiedSettings.TraceLocation, // location of trace file
+                    _copiedSettings.DeviceId, // device id
+                    _syncBoxId, // user id
                     CommunicationEntryDirection.Request, // direction is request
                     serverUrl + serverMethodPath, // location for the server method
                     true, // trace is enabled
@@ -4022,7 +4030,7 @@ namespace CloudApiPublic.REST
                             ? null // if there were no bytes to write in the request content body, then log for none
                             : Encoding.UTF8.GetString(requestContentBytes))), // if there were no bytes to write in the request content body, then log them (in string form)
                     null, // no status code for requests
-                    settings.TraceExcludeAuthorization, // whether or not to exclude authorization information (like the authentication key)
+                    _copiedSettings.TraceExcludeAuthorization, // whether or not to exclude authorization information (like the authentication key)
                     httpRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
                     ((requestContentBytes != null || (uploadDownload != null && uploadDownload is uploadParams))
                         ? httpRequest.ContentLength.ToString() // if the communication had bytes to upload from an input object or a stream to upload for a file, then set the content length value which would be part of the headers (but cannot be pulled from headers directly)
@@ -4494,24 +4502,24 @@ namespace CloudApiPublic.REST
                         responseStream = httpResponse.GetResponseStream();
 
                         // set the stream for processing the response by a copy of the communication stream (if trace enabled) or the communication stream itself (if trace is not enabled)
-                        serializationStream = (((settings.TraceType & TraceType.Communication) == TraceType.Communication)
+                        serializationStream = (((_copiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                             ? Helpers.CopyHttpWebResponseStreamAndClose(responseStream) // if trace is enabled, then copy the communications stream to a memory stream
                             : responseStream); // if trace is not enabled, use the communication stream
 
                         // if tracing communication, then trace communication
-                        if ((settings.TraceType & TraceType.Communication) == TraceType.Communication)
+                        if ((_copiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                         {
                             // log communication for stream body
-                            ComTrace.LogCommunication(settings.TraceLocation, // trace file location
-                                settings.DeviceId, // device id
-                                settings.SyncBoxId, // user id
+                            ComTrace.LogCommunication(_copiedSettings.TraceLocation, // trace file location
+                                _copiedSettings.DeviceId, // device id
+                                _syncBoxId, // user id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled
                                 httpResponse.Headers, // response headers
                                 serializationStream, // copied response stream
                                 (int)httpResponse.StatusCode, // status code of the response
-                                settings.TraceExcludeAuthorization); // whether to include authorization in the trace (such as the authentication key)
+                                _copiedSettings.TraceExcludeAuthorization); // whether to include authorization in the trace (such as the authentication key)
                         }
 
                         // deserialize the response content into the appropriate json contract object
@@ -4598,7 +4606,7 @@ namespace CloudApiPublic.REST
             finally
             {
                 // for communication logging, log communication if it hasn't already been logged in stream deserialization or dispose the serialization stream
-                if ((settings.TraceType & TraceType.Communication) == TraceType.Communication)
+                if ((_copiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                 {
                     // if there was no stream set for deserialization, then the response was handled as a string and needs to be logged here as such
                     if (serializationStream == null)
@@ -4606,16 +4614,16 @@ namespace CloudApiPublic.REST
                         if (httpResponse != null)
                         {
                             // log communication for string body
-                            ComTrace.LogCommunication(settings.TraceLocation, // trace file location
-                                settings.DeviceId, // device id
-                                settings.SyncBoxId, // user id
+                            ComTrace.LogCommunication(_copiedSettings.TraceLocation, // trace file location
+                                _copiedSettings.DeviceId, // device id
+                                _syncBoxId, // user id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled
                                 httpResponse.Headers, // response headers
                                 responseBody, // response body (either an overridden string that says "complete" or "incomplete" or an error message from the actual response)
                                 (int)httpResponse.StatusCode, // status code of the response
-                                settings.TraceExcludeAuthorization); // whether to include authorization in the trace (such as the authentication key)
+                                _copiedSettings.TraceExcludeAuthorization); // whether to include authorization in the trace (such as the authentication key)
                         }
                     }
                     // else if there was a stream set for deserialization then the response was already logged, but it still needs to be disposed here

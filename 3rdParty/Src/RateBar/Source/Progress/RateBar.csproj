@@ -39,6 +39,12 @@
   <PropertyGroup>
     <StartupObject />
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.JScript" />
     <Reference Include="System" />
@@ -78,6 +84,7 @@
     <None Include="Application.ico">
       <Visible>false</Visible>
     </None>
+    <None Include="CloudPlatformCodeSigning.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="cloud.ico" />

@@ -77,7 +77,7 @@ namespace ContextMenuNET
         /// ¡¡ Do not call this method a second time nor after InitializeOrReplace has been called !!
         /// </summary>
         /// <param name="syncSettings">The settings to use for this singleton.</param>
-        public static CLError Initialize(ISyncSettings syncSettings)
+        public static CLError Initialize(ICLSyncSettings syncSettings)
         {
             try
             {

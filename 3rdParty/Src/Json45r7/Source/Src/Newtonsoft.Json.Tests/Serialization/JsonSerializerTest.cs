@@ -6770,7 +6770,7 @@ Parameter name: value",
 
   public class MetroPropertyNameResolver : DefaultContractResolver
   {
-    protected internal override string ResolvePropertyName(string propertyName)
+    protected override string ResolvePropertyName(string propertyName)
     {
 #if !(SILVERLIGHT || NETFX_CORE)
       return ":::" + propertyName.ToUpper(CultureInfo.InvariantCulture) + ":::";

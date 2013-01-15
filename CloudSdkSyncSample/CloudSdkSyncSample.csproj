@@ -41,12 +41,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CloudApiPublic, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>True</SpecificVersion>
-    </Reference>
-    <Reference Include="RateBar, Version=1.0.4671.22690, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>True</SpecificVersion>
-    </Reference>
+    <Reference Include="CloudApiPublic, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" />
+    <Reference Include="RateBar, Version=1.0.4762.20666, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.SqlServerCe, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
@@ -87,7 +83,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Models\Settings.cs" />
-    <Compile Include="Models\SettingsAdvanceImpl.cs" />
+    <Compile Include="Models\SettingsAdvancedImpl.cs" />
     <Compile Include="Static\FocusExtension.cs" />
     <Compile Include="Static\FolderBrowserExtension.cs" />
     <Compile Include="Support\Notification.cs" />

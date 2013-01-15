@@ -39,7 +39,7 @@ namespace CloudApiPublic.Sync
         // userstate to pass to status change callback
         private readonly object statusUpdatedUserState;
         // store settings source
-        private readonly ISyncSettingsAdvanced syncSettings;
+        private readonly CLSyncBox syncBox;
         // store client for Http REST communication
         private readonly CLHttpRest httpRestClient;
         // time to wait before presuming communication failure
@@ -56,17 +56,21 @@ namespace CloudApiPublic.Sync
         /// Engine constructor
         /// </summary>
         /// <param name="syncData">Event source</param>
-        /// <param name="syncSettings">Settings source</param>
+        /// <param name="syncBox">SyncBox to sync</param>
         /// <param name="httpRestClient">Http client for REST communication</param>
+        /// <param name="engine">(output) Created SyncEngine</param>
         /// <param name="statusUpdated">(optional) Callback to fire upon update of the running status</param>
         /// <param name="statusUpdatedUserState">(optional) Userstate to pass to the statusUpdated callback</param>
         /// <param name="HttpTimeoutMilliseconds">(optional) Milliseconds to wait before presuming communication failure</param>
         /// <param name="MaxNumberOfFailureRetries">(optional) Number of times to retry an event dependency tree before stopping</param>
         /// <param name="MaxNumberOfNotFounds">(optional) Number of times to retry an event that keeps getting a not found error before presuming the event was cancelled out, should be less than MaxNumberOfFailureRetries</param>
         /// <param name="ErrorProcessingMillisecondInterval">(optional) Milliseconds to delay between each attempt at reprocessing queued failures</param>
-        public SyncEngine(ISyncDataObject syncData,
-            ISyncSettings syncSettings,
+        /// <returns>Returns any error that occurred creating the SyncEngine, if any</returns>
+        public static CLError CreateAndInitialize(
+            ISyncDataObject syncData,
+            CLSyncBox syncBox,
             CLHttpRest httpRestClient,
+            out SyncEngine engine,
             System.Threading.WaitCallback statusUpdated = null,
             object statusUpdatedUserState = null,
             int HttpTimeoutMilliseconds = 180000,// 180 seconds
@@ -74,14 +78,45 @@ namespace CloudApiPublic.Sync
             byte MaxNumberOfNotFounds = 10,
             int ErrorProcessingMillisecondInterval = 10000)// wait ten seconds between processing
         {
+            try
+            {
+                engine = new SyncEngine(
+                    syncData,
+                    syncBox,
+                    httpRestClient,
+                    statusUpdated,
+                    statusUpdatedUserState,
+                    HttpTimeoutMilliseconds,
+                    MaxNumberOfFailureRetries,
+                    MaxNumberOfNotFounds,
+                    ErrorProcessingMillisecondInterval);
+            }
+            catch (Exception ex)
+            {
+                engine = Helpers.DefaultForType<SyncEngine>();
+                return ex;
+            }
+            return null;
+        }
+
+        public SyncEngine(ISyncDataObject syncData,
+            CLSyncBox syncBox,
+            CLHttpRest httpRestClient,
+            System.Threading.WaitCallback statusUpdated,
+            object statusUpdatedUserState,
+            int HttpTimeoutMilliseconds,
+            byte MaxNumberOfFailureRetries,
+            byte MaxNumberOfNotFounds,
+            int ErrorProcessingMillisecondInterval)
+        {
             #region validate parameters
             if (syncData == null)
             {
                 throw new NullReferenceException("syncData cannot be null");
             }
-            if (syncSettings == null)
+            if (syncBox == null)
             {
-                throw new NullReferenceException("syncSettings cannot be null");
+                throw new NullReferenceException("syncBox cannot be null");
             }
             if (httpRestClient == null)
             {
@@ -109,22 +144,16 @@ namespace CloudApiPublic.Sync
                 this.statusUpdatedUserState = statusUpdatedUserState;
             }
 
-            // Copy sync settings in case third party attempts to change values without restarting sync 
-            this.syncSettings = SyncSettingsExtensions.CopySettings(syncSettings);
-
-            if (this.syncSettings.SyncBoxId == null)
-            {
-                throw new NullReferenceException("syncSettings SyncBoxId cannot be null");
-            }
+            this.syncBox = syncBox;
 
             // set the Http REST client
             this.httpRestClient = httpRestClient;
 
             // Initialize trace in case it is not already initialized.
-            CLTrace.Initialize(this.syncSettings.TraceLocation, "Cloud", "log", this.syncSettings.TraceLevel, this.syncSettings.LogErrors);
+            CLTrace.Initialize(this.syncBox.CopiedSettings.TraceLocation, "Cloud", "log", this.syncBox.CopiedSettings.TraceLevel, this.syncBox.CopiedSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "SyncEngine: SyncEngine: Entry.");
 
-            this.DefaultTempDownloadsPath = Helpers.GetTempFileDownloadPath(this.syncSettings);
+            this.DefaultTempDownloadsPath = Helpers.GetTempFileDownloadPath(this.syncBox.CopiedSettings, this.syncBox.SyncBoxId);
 
             this.HttpTimeoutMilliseconds = HttpTimeoutMilliseconds;
             this.MaxNumberOfFailureRetries = MaxNumberOfFailureRetries;
@@ -194,7 +223,7 @@ namespace CloudApiPublic.Sync
         private static void FailureProcessing(object state)
         {
             // settings is required to log errors, so declare its instance outside the try/catch and default to null
-            ISyncSettingsAdvanced storeSettings = null;
+            ICLSyncSettingsAdvanced storeSettings = null;
             try
             {
                 // try cast state
@@ -207,7 +236,7 @@ namespace CloudApiPublic.Sync
                 }
 
                 // store settings from cast state
-                storeSettings = thisEngine.syncSettings;
+                storeSettings = thisEngine.syncBox.CopiedSettings;
 
                 // retrieve failure timer only once to save on the getter code execution
                 ProcessingQueuesTimer getTimer = thisEngine.FailureTimer;
@@ -811,7 +840,7 @@ namespace CloudApiPublic.Sync
                     bool tempNeedsCleaning = false;
 
                     // null-coallesce the download temp path
-                    string TempDownloadsFolder = syncSettings.TempDownloadFolderFullPath ?? DefaultTempDownloadsPath;
+                    string TempDownloadsFolder = syncBox.CopiedSettings.TempDownloadFolderFullPath ?? DefaultTempDownloadsPath;
 
                     // Lock for reading/writing to whether startup occurred
                     lock (TempDownloadsCleanedLocker)
@@ -916,9 +945,9 @@ namespace CloudApiPublic.Sync
                         }
 
                         // advanced trace, SyncRunInitialErrors
-                        if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                        if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.FileChange));
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.FileChange));
                         }
 
                         // update last status
@@ -1258,7 +1287,7 @@ namespace CloudApiPublic.Sync
                                             FileTransferQueued(nonNullTask.ThreadId,
                                                 topLevelChange.FileChange.EventId,
                                                 nonNullTask.Direction,
-                                                topLevelChange.FileChange.NewPath.GetRelativePath(syncSettings.SyncRoot, false),
+                                                topLevelChange.FileChange.NewPath.GetRelativePath(syncBox.CopiedSettings.SyncRoot, false),
                                                 (long)topLevelChange.FileChange.Metadata.HashableProperties.Size);
 
                                             // try/catch to start the async task, or removing the UpDownEvent handler and rethrowing on exception
@@ -1266,7 +1295,7 @@ namespace CloudApiPublic.Sync
                                             {
                                                 // start async task on the HttpScheduler
                                                 nonNullTask.Task.Start(
-                                                    HttpScheduler.GetSchedulerByDirection(nonNullTask.Direction, syncSettings)); // retrieve HttpScheduler by direction and settings (upload and download are on seperate queues, and settings are used for error logging)
+                                                    HttpScheduler.GetSchedulerByDirection(nonNullTask.Direction, syncBox.CopiedSettings)); // retrieve HttpScheduler by direction and settings (upload and download are on seperate queues, and settings are used for error logging)
 
                                                 // add task as asynchronously processed
                                                 asynchronouslyPreprocessed.Add(topLevelChange.FileChange);
@@ -1299,10 +1328,10 @@ namespace CloudApiPublic.Sync
                         while (reprocessForDependencies());
 
                         // for advanced trace, log SyncRunPreprocessedEventsSynchronous and SyncRunPreprocessedEventsAsynchronous
-                        if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                        if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
                         }
 
                         // status message(s)
@@ -1386,10 +1415,10 @@ namespace CloudApiPublic.Sync
                         // (all the previous errors that correspond to FileChanges which will not continue onto communication were added back to the failure queue)
 
                         // for advanced trace, SyncRunRequeuedFailuresBeforeCommunication and SyncRunChangesForCommunication
-                        if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                        if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.FileChange));
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.FileChange));
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
                         }
 
                         // update latest status
@@ -1432,11 +1461,11 @@ namespace CloudApiPublic.Sync
                             syncStatus = "Sync Run communication complete";
 
                             // for advanced trace, CommunicationCompletedChanges, CommunicationIncompletedChanges, and CommunicationChangesInError
-                            if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                            if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
-                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
-                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
+                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
+                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
+                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
                             }
 
                             // if there are completed changes, then loop through them to process success
@@ -1530,9 +1559,9 @@ namespace CloudApiPublic.Sync
                                 }
 
                                 // For advanced trace, SyncRunPostCommunicationDequeuedFailures
-                                if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                                if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                 {
-                                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
+                                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
                                 }
 
                                 // Declare enumerable for errors to set after dependency calculations
@@ -1624,10 +1653,10 @@ namespace CloudApiPublic.Sync
                                         }
 
                                         // For advanced trace, DependencyAssignmentOutputChanges and DependencyAssignmentTopLevelErrors
-                                        if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                                        if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                         {
-                                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
-                                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
+                                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
+                                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
                                         }
 
                                         // outputChanges now excludes any FileChanges which overlapped with the existing list of thingsThatWereDependenciesToQueue
@@ -1763,9 +1792,9 @@ namespace CloudApiPublic.Sync
                             }
 
                             // advanced trace, SyncRunPostCommunicationSynchronous
-                            if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                            if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
+                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
                             }
 
                             // update latest status
@@ -1799,7 +1828,7 @@ namespace CloudApiPublic.Sync
                                 newSyncId, // New Sync ID provided by server
                                 successfulEventIds, // enumerable of event ids which have been completed
                                 out syncCounter, // output incremented count of syncs
-                                (syncSettings.SyncRoot ?? string.Empty)); // pass current cloud root
+                                (syncBox.CopiedSettings.SyncRoot ?? string.Empty)); // pass current cloud root
 
                             // if there was an error recording a new Sync, then append the exception to the return error
                             if (recordSyncError != null)
@@ -1893,7 +1922,7 @@ namespace CloudApiPublic.Sync
                                     FileTransferQueued(asyncTask.Task.ThreadId,
                                         asyncTask.FileChange.FileChange.EventId,
                                         asyncTask.Task.Direction,
-                                        asyncTask.FileChange.FileChange.NewPath.GetRelativePath(syncSettings.SyncRoot, false),
+                                        asyncTask.FileChange.FileChange.NewPath.GetRelativePath(syncBox.CopiedSettings.SyncRoot, false),
                                         (long)asyncTask.FileChange.FileChange.Metadata.HashableProperties.Size);
 
                                     // try/catch to start the async task, or removing the UpDownEvent handler and rethrowing on exception
@@ -1901,7 +1930,7 @@ namespace CloudApiPublic.Sync
                                     {
                                         // start async task on the HttpScheduler
                                         asyncTask.Task.Task.Start(
-                                            HttpScheduler.GetSchedulerByDirection(asyncTask.Task.Direction, syncSettings)); // retrieve HttpScheduler by direction and settings (upload and download are on seperate queues, and settings are used for error logging)
+                                            HttpScheduler.GetSchedulerByDirection(asyncTask.Task.Direction, syncBox.CopiedSettings)); // retrieve HttpScheduler by direction and settings (upload and download are on seperate queues, and settings are used for error logging)
 
                                         // add task as asynchronously processed
                                         postCommunicationAsynchronousChanges.Add(asyncTask.FileChange.FileChange);
@@ -1934,9 +1963,9 @@ namespace CloudApiPublic.Sync
                             }
 
                             // advanced trace, SyncRunPostCommunicationAsynchronous
-                            if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                            if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
+                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
                             }
 
 
@@ -2046,9 +2075,9 @@ namespace CloudApiPublic.Sync
                         }
 
                         // advanced trace, SyncRunEndThingsThatWereDependenciesToQueue
-                        if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                        if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
                         }
                     }
                     // on catch, add dependencies to failure queue
@@ -2095,10 +2124,10 @@ namespace CloudApiPublic.Sync
                     toReturn); // return error to aggregate with more errors
 
                 // advanced trace, SyncRunEndRequeuedFailures
-                if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow
+                if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow
                     && errorsToQueue != null) // <-- fixed a parameter exception on the Enumerable.Select extension method used in the trace statement
                 {
-                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.FileChange));
+                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.FileChange));
                 }
 
                 // errorsToQueue is no longer used (all its errors were added back to the failure queue)
@@ -2138,7 +2167,7 @@ namespace CloudApiPublic.Sync
                     // if there was any error content besides streams to dispose, then log the errors
                     if (!onlyErrorIsFileStream)
                     {
-                        toReturn.LogErrors(syncSettings.TraceLocation, syncSettings.LogErrors);
+                        toReturn.LogErrors(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.LogErrors);
                     }
                 }
 
@@ -2469,7 +2498,7 @@ namespace CloudApiPublic.Sync
                                         FileToDownload = toComplete.FileChange,
                                         MD5 = toCompleteBytes,
                                         SyncData = syncData,
-                                        SyncSettings = syncSettings,
+                                        SyncBox = syncBox,
                                         TempDownloadFolderPath = TempDownloadsFolder,
                                         ShutdownToken = FullShutdownToken,
                                         MoveCompletedDownload = MoveCompletedDownload,
@@ -2532,7 +2561,7 @@ namespace CloudApiPublic.Sync
                                 FailureTimer = FailureTimer,
                                 FileToUpload = toComplete.FileChange,
                                 SyncData = syncData,
-                                SyncSettings = syncSettings,
+                                SyncBox = syncBox,
                                 UploadStream = toComplete.Stream,
                                 ShutdownToken = FullShutdownToken,
                                 HttpTimeoutMilliseconds = HttpTimeoutMilliseconds,
@@ -2616,7 +2645,7 @@ namespace CloudApiPublic.Sync
                     {
                         if (castState.ShutdownToken.Token.IsCancellationRequested)
                         {
-                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings);
+                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings);
                         }
                     }
                     finally
@@ -2663,9 +2692,9 @@ namespace CloudApiPublic.Sync
                         throw new NullReferenceException("UploadTaskState must contain SyncData");
                     }
 
-                    if (castState.SyncSettings == null)
+                    if (castState.SyncBox == null)
                     {
-                        throw new NullReferenceException("UploadTaskState must contain SyncSettings");
+                        throw new NullReferenceException("UploadTaskState must contain SyncBox");
                     }
 
                     if (castState.FailedChangesQueue == null)
@@ -2716,9 +2745,9 @@ namespace CloudApiPublic.Sync
                     }
 
                     // for advanced trace, UploadDownloadSuccess
-                    if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    if ((castState.SyncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.DeviceId, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
+                        ComTrace.LogFileChangeFlow(castState.SyncBox.CopiedSettings.TraceLocation, castState.SyncBox.CopiedSettings.DeviceId, castState.SyncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
                     }
 
                     // status message
@@ -2727,14 +2756,14 @@ namespace CloudApiPublic.Sync
                         EventMessageLevel.Regular);
 
                     // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
-                    return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncSettings);
+                    return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncBox.CopiedSettings);
                 }
                 catch
                 {
                     // advanced trace, UploadDownloadFailure
-                    if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    if ((castState.SyncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.DeviceId, castState.SyncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToUpload == null ? null : new FileChange[] { castState.FileToUpload }));
+                        ComTrace.LogFileChangeFlow(castState.SyncBox.CopiedSettings.TraceLocation, castState.SyncBox.CopiedSettings.DeviceId, castState.SyncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToUpload == null ? null : new FileChange[] { castState.FileToUpload }));
                     }
 
                     // rethrow
@@ -2763,9 +2792,9 @@ namespace CloudApiPublic.Sync
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
-                else if (castState.SyncSettings == null)
+                else if (castState.SyncBox == null)
                 {
-                    System.Windows.MessageBox.Show("uploadState must contain SyncSettings and thus unable cleanup after upload error: " + ex.Message);
+                    System.Windows.MessageBox.Show("uploadState must contain SyncBox and thus unable cleanup after upload error: " + ex.Message);
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
@@ -2801,7 +2830,7 @@ namespace CloudApiPublic.Sync
                                 castState.UploadStream, // upload stream for failed event
                                 ignoreStreamException: true), // ignore stream exception because we set the reference castState.UploadStream to null when it is normally disposed
                             castState.SyncData, // event source for updating when needed
-                            castState.SyncSettings), // settings for tracing or logging errors
+                            castState.SyncBox.CopiedSettings), // settings for tracing or logging errors
                         "Error in upload Task, see inner exception", // exception message
                         ex); // original exception
 
@@ -2814,7 +2843,7 @@ namespace CloudApiPublic.Sync
                 if (castState != null
                     && castState.FileToUpload != null
                     && castState.FileToUpload.NewPath != null
-                    && castState.SyncSettings != null
+                    && castState.SyncBox != null
                     && castState.FileToUpload.Metadata != null
                     && castState.StatusUpdate != null
                     && castState.FileToUpload.Metadata.HashableProperties.Size != null)
@@ -2823,7 +2852,7 @@ namespace CloudApiPublic.Sync
                         castState.ThreadId, // threadId
                         castState.FileToUpload.EventId, // eventId
                         SyncDirection.To, // direction
-                        castState.FileToUpload.NewPath.GetRelativePath(castState.SyncSettings.SyncRoot, false), // relativePath
+                        castState.FileToUpload.NewPath.GetRelativePath(castState.SyncBox.CopiedSettings.SyncRoot, false), // relativePath
                         (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
                         (long)castState.FileToUpload.Metadata.HashableProperties.Size); // totalByteSize
                 }
@@ -3012,9 +3041,9 @@ namespace CloudApiPublic.Sync
                     throw new NullReferenceException("DownloadTaskState must contain SyncData");
                 }
 
-                if (castState.SyncSettings == null)
+                if (castState.SyncBox == null)
                 {
-                    throw new NullReferenceException("DownloadTaskState must contain SyncSettings");
+                    throw new NullReferenceException("DownloadTaskState must contain SyncBox");
                 }
 
                 if (string.IsNullOrWhiteSpace(castState.TempDownloadFolderPath))
@@ -3068,7 +3097,7 @@ namespace CloudApiPublic.Sync
                 {
                     if (castState.ShutdownToken.Token.IsCancellationRequested)
                     {
-                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings, castState.TempDownloadFolderPath);
+                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.TempDownloadFolderPath);
                     }
                 }
                 finally
@@ -3180,7 +3209,7 @@ namespace CloudApiPublic.Sync
                     // using the existing temp file download succeeded so return success immediately
                     return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // id of succesful event
                         castState.SyncData, // event source for notifying completion
-                        castState.SyncSettings, // settings for tracing and error logging
+                        castState.SyncBox.CopiedSettings, // settings for tracing and error logging
                         castState.TempDownloadFolderPath); // path to the folder containing temp downloads
                 }
 
@@ -3217,7 +3246,7 @@ namespace CloudApiPublic.Sync
                 // The download was successful (no exceptions), but it may have been cancelled.
                 if (downloadStatus == CLHttpRestStatus.Cancelled)
                 {
-                    return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncSettings, castState.TempDownloadFolderPath);
+                    return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.TempDownloadFolderPath);
                 }
 
                 // if the download was not a success throw an error
@@ -3234,15 +3263,15 @@ namespace CloudApiPublic.Sync
                 // return the success
                 return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
                     castState.SyncData, // event source to handle callback for completing the event
-                    castState.SyncSettings, // settings for tracing and logging errors
+                    castState.SyncBox.CopiedSettings, // settings for tracing and logging errors
                     castState.TempDownloadFolderPath); // location of folder for temp downloads
             }
             catch (Exception ex)
             {
                 // for advanced trace, UploadDownloadFailure
-                if ((castState.SyncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                if ((castState.SyncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    ComTrace.LogFileChangeFlow(castState.SyncSettings.TraceLocation, castState.SyncSettings.DeviceId, castState.SyncSettings.SyncBoxId, 
+                    ComTrace.LogFileChangeFlow(castState.SyncBox.CopiedSettings.TraceLocation, castState.SyncBox.CopiedSettings.DeviceId, castState.SyncBox.SyncBoxId, 
                         FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
                 }
 
@@ -3266,9 +3295,9 @@ namespace CloudApiPublic.Sync
                                 // try to build the same relative path that would be used in the normal status, falling back first to the full path then to an empty string
                                 (castState.FileToDownload.NewPath == null
                                     ? string.Empty
-                                    : castState.SyncSettings == null
+                                    : castState.SyncBox.CopiedSettings == null
                                         ? castState.FileToDownload.NewPath.ToString()
-                                        : castState.FileToDownload.NewPath.GetRelativePath((castState.SyncSettings.SyncRoot ?? string.Empty), false) ?? string.Empty),
+                                        : castState.FileToDownload.NewPath.GetRelativePath((castState.SyncBox.CopiedSettings.SyncRoot ?? string.Empty), false) ?? string.Empty),
 
                                 // need to send a total downloaded bytes which matches the file size so they are equal to cancel the status
                                 (castState.FileToDownload.Metadata == null
@@ -3301,9 +3330,9 @@ namespace CloudApiPublic.Sync
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
-                else if (castState.SyncSettings == null)
+                else if (castState.SyncBox == null)
                 {
-                    System.Windows.MessageBox.Show("downloadState must contain SyncSettings and thus unable cleanup after download error: " + ex.Message);
+                    System.Windows.MessageBox.Show("downloadState must contain SyncBox and thus unable cleanup after download error: " + ex.Message);
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
@@ -3337,7 +3366,7 @@ namespace CloudApiPublic.Sync
                             castState.FailureTimer, // timer for failure queue
                             new PossiblyStreamableFileChange(castState.FileToDownload, null), // event which failed
                             castState.SyncData, // event source for updating when needed
-                            castState.SyncSettings), // settings for tracing or logging errors
+                            castState.SyncBox.CopiedSettings), // settings for tracing or logging errors
                         "Error in download Task, see inner exception", // exception message
                         ex); // original exception
 
@@ -3350,7 +3379,7 @@ namespace CloudApiPublic.Sync
                 if (castState != null
                     && castState.FileToDownload != null
                     && castState.FileToDownload.NewPath != null
-                    && castState.SyncSettings != null
+                    && castState.SyncBox != null
                     && castState.FileToDownload.Metadata != null
                     && castState.StatusUpdate != null
                     && castState.FileToDownload.Metadata.HashableProperties.Size != null)
@@ -3359,7 +3388,7 @@ namespace CloudApiPublic.Sync
                         castState.ThreadId, // threadId
                         castState.FileToDownload.EventId, // eventId
                         SyncDirection.To, // direction
-                        castState.FileToDownload.NewPath.GetRelativePath(castState.SyncSettings.SyncRoot, false), // relativePath
+                        castState.FileToDownload.NewPath.GetRelativePath(castState.SyncBox.CopiedSettings.SyncRoot, false), // relativePath
                         (long)castState.FileToDownload.Metadata.HashableProperties.Size, // byteProgress
                         (long)castState.FileToDownload.Metadata.HashableProperties.Size); // totalByteSize
                 }
@@ -3670,7 +3699,7 @@ namespace CloudApiPublic.Sync
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public ISyncDataObject SyncData { get; set; }
             public string TempDownloadFolderPath { get; set; }
-            public ISyncSettingsAdvanced SyncSettings { get; set; }
+            public CLSyncBox SyncBox { get; set; }
             public CancellationTokenSource ShutdownToken { get; set; }
             public MoveCompletedDownloadDelegate MoveCompletedDownload { get; set; }
             public Nullable<int> HttpTimeoutMilliseconds { get; set; }
@@ -3691,7 +3720,7 @@ namespace CloudApiPublic.Sync
             public Stream UploadStream { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public ISyncDataObject SyncData { get; set; }
-            public ISyncSettingsAdvanced SyncSettings { get; set; }
+            public CLSyncBox SyncBox { get; set; }
             public CancellationTokenSource ShutdownToken { get; set; }
             public Nullable<int> HttpTimeoutMilliseconds { get; set; }
             public Nullable<byte> MaxNumberOfFailureRetries { get; set; }
@@ -3891,9 +3920,9 @@ namespace CloudApiPublic.Sync
             else
             {
                 // For advanced trace, UploadDownloadSuccess
-                if ((syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    ComTrace.LogFileChangeFlow(syncSettings.TraceLocation, syncSettings.DeviceId, syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
+                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
                 }
 
                 // Pull the location of the temp download folder by finding the directory path portion before the name of the downloaded file
@@ -3988,7 +4017,7 @@ namespace CloudApiPublic.Sync
                         // if there was an error adding the dependencies to the processing queue, then log the error
                         if (err != null)
                         {
-                            err.LogErrors(syncSettings.TraceLocation, syncSettings.LogErrors);
+                            err.LogErrors(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.LogErrors);
                         }
                     }
                     catch (Exception ex)
@@ -4017,7 +4046,8 @@ namespace CloudApiPublic.Sync
                         }
 
                         // log the error
-                        ((CLError)new Exception("Error adding dependencies of a completed file download to the processing queue", ex)).LogErrors(syncSettings.TraceLocation, syncSettings.LogErrors);
+                        ((CLError)new Exception("Error adding dependencies of a completed file download to the processing queue", ex))
+                            .LogErrors(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.LogErrors);
                     }
                 }
             }
@@ -4074,7 +4104,7 @@ namespace CloudApiPublic.Sync
                     if (failuresDict == null)
                     {
                         // initialize the failuresDict and store any error that occurs in the process
-                        CLError createFailuresDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncSettings.SyncRoot ?? string.Empty),
+                        CLError createFailuresDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncBox.CopiedSettings.SyncRoot ?? string.Empty),
                             out failuresDict);
                         // if an error occurred initializing the failuresDict, then rethrow the error
                         if (createFailuresDictError != null)
@@ -4112,7 +4142,7 @@ namespace CloudApiPublic.Sync
                             runningUpDownChanges.Add(currentUpDown)));
 
                         // initialize the runningUpDownChangesDict and store any error that occurs in the process
-                        CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncSettings.SyncRoot ?? string.Empty),
+                        CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncBox.CopiedSettings.SyncRoot ?? string.Empty),
                             out runningUpDownChangesDict);
                         // if an error occurred initializing the runningUpDownChangesDict, then rethrow the error
                         if (createUpDownDictError != null)
@@ -4324,15 +4354,15 @@ namespace CloudApiPublic.Sync
                                     ModifiedDate = currentEvent.FileChange.Metadata.HashableProperties.LastTime, // when this file system object was last modified
                                     RelativeFromPath = (currentEvent.FileChange.OldPath == null
                                         ? null // null for a null OldPath
-                                        : currentEvent.FileChange.OldPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for an OldPath
+                                        : currentEvent.FileChange.OldPath.GetRelativePath((syncBox.CopiedSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for an OldPath
                                             (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
                                                 ? "/" // append forward slash at end of folder paths
                                                 : string.Empty)),
-                                    RelativePath = currentEvent.FileChange.NewPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read for everything except renames, but set it anyways)
+                                    RelativePath = currentEvent.FileChange.NewPath.GetRelativePath((syncBox.CopiedSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read for everything except renames, but set it anyways)
                                         (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
                                             ? "/" // append forward slash at end of folder paths
                                             : string.Empty),
-                                    RelativeToPath = currentEvent.FileChange.NewPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read only for renames, but set it anyways)
+                                    RelativeToPath = currentEvent.FileChange.NewPath.GetRelativePath((syncBox.CopiedSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read only for renames, but set it anyways)
                                         (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
                                             ? "/" // append forward slash at end of folder paths
                                             : string.Empty),
@@ -4342,12 +4372,12 @@ namespace CloudApiPublic.Sync
                                     Version = "1.0", // I do not know what value should be placed here
                                     TargetPath = (currentEvent.FileChange.Metadata.LinkTargetPath == null
                                         ? null // null for a null shortcut target path
-                                        : currentEvent.FileChange.Metadata.LinkTargetPath.GetRelativePath((syncSettings.SyncRoot ?? string.Empty), true)), // for a shortcut pointing to a place within the root, this is a path relative to the root with slashes switched for the NewPath; otherwise this is the actual shortcut target path
+                                        : currentEvent.FileChange.Metadata.LinkTargetPath.GetRelativePath((syncBox.CopiedSettings.SyncRoot ?? string.Empty), true)), // for a shortcut pointing to a place within the root, this is a path relative to the root with slashes switched for the NewPath; otherwise this is the actual shortcut target path
                                     MimeType = currentEvent.FileChange.Metadata.MimeType // never retrieved from Windows
                                 }
                             }).ToArray(), // selected into a new array
-                            SyncBoxId = syncSettings.SyncBoxId, // pass in the sync box id
-                            DeviceId = syncSettings.DeviceId // pass in the device id
+                            SyncBoxId = syncBox.SyncBoxId, // pass in the sync box id
+                            DeviceId = syncBox.CopiedSettings.DeviceId // pass in the device id
                         };
 
                         // declare the status for the sync to http operation
@@ -4455,7 +4485,7 @@ namespace CloudApiPublic.Sync
                                             .FileChange.NewPath
 
                                         // else if the current event does have metadata (non-rename events), then build the path from the root path plus the metadata path
-                                        : (syncSettings.SyncRoot ?? string.Empty) + "\\" +
+                                        : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
                                             (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')));
                                 }
                             }
@@ -4474,7 +4504,7 @@ namespace CloudApiPublic.Sync
                                 if (eventsByPath.Contains(
 
                                     // append Sync From event relative path to the root path to build the full path for comparison
-                                    (syncSettings.SyncRoot ?? string.Empty) + "\\" +
+                                    (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
                                     (deserializedResponse.Events[currentEventIndex].Metadata.RelativePathWithoutEnclosingSlashes ?? deserializedResponse.Events[currentEventIndex].Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')))
                                 {
                                     // from event is duplicate, add its index to duplicates
@@ -4506,7 +4536,7 @@ namespace CloudApiPublic.Sync
                     // declare a dictionary for already visited Sync From renames so if metadata was found for a rename in an event then later renames can carry forward the metadata
                     FilePathDictionary<FileMetadata> alreadyVisitedRenames;
                     // initialize the visited renames dictionary, storing any error that occurs
-                    CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncSettings.SyncRoot ?? string.Empty),
+                    CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncBox.CopiedSettings.SyncRoot ?? string.Empty),
                         out alreadyVisitedRenames);
 
                     // create a dictionary mapping event id to changes which were moved as dependencies under new pseudo-Sync From changes (i.e. conflict)
@@ -4606,11 +4636,11 @@ namespace CloudApiPublic.Sync
                                 else
                                 {
                                     // set the new path by appending the relative path to the root
-                                    findNewPath = (syncSettings.SyncRoot ?? string.Empty) + "\\" +
+                                    findNewPath = (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
                                         (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\');
                                     // set the old path for rename events by appending the relative path to the root, or null for non-renames
                                     findOldPath = (CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action)
-                                        ? (syncSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')
+                                        ? (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')
                                         : null);
                                     // set the MD5 hash, or null for non-files
                                     findHash = currentEvent.Metadata.Hash;
@@ -4623,7 +4653,7 @@ namespace CloudApiPublic.Sync
                                         currentEvent.Metadata.Size); // the size of a file or null for non-files
                                     findLinkTargetPath = (string.IsNullOrEmpty(currentEvent.Metadata.TargetPath)
                                         ? null // if the current event has no shortcut target path, then set the target path as null
-                                        : (syncSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")); // else if the current event has a shortcut path, then create the shortcut path by appending a relative path to the root
+                                        : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")); // else if the current event has a shortcut path, then create the shortcut path by appending a relative path to the root
                                     // set the revision from the current file, or null for non-files
                                     findRevision = currentEvent.Metadata.Revision;
                                     // set the storage key from the current file, or null for non-files
@@ -4833,7 +4863,7 @@ namespace CloudApiPublic.Sync
                                                                 StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                                 LinkTargetPath = (newMetadata.TargetPath == null
                                                                     ? null // if server metadata does not have a shortcut file target path, then use null
-                                                                    : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                                    : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
                                                                 MimeType = newMetadata.MimeType // never set on Windows
                                                             }
                                                         },
@@ -5301,7 +5331,7 @@ namespace CloudApiPublic.Sync
                                                         }
 
                                                         // define a portion of the name which needs to be added to describe the conflict state dynamic to the current friendly-named device
-                                                        string deviceAppend = " CONFLICT " + syncSettings.DeviceName;
+                                                        string deviceAppend = " CONFLICT " + syncBox.CopiedSettings.FriendlyName;
                                                         // declare a string to store the main name of the conflict file to create
                                                         string finalizedMainName;
                                                         // declare a FilePath to store the full path to the conflict file to create
@@ -5783,8 +5813,8 @@ namespace CloudApiPublic.Sync
                             new Push() // use a new push request
                             {
                                 LastSyncId = syncString, // fill in the last sync id
-                                DeviceId = syncSettings.DeviceId, // fill in the device id
-                                SyncBoxId = syncSettings.SyncBoxId // fill in the sync box id
+                                DeviceId = syncBox.CopiedSettings.DeviceId, // fill in the device id
+                                SyncBoxId = syncBox.SyncBoxId // fill in the sync box id
                             },
                             HttpTimeoutMilliseconds, // milliseconds before http communication will timeout on an operation
                             out syncFromStatus, // output the status of the communication
@@ -5804,10 +5834,10 @@ namespace CloudApiPublic.Sync
                             CreateFileChangeFromBaseChangePlusHash(new FileChange() // create a FileChange with dependencies and set the hash, start by creating a new FileChange input
                             {
                                 Direction = SyncDirection.From, // current communcation direction is Sync From (only Sync From events, not mixed like Sync To events)
-                                NewPath = (syncSettings.SyncRoot ?? string.Empty) + "\\" + (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'), // new location of change
+                                NewPath = (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'), // new location of change
                                 OldPath = (currentEvent.Metadata.RelativeFromPath == null
                                     ? null // if the current event is not a rename, then it has no previous path
-                                    : (syncSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')), // if the current event is a rename, grab the previous path
+                                    : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')), // if the current event is a rename, grab the previous path
                                 Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action), // grab the type of change from the action string
                                 Metadata = new FileMetadata()
                                 {
@@ -5822,7 +5852,7 @@ namespace CloudApiPublic.Sync
                                     StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
                                     LinkTargetPath = (currentEvent.Metadata.TargetPath == null
                                         ? null // if current event is a folder or a file which is not a shortcut, then there is no shortcut target path
-                                        : (syncSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else if the current event is a shortcut file, then grab the shortcut path
+                                        : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else if the current event is a shortcut file, then grab the shortcut path
                                     MimeType = currentEvent.Metadata.MimeType // never set on Windows
                                 }
                             },
@@ -5836,7 +5866,7 @@ namespace CloudApiPublic.Sync
                         // declare a dictionary for already visited Sync From renames so if metadata was found for a rename in an event then later renames can carry forward the metadata
                         FilePathDictionary<FileMetadata> alreadyVisitedRenames;
                         // initialize the visited renames dictionary, storing any error that occurs
-                        CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncSettings.SyncRoot ?? string.Empty),
+                        CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncBox.CopiedSettings.SyncRoot ?? string.Empty),
                             out alreadyVisitedRenames);
 
                         // loop through the Sync From changes where the type is a rename event and select just the FileChange
@@ -5997,7 +6027,7 @@ namespace CloudApiPublic.Sync
                                                 StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                 LinkTargetPath = (newMetadata.TargetPath == null
                                                     ? null // if server metadata does not have a shortcut file target path, then use null
-                                                    : (syncSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                    : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
                                                 MimeType = newMetadata.MimeType // never set on Windows
                                             }
                                         },

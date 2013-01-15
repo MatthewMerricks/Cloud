@@ -12,6 +12,7 @@ namespace CloudApiPublic.Static
     /// <summary>
     /// Provides detailed information about the host operating system.
     /// </summary>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public static class OSVersionInfo
     {
         #region ENUMS
