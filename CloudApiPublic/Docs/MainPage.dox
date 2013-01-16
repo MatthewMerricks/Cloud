@@ -5,10 +5,17 @@
 /// The Cloud Windows Client SDK allows your application to easily support real time file synchronization services.
 ///
 /// A SyncBox can be thought of as a folder with a hierarhical directory structure.  Any files placed in a SyncBox can be automatically
-/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS and Android).  Your account can have multiple
-/// SyncBoxes, and your application can open multiple SyncBoxes on a device.
+/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS and Android).  Each device has an ID that is unique in the SyncBox.
+/// Your account can have multiple SyncBoxes (each with multiple device IDs), and your application can open multiple SyncBoxes on a physical device.
 ///
 /// In desktop environments, a SyncBox is tied to a particular local disk directory.  e.g., on Windows, "C:\Users\<UserName>\<YourSyncBoxName>".
+///
+/// To begin syncing, you will need to:
+/// - Specify your credentials.
+/// - Specify the path to be synced.
+/// - Create a SyncBox object with the above information.
+/// - Create an instance of a SyncBox engine and start it with the SyncBox object.
+/// .
 ///
 /// See how easy it is:
 ///
@@ -89,7 +96,7 @@
 /// 
 /// Install the SDK by following the steps below:
 ///
-/// - Browse to the Cloud download page at https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal.  You can read this documentation there.
+/// - Browse to the Cloud download page at https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal.
 /// - Click the Download link to download the Windows Cloud SDK installation program.
 /// - Follow the instructions to install the Cloud SDK.
 /// .
@@ -105,7 +112,7 @@
 /// - Application Key:  Paste this key from your Cloud developer DashBoard web page (https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal).  This key uniquely identifies your application.
 /// - Application Secret:  Paste this private key from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this private key from a secure location.
 /// - SyncBox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the SyncBox.  It represents a folder that will be synced across all of your devices, and to the Cloud servers.
-/// - Unique Device ID: Choose a unique name (within this SyncBox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.
+/// - (Optional) Unique Device ID: Choose a unique name (within this SyncBox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If you do not specify the device ID, it will default to a unique ID.
 /// .
 /// 
 /// Buttons:
@@ -156,7 +163,7 @@
 /// }
 /// \endcode
 /// - Trace Level:  This is a number to control the amount of functional tracing to be written.  Specify a number from 0 to 9.  0: no functional trace.  9: full functional trace.
-/// - Log Errors: Check this box to generate a trace file containing only sync errors.  The Trace Folder (above) is required if this box is checked.
+/// - Log Errors: Check this box to generate a special trace file containing only sync errors.  The Trace Folder (above) is required if this box is checked.
 /// .
 /// Buttons:
 /// - OK: Click this button to keep your changes to the Advanced Options.  The kept changes will not be persisted to disk until you click the Save Settings button on the main window.
@@ -165,8 +172,10 @@
 /// \subsection sampleapp-syncstatuswindow-subsec Sync Status Window
 /// The Sync Status Window is displayed when you click the Sync Status button on the main window:
 /// \image html SampleAppSyncStatusWindow.jpg "Sync Status Window"
-/// This window has two areas.  The upload and download graphical status bars appear on the top, each with historical bandwidth display.  Sync supports up to six upload and six download threads, but your local group policy may limit the number to two each.
+/// This window has three areas.  The upload and download graphical status bars appear on the top, each with historical bandwidth display.  Sync supports up to six upload and six download threads, but your local group policy may limit the number to two each.
 /// If more than two upload or download threads are activated, a vertical scrollbar will appear.
+///
+/// The middle area presents the overall real-time sync statistics, and an icon that changes from Synced (check mark) to Syncing (anmiated syncing icon).
 ///
 /// The sync messages appear on the bottom in a scrolling window.
 ///
@@ -179,7 +188,7 @@
 /// There are four possible badges:
 /// - Synced
 /// - Syncing
-/// - Selective (selectively synced)
+/// - Selective (selectively synced, not supported yet)
 /// - Error
 /// .
 ///
@@ -206,18 +215,23 @@
 /// the process (with the user's permission).  Then the file can be deleted.
 /// \subsection sampleapp-startingsync-subsec Starting Sync
 /// Here are the steps used to start sync.  Refer to MainViewModel:StartSyncing().
-/// - Verify settings:  Sample code can be found in MainViewModel:SaveSettings().  If the settings are incorrect, the _syncBox.Start() function will return an error.
-/// - Verify that the SyncBox folder or authorization information has not changed.  If it has, you should reset the sync database by calling _syncBox.SyncReset or _syncBox.WipeIndex().
-/// - Call _syncBox.Start() to start syncing.  This function takes the sync settings.  It returns a simple result enumeration, and also returns CLError (see below) with possible additional information.
-/// - Inspect the out parameter (startStatus) which is the result of _syncBox.Start().  Handle an error if the result is not CLSyncStartStatus.Successful.
-/// - If sync was started successfully, start your sync status implementation.  In the case of the sample app, this is SyncStatusView, using EventMessageReceiver as a ViewModel.  Both of these are described below.
+/// - Verify settings:  Sample code can be found in MainViewModel:SaveSettings().  If the settings are incorrect, the sync functions will return errors.
+/// - Create an instance of CLCredentials with your credential information.
+/// - Create an instance of CLSyncBox with the path on disk to be synced, and with the instance of CLCredentials.
+/// - Create an instance of CLSyncEngine.
+/// - Verify that the SyncBox folder or authorization information has not changed.  If it has, you should reset the sync database by calling _syncEngine.SyncReset or _syncEngine.WipeIndex().
+/// - Call _syncEngine.Start() to start syncing.  This function takes the sync settings and some additional optional parameters.
+/// - Inspect the out parameter (startStatus) which is the result of _syncEngine.Start().  Handle an error if the result is not CLSyncStartStatus.Successful.
 /// .
 /// \subsection sampleapp-stoppingsync-subsec Stopping Sync
 /// Here are the steps to stop sync.  Refer to MainViewModel:StopSyncing().
 /// - Close and dispose your sync status implementation.
-/// - Call _syncBox.Stop();
+/// - Call _syncEngine.Stop();
 /// .
 /// \subsection sampleapp-clerror-subsec The CLError Class
+/// CLError is a class that represents an error, perhaps containing aggregated exceptions.  Most of the sync public methods return a CLError object.  If the returned object is null, no error occurred.  Otherwise you can
+/// inspect this object for its contained error information.
+///
 /// CLError is a class with the following features:
 /// - Stores one or more Exceptions.
 /// - Each Exception may have an inner exception.
@@ -244,49 +258,14 @@
 /// - List of files currently uploading (ObservableCollection)
 /// - List of files currently downloading (ObservableCollection)
 /// - List of messages (ObservableCollection)
+/// - Overall sync status information
 /// - Individual sync change events
 /// .
 /// The sample app SyncStatusView does not handle the individual sync change events.  Those events are described below.
 ///
 /// The SyncStatusView object uses two ViewModels (EventMessageReceiver for binding to the ObservableCollections of data, and SyncStatusViewModel only to handle the Done button action).
 ///
-/// This view is instantiated at _syncBox.Start() by the sample app, and it runs until _syncBox.Stop().  Buttons simply show and hide the window.
-/// Your view can instantiate and dispose your view (and the related EventMessageReceiver ViewModel) at any time, but the data collection will not begin until you instantiate the class.
-/// \subsection sampleapp-eventmessagereceiver-subsec The EventMessageReceiver Class
-/// EventMessageReceiver is used as one of the ViewModels for your sync status view.  You can bind to any of the following ObservableCollections:
-/// - ListFilesDownloading
-/// - ListFilesUploading
-/// - ListMessages
-/// .
-///
-/// The ListFilesDownloading and ListFilesUploading collections expose the following properties:
-/// \code{.cs}
-/// public interface ICLStatusFileTransfer
-/// {
-///     /// <summary>
-///     /// Relative path to the transferring file from the sync root folder
-///     /// </summary>
-///     string SyncRelativePath { get; }
-///     /// <summary>
-///     /// Whether this file transfer status should be visible (visible for actual transfers and not visible for blank placeholders)
-///     /// </summary>
-///     Visibility Visibility { get; }
-///     /// <summary>
-///     /// Number from 0 to 1 for the current transfer rate out of historical maximum or twice the starting rate (whichever is greater)
-/// \subsection sampleapp-syncstatusView-subsec The SyncStatusView Class
-/// The Sync Status View window is the sample app's implementation of a class to view the status information produced by the sync engine.  Yours may be very different.
-///
-/// The following information is produced by the sync engine for possible consumption by your sync status viewer:
-/// - List of files currently uploading (ObservableCollection)
-/// - List of files currently downloading (ObservableCollection)
-/// - List of messages (ObservableCollection)
-/// - Individual sync change events
-/// .
-/// The sample app SyncStatusView does not handle the individual sync change events.  Those events are described below.
-///
-/// The SyncStatusView object uses two ViewModels (EventMessageReceiver for binding to the ObservableCollections of data, and SyncStatusViewModel only to handle the Done button action).
-///
-/// This view is instantiated at _syncBox.Start() by the sample app, and it runs until _syncBox.Stop().  Buttons simply show and hide the window.
+/// This view is instantiated at _syncEngine.Start() by the sample app, and it runs until _syncEngine.Stop().  Buttons simply show and hide the window.
 /// Your view can instantiate and dispose your view (and the related EventMessageReceiver ViewModel) at any time, but the data collection will not begin until you instantiate the class.
 /// \subsection sampleapp-eventmessagereceiver-subsec The EventMessageReceiver Class
 /// EventMessageReceiver is used as one of the ViewModels for your sync status view.  You can bind to any of the following ObservableCollections:
@@ -335,6 +314,14 @@
 /// \endcode
 ///
 /// ListMessages items expose the MessageText property (string).
+/// \subsection sampleapp-summarystatus-subsec Overall Summary Sync Status
+/// Two of the optional parameters on the _syncEngine.Start() function (StatusUpdated and StatusUpdatedUserState) can be used to retrieve overall sync summary status from the engine.
+/// 
+/// StatusUpdated represents your callback function that will be driven each time sync status changes.
+///
+/// StatusUpdatedUserState is your own object representing user state information to be passed to the StatusUpdated callback function.
+///
+/// When the StatusUpdated callback is called by the engine, you can call _syncEngine.GetCLSyncCurrentStatus() to get the current sync summary status.  You need to aggregate this information for display.  See SyncStatusViewModel.OnSyncStatusUpdated().
 /// \subsection sampleapp-syncchangeevents-subsec Sync Change Events
 /// Sync change events can be used to track real-time progress.  They are described in class MessageEvents.  MessageEvents exposes the following events:
 /// - public static event EventHandler<EventMessageArgs> NewEventMessage:
