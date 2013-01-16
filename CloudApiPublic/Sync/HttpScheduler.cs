@@ -36,7 +36,7 @@ namespace CloudApiPublic.Sync
         private static bool FromDisposed = false;
         private static bool ToDisposed = false;
 
-        private static ISyncSettingsAdvanced _syncSettings;
+        private static ICLSyncSettingsAdvanced _syncSettings;
         private static bool SyncSettingsSet = false;
         private static readonly object SyncSettingsLocker = new object();
         #endregion
@@ -61,7 +61,7 @@ namespace CloudApiPublic.Sync
         /// <param name="direction">Use From for downloads and To for uploads</param>
         /// <param name="syncSettings">Settings to use for logging errors</param>
         /// <returns>Returns the appropriate instance of HttpScheduler</returns>
-        public static HttpScheduler GetSchedulerByDirection(SyncDirection direction, ISyncSettingsAdvanced syncSettings)
+        public static HttpScheduler GetSchedulerByDirection(SyncDirection direction, ICLSyncSettingsAdvanced syncSettings)
         {
             // switch on input direction so the appropriate output is returned
             switch (direction)
@@ -458,8 +458,8 @@ namespace CloudApiPublic.Sync
         // define the locker for access to TaskQueue
         private readonly object TaskQueueLocker = new object();
         // define the current number of simultaneously processing tasks, defaulting to zero before the first Tasks queue
-        private int runningTaskCount = 0;
-        private int inlineExecutingCount = 0;
+        private readonly Dictionary<Guid, Task> runningTasks = new Dictionary<Guid, Task>();
+        private readonly Dictionary<Guid, Task> inlineExecuting = new Dictionary<Guid, Task>();
 
         // returns tasks which have yet to start processing from TaskQueue
         protected override IEnumerable<Task> GetScheduledTasks()
@@ -478,35 +478,57 @@ namespace CloudApiPublic.Sync
         {
             lock (TaskQueueLocker)
             {
-                switch (Direction)
+                ITransferTaskState castState = task.AsyncState as ITransferTaskState;
+
+                if (castState != null
+                    && castState.SyncBox != null)
                 {
-                    case SyncDirection.From:
-                    // direction for downloads
-                        MessageEvents.SetDownloadingCount(
-                            sender: this, 
-                            newCount: (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1),
-                            SyncBoxId: _syncSettings.SyncBoxId,
-                            DeviceId: _syncSettings.DeviceId);
-                        break;
+                    ITransferTaskState runningTaskState;
+                    int runningTaskCount = runningTasks.Count(runningTask => (runningTaskState = runningTask.Value.AsyncState as ITransferTaskState) != null
+                        && runningTaskState.SyncBox != null
+                        && runningTaskState.SyncBox.SyncBoxId == castState.SyncBox.SyncBoxId
+                        && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castState.SyncBox.CopiedSettings.DeviceId));
+                    int inlineExecutingCount = inlineExecuting.Count(currentInline => (runningTaskState = currentInline.Value.AsyncState as ITransferTaskState) != null
+                        && runningTaskState.SyncBox != null
+                        && runningTaskState.SyncBox.SyncBoxId == castState.SyncBox.SyncBoxId
+                        && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castState.SyncBox.CopiedSettings.DeviceId));
 
-                    case SyncDirection.To:
-                    // direction for uploads
-                        MessageEvents.SetUploadingCount(
-                            sender: this, 
-                            newCount: (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1),
-                            SyncBoxId: _syncSettings.SyncBoxId,
-                            DeviceId: _syncSettings.DeviceId);
-                        break;
+                    switch (Direction)
+                    {
+                        case SyncDirection.From:
+                            // direction for downloads
+                            MessageEvents.SetDownloadingCount(
+                                sender: this,
+                                newCount: (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1),
+                                SyncBoxId: castState.SyncBox.SyncBoxId,
+                                DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
+                            break;
 
-                    default:
-                        // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
-                        throw new NotSupportedException("Unknown SyncDirection: " + Direction.ToString());
+                        case SyncDirection.To:
+                            // direction for uploads
+                            MessageEvents.SetUploadingCount(
+                                sender: this,
+                                newCount: (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1),
+                                SyncBoxId: castState.SyncBox.SyncBoxId,
+                                DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
+                            break;
+
+                        default:
+                            // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
+                            throw new NotSupportedException("Unknown SyncDirection: " + Direction.ToString());
+                    }
                 }
 
-                if (runningTaskCount < MaximumConcurrencyLevel)
+                if (runningTasks.Count < MaximumConcurrencyLevel)
                 {
-                    runningTaskCount++;
-                    ThreadPool.UnsafeQueueUserWorkItem(TaskProcessor, new KeyValuePair<HttpScheduler, Task>(this, task));
+                    Guid newProcessorId = Guid.NewGuid();
+                    runningTasks[newProcessorId] = task;
+
+                    ThreadPool.UnsafeQueueUserWorkItem(TaskProcessor, new KeyValuePair<HttpScheduler, KeyValuePair<Guid, Task>>(
+                        this,
+                        new KeyValuePair<Guid, Task>(
+                            newProcessorId,
+                            task)));
                 }
                 else
                 {
@@ -519,7 +541,7 @@ namespace CloudApiPublic.Sync
         // and will later try to pull more tasks out of TaskQueue till it's empty
         private static void TaskProcessor(object state)
         {
-            Nullable<KeyValuePair<HttpScheduler, Task>> castState = state as Nullable<KeyValuePair<HttpScheduler, Task>>;
+            Nullable<KeyValuePair<HttpScheduler, KeyValuePair<Guid, Task>>> castState = state as Nullable<KeyValuePair<HttpScheduler, KeyValuePair<Guid, Task>>>;
             if (castState == null)
             {
                 // Must make this error very clear because we cannot recover from being unable to run tasks
@@ -528,49 +550,65 @@ namespace CloudApiPublic.Sync
             }
             else
             {
-                KeyValuePair<HttpScheduler, Task> nonNullState = (KeyValuePair<HttpScheduler, Task>)castState;
+                KeyValuePair<HttpScheduler, KeyValuePair<Guid, Task>> nonNullState = (KeyValuePair<HttpScheduler, KeyValuePair<Guid, Task>>)castState;
 
-                Action<HttpScheduler> setCount = scheduler =>
+                Action<HttpScheduler, Task> setCount = (scheduler, currentTask) =>
                     {
-                        uint taskCount;
-                        lock (scheduler.TaskQueueLocker)
+                        ITransferTaskState castTask = currentTask.AsyncState as ITransferTaskState;
+
+                        if (castTask != null
+                            && castTask.SyncBox != null)
                         {
-                            taskCount = (uint)(scheduler.TaskQueue.Count + scheduler.runningTaskCount + scheduler.inlineExecutingCount - 1);
-                        }
+                            uint taskCount;
+                            lock (scheduler.TaskQueueLocker)
+                            {
+                                ITransferTaskState runningTaskState;
+                                int runningTaskCount = scheduler.runningTasks.Count(runningTask => (runningTaskState = runningTask.Value.AsyncState as ITransferTaskState) != null
+                                    && runningTaskState.SyncBox != null
+                                    && runningTaskState.SyncBox.SyncBoxId == castTask.SyncBox.SyncBoxId
+                                    && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castTask.SyncBox.CopiedSettings.DeviceId));
+                                int inlineExecutingCount = scheduler.inlineExecuting.Count(currentInline => (runningTaskState = currentInline.Value.AsyncState as ITransferTaskState) != null
+                                    && runningTaskState.SyncBox != null
+                                    && runningTaskState.SyncBox.SyncBoxId == castTask.SyncBox.SyncBoxId
+                                    && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castTask.SyncBox.CopiedSettings.DeviceId));
 
-                        switch (scheduler.Direction)
-                        {
-                            case SyncDirection.From:
-                            // direction for downloads
-                                MessageEvents.SetDownloadingCount(
-                                    sender: scheduler, 
-                                    newCount: taskCount,
-                                    SyncBoxId: _syncSettings.SyncBoxId,
-                                    DeviceId: _syncSettings.DeviceId);
-                                break;
+                                taskCount = (uint)(scheduler.TaskQueue.Count + runningTaskCount + inlineExecutingCount - 1);
+                            }
 
-                            case SyncDirection.To:
-                            // direction for uploads
-                                MessageEvents.SetUploadingCount(
-                                    sender: scheduler, 
-                                    newCount: taskCount,
-                                    SyncBoxId: _syncSettings.SyncBoxId,
-                                    DeviceId: _syncSettings.DeviceId);
-                                break;
+                            switch (scheduler.Direction)
+                            {
+                                case SyncDirection.From:
+                                    // direction for downloads
+                                    MessageEvents.SetDownloadingCount(
+                                        sender: scheduler,
+                                        newCount: taskCount,
+                                        SyncBoxId: castTask.SyncBox.SyncBoxId,
+                                        DeviceId: castTask.SyncBox.CopiedSettings.DeviceId);
+                                    break;
 
-                            default:
-                                // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
-                                throw new NotSupportedException("Unknown SyncDirection: " + scheduler.Direction.ToString());
+                                case SyncDirection.To:
+                                    // direction for uploads
+                                    MessageEvents.SetUploadingCount(
+                                        sender: scheduler,
+                                        newCount: taskCount,
+                                        SyncBoxId: castTask.SyncBox.SyncBoxId,
+                                        DeviceId: castTask.SyncBox.CopiedSettings.DeviceId);
+                                    break;
+
+                                default:
+                                    // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
+                                    throw new NotSupportedException("Unknown SyncDirection: " + scheduler.Direction.ToString());
+                            }
                         }
                     };
 
                 // if the provided userstate contains a Task to start with,
                 // then try to execute that task immediately
-                if (nonNullState.Value != null)
+                if (nonNullState.Value.Value != null)
                 {
-                    nonNullState.Key.TryExecuteTask(nonNullState.Value);
+                    nonNullState.Key.TryExecuteTask(nonNullState.Value.Value);
 
-                    setCount(nonNullState.Key);
+                    setCount(nonNullState.Key, nonNullState.Value.Value);
                 }
 
                 // define function to check if a given direction's HttpScheduler is disposed
@@ -605,18 +643,19 @@ namespace CloudApiPublic.Sync
                         // then decrement the count of concurrently running tasks and break out to stop executing
                         if (nonNullState.Key.TaskQueue.Count == 0)
                         {
-                            nonNullState.Key.runningTaskCount--;
+                            nonNullState.Key.runningTasks.Remove(nonNullState.Value.Key);
                             break;
                         }
 
                         // if we have not broken out, then a Task exists to dequeue and run
                         toRun = nonNullState.Key.TaskQueue.Dequeue();
+                        nonNullState.Key.runningTasks[nonNullState.Value.Key] = toRun;
                     }
 
                     // run the dequeued Task
                     nonNullState.Key.TryExecuteTask(toRun);
 
-                    setCount(nonNullState.Key);
+                    setCount(nonNullState.Key, toRun);
                 }
             }
         }
@@ -652,33 +691,49 @@ namespace CloudApiPublic.Sync
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
             // run under lock of TaskQueueLocker
-            Action<HttpScheduler> setCount = scheduler =>
+            Action<HttpScheduler, Task> setCount = (scheduler, inlineTask) =>
             {
-                uint taskCount = (uint)(scheduler.TaskQueue.Count + scheduler.runningTaskCount + scheduler.inlineExecutingCount);
+                ITransferTaskState castInlineTask = inlineTask.AsyncState as ITransferTaskState;
 
-                switch (scheduler.Direction)
+                if (castInlineTask != null
+                    && castInlineTask.SyncBox != null)
                 {
-                    case SyncDirection.From:
-                    // direction for downloads
-                        MessageEvents.SetDownloadingCount(
-                            sender: scheduler, 
-                            newCount: taskCount,
-                            SyncBoxId: _syncSettings.SyncBoxId,
-                            DeviceId: _syncSettings.DeviceId);
-                        break;
+                    ITransferTaskState runningTaskState;
+                    int runningTaskCount = scheduler.runningTasks.Count(runningTask => (runningTaskState = runningTask.Value.AsyncState as ITransferTaskState) != null
+                        && runningTaskState.SyncBox != null
+                        && runningTaskState.SyncBox.SyncBoxId == castInlineTask.SyncBox.SyncBoxId
+                        && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castInlineTask.SyncBox.CopiedSettings.DeviceId));
+                    int inlineExecutingCount = scheduler.inlineExecuting.Count(currentInline => (runningTaskState = currentInline.Value.AsyncState as ITransferTaskState) != null
+                        && runningTaskState.SyncBox != null
+                        && runningTaskState.SyncBox.SyncBoxId == castInlineTask.SyncBox.SyncBoxId
+                        && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castInlineTask.SyncBox.CopiedSettings.DeviceId));
 
-                    case SyncDirection.To:
-                    // direction for uploads
-                        MessageEvents.SetUploadingCount(
-                            sender: scheduler, 
-                            newCount: taskCount,
-                            SyncBoxId: _syncSettings.SyncBoxId,
-                            DeviceId: _syncSettings.DeviceId);
-                        break;
+                    uint taskCount = (uint)(scheduler.TaskQueue.Count + runningTaskCount + inlineExecutingCount);
 
-                    default:
-                        // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
-                        throw new NotSupportedException("Unknown SyncDirection: " + scheduler.Direction.ToString());
+                    switch (scheduler.Direction)
+                    {
+                        case SyncDirection.From:
+                            // direction for downloads
+                            MessageEvents.SetDownloadingCount(
+                                sender: scheduler,
+                                newCount: taskCount,
+                                SyncBoxId: castInlineTask.SyncBox.SyncBoxId,
+                                DeviceId: castInlineTask.SyncBox.CopiedSettings.DeviceId);
+                            break;
+
+                        case SyncDirection.To:
+                            // direction for uploads
+                            MessageEvents.SetUploadingCount(
+                                sender: scheduler,
+                                newCount: taskCount,
+                                SyncBoxId: castInlineTask.SyncBox.SyncBoxId,
+                                DeviceId: castInlineTask.SyncBox.CopiedSettings.DeviceId);
+                            break;
+
+                        default:
+                            // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
+                            throw new NotSupportedException("Unknown SyncDirection: " + scheduler.Direction.ToString());
+                    }
                 }
             };
 
@@ -687,18 +742,20 @@ namespace CloudApiPublic.Sync
                 TryDequeue(task);
             }
 
+            Guid inlineId = Guid.NewGuid();
+
             lock (TaskQueueLocker)
             {
-                inlineExecutingCount++;
-                setCount(this);
+                inlineExecuting[inlineId] = task;
+                setCount(this, task);
             }
 
             bool executed = base.TryExecuteTask(task);
 
             lock (TaskQueueLocker)
             {
-                inlineExecutingCount--;
-                setCount(this);
+                inlineExecuting.Remove(inlineId);
+                setCount(this, task);
             }
 
             // log the exception synchronously since the task fired synchronously

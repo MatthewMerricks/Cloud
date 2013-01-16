@@ -33,15 +33,15 @@ namespace CloudApiPublic.Static
     {
         private static CLTrace _trace = CLTrace.Instance;
 
-        /// <summary>
-        /// Get the friendly name of this computer.
-        /// </summary>
-        /// <returns></returns>
-        public static string GetComputerFriendlyName()
-        {
-            // Todo: should find an algorithm to generate a unique identifier for this device name
-            return Environment.MachineName;
-        }
+        ///// <summary>
+        ///// Get the friendly name of this computer.
+        ///// </summary>
+        ///// <returns></returns>
+        //public static string GetComputerFriendlyName()
+        //{
+        //    // Todo: should find an algorithm to generate a unique identifier for this device name
+        //    return Environment.MachineName;
+        //}
 
         /// <summary>
         /// Creates a default instance of a provided type for use with populating out parameters when exceptions are thrown
@@ -1466,12 +1466,12 @@ namespace CloudApiPublic.Static
         /// <summary>
         /// Generate the signed token for the platform auth Authorization header.
         /// </summary>
-        /// <param name="settings">The settings to use for this generation.</param>
+        /// <param name="ApplicationSecret">Secret from credentials</param>
         /// <param name="httpMethod">The HTTP method.  e.g.: "POST".</param>
         /// <param name="pathAndQueryStringAndFragment">The HTTP path, query string and fragment.  The path is required.</param>
         /// <param name="serverUrl">The server URL.</param>
         /// <returns></returns>
-        internal static string GenerateAuthorizationHeaderToken(ISyncSettingsAdvanced settings, string httpMethod, string pathAndQueryStringAndFragment)
+        internal static string GenerateAuthorizationHeaderToken(string ApplicationSecret, string httpMethod, string pathAndQueryStringAndFragment)
         {
             string toReturn = String.Empty;
             try
@@ -1508,7 +1508,7 @@ namespace CloudApiPublic.Static
                         Uri.UnescapeDataString(queryString);
 
                 // Hash the string
-                byte[] secretByte = Encoding.UTF8.GetBytes(settings.ApplicationSecret);
+                byte[] secretByte = Encoding.UTF8.GetBytes(ApplicationSecret);
                 HMACSHA256 hmac = new HMACSHA256(secretByte);
                 byte[] stringToHashBytes = Encoding.UTF8.GetBytes(stringToHash);
                 byte[] hashMessage = hmac.ComputeHash(stringToHashBytes);
@@ -1592,9 +1592,10 @@ namespace CloudApiPublic.Static
         /// Get the full path of the folder which will be used to store files while they are downloading.
         /// </summary>
         /// <param name="settings">The settings to use.</param>
+        /// <param name="syncBoxId">ID of the SyncBox</param>
         /// <returns>string: The full path of the temp download directory.</returns>
         /// <remarks>Can throw.</remarks>
-        internal static string GetTempFileDownloadPath(ISyncSettingsAdvanced settings)
+        internal static string GetTempFileDownloadPath(ICLSyncSettingsAdvanced settings, long syncBoxId)
         {
             string toReturn = "";
             try
@@ -1607,15 +1608,11 @@ namespace CloudApiPublic.Static
                 {
                     throw new NullReferenceException("settings DeviceId cannot be null");
                 }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
-                }
 
                 // Gather the path info
                 string sAppName = Helpers.GetDefaultNameFromApplicationName().Trim();
                 string sLocalDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Trim();
-                string sUniqueFolderName = ((long)settings.SyncBoxId).ToString() +"-" + settings.DeviceId.Trim();
+                string sUniqueFolderName = syncBoxId.ToString() +"-" + settings.DeviceId.Trim();
                 string sDataDir = sLocalDir + "\\" + sAppName + "\\" + sUniqueFolderName;
                 string sTempDownloadDir = sDataDir + "\\" + CLDefinitions.kTempDownloadFolderName;
 
@@ -1646,46 +1643,24 @@ namespace CloudApiPublic.Static
         /// <summary>
         /// Get the full path of the folder which will be used to store the database file.
         /// </summary>
-        /// <param name="settings">The settings to use.</param>
+        /// <param name="DeviceId">Unique ID of this device</param>
+        /// <param name="SyncBoxId">ID of the SyncBox</param>
         /// <returns>string: The full path of the directory which will be used for the database file.</returns>
         /// <remarks>Can throw.</remarks>
-        internal static string GetDatabasePath(ISyncSettingsAdvanced settings)
+        internal static string GetDefaultDatabasePath(string DeviceId, long SyncBoxId)
         {
-            string toReturn = "";
             try
             {
-                if (settings == null)
+                if (string.IsNullOrEmpty(DeviceId))
                 {
-                    throw new NullReferenceException("settings cannot be null");
-                }
-                if (string.IsNullOrEmpty(settings.DeviceId))
-                {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
-                }
-                if (settings.SyncBoxId == null)
-                {
-                    throw new NullReferenceException("settings SyncBoxId cannot be null");
+                    throw new NullReferenceException("DeviceId cannot be null");
                 }
 
                 // Gather the path info
                 string sAppName = Helpers.GetDefaultNameFromApplicationName().Trim();
                 string sLocalDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Trim();
-                string sUniqueFolderName = ((long)settings.SyncBoxId).ToString() + "-" + settings.DeviceId.Trim();
-                string sDataDir = sLocalDir + "\\" + sAppName + "\\" + sUniqueFolderName;
-
-                // Determine the database directory to use
-                string sDatabaseDirectoryToUse;
-                if (!String.IsNullOrWhiteSpace(settings.DatabaseFolder))
-                {
-                    sDatabaseDirectoryToUse = settings.DatabaseFolder.Trim();
-                }
-                else
-                {
-                    sDatabaseDirectoryToUse = sDataDir;
-                }
-
-
-                toReturn = sDatabaseDirectoryToUse;
+                string sUniqueFolderName = SyncBoxId.ToString() + "-" + DeviceId.Trim();
+                return sLocalDir + "\\" + sAppName + "\\" + sUniqueFolderName;
             }
             catch (Exception ex)
             {
@@ -1694,8 +1669,6 @@ namespace CloudApiPublic.Static
                 CLTrace.Instance.writeToLog(1, "Helpers: GetTempFileDownloadPath: ERROR. Exception.  Msg: <{0}>.", ex.Message);
                 throw ex;
             }
-
-            return toReturn;
         }
     }
 }

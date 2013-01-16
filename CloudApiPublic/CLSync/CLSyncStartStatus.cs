@@ -14,7 +14,8 @@ namespace CloudApiPublic
 {
     public enum CLSyncStartStatus : byte
     {
-        ErrorUnknown,
+        ErrorNullSyncBox,
+        ErrorNullDeviceId,
         ErrorLongRootPath,
         ErrorBadRootPath,
         ErrorAlreadyStarted,

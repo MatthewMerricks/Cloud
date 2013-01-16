@@ -13,6 +13,9 @@ using System.Text;
 
 namespace CloudApiPublic
 {
+    /// <summary>
+    /// Contains properties describing the current state of CLSync at the time of retrieval
+    /// </summary>
     public sealed class CLSyncCurrentStatus
     {
         public CLSyncCurrentState CurrentState

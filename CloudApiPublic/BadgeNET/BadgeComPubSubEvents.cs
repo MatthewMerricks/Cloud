@@ -52,7 +52,7 @@ namespace CloudApiPublic.BadgeNET
         private bool _fRequestWatchingThreadExit = false;
         private bool _fTerminating = false;
         private bool _fIsInitialized = false;
-        private ISyncSettingsAdvanced _syncSettings;
+        private ICLSyncSettingsAdvanced _syncSettings;
         
         #endregion
 
@@ -60,7 +60,7 @@ namespace CloudApiPublic.BadgeNET
         /// <summary>
         /// Initialize and load the BadgeCom PubSubServer.
         /// </summary>
-        public void Initialize(ISyncSettings syncSettings)
+        public void Initialize(ICLSyncSettings syncSettings)
         {
             try
             {

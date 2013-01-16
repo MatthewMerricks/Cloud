@@ -216,7 +216,7 @@ namespace CloudApiPublic.FileMonitor
         /// lock on InitialIndexLocker
         /// </summary>
         private bool IsInitialIndex = true;
-        private readonly ISyncSettingsAdvanced _syncSettings;
+        private readonly CLSyncBox _syncBox;
         #endregion
 
         /// <summary>
@@ -224,31 +224,30 @@ namespace CloudApiPublic.FileMonitor
         /// requires running Start() method to begin monitoring and then, when available, load
         /// the initial index list to begin processing via BeginProcessing(initialList)
         /// </summary>
+        /// <param name="syncBox">SyncBox to monitor</param>
         /// <param name="syncSettings">The settings to be used with this instance of the file system monitor</param>
         /// <param name="indexer">Created and initialized but not started SQLIndexer</param>
         /// <param name="httpRestClient">Client for Http REST communication</param>
+        /// <param name="StatusUpdated">Callback to fire upon update of the running status</param>
+        /// <param name="StatusUpdatedUserState">Userstate to pass to the statusUpdated callback</param>
         /// <param name="newAgent">(output) the return MonitorAgent created by this method</param>
         /// <param name="syncEngine">(output) the return SyncEngine which is also created with the combination of the input SQLIndexer indexer and the output MonitorAgent</param>
         /// <param name="onQueueingCallback">(optional) action to be executed every time a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns>Returns any error that occurred, or null.</returns>
-        public static CLError CreateNewAndInitialize(ISyncSettingsAdvanced syncSettings,
+        public static CLError CreateNewAndInitialize(CLSyncBox syncBox,
             IndexingAgent indexer,
             CLHttpRest httpRestClient,
+            System.Threading.WaitCallback StatusUpdated,
+            object StatusUpdatedUserState,
             out MonitorAgent newAgent,
             out SyncEngine syncEngine,
-            System.Threading.WaitCallback statusUpdated = null,
-            object statusUpdatedUserState = null,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
-            // Initialize Cloud trace in case it is not already initialized.
-            CLTrace.Initialize(syncSettings.TraceLocation, "Cloud", "log", syncSettings.TraceLevel, syncSettings.LogErrors);
-            CLTrace.Instance.writeToLog(9, "MonitorAgent: CreateNewAndInitialize: Entry");
-
             try
             {
-                newAgent = new MonitorAgent(indexer, syncSettings);
+                newAgent = new MonitorAgent(indexer, syncBox);
             }
             catch (Exception ex)
             {
@@ -260,7 +259,17 @@ namespace CloudApiPublic.FileMonitor
             try
             {
                 // Create sync engine
-                syncEngine = new SyncEngine(newAgent._syncData, syncSettings, httpRestClient, statusUpdated: statusUpdated, statusUpdatedUserState: statusUpdatedUserState);
+                CLError createSyncEngineError = SyncEngine.CreateAndInitialize(
+                    newAgent._syncData,
+                    syncBox,
+                    httpRestClient,
+                    out syncEngine,
+                    StatusUpdated,
+                    StatusUpdatedUserState);
+                if (createSyncEngineError != null)
+                {
+                    return createSyncEngineError;
+                }
             }
             catch (Exception ex)
             {
@@ -270,11 +279,11 @@ namespace CloudApiPublic.FileMonitor
 
             try
             {
-                if (string.IsNullOrEmpty(syncSettings.SyncRoot))
+                if (string.IsNullOrEmpty(syncBox.CopiedSettings.SyncRoot))
                 {
                     throw new Exception("Folder path cannot be null nor empty");
                 }
-                DirectoryInfo folderInfo = new DirectoryInfo(syncSettings.SyncRoot);
+                DirectoryInfo folderInfo = new DirectoryInfo(syncBox.CopiedSettings.SyncRoot);
                 if (!folderInfo.Exists)
                 {
                     throw new Exception("Folder not found at provided folder path");
@@ -291,7 +300,7 @@ namespace CloudApiPublic.FileMonitor
                 }
 
                 // Initialize folder paths
-                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = syncSettings.SyncRoot;
+                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = syncBox.CopiedSettings.SyncRoot;
 
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;
@@ -338,17 +347,24 @@ namespace CloudApiPublic.FileMonitor
             return null;
         }
 
-        private MonitorAgent(IndexingAgent Indexer, ISyncSettingsAdvanced SyncSettings)
+        private MonitorAgent(IndexingAgent Indexer, CLSyncBox syncBox)
         {
+            // check input parameters
+
+            if (syncBox == null)
+            {
+                throw new NullReferenceException("syncBox cannot be null");
+            }
+
+            // Initialize Cloud trace in case it is not already initialized.
+            CLTrace.Initialize(syncBox.CopiedSettings.TraceLocation, "Cloud", "log", syncBox.CopiedSettings.TraceLevel, syncBox.CopiedSettings.LogErrors);
+            CLTrace.Instance.writeToLog(9, "MonitorAgent: CreateNewAndInitialize: Entry");
+
             if (Indexer == null)
             {
                 throw new NullReferenceException("Indexer cannot be null");
             }
-            if (SyncSettings == null)
-            {
-                throw new NullReferenceException("SyncSettings cannot be null");
-            }
-            this._syncSettings = SyncSettings;
+            this._syncBox = syncBox;
             this.Indexer = Indexer;
             this._syncData = new SyncData(this, Indexer);
         }
@@ -488,7 +504,7 @@ namespace CloudApiPublic.FileMonitor
                                 {
                                     try
                                     {
-                                        string backupLocation = Helpers.GetTempFileDownloadPath(_syncSettings) + "\\" + Guid.NewGuid().ToString();
+                                        string backupLocation = Helpers.GetTempFileDownloadPath(_syncBox.CopiedSettings, _syncBox.SyncBoxId) + "\\" + Guid.NewGuid().ToString();
                                         File.Replace(oldPathString,
                                             newPathString,
                                             backupLocation,
@@ -1574,16 +1590,16 @@ namespace CloudApiPublic.FileMonitor
                 toReturn += ex;
             }
 
-            if ((_syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            if ((_syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                ComTrace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.DeviceId, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
+                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
                     {
                         FileChangeWithDependencies selectedWithoutDependencies;
                         FileChangeWithDependencies.CreateAndInitialize(removeDependencies, null, out selectedWithoutDependencies);
                         return selectedWithoutDependencies;
                     }))(currentQueuedChange.Key.MergeTo)));
-                ComTrace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.DeviceId, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
-                ComTrace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.DeviceId, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
             }
 
             return toReturn;
@@ -2592,9 +2608,9 @@ namespace CloudApiPublic.FileMonitor
         /// <param name="toChange">New file change</param>
         private void QueueFileChange(FileChange toChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null)
         {
-            if ((_syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            if ((_syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                ComTrace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.DeviceId, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
+                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
             }
 
             // lock on queue to prevent conflicting updates/reads
@@ -2986,7 +3002,7 @@ namespace CloudApiPublic.FileMonitor
                     if (mergeError != null)
                     {
                         // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                        mergeError.LogErrors(_syncSettings.TraceLocation, true);
+                        mergeError.LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
                         MessageBox.Show("An error occurred adding a file system event to the database:" + Environment.NewLine +
                             string.Join(Environment.NewLine,
                                 mergeError.GrabExceptions().Select(currentError => (currentError is AggregateException
@@ -2994,9 +3010,9 @@ namespace CloudApiPublic.FileMonitor
                                     : currentError.Message)).ToArray()));
                     }
 
-                    if ((_syncSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    if ((_syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        ComTrace.LogFileChangeFlow(_syncSettings.TraceLocation, _syncSettings.DeviceId, _syncSettings.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
+                        ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
                     }
 
                     // clear out batch for merge for next set of remaining operations
@@ -3014,7 +3030,7 @@ namespace CloudApiPublic.FileMonitor
                                 nextMerge.ToString() + " " + (nextMerge.NewPath == null ? "nullPath" : nextMerge.NewPath.ToString());
 
                             // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                            ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncSettings.TraceLocation, true);
+                            ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
                             MessageBox.Show(noEventIdErrorMessage);
                         }
 

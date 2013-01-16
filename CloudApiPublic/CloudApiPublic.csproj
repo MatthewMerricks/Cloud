@@ -45,42 +45,56 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="BadgeCOMLib">
+      <!-- , Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" -->
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-      <Private>True</Private>
+      <!--<Private>False</Private>-->
     </Reference>
-    <Reference Include="EntityFramework">
+    <Reference Include="EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\EntityFramework.dll</HintPath>
     </Reference>
-    <Reference Include="ErikEJ.SqlCe40">
+    <Reference Include="ErikEJ.SqlCe40, Version=2.1.6.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</HintPath>
     </Reference>
     <Reference Include="Interop.Shell32">
       <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="Microsoft.Net.Http">
-      <HintPath>..\3rdParty\bin\Debug\Microsoft.Net.Http.dll</HintPath>
+    <Reference Include="Microsoft.Net.Http, Version=0.3.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Microsoft.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.ServiceLocation, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\3rdParty\bin\Debug\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="RateBar">
+    <Reference Include="RateBar, Version=1.0.4762.20666, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\RateBar.dll</HintPath>
     </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Common, Version=0.2.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Salient.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Salient.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="SimpleJson, Version=0.1.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\SimpleJson.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.ClientEngine.Common, Version=0.2.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll</HintPath>
     </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Core">
+    <Reference Include="SuperSocket.ClientEngine.Core, Version=0.2.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll</HintPath>
     </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Protocol">
+    <Reference Include="SuperSocket.ClientEngine.Protocol, Version=0.2.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -101,8 +115,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="WebSocket4Net">
+    <Reference Include="WebSocket4Net, Version=0.7.0.0, Culture=neutral, PublicKeyToken=eb4e154b696bf72a, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\WebSocket4Net.dll</HintPath>
+      <Aliases>global,WebSocket4NetBase</Aliases>
     </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
@@ -110,6 +125,8 @@
     <Compile Include="BadgeNET\BadgeComPubSubEvents.cs" />
     <Compile Include="BadgeNET\Enums.cs" />
     <Compile Include="BadgeNET\IconOverlay.cs" />
+    <Compile Include="CLSync\CLCredentials.cs" />
+    <Compile Include="CLSync\CLSyncBox.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
     <Compile Include="CLSync\CLSyncStartStatus.cs" />
@@ -132,6 +149,7 @@
     <Compile Include="EventMessageReceiver\WindowSyncStatusViewModel.cs" />
     <Compile Include="FileMonitor\MonitorAgent.cs" />
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
+    <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />
     <Compile Include="JsonContracts\FileCopy.cs" />
     <Compile Include="JsonContracts\FileOrFolderDelete.cs" />
@@ -150,20 +168,18 @@
     <Compile Include="Model\IMessageSender.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
-    <Compile Include="PushNotification\PushSettings.cs" />
     <Compile Include="REST\CLHttpRest.cs" />
     <Compile Include="REST\GenericAsyncResult.cs" />
-    <Compile Include="REST\RESTSettings.cs" />
     <Compile Include="REST\TransferProgress.cs" />
     <Compile Include="Static\ItemsControlHelper.cs" />
     <Compile Include="Support\CLCopyFiles.cs" />
-    <Compile Include="CLSync\CLSync.cs" />
+    <Compile Include="CLSync\CLSyncEngine.cs" />
     <Compile Include="Static\CLOsVersionInfo.cs" />
     <Compile Include="Support\RelayCommand.cs" />
-    <Compile Include="CLSync\SyncSettings.cs" />
+    <Compile Include="CLSync\CLSyncSettings.cs" />
     <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
     <Compile Include="Interfaces\ISyncDataObject.cs" />
-    <Compile Include="Interfaces\ISyncSettings.cs" />
+    <Compile Include="Interfaces\ICLSyncSettings.cs" />
     <Compile Include="JsonContracts\Download.cs" />
     <Compile Include="JsonContracts\Event.cs" />
     <Compile Include="JsonContracts\Header.cs" />
@@ -278,6 +294,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="CloudPlatformCodeSigning.pfx" />
     <None Include="Docs\MainPage.dox" />
     <None Include="packages.config" />
     <None Include="Static\Log.xsd">
@@ -473,6 +490,39 @@ if errorlevel 1 goto BuildEventFailed
 set ErrorTracker=24
 echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=25
+echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=26
+echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=27
+echo copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=28
+echo copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=29
+echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=30
+echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 :DoneWithCloudApiPublic

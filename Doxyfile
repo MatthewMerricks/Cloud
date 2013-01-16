@@ -712,7 +712,8 @@ EXCLUDE_PATTERNS       = */CloudApiPublic/Sync* \
                          */BadgeNET* \
                          */CloudApiPublic/FileMonitor* \
                          */SQLIndexer* \
-                         */CloudApiPublic/EventMessageReceiver/Status*
+                         */CloudApiPublic/EventMessageReceiver/Status* \
+                         */CloudApiPublic/REST*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -745,7 +746,8 @@ EXCLUDE_SYMBOLS        = CloudApiPublic::Interfaces::ISyncDataObject \
                          CloudApiPublic::Static::CopyrightCopyright \
                          CloudApiPublic::Static::TraceFileChangeType \
                          CloudApiPublic::Static::FileChangeFlowEntryPositionInFlow \
-                         CloudApiPublic::Static::CommunicationEntryDirection
+                         CloudApiPublic::Static::CommunicationEntryDirection \
+                         CloudApiPublic::Static::OSVersionInfo
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see

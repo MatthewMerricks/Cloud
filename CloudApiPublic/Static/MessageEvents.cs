@@ -1,4 +1,4 @@
-﻿//
+//
 // MessageEvents.cs
 // Cloud Windows
 //
@@ -14,7 +14,7 @@ using System.Text;
 namespace CloudApiPublic.Static
 {
     /// <summary>
-    /// Exposes events to receive status notifications from <see cref="CloudApiPublic.CLSync"/>
+    /// Exposes events to receive status notifications from <see cref="CloudApiPublic.CLSyncEngine"/>
     /// </summary>
     public static class MessageEvents
     {

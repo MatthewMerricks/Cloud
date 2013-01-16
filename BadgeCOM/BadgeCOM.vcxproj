@@ -932,25 +932,21 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(Pl
       <Command>echo copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
+rem C:\Cloud\windows-client\3rdParty\bin\Release&gt;tlbimp.exe BadgeCOM.dll /delaysign /publickey:C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pub /out:BadgeCOMLib.dll
+rem C:\Cloud\windows-client\3rdParty\bin\Release&gt;sn.exe -R BadgeCOMLib.dll C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pfx
 echo tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
 tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
 if errorlevel 1 goto BuildEventFailed
-echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
 copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
 if errorlevel 1 goto BuildEventFailed
-echo copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(TargetName)Lib.dll
 copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(TargetName)Lib.dll
 if errorlevel 1 goto BuildEventFailed
-echo copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(TargetName)Lib.dll
 copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(TargetName)Lib.dll
 if errorlevel 1 goto BuildEventFailed
-echo copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
 copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
-echo copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
 copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
-echo regsvr32.exe /u /s $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 regsvr32.exe /u /s $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 REM do not jump to error condition and reset error level since it is fine if regsvr32.exe fails to unregister dll
 set errorlevel=0

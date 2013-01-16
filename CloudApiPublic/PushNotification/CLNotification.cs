@@ -23,10 +23,12 @@ using CloudApiPublic.REST;
 
 namespace CloudApiPublic.PushNotification
 {
+    extern alias WebSocket4NetBase;
+
     /// <summary>
     /// Properties for a received notification message
     /// </summary>
-    public sealed class NotificationEventArgs : EventArgs
+    internal sealed class NotificationEventArgs : EventArgs
     {
         public NotificationResponse Message
         {
@@ -76,7 +78,7 @@ namespace CloudApiPublic.PushNotification
     /// <summary>
     /// Used to establish a connection to server notifications and provides events for notifications\errors
     /// </summary>
-    public sealed class CLNotification
+    internal sealed class CLNotification
     {
         /// <summary>
         /// Event fired when a push notification message is received from the server.
@@ -101,11 +103,10 @@ namespace CloudApiPublic.PushNotification
         private WebSocket _connection = null;
         private MessageReceiver urlReceiver = null;
         private bool _isInitialized = false;
-        private readonly ISyncSettingsAdvanced _syncSettings;
+        private readonly CLSyncBox _syncBox;
         private bool _serviceStarted;               // True: the push notification service has been started.
         private bool _pushConnected = false;
         private int _faultCount = 0;
-        private CLHttpRest _restclient = null;
 
         /// <summary>
         /// Tracks the subscribed clients via their Settings SyncBoxId.
@@ -113,63 +114,57 @@ namespace CloudApiPublic.PushNotification
         private static readonly Dictionary<Nullable<long>, CLNotification> NotificationClientsRunning = new Dictionary<Nullable<long>, CLNotification>();
 
         /// <summary>
-        /// Access Instance to get the push notification server object for this client.
-        /// Then call methods on that instance.
+        /// Outputs the push notification server object for this client
         /// </summary>
-        /// <param name="syncSettings">The settings that identify the calling client.  Specifically the AKey differentiates clients.</param>
-        public static CLNotification GetInstance(ISyncSettings syncSettings)
+        /// <param name="syncBox">SyncBox of this client</param>
+        /// <param name="notifications">(output) The found or constructed notification server object</param>
+        /// <returns>Returns any error that occurred retrieving the notification server object, if any</returns>
+        public static CLError GetInstance(CLSyncBox syncBox, out CLNotification notifications)
         {
-            if (syncSettings == null)
+            try
             {
-                throw new NullReferenceException("syncSettings cannot be null");
-            }
-
-            if (syncSettings.SyncBoxId == null)
-            {
-                throw new NullReferenceException("syncSettings SyncBoxId cannot be null");
-            }
-
-            if (string.IsNullOrWhiteSpace(syncSettings.DeviceId))
-            {
-                throw new NullReferenceException("syncSettings Udid cannot be null");
-            }
-
-            lock (NotificationClientsRunning)
-            {
-                Nullable<long> storeSyncBoxId = syncSettings.SyncBoxId;
-                CLNotification toReturn;
-                if (!NotificationClientsRunning.TryGetValue(storeSyncBoxId, out toReturn))
+                if (syncBox == null)
                 {
-                    NotificationClientsRunning.Add(storeSyncBoxId, toReturn = new CLNotification(syncSettings));
+                    throw new NullReferenceException("syncBox cannot be null");
                 }
-                return toReturn;
+
+                lock (NotificationClientsRunning)
+                {
+                    Nullable<long> storeSyncBoxId = syncBox.SyncBoxId;
+                    if (!NotificationClientsRunning.TryGetValue(storeSyncBoxId, out notifications))
+                    {
+                        NotificationClientsRunning.Add(storeSyncBoxId, notifications = new CLNotification(syncBox));
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                notifications = Helpers.DefaultForType<CLNotification>();
+                return ex;
+            }
+            return null;
         }
 
-        /// <summary>
-        /// This is a private constructor, meaning no outsiders have access.
-        /// </summary>
-        private CLNotification(ISyncSettings syncSettings)
+        // This is a private constructor, meaning no outsiders have access.
+        private CLNotification(CLSyncBox syncBox)
         {
-            if (syncSettings == null)
+            // check input parameters
+
+            if (syncBox == null)
             {
-                throw new NullReferenceException("syncSettings cannot be null");
+                throw new NullReferenceException("syncBox cannot be null");
+            }
+            if (string.IsNullOrEmpty(syncBox.CopiedSettings.DeviceId))
+            {
+                throw new NullReferenceException("syncBox CopiedSettings DeviceId cannot be null");
             }
 
             // sync settings are copied so that changes require stopping and starting notification services
-            this._syncSettings = SyncSettingsExtensions.CopySettings(syncSettings);
+            this._syncBox = syncBox;
 
             // Initialize trace in case it is not already initialized.
-            CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
+            CLTrace.Initialize(syncBox.CopiedSettings.TraceLocation, "Cloud", "log", syncBox.CopiedSettings.TraceLevel, syncBox.CopiedSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "CLNotification: CLNotification: Entry");
-
-            // Instantiate the Http Rest client
-            CLError createRestClientError = CLHttpRest.CreateAndInitialize(_syncSettings, out _restclient);
-            if (createRestClientError != null)
-            {
-                _trace.writeToLog(1, "CLNotification: CLNotification: ERROR: Error creating the HTTP REST client.");
-                throw new AggregateException("Error creating the HTTP REST client.", createRestClientError.GrabExceptions());
-            }
 
             // Initialize members, etc. here (at static initialization time).
             ConnectPushNotificationServer();
@@ -194,22 +189,22 @@ namespace CloudApiPublic.PushNotification
                 try
                 {
                     string url = CLDefinitions.CLNotificationServerURL;
-                    string pathAndQueryStringAndFragment = String.Format("/1/sync/subscribe?sync_box_id={0}&device={1}", _syncSettings.SyncBoxId, _syncSettings.DeviceId);
+                    string pathAndQueryStringAndFragment = String.Format("/1/sync/subscribe?sync_box_id={0}&device={1}", _syncBox.SyncBoxId, _syncBox.CopiedSettings.DeviceId);
                     _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>. QueryString: {1}.", url, pathAndQueryStringAndFragment);
 
                     //¡¡ Remember to exclude authentication from trace once web socket authentication is implemented based on _syncSettings.TraceExcludeAuthorization !!
-                    if ((_syncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
+                    if ((_syncBox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                     {
-                        ComTrace.LogCommunication(_syncSettings.TraceLocation,
-                            _syncSettings.DeviceId,
-                            _syncSettings.SyncBoxId,
+                        ComTrace.LogCommunication(_syncBox.CopiedSettings.TraceLocation,
+                            _syncBox.CopiedSettings.DeviceId,
+                            _syncBox.SyncBoxId,
                             CommunicationEntryDirection.Request,
                             url + pathAndQueryStringAndFragment,
                             true,
                             null,
                             (string)null,
                             null,
-                            _syncSettings.TraceExcludeAuthorization);
+                            _syncBox.CopiedSettings.TraceExcludeAuthorization);
                     }
 
                     string webSocketOpenStatus = "Entered action to open WebSocket";
@@ -226,10 +221,10 @@ namespace CloudApiPublic.PushNotification
                                         CLDefinitions.HeaderKeyAuthorization, 
                                         CLDefinitions.HeaderAppendCWS0 +
                                             CLDefinitions.HeaderAppendKey +
-                                            _syncSettings.ApplicationKey + ", " +
+                                            _syncBox.Credentials.ApplicationKey + ", " +
                                             CLDefinitions.HeaderAppendSignature +
                                             Helpers.GenerateAuthorizationHeaderToken(
-                                                settings: _syncSettings,
+                                                ApplicationSecret: _syncBox.Credentials.ApplicationSecret,
                                                 httpMethod: CLDefinitions.HeaderAppendMethodGet, 
                                                 pathAndQueryStringAndFragment: pathAndQueryStringAndFragment))
                                 },
@@ -251,7 +246,7 @@ namespace CloudApiPublic.PushNotification
                                 try
                                 {
                                     _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Allocate MessageReceiver.");
-                                    urlReceiver = new MessageReceiver(url, _syncSettings, (sender, e) =>
+                                    urlReceiver = new MessageReceiver(url, _syncBox, (sender, e) =>
                                     {
                                         if (NotificationReceived != null)
                                         {
@@ -311,7 +306,7 @@ namespace CloudApiPublic.PushNotification
                 {
                     CLError error = ex;
                     _trace.writeToLog(1, "CLNotification: ConnectPushNotificationServer: ERROR: Exception connecting with the push server. Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
-                    error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                    error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
 
                     fallbackToManualPolling = true;
                 }
@@ -393,7 +388,7 @@ namespace CloudApiPublic.PushNotification
                 {
                     storeManualPollingError = ex;
                     _trace.writeToLog(1, "CLNotification: FallbackToManualPolling: ERROR: Exception occurred trying to reconnect to push after manually polling. Msg: <{0}>, Code: {1}.", storeManualPollingError.errorDescription, ((int)storeManualPollingError.code).ToString());
-                    storeManualPollingError.LogErrors(castState._syncSettings.TraceLocation, castState._syncSettings.LogErrors);
+                    storeManualPollingError.LogErrors(castState._syncBox.CopiedSettings.TraceLocation, castState._syncBox.CopiedSettings.LogErrors);
                 }
 
                 if (manualPollingIteration == 0)
@@ -425,9 +420,9 @@ namespace CloudApiPublic.PushNotification
                             // Force logging errors in the serious case where a message had to be displayed
                             _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Put up an ugly MessageBox to the user.");
                             forceErrors = true;
-                            if (!castState._syncSettings.LogErrors)
+                            if (!castState._syncBox.CopiedSettings.LogErrors)
                             {
-                                storeManualPollingError.LogErrors(castState._syncSettings.TraceLocation, true);
+                                storeManualPollingError.LogErrors(castState._syncBox.CopiedSettings.TraceLocation, true);
                             }
 
                             // Serious error, unable to reconnect to push notification AND unable to manually poll
@@ -447,7 +442,7 @@ namespace CloudApiPublic.PushNotification
                             Thread.Sleep(CLDefinitions.ManualPollingIterationPeriodInMilliseconds);
                         }
 
-                        error.LogErrors(castState._syncSettings.TraceLocation, forceErrors || castState._syncSettings.LogErrors);
+                        error.LogErrors(castState._syncBox.CopiedSettings.TraceLocation, forceErrors || castState._syncBox.CopiedSettings.LogErrors);
                     }
                 }
                 else
@@ -477,7 +472,8 @@ namespace CloudApiPublic.PushNotification
             _faultCount = 0;
         }
 
-        private void OnConnectionError(object sender, ErrorEventArgs e)
+        delegate void OnConnectionErrorDelegate(object sender, WebSocket4NetBase.SuperSocket.ClientEngine.ErrorEventArgs e);
+        private void OnConnectionError(object sender, WebSocket4NetBase.SuperSocket.ClientEngine.ErrorEventArgs e)
         {
             bool forceErrors = false;
             try
@@ -491,7 +487,7 @@ namespace CloudApiPublic.PushNotification
                 forceErrors = true;
 
                 CLError innerError = ex;
-                innerError.LogErrors(_syncSettings.TraceLocation, true);
+                innerError.LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
                 _trace.writeToLog(1, "CLNotification: OnConnectionError: ERROR. Error while restarting WebSocket.  Msg: <{0}>, Code: {1}.", innerError.errorDescription, ((int)innerError.code).ToString());
 
                 global::System.Windows.MessageBox.Show("Cloud has stopped receiving sync events from other devices with errors:" + Environment.NewLine +
@@ -499,7 +495,7 @@ namespace CloudApiPublic.PushNotification
                     "AND" + Environment.NewLine + ex.Message);
             }
             CLError error = e.Exception;
-            error.LogErrors(_syncSettings.TraceLocation, forceErrors || _syncSettings.LogErrors);
+            error.LogErrors(_syncBox.CopiedSettings.TraceLocation, forceErrors || _syncBox.CopiedSettings.LogErrors);
             _trace.writeToLog(1, "CLNotification: OnConnectionError: ERROR.  Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
         }
 
@@ -514,7 +510,7 @@ namespace CloudApiPublic.PushNotification
             {
                 CLError error = ex;
                 // Always log errors here because we had a serious case where we had to display a message
-                error.LogErrors(_syncSettings.TraceLocation, true);
+                error.LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
                 _trace.writeToLog(1, "CLNotification: OnConnectionClosed: ERROR. Error while restarting WebSocket.  Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
 
                 global::System.Windows.MessageBox.Show("Cloud has stopped receiving sync events from other devices with error:" + Environment.NewLine +
@@ -623,7 +619,7 @@ namespace CloudApiPublic.PushNotification
                         catch (Exception ex)
                         {
                             CLError error = ex;
-                            error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                            error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
                             _trace.writeToLog(1, "CLNotification: CleanWebSocketAndRestart: ERROR. Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
 
                             ThreadPool.UnsafeQueueUserWorkItem(FallbackToManualPolling, this);
@@ -635,33 +631,33 @@ namespace CloudApiPublic.PushNotification
 
         private class MessageReceiver
         {
-            private string _url;
-            private ISyncSettingsAdvanced _innerSyncSettings;
-            private EventHandler<NotificationEventArgs> _notificationReceived;
+            private readonly string _url;
+            private readonly CLSyncBox _syncBox;
+            private readonly EventHandler<NotificationEventArgs> _notificationReceived;
 
-            public MessageReceiver(string url, ISyncSettingsAdvanced syncSettings, EventHandler<NotificationEventArgs> notificationReceived)
+            public MessageReceiver(string url, CLSyncBox syncBox, EventHandler<NotificationEventArgs> notificationReceived)
             {
                 this._url = url;
-                _innerSyncSettings = syncSettings;
-                _notificationReceived = notificationReceived;
+                this._syncBox = syncBox;
+                this._notificationReceived = notificationReceived;
             }
 
             public void OnConnectionReceived(object sender, MessageReceivedEventArgs e)
             {
                 _trace.writeToLog(1, "CLNotification: OnConnectionReceived: Received msg: <{0}>.", e.Message);
 
-                if ((_innerSyncSettings.TraceType & TraceType.Communication) == TraceType.Communication)
+                if ((_syncBox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                 {
-                    ComTrace.LogCommunication(_innerSyncSettings.TraceLocation,
-                        _innerSyncSettings.DeviceId,
-                        _innerSyncSettings.SyncBoxId,
+                    ComTrace.LogCommunication(_syncBox.CopiedSettings.TraceLocation,
+                        _syncBox.CopiedSettings.DeviceId,
+                        _syncBox.SyncBoxId,
                         CommunicationEntryDirection.Response,
                         this._url,
                         true,
                         null,
                         e.Message,
                         null, //<-- actually this is the valid response, but push doesn't exactly give a 200 that I can detect
-                        _innerSyncSettings.TraceExcludeAuthorization);
+                        _syncBox.CopiedSettings.TraceExcludeAuthorization);
                 }
 
                 try
@@ -669,7 +665,7 @@ namespace CloudApiPublic.PushNotification
                     NotificationResponse parsedResponse = JsonContractHelpers.ParseNotificationResponse(e.Message);
                     if (parsedResponse == null
                         || parsedResponse.Body != CLDefinitions.CLNotificationTypeNew
-                        || parsedResponse.Author.ToUpper() != _innerSyncSettings.DeviceId.ToUpper())
+                        || parsedResponse.Author.ToUpper() != _syncBox.CopiedSettings.DeviceId.ToUpper())
                     {
                         _trace.writeToLog(9, "CLNotification: OnConnectionReceived: Send DidReceivePushNotificationFromServer.");
                         if (_notificationReceived != null)
@@ -729,9 +725,9 @@ namespace CloudApiPublic.PushNotification
                 _trace.writeToLog(1, "CLNotification: DisconnectPushNotificationServer: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
 
-            if (_syncSettings != null && _syncSettings.SyncBoxId != null)
+            if (_syncBox != null && _syncBox.SyncBoxId != null)
             {
-                NotificationClientsRunning.Remove(_syncSettings.SyncBoxId);
+                NotificationClientsRunning.Remove(_syncBox.SyncBoxId);
             }
 
             lock (this)

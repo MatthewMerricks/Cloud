@@ -59,7 +59,7 @@ namespace CloudApiPublic.Sync.Model
         }
         private ISyncDataObject _syncData;
 
-        public ISyncSettingsAdvanced SyncSettings
+        public CLSyncBox SyncBox
         {
             get
             {
@@ -68,10 +68,10 @@ namespace CloudApiPublic.Sync.Model
                 {
                     throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableFileChangeWithSyncData");
                 }
-                return _syncSettings;
+                return _syncBox;
             }
         }
-        private ISyncSettingsAdvanced _syncSettings;
+        private CLSyncBox _syncBox;
 
         public string TempDownloadFolderPath
         {
@@ -152,15 +152,15 @@ namespace CloudApiPublic.Sync.Model
         }
         private bool _isValid;
 
-        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, ISyncSettingsAdvanced SyncSettings, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
+        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, CLSyncBox SyncBox, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
         {
             if (SyncData == null)
             {
                 throw new NullReferenceException("SyncData cannot be null");
             }
-            if (SyncSettings == null)
+            if (SyncBox == null)
             {
-                throw new NullReferenceException("SyncSettings cannot be null");
+                throw new NullReferenceException("SyncBox cannot be null");
             }
             if (DownloadErrorTimer == null)
             {
@@ -173,7 +173,7 @@ namespace CloudApiPublic.Sync.Model
 
             this._fileChange = FileChange;
             this._syncData = SyncData;
-            this._syncSettings = SyncSettings;
+            this._syncBox = SyncBox;
             this._tempDownloadFolderPath = TempDownloadFolderPath;
             this._tempDownloadFileId = TempDownloadFileId;
             this._isValid = true;

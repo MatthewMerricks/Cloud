@@ -16,7 +16,7 @@ using System.Text;
 
 namespace CloudApiPrivate.Model.Settings
 {
-    public sealed class CLSettingsSync : ISyncSettingsAdvanced
+    public sealed class CLSettingsSync : ICLSyncSettingsAdvanced
     {
         #region singleton pattern
         public static CLSettingsSync Instance
@@ -145,7 +145,7 @@ namespace CloudApiPrivate.Model.Settings
                 return CLPrivateDefinitions.CLClientVersion;
             }
         }
-        public string DeviceName
+        public string FriendlyName
         {
             get
             {

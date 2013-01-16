@@ -35,7 +35,7 @@ namespace CloudApiPublic.SQLIndexer
         private static CLTrace _trace = CLTrace.Instance;
         // store the path that represents the root of indexing
         private string indexedPath = null;
-        private readonly ISyncSettingsAdvanced _syncSettings = null;
+        private readonly ICLSyncSettingsAdvanced _syncSettings = null;
 
         #region SQL CE
         private string indexDBLocation;
@@ -79,15 +79,15 @@ namespace CloudApiPublic.SQLIndexer
         /// must be started afterwards with StartInitialIndexing
         /// </summary>
         /// <param name="newIndexer">Output indexing agent</param>
-        /// <param name="settings">The settings to use.</param>
+        /// <param name="syncBox">SyncBox to index</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
-        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, ISyncSettingsAdvanced settings)
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, CLSyncBox syncBox)
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
             try
             {
-                newIndexer = newAgent = new IndexingAgent(settings);
+                newIndexer = newAgent = new IndexingAgent(syncBox); // this double instance setting is required for some reason to prevent a "does not exist in the current context" compiler error
             }
             catch (Exception ex)
             {
@@ -2099,15 +2099,17 @@ namespace CloudApiPublic.SQLIndexer
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
-        /// <param name="settings">The settings to use.</param>
-        private IndexingAgent(ISyncSettingsAdvanced settings)
+        /// <param name="syncBox">SyncBox to index</param>
+        private IndexingAgent(CLSyncBox syncBox)
         {
-            if (settings.SyncBoxId == null)
+            if (syncBox == null)
             {
-                throw new NullReferenceException("syncBoxId cannot be null");
+                throw new NullReferenceException("syncBox cannot be null");
             }
 
-            this.indexDBLocation = Helpers.GetDatabasePath(settings) + "\\" + CLDefinitions.kSyncDatabaseFileName;
+            this.indexDBLocation = (string.IsNullOrEmpty(syncBox.CopiedSettings.DatabaseFolder)
+                ? Helpers.GetDefaultDatabasePath(syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
+                : syncBox.CopiedSettings.DatabaseFolder);
         }
 
         /// <summary>

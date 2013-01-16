@@ -189,12 +189,12 @@ namespace CloudSdkSyncSample.ViewModels
         /// <param name="userState">This is the instance of the SyncBox (CLSync) whose status has changed.</param>
         public void OnSyncStatusUpdated(object userState)
         {
-            CLSync syncBox = userState as CLSync;
-            if (syncBox != null)
+            CLSyncEngine syncEngine = userState as CLSyncEngine;
+            if (syncEngine != null)
             {
                 // Set the overall sync status
                 CLSyncCurrentStatus currentStatus;
-                syncBox.GetCLSyncCurrentStatus(out currentStatus);
+                syncEngine.GetCLSyncCurrentStatus(out currentStatus);
                 if (currentStatus.CurrentState == CLSyncCurrentState.Idle)
                 {
                     SyncStatus = SyncStates.Synced;

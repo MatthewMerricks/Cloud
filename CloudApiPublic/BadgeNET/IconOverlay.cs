@@ -35,7 +35,7 @@ namespace CloudApiPublic.BadgeNET
     internal sealed class IconOverlay : IDisposable
     {
         private CLTrace _trace;
-        private ISyncSettingsAdvanced _syncSettings;
+        private ICLSyncSettingsAdvanced _syncSettings;
 
         /// <summary>
         /// Public constructor.
@@ -66,7 +66,7 @@ namespace CloudApiPublic.BadgeNET
         /// </summary>
         /// <param name="initialList">(optional) list to start with for badged objects, filepaths in keys must not be null nor empty</param>
         /// <param name="syncSettings">The settings to use for this instance.</param>
-        public CLError Initialize(ISyncSettings syncSettings, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
+        public CLError Initialize(ICLSyncSettings syncSettings, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
