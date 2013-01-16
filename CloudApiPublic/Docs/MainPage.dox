@@ -5,7 +5,7 @@
 /// The Cloud Windows Client SDK allows your application to easily support real time file synchronization services.
 ///
 /// A SyncBox can be thought of as a folder with a hierarhical directory structure.  Any files placed in a SyncBox can be automatically
-/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS, Android and Windows RT).  Your account can have multiple
+/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS and Android).  Your account can have multiple
 /// SyncBoxes, and your application can open multiple SyncBoxes on a device.
 ///
 /// In desktop environments, a SyncBox is tied to a particular local disk directory.  e.g., on Windows, "C:\Users\<UserName>\<YourSyncBoxName>".

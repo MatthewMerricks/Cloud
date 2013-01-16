@@ -995,8 +995,17 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     // start syncing
                     CLSyncStartStatus startStatus;
-                    CLError errorFromSyncBoxStart = _syncEngine.Start(syncBox,
-                        out startStatus);
+                    CLError errorFromSyncBoxStart = _syncEngine.Start(
+                        SyncBox: syncBox, // syncbox to sync (contains required settings)
+                        Status: out startStatus, // The completion status of the Start() function
+                        StatusUpdated: OnSyncStatusUpdated, // called when sync status is updated
+                        StatusUpdatedUserState: _syncEngine, // the user state passed to the callback above
+                        getHistoricBandwidthSettings: OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the engine
+                        setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the engine
+                        overrideImportanceFilterNonErrors: EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages
+                        overrideImportanceFilterErrors: EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages
+                        overrideDefaultMaxStatusMessages: 500); // optional to restrict the number of messages in the EventMessageReceiver ListMessages
+
                     if (errorFromSyncBoxStart != null)
                     {
                         _syncEngine = null;
@@ -1016,25 +1025,38 @@ namespace CloudSdkSyncSample.ViewModels
                             // Sync has started
                             SetSyncBoxStartedState(isStartedStateToSet: true);
 
+                            // Watch for push notification errors
+                            _syncEngine.PushNotificationError += OnPushNotificationError;
+
                             // Start an instance of the sync status window and start it hidden.
                             if (_winSyncStatus == null)
                             {
                                 _trace.writeToLog(9, "MainViewModel: StartSyncing: Start the sync status window.");
-                                _winSyncStatus = new SyncStatusView();
-                                EventMessageReceiver vm = EventMessageReceiver.GetInstance(OnGetHistoricBandwidthSettings, OnSetHistoricBandwidthSettings, EventMessageLevel.All, EventMessageLevel.All);
-                                _winSyncStatus.DataContext = vm;
-                                _winSyncStatus.Width = 0;
-                                _winSyncStatus.Height = 0;
-                                _winSyncStatus.MinWidth = 0;
-                                _winSyncStatus.MinHeight = 0;
-                                _winSyncStatus.Left = Int32.MaxValue;
-                                _winSyncStatus.Top = Int32.MaxValue;
-                                _winSyncStatus.ShowInTaskbar = false;
-                                _winSyncStatus.ShowActivated = false;
-                                _winSyncStatus.Visibility = Visibility.Hidden;
-                                _winSyncStatus.WindowStyle = WindowStyle.None;
-                                _winSyncStatus.Owner = _mainWindow;
-                                _winSyncStatus.Show();
+
+                                // Get a ViewModel to provide some of the status information to use on our status window.
+                                EventMessageReceiver vm;
+                                CLError errorFromGetViewModel = _syncEngine.GetSyncStatusViewModel(statusViewModel: out vm);
+                                if (errorFromGetViewModel != null)
+                                {
+                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncEngine.GetSyncStatusViewModel: Msg: <{0}>.", errorFromGetViewModel.errorDescription);
+                                }
+                                else
+                                {
+                                    _winSyncStatus = new SyncStatusView();
+                                    _winSyncStatus.DataContext = vm;
+                                    _winSyncStatus.Width = 0;
+                                    _winSyncStatus.Height = 0;
+                                    _winSyncStatus.MinWidth = 0;
+                                    _winSyncStatus.MinHeight = 0;
+                                    _winSyncStatus.Left = Int32.MaxValue;
+                                    _winSyncStatus.Top = Int32.MaxValue;
+                                    _winSyncStatus.ShowInTaskbar = false;
+                                    _winSyncStatus.ShowActivated = false;
+                                    _winSyncStatus.Visibility = Visibility.Hidden;
+                                    _winSyncStatus.WindowStyle = WindowStyle.None;
+                                    _winSyncStatus.Owner = _mainWindow;
+                                    _winSyncStatus.Show();
+                                }
                             }
                         }
                     }
@@ -1046,6 +1068,35 @@ namespace CloudSdkSyncSample.ViewModels
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
+        }
+
+
+        /// <summary>
+        /// The sync status for this SyncBox has changed.  Pass this event to the sync status view.
+        /// </summary>
+        /// <param name="userState">This is the instance of CLSync.</param>
+        private void OnSyncStatusUpdated(object userState)
+        {
+            if (_winSyncStatus != null)
+            {
+                _winSyncStatus.OnSyncStatusUpdated(userState);
+            }
+        }
+
+        /// <summary>
+        /// Push notification died.  Sync will no longer be notified when files or folders change on other devices.
+        /// Changes made to the files or folders on this device will still be synced to the server, and when that
+        /// occurs the server will return any changes made on other devices.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void OnPushNotificationError(object sender, CloudApiPublic.PushNotification.NotificationErrorEventArgs e)
+        {
+            string errorMsg = "Push notification stopped.  Changes on other devices will no longer be automatically synced to this device.";
+            CLError error = new Exception(errorMsg);
+            error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+            _trace.writeToLog(1, "MainViewModel: OnPushNotificationError: ERROR: Exception: Msg: <{0}>.", error.errorDescription);
+            MessageBox.Show(errorMsg, "Error", MessageBoxButton.OK);
         }
 
         /// <summary>

@@ -19,6 +19,30 @@ namespace CloudApiPublic.Model
     public sealed class EventMessageArgs : HandleableEventArgs
     {
         /// <summary>
+        /// ID of the SyncBox
+        /// </summary>
+        public Nullable<long> SyncBoxId
+        {
+            get
+            {
+                return _syncBoxId;
+            }
+        }
+        private readonly Nullable<long> _syncBoxId;
+
+        /// <summary>
+        /// Unique ID for the device in the SyncBox
+        /// </summary>
+        public string DeviceId
+        {
+            get
+            {
+                return _deviceId;
+            }
+        }
+        private readonly string _deviceId;
+
+        /// <summary>
         /// The actual message
         /// </summary>
         public string Message
@@ -54,11 +78,13 @@ namespace CloudApiPublic.Model
         }
         private readonly EventMessageLevel _level;
 
-        internal EventMessageArgs(string Message, EventMessageLevel Level = EventMessageLevel.Minor, bool IsError = false)
+        internal EventMessageArgs(string Message, EventMessageLevel Level = EventMessageLevel.Minor, bool IsError = false, Nullable<long> SyncBoxId = null, string DeviceId = null)
         {
             this._message = Message;
             this._level = Level;
             this._isError = IsError;
+            this._syncBoxId = SyncBoxId;
+            this._deviceId = DeviceId;
         }
     }
 }

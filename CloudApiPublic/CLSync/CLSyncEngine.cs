@@ -1,4 +1,4 @@
-﻿//
+//
 // CLSyncEngine.cs
 // Cloud Windows
 //
@@ -37,6 +37,12 @@ namespace CloudApiPublic
         private System.Threading.WaitCallback statusUpdated = null;
         private object statusUpdatedUserState = null;
         private readonly object _locker = new object();
+        private EventMessageReceiver.EventMessageReceiver.GetHistoricBandwidthSettings _getHistoricBandwidthSettings = null;
+        private EventMessageReceiver.EventMessageReceiver.SetHistoricBandwidthSettings _setHistoricBandwidthSettings = null;
+        private Nullable<EventMessageLevel> _overrideImportanceFilterNonErrors = null;
+        private Nullable<EventMessageLevel> _overrideImportanceFilterErrors = null;
+        private Nullable<int> _overrideDefaultMaxStatusMessages = null;
+        private EventMessageReceiver.EventMessageReceiver _statusViewModel = null;
 
         ///// <summary>
         ///// Retrieves a currently attached SyncBox, or null if one isn't attached
@@ -49,15 +55,50 @@ namespace CloudApiPublic
         //        {
         //            return _syncBox;
         //        }
+		
         //    }
         //}
         private CLSyncBox _syncBox = null;
-
         /// <summary>
         /// Event fired when a serious notification error has occurred.  Push notification is
         /// no longer functional.
         /// </summary>
         public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
+
+        /// <summary>
+        /// Get a ViewModel to make viewing the upload/download and message status easier.  The ViewModel exposes ObservableCollections.
+        /// </summary>
+        public CLError GetSyncStatusViewModel(out EventMessageReceiver.EventMessageReceiver statusViewModel)
+        {
+            // Lazy initialization
+            CLError toReturn = null;
+            if (_statusViewModel == null)
+            {
+                // Create the EventMessageReceiver view model.
+                EventMessageReceiver.EventMessageReceiver receiver;
+                toReturn = EventMessageReceiver.EventMessageReceiver.CreateAndInitialize(
+                        SyncBoxId: _syncBox.SyncBoxId,
+                        DeviceId: _syncBox.CopiedSettings.DeviceId,
+                        receiver: out receiver,
+                        getHistoricBandwidthSettings: _getHistoricBandwidthSettings,
+                        setHistoricBandwidthSettings: _setHistoricBandwidthSettings,
+                        OverrideImportanceFilterNonErrors: _overrideImportanceFilterNonErrors,
+                        OverrideImportanceFilterErrors: _overrideImportanceFilterErrors,
+                        OverrideDefaultMaxStatusMessages: _overrideDefaultMaxStatusMessages);
+                if (toReturn != null)
+                {
+                    toReturn.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                    _trace.writeToLog(1, "CLSync: StatusViewModel.Get: ERROR: Exception.  Msg: <{0}>.", toReturn.errorDescription);
+                }
+                else
+                {
+                    _statusViewModel = receiver;
+                }
+            }
+
+            statusViewModel = _statusViewModel;
+            return toReturn;
+        }
 
         /// <summary>
         /// Output the current status of syncing
@@ -280,7 +321,16 @@ namespace CloudApiPublic
         /// <param name="StatusUpdated">(optional) Callback to fire whenever the status of the SyncEngine has been updated</param>
         /// <param name="StatusUpdatedUserState">(optional) Userstate to pass when firing the statusUpdated callback</param>
         /// <returns>Returns any error which occurred starting to sync, if any</returns>
-        public CLError Start(CLSyncBox SyncBox, out CLSyncStartStatus Status, System.Threading.WaitCallback StatusUpdated = null, object StatusUpdatedUserState = null)
+        public CLError Start(
+			CLSyncBox SyncBox,
+			out CLSyncStartStatus Status,
+			System.Threading.WaitCallback StatusUpdated = null,
+			object StatusUpdatedUserState = null,
+            CloudApiPublic.EventMessageReceiver.EventMessageReceiver.GetHistoricBandwidthSettings getHistoricBandwidthSettings = null,
+            CloudApiPublic.EventMessageReceiver.EventMessageReceiver.SetHistoricBandwidthSettings setHistoricBandwidthSettings = null,
+            Nullable<EventMessageLevel> overrideImportanceFilterNonErrors = null,
+            Nullable<EventMessageLevel> overrideImportanceFilterErrors = null,
+            Nullable<int> overrideDefaultMaxStatusMessages = null)
         {
             try
             {
@@ -312,6 +362,12 @@ namespace CloudApiPublic
                     {
                         this.statusUpdatedUserState = StatusUpdatedUserState;
                     }
+
+                    _getHistoricBandwidthSettings = getHistoricBandwidthSettings;
+                    _setHistoricBandwidthSettings = setHistoricBandwidthSettings;
+                    _overrideImportanceFilterNonErrors = overrideImportanceFilterNonErrors;
+                    _overrideImportanceFilterErrors = overrideImportanceFilterErrors;
+                    _overrideDefaultMaxStatusMessages = overrideDefaultMaxStatusMessages;
                 }
 
                 // Check the TraceLocation vs. LogErrors
@@ -341,12 +397,6 @@ namespace CloudApiPublic
                     return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.GrabFirstException());
                 }
 
-                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(this._syncBox.CopiedSettings.SyncRoot);
-                if (!rootInfo.Exists)
-                {
-                    rootInfo.Create();
-                }
-
                 // Don't start twice.
                 _trace.writeToLog(1, "CLSync: Start: Entry.");
                 if (_isStarted)
@@ -357,6 +407,13 @@ namespace CloudApiPublic
                     return error;
                 }
 
+                // Create the SyncBox directory if it doesn't exist
+                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncBox.CopiedSettings.SyncRoot);
+                if (!rootInfo.Exists)
+                {
+                    rootInfo.Create();
+                }
+				
                 // Start badging
                 lock (_locker)
                 {

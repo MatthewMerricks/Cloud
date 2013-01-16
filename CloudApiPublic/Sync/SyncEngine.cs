@@ -425,7 +425,7 @@ namespace CloudApiPublic.Sync
                         Nullable<DateTime> earliestToKill = null;
                         DateTime killTime = DateTime.UtcNow.Subtract(ThreadStatusTimeoutSpan);
                         List<Guid> removedStatusKeys = null;
-                        foreach (Guid currentStatusKey in nonNullState.Value.Key.Keys.ToArray()) // collection modified exception
+                        foreach (Guid currentStatusKey in nonNullState.Value.Key.Keys)
                         {
                             ThreadStatus currentStatus = nonNullState.Value.Key[currentStatusKey];
 
@@ -460,8 +460,8 @@ namespace CloudApiPublic.Sync
                                 {
                                     outputState |= CLSyncCurrentState.CommunicatingChanges;
                                 }
-                                // condition for active or queued upload/download
-                                else
+                                // condition for active or queued upload/download which haven't failed
+                                else if (!currentStatus.IsError)
                                 {
                                     // condition for active upload
                                     if (((SyncDirection)currentStatus.Direction) == SyncDirection.To)
@@ -496,53 +496,53 @@ namespace CloudApiPublic.Sync
 
                                 removedStatusKeys.Add(currentStatusKey);
                             }
+                        }
 
-                            if (removedStatusKeys != null)
+                        if (removedStatusKeys != null)
+                        {
+                            foreach (Guid removeStatusKey in removedStatusKeys)
                             {
-                                foreach (Guid removeStatusKey in removedStatusKeys)
-                                {
-                                    nonNullState.Value.Key.Remove(removeStatusKey);
-                                }
+                                nonNullState.Value.Key.Remove(removeStatusKey);
                             }
+                        }
 
-                            if (earliestToKill != null)
+                        if (earliestToKill != null)
+                        {
+                            DateTime newKillTime = ((DateTime)earliestToKill).Add(ThreadStatusTimeoutSpan);
+
+                            lock (nonNullState.Key.Value.Value)
                             {
-                                DateTime newKillTime = ((DateTime)earliestToKill).Add(ThreadStatusTimeoutSpan);
-
-                                lock (nonNullState.Key.Value.Value)
+                                if (nonNullState.Key.Value.Value.Value == null
+                                    || nonNullState.Key.Value.Key.Value.CompareTo(newKillTime) <= 0)
                                 {
-                                    if (nonNullState.Key.Value.Value.Value == null
-                                        || nonNullState.Key.Value.Key.Value.CompareTo(newKillTime) <= 0)
+                                    nonNullState.Key.Value.Key.Value = newKillTime;
+
+                                    if (nonNullState.Key.Value.Value.Value != null)
                                     {
-                                        nonNullState.Key.Value.Key.Value = newKillTime;
-
-                                        if (nonNullState.Key.Value.Value.Value != null)
+                                        try
                                         {
-                                            try
-                                            {
-                                                nonNullState.Key.Value.Value.Value.Dispose();
-                                            }
-                                            catch
-                                            {
-                                            }
+                                            nonNullState.Key.Value.Value.Value.Dispose();
                                         }
-
-                                        TimeSpan startTime;
-                                        DateTime timeForTimer = DateTime.UtcNow;
-                                        if (timeForTimer.CompareTo(newKillTime) >= 0)
+                                        catch
                                         {
-                                            startTime = TimeSpan.Zero;
                                         }
-                                        else
-                                        {
-                                            startTime = newKillTime.Subtract(timeForTimer);
-                                        }
-
-                                        nonNullState.Key.Value.Value.Value = new Timer(ProcessKillTimer,
-                                            state,
-                                            startTime,
-                                            NoPeriodTimeSpan);
                                     }
+
+                                    TimeSpan startTime;
+                                    DateTime timeForTimer = DateTime.UtcNow;
+                                    if (timeForTimer.CompareTo(newKillTime) >= 0)
+                                    {
+                                        startTime = TimeSpan.Zero;
+                                    }
+                                    else
+                                    {
+                                        startTime = newKillTime.Subtract(timeForTimer);
+                                    }
+
+                                    nonNullState.Key.Value.Value.Value = new Timer(ProcessKillTimer,
+                                        state,
+                                        startTime,
+                                        NoPeriodTimeSpan);
                                 }
                             }
                         }
@@ -556,6 +556,7 @@ namespace CloudApiPublic.Sync
                             {
                                 try
                                 {
+                                    // Call the optional status changed callback.
                                     nonNullState.Key.Key.Value.Value.Key(nonNullState.Key.Key.Value.Value.Value);
                                 }
                                 catch
@@ -628,9 +629,9 @@ namespace CloudApiPublic.Sync
                         {
                             LastUpdateTime = DateTime.UtcNow
                         }));
-                }
 
-                StartStatusAggregatorIfNotStarted();
+                    StartStatusAggregatorIfNotStarted();
+                }
             }
             catch
             {
@@ -648,9 +649,9 @@ namespace CloudApiPublic.Sync
                         {
                             LastUpdateTime = DateTime.MinValue
                         }));
-                }
 
-                StartStatusAggregatorIfNotStarted();
+                    StartStatusAggregatorIfNotStarted();
+                }
             }
             catch
             {
@@ -671,15 +672,15 @@ namespace CloudApiPublic.Sync
                             RelativePath = relativePath,
                             TotalByteSize = totalByteSize
                         }));
-                }
 
-                StartStatusAggregatorIfNotStarted();
+                    StartStatusAggregatorIfNotStarted();
+                }
             }
             catch
             {
             }
         }
-        private void FileTransferStatusUpdate(Guid threadId, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize)
+        private void FileTransferStatusUpdate(Guid threadId, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize, bool isError)
         {
             try
             {
@@ -696,9 +697,9 @@ namespace CloudApiPublic.Sync
                             RelativePath = relativePath,
                             TotalByteSize = totalByteSize
                         }));
-                }
 
-                StartStatusAggregatorIfNotStarted();
+                    StartStatusAggregatorIfNotStarted();
+                }
             }
             catch
             {
@@ -707,6 +708,19 @@ namespace CloudApiPublic.Sync
         private readonly Queue<KeyValuePair<Guid, ThreadStatus>> StatusChangesQueue = new Queue<KeyValuePair<Guid, ThreadStatus>>();
         private sealed class ThreadStatus
         {
+            public bool IsError
+            {
+                get
+                {
+                    return _isError;
+                }
+                set
+                {
+                    _isError = value;
+                }
+            }
+            private bool _isError = false; // Should only be true if an error occurs during Task processing for a file upload/file download
+
             public Nullable<DateTime> LastUpdateTime
             {
                 get
@@ -818,8 +832,12 @@ namespace CloudApiPublic.Sync
                     SyncStillRunning(runThreadId);
 
                     // status message
-                    MessageEvents.FireNewEventMessage(respondingToPushNotification,
-                        "Started checking for sync changes to process");
+                    MessageEvents.FireNewEventMessage(
+                        sender: respondingToPushNotification,
+                        Message: "Started checking for sync changes to process",
+                        IsError: false,
+                        SyncBoxId: syncBox.SyncBoxId,
+                        DeviceId: syncBox.CopiedSettings.DeviceId);
 
                     // check for Sync shutdown
                     Monitor.Enter(FullShutdownToken);
@@ -982,7 +1000,9 @@ namespace CloudApiPublic.Sync
                                             " change" + (outputChangesInErrorCount == 1 ? " is" : "s are") + " waiting to retry"),
                                 (outputChangesCount == 0
                                     ? EventMessageLevel.Minor
-                                    : EventMessageLevel.Important));
+                                    : EventMessageLevel.Important),
+                                SyncBoxId: syncBox.SyncBoxId,
+                                DeviceId: syncBox.CopiedSettings.DeviceId);
                         }
                         catch (Exception ex)
                         {
@@ -1002,10 +1022,13 @@ namespace CloudApiPublic.Sync
                             errorGrabbingChanges = true;
 
                             // status message
-                            MessageEvents.FireNewEventMessage(ex,
-                                "An error occurred checking for changes",
-                                EventMessageLevel.Important,
-                                true);
+                            MessageEvents.FireNewEventMessage(
+                                sender: ex,
+                                Message: "An error occurred checking for changes",
+                                Level: EventMessageLevel.Important,
+                                IsError: true,
+                                SyncBoxId: syncBox.SyncBoxId,
+                                DeviceId: syncBox.CopiedSettings.DeviceId);
                         }
                     }
 
@@ -1233,7 +1256,11 @@ namespace CloudApiPublic.Sync
                                                         // if the completed task had a valid id, then increment downloaded
                                                         if (eventCompletion.Result.EventId != 0)
                                                         {
-                                                            MessageEvents.IncrementDownloadedCount(eventCompletion);
+                                                            MessageEvents.IncrementDownloadedCount(
+                                                                sender: eventCompletion,
+                                                                incrementAmount: 1,
+                                                                SyncBoxId: syncBox.SyncBoxId,
+                                                                DeviceId: syncBox.CopiedSettings.DeviceId);
                                                         }
                                                     }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
                                                     break;
@@ -1247,7 +1274,11 @@ namespace CloudApiPublic.Sync
                                                         // if the completed task had a valid id, then increment uploaded
                                                         if (eventCompletion.Result.EventId != 0)
                                                         {
-                                                            MessageEvents.IncrementUploadedCount(eventCompletion);
+                                                            MessageEvents.IncrementUploadedCount(
+                                                                sender: eventCompletion,
+                                                                incrementAmount: 1,
+                                                                SyncBoxId: syncBox.SyncBoxId,
+                                                                DeviceId: syncBox.CopiedSettings.DeviceId);
                                                         }
                                                     }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
                                                     break;
@@ -1353,7 +1384,9 @@ namespace CloudApiPublic.Sync
                                         ? string.Empty
                                         : syncFromCount.ToString() +
                                             " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
-                                EventMessageLevel.Important);
+                                EventMessageLevel.Important,
+                                SyncBoxId: syncBox.SyncBoxId,
+                                DeviceId: syncBox.CopiedSettings.DeviceId);
                         }
                         if (asynchronouslyPreprocessed.Count != 0)
                         {
@@ -1373,7 +1406,9 @@ namespace CloudApiPublic.Sync
                                         ? string.Empty
                                         : syncFromCount.ToString() +
                                             " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
-                                EventMessageLevel.Important);
+                                EventMessageLevel.Important,
+                                SyncBoxId: syncBox.SyncBoxId,
+                                DeviceId: syncBox.CopiedSettings.DeviceId);
                         }
 
                         // after each loop where more FileChanges from previous dependencies are processed,
@@ -1878,7 +1913,11 @@ namespace CloudApiPublic.Sync
                                                 // if event id is valid, then increment downloaded count
                                                 if (eventCompletion.Result.EventId != 0)
                                                 {
-                                                    MessageEvents.IncrementDownloadedCount(eventCompletion);
+                                                    MessageEvents.IncrementDownloadedCount(
+                                                        sender: eventCompletion,
+                                                        incrementAmount: 1,
+                                                        SyncBoxId: syncBox.SyncBoxId,
+                                                        DeviceId: syncBox.CopiedSettings.DeviceId);
                                                 }
                                             }, TaskContinuationOptions.NotOnFaulted); // only increment count when not faulted
                                             break;
@@ -1890,7 +1929,11 @@ namespace CloudApiPublic.Sync
                                                 // if event id is valid, then increment uploaded count
                                                 if (eventCompletion.Result.EventId != 0)
                                                 {
-                                                    MessageEvents.IncrementUploadedCount(eventCompletion);
+                                                    MessageEvents.IncrementUploadedCount(
+                                                        sender: eventCompletion,
+                                                        incrementAmount: 1,
+                                                        SyncBoxId: syncBox.SyncBoxId,
+                                                        DeviceId: syncBox.CopiedSettings.DeviceId);
                                                 }
                                             }, TaskContinuationOptions.NotOnFaulted); // only increment count when not faulted
                                             break;
@@ -1988,7 +2031,9 @@ namespace CloudApiPublic.Sync
                                             ? string.Empty
                                             : syncFromCount.ToString() +
                                                 " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
-                                    EventMessageLevel.Important);
+                                    EventMessageLevel.Important,
+                                    SyncBoxId: syncBox.SyncBoxId,
+                                    DeviceId: syncBox.CopiedSettings.DeviceId);
                             }
                             if (postCommunicationAsynchronousChanges.Count != 0)
                             {
@@ -2008,7 +2053,9 @@ namespace CloudApiPublic.Sync
                                             ? string.Empty
                                             : syncFromCount.ToString() +
                                                 " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
-                                    EventMessageLevel.Important);
+                                    EventMessageLevel.Important,
+                                    SyncBoxId: syncBox.SyncBoxId,
+                                    DeviceId: syncBox.CopiedSettings.DeviceId);
                             }
 
                             // for any FileChange which was asynchronously queued for file upload or download,
@@ -2017,7 +2064,9 @@ namespace CloudApiPublic.Sync
                             // status message
                             MessageEvents.FireNewEventMessage(true,
                                 "Finished processing sync changes",
-                                EventMessageLevel.Minor);
+                                EventMessageLevel.Minor,
+                                SyncBoxId: syncBox.SyncBoxId,
+                                DeviceId: syncBox.CopiedSettings.DeviceId);
 
                             // update latest status
                             syncStatus = "Sync Run async tasks started after communication (end of Sync)";
@@ -2419,9 +2468,22 @@ namespace CloudApiPublic.Sync
 
                         // declare byte array for the event hash for comparison
                         byte[] toCompleteBytes;
-                        // if the hash was retrieved from the event without error and the hash is not null, then continue attempting to compare with local file
-                        if (toComplete.FileChange.GetMD5Bytes(out toCompleteBytes) == null // retrieves hash and check that no error occurred in the attempt
-                            && toCompleteBytes != null) // retrieved hash exists
+                        // if unable to retrieve existing MD5 then set MD5 from revision
+                        if (toComplete.FileChange.GetMD5Bytes(out toCompleteBytes) != null // retrieves hash and set MD5 from revision if error occurred
+                            || toCompleteBytes == null) // or no error occurred retrieving MD5 but there was no MD5 then set MD5 from revision
+                        {
+                            try
+                            {
+                                toCompleteBytes = Helpers.ParseHexadecimalStringToByteArray(toComplete.FileChange.Metadata.Revision);
+                            }
+                            catch
+                            {
+                                toCompleteBytes = null;
+                            }
+                        }
+
+                        // if able to retrieve MD5 from either the GetMD5Bytes or by parsing revision, then check if file already matches on disk
+                        if (toCompleteBytes != null)
                         {
                             // try/catch to compare event has with file on disk, silence exception
                             try
@@ -2753,7 +2815,9 @@ namespace CloudApiPublic.Sync
                     // status message
                     MessageEvents.FireNewEventMessage(true,
                         "File finished uploading from path " + castState.FileToUpload.NewPath.ToString(),
-                        EventMessageLevel.Regular);
+                        EventMessageLevel.Regular,
+                        SyncBoxId: castState.SyncBox.SyncBoxId,
+                        DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
 
                     // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
                     return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncBox.CopiedSettings);
@@ -2772,6 +2836,24 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
+                if (castState != null
+                    && castState.FileToUpload != null
+                    && castState.FileToUpload.NewPath != null
+                    && castState.SyncBox != null
+                    && castState.FileToUpload.Metadata != null
+                    && castState.StatusUpdate != null
+                    && castState.FileToUpload.Metadata.HashableProperties.Size != null)
+                {
+                    castState.StatusUpdate(
+                        castState.ThreadId, // threadId
+                        castState.FileToUpload.EventId, // eventId
+                        SyncDirection.To, // direction
+                        castState.FileToUpload.NewPath.GetRelativePath(castState.SyncBox.CopiedSettings.SyncRoot, false), // relativePath
+                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
+                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // totalByteSize
+                        true); // error occurred
+                }
+
                 // if the error was any that are not recoverable, display a message to the user for the serious problem and return
 
                 if (castState == null)
@@ -2830,7 +2912,7 @@ namespace CloudApiPublic.Sync
                                 castState.UploadStream, // upload stream for failed event
                                 ignoreStreamException: true), // ignore stream exception because we set the reference castState.UploadStream to null when it is normally disposed
                             castState.SyncData, // event source for updating when needed
-                            castState.SyncBox.CopiedSettings), // settings for tracing or logging errors
+                            castState.SyncBox), // settings for tracing or logging errors
                         "Error in upload Task, see inner exception", // exception message
                         ex); // original exception
 
@@ -2840,23 +2922,6 @@ namespace CloudApiPublic.Sync
             }
             finally
             {
-                if (castState != null
-                    && castState.FileToUpload != null
-                    && castState.FileToUpload.NewPath != null
-                    && castState.SyncBox != null
-                    && castState.FileToUpload.Metadata != null
-                    && castState.StatusUpdate != null
-                    && castState.FileToUpload.Metadata.HashableProperties.Size != null)
-                {
-                    castState.StatusUpdate(
-                        castState.ThreadId, // threadId
-                        castState.FileToUpload.EventId, // eventId
-                        SyncDirection.To, // direction
-                        castState.FileToUpload.NewPath.GetRelativePath(castState.SyncBox.CopiedSettings.SyncRoot, false), // relativePath
-                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
-                        (long)castState.FileToUpload.Metadata.HashableProperties.Size); // totalByteSize
-                }
-
                 // if state was succesfully cast and it contains both the event for the file upload and a callback to remove event handlers on the event,
                 // then remove event handlers on the event
                 if (castState != null
@@ -2974,12 +3039,15 @@ namespace CloudApiPublic.Sync
                 MessageEvents.FireNewEventMessage(exceptionState.FileChange.FileChange, // source of the event (the event itself)
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
-                    IsError: true); // message represents an error
+                    IsError: true,
+                    SyncBoxId: exceptionState.SyncBox.SyncBoxId,
+                    DeviceId: exceptionState.SyncBox.CopiedSettings.DeviceId);
+
             }
             catch (Exception innerEx)
             {
                 // log error that occurred in attempting to clean up the error
-                ((CLError)innerEx).LogErrors(exceptionState.SyncSettings.TraceLocation, exceptionState.SyncSettings.LogErrors);
+                ((CLError)innerEx).LogErrors(exceptionState.SyncBox.CopiedSettings.TraceLocation, exceptionState.SyncBox.CopiedSettings.LogErrors);
             }
         }
 
@@ -3258,7 +3326,9 @@ namespace CloudApiPublic.Sync
                 // status message
                 MessageEvents.FireNewEventMessage(true,
                     "File finished downloading to path " + castState.FileToDownload.NewPath.ToString(),
-                    EventMessageLevel.Regular);
+                    EventMessageLevel.Regular,
+                    SyncBoxId: castState.SyncBox.SyncBoxId,
+                    DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
 
                 // return the success
                 return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
@@ -3268,6 +3338,23 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
+                if (castState != null
+                    && castState.FileToDownload != null
+                    && castState.FileToDownload.NewPath != null
+                    && castState.SyncBox != null
+                    && castState.FileToDownload.Metadata != null
+                    && castState.StatusUpdate != null
+                    && castState.FileToDownload.Metadata.HashableProperties.Size != null)
+                {
+                    castState.StatusUpdate(
+                        castState.ThreadId, // threadId
+                        castState.FileToDownload.EventId, // eventId
+                        SyncDirection.From, // direction
+                        castState.FileToDownload.NewPath.GetRelativePath(castState.SyncBox.CopiedSettings.SyncRoot, false), // relativePath
+                        (long)castState.FileToDownload.Metadata.HashableProperties.Size, // byteProgress
+                        (long)castState.FileToDownload.Metadata.HashableProperties.Size, // totalByteSize
+                        true); // error occurred
+                }
                 // for advanced trace, UploadDownloadFailure
                 if ((castState.SyncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
@@ -3282,9 +3369,10 @@ namespace CloudApiPublic.Sync
                     try
                     {
                         // fire the event callback for the final transfer status
-                        MessageEvents.UpdateFileDownload(castState.FileToDownload, // sender of the event (the event itself)
-                            castState.FileToDownload.EventId, // event id to uniquely identify this transfer
-                            new CLStatusFileTransferUpdateParameters(
+                        MessageEvents.UpdateFileDownload(
+                            sender: castState.FileToDownload, // sender of the event (the event itself)
+                            eventId: castState.FileToDownload.EventId, // event id to uniquely identify this transfer
+                            parameters: new CLStatusFileTransferUpdateParameters(
                                 getStartTime(startTimeHolder), // retrieve the download start time
 
                                 // need to send a file size which matches the total downloaded bytes so they are equal to cancel the status
@@ -3302,7 +3390,9 @@ namespace CloudApiPublic.Sync
                                 // need to send a total downloaded bytes which matches the file size so they are equal to cancel the status
                                 (castState.FileToDownload.Metadata == null
                                     ? 0 // if the event has no metadata, then use 0 as total downloaded bytes
-                                    : castState.FileToDownload.Metadata.HashableProperties.Size ?? 0))); // else if the event has metadata, then use the size as total uploaded bytes or use 0
+                                    : castState.FileToDownload.Metadata.HashableProperties.Size ?? 0)), // else if the event has metadata, then use the size as total uploaded bytes or use 0
+                            SyncBoxId: castState.SyncBox.SyncBoxId,
+                            DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
                     }
                     catch
                     {
@@ -3366,7 +3456,7 @@ namespace CloudApiPublic.Sync
                             castState.FailureTimer, // timer for failure queue
                             new PossiblyStreamableFileChange(castState.FileToDownload, null), // event which failed
                             castState.SyncData, // event source for updating when needed
-                            castState.SyncBox.CopiedSettings), // settings for tracing or logging errors
+                            castState.SyncBox), // settings for tracing or logging errors
                         "Error in download Task, see inner exception", // exception message
                         ex); // original exception
 
@@ -3376,23 +3466,6 @@ namespace CloudApiPublic.Sync
             }
             finally
             {
-                if (castState != null
-                    && castState.FileToDownload != null
-                    && castState.FileToDownload.NewPath != null
-                    && castState.SyncBox != null
-                    && castState.FileToDownload.Metadata != null
-                    && castState.StatusUpdate != null
-                    && castState.FileToDownload.Metadata.HashableProperties.Size != null)
-                {
-                    castState.StatusUpdate(
-                        castState.ThreadId, // threadId
-                        castState.FileToDownload.EventId, // eventId
-                        SyncDirection.To, // direction
-                        castState.FileToDownload.NewPath.GetRelativePath(castState.SyncBox.CopiedSettings.SyncRoot, false), // relativePath
-                        (long)castState.FileToDownload.Metadata.HashableProperties.Size, // byteProgress
-                        (long)castState.FileToDownload.Metadata.HashableProperties.Size); // totalByteSize
-                }
-
                 // if the state was castable and contained the event and also contained the callback to remove eventhandlers, then remove eventhandlers from the event
                 if (castState != null
                     && castState.FileToDownload != null
@@ -3679,21 +3752,23 @@ namespace CloudApiPublic.Sync
                 MessageEvents.FireNewEventMessage(exceptionState.FileChange.FileChange, // source of the event (the event itself)
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
-                    IsError: true); // message represents an error
+                    IsError: true,
+                    SyncBoxId: exceptionState.SyncBox.SyncBoxId,
+                    DeviceId: exceptionState.SyncBox.CopiedSettings.DeviceId);
             }
             catch (Exception innerEx)
             {
                 // log the error that occurred trying to cleanup after a download error
-                ((CLError)innerEx).LogErrors(exceptionState.SyncSettings.TraceLocation, exceptionState.SyncSettings.LogErrors);
+                ((CLError)innerEx).LogErrors(exceptionState.SyncBox.CopiedSettings.TraceLocation, exceptionState.SyncBox.CopiedSettings.LogErrors);
             }
         }
         /// <summary>
         /// Data object to be sent to the code that runs for the download task
         /// </summary>
-        private sealed class DownloadTaskState
+        private sealed class DownloadTaskState : ITransferTaskState
         {
             public Guid ThreadId { get; set; }
-            public Action<Guid, long, SyncDirection, string, long, long> StatusUpdate { get; set; }
+            public Action<Guid, long, SyncDirection, string, long, long, bool> StatusUpdate { get; set; }
             public FileChange FileToDownload { get; set; }
             public byte[] MD5 { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
@@ -3712,10 +3787,10 @@ namespace CloudApiPublic.Sync
         /// <summary>
         /// Data object to be sent to the code that runs for the upload task
         /// </summary>
-        private sealed class UploadTaskState
+        private sealed class UploadTaskState : ITransferTaskState
         {
             public Guid ThreadId { get; set; }
-            public Action<Guid, long, SyncDirection, string, long, long> StatusUpdate { get; set; }
+            public Action<Guid, long, SyncDirection, string, long, long, bool> StatusUpdate { get; set; }
             public FileChange FileToUpload { get; set; }
             public Stream UploadStream { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
@@ -4220,7 +4295,9 @@ namespace CloudApiPublic.Sync
                         "Communicating " +
                             communicationArray.Length.ToString() +
                             " change" + (communicationArray.Length == 1 ? string.Empty : "s") + " to server and checking for any new changes to sync from server",
-                        EventMessageLevel.Regular);
+                        EventMessageLevel.Regular,
+                        SyncBoxId: syncBox.SyncBoxId,
+                        DeviceId: syncBox.CopiedSettings.DeviceId);
 
                     // build a function which will throw a formatted exception when the FileChange's FileChangeType and the type of file system object (file or folder) do not match
                     Func<bool, FileChangeType, FilePath, string> getArgumentException = (isFolder, changeType, targetPath) =>
@@ -5802,7 +5879,9 @@ namespace CloudApiPublic.Sync
                         MessageEvents.FireNewEventMessage(
                             true,
                             "Checking for any new changes to sync from server",
-                            EventMessageLevel.Regular);
+                            EventMessageLevel.Regular,
+                            SyncBoxId: syncBox.SyncBoxId,
+                            DeviceId: syncBox.CopiedSettings.DeviceId);
 
                         // declare the status of the sync from communication
                         CLHttpRestStatus syncFromStatus;
@@ -6103,7 +6182,9 @@ namespace CloudApiPublic.Sync
                         MessageEvents.FireNewEventMessage(
                             false,
                             "Nothing to communicate with server",
-                            EventMessageLevel.Minor);
+                            EventMessageLevel.Minor,
+                            SyncBoxId: syncBox.SyncBoxId,
+                            DeviceId: syncBox.CopiedSettings.DeviceId);
 
                         incompleteChanges = Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>();
                         newSyncId = null; // the null sync id is used to check on the calling method whether communication occurred
@@ -6119,10 +6200,12 @@ namespace CloudApiPublic.Sync
             {
                 // status message
                 MessageEvents.FireNewEventMessage(
-                    ex,
-                    "Communication of changes with server had an error",
-                    EventMessageLevel.Important,
-                    true);
+                    sender: ex,
+                    Message: "Communication of changes with server had an error",
+                    Level: EventMessageLevel.Important,
+                    IsError: true,
+                    SyncBoxId: syncBox.SyncBoxId,
+                    DeviceId: syncBox.CopiedSettings.DeviceId);
 
                 // default all ouputs
 

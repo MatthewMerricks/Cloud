@@ -41,7 +41,9 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CloudApiPublic, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" />
+    <Reference Include="CloudApiPublic">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="RateBar, Version=1.0.4762.20666, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -66,6 +68,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Static\Enums.cs" />
     <Compile Include="ViewModels\SyncStatusViewModel.cs" />
     <Compile Include="Views\SyncStatusView.xaml.cs">
       <DependentUpon>SyncStatusView.xaml</DependentUpon>
@@ -141,6 +144,15 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\WinClient_CloudSetup_bg_650x485.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Synced.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Syncing.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

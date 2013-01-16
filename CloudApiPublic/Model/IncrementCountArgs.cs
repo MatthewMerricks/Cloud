@@ -17,6 +17,30 @@ namespace CloudApiPublic.Model
     /// </summary>
     public sealed class IncrementCountArgs : HandleableEventArgs
     {
+        /// <summary>
+        /// ID of the SyncBox
+        /// </summary>
+        public Nullable<long> SyncBoxId
+        {
+            get
+            {
+                return _syncBoxId;
+            }
+        }
+        private readonly Nullable<long> _syncBoxId;
+
+        /// <summary>
+        /// Unique ID for the device in the SyncBox
+        /// </summary>
+        public string DeviceId
+        {
+            get
+            {
+                return _deviceId;
+            }
+        }
+        private readonly string _deviceId;
+
         public uint IncrementAmount
         {
             get
@@ -26,7 +50,7 @@ namespace CloudApiPublic.Model
         }
         private readonly uint _incrementAmount;
 
-        internal IncrementCountArgs(uint incrementAmount = 1)
+        internal IncrementCountArgs(uint incrementAmount = 1, Nullable<long> SyncBoxId = null, string DeviceId = null)
         {
             this._incrementAmount = incrementAmount;
         }

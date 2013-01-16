@@ -532,7 +532,7 @@ namespace CloudApiPublic.REST
             object beforeDownloadState,
             CancellationTokenSource shutdownToken,
             string customDownloadFolderFullPath,
-            Action<Guid, long, SyncDirection, string, long, long> statusUpdate,
+            Action<Guid, long, SyncDirection, string, long, long, bool> statusUpdate,
             Guid statusUpdateId)
         {
             return DownloadFile(changeToDownload,
@@ -564,7 +564,7 @@ namespace CloudApiPublic.REST
             AsyncCallback aCallback,
             IAsyncResult aResult,
             GenericHolder<TransferProgress> progress,
-            Action<Guid, long, SyncDirection, string, long, long> statusUpdate,
+            Action<Guid, long, SyncDirection, string, long, long, bool> statusUpdate,
             Nullable<Guid> statusUpdateId)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
@@ -908,7 +908,7 @@ namespace CloudApiPublic.REST
             int timeoutMilliseconds,
             out CLHttpRestStatus status,
             CancellationTokenSource shutdownToken,
-            Action<Guid, long, SyncDirection, string, long, long> statusUpdate,
+            Action<Guid, long, SyncDirection, string, long, long, bool> statusUpdate,
             Guid statusUpdateId)
         {
             return UploadFile(
@@ -933,7 +933,7 @@ namespace CloudApiPublic.REST
             AsyncCallback aCallback,
             IAsyncResult aResult,
             GenericHolder<TransferProgress> progress,
-            Action<Guid, long, SyncDirection, string, long, long> statusUpdate,
+            Action<Guid, long, SyncDirection, string, long, long, bool> statusUpdate,
             Nullable<Guid> statusUpdateId)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
@@ -948,10 +948,22 @@ namespace CloudApiPublic.REST
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
+                // build the location of the metadata retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathUpload + // path to upload
+                    Helpers.QueryStringBuilder(new[] // add DeviceId for file upload
+                    {
+                        (string.IsNullOrEmpty(_copiedSettings.DeviceId)
+                            ? new KeyValuePair<string, string>()
+                            :
+                                // query string parameter for the device id, needs to be escaped since it's client-defined
+                                new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId)))
+                    });
+
                 // run the HTTP communication
                 ProcessHttp(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
                     CLDefinitions.CLUploadDownloadServerURL,  // Server URL
-                    CLDefinitions.MethodPathUpload, // path to upload
+                    serverMethodPath, // dynamic upload path to add device id
                     requestMethod.put, // upload is a put
                     timeoutMilliseconds, // time before communication timeout (does not restrict time for the actual file upload)
                     new uploadParams( // this is a special communication method and requires passing upload parameters
@@ -3870,15 +3882,21 @@ namespace CloudApiPublic.REST
             // direction of communication determines which event to fire
             if (eventSource.Direction == SyncDirection.To)
             {
-                MessageEvents.UpdateFileUpload(eventSource, // source of the event (the event itself)
-                    eventSource.EventId, // the id for the event
-                    status); // the event arguments describing the status change
+                MessageEvents.UpdateFileUpload(
+                    sender: eventSource, // source of the event (the event itself)
+                    eventId: eventSource.EventId, // the id for the event
+                    parameters: status, // the event arguments describing the status change
+                    SyncBoxId: this._syncBoxId,
+                    DeviceId: this._copiedSettings.DeviceId);
             }
             else
             {
-                MessageEvents.UpdateFileDownload(eventSource, // source of the event (the event itself)
-                    eventSource.EventId, // the id for the event
-                    status); // the event arguments describing the status change
+                MessageEvents.UpdateFileDownload(
+                    sender: eventSource, // source of the event (the event itself)
+                    eventId: eventSource.EventId, // the id for the event
+                    parameters: status,  // the event arguments describing the status change
+                    SyncBoxId: this._syncBoxId,
+                    DeviceId: this._copiedSettings.DeviceId);
             }
         }
 
@@ -4003,10 +4021,6 @@ namespace CloudApiPublic.REST
                 httpRequest.ContentLength = uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0; // content length will be file size
                 httpRequest.Headers[CLDefinitions.HeaderAppendStorageKey] = uploadDownload.ChangeToTransfer.Metadata.StorageKey; // add header for destination location of file
                 httpRequest.Headers[CLDefinitions.HeaderAppendContentMD5] = ((uploadParams)uploadDownload).Hash; // set MD5 content hash for verification of upload stream
-                if (!string.IsNullOrEmpty(_copiedSettings.DeviceId)) // conditionally add device id if available
-                {
-                    httpRequest.Headers[CLDefinitions.QueryStringDeviceId] = _copiedSettings.DeviceId; // add device id so it will come through on push notifications
-                }
                 httpRequest.KeepAlive = true; // do not close connection (is this needed?)
                 requestContentBytes = null; // do not write content bytes since they will come from the Stream inside the upload object
             }
@@ -4093,7 +4107,8 @@ namespace CloudApiPublic.REST
                                     uploadDownload.ChangeToTransfer.Direction,
                                     uploadDownload.RelativePathForStatus,
                                     0,
-                                    (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size);
+                                    (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
+                                    false);
                             }
                             catch
                             {
@@ -4192,7 +4207,8 @@ namespace CloudApiPublic.REST
                                         uploadDownload.ChangeToTransfer.Direction,
                                         uploadDownload.RelativePathForStatus,
                                         totalBytesUploaded,
-                                        (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size);
+                                        (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
+                                        false);
                                 }
                                 catch
                                 {
@@ -4366,6 +4382,24 @@ namespace CloudApiPublic.REST
                         // set the response body to a value that will be displayed if the actual response fails to process
                         responseBody = "---Incomplete file download---";
 
+                        if (uploadDownload.StatusUpdate != null
+                            && uploadDownload.StatusUpdateId != null)
+                        {
+                            try
+                            {
+                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                    uploadDownload.ChangeToTransfer.EventId,
+                                    uploadDownload.ChangeToTransfer.Direction,
+                                    uploadDownload.RelativePathForStatus,
+                                    0,
+                                    (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
+                                    false);
+                            }
+                            catch
+                            {
+                            }
+                        }
+
                         // create a new unique id for the download
                         Guid newTempFile = Guid.NewGuid();
 
@@ -4444,6 +4478,24 @@ namespace CloudApiPublic.REST
                                     if (uploadDownload.ACallback != null)
                                     {
                                         uploadDownload.ACallback(uploadDownload.AResult);
+                                    }
+
+                                    if (uploadDownload.StatusUpdate != null
+                                        && uploadDownload.StatusUpdateId != null)
+                                    {
+                                        try
+                                        {
+                                            uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                                uploadDownload.ChangeToTransfer.EventId,
+                                                uploadDownload.ChangeToTransfer.Direction,
+                                                uploadDownload.RelativePathForStatus,
+                                                totalBytesDownloaded,
+                                                (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
+                                                false);
+                                        }
+                                        catch
+                                        {
+                                        }
                                     }
 
                                     // fire event callbacks for status change on uploading
@@ -4592,7 +4644,8 @@ namespace CloudApiPublic.REST
                                 uploadDownload.ChangeToTransfer.Direction,
                                 uploadDownload.RelativePathForStatus,
                                 uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
-                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0);
+                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+                                false);
                         }
                         catch
                         {
@@ -5008,14 +5061,14 @@ namespace CloudApiPublic.REST
             /// <summary>
             /// Callback to fire upon status updates, used internally for getting status from CLSync
             /// </summary>
-            public Action<Guid, long, SyncDirection, string, long, long> StatusUpdate
+            public Action<Guid, long, SyncDirection, string, long, long, bool> StatusUpdate
             {
                 get
                 {
                     return _statusUpdate;
                 }
             }
-            private readonly Action<Guid, long, SyncDirection, string, long, long> _statusUpdate;
+            private readonly Action<Guid, long, SyncDirection, string, long, long, bool> _statusUpdate;
 
             public Nullable<Guid> StatusUpdateId
             {
@@ -5036,7 +5089,7 @@ namespace CloudApiPublic.REST
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, Action<Guid, long, SyncDirection, string, long, long> StatusUpdate, Nullable<Guid> StatusUpdateId)
+            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, Action<Guid, long, SyncDirection, string, long, long, bool> StatusUpdate, Nullable<Guid> StatusUpdateId)
             {
                 // check for required parameters and error out if not set
 
@@ -5161,7 +5214,7 @@ namespace CloudApiPublic.REST
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
             /// <param name="BeforeDownloadCallback">A non-required (possibly null) event handler for before a download starts</param>
             /// <param name="BeforeDownloadUserState">UserState object passed through as-is when the BeforeDownloadCallback handler is fired</param>
-            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, Action<Guid, long, SyncDirection, string, long, long> StatusUpdate, Nullable<Guid> StatusUpdateId, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
+            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, Action<Guid, long, SyncDirection, string, long, long, bool> StatusUpdate, Nullable<Guid> StatusUpdateId, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
                 : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
@@ -5250,7 +5303,7 @@ namespace CloudApiPublic.REST
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadParams(Stream Stream, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, Action<Guid, long, SyncDirection, string, long, long> StatusUpdate, Nullable<Guid> StatusUpdateId)
+            public uploadParams(Stream Stream, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, Action<Guid, long, SyncDirection, string, long, long, bool> StatusUpdate, Nullable<Guid> StatusUpdateId)
                 : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor

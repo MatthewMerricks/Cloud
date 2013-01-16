@@ -101,12 +101,7 @@ namespace win_client.Common
             }
             catch (Exception ex)
             {
-                CLError err = new CLError();
-                err.errorDomain = CLError.ErrorDomain_Application;
-                err.errorDescription = Resources.Resources.appDelegateExceptionCreatingFolder;
-                err.errorCode = (int)CL((int)error.code).ToString()s.Exception;
-                err.errorInfo.Add(CLError.ErrorInfo_Exception, ex);
-                error = err;
+                error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 creationTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));
                 return;

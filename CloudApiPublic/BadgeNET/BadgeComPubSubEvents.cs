@@ -613,7 +613,13 @@ namespace CloudApiPublic.BadgeNET
         /// </summary>
         ~BadgeComPubSubEvents()
         {
-            Dispose(false);
+            try
+            {
+                Dispose(false);
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>

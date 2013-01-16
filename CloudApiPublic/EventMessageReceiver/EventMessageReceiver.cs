@@ -33,34 +33,11 @@ namespace CloudApiPublic.EventMessageReceiver
         private const int GrowlProcessMouseCheckerMilliseconds = 250;
         // time until growl fades back into fully opaque if it was fading out upon mouse-over
         private const double SecondsTillFadeInOnMouseOverIfFadedOut = 1d;
+        private readonly object _locker = new object();
 
         // Delegates to handle saving the average bandwidth to settings.
         public delegate void GetHistoricBandwidthSettings(out double historicUploadBandwidthBitsPS, out double historicDownloadBandwidthBitsPS);
         public delegate void SetHistoricBandwidthSettings(double historicUploadBandwidthBitsPS, double historicDownloadBandwidthBitsPS);
-
-        #region singleton pattern
-        /// <summary>
-        /// Singleton pattern instance
-        /// </summary>
-        public static EventMessageReceiver GetInstance(
-            GetHistoricBandwidthSettings getHistoricBandwidthSettings,
-            SetHistoricBandwidthSettings setHistoricBandwidthSettings,
-            Nullable<EventMessageLevel> OverrideImportanceFilterNonErrors = null,
-            Nullable<EventMessageLevel> OverrideImportanceFilterErrors = null,
-            Nullable<int> OverrideDefaultMaxStatusMessages = null)
-        {
-            // lock for retrieving or creating and retrieving the message receiver
-            lock (InstanceLocker)
-            {
-                return _instance
-                    ?? (_instance = new EventMessageReceiver(getHistoricBandwidthSettings, setHistoricBandwidthSettings, OverrideImportanceFilterNonErrors, OverrideImportanceFilterErrors, OverrideDefaultMaxStatusMessages));
-            }
-        }
-        // Define the storage for the local message receiver, defaulting to null
-        private static EventMessageReceiver _instance = null;
-        // lock for changes to the message receiver instance
-        private static readonly object InstanceLocker = new object();
-        #endregion
 
         #region internal properties (used to be public, but we're not sure about exposing growls)
         /// <summary>
@@ -209,7 +186,7 @@ namespace CloudApiPublic.EventMessageReceiver
             get
             {
                 return _mouseEnteredGrowlCommand ?? (_mouseEnteredGrowlCommand =
-                    new RelayCommand<UIElement>(MouseEnteredGrowl));
+                    new RelayCommand<FrameworkElement>(MouseEnteredGrowl));
             }
         }
         // defines the command for binding the action for the mouse entering the growl, defaulting to null to be set upon first retrieval
@@ -233,9 +210,13 @@ namespace CloudApiPublic.EventMessageReceiver
         // define the time at which the growl will have completed faded out when it will no longer be visible, defaulting to none
         private Nullable<DateTime> lastFadeOutCompletion = null;
 
+        // Identifies this EventMessageReceiver in the MessageEvents filter
+        private readonly long SyncBoxId;
+        private readonly string DeviceId;
+
         // Delegates
-        private GetHistoricBandwidthSettings _getHistoricBandwidthSettingsDelegate = null;
-        private SetHistoricBandwidthSettings _setHistoricBandwidthSettingsDelegate = null;
+        private readonly GetHistoricBandwidthSettings _getHistoricBandwidthSettingsDelegate;
+        private readonly SetHistoricBandwidthSettings _setHistoricBandwidthSettingsDelegate;
 
         #region detecting when mouse is over the growl
         // define a holder for whether the growl is watching for the mouse cursor to go outside the growl, defaulting to not watching (false)
@@ -248,18 +229,70 @@ namespace CloudApiPublic.EventMessageReceiver
         private bool isDisposed = false;
 
         #endregion
-
-        // private constructor to match the singleton pattern
+ 
+        /// <summary>
+        /// Create a new EventMessageReceiver ViewModel.  Optionally use this ViewModel with your sync status controls.
+        /// It exposes three ObservableCollections (ListFilesDownloading, ListFilesUploading and ListMessages).
+        /// </summary>
+        /// <param name="SyncBoxId">The ID of the related CLSyncBox.</param>
+        /// <param name="DeviceId">The ID of the related device.</param>
+        /// <param name="receiver">(output) The created EventMessageReceiver, or null.</param>
+        /// <param name="getHistoricBandwidthSettings">(optional) Your callback method to retrieve the historic bandwidth for upload and download from persistent storage.</param>
+        /// <param name="setHistoricBandwidthSettings">(optional) Your callback method to persist the historic bandwidth for upload and download.</param>
+        /// <param name="OverrideImportanceFilterNonErrors">(optional) A parameter to filter the number of non-error messages you will receive.</param>
+        /// <param name="OverrideImportanceFilterErrors">(optional) A parameter to filter the number of error messages you will receive.</param>
+        /// <param name="OverrideDefaultMaxStatusMessages">(optional) The maximum number of messages that will be maintained in ListMessages.</param>
+        /// <returns>CLError: Any error that occurs, with exception information, or null.</returns>
+        public static CLError CreateAndInitialize(
+            long SyncBoxId,
+            string DeviceId,
+            out EventMessageReceiver receiver,
+            GetHistoricBandwidthSettings getHistoricBandwidthSettings = null,
+            SetHistoricBandwidthSettings setHistoricBandwidthSettings = null,
+            Nullable<EventMessageLevel> OverrideImportanceFilterNonErrors = null,
+            Nullable<EventMessageLevel> OverrideImportanceFilterErrors = null,
+            Nullable<int> OverrideDefaultMaxStatusMessages = null)
+        {
+            try
+            {
+                receiver = new EventMessageReceiver(SyncBoxId,
+                    DeviceId,
+                    getHistoricBandwidthSettings,
+                    setHistoricBandwidthSettings,
+                    OverrideImportanceFilterNonErrors,
+                    OverrideImportanceFilterErrors,
+                    OverrideDefaultMaxStatusMessages);
+            }
+            catch (Exception ex)
+            {
+                receiver = Helpers.DefaultForType<EventMessageReceiver>();
+                return ex;
+            }
+            return null;
+        }
         private EventMessageReceiver(
+            long SyncBoxId,
+            string DeviceId,
             GetHistoricBandwidthSettings getHistoricBandwidthSettings,
             SetHistoricBandwidthSettings setHistoricBandwidthSettings,
             Nullable<EventMessageLevel> OverrideImportanceFilterNonErrors,
             Nullable<EventMessageLevel> OverrideImportanceFilterErrors,
             Nullable<int> OverrideDefaultMaxStatusMessages)
         {
+            CLError subscriptionError = MessageEvents.SubscribeMessageReceiver(SyncBoxId,
+                DeviceId,
+                this);
+            if (subscriptionError != null)
+            {
+                throw new AggregateException("Error subscribing this receiver to MessageEvents", subscriptionError.GrabExceptions());
+            }
+
             // Save the parameters to private fields.
             _getHistoricBandwidthSettingsDelegate = getHistoricBandwidthSettings;
             _setHistoricBandwidthSettingsDelegate = setHistoricBandwidthSettings;
+
+            this.SyncBoxId = SyncBoxId;
+            this.DeviceId = DeviceId;
 
             // changes made upon construction for other partial class portions should be handled via a ConstructedHolder (see the next custom construction setter directly below)
 
@@ -272,19 +305,16 @@ namespace CloudApiPublic.EventMessageReceiver
                     new KeyValuePair<Nullable<EventMessageLevel>, Nullable<int>>(
                         OverrideImportanceFilterErrors,
                         OverrideDefaultMaxStatusMessages)));
-
-            // attach handlers for the relevant global messages which may need to be displayed in a growl
-            
-            MessageEvents.NewEventMessage += MessageEvents_NewEventMessage; // informational or error message occurs
-            MessageEvents.DownloadingCountSet += SetDownloadingCount; // when the number of currently downloading files changes
-            MessageEvents.UploadingCountSet += SetUploadingCount; // when the number of currently uploading files changes
-            MessageEvents.DownloadedCountIncremented += IncrementDownloadedCount; // when a file completes downloading
-            MessageEvents.UploadedCountIncremented += IncrementUploadedCount; // when a file completes uploading
         }
 
+        public EventMessageReceiver()
+        {
+            throw new NotSupportedException("Default constructor not supported");
+        }
+ 
         #region MessageEvents callbacks
         // informational or error message occurs, displayed only if high priority
-        private void MessageEvents_NewEventMessage(object sender, EventMessageArgs e)
+        internal void MessageEvents_NewEventMessage(object sender, EventMessageArgs e)
         {
             // if the message represents an error, then check if the error is not minor in order to display
             if (e.IsError)
@@ -319,7 +349,7 @@ namespace CloudApiPublic.EventMessageReceiver
         }
 
         // when the number of currently downloading files changes, create or update a message for the downloading count
-        private void SetDownloadingCount(object sender, SetCountArgs e)
+        internal void SetDownloadingCount(object sender, SetCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -353,7 +383,7 @@ namespace CloudApiPublic.EventMessageReceiver
         }
 
         // when a file completes downloading, create or update a message for the incrementing completed downloads
-        private void IncrementDownloadedCount(object sender, IncrementCountArgs e)
+        internal void IncrementDownloadedCount(object sender, IncrementCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -388,7 +418,7 @@ namespace CloudApiPublic.EventMessageReceiver
         }
 
         // when the number of currently uploading files changes, create or update a message for the uploading count
-        private void SetUploadingCount(object sender, SetCountArgs e)
+        internal void SetUploadingCount(object sender, SetCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -422,7 +452,7 @@ namespace CloudApiPublic.EventMessageReceiver
         }
 
         // when a file completes uploading, create or update a message for the incrementing uploaded downloads
-        private void IncrementUploadedCount(object sender, IncrementCountArgs e)
+        internal void IncrementUploadedCount(object sender, IncrementCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -476,8 +506,18 @@ namespace CloudApiPublic.EventMessageReceiver
         private void Dispose(bool disposing)
         {
             // lock on instance locker for changing EventMessageReceiver so it cannot be stopped/started simultaneously
-            lock (InstanceLocker)
+            lock (_locker)
             {
+                try
+                {
+                    MessageEvents.UnsubscribeMessageReceiver(
+                        SyncBoxId,
+                        DeviceId);
+                }
+                catch
+                {
+                }
+
                 if (!isDisposed)
                 {
                     // set delay completed so processing will not fire
@@ -542,7 +582,12 @@ namespace CloudApiPublic.EventMessageReceiver
 
         #region detecting when mouse is over the growl
         // handler for the command when the mouse entered the growl, need to keep growl opaque until the mouse leaves
-        private void MouseEnteredGrowl(UIElement growlElement)
+        private class GrowlUserState
+        {
+            public FrameworkElement GrowlElement { get; set; }
+            public EventMessageReceiver Receiver { get; set; }
+        }
+        private void MouseEnteredGrowl(FrameworkElement growlElement)
         {
             // declare a bool for whether to process that the mouse just entered the growl and it needs to stay opaque
             bool processEnter;
@@ -555,7 +600,8 @@ namespace CloudApiPublic.EventMessageReceiver
                     // if the thread is not watching for mouse leave, then start that thread and mark that it started
                     if (!growlCapturedMouse.Value)
                     {
-                        ThreadPool.UnsafeQueueUserWorkItem(ProcessGrowlCheckingMouse, growlElement);
+                        GrowlUserState userState = new GrowlUserState() { GrowlElement = growlElement, Receiver = this };
+                        ThreadPool.UnsafeQueueUserWorkItem(ProcessGrowlCheckingMouse, userState);
                         growlCapturedMouse.Value = true;
                     }
 
@@ -636,18 +682,17 @@ namespace CloudApiPublic.EventMessageReceiver
         // method to watch for the mouse leaving the provided growl FrameworkElement
         private static void ProcessGrowlCheckingMouse(object state)
         {
-            // try to cast the userstate as the growl FrameworkElement
-            FrameworkElement castState = state as FrameworkElement;
-            // if the userstate could not be cast as the growl FrameworkElement, then display an error message
+            // Cast the user state
+            GrowlUserState castState = state as GrowlUserState;
             if (castState == null)
             {
-                MessageBox.Show("Unable to cast state as FrameworkElement in ProcessGrowlCheckingMouse");
+                MessageBox.Show("Unable to cast state as GrowlUserState in ProcessGrowlCheckingMouse");
             }
-            // else if the userstate could be cast as the growl FrameworkElement, then start a watching loop for when the mouse cursor leaves it
+            // else if the userstate could be cast as the growl user state, then start a watching loop for when the mouse cursor leaves it
             else
             {
                 // store the message receiver
-                EventMessageReceiver thisReceiver = GetInstance(null, null);
+                EventMessageReceiver thisReceiver = castState.Receiver;
 
                 // loop indefinitely to check for the mouse leaving the growl FrameworkElement
                 while (true)
@@ -714,7 +759,7 @@ namespace CloudApiPublic.EventMessageReceiver
                                 }
                             }),
                             // pass in the stop processing holder and the growl FrameworkElement
-                            new KeyValuePair<GenericHolder<bool>, FrameworkElement>(stopProcessing, castState));
+                            new KeyValuePair<GenericHolder<bool>, FrameworkElement>(stopProcessing, castState.GrowlElement));
 
                         // wait for the dispatched thread to pulse back
                         Monitor.Wait(stopProcessing);

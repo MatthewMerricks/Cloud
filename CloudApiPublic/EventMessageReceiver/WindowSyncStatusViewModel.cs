@@ -52,10 +52,10 @@ namespace CloudApiPublic.EventMessageReceiver
         private bool DownloadProcessingTimerRunning = false;
         #endregion
 
-        // static message-receiving public methods
+        // static message-receiving methods
         // -David
         #region message events callbacks
-        private void UpdateFileUpload(object sender, TransferUpdateArgs e)
+        internal void UpdateFileUpload(object sender, TransferUpdateArgs e)
         {
             lock (UploadEventIdToQueuedUpdateParameters)
             {
@@ -72,7 +72,7 @@ namespace CloudApiPublic.EventMessageReceiver
             e.MarkHandled();
         }
 
-        private void UpdateFileDownload(object sender, TransferUpdateArgs e)
+        internal void UpdateFileDownload(object sender, TransferUpdateArgs e)
         {
             lock (DownloadEventIdToQueuedUpdateParameters)
             {
@@ -89,7 +89,7 @@ namespace CloudApiPublic.EventMessageReceiver
             e.MarkHandled();
         }
 
-        private void AddStatusMessage(object sender, EventMessageArgs e)
+        internal void AddStatusMessage(object sender, EventMessageArgs e)
         {
             // if this message should not be filtered out, then process adding the status message
             if (e.IsError
@@ -154,7 +154,7 @@ namespace CloudApiPublic.EventMessageReceiver
             {
                 Func<EventMessageReceiver, bool> continueProcessing = checkDisposed =>
                 {
-                    lock (InstanceLocker)
+                    lock (thisReceiver._locker)
                     {
                         return !checkDisposed.isDisposed;
                     }
@@ -244,7 +244,7 @@ namespace CloudApiPublic.EventMessageReceiver
             {
                 Func<EventMessageReceiver, bool> continueProcessing = checkDisposed =>
                 {
-                    lock (InstanceLocker)
+                    lock (thisReceiver._locker)
                     {
                         return !checkDisposed.isDisposed;
                     }
@@ -633,10 +633,6 @@ namespace CloudApiPublic.EventMessageReceiver
                 _getHistoricBandwidthSettingsDelegate(out _dblCurrentBandwidthBitsPerSecondUpload, out _dblCurrentBandwidthBitsPerSecondDownload);
             }
 
-            MessageEvents.NewEventMessage += AddStatusMessage;
-            MessageEvents.FileDownloadUpdated += UpdateFileDownload;
-            MessageEvents.FileUploadUpdated += UpdateFileUpload;
-
             this.MaxStatusMessages = MaxStatusMessages;
             this.ImportanceFilterNonErrors = ImportanceFilterNonErrors;
             this.ImportanceFilterErrors = ImportanceFilterErrors;
@@ -694,26 +690,26 @@ namespace CloudApiPublic.EventMessageReceiver
         }
         private readonly ObservableCollection<CLStatusMessage> _listMessages = new ObservableCollection<CLStatusMessage>();
 
-        /// <summary>
-        /// Display title for a sync status window
-        /// </summary>
-        public string WindowSyncStatus_Title
-        {
-            get
-            {
-                return _windowSyncStatus_Title;
-            }
+        ///// <summary>
+        ///// Display title for a sync status window
+        ///// </summary>
+        //public string WindowSyncStatus_Title
+        //{
+        //    get
+        //    {
+        //        return _windowSyncStatus_Title;
+        //    }
 
-            set
-            {
-                if (_windowSyncStatus_Title != value)
-                {
-                    _windowSyncStatus_Title = value;
-                    NotifyPropertyChanged(parent => WindowSyncStatus_Title);
-                }
-            }
-        }
-        private string _windowSyncStatus_Title = "Cloud Sync Status";
+        //    set
+        //    {
+        //        if (_windowSyncStatus_Title != value)
+        //        {
+        //            _windowSyncStatus_Title = value;
+        //            NotifyPropertyChanged(parent => WindowSyncStatus_Title);
+        //        }
+        //    }
+        //}
+        //private string _windowSyncStatus_Title = "Cloud Sync Status";
 
         #endregion
 
