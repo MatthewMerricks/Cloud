@@ -929,36 +929,73 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(Pl
       <AdditionalLibraryDirectories>$(SolutionDir)3rdParty\bin\Release\Boost_1_52</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>echo copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
-copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
+      <Command>REM ----------------------------------------------------------------
+set ErrorTracker=1
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll
+copy $(OutDir)$(TargetName).dll $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=2
 rem C:\Cloud\windows-client\3rdParty\bin\Release&gt;tlbimp.exe BadgeCOM.dll /delaysign /publickey:C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pub /out:BadgeCOMLib.dll
 rem C:\Cloud\windows-client\3rdParty\bin\Release&gt;sn.exe -R BadgeCOMLib.dll C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pfx
-echo tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
-tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
+
+REM ----------------------------------------------------------------
+set ErrorTracker=3
+echo tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
+tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
 if errorlevel 1 goto BuildEventFailed
-copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
+
+REM ----------------------------------------------------------------
+set ErrorTracker=4
+echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).pdb
+copy $(OutDir)$(TargetName).pdb $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).pdb
 if errorlevel 1 goto BuildEventFailed
-copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(TargetName)Lib.dll
+
+REM ----------------------------------------------------------------
+set ErrorTracker=5
+echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(TargetName)Lib.dll
+copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(TargetName)Lib.dll
 if errorlevel 1 goto BuildEventFailed
-copy $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(TargetName)Lib.dll
+
+REM ----------------------------------------------------------------
+set ErrorTracker=6
+echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(TargetName)Lib.dll
+copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(TargetName)Lib.dll
 if errorlevel 1 goto BuildEventFailed
-copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
+
+REM ----------------------------------------------------------------
+set ErrorTracker=7
+echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
+copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
-copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
+
+REM ----------------------------------------------------------------
+set ErrorTracker=8
+echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
+copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
-regsvr32.exe /u /s $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
+
+REM ----------------------------------------------------------------
+set ErrorTracker=8
+echo regsvr32.exe /u /s $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll
+regsvr32.exe /u /s $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll
 REM do not jump to error condition and reset error level since it is fine if regsvr32.exe fails to unregister dll
 set errorlevel=0
+
+REM ---- PLACE THIS CODE AT THE END
 REM Exit properly because the build will not fail
 REM unless the final step exits with an error code
 goto BuildEventOK
 :BuildEventFailed
-echo POSTBUILDSTEP for $(ProjectName) FAILED
+echo POSTBUILDSTEP for $(ProjectName) FAILED at step %ErrorTracker%
+set ErrorTracker=
+echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
 exit 1
 :BuildEventOK
 echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
-exit 0</Command>
+echo ************  POST BUILD STEP COMPLETED OK **********************
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseARM|Win32'">

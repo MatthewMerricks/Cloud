@@ -269,6 +269,30 @@ echo 7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
+REM ----------------------------------------------------------------
+set ErrorTracker=15
+echo xcopy /Y /S $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+xcopy /Y /S $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=16
+echo xcopy /y /S $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+xcopy /y /S $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=17
+echo xcopy /Y /S $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+xcopy /Y /S $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=18
+echo xcopy /Y /S $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
+xcopy /Y /S $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
+if errorlevel 1 goto BuildEventFailed
+
 REM ----------------------
 set ErrorTracker=15
 echo cd ..
@@ -287,6 +311,7 @@ exit 1
 :BuildEventOK
 echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
 echo ************  POST BUILD STEP COMPLETED OK **********************
+
 
 
 </PostBuildEvent>
