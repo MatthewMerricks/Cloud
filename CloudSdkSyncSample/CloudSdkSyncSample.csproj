@@ -169,38 +169,43 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
 set ErrorTracker=2
+if not exist html md html
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=3
 echo del /S /Q html\*.*
 del /S /Q html\*.*
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=3
+set ErrorTracker=4
 echo rd /S /Q html
 rd /S /Q html
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=4
+set ErrorTracker=5
 echo doxygen doxyfile
 doxygen doxyfile
 echo doxygen ErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=5
+set ErrorTracker=6
 echo cd html
 cd html
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=6
+set ErrorTracker=7
 echo 7z a -tzip CloudSdkSyncSampleDocs.zip ./
 7z a -tzip CloudSdkSyncSampleDocs.zip ./
 echo 7z BuildErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=7
+set ErrorTracker=8
 echo cd .. 
 cd .. 
 echo cd ErrorLevel: %25errorlevel%25
@@ -208,46 +213,46 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ------ Zip the SDK sample source and VS project ----------------
 REM ----------------------
-set ErrorTracker=8
+set ErrorTracker=9
 echo cd CloudSdkSyncSample
 cd CloudSdkSyncSample
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=9
+set ErrorTracker=10
 echo del CloudSdkSyncSampleSource.zip
 del CloudSdkSyncSampleSource.zip
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=10
+set ErrorTracker=11
 echo 7z a -tzip CloudSdkSyncSampleSource.zip ./
 7z a -tzip CloudSdkSyncSampleSource.zip ./
 if errorlevel 1 goto BuildEventFailed
 
 REM ----- Delete the obj\ directory in the zip file -----------------
-set ErrorTracker=11
+set ErrorTracker=12
 echo 7z d CloudSdkSyncSampleSource.zip obj/
 7z d CloudSdkSyncSampleSource.zip obj/
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----- Delete the bin\Debug\CloudSdkSyncSample* files in the zip file -----------------
-set ErrorTracker=12
+set ErrorTracker=13
 echo 7z d CloudSdkSyncSampleSource.zip bin\Debug\CloudSdkSyncSample*.*
 7z d CloudSdkSyncSampleSource.zip bin\Debug\CloudSdkSyncSample*.*
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----- Delete the bin\Release\CloudSdkSyncSample* files in the zip file -----------------
-set ErrorTracker=13
+set ErrorTracker=14
 echo 7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
 7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=14
+set ErrorTracker=15
 echo cd ..
 cd ..
 if errorlevel 1 goto BuildEventFailed
@@ -264,7 +269,6 @@ exit 1
 :BuildEventOK
 echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
 echo ************  POST BUILD STEP COMPLETED OK **********************
-exit 0
 
 
 </PostBuildEvent>

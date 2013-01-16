@@ -214,12 +214,6 @@ namespace CloudApiPublic
                     return new ArgumentException("CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath", checkBadPath.GrabFirstException());
                 }
 
-                if (String.IsNullOrWhiteSpace(syncBox.CopiedSettings.DeviceId))
-                {
-                    _trace.writeToLog(1, "CLSync: SyncReset: ERROR: DeviceId must be specified in settings.");
-                    return new ArgumentException("DeviceId must be specified in settings");
-                }
-
                 int tooLongChars;
                 CLError checkPathLength = Helpers.CheckSyncRootLength(syncBox.CopiedSettings.SyncRoot, out tooLongChars);
                 if (checkPathLength != null)

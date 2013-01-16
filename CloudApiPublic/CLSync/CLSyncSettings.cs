@@ -284,7 +284,7 @@ namespace CloudApiPublic
                 toCopy.TraceLocation,
                 toCopy.TraceExcludeAuthorization,
                 toCopy.TraceLevel,
-                toCopy.DeviceId,
+                String.IsNullOrWhiteSpace(toCopy.DeviceId) ? Environment.MachineName + Guid.NewGuid().ToString("N") : toCopy.DeviceId,
                 //toCopy.ApplicationKey,
                 //toCopy.ApplicationSecret,
                 //toCopy.SyncBoxId,
