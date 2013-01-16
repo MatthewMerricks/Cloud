@@ -966,8 +966,6 @@ namespace CloudSdkSyncSample.ViewModels
                                     // Reset the sync database if we should
                                     if (Properties.Settings.Default.ShouldResetSync)
                                     {
-                                        Properties.Settings.Default.ShouldResetSync = false;
-                                        Properties.Settings.Default.Save();
                                         CLError errorFromSyncReset = _syncEngine.SyncReset(syncBox);
                                         if (errorFromSyncReset != null)
                                         {
@@ -982,6 +980,11 @@ namespace CloudSdkSyncSample.ViewModels
                                                     Message = String.Format("Error resetting the SyncBox: {0}.", errorFromSyncReset.errorDescription)
                                                 });
                                             }
+                                        }
+                                        else
+                                        {
+                                            Properties.Settings.Default.ShouldResetSync = false;
+                                            Properties.Settings.Default.Save();
                                         }
                                     }
                                 }

@@ -22,6 +22,9 @@ Thumbs.db
 [Dd]ebug*/
 *.lib
 *.sbr
+*.zip
+*.7z
+*.pfx
 obj/
 [Rr]elease*/
 _ReSharper*/
@@ -33,3 +36,5 @@ Generated Files/
 [Cc]loud[Ss]etup[Ss]dk[Ss]ync[Ss]ample/[Cc]loud[Ss]etup[Ss]dk[Ss]ync[Ss]ample/[Ee]xpress/
 WyUpdater/*
 !WyUpdater/*
+html/
+latex/
