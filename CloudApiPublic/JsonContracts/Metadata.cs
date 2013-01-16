@@ -19,7 +19,7 @@ namespace CloudApiPublic.JsonContracts
     /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetMetadataAtPath"/>; also an inner object containing metadata properties for <see cref="Event"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="PendingResponse"/>, and <see cref="Pictures"/>
     /// </summary>
     [DataContract]
-    public sealed class Metadata
+    internal /*public*/ sealed class Metadata
     {
         [DataMember(Name = CLDefinitions.CLMetadataServerId, IsRequired = false)]
         public string ServerId { get; set; }

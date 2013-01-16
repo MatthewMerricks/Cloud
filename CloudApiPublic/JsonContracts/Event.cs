@@ -5,12 +5,12 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPublic.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using CloudApiPublic.Model;
 
 namespace CloudApiPublic.JsonContracts
 {
@@ -18,7 +18,7 @@ namespace CloudApiPublic.JsonContracts
     /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.PostFileChange"/>, <see cref="CloudApiPublic.REST.CLHttpRest.UndoDeletionFileChange"/>, and <see cref="CloudApiPublic.REST.CLHttpRest.CopyFile"/>
     /// </summary>
     [DataContract]
-    public sealed class Event
+    internal /*public*/ sealed class Event
     {
         [DataMember(Name = CLDefinitions.CLSyncEvent, IsRequired = false)]
         public string Action { get; set; }

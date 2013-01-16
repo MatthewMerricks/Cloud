@@ -68,6 +68,24 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="EventMessageReceiver\BindingAndTriggerValue.cs" />
+    <Compile Include="EventMessageReceiver\BindingEvaluator.cs" />
+    <Compile Include="EventMessageReceiver\DelayChangeObservableCollection.cs" />
+    <Compile Include="EventMessageReceiver\EventMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadedMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadingMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\ErrorMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\InformationalMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadedMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadingMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageReceiver.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransfer.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferBase.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferBlank.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusMessage.cs" />
+    <Compile Include="EventMessageReceiver\Status\ICLStatusFileTransfer.cs" />
+    <Compile Include="EventMessageReceiver\WindowSyncStatusViewModel.cs" />
+    <Compile Include="Models\ConstructedHolder.cs" />
     <Compile Include="Static\Enums.cs" />
     <Compile Include="ViewModels\SyncStatusViewModel.cs" />
     <Compile Include="Views\SyncStatusView.xaml.cs">

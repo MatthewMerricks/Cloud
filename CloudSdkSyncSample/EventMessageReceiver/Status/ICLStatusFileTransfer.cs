@@ -1,18 +1,11 @@
-﻿//
-//  ICLStatusFileTransfer.cs
-//  Cloud Windows
-//
-//  Created by DavidBruck.
-//  Copyright (c) Cloud.com. All rights reserved.
-
-using RateBar;
+﻿using RateBar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
 
-namespace CloudApiPublic.EventMessageReceiver
+namespace CloudSdkSyncSample.EventMessageReceiver
 {
     /// <summary>
     /// Interface for exposed properties on a file transfer status object

@@ -5,12 +5,12 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPublic.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using CloudApiPublic.Model;
 
 namespace CloudApiPublic.JsonContracts
 {
@@ -18,7 +18,7 @@ namespace CloudApiPublic.JsonContracts
     /// An inner object containing item count properties for <see cref="Metadata"/>
     /// </summary>
     [DataContract]
-    public sealed class ItemCount
+    internal /*public*/ sealed class ItemCount
     {
         [DataMember(Name = CLDefinitions.CLMetadataFiles, IsRequired = false)]
         public Nullable<long> FileCount { get; set; }

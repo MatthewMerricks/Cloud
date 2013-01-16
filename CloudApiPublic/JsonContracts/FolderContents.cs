@@ -19,7 +19,7 @@ namespace CloudApiPublic.JsonContracts
     /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetFolderContents"/>
     /// </summary>
     [DataContract]
-    public sealed class FolderContents
+    internal /*public*/ sealed class FolderContents
     {
         [DataMember(Name = CLDefinitions.CLMetadataCount, IsRequired = false)]
         public Nullable<long> Count { get; set; }

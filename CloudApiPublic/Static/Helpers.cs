@@ -536,7 +536,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <param name="relativeTo">Element for origin base for the cursor point</param>
         /// <returns>Returns the mouse cursor position relative to the Visual element origin</returns>
-        internal static Point CorrectGetPosition(Visual relativeTo)
+        public static Point CorrectGetPosition(Visual relativeTo)
         {
             try
             {

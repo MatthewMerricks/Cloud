@@ -19,7 +19,7 @@ namespace CloudApiPublic.JsonContracts
     /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetSyncBoxUsage"/>
     /// </summary>
     [DataContract]
-    public sealed class SyncBoxUsage
+    internal /*public*/ sealed class SyncBoxUsage
     {
         [DataMember(Name = CLDefinitions.CLMetadataLocal, IsRequired = false)]
         public Nullable<long> Local { get; set; }

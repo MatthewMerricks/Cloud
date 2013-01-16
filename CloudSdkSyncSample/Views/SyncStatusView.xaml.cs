@@ -1,6 +1,6 @@
 ﻿using CloudApiPublic.Support;
 using CloudApiPublic.Model;
-using CloudApiPublic.EventMessageReceiver;
+using CloudSdkSyncSample.EventMessageReceiver;
 using CloudSdkSyncSample.ViewModels;
 using System;
 using System.Windows;
@@ -15,7 +15,7 @@ namespace CloudSdkSyncSample.Views
         #region Private Fields
 
         private static CLTrace _trace = CLTrace.Instance;
-        private EventMessageReceiver _vm = null;
+        private EventMessageReceiver.EventMessageReceiver _vm = null;
         private SyncStatusViewModel _vmOurs = null;
         
         #endregion
@@ -76,7 +76,7 @@ namespace CloudSdkSyncSample.Views
         {
             // Get the EventMessageReceiver ViewModel which will be the DataContext
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Loaded: Entry.");
-            _vm = (EventMessageReceiver)this.DataContext;
+            _vm = (EventMessageReceiver.EventMessageReceiver)this.DataContext;
 
             // Get our own ViewModel for commands
             _vmOurs = this.Resources["SyncStatusViewModel"] as SyncStatusViewModel;

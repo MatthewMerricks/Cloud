@@ -15,6 +15,9 @@ using System.Text;
 
 namespace CloudApiPublic
 {
+    /// <summary>
+    /// Represents a SyncBox in Cloud where everything is stored
+    /// </summary>
     public sealed class CLSyncBox
     {
         /// <summary>

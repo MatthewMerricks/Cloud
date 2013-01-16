@@ -80,9 +80,6 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="RateBar, Version=1.0.4762.20666, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-      <HintPath>..\3rdParty\bin\Release\RateBar.dll</HintPath>
-    </Reference>
     <Reference Include="Salient.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Salient.Data.dll</HintPath>
     </Reference>
@@ -131,25 +128,9 @@
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
     <Compile Include="CLSync\CLSyncStartStatus.cs" />
-    <Compile Include="EventMessageReceiver\BindingAndTriggerValue.cs" />
-    <Compile Include="EventMessageReceiver\BindingEvaluator.cs" />
-    <Compile Include="EventMessageReceiver\DelayChangeObservableCollection.cs" />
-    <Compile Include="EventMessageReceiver\EventMessage.cs" />
-    <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadedMessage.cs" />
-    <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadingMessage.cs" />
-    <Compile Include="EventMessageReceiver\EventMessageImplementations\ErrorMessage.cs" />
-    <Compile Include="EventMessageReceiver\EventMessageImplementations\InformationalMessage.cs" />
-    <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadedMessage.cs" />
-    <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadingMessage.cs" />
-    <Compile Include="EventMessageReceiver\EventMessageReceiver.cs" />
-    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransfer.cs" />
-    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferBase.cs" />
-    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferBlank.cs" />
-    <Compile Include="EventMessageReceiver\Status\CLStatusMessage.cs" />
-    <Compile Include="EventMessageReceiver\Status\ICLStatusFileTransfer.cs" />
-    <Compile Include="EventMessageReceiver\WindowSyncStatusViewModel.cs" />
     <Compile Include="FileMonitor\MonitorAgent.cs" />
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
+    <Compile Include="Interfaces\IEventMessageReceiver.cs" />
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />
     <Compile Include="JsonContracts\FileCopy.cs" />
@@ -262,7 +243,7 @@
     </Compile>
     <Compile Include="Static\TraceType.cs" />
     <Compile Include="Model\CLError.cs" />
-    <Compile Include="Model\CLDefinitions.cs" />
+    <Compile Include="Static\CLDefinitions.cs" />
     <Compile Include="Support\CLTrace.cs" />
     <Compile Include="Support\DelayProcessable.cs" />
     <Compile Include="Support\ProcessingQueuesTimer.cs" />

@@ -953,6 +953,9 @@ namespace CloudApiPublic.REST
                     CLDefinitions.MethodPathUpload + // path to upload
                     Helpers.QueryStringBuilder(new[] // add DeviceId for file upload
                     {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString()),
+
                         (string.IsNullOrEmpty(_copiedSettings.DeviceId)
                             ? new KeyValuePair<string, string>()
                             :

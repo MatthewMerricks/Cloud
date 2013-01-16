@@ -42,7 +42,7 @@ namespace CloudApiPublic.Static
 
         #region OSVERSIONINFOEX
         [StructLayout(LayoutKind.Sequential)]
-        public struct OSVERSIONINFOEX
+        internal struct OSVERSIONINFOEX
         {
             public int dwOSVersionInfoSize;
             public int dwMajorVersion;
@@ -117,7 +117,7 @@ namespace CloudApiPublic.Static
 
         #region client to screen
         [StructLayout(LayoutKind.Sequential)]
-        public class POINT
+        internal class POINT
         {
             public int x = 0;
             public int y = 0;
@@ -412,7 +412,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <see cref="http://msdn.microsoft.com/en-us/library/ms724284%28VS.85%29.aspx"/>
         [StructLayout(LayoutKind.Sequential)]
-        public struct FILETIME
+        internal struct FILETIME
         {
             public uint dwLowDateTime;
             public uint dwHighDateTime;
@@ -424,7 +424,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <see cref="http://msdn.microsoft.com/en-us/library/aa365740%28VS.85%29.aspx"/>
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public struct WIN32_FIND_DATA
+        internal struct WIN32_FIND_DATA
         {
             public FileAttributes dwFileAttributes;
             public FILETIME ftCreationTime;

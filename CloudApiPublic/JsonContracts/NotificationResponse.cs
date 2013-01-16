@@ -5,7 +5,7 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace CloudApiPublic.JsonContracts
     /// Notification from server contained in EventArgs: <see cref="CloudApiPublic.PushNotification.NotificationEventArgs"/> via events in <see cref="CloudApiPublic.PushNotification.CLNotification"/>
     /// </summary>
     [DataContract]
-    public sealed class NotificationResponse
+    internal /*public*/ sealed class NotificationResponse
     {
         [DataMember(Name = CLDefinitions.NotificationMessageBody, IsRequired = false)]
         public string Body { get; set; }

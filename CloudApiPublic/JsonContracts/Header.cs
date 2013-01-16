@@ -5,12 +5,12 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPublic.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using CloudApiPublic.Model;
 
 namespace CloudApiPublic.JsonContracts
 {
@@ -18,7 +18,7 @@ namespace CloudApiPublic.JsonContracts
     /// An inner object containing header properties for an <see cref="Event"/>
     /// </summary>
     [DataContract]
-    public sealed class Header
+    internal /*public*/ sealed class Header
     {
         [DataMember(Name = CLDefinitions.CLSyncEvent, IsRequired = false)]
         public string Action { get; set; }

@@ -5,6 +5,7 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace CloudApiPublic.Static
     /// </summary>
     public static class MessageEvents
     {
-        internal static CLError SubscribeMessageReceiver(long SyncBoxId, string DeviceId, EventMessageReceiver.EventMessageReceiver receiver)
+        public static CLError SubscribeMessageReceiver(long SyncBoxId, string DeviceId, IEventMessageReceiver receiver)
         {
             try
             {
@@ -43,7 +44,7 @@ namespace CloudApiPublic.Static
             }
             return null;
         }
-        internal static CLError UnsubscribeMessageReceiver(long SyncBoxId, string DeviceId)
+        public static CLError UnsubscribeMessageReceiver(long SyncBoxId, string DeviceId)
         {
             try
             {
@@ -68,7 +69,7 @@ namespace CloudApiPublic.Static
             return null;
         }
         // Holds subscribed EventMessageReceivers.
-        private static readonly Dictionary<string, EventMessageReceiver.EventMessageReceiver> InternalReceivers = new Dictionary<string, EventMessageReceiver.EventMessageReceiver>(StringComparer.InvariantCulture);
+        private static readonly Dictionary<string, IEventMessageReceiver> InternalReceivers = new Dictionary<string, IEventMessageReceiver>(StringComparer.InvariantCulture);
 
         public static event EventHandler<EventMessageArgs> NewEventMessage
         {
@@ -122,7 +123,7 @@ namespace CloudApiPublic.Static
                 string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
-                    EventMessageReceiver.EventMessageReceiver foundReceiver;
+                    IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
                         foundReceiver.MessageEvents_NewEventMessage(sender, newArgs); // informational or error message occurs
@@ -188,7 +189,7 @@ namespace CloudApiPublic.Static
                 string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
-                    EventMessageReceiver.EventMessageReceiver foundReceiver;
+                    IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
                         foundReceiver.SetDownloadingCount(sender, newArgs);
@@ -253,7 +254,7 @@ namespace CloudApiPublic.Static
                 string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
-                    EventMessageReceiver.EventMessageReceiver foundReceiver;
+                    IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
                         foundReceiver.SetUploadingCount(sender, newArgs);
@@ -318,7 +319,7 @@ namespace CloudApiPublic.Static
                 string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
-                    EventMessageReceiver.EventMessageReceiver foundReceiver;
+                    IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
                         foundReceiver.IncrementDownloadedCount(sender, newArgs);
@@ -383,7 +384,7 @@ namespace CloudApiPublic.Static
                 string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
-                    EventMessageReceiver.EventMessageReceiver foundReceiver;
+                    IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
                         foundReceiver.IncrementUploadedCount(sender, newArgs);
@@ -449,7 +450,7 @@ namespace CloudApiPublic.Static
                 string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
-                    EventMessageReceiver.EventMessageReceiver foundReceiver;
+                    IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
                         foundReceiver.UpdateFileUpload(sender, newArgs);
@@ -515,7 +516,7 @@ namespace CloudApiPublic.Static
                 string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
-                    EventMessageReceiver.EventMessageReceiver foundReceiver;
+                    IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
                         foundReceiver.UpdateFileDownload(sender, newArgs);

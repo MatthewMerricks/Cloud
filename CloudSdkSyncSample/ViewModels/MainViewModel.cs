@@ -1,6 +1,6 @@
 ﻿using CloudApiPublic;
 using CloudApiPublic.Model;
-using CloudApiPublic.EventMessageReceiver;
+using CloudSdkSyncSample.EventMessageReceiver;
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.Static;
 using CloudApiPublic.Support;
@@ -1002,12 +1002,7 @@ namespace CloudSdkSyncSample.ViewModels
                         SyncBox: syncBox, // syncbox to sync (contains required settings)
                         Status: out startStatus, // The completion status of the Start() function
                         StatusUpdated: OnSyncStatusUpdated, // called when sync status is updated
-                        StatusUpdatedUserState: _syncEngine, // the user state passed to the callback above
-                        getHistoricBandwidthSettings: OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the engine
-                        setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the engine
-                        overrideImportanceFilterNonErrors: EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages
-                        overrideImportanceFilterErrors: EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages
-                        overrideDefaultMaxStatusMessages: 500); // optional to restrict the number of messages in the EventMessageReceiver ListMessages
+                        StatusUpdatedUserState: _syncEngine); // the user state passed to the callback above
 
                     if (errorFromSyncBoxStart != null)
                     {
@@ -1037,28 +1032,49 @@ namespace CloudSdkSyncSample.ViewModels
                                 _trace.writeToLog(9, "MainViewModel: StartSyncing: Start the sync status window.");
 
                                 // Get a ViewModel to provide some of the status information to use on our status window.
-                                EventMessageReceiver vm;
-                                CLError errorFromGetViewModel = _syncEngine.GetSyncStatusViewModel(statusViewModel: out vm);
-                                if (errorFromGetViewModel != null)
+                                EventMessageReceiver.EventMessageReceiver vm;
+                                CLError errorCreateVM = EventMessageReceiver.EventMessageReceiver.CreateAndInitialize(
+                                    syncBox.SyncBoxId, // filter by current sync box
+                                    syncBox.CopiedSettings.DeviceId, // filter by current device
+                                    out vm, // output the created view model
+                                    OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the engine
+                                    OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the engine
+                                    EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages
+                                    EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages
+                                    500); // optional to restrict the number of messages in the EventMessageReceiver ListMessages
+
+                                if (errorCreateVM != null)
                                 {
-                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncEngine.GetSyncStatusViewModel: Msg: <{0}>.", errorFromGetViewModel.errorDescription);
+                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From EventMessageReceiver.CreateAndInitialize: Msg: <{0}>.", errorCreateVM.errorDescription);
                                 }
                                 else
                                 {
-                                    _winSyncStatus = new SyncStatusView();
-                                    _winSyncStatus.DataContext = vm;
-                                    _winSyncStatus.Width = 0;
-                                    _winSyncStatus.Height = 0;
-                                    _winSyncStatus.MinWidth = 0;
-                                    _winSyncStatus.MinHeight = 0;
-                                    _winSyncStatus.Left = Int32.MaxValue;
-                                    _winSyncStatus.Top = Int32.MaxValue;
-                                    _winSyncStatus.ShowInTaskbar = false;
-                                    _winSyncStatus.ShowActivated = false;
-                                    _winSyncStatus.Visibility = Visibility.Hidden;
-                                    _winSyncStatus.WindowStyle = WindowStyle.None;
-                                    _winSyncStatus.Owner = _mainWindow;
-                                    _winSyncStatus.Show();
+                                    CLError errorSubscribeVM = MessageEvents.SubscribeMessageReceiver(
+                                        syncBox.SyncBoxId, // filter by current sync box
+                                        syncBox.CopiedSettings.DeviceId, // filter by current device
+                                        vm); // pass the view model which will receive event callbacks
+
+                                    if (errorSubscribeVM != null)
+                                    {
+                                        _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From MessageEvents.SubscribeMessageReceiver: Msg: <{0}>.", errorSubscribeVM.errorDescription);
+                                    }
+                                    else
+                                    {
+                                        _winSyncStatus = new SyncStatusView();
+                                        _winSyncStatus.DataContext = vm;
+                                        _winSyncStatus.Width = 0;
+                                        _winSyncStatus.Height = 0;
+                                        _winSyncStatus.MinWidth = 0;
+                                        _winSyncStatus.MinHeight = 0;
+                                        _winSyncStatus.Left = Int32.MaxValue;
+                                        _winSyncStatus.Top = Int32.MaxValue;
+                                        _winSyncStatus.ShowInTaskbar = false;
+                                        _winSyncStatus.ShowActivated = false;
+                                        _winSyncStatus.Visibility = Visibility.Hidden;
+                                        _winSyncStatus.WindowStyle = WindowStyle.None;
+                                        _winSyncStatus.Owner = _mainWindow;
+                                        _winSyncStatus.Show();
+                                    }
                                 }
                             }
                         }
@@ -1123,6 +1139,19 @@ namespace CloudSdkSyncSample.ViewModels
                     _syncEngine.Stop();
                     _syncEngine = null;
                 }
+
+                if (SettingsAdvancedImpl.Instance.SyncBoxId != null
+                    && !string.IsNullOrEmpty(SettingsAdvancedImpl.Instance.DeviceId))
+                {
+                    CLError errorUnsubscribeVM = MessageEvents.UnsubscribeMessageReceiver(
+                        (long)SettingsAdvancedImpl.Instance.SyncBoxId,
+                        SettingsAdvancedImpl.Instance.DeviceId);
+
+                    if (errorUnsubscribeVM != null)
+                    {
+                        _trace.writeToLog(1, "MainViewModel: StopSyncing: ERROR: Exception: Msg: <{0}>.", errorUnsubscribeVM.errorDescription);
+                    }
+                }
             }
         }
 
@@ -1143,7 +1172,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 // Stop syncing if it has been started.
                 StopSyncing();
-                CLSyncEngine.ShutdownSchedulers();
+                CLSyncEngine.ShutdownSchedulers(); // kills constant scheduling threads which run forever and prevent application shutdown
 
                 // Close the window
                 _windowClosed = true;

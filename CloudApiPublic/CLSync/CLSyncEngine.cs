@@ -37,12 +37,6 @@ namespace CloudApiPublic
         private System.Threading.WaitCallback statusUpdated = null;
         private object statusUpdatedUserState = null;
         private readonly object _locker = new object();
-        private EventMessageReceiver.EventMessageReceiver.GetHistoricBandwidthSettings _getHistoricBandwidthSettings = null;
-        private EventMessageReceiver.EventMessageReceiver.SetHistoricBandwidthSettings _setHistoricBandwidthSettings = null;
-        private Nullable<EventMessageLevel> _overrideImportanceFilterNonErrors = null;
-        private Nullable<EventMessageLevel> _overrideImportanceFilterErrors = null;
-        private Nullable<int> _overrideDefaultMaxStatusMessages = null;
-        private EventMessageReceiver.EventMessageReceiver _statusViewModel = null;
 
         ///// <summary>
         ///// Retrieves a currently attached SyncBox, or null if one isn't attached
@@ -64,41 +58,6 @@ namespace CloudApiPublic
         /// no longer functional.
         /// </summary>
         public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
-
-        /// <summary>
-        /// Get a ViewModel to make viewing the upload/download and message status easier.  The ViewModel exposes ObservableCollections.
-        /// </summary>
-        public CLError GetSyncStatusViewModel(out EventMessageReceiver.EventMessageReceiver statusViewModel)
-        {
-            // Lazy initialization
-            CLError toReturn = null;
-            if (_statusViewModel == null)
-            {
-                // Create the EventMessageReceiver view model.
-                EventMessageReceiver.EventMessageReceiver receiver;
-                toReturn = EventMessageReceiver.EventMessageReceiver.CreateAndInitialize(
-                        SyncBoxId: _syncBox.SyncBoxId,
-                        DeviceId: _syncBox.CopiedSettings.DeviceId,
-                        receiver: out receiver,
-                        getHistoricBandwidthSettings: _getHistoricBandwidthSettings,
-                        setHistoricBandwidthSettings: _setHistoricBandwidthSettings,
-                        OverrideImportanceFilterNonErrors: _overrideImportanceFilterNonErrors,
-                        OverrideImportanceFilterErrors: _overrideImportanceFilterErrors,
-                        OverrideDefaultMaxStatusMessages: _overrideDefaultMaxStatusMessages);
-                if (toReturn != null)
-                {
-                    toReturn.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
-                    _trace.writeToLog(1, "CLSync: StatusViewModel.Get: ERROR: Exception.  Msg: <{0}>.", toReturn.errorDescription);
-                }
-                else
-                {
-                    _statusViewModel = receiver;
-                }
-            }
-
-            statusViewModel = _statusViewModel;
-            return toReturn;
-        }
 
         /// <summary>
         /// Output the current status of syncing
@@ -319,12 +278,7 @@ namespace CloudApiPublic
 			CLSyncBox SyncBox,
 			out CLSyncStartStatus Status,
 			System.Threading.WaitCallback StatusUpdated = null,
-			object StatusUpdatedUserState = null,
-            CloudApiPublic.EventMessageReceiver.EventMessageReceiver.GetHistoricBandwidthSettings getHistoricBandwidthSettings = null,
-            CloudApiPublic.EventMessageReceiver.EventMessageReceiver.SetHistoricBandwidthSettings setHistoricBandwidthSettings = null,
-            Nullable<EventMessageLevel> overrideImportanceFilterNonErrors = null,
-            Nullable<EventMessageLevel> overrideImportanceFilterErrors = null,
-            Nullable<int> overrideDefaultMaxStatusMessages = null)
+			object StatusUpdatedUserState = null)
         {
             try
             {
@@ -356,12 +310,6 @@ namespace CloudApiPublic
                     {
                         this.statusUpdatedUserState = StatusUpdatedUserState;
                     }
-
-                    _getHistoricBandwidthSettings = getHistoricBandwidthSettings;
-                    _setHistoricBandwidthSettings = setHistoricBandwidthSettings;
-                    _overrideImportanceFilterNonErrors = overrideImportanceFilterNonErrors;
-                    _overrideImportanceFilterErrors = overrideImportanceFilterErrors;
-                    _overrideDefaultMaxStatusMessages = overrideDefaultMaxStatusMessages;
                 }
 
                 // Check the TraceLocation vs. LogErrors
