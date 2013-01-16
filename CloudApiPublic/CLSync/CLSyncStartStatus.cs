@@ -12,6 +12,9 @@ using System.Text;
 
 namespace CloudApiPublic
 {
+    /// <summary>
+    /// State of starting sync
+    /// </summary>
     public enum CLSyncStartStatus : byte
     {
         ErrorNullSyncBox,
@@ -27,6 +30,6 @@ namespace CloudApiPublic
         ErrorStartingInitialIndexing,
         ErrorExceptionStartingFileMonitor,
         ErrorGeneralSyncStartException,
-        Successful
+        Success
     }
 }

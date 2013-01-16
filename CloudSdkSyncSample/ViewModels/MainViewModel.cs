@@ -1011,7 +1011,7 @@ namespace CloudSdkSyncSample.ViewModels
                         _syncEngine = null;
                         _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From SyncBox.Start: Msg: <{0}>.", errorFromSyncBoxStart.errorDescription);
                     }
-                    if (startStatus != CLSyncStartStatus.Successful)
+                    if (startStatus != CLSyncStartStatus.Success)
                     {
                         if (NotifyException != null)
                         {

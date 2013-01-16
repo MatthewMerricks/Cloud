@@ -55,31 +55,38 @@ namespace CloudApiPublic.Model
         //// Current registration is no longer done with username/password
         ////
         //// Registration
+        //public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth.cloudstaging.us/user/create.json";
         //public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/user/create.json";
         //public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
         //                                                            "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6},\"os_platform\":{7}," +
         //                                                            "\"os_version\":{8},\"app_version\":{9}}},\"client_id\":{10},\"client_secret\":{11}}}";
 
         //// Link/Unlink
+        //public const string CLRegistrationUnlinkRequestURLString = HttpPrefix + "auth.cloudstaging.us/device/unlink.json";
         //public const string CLRegistrationUnlinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/unlink.json";
         //public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + "={0}";
 
+        //public const string CLRegistrationLinkRequestURLString = HttpPrefix + "auth.cloudstaging.us/device/link.json";
         //public const string CLRegistrationLinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/link.json";
         //public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
         //                                                             "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
         //                                                             "\"client_id\":{8},\"client_secret\":{9}}}";
 
         // Platform Auth
-        public const string CLPlatformAuthServerURL = HttpPrefix + @"platform.cliff.cloudburrito.com";
+        public const string CLPlatformAuthServerURL = HttpPrefix + @"platform.cloudstaging.us";
+        //public const string CLPlatformAuthServerURL = HttpPrefix + @"platform.cliff.cloudburrito.com";
 
         // Meta Data
-        public const string CLMetaDataServerURL = HttpPrefix + @"mds.cliff.cloudburrito.com";
+        public const string CLMetaDataServerURL = HttpPrefix + @"mds.cloudstaging.us";
+        //public const string CLMetaDataServerURL = HttpPrefix + @"mds.cliff.cloudburrito.com";
 
         // Notifications
-        public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com";
+        public const string CLNotificationServerURL = @"ws://push.cloudstaging.us";
+        //public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com";
 
         // Upload/Download Server
-        public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";
+        public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cloudstaging.us";
+        //public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";
 #else   // !CLIFF_SERVERS
         // Registration
         public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth-edge.cloudburrito.com/user/create.json";

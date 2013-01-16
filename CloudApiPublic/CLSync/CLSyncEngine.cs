@@ -555,7 +555,7 @@ namespace CloudApiPublic
                     }
                 }
 
-                Status = CLSyncStartStatus.Successful;
+                Status = CLSyncStartStatus.Success;
             }
             catch (Exception ex)
             {

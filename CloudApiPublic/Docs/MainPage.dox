@@ -13,44 +13,58 @@
 /// See how easy it is:
 ///
 /// \code{.cs}
-/// using CloudApiPublic;
-/// using CloudApiPublic.Model;
-///
-///
-///        // Main program
-///        static void Main(string[] args)
-///        {
-///            // Construct the SyncBox
-///            CLSync syncBox = new CLSync();
-///
-///            // Declare a status for starting to sync
-///            CLSyncStartStatus startStatus;
-///
-///            // Start syncing with minimal settings
-///            CLError startError = syncBox.Start(
-///                ApplicationKey: "My application key from the Cloud developer Dashboard",
-///                ApplicationSecret: "My application secret from the Cloud developer Dashboard",
-///                SyncBoxId: 123, //The ID created for this SyncBox on the Cloud developer Dashboard,
-///                SyncRoot: "<Full path of the folder to sync>",
-///                Status: out startStatus); // output the status from starting to sync
-///
-///            // If it did not successfully start syncing, handle the error
-///            if (startStatus != CLSyncStartStatus.Successful)
-///            {
-///                string myErrorType = startStatus.ToString(); // Switch on the enumeration to easily handle common errors
-///                string myErrorReason = startError.errorDescription; // Formatted message describing what went wrong
-///            }
-///
-///            // ...
-///
-///            // Stop syncing
-///            syncBox.Stop();
-///
-///            // ... Need to shutdown application
-///
-///            // Shutdown schedulers to immediately stop anything active like an upload or download
-///            CLSync.ShutdownSchedulers();
-///        }
+using CloudApiPublic;
+using CloudApiPublic.Model;
+
+        // Main program
+        static void Main(string[] args)
+        {
+            CLCredentials credentials; // declare credentials object
+            CLCredentialsCreationStatus credentialsStatus; // declare status enumeration
+            CLCredentials.CreateAndInitialize( // creation returns a CLError which can be checked
+                    ApplicationKey: "My application key from the Cloud developer Dashboard",
+                    ApplicationSecret: "My application secret from the Cloud developer Dashboard",
+                    credentials: out credentials, // output the created credentials object here
+                    status: out credentialsStatus); // output the status from creating credentials
+
+            // optionally check credentialsStatus/returned CLError here before continuing
+            
+            // create the minimal settings using just the path to the folder
+            CLSyncSettings syncSettings = new CLSyncSettings(
+                syncRoot: "<Full path of the folder to sync>");
+
+            CLSyncBox syncBox; // declare sync box
+            CLSyncBoxCreationStatus syncBoxStatus; // declare status enumeration
+            CLSyncBox.CreateAndInitializeExistingSyncBox( // run the creation method for an existing sync box id (also returns CLError)
+                Credentials: credentials, // created above
+                SyncBoxId: <id of SyncBox>, //The ID created for this SyncBox on the Cloud developer Dashboard
+                syncBox: out syncBox, // output the created sync box here
+                status: out syncBoxStatus, // output the status from creating sync box
+                Settings: syncSettings); // live syncing requires a settings interface containing a SyncRoot (created above)
+
+            // optionally check syncBoxStatus/returned CLError here before continuing
+
+            // create the sync engine which will run live syncing
+            CLSyncEngine syncEngine = new CLSyncEngine();
+
+            // start the engine
+            CLSyncStartStatus startStatus; // declare status enumeration
+            syncEngine.Start( // starting sync returns a CLError which can be checked
+                SyncBox: syncBox, // created above
+                Status: out startStatus); // output the status from starting to sync
+
+            // optionally check startStatus/returned CLError here to see if it worked
+
+            // ...
+
+            // Stop syncing
+            syncEngine.Stop();
+
+            // ... Need to shutdown application
+
+            // Shutdown schedulers to immediately stop anything active like an upload or download
+            CLSyncEngine.ShutdownSchedulers();
+        }
 /// \endcode
 ///
 /// The code above will automatically sync files in the "SyncRoot" directory with your other devices related to this SyncBox, and with the SyncBox on the Cloud servers.
@@ -75,7 +89,7 @@
 /// 
 /// Install the SDK by following the steps below:
 ///
-/// - Browse to the Cloud download page at http://developer.cliff.cloudburrito.com.  You can read this documentation there.
+/// - Browse to the Cloud download page at https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal.  You can read this documentation there.
 /// - Click the Download link to download the Windows Cloud SDK installation program.
 /// - Follow the instructions to install the Cloud SDK.
 /// .
@@ -88,7 +102,7 @@
 /// \image html SampleAppMainWindow.jpg "Sample App Main Window"
 /// You will enter information into the following Required Settings fields:
 /// - SyncBoxFolder: This is the full path of the folder on your device that will be synced.  The folder must be on a locally-attached drive.  Typically you will specify a folder in your user directory. You may use the Browse button to locate the folder to be synced.
-/// - Application Key:  Paste this key from your Cloud developer DashBoard web page (http://developer.cliff.cloudburrito.com).  This key uniquely identifies your application.
+/// - Application Key:  Paste this key from your Cloud developer DashBoard web page (https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal).  This key uniquely identifies your application.
 /// - Application Secret:  Paste this private key from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this private key from a secure location.
 /// - SyncBox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the SyncBox.  It represents a folder that will be synced across all of your devices, and to the Cloud servers.
 /// - Unique Device ID: Choose a unique name (within this SyncBox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.
