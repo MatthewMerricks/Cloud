@@ -13,58 +13,58 @@
 /// See how easy it is:
 ///
 /// \code{.cs}
-using CloudApiPublic;
-using CloudApiPublic.Model;
-
-        // Main program
-        static void Main(string[] args)
-        {
-            CLCredentials credentials; // declare credentials object
-            CLCredentialsCreationStatus credentialsStatus; // declare status enumeration
-            CLCredentials.CreateAndInitialize( // creation returns a CLError which can be checked
-                    ApplicationKey: "My application key from the Cloud developer Dashboard",
-                    ApplicationSecret: "My application secret from the Cloud developer Dashboard",
-                    credentials: out credentials, // output the created credentials object here
-                    status: out credentialsStatus); // output the status from creating credentials
-
-            // optionally check credentialsStatus/returned CLError here before continuing
-            
-            // create the minimal settings using just the path to the folder
-            CLSyncSettings syncSettings = new CLSyncSettings(
-                syncRoot: "<Full path of the folder to sync>");
-
-            CLSyncBox syncBox; // declare sync box
-            CLSyncBoxCreationStatus syncBoxStatus; // declare status enumeration
-            CLSyncBox.CreateAndInitializeExistingSyncBox( // run the creation method for an existing sync box id (also returns CLError)
-                Credentials: credentials, // created above
-                SyncBoxId: <id of SyncBox>, //The ID created for this SyncBox on the Cloud developer Dashboard
-                syncBox: out syncBox, // output the created sync box here
-                status: out syncBoxStatus, // output the status from creating sync box
-                Settings: syncSettings); // live syncing requires a settings interface containing a SyncRoot (created above)
-
-            // optionally check syncBoxStatus/returned CLError here before continuing
-
-            // create the sync engine which will run live syncing
-            CLSyncEngine syncEngine = new CLSyncEngine();
-
-            // start the engine
-            CLSyncStartStatus startStatus; // declare status enumeration
-            syncEngine.Start( // starting sync returns a CLError which can be checked
-                SyncBox: syncBox, // created above
-                Status: out startStatus); // output the status from starting to sync
-
-            // optionally check startStatus/returned CLError here to see if it worked
-
-            // ...
-
-            // Stop syncing
-            syncEngine.Stop();
-
-            // ... Need to shutdown application
-
-            // Shutdown schedulers to immediately stop anything active like an upload or download
-            CLSyncEngine.ShutdownSchedulers();
-        }
+/// using CloudApiPublic;
+/// using CloudApiPublic.Model;
+///
+///         // Main program
+///         static void Main(string[] args)
+///         {
+///             CLCredentials credentials; // declare credentials object
+///             CLCredentialsCreationStatus credentialsStatus; // declare status enumeration
+///             CLCredentials.CreateAndInitialize( // creation returns a CLError which can be checked
+///                     ApplicationKey: "My application key from the Cloud developer Dashboard",
+///                     ApplicationSecret: "My application secret from the Cloud developer Dashboard",
+///                     credentials: out credentials, // output the created credentials object here
+///                     status: out credentialsStatus); // output the status from creating credentials
+///
+///             // optionally check credentialsStatus/returned CLError here before continuing
+///            
+///             // create the minimal settings using just the path to the folder
+///             CLSyncSettings syncSettings = new CLSyncSettings(
+///                 syncRoot: "<Full path of the folder to sync>");
+///
+///             CLSyncBox syncBox; // declare sync box
+///             CLSyncBoxCreationStatus syncBoxStatus; // declare status enumeration
+///             CLSyncBox.CreateAndInitializeExistingSyncBox( // run the creation method for an existing sync box id (also returns CLError)
+///                 Credentials: credentials, // created above
+///                 SyncBoxId: <id of SyncBox>, //The ID created for this SyncBox on the Cloud developer Dashboard
+///                 syncBox: out syncBox, // output the created sync box here
+///                 status: out syncBoxStatus, // output the status from creating sync box
+///                 Settings: syncSettings); // live syncing requires a settings interface containing a SyncRoot (created above)
+///
+///             // optionally check syncBoxStatus/returned CLError here before continuing
+///
+///             // create the sync engine which will run live syncing
+///             CLSyncEngine syncEngine = new CLSyncEngine();
+///
+///             // start the engine
+///             CLSyncStartStatus startStatus; // declare status enumeration
+///             syncEngine.Start( // starting sync returns a CLError which can be checked
+///                 SyncBox: syncBox, // created above
+///                 Status: out startStatus); // output the status from starting to sync
+///
+///             // optionally check startStatus/returned CLError here to see if it worked
+///
+///             // ...
+///
+///             // Stop syncing
+///             syncEngine.Stop();
+///
+///             // ... Need to shutdown application
+///
+///             // Shutdown schedulers to immediately stop anything active like an upload or download
+///             CLSyncEngine.ShutdownSchedulers();
+///         }
 /// \endcode
 ///
 /// The code above will automatically sync files in the "SyncRoot" directory with your other devices related to this SyncBox, and with the SyncBox on the Cloud servers.
@@ -129,31 +129,31 @@ using CloudApiPublic.Model;
 /// - Trace Folder: (Optional) This is the full path to store trace files.  There are several types of trace files stored there.  This field is required if Log Errors (below) is checked.
 /// - Trace Type:  This is a bit mask to control the sync trace output.  It is built from the following definition:
 /// \code{.cs}
-    public enum TraceType : int
-    {
-        /// <summary>
-        /// No general trace (errors are handled seperately)
-        /// </summary>
-        NotEnabled = 0x00,
-        /// <summary>
-        /// Communication tracing estimates the HTTP headers and body content during communication;
-        /// when used without the AddAuthorization flag, authorization parameters will be exluded such as authentication tokens or user/pass
-        /// </summary>
-        Communication = 0x01,
-        /// <summary>
-        /// AddAuthorization is only valid in conjunction with Communication (CommunicationIncludeAuthorization);
-        /// Adding this will cause authorization parameters to appear in communication trace such as authentication tokens or user/pass (in plain text!!!)
-        /// </summary>
-        AddAuthorization = 0x02,
-        /// <summary>
-        /// See flags Communication and AddAuthorization tags for this combination flag
-        /// </summary>
-        CommunicationIncludeAuthorization = 0x03,
-        /// <summary>
-        /// Logging the flow of FileChanges is extremely costly, use for development purposes only
-        /// </summary>
-        FileChangeFlow = 0x04
-    }
+/// public enum TraceType : int
+/// {
+///     /// <summary>
+///     /// No general trace (errors are handled seperately)
+///     /// </summary>
+///     NotEnabled = 0x00,
+///     /// <summary>
+///     /// Communication tracing estimates the HTTP headers and body content during communication;
+///     /// when used without the AddAuthorization flag, authorization parameters will be exluded such as authentication tokens or user/pass
+///     /// </summary>
+///     Communication = 0x01,
+///     /// <summary>
+///     /// AddAuthorization is only valid in conjunction with Communication (CommunicationIncludeAuthorization);
+///     /// Adding this will cause authorization parameters to appear in communication trace such as authentication tokens or user/pass (in plain text!!!)
+///     /// </summary>
+///     AddAuthorization = 0x02,
+///     /// <summary>
+///     /// See flags Communication and AddAuthorization tags for this combination flag
+///     /// </summary>
+///     CommunicationIncludeAuthorization = 0x03,
+///     /// <summary>
+///     /// Logging the flow of FileChanges is extremely costly, use for development purposes only
+///     /// </summary>
+///     FileChangeFlow = 0x04
+/// }
 /// \endcode
 /// - Trace Level:  This is a number to control the amount of functional tracing to be written.  Specify a number from 0 to 9.  0: no functional trace.  9: full functional trace.
 /// - Log Errors: Check this box to generate a trace file containing only sync errors.  The Trace Folder (above) is required if this box is checked.
@@ -261,18 +261,18 @@ using CloudApiPublic.Model;
 ///
 /// The ListFilesDownloading and ListFilesUploading collections expose the following properties:
 /// \code{.cs}
-    public interface ICLStatusFileTransfer
-    {
-        /// <summary>
-        /// Relative path to the transferring file from the sync root folder
-        /// </summary>
-        string SyncRelativePath { get; }
-        /// <summary>
-        /// Whether this file transfer status should be visible (visible for actual transfers and not visible for blank placeholders)
-        /// </summary>
-        Visibility Visibility { get; }
-        /// <summary>
-        /// Number from 0 to 1 for the current transfer rate out of historical maximum or twice the starting rate (whichever is greater)
+/// public interface ICLStatusFileTransfer
+/// {
+///     /// <summary>
+///     /// Relative path to the transferring file from the sync root folder
+///     /// </summary>
+///     string SyncRelativePath { get; }
+///     /// <summary>
+///     /// Whether this file transfer status should be visible (visible for actual transfers and not visible for blank placeholders)
+///     /// </summary>
+///     Visibility Visibility { get; }
+///     /// <summary>
+///     /// Number from 0 to 1 for the current transfer rate out of historical maximum or twice the starting rate (whichever is greater)
 /// \subsection sampleapp-syncstatusView-subsec The SyncStatusView Class
 /// The Sync Status View window is the sample app's implementation of a class to view the status information produced by the sync engine.  Yours may be very different.
 ///
@@ -297,41 +297,41 @@ using CloudApiPublic.Model;
 ///
 /// The ListFilesDownloading and ListFilesUploading collections expose the following properties:
 /// \code{.cs}
-    public interface ICLStatusFileTransfer
-    {
-        /// <summary>
-        /// Relative path to the transferring file from the sync root folder
-        /// </summary>
-        string SyncRelativePath { get; }
-        /// <summary>
-        /// Whether this file transfer status should be visible (visible for actual transfers and not visible for blank placeholders)
-        /// </summary>
-        Visibility Visibility { get; }
-        /// <summary>
-        /// Number from 0 to 1 for the current transfer rate out of historical maximum or twice the starting rate (whichever is greater)
-        /// </summary>
-        Double DisplayRateAtCurrentSample { get; }
-        /// <summary>
-        /// A WPF Control for display of the rate history for the current transfer
-        /// </summary>
-        RateGraph StatusGraph { get; }
-        /// <summary>
-        /// The percentage completeness of transfer
-        /// </summary>
-        Double PercentComplete { get; }
-        /// <summary>
-        /// String for display of total transfer size in appropriate scale representation of bytes (i.e. "X bytes" or "X.Y KB" or "X.Y MB" or "X.Y GB"...)
-        /// </summary>
-        string DisplayFileSize { get; }
-        /// <summary>
-        /// Estimated time remaining for transfer completion
-        /// </summary>
-        string DisplayTimeLeft { get; }
-        /// <summary>
-        /// Total time already elapsed since the transfer start
-        /// </summary>
-        string DisplayElapsedTime { get; }
-    }
+/// public interface ICLStatusFileTransfer
+/// {
+///     /// <summary>
+///     /// Relative path to the transferring file from the sync root folder
+///     /// </summary>
+///     string SyncRelativePath { get; }
+///     /// <summary>
+///     /// Whether this file transfer status should be visible (visible for actual transfers and not visible for blank placeholders)
+///     /// </summary>
+///     Visibility Visibility { get; }
+///     /// <summary>
+///     /// Number from 0 to 1 for the current transfer rate out of historical maximum or twice the starting rate (whichever is greater)
+///     /// </summary>
+///     Double DisplayRateAtCurrentSample { get; }
+///     /// <summary>
+///     /// A WPF Control for display of the rate history for the current transfer
+///     /// </summary>
+///     RateGraph StatusGraph { get; }
+///     /// <summary>
+///     /// The percentage completeness of transfer
+///     /// </summary>
+///     Double PercentComplete { get; }
+///     /// <summary>
+///     /// String for display of total transfer size in appropriate scale representation of bytes (i.e. "X bytes" or "X.Y KB" or "X.Y MB" or "X.Y GB"...)
+///     /// </summary>
+///     string DisplayFileSize { get; }
+///     /// <summary>
+///     /// Estimated time remaining for transfer completion
+///     /// </summary>
+///     string DisplayTimeLeft { get; }
+///     /// <summary>
+///     /// Total time already elapsed since the transfer start
+///     /// </summary>
+///     string DisplayElapsedTime { get; }
+/// }
 /// \endcode
 ///
 /// ListMessages items expose the MessageText property (string).
