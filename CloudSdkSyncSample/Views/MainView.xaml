@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ext="clr-namespace:CloudSdkSyncSample.Static"
         Left="50" Top="50"
-        Title="Sync Sample App" Height="480" Width="640">
+        Title="Sync Sample App" Height="480" Width="640" MinHeight="480" MinWidth="640">
     <Grid x:Name="LayoutRoot">
         <Grid.Background>
             <ImageBrush Stretch="UniformToFill" ImageSource="/CloudSdkSyncSample;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>

@@ -19,55 +19,9 @@ namespace CloudApiPublic
     /// </summary>
     public sealed class CLSyncSettings : ICLSyncSettings
     {
-        //public string DeviceId
-        //{
-        //    get
-        //    {
-        //        return _deviceId;
-        //    }
-        //}
-        //private readonly string _deviceId;
-
-        //public string ApplicationKey
-        //{
-        //    get
-        //    {
-        //        return _applicationKey;
-        //    }
-        //}
-        //private readonly string _applicationKey;
-
-        ///// <summary>
-        ///// Application secret.
-        ///// </summary>
-        ///// <remarks>NOTE: This should not be stored in the settings.  It should be retrieved dynamically from the developer's server.</remarks>
-        //public string ApplicationSecret
-        //{
-        //    get
-        //    {
-        //        return _applicationSecret;
-        //    }
-        //}
-        //private readonly string _applicationSecret;
-
-        //public Nullable<long> SyncBoxId
-        //{
-        //    get
-        //    {
-        //        return _syncBoxId;
-        //    }
-        //}
-        //private readonly Nullable<long> _syncBoxId;
-
-        //public string ClientVersion
-        //{
-        //    get
-        //    {
-        //        return _clientVersion;
-        //    }
-        //}
-        //private readonly string _clientVersion = null;
-
+        /// <summary>
+        /// Full path to the directory to be synced (do not include a trailing slash except for a drive root)
+        /// </summary>
         public string SyncRoot
         {
             get
@@ -77,19 +31,13 @@ namespace CloudApiPublic
         }
         private readonly string _syncRoot = null;
 
+        /// <summary>
+        /// Creates a simple implementation of ICLSyncSettings with only SyncRoot
+        /// </summary>
+        /// <param name="syncRoot">Full path to the directory to be synced (do not include a trailing slash except for a drive root)</param>
         public CLSyncSettings(
-                    //string udid,
-                    //string applicationKey,
-                    //string applicationSecret,
-                    //Nullable<long> syncBoxId,
-                    //string clientVersion,
                     string syncRoot)
         {
-            //this._deviceId = udid;
-            //this._applicationKey = applicationKey;
-            //this._applicationSecret = applicationSecret;
-            //this._syncBoxId = syncBoxId;
-            //this._clientVersion = clientVersion;
             this._syncRoot = syncRoot;
         }
     }
@@ -166,33 +114,6 @@ namespace CloudApiPublic
         }
         private readonly string _deviceId;
 
-        //public string ApplicationKey
-        //{
-        //    get
-        //    {
-        //        return _applicationKey;
-        //    }
-        //}
-        //private readonly string _applicationKey;
-
-        //public string ApplicationSecret
-        //{
-        //    get
-        //    {
-        //        return _applicationSecret;
-        //    }
-        //}
-        //private readonly string _applicationSecret;
-
-        //public Nullable<long> SyncBoxId
-        //{
-        //    get
-        //    {
-        //        return _syncBoxId;
-        //    }
-        //}
-        //private readonly Nullable<long> _syncBoxId;
-
         /// <summary>
         /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
         /// </summary>
@@ -241,6 +162,22 @@ namespace CloudApiPublic
         }
         private readonly string _databaseFolder = null;
 
+        public static AdvancedSyncSettings CreateDefaultSettings()
+        {
+            return new AdvancedSyncSettings(
+                false,
+                TraceType.NotEnabled,
+                null,
+                true,
+                0,
+                Environment.MachineName + Guid.NewGuid().ToString("N"),
+                null,
+                "SimpleClient01",
+                Environment.MachineName,
+                null,
+                null);
+        }
+
         public AdvancedSyncSettings(
                     bool logErrors,
                     TraceType traceType,
@@ -248,9 +185,6 @@ namespace CloudApiPublic
                     bool traceExcludeAuthorization,
                     int traceLevel,
                     string deviceId,
-                    //string applicationKey,
-                    //string applicationSecret,
-                    //Nullable<long> syncBoxId,
                     string tempDownloadFolderFullPath,
                     string clientVersion,
                     string friendlyName,
@@ -263,9 +197,6 @@ namespace CloudApiPublic
             this._traceExcludeAuthorization = traceExcludeAuthorization;
             this._traceLevel = traceLevel;
             this._deviceId = deviceId;
-            //this._applicationKey = applicationKey;
-            //this._applicationSecret = applicationSecret;
-            //this._syncBoxId = syncBoxId;
             this._tempDownloadFolderFullPath = tempDownloadFolderFullPath;
             this._clientVersion = clientVersion;
             this._friendlyName = friendlyName;
@@ -285,9 +216,6 @@ namespace CloudApiPublic
                 toCopy.TraceExcludeAuthorization,
                 toCopy.TraceLevel,
                 String.IsNullOrWhiteSpace(toCopy.DeviceId) ? Environment.MachineName + Guid.NewGuid().ToString("N") : toCopy.DeviceId,
-                //toCopy.ApplicationKey,
-                //toCopy.ApplicationSecret,
-                //toCopy.SyncBoxId,
                 toCopy.TempDownloadFolderFullPath,
                 toCopy.ClientVersion,
                 toCopy.FriendlyName,
@@ -300,89 +228,12 @@ namespace CloudApiPublic
             ICLSyncSettingsAdvanced advancedCopy = toCopy as ICLSyncSettingsAdvanced;
             if (advancedCopy == null)
             {
-                return new AdvancedSyncSettings(
-                    false,
-                    TraceType.NotEnabled,
-                    null,
-                    true,
-                    0,
-                    Environment.MachineName + Guid.NewGuid().ToString("N"),
-                    //toCopy.ApplicationKey,
-                    //toCopy.ApplicationSecret,
-                    //toCopy.SyncBoxId,
-                    null,
-                    "SimpleClient01",
-                    Environment.MachineName,
-                    toCopy.SyncRoot,
-                    null);
+                return AdvancedSyncSettings.CreateDefaultSettings();
             }
             else
             {
                 return advancedCopy.CopySettings();
             }
         }
-
-        //public static AdvancedSyncSettings CopySettings(this IHttpSettingsAdvanced toCopy)
-        //{
-        //    ICLSyncSettingsAdvanced syncCopy = toCopy as ICLSyncSettingsAdvanced;
-
-        //    if (syncCopy == null)
-        //    {
-        //        return new AdvancedSyncSettings(
-        //            toCopy.LogErrors,
-        //            toCopy.TraceType,
-        //            toCopy.TraceLocation,
-        //            toCopy.TraceExcludeAuthorization,
-        //            toCopy.TraceLevel,
-        //            toCopy.DeviceId,
-        //            toCopy.ApplicationKey,
-        //            toCopy.ApplicationSecret,
-        //            toCopy.SyncBoxId,
-        //            null,
-        //            null,
-        //            Helpers.GetComputerFriendlyName(),
-        //            null,
-        //            null);
-        //    }
-        //    else
-        //    {
-        //        return syncCopy.CopySettings();
-        //    }
-        //}
-
-        //public static AdvancedSyncSettings CopySettings(this IHttpSettings toCopy)
-        //{
-        //    IHttpSettingsAdvanced advancedCopy = toCopy as IHttpSettingsAdvanced;
-        //    if (advancedCopy == null)
-        //    {
-        //        ICLSyncSettings syncCopy = toCopy as ICLSyncSettings;
-        //        if (syncCopy == null)
-        //        {
-        //            return new AdvancedSyncSettings(
-        //                false,
-        //                TraceType.NotEnabled,
-        //                null,
-        //                true,
-        //                0,
-        //                toCopy.DeviceId,
-        //                toCopy.ApplicationKey,
-        //                toCopy.ApplicationSecret,
-        //                toCopy.SyncBoxId,
-        //                null,
-        //                null,
-        //                Helpers.GetComputerFriendlyName(),
-        //                null,
-        //                null);
-        //        }
-        //        else
-        //        {
-        //            return syncCopy.CopySettings();
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return advancedCopy.CopySettings();
-        //    }
-        //}
     }
 }

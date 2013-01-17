@@ -99,18 +99,7 @@ namespace CloudApiPublic
             this._syncBoxId = SyncBoxId;
             if (Settings == null)
             {
-                this._copiedSettings = new AdvancedSyncSettings(
-                    false,
-                    TraceType.NotEnabled,
-                    null,
-                    true,
-                    0,
-                    Environment.MachineName + Guid.NewGuid().ToString("N"),
-                    null,
-                    "SimpleClient01",
-                    Environment.MachineName,
-                    null,
-                    null);
+                this._copiedSettings = AdvancedSyncSettings.CreateDefaultSettings();
             }
             else
             {

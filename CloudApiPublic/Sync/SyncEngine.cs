@@ -323,29 +323,29 @@ namespace CloudApiPublic.Sync
 
         // locker for current status aggregation thread and whether it is running
         private readonly GenericHolder<bool> StatusAggregatorRunning = new GenericHolder<bool>();
+        // sychronously checks the status aggregation thread and starts it if it is not already running,
+        // must be fired under a lock on StatusChangesQueue and that queue must have at least one item in it already
         private void StartStatusAggregatorIfNotStarted()
         {
+            // lock to check/change the status aggregation thread
             lock (StatusAggregatorRunning)
             {
+                // if the status aggregation thread is not running, then start it
                 if (!StatusAggregatorRunning.Value)
                 {
+                    // mark that the aggregation thread has been started
                     StatusAggregatorRunning.Value = true;
-                    ThreadPool.UnsafeQueueUserWorkItem(ProcessStatusAggregation,
-                        new KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>(
-                            new KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>(
-                                new KeyValuePair<GenericHolder<bool>,KeyValuePair<GenericHolder<CLSyncCurrentStatus>,KeyValuePair<WaitCallback,object>>>(
-                                    StatusAggregatorRunning,
-                                    new KeyValuePair<GenericHolder<CLSyncCurrentStatus>,KeyValuePair<WaitCallback,object>>(
-                                        StatusHolder,
-                                        new KeyValuePair<WaitCallback,object>(
-                                            statusUpdated,
-                                            statusUpdatedUserState))),
-                                new KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>(
-                                    threadStateKillTime,
-                                    threadStateKillTimer)),
-                            new KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>(
-                                ThreadsToStatus,
-                                StatusChangesQueue)));
+                    // start the aggregation thread
+                    ThreadPool.UnsafeQueueUserWorkItem(ProcessStatusAggregation, // code to handle aggregation
+                        new StatusAggregationState( // state containing all required parameters to aggregate status
+                            StatusAggregatorRunning, // finish commenting here
+                            StatusHolder,
+                            statusUpdated,
+                            statusUpdatedUserState,
+                            threadStateKillTime,
+                            threadStateKillTimer,
+                            ThreadsToStatus,
+                            StatusChangesQueue));
                 }
             }
         }
@@ -353,8 +353,7 @@ namespace CloudApiPublic.Sync
         {
             try
             {
-                Nullable<KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>> castState =
-                    state as Nullable<KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>>;
+                StatusAggregationState castState = state as StatusAggregationState;
 
                 if (castState == null)
                 {
@@ -362,9 +361,6 @@ namespace CloudApiPublic.Sync
                 }
                 else
                 {
-                    KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>> nonNullState =
-                        (KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>)castState;
-
                     Func<GenericHolder<bool>, Queue<KeyValuePair<Guid, ThreadStatus>>, bool> continueProcessing = (threadRunning, statusQueue) =>
                         {
                             lock (statusQueue)
@@ -385,9 +381,9 @@ namespace CloudApiPublic.Sync
                     do
                     {
                         Nullable<KeyValuePair<Guid, ThreadStatus>> currentDequeued;
-                        lock (nonNullState.Value.Value)
+                        lock (castState.StatusChangesQueue)
                         {
-                            currentDequeued = nonNullState.Value.Value.Dequeue();
+                            currentDequeued = castState.StatusChangesQueue.Dequeue();
                         }
 
                         Func<Queue<KeyValuePair<Guid, ThreadStatus>>, Nullable<KeyValuePair<Guid, ThreadStatus>>> moreToDequeue = statusQueue =>
@@ -414,10 +410,10 @@ namespace CloudApiPublic.Sync
                                 || nonNullDequeued.Value.TotalByteSize != null) // the thread state for a file upload or a file download will always have a total byte size
                             // the combination of conditions should cover all valid thread states (and not cover a blank ThreadStatus which is used just to trigger a timeout check)
                             {
-                                nonNullState.Value.Key[nonNullDequeued.Key] = nonNullDequeued.Value;
+                                castState.ThreadsToStatus[nonNullDequeued.Key] = nonNullDequeued.Value;
                             }
                         }
-                        while ((currentDequeued = moreToDequeue(nonNullState.Value.Value)) != null);
+                        while ((currentDequeued = moreToDequeue(castState.StatusChangesQueue)) != null);
 
                         CLSyncCurrentState outputState = CLSyncCurrentState.Idle;
                         List<CLSyncTransferringFile> outputTransferring = null;
@@ -425,46 +421,44 @@ namespace CloudApiPublic.Sync
                         Nullable<DateTime> earliestToKill = null;
                         DateTime killTime = DateTime.UtcNow.Subtract(ThreadStatusTimeoutSpan);
                         List<Guid> removedStatusKeys = null;
-                        foreach (Guid currentStatusKey in nonNullState.Value.Key.Keys)
+                        foreach (KeyValuePair<Guid, ThreadStatus> currentStatus in castState.ThreadsToStatus)
                         {
-                            ThreadStatus currentStatus = nonNullState.Value.Key[currentStatusKey];
-
-                            if (currentStatus.LastUpdateTime == null
-                                || killTime.CompareTo((DateTime)currentStatus.LastUpdateTime) <= 0)
+                            if (currentStatus.Value.LastUpdateTime == null
+                                || killTime.CompareTo((DateTime)currentStatus.Value.LastUpdateTime) <= 0)
                             {
                                 // condition for communicating changes thread and for active upload/download
-                                if (currentStatus.LastUpdateTime != null)
+                                if (currentStatus.Value.LastUpdateTime != null)
                                 {
                                     // condition for completed upload/download
-                                    if (currentStatus.ByteProgress != null
-                                        && ((long)currentStatus.ByteProgress) == ((long)currentStatus.TotalByteSize))
+                                    if (currentStatus.Value.ByteProgress != null
+                                        && ((long)currentStatus.Value.ByteProgress) == ((long)currentStatus.Value.TotalByteSize))
                                     {
                                         if (removedStatusKeys == null)
                                         {
                                             removedStatusKeys = new List<Guid>();
                                         }
 
-                                        removedStatusKeys.Add(currentStatusKey);
+                                        removedStatusKeys.Add(currentStatus.Key);
                                     }
                                     // condition for communicating changes thread of incomplete/active upload/download
                                     // and also only if the last update time is earlier than the earliest found so far
                                     else if (earliestToKill == null
-                                        || ((DateTime)earliestToKill).CompareTo((DateTime)currentStatus.LastUpdateTime) > 0)
+                                        || ((DateTime)earliestToKill).CompareTo((DateTime)currentStatus.Value.LastUpdateTime) > 0)
                                     {
-                                        earliestToKill = (DateTime)currentStatus.LastUpdateTime;
+                                        earliestToKill = (DateTime)currentStatus.Value.LastUpdateTime;
                                     }
                                 }
 
                                 // condition for communicating changes thread
-                                if (currentStatus.TotalByteSize == null)
+                                if (currentStatus.Value.TotalByteSize == null)
                                 {
                                     outputState |= CLSyncCurrentState.CommunicatingChanges;
                                 }
                                 // condition for active or queued upload/download which haven't failed
-                                else if (!currentStatus.IsError)
+                                else if (!currentStatus.Value.IsError)
                                 {
                                     // condition for active upload
-                                    if (((SyncDirection)currentStatus.Direction) == SyncDirection.To)
+                                    if (((SyncDirection)currentStatus.Value.Direction) == SyncDirection.To)
                                     {
                                         outputState |= CLSyncCurrentState.UploadingFiles;
                                     }
@@ -480,11 +474,11 @@ namespace CloudApiPublic.Sync
                                     }
 
                                     outputTransferring.Add(new CLSyncTransferringFile(
-                                        (long)currentStatus.EventID,
-                                        (SyncDirection)currentStatus.Direction,
-                                        currentStatus.RelativePath,
-                                        currentStatus.ByteProgress ?? 0, // null-coalesce for queued upload/download
-                                        (long)currentStatus.TotalByteSize));
+                                        (long)currentStatus.Value.EventID,
+                                        (SyncDirection)currentStatus.Value.Direction,
+                                        currentStatus.Value.RelativePath,
+                                        currentStatus.Value.ByteProgress ?? 0, // null-coalesce for queued upload/download
+                                        (long)currentStatus.Value.TotalByteSize));
                                 }
                             }
                             else
@@ -494,7 +488,7 @@ namespace CloudApiPublic.Sync
                                     removedStatusKeys = new List<Guid>();
                                 }
 
-                                removedStatusKeys.Add(currentStatusKey);
+                                removedStatusKeys.Add(currentStatus.Key);
                             }
                         }
 
@@ -502,7 +496,7 @@ namespace CloudApiPublic.Sync
                         {
                             foreach (Guid removeStatusKey in removedStatusKeys)
                             {
-                                nonNullState.Value.Key.Remove(removeStatusKey);
+                                castState.ThreadsToStatus.Remove(removeStatusKey);
                             }
                         }
 
@@ -510,18 +504,18 @@ namespace CloudApiPublic.Sync
                         {
                             DateTime newKillTime = ((DateTime)earliestToKill).Add(ThreadStatusTimeoutSpan);
 
-                            lock (nonNullState.Key.Value.Value)
+                            lock (castState.ThreadStateKillTimer)
                             {
-                                if (nonNullState.Key.Value.Value.Value == null
-                                    || nonNullState.Key.Value.Key.Value.CompareTo(newKillTime) <= 0)
+                                if (castState.ThreadStateKillTimer.Value == null
+                                    || castState.ThreadStateKillTime.Value.CompareTo(newKillTime) <= 0)
                                 {
-                                    nonNullState.Key.Value.Key.Value = newKillTime;
+                                    castState.ThreadStateKillTime.Value = newKillTime;
 
-                                    if (nonNullState.Key.Value.Value.Value != null)
+                                    if (castState.ThreadStateKillTimer.Value != null)
                                     {
                                         try
                                         {
-                                            nonNullState.Key.Value.Value.Value.Dispose();
+                                            castState.ThreadStateKillTimer.Value.Dispose();
                                         }
                                         catch
                                         {
@@ -539,7 +533,7 @@ namespace CloudApiPublic.Sync
                                         startTime = newKillTime.Subtract(timeForTimer);
                                     }
 
-                                    nonNullState.Key.Value.Value.Value = new Timer(ProcessKillTimer,
+                                    castState.ThreadStateKillTimer.Value = new Timer(ProcessKillTimer,
                                         state,
                                         startTime,
                                         NoPeriodTimeSpan);
@@ -547,17 +541,17 @@ namespace CloudApiPublic.Sync
                             }
                         }
 
-                        lock (nonNullState.Key.Key.Value.Key)
+                        lock (castState.StatusHolder)
                         {
-                            nonNullState.Key.Key.Value.Key.Value = new CLSyncCurrentStatus(outputState,
+                            castState.StatusHolder.Value = new CLSyncCurrentStatus(outputState,
                                 outputTransferring);
 
-                            if (nonNullState.Key.Key.Value.Value.Key != null)
+                            if (castState.StatusUpdated != null)
                             {
                                 try
                                 {
                                     // Call the optional status changed callback.
-                                    nonNullState.Key.Key.Value.Value.Key(nonNullState.Key.Key.Value.Value.Value);
+                                    castState.StatusUpdated(castState.StatusUpdatedUserState);
                                 }
                                 catch
                                 {
@@ -565,7 +559,8 @@ namespace CloudApiPublic.Sync
                             }
                         }
                     }
-                    while (continueProcessing(nonNullState.Key.Key.Key, nonNullState.Value.Value));
+                    while (continueProcessing(castState.StatusAggregatorRunning,
+                        castState.StatusChangesQueue));
                 }
             }
             catch (Exception ex)
@@ -577,8 +572,7 @@ namespace CloudApiPublic.Sync
         {
             try
             {
-                Nullable<KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>> castState =
-                    state as Nullable<KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>>;
+                StatusAggregationState castState = state as StatusAggregationState;
 
                 if (castState == null)
                 {
@@ -586,21 +580,18 @@ namespace CloudApiPublic.Sync
                 }
                 else
                 {
-                    KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>> nonNullState =
-                        (KeyValuePair<KeyValuePair<KeyValuePair<GenericHolder<bool>, KeyValuePair<GenericHolder<CLSyncCurrentStatus>, KeyValuePair<System.Threading.WaitCallback, object>>>, KeyValuePair<GenericHolder<DateTime>, GenericHolder<Timer>>>, KeyValuePair<Dictionary<Guid, ThreadStatus>, Queue<KeyValuePair<Guid, ThreadStatus>>>>)castState;
-
-                    lock (nonNullState.Value.Value)
+                    lock (castState.StatusChangesQueue)
                     {
-                        lock (nonNullState.Key.Key.Key)
+                        lock (castState.StatusAggregatorRunning)
                         {
-                            if (!nonNullState.Key.Key.Key.Value)
+                            if (!castState.StatusAggregatorRunning.Value)
                             {
-                                if (nonNullState.Value.Value.Count == 0)
+                                if (castState.StatusChangesQueue.Count == 0)
                                 {
-                                    nonNullState.Value.Value.Enqueue(new KeyValuePair<Guid, ThreadStatus>(Guid.Empty, new ThreadStatus()));
+                                    castState.StatusChangesQueue.Enqueue(new KeyValuePair<Guid, ThreadStatus>(Guid.Empty, new ThreadStatus()));
                                 }
 
-                                nonNullState.Key.Key.Key.Value = true;
+                                castState.StatusAggregatorRunning.Value = true;
                                 ProcessStatusAggregation(state);
                             }
                         }
@@ -706,6 +697,100 @@ namespace CloudApiPublic.Sync
             }
         }
         private readonly Queue<KeyValuePair<Guid, ThreadStatus>> StatusChangesQueue = new Queue<KeyValuePair<Guid, ThreadStatus>>();
+        private sealed class StatusAggregationState
+        {
+            public GenericHolder<bool> StatusAggregatorRunning
+            {
+                get
+                {
+                    return _statusAggregatorRunning;
+                }
+            }
+            private readonly GenericHolder<bool> _statusAggregatorRunning;
+
+            public GenericHolder<CLSyncCurrentStatus> StatusHolder
+            {
+                get
+                {
+                    return _statusHolder;
+                }
+            }
+            private readonly GenericHolder<CLSyncCurrentStatus> _statusHolder;
+
+            public System.Threading.WaitCallback StatusUpdated
+            {
+                get
+                {
+                    return _statusUpdated;
+                }
+            }
+            private readonly System.Threading.WaitCallback _statusUpdated;
+
+            public object StatusUpdatedUserState
+            {
+                get
+                {
+                    return _statusUpdatedUserState;
+                }
+            }
+            private readonly object _statusUpdatedUserState;
+
+            public GenericHolder<DateTime> ThreadStateKillTime
+            {
+                get
+                {
+                    return _threadStateKillTime;
+                }
+            }
+            private readonly GenericHolder<DateTime> _threadStateKillTime;
+
+            public GenericHolder<Timer> ThreadStateKillTimer
+            {
+                get
+                {
+                    return _threadStateKillTimer;
+                }
+            }
+            private readonly GenericHolder<Timer> _threadStateKillTimer;
+
+            public Dictionary<Guid, ThreadStatus> ThreadsToStatus
+            {
+                get
+                {
+                    return _threadsToStatus;
+                }
+            }
+            private readonly Dictionary<Guid, ThreadStatus> _threadsToStatus;
+
+            public Queue<KeyValuePair<Guid, ThreadStatus>> StatusChangesQueue
+            {
+                get
+                {
+                    return _statusChangesQueue;
+                }
+            }
+            private readonly Queue<KeyValuePair<Guid, ThreadStatus>> _statusChangesQueue;
+
+            public StatusAggregationState(
+                GenericHolder<bool> StatusAggregatorRunning,
+                GenericHolder<CLSyncCurrentStatus> StatusHolder,
+                System.Threading.WaitCallback StatusUpdated,
+                object StatusUpdatedUserState,
+                GenericHolder<DateTime> ThreadStateKillTime,
+                GenericHolder<Timer> ThreadStateKillTimer,
+                Dictionary<Guid, ThreadStatus> ThreadsToStatus,
+                Queue<KeyValuePair<Guid, ThreadStatus>> StatusChangesQueue)
+            {
+                this._statusAggregatorRunning = StatusAggregatorRunning;
+                this._statusHolder = StatusHolder;
+                this._statusUpdated = StatusUpdated;
+                this._statusUpdatedUserState = StatusUpdatedUserState;
+                this._threadStateKillTime = ThreadStateKillTime;
+                this._threadStateKillTimer = ThreadStateKillTimer;
+                this._threadsToStatus = ThreadsToStatus;
+                this._statusChangesQueue = StatusChangesQueue;
+            }
+        }
         private sealed class ThreadStatus
         {
             public bool IsError
@@ -2958,11 +3043,14 @@ namespace CloudApiPublic.Sync
                     // Because of exception wrapping, the real cause of the error is probably in the message of the exception's inner inner exception,
                     // so attempt to grab it from there otherwise attempt to grab it from the exception's inner exception otherwise attempt to grab it from the exception itself
 
-                    ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message))
-                        ? ((exceptions.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.Message))
-                            ? exceptions.Message // failed to find the second inner exception in the exception, so output the deepest found
-                            : exceptions.InnerException.Message) // failed to find the second inner exception in the exception, so output the deepest found
-                        : exceptions.InnerException.InnerException.Message); // success for finding all inner exceptions up to the real source of the error
+                    ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message)
+                        || exceptions.InnerException.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.InnerException.Message))
+                        ? ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message))
+                            ? ((exceptions.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.Message))
+                                ? exceptions.Message // failed to find the second inner exception in the exception, so output the deepest found
+                                : exceptions.InnerException.Message) // failed to find the second inner exception in the exception, so output the deepest found
+                            : exceptions.InnerException.InnerException.Message) // failed to find the third inner exception in the exception, so output the deepest found
+                        : exceptions.InnerException.InnerException.InnerException.Message); // success for finding all inner exceptions up to the real source of the error
 
                 // declare a bool for whether error is serious (failed and no longer retrying)
                 bool isErrorSerious;
@@ -3613,11 +3701,14 @@ namespace CloudApiPublic.Sync
                     // Because of exception wrapping, the real cause of the error is probably in the message of the exception's inner inner exception,
                     // so attempt to grab it from there otherwise attempt to grab it from the exception's inner exception otherwise attempt to grab it from the exception itself
 
-                    ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message))
-                        ? ((exceptions.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.Message))
-                            ? exceptions.Message // failed to find the second inner exception in the exception, so output the deepest found
-                            : exceptions.InnerException.Message) // failed to find the second inner exception in the exception, so output the deepest found
-                        : exceptions.InnerException.InnerException.Message); // success for finding all inner exceptions up to the real source of the error
+                    ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message)
+                        || exceptions.InnerException.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.InnerException.Message))
+                        ? ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message))
+                            ? ((exceptions.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.Message))
+                                ? exceptions.Message // failed to find the second inner exception in the exception, so output the deepest found
+                                : exceptions.InnerException.Message) // failed to find the second inner exception in the exception, so output the deepest found
+                            : exceptions.InnerException.InnerException.Message) // failed to find the third inner exception in the exception, so output the deepest found
+                        : exceptions.InnerException.InnerException.InnerException.Message); // success for finding all inner exceptions up to the real source of the error
 
                 // declare a bool for whether error is serious (failed and no longer retrying)
                 bool isErrorSerious;
@@ -3768,7 +3859,7 @@ namespace CloudApiPublic.Sync
         private sealed class DownloadTaskState : ITransferTaskState
         {
             public Guid ThreadId { get; set; }
-            public Action<Guid, long, SyncDirection, string, long, long, bool> StatusUpdate { get; set; }
+            public FileTransferStatusUpdateDelegate StatusUpdate { get; set; }
             public FileChange FileToDownload { get; set; }
             public byte[] MD5 { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
@@ -3790,7 +3881,7 @@ namespace CloudApiPublic.Sync
         private sealed class UploadTaskState : ITransferTaskState
         {
             public Guid ThreadId { get; set; }
-            public Action<Guid, long, SyncDirection, string, long, long, bool> StatusUpdate { get; set; }
+            public FileTransferStatusUpdateDelegate StatusUpdate { get; set; }
             public FileChange FileToUpload { get; set; }
             public Stream UploadStream { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
@@ -6201,7 +6292,13 @@ namespace CloudApiPublic.Sync
                 // status message
                 MessageEvents.FireNewEventMessage(
                     sender: ex,
-                    Message: "Communication of changes with server had an error",
+                    Message: "Communication of changes with server had an error" +
+                        (string.IsNullOrEmpty(ex.Message)
+                            ? string.Empty  // if there is no exception message then do not append anything
+                            : ": " + // else if there is an exception message at least something will be appended
+                                ((ex.InnerException == null || string.IsNullOrEmpty(ex.InnerException.Message))
+                                    ? ex.Message // if there is no inner exception with message then just append the outer exception message
+                                    : ex.InnerException.Message)), // else if there is an inner exception with message then append the inner exception message
                     Level: EventMessageLevel.Important,
                     IsError: true,
                     SyncBoxId: syncBox.SyncBoxId,
@@ -6496,4 +6593,15 @@ namespace CloudApiPublic.Sync
         private readonly object UpDownEventLocker = new object();
         #endregion
     }
+    /// <summary>
+    /// Delegate to FileTransferStatusUpdate in SyncEngine which fires status change callbacks to CLSyncEngine
+    /// </summary>
+    /// <param name="threadId">Unique id of the running thread calling back for status change</param>
+    /// <param name="eventId">The unique ID of the event being transferred</param>
+    /// <param name="direction">Direction of the event (To the server of From the server)</param>
+    /// <param name="relativePath">Relative path of the file being transferred</param>
+    /// <param name="byteProgress">Bytes already transferred for the file</param>
+    /// <param name="totalByteSize">Total byte size of the file</param>
+    /// <param name="isError">Whether or not the transfer has errored out</param>
+    internal delegate void FileTransferStatusUpdateDelegate(Guid threadId, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize, bool isError);
 }

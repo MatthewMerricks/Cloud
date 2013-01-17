@@ -184,6 +184,5 @@ namespace CloudSdkSyncSample.Views
         {
             this.Close();
         }
-
     }
 }

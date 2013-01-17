@@ -40,50 +40,8 @@ namespace CloudApiPublic.Interfaces
         int TraceLevel { get; }
     }
 
-    ///// <summary>
-    ///// Minimal settings for components which only perform communication functions.
-    ///// </summary>
-    //public interface IHttpSettings
-    //{
-    //    /// <summary>
-    //    /// Device id (each SyncBox may contain multiple devices, each with a unique id within the SyncBox).
-    //    /// </summary>
-    //    string DeviceId { get; }
-
-    //    /// <summary>
-    //    /// The public key that identifies this application.
-    //    /// </summary>
-    //    string ApplicationKey { get; }
-
-    //    /// <summary>
-    //    /// The application secret private key.
-    //    /// </summary>
-    //    /// <remarks>NOTE: This should not be stored in the settings.  It should be retrieved dynamically from the developer's server.</remarks>
-    //    string ApplicationSecret { get; }
-
-    //    /// <summary>
-    //    /// The unique ID of this SyncBox assigned by the auth server.
-    //    /// </summary>
-    //    Nullable<long> SyncBoxId { get; }
-
-    //    /// <summary>
-    //    /// User id, provided by server upon authentication
-    //    /// </summary>
-    //    //string Uuid { get; }
-
-    //    /// <summary>
-    //    /// Authorization key, provided by server upon authentication
-    //    /// </summary>
-    //    //string Akey { get; }
-    //}
-
-    ///// <summary>
-    ///// Advanced settings for components which only perform communication functions. The addition over the basic settings is <see cref="IAddTraceSettings"/>.
-    ///// </summary>
-    //public interface IHttpSettingsAdvanced : IHttpSettings, IAddTraceSettings { }
-
     /// <summary>
-    /// Basic settings for active sync (<see cref="CloudApiPublic.CLSyncEngine"/>). Built on top of <see cref="IHttpSettings"/>.
+    /// Basic settings for active sync (<see cref="CloudApiPublic.CLSyncEngine"/>).
     /// </summary>
     public interface ICLSyncSettings// : IHttpSettings
     {
@@ -94,7 +52,7 @@ namespace CloudApiPublic.Interfaces
     }
 
     /// <summary>
-    /// Advanced settings for active sync (<see cref="CloudApiPublic.CLSyncEngine"/>). Built on top of <see cref="IHttpSettings"/>. The addition over basic settings is <see cref="ICLAddTraceSettings"/>.
+    /// Advanced settings for active sync (<see cref="CloudApiPublic.CLSyncEngine"/>). The addition over basic settings is <see cref="ICLAddTraceSettings"/>.
     /// </summary>
     public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLAddTraceSettings
     {
