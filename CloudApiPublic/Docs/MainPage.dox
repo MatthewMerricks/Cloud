@@ -4,9 +4,11 @@
 ///
 /// The Cloud Windows Client SDK allows your application to easily support real time file synchronization services.
 ///
-/// A SyncBox can be thought of as a folder with a hierarhical directory structure.  Any files placed in a SyncBox can be automatically
-/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS and Android).  Each device has an ID that is unique in the SyncBox.
-/// Your account can have multiple SyncBoxes (each with multiple device IDs), and your application can open multiple SyncBoxes on a physical device.
+/// A SyncBox can be thought of as a folder with a hierarchical directory structure.  Any files placed in a SyncBox can be automatically
+/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS and Android).
+///
+/// An application can have a SyncBox which can have multiple devices. The ID of a device should be unique within a particular SyncBox.
+/// A physical computer (e.g., a local Windows Machine) may have multiple SyncBoxes running under multiple applications in different or possibly overlapping local directories.
 ///
 /// In desktop environments, a SyncBox is tied to a particular local disk directory.  e.g., on Windows, "C:\Users\<UserName>\<YourSyncBoxName>".
 ///
@@ -74,7 +76,7 @@
 ///         }
 /// \endcode
 ///
-/// The code above will automatically sync files in the "SyncRoot" directory with your other devices related to this SyncBox, and with the SyncBox on the Cloud servers.
+/// The code above will automatically sync files in the "SyncRoot" directory with your other devices in this SyncBox, and with the SyncBox on Cloud.
 ///
 /// \section install_sec SDK Installation
 ///
@@ -97,7 +99,8 @@
 /// Install the SDK by following the steps below:
 ///
 /// - Browse to the Cloud download page at https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal.
-/// - Click the Download link to download the Windows Cloud SDK installation program.
+/// - Create a developer account and login.
+/// - Click the Download link and download the Windows Cloud SDK installation program CloudSdkSetup.exe.
 /// - Follow the instructions to install the Cloud SDK.
 /// .
 ///
@@ -108,10 +111,10 @@
 /// Run the sample app to see the main window below:
 /// \image html SampleAppMainWindow.jpg "Sample App Main Window"
 /// You will enter information into the following Required Settings fields:
-/// - SyncBoxFolder: This is the full path of the folder on your device that will be synced.  The folder must be on a locally-attached drive.  Typically you will specify a folder in your user directory. You may use the Browse button to locate the folder to be synced.
+/// - SyncBoxFolder: This is the full path of the folder on your computer that will be synced.  The folder must be on a locally-attached drive.  Typically you will specify a folder in your user directory. You may use the Browse button to locate the folder to be synced.
 /// - Application Key:  Paste this key from your Cloud developer DashBoard web page (https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal).  This key uniquely identifies your application.
 /// - Application Secret:  Paste this private key from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this private key from a secure location.
-/// - SyncBox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the SyncBox.  It represents a folder that will be synced across all of your devices, and to the Cloud servers.
+/// - SyncBox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the SyncBox.  It represents a folder that will be synced across all of your devices, and to Cloud.
 /// - (Optional) Unique Device ID: Choose a unique name (within this SyncBox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If you do not specify the device ID, it will default to a unique ID.
 /// .
 /// 
@@ -134,8 +137,9 @@
 /// - Folder for Temporary Download Files: (Optional) This is the full path of a folder to be used to store files that are being actively downloaded.  When the download is complete, the files are moved to their permanent position in the SyncBox folder.
 /// - Folder for Database File: (Optional) This is the full path of a folder to be used to store the sync database file.
 /// - Trace Folder: (Optional) This is the full path to store trace files.  There are several types of trace files stored there.  This field is required if Log Errors (below) is checked.
-/// - Trace Type:  This is a bit mask to control the sync trace output.  It is built from the following definition:
+/// - Trace Type:  This is a bit mask (flagged enum) to control the sync trace output.  It is built from the following definition:
 /// \code{.cs}
+/// [Flags]
 /// public enum TraceType : int
 /// {
 ///     /// <summary>
@@ -175,7 +179,7 @@
 /// This window has three areas.  The upload and download graphical status bars appear on the top, each with historical bandwidth display.  Sync supports up to six upload and six download threads, but your local group policy may limit the number to two each.
 /// If more than two upload or download threads are activated, a vertical scrollbar will appear.
 ///
-/// The middle area presents the overall real-time sync statistics, and an icon that changes from Synced (check mark) to Syncing (anmiated syncing icon).
+/// The middle area presents the real-time summary sync statistics, and an icon that changes from Synced (check mark) to Syncing (animated syncing icon).
 ///
 /// The sync messages appear on the bottom in a scrolling window.
 ///
@@ -185,10 +189,9 @@
 /// \subsection sampleapp-badging-subsec Badging
 /// The badging support works with the sync subsystem to paint small sync status icons over the Explorer file and folder icons.  It "badges" the Explorer icons.
 /// 
-/// There are four possible badges:
+/// There are three possible badges:
 /// - Synced
 /// - Syncing
-/// - Selective (selectively synced, not supported yet)
 /// - Error
 /// .
 ///
@@ -219,14 +222,14 @@
 /// - Create an instance of CLCredentials with your credential information.
 /// - Create an instance of CLSyncBox with the path on disk to be synced, and with the instance of CLCredentials.
 /// - Create an instance of CLSyncEngine.
-/// - Verify that the SyncBox folder or authorization information has not changed.  If it has, you should reset the sync database by calling _syncEngine.SyncReset or _syncEngine.WipeIndex().
-/// - Call _syncEngine.Start() to start syncing.  This function takes the sync settings and some additional optional parameters.
-/// - Inspect the out parameter (startStatus) which is the result of _syncEngine.Start().  Handle an error if the result is not CLSyncStartStatus.Successful.
+/// - Verify that the SyncBox folder or authorization information has not changed.  If it has, you should reset the sync database by calling \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.SyncReset SyncReset() \endlink or \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.WipeIndex WipeIndex() \endlink.
+/// - Call \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Start Start() \endlink to start syncing.  This function takes the sync settings and some additional optional parameters.
+/// - Inspect the out parameter (\link CloudApiPublic.CLSyncStartStatus startStatus \endlink) which is an output of \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Start Start() \endlink.  Handle an error if the output is not \link CloudApiPublic.CLSyncStartStatus CLSyncStartStatus \endlink.Success.
 /// .
 /// \subsection sampleapp-stoppingsync-subsec Stopping Sync
-/// Here are the steps to stop sync.  Refer to MainViewModel:StopSyncing().
+/// Here are the steps to stop sync.  Refer to MainViewModel:StopSyncing() in the sample app code.
 /// - Close and dispose your sync status implementation.
-/// - Call _syncEngine.Stop();
+/// - Call \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Stop Stop() \endlink;
 /// .
 /// \subsection sampleapp-clerror-subsec The CLError Class
 /// CLError is a class that represents an error, perhaps containing aggregated exceptions.  Most of the sync public methods return a CLError object.  If the returned object is null, no error occurred.  Otherwise you can
@@ -235,7 +238,7 @@
 /// CLError is a class with the following features:
 /// - Stores one or more Exceptions.
 /// - Each Exception may have an inner exception.
-/// - Supports the tracing of the contained exceptions via LogErrors().
+/// - Supports the tracing of the contained exceptions via LogErrors() in the sample app code.
 /// - Adding an exception to CLError and logging it:
 /// \code{.cs}
 /// CLError error = null;
@@ -251,28 +254,16 @@
 /// }
 /// \endcode
 /// .
-/// \subsection sampleapp-syncstatusView-subsec The SyncStatusView Class
-/// The Sync Status View window is the sample app's implementation of a class to view the status information produced by the sync engine.  Yours may be very different.
-///
-/// The following information is produced by the sync engine for possible consumption by your sync status viewer:
-/// - List of files currently uploading (ObservableCollection)
-/// - List of files currently downloading (ObservableCollection)
-/// - List of messages (ObservableCollection)
-/// - Overall sync status information
-/// - Individual sync change events
-/// .
-/// The sample app SyncStatusView does not handle the individual sync change events.  Those events are described below.
-///
-/// The SyncStatusView object uses two ViewModels (EventMessageReceiver for binding to the ObservableCollections of data, and SyncStatusViewModel only to handle the Done button action).
-///
-/// This view is instantiated at _syncEngine.Start() by the sample app, and it runs until _syncEngine.Stop().  Buttons simply show and hide the window.
-/// Your view can instantiate and dispose your view (and the related EventMessageReceiver ViewModel) at any time, but the data collection will not begin until you instantiate the class.
 /// \subsection sampleapp-eventmessagereceiver-subsec The EventMessageReceiver Class
-/// EventMessageReceiver is used as one of the ViewModels for your sync status view.  You can bind to any of the following ObservableCollections:
+/// \link CloudSdkSyncSample.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink is the sample app's implementation of \link CloudApiPublic.Interfaces.IEventMessageReceiver CloudApiPublic.Interfaces.IEventMessageReceiver \endlink to aggregate status information.
+/// It is used as one of the ViewModels for your sync status view.
+/// You can bind to any of the following ObservableCollections:
 /// - ListFilesDownloading
 /// - ListFilesUploading
 /// - ListMessages
-/// .
+/// .\n
+/// An IEventMessageReceiver implementation requires subscribing in \link CloudApiPublic.Static.MessageEvents CloudApiPublic.Static.MessageEvents \endlink for each SyncBox\Device combination.
+/// Also, you may unsubscribe when you no longer which to receive event callbacks.
 ///
 /// The ListFilesDownloading and ListFilesUploading collections expose the following properties:
 /// \code{.cs}
@@ -313,17 +304,39 @@
 /// }
 /// \endcode
 ///
-/// ListMessages items expose the MessageText property (string).
+/// ListMessages items expose the MessageText property (string).\n
+/// Also, EventMessageReceiver has bindable properties for implementing Growl messages in Windows, but that UI functionality is not provided in the sample app.
+/// \subsection sampleapp-syncstatusView-subsec The SyncStatusView Class
+/// The Sync Status View window is the sample app's implementation of a class to view the status information.
+/// Status information is produced by the sample app's implementation of \link CloudApiPublic.Interfaces.IEventMessageReceiver CloudApiPublic.Interfaces.IEventMessageReceiver \endlink,
+/// \link CloudSdkSyncSample.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink. Yours may be very different.
+///
+/// The following information is produced by your message receiver for possible consumption by your sync status viewer:
+/// - List of files currently uploading (ObservableCollection)
+/// - List of files currently downloading (ObservableCollection)
+/// - List of messages (ObservableCollection)
+/// - Overall sync status information
+/// - Individual sync change events
+/// .
+/// The sample app SyncStatusView does not handle the individual sync change events.  Those events are described below in Sync Change Events.
+///
+/// The SyncStatusView object uses two ViewModels (EventMessageReceiver for binding to the ObservableCollections of data, and SyncStatusViewModel to handle the UI ICommand button actions and aggregate additional summary information).
+///
+/// This view is instantiated at \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Start Start() \endlink by the sample app, and it runs until \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Stop Stop() \endlink.  Buttons simply show and hide the window.
+/// Your view can instantiate and dispose your view (and the related EventMessageReceiver ViewModel) at any time, but the data collection will not begin until you instantiate the class.
 /// \subsection sampleapp-summarystatus-subsec Overall Summary Sync Status
-/// Two of the optional parameters on the _syncEngine.Start() function (StatusUpdated and StatusUpdatedUserState) can be used to retrieve overall sync summary status from the engine.
+/// Two of the optional parameters on the \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Start Start() \endlink function (StatusUpdated and StatusUpdatedUserState) can be used to receive a callback when overall sync summary status has changed.
 /// 
 /// StatusUpdated represents your callback function that will be driven each time sync status changes.
 ///
 /// StatusUpdatedUserState is your own object representing user state information to be passed to the StatusUpdated callback function.
 ///
-/// When the StatusUpdated callback is called by the engine, you can call _syncEngine.GetCLSyncCurrentStatus() to get the current sync summary status.  You need to aggregate this information for display.  See SyncStatusViewModel.OnSyncStatusUpdated().
+/// When the StatusUpdated callback is called by the engine, you can call \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.GetCLSyncCurrentStatus GetCLSyncCurrentStatus() \endlink to get the current sync summary status.
+/// You need to aggregate this information for display.
+/// See \link CloudSdkSyncSample.SyncStatusViewModel.OnSyncStatusUpdated SyncStatusViewModel.OnSyncStatusUpdated() \endlink.
 /// \subsection sampleapp-syncchangeevents-subsec Sync Change Events
-/// Sync change events can be used to track real-time progress.  They are described in class MessageEvents.  MessageEvents exposes the following events:
+/// Sync change events can be used to track real-time progress.  They are described in class \link CloudApiPublic.Static.MessageEvents CloudApiPublic.Static.MessageEvents \endlink.
+/// \link CloudApiPublic.Static.MessageEvents CloudApiPublic.Static.MessageEvents \endlink exposes the following events:
 /// - public static event EventHandler<EventMessageArgs> NewEventMessage:
 /// This event is fired every time a new EventMessage is received.  EventMessages are also placed in the EventMessageReceiver.ListMessages ObservableCollection.  The EventMessageArgs passed with each received message includes the message itself (string), 
 /// the event message level (importance) and a flag to indicate that the message is an error.

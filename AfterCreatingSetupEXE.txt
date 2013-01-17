@@ -1,0 +1,3 @@
+resource hack
+signtool remove /c CloudSdkSetup.exe
+signtool sign /f CertBackup\CloudSigning\CloudPlatformCodeSigning.pfx /p <password> CloudSdkSetup.exe

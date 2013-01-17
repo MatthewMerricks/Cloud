@@ -41,8 +41,15 @@
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ICSharpCode.SharpZipLib">
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -80,12 +87,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
-      <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
-      <Name>CloudApiPublic</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Artwork\cloud.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +94,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\CloudSetupSdkSyncSampleCleanup" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
+      <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
+      <Name>CloudApiPublic</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

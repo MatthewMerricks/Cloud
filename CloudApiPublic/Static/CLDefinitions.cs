@@ -6,8 +6,8 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 //#define PRODUCTION_BACKEND 
-//#define CLIFF_SERVERS
-#define STAGING
+#define CLIFF_SERVERS
+//#define STAGING
 
 // Merged 7/3/12
 namespace CloudApiPublic.Static

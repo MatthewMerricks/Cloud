@@ -119,7 +119,7 @@ namespace CloudApiPublic
         }
     }
     /// <summary>
-    /// Status of creation of CLCredentials
+    /// Status of creation of <see cref="CLSyncBox"/>
     /// </summary>
     public enum CLSyncBoxCreationStatus : byte
     {

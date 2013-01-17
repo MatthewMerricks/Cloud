@@ -120,7 +120,7 @@ namespace CloudApiPublic
         }
     }
     /// <summary>
-    /// Status of creation of CLCredentials
+    /// Status of creation of <see cref="CLCredentials"/>
     /// </summary>
     public enum CLCredentialsCreationStatus : byte
     {

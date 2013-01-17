@@ -173,8 +173,8 @@ namespace CloudSetupSdkSyncSampleSupport
             {
                 string pathExecutingProgram = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string pathInstall = Path.GetDirectoryName(pathExecutingProgram);
-                string archiveFile = pathInstall + "\\CloudSdkSyncSample\\CloudSdkSyncSampleSource.zip";
-                string outFolder = pathInstall + "\\CloudSdkSyncSample";
+                string archiveFile = pathInstall + "\\SampleApp\\CloudSdkSyncSampleSource.zip";
+                string outFolder = pathInstall + "\\SampleApp";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathExecutingProgram(2): {0}.", pathExecutingProgram);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathInstall(2): {0}.", pathInstall);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: archiveFile(2): {0}.", archiveFile);
@@ -248,7 +248,7 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Entry.");
                 string pathInstall = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                 string docsFolder = pathInstall + "\\Docs";
-                string sourceFolder = pathInstall + "\\CloudSdkSyncSample";
+                string sourceFolder = pathInstall + "\\SampleApp";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: pathInstall: {0}.", pathInstall);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: docsFolder: {0}.", docsFolder);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: sourceFolder: {0}.", sourceFolder);
@@ -260,7 +260,7 @@ namespace CloudSetupSdkSyncSampleSupport
                     Directory.Delete(docsFolder, recursive: true);
                 }
 
-                // Delete the source directory (CloudSdkSyncSample)
+                // Delete the source directory (SampleApp)
                 if (Directory.Exists(sourceFolder))
                 {
                     _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Delete the source folder.");

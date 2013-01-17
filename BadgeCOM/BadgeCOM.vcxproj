@@ -939,6 +939,8 @@ REM ----------------------------------------------------------------
 set ErrorTracker=2
 rem C:\Cloud\windows-client\3rdParty\bin\Release&gt;tlbimp.exe BadgeCOM.dll /delaysign /publickey:C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pub /out:BadgeCOMLib.dll
 rem C:\Cloud\windows-client\3rdParty\bin\Release&gt;sn.exe -R BadgeCOMLib.dll C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pfx
+rem C:\Cloud\windows-client\3rdParty\bin\Release&gt;copy BadgeCOMLib.dll ..\..\..\CloudSdkSyncSample\bin\release\BadgeCOMLib.dll
+rem C:\Cloud\windows-client\3rdParty\bin\Release&gt;copy BadgeCOMLib.dll ..\..\..\CloudSdkSyncSample\bin\debug\BadgeCOMLib.dll
 
 REM ----------------------------------------------------------------
 set ErrorTracker=3
