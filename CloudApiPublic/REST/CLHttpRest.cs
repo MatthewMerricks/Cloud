@@ -4439,6 +4439,7 @@ namespace CloudApiPublic.REST
                                 byte[] data = new byte[CLDefinitions.SyncConstantsResponseBufferSize];
                                 // declare an int for the amount of bytes read in each buffer transfer
                                 int read;
+
                                 // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the download stream and store the read byte count
                                 while ((read = downloadResponseStream.Read(data, 0, data.Length)) > 0)
                                 {

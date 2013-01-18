@@ -447,6 +447,9 @@ namespace CloudApiPublic.Sync
                             if (currentStatus.Value.LastUpdateTime == null
                                 || killTime.CompareTo((DateTime)currentStatus.Value.LastUpdateTime) <= 0)
                             {
+                                // define a bool for whether this status change represents a file upload or download which has completed and should be cleared out
+                                bool uploadDownloadCompleted = false;
+
                                 // condition for communicating changes thread and for active upload/download
                                 if (currentStatus.Value.LastUpdateTime != null)
                                 {
@@ -460,6 +463,8 @@ namespace CloudApiPublic.Sync
                                         }
 
                                         removedStatusKeys.Add(currentStatus.Key);
+
+                                        uploadDownloadCompleted = true;
                                     }
                                     // condition for communicating changes thread of incomplete/active upload/download
                                     // and also only if the last update time is earlier than the earliest found so far
@@ -476,7 +481,8 @@ namespace CloudApiPublic.Sync
                                     outputState |= CLSyncCurrentState.CommunicatingChanges;
                                 }
                                 // condition for active or queued upload/download which haven't failed
-                                else if (!currentStatus.Value.IsError)
+                                else if (!currentStatus.Value.IsError
+                                    && !uploadDownloadCompleted)
                                 {
                                     // condition for active upload
                                     if (((SyncDirection)currentStatus.Value.Direction) == SyncDirection.To)
@@ -1611,6 +1617,26 @@ namespace CloudApiPublic.Sync
                         // else if no exception occurred during server communication and the server was not contacted for a new sync id, then only update status
                         else if (newSyncId == null)
                         {
+                            if (successfulEventIds != null
+                                && successfulEventIds.Count > 0)
+                            {
+                                // declare long to store incrementing count of syncs
+                                long syncCounter;
+
+                                // Write new Sync point to database with successful events
+                                CLError recordSyncError = syncData.completeSyncSql(
+                                    syncData.getLastSyncId, // communication did not run, so use last sync id
+                                    successfulEventIds, // enumerable of event ids which have been completed
+                                    out syncCounter, // output incremented count of syncs
+                                    (syncBox.CopiedSettings.SyncRoot ?? string.Empty)); // pass current cloud root
+
+                                // if there was an error recording a new Sync, then append the exception to the return error
+                                if (recordSyncError != null)
+                                {
+                                    toReturn += recordSyncError.GrabFirstException();
+                                }
+                            }
+
                             // update latest status
                             syncStatus = "Sync Run communication aborted e.g. Sync To with no events";
                         }

@@ -1049,32 +1049,20 @@ namespace CloudSdkSyncSample.ViewModels
                                 }
                                 else
                                 {
-                                    CLError errorSubscribeVM = MessageEvents.SubscribeMessageReceiver(
-                                        syncBox.SyncBoxId, // filter by current sync box
-                                        syncBox.CopiedSettings.DeviceId, // filter by current device
-                                        vm); // pass the view model which will receive event callbacks
-
-                                    if (errorSubscribeVM != null)
-                                    {
-                                        _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From MessageEvents.SubscribeMessageReceiver: Msg: <{0}>.", errorSubscribeVM.errorDescription);
-                                    }
-                                    else
-                                    {
-                                        _winSyncStatus = new SyncStatusView();
-                                        _winSyncStatus.DataContext = vm;
-                                        _winSyncStatus.Width = 0;
-                                        _winSyncStatus.Height = 0;
-                                        _winSyncStatus.MinWidth = 0;
-                                        _winSyncStatus.MinHeight = 0;
-                                        _winSyncStatus.Left = Int32.MaxValue;
-                                        _winSyncStatus.Top = Int32.MaxValue;
-                                        _winSyncStatus.ShowInTaskbar = false;
-                                        _winSyncStatus.ShowActivated = false;
-                                        _winSyncStatus.Visibility = Visibility.Hidden;
-                                        _winSyncStatus.WindowStyle = WindowStyle.None;
-                                        _winSyncStatus.Owner = _mainWindow;
-                                        _winSyncStatus.Show();
-                                    }
+                                    _winSyncStatus = new SyncStatusView();
+                                    _winSyncStatus.DataContext = vm;
+                                    _winSyncStatus.Width = 0;
+                                    _winSyncStatus.Height = 0;
+                                    _winSyncStatus.MinWidth = 0;
+                                    _winSyncStatus.MinHeight = 0;
+                                    _winSyncStatus.Left = Int32.MaxValue;
+                                    _winSyncStatus.Top = Int32.MaxValue;
+                                    _winSyncStatus.ShowInTaskbar = false;
+                                    _winSyncStatus.ShowActivated = false;
+                                    _winSyncStatus.Visibility = Visibility.Hidden;
+                                    _winSyncStatus.WindowStyle = WindowStyle.None;
+                                    _winSyncStatus.Owner = _mainWindow;
+                                    _winSyncStatus.Show();
                                 }
                             }
                         }
@@ -1127,6 +1115,19 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 if (_winSyncStatus != null)
                 {
+                    EventMessageReceiver.EventMessageReceiver vm = _winSyncStatus.DataContext as EventMessageReceiver.EventMessageReceiver;
+                    if (vm != null)
+                    {
+                        try
+                        {
+                            vm.Dispose();
+                        }
+                        catch
+                        {
+                        }
+                        _winSyncStatus.DataContext = null;
+                    }
+
                     _winSyncStatus.AllowClose = true;
                     _winSyncStatus.Close();
                     _winSyncStatus = null;
@@ -1138,19 +1139,6 @@ namespace CloudSdkSyncSample.ViewModels
                     _syncStarted = false;
                     _syncEngine.Stop();
                     _syncEngine = null;
-                }
-
-                if (SettingsAdvancedImpl.Instance.SyncBoxId != null
-                    && !string.IsNullOrEmpty(SettingsAdvancedImpl.Instance.DeviceId))
-                {
-                    CLError errorUnsubscribeVM = MessageEvents.UnsubscribeMessageReceiver(
-                        (long)SettingsAdvancedImpl.Instance.SyncBoxId,
-                        SettingsAdvancedImpl.Instance.DeviceId);
-
-                    if (errorUnsubscribeVM != null)
-                    {
-                        _trace.writeToLog(1, "MainViewModel: StopSyncing: ERROR: Exception: Msg: <{0}>.", errorUnsubscribeVM.errorDescription);
-                    }
                 }
             }
         }
