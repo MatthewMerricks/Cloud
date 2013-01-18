@@ -18,6 +18,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using System.Threading;
 using System.Management;
+using Microsoft.Win32.TaskScheduler;
 
 namespace CloudSdkSyncSample.ViewModels
 {
@@ -1344,19 +1345,57 @@ namespace CloudSdkSyncSample.ViewModels
         {
             try
             {
-                // Start Explorer
+                // Windows 8 has a problem.  This installation program is running as administrator (requireAdministrator) in the manifest.  Any program it starts
+                // will be launched with Administrator privileges, so we would be starting  The whole Metro stack refuses to run with the message:
+                //        "Calendar can't open while File Explorer is running with administrator privileges.  Restart File Explorer normally and try again."
+                // So, we need to launch Explorer with its normal privileges, but it is very tricky starting a NON-elevated process from an elevated one.
+                // Every process launced from an elevated process will be elevated.  So, we will use the Task Scheduler to do the launch.  Then Explorer
+                // will be launced as a process with its normal privileges.  This code uses the Task Scheduler managed wrappers (Microsoft.Win32.TaskScheduler).
+                /// You can find that code at http://taskscheduler.codeplex.com/releases/view/94616.
                 string explorerLocation = String.Empty;
                 explorerLocation = "\"" + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe") + "\"";
-                _trace.writeToLog(9, "MainViewModel: StartExplorer: Entry. Explorer location: <{0}>.", explorerLocation);
-                ProcessStartInfo taskStartInfo = new ProcessStartInfo();
-                taskStartInfo.CreateNoWindow = true;
-                taskStartInfo.UseShellExecute = false;
-                taskStartInfo.FileName = explorerLocation;
-                taskStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                taskStartInfo.Arguments = String.Empty;
-                _trace.writeToLog(9, "MainViewModel: StartExplorer: Start explorer.");
-                Process.Start(taskStartInfo);
-
+                if (System.Environment.OSVersion.Version.Major >= 6)
+                {
+                    using (TaskService ts = new TaskService())
+                    {
+                        _trace.writeToLog(9, "MainViewModel: StartExplorer: Start via Task Scheduler at location: <{0}>.", explorerLocation);
+                        bool isConnected = ts.Connected;
+                        TaskDefinition td = ts.NewTask();
+                        td.RegistrationInfo.Description = @"Start Explorer Immediately";
+                        td.RegistrationInfo.Author = @"RunAsStdUser";
+                        TaskPrincipal principal = td.Principal;
+                        principal.Id = @"RunAsStdUser_Principal";
+                        principal.LogonType = TaskLogonType.InteractiveToken;
+                        principal.RunLevel = TaskRunLevel.LUA;
+                        TaskSettings settings = td.Settings;
+                        settings.DisallowStartIfOnBatteries = false;
+                        settings.StartWhenAvailable = true;
+                        settings.AllowDemandStart = true;
+                        settings.Enabled = true;
+                        settings.ExecutionTimeLimit = TimeSpan.FromDays(1000);
+                        settings.MultipleInstances = TaskInstancesPolicy.Queue;
+                        TimeTrigger newTrigger = new TimeTrigger(DateTime.Now + TimeSpan.FromSeconds(1.0));
+                        newTrigger.EndBoundary = DateTime.Now + TimeSpan.FromSeconds(5);
+                        newTrigger.Id = @"RunAsStdUser_TimeTrigger";
+                        td.Triggers.Add(newTrigger);
+                        ExecAction newAction = new ExecAction(explorerLocation);
+                        td.Actions.Add(newAction);
+                        ts.RootFolder.RegisterTaskDefinition(@"Start Explorer Immediately", td);
+                    }
+                }
+                else
+                {
+                    // Start Explorer
+                    _trace.writeToLog(9, "MainViewModel: StartExplorer: Entry. Explorer location: <{0}>.", explorerLocation);
+                    ProcessStartInfo taskStartInfo = new ProcessStartInfo();
+                    taskStartInfo.CreateNoWindow = true;
+                    taskStartInfo.UseShellExecute = false;
+                    taskStartInfo.FileName = explorerLocation;
+                    taskStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    taskStartInfo.Arguments = String.Empty;
+                    _trace.writeToLog(9, "MainViewModel: StartExplorer: Start explorer.");
+                    Process.Start(taskStartInfo);
+                }
             }
             catch (Exception ex)
             {

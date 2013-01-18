@@ -51,6 +51,9 @@
     <Reference Include="CloudApiPublic">
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="Microsoft.Win32.TaskScheduler">
+      <HintPath>..\3rdParty\bin\Release\Microsoft.Win32.TaskScheduler.dll</HintPath>
+    </Reference>
     <Reference Include="RateBar, Version=1.0.4762.20666, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
