@@ -31,7 +31,8 @@ namespace CloudApiPublic.Interfaces
         /// </summary>
         string TraceLocation { get; }
         /// <summary>
-        /// Whether to exclude authorization information (authentication keys, usernames/passwords, etc.) from the trace file; can return based on TraceType (i.e. "return (TraceType & TraceType.AddAuthorization) != TraceType.AddAuthorization;")
+        /// Whether to exclude authorization information (authentication keys, usernames/passwords, etc.) from the trace file;
+        /// can return based on TraceType (i.e. "return (TraceType &amp; TraceType.AddAuthorization) != TraceType.AddAuthorization;")
         /// </summary>
         bool TraceExcludeAuthorization { get; }
         /// <summary>

@@ -463,44 +463,49 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
 set ErrorTracker=23
-echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=Release
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=Release
 if errorlevel 1 goto BuildEventFailed
 
 set ErrorTracker=24
-echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+echo copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=25
+echo copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=25
+set ErrorTracker=26
 echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=26
+set ErrorTracker=27
 echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=27
+set ErrorTracker=28
 echo copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=28
+set ErrorTracker=29
 echo copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=29
+set ErrorTracker=30
 echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=30
+set ErrorTracker=31
 echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed

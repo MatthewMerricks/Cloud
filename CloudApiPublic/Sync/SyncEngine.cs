@@ -173,11 +173,6 @@ namespace CloudApiPublic.Sync
                     // if timer has not been created, then create it
                     if (_failureTimer == null)
                     {
-                        //if (syncData == null)
-                        //{
-                        //    throw new NullReferenceException("syncData cannot be null");
-                        //}
-
                         // create timer, store creation error
                         CLError timerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(
                             FailureProcessing, // callback when timer finishes
@@ -338,17 +333,19 @@ namespace CloudApiPublic.Sync
                     // start the aggregation thread
                     ThreadPool.UnsafeQueueUserWorkItem(ProcessStatusAggregation, // code to handle aggregation
                         new StatusAggregationState( // state containing all required parameters to aggregate status
-                            StatusAggregatorRunning, // finish commenting here
-                            StatusHolder,
-                            statusUpdated,
-                            statusUpdatedUserState,
-                            threadStateKillTime,
-                            threadStateKillTimer,
-                            ThreadsToStatus,
-                            StatusChangesQueue));
+                            StatusAggregatorRunning, // holder for whether status aggregator thread is running
+                            StatusHolder, // holder for the current status object which can be retrieved by a user
+                            statusUpdated, // optional callback which may have been provided by the user for when status gets updated
+                            statusUpdatedUserState, // optional userstate which will be passed to statusUpdated callback when fired
+                            threadStateKillTime, // holder for the next scheduled killtime when at least one thread would be dead and require cleanup
+                            threadStateKillTimer, // holder for a threading Timer which is created to start after the earliest ThreadState should be cleaned up
+                            ThreadsToStatus, // dictionary of thread ids to thread status where the latest status for each thread is aggregated
+                            StatusChangesQueue)); // queue of change of ThreadStatus to apply to the ThreadsToStatus dictionary
                 }
             }
         }
+        // code which runs the status aggregation by dequeueing the StatusChangesQueue into ThreadsToStatus and updating the StatusHolder,
+        // synchronized to only have one thread running in here at a time using StatusAggregatorRunning bool holder
         private static void ProcessStatusAggregation(object state)
         {
             try
@@ -361,7 +358,7 @@ namespace CloudApiPublic.Sync
                 }
                 else
                 {
-                    Func<GenericHolder<bool>, Queue<KeyValuePair<Guid, ThreadStatus>>, bool> continueProcessing = (threadRunning, statusQueue) =>
+                    Func<GenericHolder<bool>, Queue<KeyValuePair<Guid, ThreadStatus>>, GenericHolder<Timer>, GenericHolder<CLSyncCurrentStatus>, bool> continueProcessing = (threadRunning, statusQueue, killTimer, statusHolder) =>
                         {
                             lock (statusQueue)
                             {
@@ -373,6 +370,30 @@ namespace CloudApiPublic.Sync
                                 lock (threadRunning)
                                 {
                                     threadRunning.Value = false;
+
+                                    // make a check for an idle state in order to kill any remaining kill timer (which won't have anything to clean)
+                                    lock (statusHolder)
+                                    {
+                                        if (statusHolder.Value == null
+                                            || statusHolder.Value.CurrentState == CLSyncCurrentState.Idle)
+                                        {
+                                            lock (killTimer)
+                                            {
+                                                if (killTimer.Value != null)
+                                                {
+                                                    try
+                                                    {
+                                                        killTimer.Value.Dispose();
+                                                    }
+                                                    catch
+                                                    {
+                                                    }
+                                                    killTimer.Value = null;
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     return false;
                                 }
                             }
@@ -565,8 +586,11 @@ namespace CloudApiPublic.Sync
                             }
                         }
                     }
-                    while (continueProcessing(castState.StatusAggregatorRunning,
-                        castState.StatusChangesQueue));
+                    while (continueProcessing(
+                        castState.StatusAggregatorRunning,
+                        castState.StatusChangesQueue,
+                        castState.ThreadStateKillTimer,
+                        castState.StatusHolder));
                 }
             }
             catch (Exception ex)
@@ -586,6 +610,21 @@ namespace CloudApiPublic.Sync
                 }
                 else
                 {
+                    lock (castState.ThreadStateKillTimer)
+                    {
+                        if (castState.ThreadStateKillTimer.Value != null)
+                        {
+                            try
+                            {
+                                castState.ThreadStateKillTimer.Value.Dispose();
+                            }
+                            catch
+                            {
+                            }
+                            castState.ThreadStateKillTimer.Value = null;
+                        }
+                    }
+
                     lock (castState.StatusChangesQueue)
                     {
                         lock (castState.StatusAggregatorRunning)
