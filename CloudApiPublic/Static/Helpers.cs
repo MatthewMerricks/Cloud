@@ -966,11 +966,10 @@ namespace CloudApiPublic.Static
         internal static readonly object LogFileLocker = new object();
         internal static Dictionary<string, Nullable<DateTime>> DictLastDayLogCreatedByTraceCategory = new Dictionary<string, DateTime?>();
 
-        // 
         /// <summary>
         /// This function creates the target trace file and maintains up to 10 daily trace files per category.
         /// Trace file names will look like:
-        ///     "<TraceLocation>\Trace-2012-11-27-<TraceCategory>-<UserDeviceId>.
+        ///     "[TraceLocation]\Trace-2012-11-27-[TraceCategory]-[UserDeviceId].
         /// </summary>
         /// <remarks>The calling method should wrap this private helper in a try/catch.</remarks>
         /// <param name="TraceLocation">The full path of the directory to contain the trace files.</param>
