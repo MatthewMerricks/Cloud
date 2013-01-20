@@ -18,7 +18,6 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using System.Threading;
 using System.Management;
-using Microsoft.Win32.TaskScheduler;
 
 namespace CloudSdkSyncSample.ViewModels
 {
