@@ -1356,7 +1356,6 @@ namespace CloudSdkSyncSample.ViewModels
                 taskStartInfo.Arguments = String.Empty;
                 _trace.writeToLog(9, "MainViewModel: StartExplorer: Start explorer.");
                 Process.Start(taskStartInfo);
-
             }
             catch (Exception ex)
             {

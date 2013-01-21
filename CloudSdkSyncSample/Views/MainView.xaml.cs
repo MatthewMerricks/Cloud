@@ -70,10 +70,7 @@ namespace CloudSdkSyncSample.Views
             {
                 folderBrowser.SelectedPath = tbSyncBoxFolder.Text;
             }
-            else
-            {
-                folderBrowser.RootFolder = Environment.SpecialFolder.UserProfile;
-            }
+            folderBrowser.RootFolder = Environment.SpecialFolder.DesktopDirectory;
             folderBrowser.ShowNewFolderButton = true;
             System.Windows.Forms.DialogResult result = folderBrowser.ShowDialog(this.GetIWin32Window());
             if (result == System.Windows.Forms.DialogResult.OK)
