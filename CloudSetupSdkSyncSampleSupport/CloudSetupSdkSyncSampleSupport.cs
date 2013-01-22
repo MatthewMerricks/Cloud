@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using CloudApiPublic.Static;
 using CloudApiPublic.Support;
+using System.Windows;
 
 namespace CloudSetupSdkSyncSampleSupport
 {
