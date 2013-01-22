@@ -76,14 +76,17 @@ namespace CloudApiPublic.FileMonitor.SyncImplementation
         /// <param name="initialFailures">The current set of file change events in error.</param>
         /// <param name="outputChanges">(output) The set of new file change events.</param>
         /// <param name="outputChangesInError">(output) The adjusted set of file change events in error.</param>
+        /// <param name="nullChangeFound">(output) Whether a null FileChange was found in the processing queue (which does not get output)</param>
         /// <returns>An error or null.</returns>
         public CLError grabChangesFromFileSystemMonitor(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
-            out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError)
+            out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
+            out bool nullChangeFound)
         {
             return Monitor.GrabPreprocessedChanges(initialFailures,
                 out outputChanges,
-                out outputChangesInError);
+                out outputChangesInError,
+                out nullChangeFound);
         }
 
         /// <summary>

@@ -45,7 +45,8 @@ namespace CloudApiPublic.Static
         Idle = 0,
         CommunicatingChanges = 1,
         UploadingFiles = 2,
-        DownloadingFiles = 4
+        DownloadingFiles = 4,
+        HaltedOnConnectionFailure = 8
     }
 
     /// <summary>

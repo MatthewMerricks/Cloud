@@ -1333,10 +1333,12 @@ namespace CloudApiPublic.FileMonitor
         /// <param name="initialFailures">Input FileChanges from FailureQueue to integrate into dependency checking</param>
         /// <param name="outputChanges">Output array of FileChanges to process</param>
         /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
+        /// <param name="nullChangeFound">(output) Whether a null FileChange was found in the processing queue (which does not get output)</param>
         /// <returns>Returns error(s) that occurred finalizing the FileChange array, if any</returns>
         internal CLError GrabPreprocessedChanges(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
-            out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError)
+            out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
+            out bool nullChangeFound)
         {
             CLError toReturn = null;
             List<KeyValuePair<FileChangeMerge, FileChange>> queuedChangesNeedMergeToSql = new List<KeyValuePair<FileChangeMerge, FileChange>>();
@@ -1364,7 +1366,19 @@ namespace CloudApiPublic.FileMonitor
                                 return converted;
                             };
 
+                        GenericHolder<bool> nullFound = new GenericHolder<bool>(false);
+                        Func<object, GenericHolder<bool>, bool> nullCheckAndMarkFound = (referenceToCheck, nullFoundHolder) =>
+                            {
+                                if (referenceToCheck == null)
+                                {
+                                    nullFoundHolder.Value = true;
+                                    return false;
+                                }
+                                return true;
+                            };
+
                         var AllFileChanges = (ProcessingChanges.DequeueAll()
+                            .Where(currentProcessingChange => nullCheckAndMarkFound(currentProcessingChange, nullFound)) // added nullable FileChange so that syncing can be triggered by queueing a null
                             .Select(currentProcessingChange => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.ProcessingChanges, new KeyValuePair<bool, FileChange>(false, currentProcessingChange)))
                             .Concat(initialFailures.Select(currentInitialFailure => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailureQueue, new KeyValuePair<bool, FileChange>(currentInitialFailure.IsPreexisting, currentInitialFailure.FileChange)))))
                             .OrderBy(eventOrdering => eventOrdering.Value.Value.EventId)
@@ -1379,6 +1393,8 @@ namespace CloudApiPublic.FileMonitor
                                 SourceType = currentFileChange.Key
                             })
                             .ToArray();
+
+                        nullChangeFound = nullFound.Value;
 
                         Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>> OriginalFileChangeMappings = AllFileChanges.ToDictionary(keySelector => keySelector.DependencyFileChange,
                             valueSelector => new KeyValuePair<FileChange, FileChangeSource>(valueSelector.OriginalFileChange, valueSelector.SourceType));
@@ -1587,6 +1603,7 @@ namespace CloudApiPublic.FileMonitor
             {
                 outputChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableFileChange>>();
                 outputChangesInError = Helpers.DefaultForType<IEnumerable<PossiblyPreexistingFileChangeInError>>();
+                nullChangeFound = false;
                 toReturn += ex;
             }
 

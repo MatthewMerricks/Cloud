@@ -32,6 +32,10 @@ namespace CloudApiPublic.Sync
     internal sealed class SyncEngine : IDisposable
     {
         #region instance fields, all readonly
+        // locker to prevent multiple simultaneous processing of the same SyncEngine
+        private readonly object RunLocker = new object();
+        // holder to whether this SyncEngine has faulted on server connection failure
+        private readonly GenericHolder<bool> HaltedOnServerConnectionFailure = new GenericHolder<bool>(false);
         // store event source
         private readonly ISyncDataObject syncData;
         // callback to fire upon any status change
@@ -46,10 +50,16 @@ namespace CloudApiPublic.Sync
         private readonly int HttpTimeoutMilliseconds;
         // number of times to retry a event dependency tree before stopping
         private readonly byte MaxNumberOfFailureRetries;
+        // max number of consecutive server connection failures to a particular domain before halting the engine
+        private readonly byte MaxNumberOfServerConnectionFailures;
         // number of times to retry an event that receives a not found error before presuming the event was cancelled out
         private readonly byte MaxNumberOfNotFounds;
         // time to wait between retrying queued failures
         private readonly int ErrorProcessingMillisecondInterval;
+        // holder for consecutive count of failures communicating with the upload/download server
+        private readonly GenericHolder<byte> UploadDownloadConnectionFailures = new GenericHolder<byte>(0);
+        // holder for consecutive count of failures communicating with the metadata server
+        private readonly GenericHolder<byte> MetadataConnectionFailures = new GenericHolder<byte>(0);
         #endregion
 
         /// <summary>
@@ -76,7 +86,8 @@ namespace CloudApiPublic.Sync
             int HttpTimeoutMilliseconds = 180000,// 180 seconds
             byte MaxNumberOfFailureRetries = 20,
             byte MaxNumberOfNotFounds = 10,
-            int ErrorProcessingMillisecondInterval = 10000)// wait ten seconds between processing
+            int ErrorProcessingMillisecondInterval = 10000,// wait ten seconds between processing
+            byte MaxNumberConnectionFailures = 5) // should be 40
         {
             try
             {
@@ -89,7 +100,8 @@ namespace CloudApiPublic.Sync
                     HttpTimeoutMilliseconds,
                     MaxNumberOfFailureRetries,
                     MaxNumberOfNotFounds,
-                    ErrorProcessingMillisecondInterval);
+                    ErrorProcessingMillisecondInterval,
+                    MaxNumberConnectionFailures);
             }
             catch (Exception ex)
             {
@@ -107,7 +119,8 @@ namespace CloudApiPublic.Sync
             int HttpTimeoutMilliseconds,
             byte MaxNumberOfFailureRetries,
             byte MaxNumberOfNotFounds,
-            int ErrorProcessingMillisecondInterval)
+            int ErrorProcessingMillisecondInterval,
+            byte MaxNumberConnectionFailures)
         {
             #region validate parameters
             if (syncData == null)
@@ -159,6 +172,7 @@ namespace CloudApiPublic.Sync
             this.MaxNumberOfFailureRetries = MaxNumberOfFailureRetries;
             this.MaxNumberOfNotFounds = MaxNumberOfNotFounds;
             this.ErrorProcessingMillisecondInterval = ErrorProcessingMillisecondInterval;
+            this.MaxNumberOfServerConnectionFailures = MaxNumberConnectionFailures;
             #endregion
         }
 
@@ -930,8 +944,6 @@ namespace CloudApiPublic.Sync
             private Nullable<long> _totalByteSize = null; // Null for sync running thread, but set for file upload/file download
         }
 
-        // locker to prevent multiple simultaneous processing of the same SyncEngine
-        private readonly object RunLocker = new object();
         /// <summary>
         /// Primary method for all syncing (both From and To),
         /// full contention between multiple simultaneous access on the same SyncEngine (each thread blocks until previous threads complete their syncs)
@@ -943,6 +955,12 @@ namespace CloudApiPublic.Sync
             // lock to prevent multiple simultaneous syncing on the current SyncEngine
             lock (RunLocker)
             {
+                // check for halted engine to return error
+                if (CheckForMaxCommunicationFailuresHalt())
+                {
+                    return new ObjectDisposedException("SyncEngine already halted from server connection failure");
+                }
+
                 Guid runThreadId = Guid.NewGuid();
 
                 // declare error which will be aggregated with exceptions and returned
@@ -1105,10 +1123,22 @@ namespace CloudApiPublic.Sync
                         // normally an error is allowed to occur to continue processing if returned as CLError but if catch is triggered then readd failures and mark bool to stop processing
                         try
                         {
+                            // declare a bool for whether a null change was in the processing queue in the FileSystemMonitor
+                            bool nullChangeFoundInFileSystemMonitor;
+
                             // retrieve events to process, with dependencies reassigned (including previous errors)
                             toReturn = syncData.grabChangesFromFileSystemMonitor(initialErrors,
                                 out outputChanges,
-                                out outputChangesInError);
+                                out outputChangesInError,
+                                out nullChangeFoundInFileSystemMonitor);
+
+                            // if there was a null change, then communication should occur regardless of other changes since we cannot communicate a null change on a SyncTo (will cause a SyncFrom if no other changes)
+                            if (nullChangeFoundInFileSystemMonitor
+                                && !respondingToPushNotification)
+                            {
+                                // marks for push notification which will always cause communication to occur even for no SyncTo changes (via SyncFrom)
+                                respondingToPushNotification = true;
+                            }
 
                             IEnumerable<PossiblyStreamableFileChange> nonNullOutputChanges = outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>();
                             int outputChangesCount = nonNullOutputChanges.Count();
@@ -1609,13 +1639,11 @@ namespace CloudApiPublic.Sync
                             out changesInError, // output changes that were marked in error during communication (i.e. conflicts)
                             out newSyncId); // output newest sync id from server
 
-                        // if an exception occurred during server communication, then aggregate it into the return error
-                        if (communicationException != null)
-                        {
-                            toReturn += communicationException;
-                        }
-                        // else if no exception occurred during server communication and the server was not contacted for a new sync id, then only update status
-                        else if (newSyncId == null)
+                        // if either an exception occurred in communication or there were no changes to sync (no new sync id returned),
+                        // then the normal post-communication processing will not occur which includes moving synchronously completed pre-processing changes to a completed state,
+                        // so do that here now
+                        if (communicationException != null
+                            || newSyncId == null)
                         {
                             if (successfulEventIds != null
                                 && successfulEventIds.Count > 0)
@@ -1636,7 +1664,16 @@ namespace CloudApiPublic.Sync
                                     toReturn += recordSyncError.GrabFirstException();
                                 }
                             }
+                        }
 
+                        // if an exception occurred during server communication, then aggregate it into the return error
+                        if (communicationException != null)
+                        {
+                            toReturn += communicationException;
+                        }
+                        // else if no exception occurred during server communication and the server was not contacted for a new sync id, then only update status
+                        else if (newSyncId == null)
+                        {
                             // update latest status
                             syncStatus = "Sync Run communication aborted e.g. Sync To with no events";
                         }
@@ -1687,7 +1724,7 @@ namespace CloudApiPublic.Sync
                             };
 
                             // Merge in server values into DB (storage key, revision, etc) and add new Sync From events
-                            syncData.mergeToSql(
+                            CLError communicatedChangesToSqlError = syncData.mergeToSql(
 
                                 // concatenate together all the groups of changes (before filtering by whether or not the sql change is needed)
                                 (completedChanges ?? Enumerable.Empty<PossiblyChangedFileChange>()) // changes completed during communication
@@ -1701,6 +1738,13 @@ namespace CloudApiPublic.Sync
 
                                 // reselect filtered changes into FileChangeMerge
                                 .Select(currentMerge => setToAddToSQL(new FileChangeMerge(currentMerge.FileChange))));
+
+                            // failing to merge communicated changes into SQL is a serious error and will cause changes to be lost if the sync id is updated in the database later;
+                            // because this may be at least partially unrecoverable, if there was an error, then show the message
+                            if (communicatedChangesToSqlError != null)
+                            {
+                                System.Windows.MessageBox.Show("syncData.mergeToSql returned an error after communicating changes: " + communicatedChangesToSqlError.errorDescription);
+                            }
 
                             // if there were changes in error during communication, then loop through them to add their streams and exceptions to the return error
                             if (changesInError != null)
@@ -2377,6 +2421,54 @@ namespace CloudApiPublic.Sync
             }
         }
 
+        // returns whether sync engine is halted from reaching the max allowed failures to communicate with server; also fires the status change notification the first time the halt condition is found
+        private bool CheckForMaxCommunicationFailuresHalt()
+        {
+            byte metadataFailureCount;
+            byte uploadDownloadFailureCount;
+            bool maxFailuresReached;
+            lock (MetadataConnectionFailures)
+            {
+                metadataFailureCount = MetadataConnectionFailures.Value;
+            }
+            lock (UploadDownloadConnectionFailures)
+            {
+                uploadDownloadFailureCount = UploadDownloadConnectionFailures.Value;
+            }
+            maxFailuresReached = metadataFailureCount > MaxNumberOfServerConnectionFailures
+                || uploadDownloadFailureCount > MaxNumberOfServerConnectionFailures;
+
+            bool needToNotifyOnInitialHalting = false;
+            bool toReturn;
+
+            lock (HaltedOnServerConnectionFailure)
+            {
+                if (maxFailuresReached)
+                {
+                    if (!HaltedOnServerConnectionFailure.Value)
+                    {
+                        HaltedOnServerConnectionFailure.Value = needToNotifyOnInitialHalting = true;
+                    }
+                }
+
+                toReturn = HaltedOnServerConnectionFailure.Value;
+            }
+
+            if (needToNotifyOnInitialHalting
+                && statusUpdated != null)
+            {
+                try
+                {
+                    statusUpdated(statusUpdatedUserState);
+                }
+                catch
+                {
+                }
+            }
+
+            return toReturn;
+        }
+
         /// <summary>
         /// Get the current status of this SyncEngine
         /// </summary>
@@ -2406,6 +2498,12 @@ namespace CloudApiPublic.Sync
                     throw new ObjectDisposedException("this", "Sync already shutdown");
                 }
 
+                bool halted;
+                lock (HaltedOnServerConnectionFailure)
+                {
+                    halted = HaltedOnServerConnectionFailure.Value;
+                }
+
                 lock (StatusHolder)
                 {
                     if (StatusHolder.Value == null)
@@ -2415,6 +2513,21 @@ namespace CloudApiPublic.Sync
                     else
                     {
                         status = StatusHolder.Value;
+                    }
+                }
+
+                // if the sync engine has been marked halted from reaching the max connection failures to a server, then create or rebuild the return status to add the halted status enum flag
+                if (halted)
+                {
+                    if (status == null)
+                    {
+                        status = new CLSyncCurrentStatus(CLSyncCurrentState.HaltedOnConnectionFailure, null);
+                    }
+                    else
+                    {
+                        status = new CLSyncCurrentStatus(
+                            status.CurrentState | CLSyncCurrentState.HaltedOnConnectionFailure,
+                            status.DownloadingFiles.Concat(status.UploadingFiles));
                     }
                 }
             }
@@ -2719,7 +2832,8 @@ namespace CloudApiPublic.Sync
                                         MaxNumberOfNotFounds = MaxNumberOfNotFounds,
                                         FailedChangesQueue = FailedChangesQueue,
                                         RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent,
-                                        RestClient = httpRestClient
+                                        RestClient = httpRestClient,
+                                        UploadDownloadServerConnectionFailureCount = UploadDownloadConnectionFailures
                                     }),
                                     asyncTaskThreadId);
                         }
@@ -2781,7 +2895,8 @@ namespace CloudApiPublic.Sync
                                 MaxNumberOfNotFounds = MaxNumberOfNotFounds,
                                 FailedChangesQueue = FailedChangesQueue,
                                 RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent,
-                                RestClient = httpRestClient
+                                RestClient = httpRestClient,
+                                UploadDownloadServerConnectionFailureCount = UploadDownloadConnectionFailures
                             }),
                         asyncTaskThreadId);
                 }
@@ -2849,6 +2964,11 @@ namespace CloudApiPublic.Sync
                     if (castState.ShutdownToken == null)
                     {
                         throw new NullReferenceException("UploadTaskState must contain ShutdownToken");
+                    }
+
+                    if (castState.UploadDownloadServerConnectionFailureCount == null)
+                    {
+                        throw new NullReferenceException("UploadTaskState must contain UploadDownloadServerConnectionFailureCount");
                     }
 
                     // check for sync shutdown
@@ -2949,6 +3069,29 @@ namespace CloudApiPublic.Sync
                         castState.ShutdownToken, // pass in the shutdown token for the optional parameter so it can be cancelled
                         castState.StatusUpdate,
                         castState.ThreadId);
+
+                    // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+
+                    if (uploadStatus == CLHttpRestStatus.ConnectionFailed)
+                    {
+                        lock (castState.UploadDownloadServerConnectionFailureCount)
+                        {
+                            if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)255))
+                            {
+                                castState.UploadDownloadServerConnectionFailureCount.Value = (byte)(castState.UploadDownloadServerConnectionFailureCount.Value + 1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        lock (castState.UploadDownloadServerConnectionFailureCount)
+                        {
+                            if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)0))
+                            {
+                                castState.UploadDownloadServerConnectionFailureCount.Value = 0;
+                            }
+                        }
+                    }
 
                     // if an error occurred while uploading the file, rethrow the error
                     if (uploadError != null)
@@ -3312,6 +3455,11 @@ namespace CloudApiPublic.Sync
                     throw new NullReferenceException("DownloadTaskState must contain StatusUpdate");
                 }
 
+                if (castState.UploadDownloadServerConnectionFailureCount == null)
+                {
+                    throw new NullReferenceException("DownloadTaskState must contain UploadDownloadServerConnectionFailureCount");
+                }
+
                 // check for sync shutdown
                 Monitor.Enter(castState.ShutdownToken);
                 try
@@ -3458,9 +3606,33 @@ namespace CloudApiPublic.Sync
                     castState.StatusUpdate,
                     castState.ThreadId);
 
+                // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+
+                if (downloadStatus == CLHttpRestStatus.ConnectionFailed)
+                {
+                    lock (castState.UploadDownloadServerConnectionFailureCount)
+                    {
+                        if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)255))
+                        {
+                            castState.UploadDownloadServerConnectionFailureCount.Value = (byte)(castState.UploadDownloadServerConnectionFailureCount.Value + 1);
+                        }
+                    }
+                }
+                else
+                {
+                    lock (castState.UploadDownloadServerConnectionFailureCount)
+                    {
+                        if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)0))
+                        {
+                            castState.UploadDownloadServerConnectionFailureCount.Value = 0;
+                        }
+                    }
+                }
+
                 // if there was an error while downloading, rethrow the error
                 if (downloadError != null)
                 {
+
                     throw new AggregateException("An error occurred downloading a file", downloadError.GrabExceptions());
                 }
 
@@ -3939,6 +4111,7 @@ namespace CloudApiPublic.Sync
             public Queue<FileChange> FailedChangesQueue { get; set; }
             public Action<FileChange> RemoveFileChangeEvents { get; set; }
             public CLHttpRest RestClient { get; set; }
+            public GenericHolder<byte> UploadDownloadServerConnectionFailureCount { get; set; }
         }
         /// <summary>
         /// Data object to be sent to the code that runs for the upload task
@@ -3959,6 +4132,7 @@ namespace CloudApiPublic.Sync
             public Queue<FileChange> FailedChangesQueue { get; set; }
             public Action<FileChange> RemoveFileChangeEvents { get; set; }
             public CLHttpRest RestClient { get; set; }
+            public GenericHolder<byte> UploadDownloadServerConnectionFailureCount { get; set; }
         }
         /// <summary>
         /// Async HTTP operation holder used to help make async calls synchronous
@@ -4622,6 +4796,29 @@ namespace CloudApiPublic.Sync
                             HttpTimeoutMilliseconds, // milliseconds before communication would timeout for each operation
                             out syncToStatus, // output the status of the communication
                             out currentBatchResponse); // output the response object from a successful communication
+                        
+                        // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+
+                        if (syncToStatus == CLHttpRestStatus.ConnectionFailed)
+                        {
+                            lock (MetadataConnectionFailures)
+                            {
+                                if (MetadataConnectionFailures.Value != ((byte)255))
+                                {
+                                    MetadataConnectionFailures.Value = (byte)(MetadataConnectionFailures.Value + 1);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            lock (MetadataConnectionFailures)
+                            {
+                                if (MetadataConnectionFailures.Value != ((byte)0))
+                                {
+                                    MetadataConnectionFailures.Value = 0;
+                                }
+                            }
+                        }
 
                         // if an error occurred performing sync to, rethrow the error
                         if (syncToError != null)
@@ -6055,10 +6252,44 @@ namespace CloudApiPublic.Sync
                             out syncFromStatus, // output the status of the communication
                             out deserializedResponse); // output the response object resulting from the operation
 
+                        // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+
+                        if (syncFromStatus == CLHttpRestStatus.ConnectionFailed)
+                        {
+                            lock (MetadataConnectionFailures)
+                            {
+                                if (MetadataConnectionFailures.Value != ((byte)255))
+                                {
+                                    MetadataConnectionFailures.Value = (byte)(MetadataConnectionFailures.Value + 1);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            lock (MetadataConnectionFailures)
+                            {
+                                if (MetadataConnectionFailures.Value != ((byte)0))
+                                {
+                                    MetadataConnectionFailures.Value = 0;
+                                }
+                            }
+                        }
+
                         // if sync from produced an error, rethrow it
                         if (syncFromError != null)
                         {
-                            throw new AggregateException("An error occurred during SyncFrom", syncFromError.GrabExceptions());
+                            // adding a null FileChange to queue will trigger a SyncFrom without an extra change (gets filtered out on "ProcessingChanges.DequeueAll()" in FileMonitor)
+                            GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>(); // no need to check the failed to add list since we won't add a null FileChange to the list of failed changes
+                            CLError err = syncData.addChangesToProcessingQueue(new FileChange[] { null }, true, errList);
+
+                            throw new AggregateException("An error occurred during SyncFrom" +
+                                (err == null
+                                    ? string.Empty
+                                    : " and an error occurred queueing for a new SyncFrom"),
+                                (err == null
+                                    ? syncFromError.GrabExceptions()
+                                    : syncFromError.GrabExceptions().Concat(
+                                        err.GrabExceptions())));
                         }
 
                         // record the latest sync id from the deserialized response

@@ -38,6 +38,8 @@ namespace CloudApiPublic
         private object statusUpdatedUserState = null;
         private readonly object _locker = new object();
 
+        //// Not sure if we want to expose access to the contained SyncBox since it is set on Start and not on construction (it changes during usage)s
+        //
         ///// <summary>
         ///// Retrieves a currently attached SyncBox, or null if one isn't attached
         ///// </summary>
@@ -49,7 +51,6 @@ namespace CloudApiPublic
         //        {
         //            return _syncBox;
         //        }
-		
         //    }
         //}
         private CLSyncBox _syncBox = null;
@@ -703,7 +704,7 @@ namespace CloudApiPublic
         /// <summary>
         /// Call when application is shutting down.
         /// </summary>
-        public static void ShutdownSchedulers()
+        public static void Shutdown()
         {
             // Shuts down the HttpScheduler; after shutdown it cannot be used again
             HttpScheduler.DisposeBothSchedulers();

@@ -102,14 +102,14 @@ namespace CloudApiPublic.REST
         /// <summary>
         /// Contains authentication information required for all communication and services
         /// </summary>
-        public CLCredentials Credentials
+        public CLCredential Credentials
         {
             get
             {
                 return _credentials;
             }
         }
-        private readonly CLCredentials _credentials;
+        private readonly CLCredential _credentials;
 
         /// <summary>
         /// The unique ID of this SyncBox assigned by Cloud
@@ -124,7 +124,7 @@ namespace CloudApiPublic.REST
         private readonly long _syncBoxId;
 
         // private constructor requiring settings to copy and store for the life of this http client
-        private CLHttpRest(CLCredentials credentials, long syncBoxId, ICLSyncSettings settings)
+        private CLHttpRest(CLCredential credentials, long syncBoxId, ICLSyncSettings settings)
         {
             if (credentials == null)
             {
@@ -151,7 +151,7 @@ namespace CloudApiPublic.REST
         /// <param name="client">(output) Created CLHttpRest client</param>
         /// <param name="settings">(optional) Additional settings to override some defaulted parameters</param>
         /// <returns>Returns any error creating the CLHttpRest client, if any</returns>
-        public static CLError CreateAndInitialize(CLCredentials credentials, long syncBoxId, out CLHttpRest client, ICLSyncSettings settings = null)
+        public static CLError CreateAndInitialize(CLCredential credentials, long syncBoxId, out CLHttpRest client, ICLSyncSettings settings = null)
         {
             try
             {
@@ -3727,6 +3727,201 @@ namespace CloudApiPublic.REST
             return null;
         }
         #endregion
+
+        #region PurgePending
+        /// <summary>
+        /// Asynchronously purges any pending changes (pending file uploads) and outputs the files which were purged
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginPurgePending(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds)
+        {
+            // create the asynchronous result to return
+            GenericAsyncResult<PurgePendingResult> toReturn = new GenericAsyncResult<PurgePendingResult>(
+                aCallback,
+                aState);
+
+            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+            Tuple<GenericAsyncResult<PurgePendingResult>, AsyncCallback, int> asyncParams =
+                new Tuple<GenericAsyncResult<PurgePendingResult>, AsyncCallback, int>(
+                    toReturn,
+                    aCallback,
+                    timeoutMilliseconds);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ParameterizedThreadStart(state =>
+            {
+                // try cast the state as the object with all the input parameters
+                Tuple<GenericAsyncResult<PurgePendingResult>, AsyncCallback, int> castState = state as Tuple<GenericAsyncResult<PurgePendingResult>, AsyncCallback, int>;
+                // if the try cast failed, then show a message box for this unrecoverable error
+                if (castState == null)
+                {
+                    MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+                }
+                // else if the try cast did not fail, then start processing with the input parameters
+                else
+                {
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLHttpRestStatus status;
+                        // declare the specific type of result for this operation
+                        JsonContracts.PendingResponse result;
+                        // purge pending files with the passed parameters, storing any error that occurs
+                        CLError processError = PurgePending(
+                            castState.Item3,
+                            out status,
+                            out result);
+
+                        // if there was an asynchronous result in the parameters, then complete it with a new result object
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.Complete(
+                                new PurgePendingResult(
+                                    processError, // any error that may have occurred during processing
+                                    status, // the output status of communication
+                                    result), // the specific type of result for this operation
+                                    sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // if there was an asynchronous result in the parameters, then pass through the exception to it
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.HandleException(
+                                ex, // the exception which was not handled correctly by the CLError wrapping
+                                sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                }
+            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+
+            // return the asynchronous result
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Finishes purging pending changes if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting purging pending</param>
+        /// <param name="result">(output) The result from purging pending</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndPurgePending(IAsyncResult aResult, out PurgePendingResult result)
+        {
+            // declare the specific type of asynchronous result for purging pending
+            GenericAsyncResult<PurgePendingResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the type for purging pending and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type for purging pending
+                castAResult = aResult as GenericAsyncResult<PurgePendingResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<PurgePendingResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Holds result properties
+        /// </summary>
+        public sealed class PurgePendingResult : BaseCLHttpRestResult<JsonContracts.PendingResponse>
+        {
+            // construct with all readonly properties
+            internal PurgePendingResult(CLError Error, CLHttpRestStatus Status, JsonContracts.PendingResponse Result)
+                : base(Error, Status, Result) { }
+        }
+
+        /// <summary>
+        /// Purges any pending changes (pending file uploads) and outputs the files which were purged
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError PurgePending(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the metadata query, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
+                {
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                response = ProcessHttp<JsonContracts.PendingResponse>(new JsonContracts.PurgePending() // json contract object for purge pending method
+                {
+                    DeviceId = _copiedSettings.DeviceId,
+                    SyncBoxId = _syncBoxId
+                },
+                    CLDefinitions.CLMetaDataServerURL, CLDefinitions.MethodPathPurgePending, // purge pending address
+                    requestMethod.post, // purge pending is a post operation
+                    timeoutMilliseconds, // set the timeout for the operation
+                    null, // not an upload or download
+                    okAccepted, // purge pending should give OK or Accepted
+                    ref status); // reference to update output status
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.PendingResponse>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion
         #endregion
 
         #region internal API calls
@@ -3819,51 +4014,6 @@ namespace CloudApiPublic.REST
                 return ex;
             }
 
-            return null;
-        }
-
-        /// <summary>
-        /// Purges any pending changes for the provided user/device combination in the request object (pending file uploads) and outputs the files which were purged
-        /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError PurgePending(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
-        {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
-            // try/catch to process the metadata query, on catch return the error
-            try
-            {
-                // check input parameters
-
-                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
-                {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
-                }
-                if (!(timeoutMilliseconds > 0))
-                {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
-                }
-
-                response = ProcessHttp<JsonContracts.PendingResponse>(new JsonContracts.PurgePending() // json contract object for purge pending method
-                    {
-                        DeviceId = _copiedSettings.DeviceId,
-                        SyncBoxId = _syncBoxId
-                    },
-                    CLDefinitions.CLMetaDataServerURL, CLDefinitions.MethodPathPurgePending, // purge pending address
-                    requestMethod.post, // purge pending is a post operation
-                    timeoutMilliseconds, // set the timeout for the operation
-                    null, // not an upload or download
-                    okAccepted, // purge pending should give OK or Accepted
-                    ref status); // reference to update output status
-            }
-            catch (Exception ex)
-            {
-                response = Helpers.DefaultForType<JsonContracts.PendingResponse>();
-                return ex;
-            }
             return null;
         }
         #endregion
@@ -3960,10 +4110,10 @@ namespace CloudApiPublic.REST
             httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = _copiedSettings.ClientVersion; // set client version
             httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
                                 CLDefinitions.HeaderAppendKey +
-                                _credentials.ApplicationKey + ", " +
+                                _credentials.Key + ", " +
                                 CLDefinitions.HeaderAppendSignature +
                                         Helpers.GenerateAuthorizationHeaderToken(
-                                            _credentials.ApplicationSecret,
+                                            _credentials.Secret,
                                             httpMethod: httpRequest.Method,
                                             pathAndQueryStringAndFragment: serverMethodPath);   // set the authentication token
             httpRequest.SendChunked = false; // do not send chunked
@@ -4115,8 +4265,20 @@ namespace CloudApiPublic.REST
                             }
                         }
 
-                        // grab the upload request stream asynchronously since it can take longer than the provided timeout milliseconds
-                        httpRequestStream = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, upload: true) as Stream;
+                        try
+                        {
+                            // grab the upload request stream asynchronously since it can take longer than the provided timeout milliseconds
+                            httpRequestStream = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, upload: true) as Stream;
+                        }
+                        catch (WebException ex)
+                        {
+                            if (ex.Status == WebExceptionStatus.ConnectFailure)
+                            {
+                                status = CLHttpRestStatus.ConnectionFailed;
+                            }
+
+                            throw ex;
+                        }
 
                         // if there was no request stream retrieved, then the request was cancelled so return cancelled
                         if (httpRequestStream == null)
@@ -4222,8 +4384,20 @@ namespace CloudApiPublic.REST
                     // else if the communication is a file download, write the request stream content from the serialized download request object
                     else
                     {
-                        // grab the request stream for writing
-                        httpRequestStream = httpRequest.GetRequestStream();
+                        try
+                        {
+                            // grab the request stream for writing
+                            httpRequestStream = httpRequest.GetRequestStream();
+                        }
+                        catch (WebException ex)
+                        {
+                            if (ex.Status == WebExceptionStatus.ConnectFailure)
+                            {
+                                status = CLHttpRestStatus.ConnectionFailed;
+                            }
+
+                            throw ex;
+                        }
 
                         // write the request for the download
                         httpRequestStream.Write(requestContentBytes, 0, requestContentBytes.Length);
@@ -4247,9 +4421,51 @@ namespace CloudApiPublic.REST
             // else if the communication is neither an upload nor download and there is a serialized request object to write, then get the request stream and write to it
             else if (requestContentBytes != null)
             {
-                using (Stream httpRequestStream = httpRequest.GetRequestStream())
+                // create a function to get the request Stream which can be used inline in a using statement which disposes the returned stream,
+                // the additional functionality is to check for a specific error getting the request for connection failure
+                Func<HttpWebRequest, GenericHolder<bool>, Stream> wrapGetRequest = (innerRequest, connectionFailedHolder) =>
+                    {
+                        if (innerRequest == null)
+                        {
+                            throw new NullReferenceException("innerRequest cannot be null");
+                        }
+                        if (connectionFailedHolder == null)
+                        {
+                            throw new NullReferenceException("connectionFailedHolder cannot be null");
+                        }
+
+                        try
+                        {
+                            return innerRequest.GetRequestStream();
+                        }
+                        catch (WebException ex)
+                        {
+                            if (ex.Status == WebExceptionStatus.ConnectFailure)
+                            {
+                                connectionFailedHolder.Value = true;
+                            }
+
+                            throw ex;
+                        }
+                    };
+
+                // define a holder for whether the connection attempt failed
+                GenericHolder<bool> connectionFailed = new GenericHolder<bool>(false);
+
+                // try/finally to get the request stream and write the request content, finally check if it failed on connection attempt to mark the appropriate output status
+                try
                 {
-                    httpRequestStream.Write(requestContentBytes, 0, requestContentBytes.Length);
+                    using (Stream httpRequestStream = wrapGetRequest(httpRequest, connectionFailed))
+                    {
+                        httpRequestStream.Write(requestContentBytes, 0, requestContentBytes.Length);
+                    }
+                }
+                finally
+                {
+                    if (connectionFailed.Value)
+                    {
+                        status = CLHttpRestStatus.ConnectionFailed;
+                    }
                 }
             }
             #endregion
@@ -4322,9 +4538,21 @@ namespace CloudApiPublic.REST
                         status = CLHttpRestStatus.NotAuthorized;
                     }
                     // else if response status was neither a not found nor a no content and is within the range of a server error (5XX), then set the output status accordingly
-                    else if (((HttpStatusCode)(((int)httpResponse.StatusCode) - (((int)httpResponse.StatusCode) % 100))) == HttpStatusCode.InternalServerError)
+                    else
                     {
-                        status = CLHttpRestStatus.ServerError;
+                        // define the cast int for the status code from the enumeration
+                        int statusCodeInt = (int)httpResponse.StatusCode;
+
+                        // if storage quota exceeded then use that status
+                        if (statusCodeInt == 507 /* Storage quota exceeded code, not in the HttpStatusCode enumeration */)
+                        {
+                            status = CLHttpRestStatus.QuotaExceeded;
+                        }
+                        // else if storage quota not exceeded, perform the (5XX) code check for other server error
+                        else if (((HttpStatusCode)(statusCodeInt - (statusCodeInt % 100))) == HttpStatusCode.InternalServerError)
+                        {
+                            status = CLHttpRestStatus.ServerError;
+                        }
                     }
 
                     // try/catch to set the response body from the content of the response, on catch silence the error
@@ -4347,12 +4575,13 @@ namespace CloudApiPublic.REST
 
                     // throw the exception for an invalid response
                     throw new Exception(String.Format("Invalid HTTP response status code at URL {0}, MethodPath {1}",
-                                    (serverUrl ?? "{missing serverUrl"),
-                                    (serverMethodPath ?? "{missing serverMethodPath")) +
-                                    ": " + ((int)httpResponse.StatusCode).ToString() +
-                                    (responseBody == null ? string.Empty
-                                        : Environment.NewLine + "Response:" + Environment.NewLine +
-                                            responseBody)); // either the default "incomplete" body or the body retrieved from the response content
+                        (serverUrl ?? "{missing serverUrl"),
+                        (serverMethodPath ?? "{missing serverMethodPath")) +
+                            ": " + ((int)httpResponse.StatusCode).ToString() +
+                            (responseBody == null
+                                ? string.Empty
+                                : Environment.NewLine + "Response:" + Environment.NewLine +
+                                    responseBody)); // either the default "incomplete" body or the body retrieved from the response content
                 }
                 #endregion
 
@@ -5398,8 +5627,16 @@ namespace CloudApiPublic.REST
         /// </summary>
         NoContent,
         /// <summary>
-        /// Method invoked an unauthorized (401) resposne from the server
+        /// Method invoked an unauthorized (401) response from the server
         /// </summary>
-        NotAuthorized
+        NotAuthorized,
+        /// <summary>
+        /// Method invoked a storage quota exceeded (507) response from the server
+        /// </summary>
+        QuotaExceeded,
+        /// <summary>
+        /// Unable to establish connection (possible local internet connection error or server is otherwise unreachable)
+        /// </summary>
+        ConnectionFailed
     }
 }

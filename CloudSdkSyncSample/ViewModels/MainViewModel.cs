@@ -907,9 +907,9 @@ namespace CloudSdkSyncSample.ViewModels
                         else
                         {
                             // create credentials
-                            CLCredentials syncCredentials;
+                            CLCredential syncCredentials;
                             CLCredentialsCreationStatus syncCredentialsStatus;
-                            CLError errorCreateSyncCredentials = CLCredentials.CreateAndInitialize(
+                            CLError errorCreateSyncCredentials = CLCredential.CreateAndInitialize(
                                 SettingsAdvancedImpl.Instance.ApplicationKey,
                                 SettingsAdvancedImpl.Instance.ApplicationSecret,
                                 out syncCredentials,
@@ -935,7 +935,7 @@ namespace CloudSdkSyncSample.ViewModels
                             {
                                 // create a SyncBox from an existing SyncBoxId
                                 CLSyncBoxCreationStatus syncBoxStatus;
-                                CLError errorCreateSyncBox = CLSyncBox.CreateAndInitializeExistingSyncBox(
+                                CLError errorCreateSyncBox = CLSyncBox.CreateAndInitialize(
                                     syncCredentials,
                                     (long)SettingsAdvancedImpl.Instance.SyncBoxId,
                                     out syncBox,
@@ -1160,7 +1160,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 // Stop syncing if it has been started.
                 StopSyncing();
-                CLSyncEngine.ShutdownSchedulers(); // kills constant scheduling threads which run forever and prevent application shutdown
+                CLSyncEngine.Shutdown(); // kills constant scheduling threads which run forever and prevent application shutdown
 
                 // Close the window
                 _windowClosed = true;

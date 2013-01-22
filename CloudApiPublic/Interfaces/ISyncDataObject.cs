@@ -46,10 +46,12 @@ namespace CloudApiPublic.Interfaces
         /// <param name="initialFailures">Passed in failures that were previously queued for reprocessing, to be used to merge in possible dependencies from new events (may have dependencies)</param>
         /// <param name="outputChanges">(output) Highest level FileChanges and necessary Streams to process (without dependencies)</param>
         /// <param name="outputChangesInError">(output) Highest level FileChanges to be queued for error processing</param>
+        /// <param name="nullChangeFound">(output) Whether a null FileChange was found in the processing queue (which does not get output)</param>
         /// <returns>Should return any error that occured while grabbing events, should not throw the exception</returns>
         CLError grabChangesFromFileSystemMonitor(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
-            out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError);
+            out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
+            out bool nullChangeFound);
 
         /// <summary>
         /// Callback from SyncEngine for updating database with changes to FileChanges

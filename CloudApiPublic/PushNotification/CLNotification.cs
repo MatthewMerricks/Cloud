@@ -221,10 +221,10 @@ namespace CloudApiPublic.PushNotification
                                         CLDefinitions.HeaderKeyAuthorization, 
                                         CLDefinitions.HeaderAppendCWS0 +
                                             CLDefinitions.HeaderAppendKey +
-                                            _syncBox.Credentials.ApplicationKey + ", " +
+                                            _syncBox.Credentials.Key + ", " +
                                             CLDefinitions.HeaderAppendSignature +
                                             Helpers.GenerateAuthorizationHeaderToken(
-                                                ApplicationSecret: _syncBox.Credentials.ApplicationSecret,
+                                                ApplicationSecret: _syncBox.Credentials.Secret,
                                                 httpMethod: CLDefinitions.HeaderAppendMethodGet, 
                                                 pathAndQueryStringAndFragment: pathAndQueryStringAndFragment))
                                 },
