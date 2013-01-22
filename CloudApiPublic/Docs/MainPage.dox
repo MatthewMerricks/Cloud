@@ -12,8 +12,8 @@
 ///
 /// In desktop environments, a SyncBox is tied to a particular local disk directory.  e.g., on Windows, "C:\Users\<UserName>\<YourSyncBoxName>".
 ///
-/// To begin syncing, you will need to:
-/// - Specify your credentials.
+/// To begin syncing, you will need to:     
+/// - Specify your credential.
 /// - Specify the path to be synced.
 /// - Create a SyncBox object with the above information.
 /// - Create an instance of a SyncBox engine and start it with the SyncBox object.
@@ -28,15 +28,15 @@
 ///         // Main program
 ///         static void Main(string[] args)
 ///         {
-///             CLCredentials credentials; // declare credentials object
-///             CLCredentialsCreationStatus credentialsStatus; // declare status enumeration
-///             CLCredentials.CreateAndInitialize( // creation returns a CLError which can be checked
-///                     ApplicationKey: "My application key from the Cloud developer Dashboard",
-///                     ApplicationSecret: "My application secret from the Cloud developer Dashboard",
-///                     credentials: out credentials, // output the created credentials object here
-///                     status: out credentialsStatus); // output the status from creating credentials
+///             CLCredential credential; // declare credential object
+///             CLCredentialCreationStatus credentialStatus; // declare status enumeration
+///             CLCredential.CreateAndInitialize( // creation returns a CLError which can be checked
+///                     Key: "My application key from the Cloud developer Dashboard",
+///                     Secret: "My application secret from the Cloud developer Dashboard",
+///                     credential: out credential, // output the created credential object here
+///                     status: out credentialStatus); // output the status from creating credential
 ///
-///             // optionally check credentialsStatus/returned CLError here before continuing
+///             // optionally check credentialStatus/returned CLError here before continuing
 ///            
 ///             // create the minimal settings using just the path to the folder
 ///             CLSyncSettings syncSettings = new CLSyncSettings(
@@ -44,8 +44,8 @@
 ///
 ///             CLSyncBox syncBox; // declare sync box
 ///             CLSyncBoxCreationStatus syncBoxStatus; // declare status enumeration
-///             CLSyncBox.CreateAndInitializeExistingSyncBox( // run the creation method for an existing sync box id (also returns CLError)
-///                 Credentials: credentials, // created above
+///             CLSyncBox.CreateAndInitialize( // run the creation method for an existing sync box id (also returns CLError)
+///                 Credential: credential, // created above
 ///                 SyncBoxId: <id of SyncBox>, //The ID created for this SyncBox on the Cloud developer Dashboard
 ///                 syncBox: out syncBox, // output the created sync box here
 ///                 status: out syncBoxStatus, // output the status from creating sync box
@@ -72,7 +72,7 @@
 ///             // ... Need to shutdown application
 ///
 ///             // Shutdown schedulers to immediately stop anything active like an upload or download
-///             CLSyncEngine.ShutdownSchedulers();
+///             CLSyncEngine.Shutdown();
 ///         }
 /// \endcode
 ///
@@ -219,13 +219,76 @@
 /// \subsection sampleapp-startingsync-subsec Starting Sync
 /// Here are the steps used to start sync.  Refer to MainViewModel:StartSyncing().
 /// - Verify settings:  Sample code can be found in MainViewModel:SaveSettings().  If the settings are incorrect, the sync functions will return errors.
-/// - Create an instance of CLCredentials with your credential information.
-/// - Create an instance of CLSyncBox with the path on disk to be synced, and with the instance of CLCredentials.
+/// - Create an instance of CLCredential with your credential information.
+/// - Create an instance of CLSyncBox with the path on disk to be synced, and with the instance of CLCredential.
 /// - Create an instance of CLSyncEngine.
 /// - Verify that the SyncBox folder or authorization information has not changed.  If it has, you should reset the sync database by calling \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.SyncReset SyncReset() \endlink or \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.WipeIndex WipeIndex() \endlink.
 /// - Call \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Start Start() \endlink to start syncing.  This function takes the sync settings and some additional optional parameters.
 /// - Inspect the out parameter (\link CloudApiPublic.CLSyncStartStatus startStatus \endlink) which is an output of \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Start Start() \endlink.  Handle an error if the output is not \link CloudApiPublic.CLSyncStartStatus CLSyncStartStatus \endlink.Success.
 /// .
+/// \subsection sampleapp-settings-subsec The Settings Interfaces
+///The 5th parameter to CreateAndInitialize() is ICLSyncSettings.  That is an interface that has only a single property; the path of the SyncBox on the disk.  There are actually multiple Settings definitions that are related:
+///             CloudApiPublic.Interfaces: public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLAddTraceSettings
+///
+///You can pass any interface that is derived from ICLSyncSettings as the 5th parameter.  The sample app passes an implementation of ICLSyncSettingsAdvanced because it is demonstrating how to use ALL of the settings (ICLSettingsAdvanced (which includes ICLAddTraceSettings and ICLSyncSettings).
+///
+///In fact, you can pass a very simple parameter here if all you want to pass is the SyncBox path.  In that case, just pass “new CLSyncSettings(‘full path of the SyncBox’)”.
+/// \subsection sampleapp-sqlceinstallation-subsec Installation Issues Involving SQL CE
+/// When you write your own app using the SDK, you will need to install the SQL CE support DLLs in a particular way.
+///
+///The provided sample app VS2012 project in the SampleApp directory has been tested with all of the following: XpSp3X86, XpSp3X64, VistaX86, VistaX64, Win7X86, Win7X64, Win8X86 and Win8X64, including the SQL CE support.  See the SampleApp directory for an example of the requirement discussed below.
+///
+///Your app installer must install the SQL CE DLLs in exactly the following structure (Microsoft's requirement).
+/// \code{.cs}
+///             Your installation directory
+///                             YourApp.exe
+///                             Your necessary DLLs.
+///                             amd64
+///                                             Microsoft.VC90.CRT
+///                                                             Microsoft.VC90.CRT.manifest
+///                                                             msvcr90.dll
+///                                                             README_ENU.txt
+///                                             sqlceca40.dll
+///                                             sqlcecompact40.dll
+///                                             sqlceer40EN.dll
+///                                             sqlceme40.dll
+///                                             sqlceqp40.dll
+///                                             sqlcese40.dll
+///                             x86
+///                                             Microsoft.VC90.CRT
+///                                                             Microsoft.VC90.CRT.manifest
+///                                                             msvcr90.dll
+///                                                             README_ENU.txt
+///                                             sqlceca40.dll
+///                                             sqlcecompact40.dll
+///                                             sqlceer40EN.dll
+///                                             sqlceme40.dll
+///                                             sqlceqp40.dll
+///                                             sqlcese40.dll
+/// \endcode
+///
+///You will find the DLLs in the structure above in the SampleApp\\bin\\debug and SampleApp\\bin\\release directories.
+///
+///In addition to the DLLs required (above), your app also needs an app.config file like the following.  See the SampleApp\\app.config file.
+/// \code{.cs}
+///     </configuration>
+///             <runtime>
+///                     <assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1">
+///                            <dependentAssembly>
+///                                    <assemblyIdentity name="System.Data.SqlServerCe" publicKeyToken="89845dcd8080cc91" culture="neutral"/>
+///                                    <bindingRedirect oldVersion="4.0.0.0-4.0.0.1" newVersion="4.0.0.1"/>
+///                            </dependentAssembly>
+///                    </assemblyBinding>
+///             </runtime>
+///             <system.data>
+///                    <DbProviderFactories>
+///                            <remove invariant="System.Data.SqlServerCe.4.0"/>
+///                            <add name="Microsoft SQL Server Compact Data Provider 4.0" invariant="System.Data.SqlServerCe.4.0" description=".NET Framework Data Provider for Microsoft SQL Server Compact" type="System.Data.SqlServerCe.SqlCeProviderFactory,
+///                                   System.Data.SqlServerCe, Version=4.0.0.1, Culture=neutral, PublicKeyToken=89845dcd8080cc91"/>
+///                    </DbProviderFactories>
+///             </system.data>
+///     </configuration>
+/// \endcode
 /// \subsection sampleapp-stoppingsync-subsec Stopping Sync
 /// Here are the steps to stop sync.  Refer to MainViewModel:StopSyncing() in the sample app code.
 /// - Close and dispose your sync status implementation.
@@ -331,7 +394,7 @@
 ///
 /// StatusUpdatedUserState is your own object representing user state information to be passed to the StatusUpdated callback function.
 ///
-/// When the StatusUpdated callback is called by the engine, you can call \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.GetCLSyncCurrentStatus GetCLSyncCurrentStatus() \endlink to get the current sync summary status.
+/// When the StatusUpdated callback is called by the engine, you can call \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.GetEngineCurrentStatus GetEngineCurrentStatus() \endlink to get the current sync summary status.
 /// You need to aggregate this information for display.
 /// See \link CloudSdkSyncSample.SyncStatusViewModel.OnSyncStatusUpdated SyncStatusViewModel.OnSyncStatusUpdated() \endlink.
 /// \subsection sampleapp-syncchangeevents-subsec Sync Change Events
@@ -358,7 +421,7 @@
 /// \brief Contains all public API functions of Cloud for Windows XP through Windows 8. See detailed description.
 ///
 /// Primary components:\n
-/// \link CloudApiPublic.CLCredentials CLCredentials \endlink stores authentication information for all communication and services.\n
+/// \link CloudApiPublic.CLCredential CLCredential \endlink stores authentication information for all communication and services.\n
 /// \link CloudApiPublic.CLSyncBox CLSyncBox \endlink represents a SyncBox in Cloud where everything is stored.\n
 /// \link CloudApiPublic.CLSyncEngine CLSyncEngine \endlink performs active sync of files and folders within a specified path to a syncbox in Cloud.\n
 /// \internal \link CloudApiPublic.PushNotification.CLNotification PushNotification.CLNotification \endlink allows manual subscription to push notifications and is used internally by \link CloudApiPublic.CLSync CLSync \endlink.\n \endinternal

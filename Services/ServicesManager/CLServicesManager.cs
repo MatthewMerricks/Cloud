@@ -162,7 +162,7 @@ namespace win_client.Services.ServicesManager
 
                         CLNetworkMonitorService.Instance.EndNetworkMonitoring();
                         CLFSMonitoringService.Instance.EndFileSystemMonitoring();
-                        CLSyncEngine.ShutdownSchedulers();
+                        CLSyncEngine.Shutdown();
                         
                         // Stop the growl service
                         Growl.Growl.ShutdownGrowlService();

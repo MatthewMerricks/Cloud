@@ -906,28 +906,28 @@ namespace CloudSdkSyncSample.ViewModels
                         }
                         else
                         {
-                            // create credentials
-                            CLCredentials syncCredentials;
-                            CLCredentialsCreationStatus syncCredentialsStatus;
-                            CLError errorCreateSyncCredentials = CLCredentials.CreateAndInitialize(
+                            // create credential
+                            CLCredential syncCredential;
+                            CLCredentialCreationStatus syncCredentialStatus;
+                            CLError errorCreateSyncCredential = CLCredential.CreateAndInitialize(
                                 SettingsAdvancedImpl.Instance.ApplicationKey,
                                 SettingsAdvancedImpl.Instance.ApplicationSecret,
-                                out syncCredentials,
-                                out syncCredentialsStatus);
+                                out syncCredential,
+                                out syncCredentialStatus);
 
-                            if (errorCreateSyncCredentials != null)
+                            if (errorCreateSyncCredential != null)
                             {
-                                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLCredentials.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncCredentials.errorDescription);
+                                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLCredential.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncCredential.errorDescription);
                             }
-                            if (syncCredentialsStatus != CLCredentialsCreationStatus.Success)
+                            if (syncCredentialStatus != CLCredentialCreationStatus.Success)
                             {
                                 if (NotifyException != null)
                                 {
                                     NotifyException(this, new NotificationEventArgs<CLError>()
                                     {
-                                        Data = errorCreateSyncCredentials,
-                                        Message = "syncCredentialsStatus: " + syncCredentialsStatus.ToString() + ":" + Environment.NewLine +
-                                            errorCreateSyncCredentials.errorDescription
+                                        Data = errorCreateSyncCredential,
+                                        Message = "syncCredentialStatus: " + syncCredentialStatus.ToString() + ":" + Environment.NewLine +
+                                            errorCreateSyncCredential.errorDescription
                                     });
                                 }
                             }
@@ -935,16 +935,17 @@ namespace CloudSdkSyncSample.ViewModels
                             {
                                 // create a SyncBox from an existing SyncBoxId
                                 CLSyncBoxCreationStatus syncBoxStatus;
-                                CLError errorCreateSyncBox = CLSyncBox.CreateAndInitializeExistingSyncBox(
-                                    syncCredentials,
+                                CLError errorCreateSyncBox = CLSyncBox.CreateAndInitialize(
+                                    syncCredential,
                                     (long)SettingsAdvancedImpl.Instance.SyncBoxId,
                                     out syncBox,
                                     out syncBoxStatus,
+                                    //new CLSyncSettings(""));
                                     SettingsAdvancedImpl.Instance);
 
                                 if (errorCreateSyncBox != null)
                                 {
-                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncBox.CreateAndInitializeExistingSyncBox: Msg: <{0}>.", errorCreateSyncBox.errorDescription);
+                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncBox.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncBox.errorDescription);
                                 }
                                 if (syncBoxStatus != CLSyncBoxCreationStatus.Success)
                                 {
@@ -1160,7 +1161,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 // Stop syncing if it has been started.
                 StopSyncing();
-                CLSyncEngine.ShutdownSchedulers(); // kills constant scheduling threads which run forever and prevent application shutdown
+                CLSyncEngine.Shutdown(); // kills constant scheduling threads which run forever and prevent application shutdown
 
                 // Close the window
                 _windowClosed = true;

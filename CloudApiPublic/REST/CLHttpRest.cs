@@ -102,14 +102,14 @@ namespace CloudApiPublic.REST
         /// <summary>
         /// Contains authentication information required for all communication and services
         /// </summary>
-        public CLCredentials Credentials
+        public CLCredential Credential
         {
             get
             {
-                return _credentials;
+                return _credential;
             }
         }
-        private readonly CLCredentials _credentials;
+        private readonly CLCredential _credential;
 
         /// <summary>
         /// The unique ID of this SyncBox assigned by Cloud
@@ -124,14 +124,14 @@ namespace CloudApiPublic.REST
         private readonly long _syncBoxId;
 
         // private constructor requiring settings to copy and store for the life of this http client
-        private CLHttpRest(CLCredentials credentials, long syncBoxId, ICLSyncSettings settings)
+        private CLHttpRest(CLCredential credential, long syncBoxId, ICLSyncSettings settings)
         {
-            if (credentials == null)
+            if (credential == null)
             {
-                throw new NullReferenceException("credentials cannot be null");
+                throw new NullReferenceException("credential cannot be null");
             }
 
-            this._credentials = credentials;
+            this._credential = credential;
             this._syncBoxId = syncBoxId;
             if (settings == null)
             {
@@ -146,16 +146,16 @@ namespace CloudApiPublic.REST
         /// <summary>
         /// Creates a CLHttpRest client object for HTTP REST calls to the server
         /// </summary>
-        /// <param name="credentials">Contains authentication information required for communication</param>
+        /// <param name="credential">Contains authentication information required for communication</param>
         /// <param name="syncBoxId">ID of sync box which can be manually synced</param>
         /// <param name="client">(output) Created CLHttpRest client</param>
         /// <param name="settings">(optional) Additional settings to override some defaulted parameters</param>
         /// <returns>Returns any error creating the CLHttpRest client, if any</returns>
-        public static CLError CreateAndInitialize(CLCredentials credentials, long syncBoxId, out CLHttpRest client, ICLSyncSettings settings = null)
+        public static CLError CreateAndInitialize(CLCredential credential, long syncBoxId, out CLHttpRest client, ICLSyncSettings settings = null)
         {
             try
             {
-                client = new CLHttpRest(credentials, syncBoxId, settings);
+                client = new CLHttpRest(credential, syncBoxId, settings);
             }
             catch (Exception ex)
             {
@@ -3960,10 +3960,10 @@ namespace CloudApiPublic.REST
             httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = _copiedSettings.ClientVersion; // set client version
             httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
                                 CLDefinitions.HeaderAppendKey +
-                                _credentials.ApplicationKey + ", " +
+                                _credential.Key + ", " +
                                 CLDefinitions.HeaderAppendSignature +
                                         Helpers.GenerateAuthorizationHeaderToken(
-                                            _credentials.ApplicationSecret,
+                                            _credential.Secret,
                                             httpMethod: httpRequest.Method,
                                             pathAndQueryStringAndFragment: serverMethodPath);   // set the authentication token
             httpRequest.SendChunked = false; // do not send chunked

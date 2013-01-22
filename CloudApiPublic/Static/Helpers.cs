@@ -1465,12 +1465,12 @@ namespace CloudApiPublic.Static
         /// <summary>
         /// Generate the signed token for the platform auth Authorization header.
         /// </summary>
-        /// <param name="ApplicationSecret">Secret from credentials</param>
+        /// <param name="secret">Secret from credential</param>
         /// <param name="httpMethod">The HTTP method.  e.g.: "POST".</param>
         /// <param name="pathAndQueryStringAndFragment">The HTTP path, query string and fragment.  The path is required.</param>
         /// <param name="serverUrl">The server URL.</param>
         /// <returns></returns>
-        internal static string GenerateAuthorizationHeaderToken(string ApplicationSecret, string httpMethod, string pathAndQueryStringAndFragment)
+        internal static string GenerateAuthorizationHeaderToken(string secret, string httpMethod, string pathAndQueryStringAndFragment)
         {
             string toReturn = String.Empty;
             try
@@ -1507,7 +1507,7 @@ namespace CloudApiPublic.Static
                         Uri.UnescapeDataString(queryString);
 
                 // Hash the string
-                byte[] secretByte = Encoding.UTF8.GetBytes(ApplicationSecret);
+                byte[] secretByte = Encoding.UTF8.GetBytes(secret);
                 HMACSHA256 hmac = new HMACSHA256(secretByte);
                 byte[] stringToHashBytes = Encoding.UTF8.GetBytes(stringToHash);
                 byte[] hashMessage = hmac.ComputeHash(stringToHashBytes);

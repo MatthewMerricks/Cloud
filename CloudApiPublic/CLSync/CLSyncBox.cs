@@ -23,14 +23,14 @@ namespace CloudApiPublic
         /// <summary>
         /// Contains authentication information required for all communication and services
         /// </summary>
-        public CLCredentials Credentials
+        public CLCredential Credential
         {
             get
             {
-                return _credentials;
+                return _credential;
             }
         }
-        private readonly CLCredentials _credentials;
+        private readonly CLCredential _credential;
 
         /// <summary>
         /// The unique ID of this SyncBox assigned by Cloud
@@ -56,8 +56,8 @@ namespace CloudApiPublic
         }
         private readonly ICLSyncSettingsAdvanced _copiedSettings;
 
-        public static CLError CreateAndInitializeExistingSyncBox(
-            CLCredentials Credentials,
+        public static CLError CreateAndInitialize(
+            CLCredential Credential,
             long SyncBoxId,
             out CLSyncBox syncBox,
             out CLSyncBoxCreationStatus status,
@@ -68,7 +68,7 @@ namespace CloudApiPublic
             try
             {
                 syncBox = new CLSyncBox(
-                    Credentials,
+                    Credential,
                     SyncBoxId,
                     Settings,
                     ref status);
@@ -82,20 +82,20 @@ namespace CloudApiPublic
             status = CLSyncBoxCreationStatus.Success;
             return null;
         }
-        private CLSyncBox(CLCredentials Credentials,
+        private CLSyncBox(CLCredential Credential,
             long SyncBoxId,
             ICLSyncSettings Settings,
             ref CLSyncBoxCreationStatus status)
         {
             // check input parameters
 
-            if (Credentials == null)
+            if (Credential == null)
             {
-                status = CLSyncBoxCreationStatus.ErrorNullCredentials;
-                throw new NullReferenceException("Credentials cannot be null");
+                status = CLSyncBoxCreationStatus.ErrorNullCredential;
+                throw new NullReferenceException("Credential cannot be null");
             }
 
-            this._credentials = Credentials;
+            this._credential = Credential;
             this._syncBoxId = SyncBoxId;
             if (Settings == null)
             {
@@ -113,7 +113,7 @@ namespace CloudApiPublic
     public enum CLSyncBoxCreationStatus : byte
     {
         Success,
-        ErrorNullCredentials,
+        ErrorNullCredential,
         ErrorUnknown
     }
 }
