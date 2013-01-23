@@ -29,6 +29,6 @@
   o Added a WindowsSdkReleaseNotes.txt file in the installation directory, with a Start Menu shortcut to launch it.
   o Changed the installer to launch the SDK documentation rather than the sample app.
   o Fixed an unhandled exception thrown from CLSyncEngine.Start() when the assembly containing CloudApiPublic was loaded from an unmanaged application.
-
+  o WebSocket support works properly now (no fall-back to polling).
 
 
