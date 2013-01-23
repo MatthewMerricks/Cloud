@@ -555,24 +555,44 @@ namespace CloudApiPublic.Static
         /// </summary>
         public static string GetDefaultNameFromApplicationName()
         {
-            System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
-            foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in
-                entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyProductAttribute), false).OfType<System.Reflection.AssemblyProductAttribute>())
+            try
             {
-                if (!string.IsNullOrWhiteSpace(currentProductAttribute.Product))
+                System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
+                foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in
+                    entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyProductAttribute), false).OfType<System.Reflection.AssemblyProductAttribute>())
                 {
-                    return currentProductAttribute.Product;
+                    if (!string.IsNullOrWhiteSpace(currentProductAttribute.Product))
+                    {
+                        return currentProductAttribute.Product;
+                    }
+                }
+                foreach (System.Reflection.AssemblyTitleAttribute currentTitleAttribute in
+                    entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), false).OfType<System.Reflection.AssemblyTitleAttribute>())
+                {
+                    if (!string.IsNullOrWhiteSpace(currentTitleAttribute.Title))
+                    {
+                        return currentTitleAttribute.Title;
+                    }
+                }
+                return entryAssembly.GetName().Name;
+            }
+            catch
+            {
+                try
+                {
+                    // The calling thread may be from a native COM application.  If that is the case, the GetEntryAssembly() method throws an exception.
+                    // Get the application name via another method.
+                    // PInvoke:
+                    //    StringBuilder exePath = new StringBuilder(1024);
+                    //    int exePathLen = NativeMethods.GetModuleFileName(IntPtr.Zero, exePath, exePath.Capacity);
+                    return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+                }
+                catch
+                {
+                    // The PInvoke method failed too.  Return a placeholder string.
+                    return "PossiblyUnmanagedCode";
                 }
             }
-            foreach (System.Reflection.AssemblyTitleAttribute currentTitleAttribute in
-                entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), false).OfType<System.Reflection.AssemblyTitleAttribute>())
-            {
-                if (!string.IsNullOrWhiteSpace(currentTitleAttribute.Title))
-                {
-                    return currentTitleAttribute.Title;
-                }
-            }
-            return entryAssembly.GetName().Name;
         }
 
         /// <summary>
@@ -632,7 +652,7 @@ namespace CloudApiPublic.Static
 
                 // parse the character after the current character as the other half a byte into the current output index (will be the low half)
                 hexBuffer[hexBufferIndex] += byte.Parse(hexChars[charIndex + 1].ToString(), // current character as a string
-                    System.Globalization.NumberStyles.HexNumber, // parse as a hexadecimal number
+                   System.Globalization.NumberStyles.HexNumber, // parse as a hexadecimal number
                     System.Globalization.CultureInfo.InvariantCulture); // a-f must be static across locales
 
                 // increment the index into the output array for the next byte

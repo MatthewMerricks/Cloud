@@ -28,7 +28,7 @@
   o Fixed a bug on Win8 that disabled the Metro interface when the user clicked Finish on the installer with the Launch Application checkbox checked.
   o Added a WindowsSdkReleaseNotes.txt file in the installation directory, with a Start Menu shortcut to launch it.
   o Changed the installer to launch the SDK documentation rather than the sample app.
-  o 
+  o Fixed an unhandled exception thrown from CLSyncEngine.Start() when the assembly containing CloudApiPublic was loaded from an unmanaged application.
 
 
 

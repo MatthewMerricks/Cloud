@@ -20,8 +20,10 @@ namespace CloudApiPublic.Static
         public const string CLRegistrationAccessTokenKey = "access_token";
 #if NOSSL
         public const string HttpPrefix = "http://";
+        public const string WsPrefix = "ws://";
 #else
         public const string HttpPrefix = "https://";
+        public const string WsPrefix = "wss://";
 #endif
 
         public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
@@ -46,7 +48,7 @@ namespace CloudApiPublic.Static
         public const string CLMetaDataServerURL = HttpPrefix + @"mds.cloud.com";
 
         // Notifications
-        public const string CLNotificationServerURL = @"ws://push.cloud.com/events";
+        public const string CLNotificationServerURL = WsPrefix + @"push.cloud.com/events";
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cloud.com";
@@ -77,7 +79,7 @@ namespace CloudApiPublic.Static
         public const string CLMetaDataServerURL = HttpPrefix + @"mds.cliff.cloudburrito.com";
 
         // Notifications
-        public const string CLNotificationServerURL = @"ws://push.cliff.cloudburrito.com";
+        public const string CLNotificationServerURL = WsPrefix + @"push.cliff.cloudburrito.com";
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";
@@ -106,7 +108,7 @@ namespace CloudApiPublic.Static
         public const string CLMetaDataServerURL = HttpPrefix + @"mds.cloudstaging.us";
 
         // Notifications
-        public const string CLNotificationServerURL = @"ws://push.cloudstaging.us";
+        public const string CLNotificationServerURL = WsPrefix + @"push.cloudstaging.us";
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cloudstaging.us";
@@ -130,7 +132,7 @@ namespace CloudApiPublic.Static
         public const string CLMetaDataServerURL = HttpPrefix + @"mds-edge.cloudburrito.com";
 
         // Notifications
-        public const string CLNotificationServerURL = @"ws://push-edge.cloudburrito.com/events";
+        public const string CLNotificationServerURL = WsPrefix + @"push-edge.cloudburrito.com/events";
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd-edge.cloudburrito.com";
