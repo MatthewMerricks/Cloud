@@ -259,6 +259,7 @@
     <Compile Include="Sync\Model\PossiblyStreamableAndPossiblyPreexistingErrorFileChange.cs" />
     <Compile Include="Sync\Model\PossiblyStreamableFileChangeWithSyncData.cs" />
     <Compile Include="Sync\Model\PossiblyStreamableFileChangeWithUploadDownloadTask.cs" />
+    <Compile Include="Sync\NetworkMonitor.cs" />
     <Compile Include="Sync\SyncEngine.cs" />
   </ItemGroup>
   <ItemGroup>

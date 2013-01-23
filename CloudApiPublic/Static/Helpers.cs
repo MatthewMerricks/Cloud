@@ -398,6 +398,49 @@ namespace CloudApiPublic.Static
         /// <param name="throwExceptionOnFailure"></param>
         /// <param name="numRetries"></param>
         /// <param name="millisecondsBetweenRetries"></param>
+        internal static void RunActionWithRetries<T>(Action<T> toRun, T toRunState, bool throwExceptionOnFailure, int numRetries = 5, int millisecondsBetweenRetries = 50)
+        {
+            if (toRun == null)
+            {
+                if (throwExceptionOnFailure)
+                {
+                    throw new NullReferenceException("toRun cannot be null");
+                }
+                return;
+            }
+
+            for (int retryCounter = numRetries - 1; retryCounter >= 0; retryCounter--)
+            {
+                try
+                {
+                    toRun(toRunState);
+                    return;
+                }
+                catch
+                {
+                    if (retryCounter == 0)
+                    {
+                        if (throwExceptionOnFailure)
+                        {
+                            throw;
+                        }
+                    }
+                    else if (millisecondsBetweenRetries > 0
+                        && millisecondsBetweenRetries > 0)
+                    {
+                        Thread.Sleep(millisecondsBetweenRetries);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Wraps an Action under a try/catch with a customizable number of retry attempts with optional delay in between, finally silences or rethrows the last error
+        /// </summary>
+        /// <param name="toRun"></param>
+        /// <param name="throwExceptionOnFailure"></param>
+        /// <param name="numRetries"></param>
+        /// <param name="millisecondsBetweenRetries"></param>
         internal static void RunActionWithRetries(Action toRun, bool throwExceptionOnFailure, int numRetries = 5, int millisecondsBetweenRetries = 50)
         {
             if (toRun == null)

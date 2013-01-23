@@ -1,5 +1,5 @@
 ﻿//
-// Sync.cs
+// SyncEngine.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -60,6 +60,8 @@ namespace CloudApiPublic.Sync
         private readonly GenericHolder<byte> UploadDownloadConnectionFailures = new GenericHolder<byte>(0);
         // holder for consecutive count of failures communicating with the metadata server
         private readonly GenericHolder<byte> MetadataConnectionFailures = new GenericHolder<byte>(0);
+        // time to wait to take everything that has failed out and retry
+        private readonly int FailedOutRetryMillisecondInterval;
         #endregion
 
         /// <summary>
@@ -87,7 +89,8 @@ namespace CloudApiPublic.Sync
             byte MaxNumberOfFailureRetries = 20,
             byte MaxNumberOfNotFounds = 10,
             int ErrorProcessingMillisecondInterval = 10000,// wait ten seconds between processing
-            byte MaxNumberConnectionFailures = 5) // should be 40
+            byte MaxNumberConnectionFailures = 40,
+            int FailedOutRetryMillisecondInterval = 14400000) // wait four hours between retrying failed out changes
         {
             try
             {
@@ -101,7 +104,8 @@ namespace CloudApiPublic.Sync
                     MaxNumberOfFailureRetries,
                     MaxNumberOfNotFounds,
                     ErrorProcessingMillisecondInterval,
-                    MaxNumberConnectionFailures);
+                    MaxNumberConnectionFailures,
+                    FailedOutRetryMillisecondInterval);
             }
             catch (Exception ex)
             {
@@ -120,7 +124,8 @@ namespace CloudApiPublic.Sync
             byte MaxNumberOfFailureRetries,
             byte MaxNumberOfNotFounds,
             int ErrorProcessingMillisecondInterval,
-            byte MaxNumberConnectionFailures)
+            byte MaxNumberConnectionFailures,
+            int FailedOutRetryMillisecondInterval)
         {
             #region validate parameters
             if (syncData == null)
@@ -211,8 +216,46 @@ namespace CloudApiPublic.Sync
         private readonly object failureTimerLocker = new object();
 
         // private queue for failures;
-        // lock on failureTimer.TimerRunningLocker for all access
+        // lock on FailureTimer.TimerRunningLocker for all access
         private readonly Queue<FileChange> FailedChangesQueue = new Queue<FileChange>();
+
+        // Timer to handle wait callbacks to requeue failures to reprocess
+        private ProcessingQueuesTimer FailedOutTimer
+        {
+            get
+            {
+                // lock to prevent reading and writing to timer simultaneously
+                lock (failedOutTimerLocker)
+                {
+                    // if timer has not been created, then create it
+                    if (_failedOutTimer == null)
+                    {
+                        // create timer, store creation error
+                        CLError timerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(
+                            FailedOutProcessing, // callback when timer finishes
+                            FailedOutRetryMillisecondInterval, // length of timer
+                            out _failedOutTimer, // output new timer
+                            this); // user state
+
+                        // if an error occurred creating the timer, then rethrow the exception
+                        if (timerError != null)
+                        {
+                            throw timerError.GrabFirstException();
+                        }
+                    }
+                    // return existing or newly created timer
+                    return _failedOutTimer;
+                }
+            }
+        }
+        // storage of requeue failures timer
+        private ProcessingQueuesTimer _failedOutTimer = null;
+        // locker for creating or retrieving requeue failures timer
+        private readonly object failedOutTimerLocker = new object();
+
+        // private queue for changes which have failed out;
+        // lock on FailedOutTimer.TimerRunningLocker for all access
+        private readonly List<FileChange> FailedOutChanges = new List<FileChange>();
 
         // hashset of temp download folders marked as cleaned
         private static readonly HashSet<string> TempDownloadsCleaned = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
@@ -313,6 +356,118 @@ namespace CloudApiPublic.Sync
                             }
 
                             throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (storeSettings == null)
+                {
+                    System.Windows.MessageBox.Show("Unable to LogErrors since storeSettings is null. Original error: " + ex.Message);
+                }
+                else
+                {
+                    ((CLError)ex).LogErrors(storeSettings.TraceLocation, storeSettings.LogErrors);
+                }
+            }
+        }
+
+        // EventHandler for when the _failedOutTimer hits the end of its timer;
+        // state object must be the Function which adds failed items to the FileMonitor processing queue
+        private static void FailedOutProcessing(object state)
+        {
+            // settings is required to log errors, so declare its instance outside the try/catch and default to null
+            ICLSyncSettingsAdvanced storeSettings = null;
+            try
+            {
+                // try cast state
+                SyncEngine thisEngine = state as SyncEngine;
+
+                // if try cast was not successful, then throw exception
+                if (thisEngine == null)
+                {
+                    throw new NullReferenceException("state cannot be null and must be castable to SyncEngine");
+                }
+
+                // store settings from cast state
+                storeSettings = thisEngine.syncBox.CopiedSettings;
+
+                // retrieve failed out timer only once to save on the getter code execution
+                ProcessingQueuesTimer getTimer = thisEngine.FailedOutTimer;
+                // lock on timer for all failed out list access
+                lock (getTimer.TimerRunningLocker)
+                {
+                    // if any failed out changes are in their list, then try to requeue failed out changes for reprocessing
+                    if (thisEngine.FailedOutChanges.Count > 0)
+                    {
+                        // clear out all failed items into an array
+                        FileChange[] failedOutChanges = thisEngine.FailedOutChanges.ToArray();
+                        thisEngine.FailedOutChanges.Clear();
+
+                        // attempt to requeue failed out changes for reprocessing within a try/catch (upon failure, readd to failure queue)
+                        try
+                        {
+                            // Add failed out changes back to FileMonitor via cast state;
+                            // if there are any adds in error requeue them to the failure queue;
+                            // Log any errors
+                            GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
+                            CLError err = thisEngine.syncData.addChangesToProcessingQueue(failedOutChanges, true, errList);
+                            if (errList.Value != null)
+                            {
+                                // retrieve failed out timer only once to save on the getter code execution
+                                ProcessingQueuesTimer failureTimer = thisEngine.FailureTimer;
+
+                                lock (failureTimer.TimerRunningLocker)
+                                {
+                                    bool atLeastOneFailureAdded = false;
+
+                                    foreach (FileChange currentError in errList.Value)
+                                    {
+                                        thisEngine.FailedChangesQueue.Enqueue(currentError);
+
+                                        atLeastOneFailureAdded = true;
+                                    }
+
+                                    // if at least one failure was readded, start the failure timer
+                                    if (atLeastOneFailureAdded)
+                                    {
+                                        failureTimer.StartTimerIfNotRunning();
+                                    }
+                                }
+                            }
+                            if (err != null)
+                            {
+                                err.LogErrors(storeSettings.TraceLocation, storeSettings.LogErrors);
+                            }
+                        }
+                        catch
+                        {
+                            // retrieve failed out timer only once to save on the getter code execution
+                            ProcessingQueuesTimer failureTimer = thisEngine.FailureTimer;
+
+                            lock (failureTimer.TimerRunningLocker)
+                            {
+                                bool atLeastOneFailureAdded = false;
+
+                                // An error occurred adding all the failed changes to the FileMonitor;
+                                // requeue them all to the failure queue;
+                                // rethrow error for logging
+                                foreach (FileChange currentError in failedOutChanges)
+                                {
+                                    thisEngine.FailedChangesQueue.Enqueue(currentError);
+
+                                    atLeastOneFailureAdded = true;
+                                }
+
+                                // if at least one failure was readded, start the failure timer
+                                if (atLeastOneFailureAdded)
+                                {
+                                    failureTimer.StartTimerIfNotRunning();
+                                }
+
+                                throw;
+                            }
                         }
                     }
                 }
@@ -1126,11 +1281,23 @@ namespace CloudApiPublic.Sync
                             // declare a bool for whether a null change was in the processing queue in the FileSystemMonitor
                             bool nullChangeFoundInFileSystemMonitor;
 
-                            // retrieve events to process, with dependencies reassigned (including previous errors)
-                            toReturn = syncData.grabChangesFromFileSystemMonitor(initialErrors,
-                                out outputChanges,
-                                out outputChangesInError,
-                                out nullChangeFoundInFileSystemMonitor);
+                            lock (FailedOutTimer.TimerRunningLocker)
+                            {
+                                bool previousFailedOutChange = FailedOutChanges.Count > 0;
+
+                                // retrieve events to process, with dependencies reassigned (including previous errors)
+                                toReturn = syncData.grabChangesFromFileSystemMonitor(initialErrors,
+                                    out outputChanges,
+                                    out outputChangesInError,
+                                    out nullChangeFoundInFileSystemMonitor,
+                                    FailedOutChanges);
+
+                                if (previousFailedOutChange
+                                    && FailedOutChanges.Count == 0)
+                                {
+                                    FailedOutTimer.TriggerTimerCompletionImmediately();
+                                }
+                            }
 
                             // if there was a null change, then communication should occur regardless of other changes since we cannot communicate a null change on a SyncTo (will cause a SyncFrom if no other changes)
                             if (nullChangeFoundInFileSystemMonitor
@@ -1816,26 +1983,39 @@ namespace CloudApiPublic.Sync
                                             (thingsThatWereDependenciesToQueue ?? Enumerable.Empty<FileChange>())
                                             .Select(uploadFileWithoutStream => new PossiblyStreamableFileChange(uploadFileWithoutStream, null))); // reselected to appropriate format
 
-                                        // Assign dependencies through a callback to the event source,
-                                        // between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared;
-                                        // Store any error returned
-                                        CLError postCommunicationDependencyError = syncData.dependencyAssignment(
+                                        CLError postCommunicationDependencyError;
 
-                                            // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
-                                            (incompleteChanges ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
-                                                .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.Stream))
-                                                .Concat(uploadFilesWithoutStreams),
+                                        lock (FailedOutTimer.TimerRunningLocker)
+                                        {
+                                            bool previousFailedOutChange = FailedOutChanges.Count > 0;
 
-                                            // second pass the enumerable of errors from the changes which had an error during communication and the changes that were in the queue for reprocessing
-                                            dequeuedFailures.Concat((changesInError ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
-                                                .Select(currentChangeInError => currentChangeInError.FileChange)
-                                                .Where(currentChangeInError => currentChangeInError != null)),// FileChange could be null for errors if there was an exeption but no FileChange was built
+                                            // Assign dependencies through a callback to the event source,
+                                            // between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared;
+                                            // Store any error returned
+                                            postCommunicationDependencyError = syncData.dependencyAssignment(
 
-                                            // output changes to process
-                                            out outputChanges,
+                                                // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
+                                                (incompleteChanges ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
+                                                    .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.Stream))
+                                                    .Concat(uploadFilesWithoutStreams),
 
-                                            // output changes to put into failure queue for reprocessing
-                                            out topLevelErrors);
+                                                // second pass the enumerable of errors from the changes which had an error during communication and the changes that were in the queue for reprocessing
+                                                dequeuedFailures.Concat((changesInError ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
+                                                    .Select(currentChangeInError => currentChangeInError.FileChange)
+                                                    .Where(currentChangeInError => currentChangeInError != null)),// FileChange could be null for errors if there was an exeption but no FileChange was built
+
+                                                // output changes to process
+                                                out outputChanges,
+
+                                                // output changes to put into failure queue for reprocessing
+                                                out topLevelErrors);
+
+                                            if (previousFailedOutChange
+                                                && FailedOutChanges.Count == 0)
+                                            {
+                                                FailedOutTimer.TriggerTimerCompletionImmediately();
+                                            }
+                                        }
 
                                         // if there was an error assigning dependencies, then rethrow exception for null outputs or aggregate error to return and continue for non-null outputs
                                         if (postCommunicationDependencyError != null)
@@ -2454,15 +2634,24 @@ namespace CloudApiPublic.Sync
                 toReturn = HaltedOnServerConnectionFailure.Value;
             }
 
-            if (needToNotifyOnInitialHalting
-                && statusUpdated != null)
+            if (needToNotifyOnInitialHalting)
             {
-                try
+                MessageEvents.FireNewEventMessage(this,
+                    "SyncEngine halted after repeated failure to communicate over one of the Cloud server domains.",
+                    EventMessageLevel.Important,
+                    true,
+                    syncBox.SyncBoxId,
+                    syncBox.CopiedSettings.DeviceId);
+
+                if (statusUpdated != null)
                 {
-                    statusUpdated(statusUpdatedUserState);
-                }
-                catch
-                {
+                    try
+                    {
+                        statusUpdated(statusUpdatedUserState);
+                    }
+                    catch
+                    {
+                    }
                 }
             }
 
@@ -2577,6 +2766,16 @@ namespace CloudApiPublic.Sync
                     }
                 }
             }
+
+            lock (FailureTimer.TimerRunningLocker)
+            {
+                FailureTimer.TriggerTimerCompletionImmediately();
+            }
+
+            lock (FailedOutTimer.TimerRunningLocker)
+            {
+                FailedOutTimer.TriggerTimerCompletionImmediately();
+            }
         }
 
         #region IDisposable members
@@ -2619,6 +2818,10 @@ namespace CloudApiPublic.Sync
                     {
                         // sort ids of completed events to allow for binary search
                         successfulEventIds.Sort();
+
+                        // define list for changes which have failed out to add to the failed out queue, defaulting to null
+                        List<FileChange> failedOutChanges = null;
+
                         // lock on failure queue timer for modifying the failure queue
                         lock (FailureTimer.TimerRunningLocker)
                         {
@@ -2651,6 +2854,44 @@ namespace CloudApiPublic.Sync
                                             // mark that an error was added to the failure queue
                                             atLeastOneErrorAdded = true;
                                         }
+                                        else
+                                        {
+                                            // define recursing action to reset failure counters for a FileChange (and any inner FileChanges)
+                                            Action<FileChange, object> recurseResetCounters = (currentLevelChange, thisAction) =>
+                                                {
+                                                    Action<FileChange, object> castAction;
+                                                    if ((castAction = thisAction as Action<FileChange, object>) != null)
+                                                    {
+                                                        currentLevelChange.NotFoundForStreamCounter = 0;
+                                                        currentLevelChange.FailureCounter = 0;
+
+                                                        FileChangeWithDependencies castChange = currentLevelChange as FileChangeWithDependencies;
+                                                        if (castChange != null
+                                                            && castChange.DependenciesCount > 0)
+                                                        {
+                                                            foreach (FileChange recurseChange in castChange.Dependencies)
+                                                            {
+                                                                if (recurseChange != null)
+                                                                {
+                                                                    castAction(recurseChange, thisAction);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                };
+                                            
+                                            // if there is a failed out change to add, then reset its failure counters recursively and add the change to the list of those failed out
+                                            if (errorToQueue.FileChange != null)
+                                            {
+                                                recurseResetCounters(errorToQueue.FileChange, recurseResetCounters);
+
+                                                if (failedOutChanges == null)
+                                                {
+                                                    failedOutChanges = new List<FileChange>();
+                                                }
+                                                failedOutChanges.Add(errorToQueue.FileChange);
+                                            }
+                                        }
 
                                         // if ContinueToRetry output freed dependencies to process, process them
                                         if (notFoundDependencies != null)
@@ -2682,6 +2923,19 @@ namespace CloudApiPublic.Sync
                             if (atLeastOneErrorAdded)
                             {
                                 FailureTimer.StartTimerIfNotRunning();
+                            }
+                        }
+
+                        if (failedOutChanges != null)
+                        {
+                            lock (FailedOutTimer.TimerRunningLocker)
+                            {
+                                foreach (FileChange currentFailedOut in failedOutChanges)
+                                {
+                                    FailedOutChanges.Add(currentFailedOut);
+                                }
+
+                                FailedOutTimer.StartTimerIfNotRunning();
                             }
                         }
                     }
@@ -3833,9 +4087,15 @@ namespace CloudApiPublic.Sync
             // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
             // attributes to set: creation time, last modified time, and last access time
 
-            Helpers.RunActionWithRetries(() => System.IO.File.SetCreationTimeUtc(tempFileFullPath, downloadChange.Metadata.HashableProperties.CreationTime), true);
-            Helpers.RunActionWithRetries(() => System.IO.File.SetLastAccessTimeUtc(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime), true);
-            Helpers.RunActionWithRetries(() => System.IO.File.SetLastWriteTimeUtc(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime), true);
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.CreationTime),
+                true);
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime),
+                true);
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime),
+                true);
 
             // fire callback to perform the actual move of the temp file to the final destination
             castState.MoveCompletedDownload(tempFileFullPath, // location of temp file
@@ -4580,10 +4840,53 @@ namespace CloudApiPublic.Sync
                         out purgeStatus, // output the success/failure status
                         out purgeResponse); // output the response content (this response content does not get used anywhere later)
 
+                    // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+
+                    if (purgeStatus == CLHttpRestStatus.ConnectionFailed)
+                    {
+                        lock (MetadataConnectionFailures)
+                        {
+                            if (MetadataConnectionFailures.Value != ((byte)255))
+                            {
+                                MetadataConnectionFailures.Value = (byte)(MetadataConnectionFailures.Value + 1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        lock (MetadataConnectionFailures)
+                        {
+                            if (MetadataConnectionFailures.Value != ((byte)0))
+                            {
+                                MetadataConnectionFailures.Value = 0;
+                            }
+                        }
+                    }
+
                     // check if an error occurred purging pending and if so, rethrow the error
                     if (purgePendingError != null)
                     {
-                        throw new AggregateException("Error purging existing pending items on first sync", purgePendingError.GrabExceptions());
+                        // if this would have been a SyncFrom, a null FileChange needs to be queued into errors to trigger a retry, otherwise it would never come back in without push notification/manual poll to retry SyncFrom
+                        CLError err;
+                        if (communicationArray.Length > 0)
+                        {
+                            err = null;
+                        }
+                        else
+                        {
+                            // adding a null FileChange to queue will trigger a SyncFrom without an extra change (gets filtered out on "ProcessingChanges.DequeueAll()" in FileMonitor)
+                            GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>(); // no need to check the failed to add list since we won't add a null FileChange to the list of failed changes
+                            err = syncData.addChangesToProcessingQueue(new FileChange[] { null }, true, errList);
+                        }
+
+                        throw new AggregateException("Error purging existing pending items on first sync" +
+                            (err == null
+                                ? string.Empty
+                                : " and an error occurred queueing for a new SyncFrom"),
+                            (err == null
+                                ? purgePendingError.GrabExceptions()
+                                : purgePendingError.GrabExceptions().Concat(
+                                    err.GrabExceptions())));
                     }
                 }
 

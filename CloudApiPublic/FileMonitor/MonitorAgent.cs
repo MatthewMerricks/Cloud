@@ -567,33 +567,44 @@ namespace CloudApiPublic.FileMonitor
         // helper method to create a directory at a given path and set the time attributes for creation/last modified
         private static void CreateDirectoryWithAttributes(FilePath toCreate, Nullable<DateTime> creationTime, Nullable<DateTime> lastTime, out Nullable<DateTime> createdLastWriteUtc, out Nullable<DateTime> createdCreationUtc)
         {
-            DirectoryInfo createdDirectory = null;
-            Helpers.RunActionWithRetries(() => createdDirectory = Directory.CreateDirectory(toCreate.ToString()), true);
+            GenericHolder<DirectoryInfo> createdDirectoryHolder = new GenericHolder<DirectoryInfo>(null);
+            Helpers.RunActionWithRetries(actionState => actionState.Value.Value = Directory.CreateDirectory(actionState.Key),
+                new KeyValuePair<string, GenericHolder<DirectoryInfo>>(toCreate.ToString(), createdDirectoryHolder),
+                true);
 
             try
             {
                 if (creationTime != null)
                 {
-                    Helpers.RunActionWithRetries(() => createdDirectory.CreationTimeUtc = (DateTime)creationTime, true);
+                    Helpers.RunActionWithRetries(actionState => actionState.Value.CreationTimeUtc = actionState.Key,
+                        new KeyValuePair<DateTime, DirectoryInfo>((DateTime)creationTime, createdDirectoryHolder.Value),
+                        true);
                 }
                 if (lastTime != null)
                 {
-                    Helpers.RunActionWithRetries(() => createdDirectory.LastAccessTimeUtc = (DateTime)lastTime, true);
-                    Helpers.RunActionWithRetries(() => createdDirectory.LastWriteTimeUtc = (DateTime)lastTime, true);
+                    Helpers.RunActionWithRetries(actionState => actionState.Value.LastAccessTimeUtc = actionState.Key,
+                        new KeyValuePair<DateTime, DirectoryInfo>((DateTime)lastTime, createdDirectoryHolder.Value),
+                        true);
+                    Helpers.RunActionWithRetries(actionState => actionState.Value.LastWriteTimeUtc = actionState.Key,
+                        new KeyValuePair<DateTime, DirectoryInfo>((DateTime)lastTime, createdDirectoryHolder.Value),
+                        true);
                 }
             }
             catch
             {
-                Helpers.RunActionWithRetries(() => createdDirectory.Delete(), true);
+                Helpers.RunActionWithRetries(actionState => actionState.Delete(),
+                    createdDirectoryHolder.Value,
+                    true);
                 throw;
             }
-
 
             if (lastTime == null)
             {
                 createdLastWriteUtc = new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
                 GenericHolder<Nullable<DateTime>> successLastWriteTime = new GenericHolder<Nullable<DateTime>>(null);
-                Helpers.RunActionWithRetries(() => successLastWriteTime.Value = createdDirectory.LastWriteTimeUtc, false);
+                Helpers.RunActionWithRetries(actionState => actionState.Key.Value = actionState.Value.LastWriteTimeUtc,
+                    new KeyValuePair<GenericHolder<Nullable<DateTime>>, DirectoryInfo>(successLastWriteTime, createdDirectoryHolder.Value),
+                    false);
                 createdLastWriteUtc = successLastWriteTime.Value;
             }
             else
@@ -605,7 +616,9 @@ namespace CloudApiPublic.FileMonitor
             {
                 createdCreationUtc = new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
                 GenericHolder<Nullable<DateTime>> successCreationTime = new GenericHolder<Nullable<DateTime>>(null);
-                Helpers.RunActionWithRetries(() => successCreationTime.Value = createdDirectory.CreationTimeUtc, false);
+                Helpers.RunActionWithRetries(actionState => actionState.Key.Value = actionState.Value.CreationTimeUtc,
+                    new KeyValuePair<GenericHolder<Nullable<DateTime>>, DirectoryInfo>(successCreationTime, createdDirectoryHolder.Value),
+                    false);
                 createdCreationUtc = successCreationTime.Value;
             }
             else
@@ -1238,7 +1251,8 @@ namespace CloudApiPublic.FileMonitor
         internal CLError AssignDependencies(IEnumerable<PossiblyStreamableFileChange> toAssign,
             IEnumerable<FileChange> currentFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
-            out IEnumerable<FileChange> outputFailures)
+            out IEnumerable<FileChange> outputFailures,
+            List<FileChange> failedOutChanges)
         {
             CLError toReturn = null;
             try
@@ -1265,6 +1279,8 @@ namespace CloudApiPublic.FileMonitor
                 KeyValuePair<FileChangeSource, FileChangeWithDependencies>[] assignmentsWithDependencies = toAssign
                     .Select(currentToAssign => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.ProcessingChanges, convertChange(currentToAssign, originalFileStreams)))
                     .Concat(currentFailures.Select(currentFailure => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailureQueue, convertChange(new PossiblyStreamableFileChange(currentFailure, null), originalFileStreams))))
+                    .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailedOutList, convertChange(new PossiblyStreamableFileChange(currentFailedOut, null), originalFileStreams))))
+                    .OrderBy(currentSourcedChange => currentSourcedChange.Value.EventId)
                     .ToArray();
                 toReturn = AssignDependencies(assignmentsWithDependencies,
                     null,
@@ -1281,6 +1297,11 @@ namespace CloudApiPublic.FileMonitor
                         if (currentAssignment.Key == FileChangeSource.FailureQueue)
                         {
                             outputFailureList.Add(currentAssignment.Value);
+                        }
+                        else if (currentAssignment.Key == FileChangeSource.FailedOutList)
+                        {
+                            // no need for null-check failedOutChanges since there would be no FileChangeSource for FailedOutList if there was no FailedOut changes
+                            failedOutChanges.Add(currentAssignment.Value);
                         }
                         else
                         {
@@ -1334,11 +1355,13 @@ namespace CloudApiPublic.FileMonitor
         /// <param name="outputChanges">Output array of FileChanges to process</param>
         /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
         /// <param name="nullChangeFound">(output) Whether a null FileChange was found in the processing queue (which does not get output)</param>
+        /// <param name="failedOutChanges">The possibly null queue containing failed out changes which should be locked if it exists by the method caller</param>
         /// <returns>Returns error(s) that occurred finalizing the FileChange array, if any</returns>
         internal CLError GrabPreprocessedChanges(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
-            out bool nullChangeFound)
+            out bool nullChangeFound,
+            List<FileChange> failedOutChanges)
         {
             CLError toReturn = null;
             List<KeyValuePair<FileChangeMerge, FileChange>> queuedChangesNeedMergeToSql = new List<KeyValuePair<FileChangeMerge, FileChange>>();
@@ -1381,6 +1404,7 @@ namespace CloudApiPublic.FileMonitor
                             .Where(currentProcessingChange => nullCheckAndMarkFound(currentProcessingChange, nullFound)) // added nullable FileChange so that syncing can be triggered by queueing a null
                             .Select(currentProcessingChange => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.ProcessingChanges, new KeyValuePair<bool, FileChange>(false, currentProcessingChange)))
                             .Concat(initialFailures.Select(currentInitialFailure => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailureQueue, new KeyValuePair<bool, FileChange>(currentInitialFailure.IsPreexisting, currentInitialFailure.FileChange)))))
+                            .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailedOutList, new KeyValuePair<bool,FileChange>(false, currentFailedOut))))
                             .OrderBy(eventOrdering => eventOrdering.Value.Value.EventId)
                             .Concat(QueuedChanges.Values
                                 .OrderBy(memoryIdOrdering => memoryIdOrdering.InMemoryId)
@@ -1393,6 +1417,11 @@ namespace CloudApiPublic.FileMonitor
                                 SourceType = currentFileChange.Key
                             })
                             .ToArray();
+
+                        if (failedOutChanges != null)
+                        {
+                            failedOutChanges.Clear();
+                        }
 
                         nullChangeFound = nullFound.Value;
 
@@ -1440,6 +1469,7 @@ namespace CloudApiPublic.FileMonitor
                                 else
                                 {
                                     bool nonQueuedChangeFound = false;
+                                    bool nonFailedOutChangeFound = false;
                                     
                                     IEnumerable<KeyValuePair<int, FileChange>> nonQueuedChangesEnumerable = EnumerateDependencies(CurrentDependencyTree.DependencyFileChange);
                                     foreach (KeyValuePair<int, FileChange> currentNonQueuedChange in nonQueuedChangesEnumerable)
@@ -1448,11 +1478,31 @@ namespace CloudApiPublic.FileMonitor
                                         KeyValuePair<FileChange, FileChangeSource> mappedOriginalNonQueuedChange;
                                         if ((castEnumeratedNonQueuedChange = currentNonQueuedChange.Value as FileChangeWithDependencies) != null
                                             && OriginalFileChangeMappings.TryGetValue(castEnumeratedNonQueuedChange,
-                                                out mappedOriginalNonQueuedChange)
-                                            && mappedOriginalNonQueuedChange.Value != FileChangeSource.QueuedChanges)
+                                                out mappedOriginalNonQueuedChange))
                                         {
-                                            nonQueuedChangeFound = true;
-                                            break;
+                                            if (mappedOriginalNonQueuedChange.Value != FileChangeSource.QueuedChanges)
+                                            {
+                                                nonQueuedChangeFound = true;
+
+                                                if (mappedOriginalNonQueuedChange.Value != FileChangeSource.FailedOutList)
+                                                {
+                                                    nonFailedOutChangeFound = true;
+                                                }
+
+                                                if (nonFailedOutChangeFound)
+                                                {
+                                                    break;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                nonFailedOutChangeFound = true;
+
+                                                if (nonQueuedChangeFound)
+                                                {
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
 
@@ -1460,109 +1510,116 @@ namespace CloudApiPublic.FileMonitor
                                     {
                                         removeQueuedChangesFromDependencyTree(queuedChangesNeedMergeToSql);
 
-                                        FileStream OutputStream = null;
-                                        bool CurrentFailed = false;
-                                        if (CurrentDependencyTree.DependencyFileChange.Metadata != null
-                                            && !CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.IsFolder
-                                            && (CurrentDependencyTree.DependencyFileChange.Type == FileChangeType.Created
-                                                || CurrentDependencyTree.DependencyFileChange.Type == FileChangeType.Modified)
-                                            && CurrentDependencyTree.DependencyFileChange.Direction == SyncDirection.To)
+                                        if (nonFailedOutChangeFound)
                                         {
-                                            try
+                                            FileStream OutputStream = null;
+                                            bool CurrentFailed = false;
+                                            if (CurrentDependencyTree.DependencyFileChange.Metadata != null
+                                                && !CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.IsFolder
+                                                && (CurrentDependencyTree.DependencyFileChange.Type == FileChangeType.Created
+                                                    || CurrentDependencyTree.DependencyFileChange.Type == FileChangeType.Modified)
+                                                && CurrentDependencyTree.DependencyFileChange.Direction == SyncDirection.To)
                                             {
                                                 try
-                                                {
-                                                    OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
-                                                }
-                                                catch (FileNotFoundException)
-                                                {
-                                                    CurrentDependencyTree.DependencyFileChange.NotFoundForStreamCounter++;
-                                                    throw;
-                                                }
-                                                byte[] previousMD5Bytes;
-                                                CLError retrieveMD5Error = CurrentDependencyTree.DependencyFileChange.GetMD5Bytes(out previousMD5Bytes);
-                                                if (retrieveMD5Error != null)
-                                                {
-                                                    throw new AggregateException("Error retrieving previousMD5Bytes", retrieveMD5Error.GrabExceptions());
-                                                }
-
-                                                MD5 md5Hasher = MD5.Create();
-
-                                                try
-                                                {
-                                                    byte[] fileBuffer = new byte[FileConstants.BufferSize];
-                                                    int fileReadBytes;
-                                                    long countFileSize = 0;
-
-                                                    while ((fileReadBytes = OutputStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
-                                                    {
-                                                        countFileSize += fileReadBytes;
-                                                        md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
-                                                    }
-
-                                                    md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
-                                                    byte[] newMD5Bytes = md5Hasher.Hash;
-
-                                                    string pathString = CurrentDependencyTree.DependencyFileChange.NewPath.ToString();
-                                                    FileInfo uploadInfo = new FileInfo(pathString);
-                                                    DateTime newCreationTime = uploadInfo.CreationTimeUtc.DropSubSeconds();
-                                                    DateTime newWriteTime = uploadInfo.LastWriteTimeUtc.DropSubSeconds();
-
-                                                    if (newCreationTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.CreationTime) != 0 // creation time changed
-                                                        || newWriteTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.LastTime) != 0 // or last write time changed
-                                                        || CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size == null // or previous size was not set
-                                                        || ((long)CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size) == countFileSize // or size changed
-                                                        || !((previousMD5Bytes == null && newMD5Bytes == null)
-                                                            || (previousMD5Bytes != null && newMD5Bytes != null && previousMD5Bytes.Length == newMD5Bytes.Length && NativeMethods.memcmp(previousMD5Bytes, newMD5Bytes, new UIntPtr((uint)previousMD5Bytes.Length)) == 0))) // or md5 changed
-                                                    {
-                                                        CLError setMD5Error = CurrentDependencyTree.DependencyFileChange.SetMD5(newMD5Bytes);
-                                                        if (setMD5Error != null)
-                                                        {
-                                                            throw new AggregateException("Error setting DependenyFileChange MD5", setMD5Error.GrabExceptions());
-                                                        }
-
-                                                        CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties = new FileMetadataHashableProperties(false,
-                                                            newWriteTime,
-                                                            newCreationTime,
-                                                            countFileSize);
-
-                                                        CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentDependencyTree.DependencyFileChange, null) });
-                                                        if (writeNewMetadataError != null)
-                                                        {
-                                                            throw new AggregateException("Error writing updated file upload metadata to SQL", writeNewMetadataError.GrabExceptions());
-                                                        }
-                                                    }
-                                                }
-                                                finally
                                                 {
                                                     try
                                                     {
-                                                        if (OutputStream != null)
+                                                        OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
+                                                    }
+                                                    catch (FileNotFoundException)
+                                                    {
+                                                        CurrentDependencyTree.DependencyFileChange.NotFoundForStreamCounter++;
+                                                        throw;
+                                                    }
+                                                    byte[] previousMD5Bytes;
+                                                    CLError retrieveMD5Error = CurrentDependencyTree.DependencyFileChange.GetMD5Bytes(out previousMD5Bytes);
+                                                    if (retrieveMD5Error != null)
+                                                    {
+                                                        throw new AggregateException("Error retrieving previousMD5Bytes", retrieveMD5Error.GrabExceptions());
+                                                    }
+
+                                                    MD5 md5Hasher = MD5.Create();
+
+                                                    try
+                                                    {
+                                                        byte[] fileBuffer = new byte[FileConstants.BufferSize];
+                                                        int fileReadBytes;
+                                                        long countFileSize = 0;
+
+                                                        while ((fileReadBytes = OutputStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
                                                         {
-                                                            OutputStream.Seek(0, SeekOrigin.Begin);
+                                                            countFileSize += fileReadBytes;
+                                                            md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                                        }
+
+                                                        md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+                                                        byte[] newMD5Bytes = md5Hasher.Hash;
+
+                                                        string pathString = CurrentDependencyTree.DependencyFileChange.NewPath.ToString();
+                                                        FileInfo uploadInfo = new FileInfo(pathString);
+                                                        DateTime newCreationTime = uploadInfo.CreationTimeUtc.DropSubSeconds();
+                                                        DateTime newWriteTime = uploadInfo.LastWriteTimeUtc.DropSubSeconds();
+
+                                                        if (newCreationTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.CreationTime) != 0 // creation time changed
+                                                            || newWriteTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.LastTime) != 0 // or last write time changed
+                                                            || CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size == null // or previous size was not set
+                                                            || ((long)CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size) == countFileSize // or size changed
+                                                            || !((previousMD5Bytes == null && newMD5Bytes == null)
+                                                                || (previousMD5Bytes != null && newMD5Bytes != null && previousMD5Bytes.Length == newMD5Bytes.Length && NativeMethods.memcmp(previousMD5Bytes, newMD5Bytes, new UIntPtr((uint)previousMD5Bytes.Length)) == 0))) // or md5 changed
+                                                        {
+                                                            CLError setMD5Error = CurrentDependencyTree.DependencyFileChange.SetMD5(newMD5Bytes);
+                                                            if (setMD5Error != null)
+                                                            {
+                                                                throw new AggregateException("Error setting DependenyFileChange MD5", setMD5Error.GrabExceptions());
+                                                            }
+
+                                                            CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties = new FileMetadataHashableProperties(false,
+                                                                newWriteTime,
+                                                                newCreationTime,
+                                                                countFileSize);
+
+                                                            CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentDependencyTree.DependencyFileChange, null) });
+                                                            if (writeNewMetadataError != null)
+                                                            {
+                                                                throw new AggregateException("Error writing updated file upload metadata to SQL", writeNewMetadataError.GrabExceptions());
+                                                            }
                                                         }
                                                     }
-                                                    catch
+                                                    finally
                                                     {
-                                                    }
+                                                        try
+                                                        {
+                                                            if (OutputStream != null)
+                                                            {
+                                                                OutputStream.Seek(0, SeekOrigin.Begin);
+                                                            }
+                                                        }
+                                                        catch
+                                                        {
+                                                        }
 
-                                                    md5Hasher.Dispose();
+                                                        md5Hasher.Dispose();
+                                                    }
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    CurrentFailed = true;
+                                                    toReturn += ex;
                                                 }
                                             }
-                                            catch (Exception ex)
+
+                                            if (CurrentFailed)
                                             {
-                                                CurrentFailed = true;
-                                                toReturn += ex;
+                                                OutputFailuresList.Add(new PossiblyPreexistingFileChangeInError(false, CurrentDependencyTree.DependencyFileChange));
+                                            }
+                                            else
+                                            {
+                                                OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, OutputStream));
                                             }
                                         }
-
-                                        if (CurrentFailed)
+                                        else/* if (failedOutChanges != null)*/ // not necessary to check for null failed out changes list since if it was null this else condition could never be reached
                                         {
-                                            OutputFailuresList.Add(new PossiblyPreexistingFileChangeInError(false, CurrentDependencyTree.DependencyFileChange));
-                                        }
-                                        else
-                                        {
-                                            OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, OutputStream));
+                                            failedOutChanges.Add(CurrentDependencyTree.DependencyFileChange);
                                         }
                                     }
                                 }
@@ -1625,7 +1682,8 @@ namespace CloudApiPublic.FileMonitor
         {
             QueuedChanges,
             FailureQueue,
-            ProcessingChanges
+            ProcessingChanges,
+            FailedOutList
         }
         private IEnumerable<KeyValuePair<int, FileChange>> EnumerateDependencies(FileChange toEnumerate, int currentLevelDeep = 0, bool onlyRenamePathsFromTop = false)
         {
@@ -1901,6 +1959,11 @@ namespace CloudApiPublic.FileMonitor
                     StopWatchers();
 
                     InitialIndexLocker.Dispose();
+                }
+
+                lock (QueuesTimer.TimerRunningLocker)
+                {
+                    QueuesTimer.TriggerTimerCompletionImmediately();
                 }
                 
                 // Dispose local unmanaged resources last

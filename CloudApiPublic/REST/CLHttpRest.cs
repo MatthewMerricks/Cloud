@@ -4746,9 +4746,15 @@ namespace CloudApiPublic.REST
                         // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
                         // attributes to set: creation time, last modified time, and last access time
 
-                        Helpers.RunActionWithRetries(() => System.IO.File.SetCreationTimeUtc(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime), true);
-                        Helpers.RunActionWithRetries(() => System.IO.File.SetLastAccessTimeUtc(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime), true);
-                        Helpers.RunActionWithRetries(() => System.IO.File.SetLastWriteTimeUtc(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime), true);
+                        Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
+                            new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
+                            true);
+                        Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
+                            new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                            true);
+                        Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
+                            new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                            true);
 
 
                         // fire callback to perform the actual move of the temp file to the final destination

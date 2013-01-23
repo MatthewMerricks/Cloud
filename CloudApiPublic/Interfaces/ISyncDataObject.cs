@@ -47,11 +47,13 @@ namespace CloudApiPublic.Interfaces
         /// <param name="outputChanges">(output) Highest level FileChanges and necessary Streams to process (without dependencies)</param>
         /// <param name="outputChangesInError">(output) Highest level FileChanges to be queued for error processing</param>
         /// <param name="nullChangeFound">(output) Whether a null FileChange was found in the processing queue (which does not get output)</param>
+        /// <param name="failedOutChanges">(optional) The list containing failed out changes which should be locked if it exists by the method caller</param>
         /// <returns>Should return any error that occured while grabbing events, should not throw the exception</returns>
         CLError grabChangesFromFileSystemMonitor(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
-            out bool nullChangeFound);
+            out bool nullChangeFound,
+            List<FileChange> failedOutChanges = null);
 
         /// <summary>
         /// Callback from SyncEngine for updating database with changes to FileChanges
@@ -102,11 +104,13 @@ namespace CloudApiPublic.Interfaces
         /// <param name="currentFailures">Current failures which would be reprocessed later (may have dependencies)</param>
         /// <param name="outputChanges">(output) Changes without dependencies (highest level) to process only with original streams from toAssign input (do not start new streams); dependencies should have no streams</param>
         /// <param name="outputFailures">(output) Changes which will be placed back into the failure queue for reprocessing later</param>
+        /// <param name="failedOutChanges">(optional) The list containing failed out changes which should be locked if it exists by the method caller</param>
         /// <returns>Should return any error that occurred while rebuilding the dependency trees, should not throw any exception</returns>
         CLError dependencyAssignment(IEnumerable<PossiblyStreamableFileChange> toAssign,
             IEnumerable<FileChange> currentFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
-            out IEnumerable<FileChange> outputFailures);
+            out IEnumerable<FileChange> outputFailures,
+            List<FileChange> failedOutChanges = null);
 
         /// <summary>
         /// Callback from SyncEngine to perform the action of a FileChange locally (i.e. for a Sync From Folder Creation, actually create the folder on disk);
