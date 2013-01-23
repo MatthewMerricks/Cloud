@@ -207,7 +207,7 @@ namespace CloudSdkSyncSample.Static
         }
     }
 
-    internal class NativeMethod
+    internal static class NativeMethod
     {
         // Token Specific Access Rights
 

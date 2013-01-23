@@ -714,10 +714,7 @@ namespace CloudSdkSyncSample.ViewModels
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
-                if (System.Environment.OSVersion.Version.Major >= 6)
-                {
-                    startInfo.Verb = "runas";
-                }
+                startInfo.Verb = "runas";
                 _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run regsvr32. Program: {0}. Arguments: {1}.", commandProgram, commandArguments);
                 regsvr32Process = Process.Start(startInfo);
 
@@ -801,10 +798,7 @@ namespace CloudSdkSyncSample.ViewModels
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
-                if (System.Environment.OSVersion.Version.Major >= 6)
-                {
-                    startInfo.Verb = "runas";
-                }
+                startInfo.Verb = "runas";
                 regsvr32Process = Process.Start(startInfo);
 
                 // Wait for the process to exit
@@ -1351,7 +1345,7 @@ namespace CloudSdkSyncSample.ViewModels
                 // Start explorer as a medium integrity process for Vista and above.
                 // Note: For Windows 8, the Metro mode will be disabled if Explorer is started with Administrator privileges.  That could
                 // happen if this app is started to "runas" Administrator.
-                if (System.Environment.OSVersion.Version.Major > -6)
+                if (System.Environment.OSVersion.Version.Major >= 6)
                 {
                     _trace.writeToLog(9, "MainViewModel: StartExplorer: Create medium integrity process. Explorer location: <{0}>.", explorerLocation);
                     CreateProcessSupport.CreateMediumIntegrityProcess(explorerLocation, CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
