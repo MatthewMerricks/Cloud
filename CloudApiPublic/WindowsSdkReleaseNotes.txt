@@ -1,0 +1,34 @@
+                                                    WINDOWS SDK RELEASE NOTES
+                                                    
+
+01/16/2013 Initial release (CloudSDK-v0.1.zip)
+
+01/28/2013 Build 1 (CloudSDK-v0.1.xxxxx.zip)
+  o (API Breaking Changes): Changed some of the class and method names to be more consistent with the Mac OS X SDK.
+    - Renamed CLCredentials to CLCredential.
+    - Renamed CLCredential.ApplicationKey to CLCredential.Key.
+    - Renamed CLCredential.ApplicationSecret to CLCredential.Secret.
+    - Changed the access modifiers of CLCredential.Secret and CLCredential.Key from public to internal.
+    - Renamed CLSyncBox.CreateAndInitializeExistingSyncBox to CLSyncBox.CreateAndInitialize.
+    - Renamed CLSyncEngine.ShutdownSchedulers CLSyncEngine.Shutdown.
+    - Renamed CLSyncEngine.GetCLSyncCurrentStatus to CLSyncEngine.GetEngineCurrentStatus().
+  o Added an internal CLCredential.Token property.
+  o Added a public helper method "bool CLCredential.CredentialHasToken()".
+  o Added some more documentation to CLCredential.
+  o Added Cloud server connectivity monitoring.  This halts CLSyncEngine with new halted status if the Cloud servers are out of service for too long.
+  o Added Local Internet connectivity monitoring, with graceful recovery on reconnection.
+  o Added long timer recovery of repeated FileChange failures.
+  o Completed uploads/downloads now properly clear out of the sample app sync status window, and are properly counted.
+  o Fixed a badging issue where parent folders were badged "syncing" when all of the contents were badged "synced".
+  o The sample app SyncBox folder Browse button now starts the browse in the user's desktop directory.
+  o Reworked the CloudApiPublic  Intellisense XML file to remove internal references.
+  o Added more comments to CLSyncEngine.GetEngineCurrentStatus.
+  o KillTimer is now disposed when it's calculated to not be needed anymore on processing of aggregating status for GetEngineCurrentStatus.
+  o Added min height/width to AdvancedOptionsView in the sample app.
+  o Fixed a bug on Win8 that disabled the Metro interface when the user clicked Finish on the installer with the Launch Application checkbox checked.
+  o Added a WindowsSdkReleaseNotes.txt file in the installation directory, with a Start Menu shortcut to launch it.
+  o Changed the installer to launch the SDK documentation rather than the sample app.
+  o Fixed an unhandled exception thrown from CLSyncEngine.Start() when the assembly containing CloudApiPublic was loaded from an unmanaged application.
+
+
+

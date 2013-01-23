@@ -65,7 +65,7 @@ namespace CloudApiPublic
         /// </summary>
         /// <param name="status">(output) Current status of syncing</param>
         /// <returns>Returns any error which occurred in retrieving the sync status, if any</returns>
-        public CLError GetCLSyncCurrentStatus(out CLSyncCurrentStatus status)
+        public CLError GetEngineCurrentStatus(out CLSyncCurrentStatus status)
         {
             try
             {
@@ -417,7 +417,7 @@ namespace CloudApiPublic
                 // Create the http rest client
                 _trace.writeToLog(9, "CLSync: Start: Create rest client.");
                 CLHttpRest httpRestClient;
-                CLError createRestClientError = CLHttpRest.CreateAndInitialize(SyncBox.Credentials, SyncBox.SyncBoxId, out httpRestClient, this._syncBox.CopiedSettings);
+                CLError createRestClientError = CLHttpRest.CreateAndInitialize(SyncBox.Credential, SyncBox.SyncBoxId, out httpRestClient, this._syncBox.CopiedSettings);
                 if (createRestClientError != null)
                 {
                     _trace.writeToLog(1, "CLSync: Start: ERROR(3): Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());

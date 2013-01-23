@@ -1,4 +1,4 @@
-﻿//
+﻿// 
 // CLCredential.cs
 // Cloud Windows
 //
@@ -15,14 +15,22 @@ using System.Text;
 namespace CloudApiPublic
 {
     /// <summary>
-    /// Declares the interface used for authentication and authorization to Cloud.com <http://Cloud.com>.
+    /// Contains authentication information required for all communication and services
+    /// 
+    /// The CLCredential class declares the interface used for authentication and authorization to Cloud.com <http://Cloud.com>.
+    ///
+    /// The CLCredential class allows the developer to represent both the Application’s credential as well as temporary credential. The Application’s credential provides access to all of your Application’s SyncBoxes. Using a temporary credential, access can be limited to an individual SyncBox.
+    ///
+    /// If the CLCredential object does not contain a token, all authentication and authorization attempts will be made by looking up the credential in the Application space.
+    ///
+    /// If the CLCredential object contains a token, all authentication and authorization attempts will be made by looking up the credential in the temporary session space.
     /// </summary>
     public sealed class CLCredential
     {
         /// <summary>
-        /// The public key that identifies this credential.
+        /// The public key that identifies this application.
         /// </summary>
-        public string Key
+        internal string Key
         {
             get
             {
@@ -32,7 +40,7 @@ namespace CloudApiPublic
         private readonly string _key;
 
         /// <summary>
-        /// The secret private key.
+        /// The application secret private key.
         /// </summary>
         internal string Secret
         {
@@ -43,101 +51,100 @@ namespace CloudApiPublic
         }
         private readonly string _secret;
 
-        //// we don't support temporary credentials yet
-        //internal string Token
-        //{
-        //    get
-        //    {
-        //        return _token;
-        //    }
-        //}
-        //private readonly string _token;
-        
-        /// <summary>
-        /// Whether these credentials are temporary and thus have a temporary credential token
-        /// </summary>
-        public bool HasToken
+        //TODO: Add support for temporary credential.
+        internal string Token
         {
             get
             {
-                //// we don't support temporary credentials yet
-                //return _token != null;
-                
-                // once we support temporary credentials, remove the next line
-                return false;
+                return _token;
             }
         }
+        private readonly string _token;
 
         /// <summary>
-        /// Outputs a new credentials object from key/secret
+        /// Outputs a new credential object from key/secret
         /// </summary>
-        /// <param name="Key">The public key that identifies this credential.</param>
-        /// <param name="Secret">The secret private key.</param>
-        /// <param name="credentials">(output) Created credentials object</param>
+        /// <param name="Key">The public key that identifies this application.</param>
+        /// <param name="Secret">The application secret private key.</param>
+        /// <param name="credential">(output) Created credential object</param>
         /// <param name="status">(output) Status of creation, check this for Success</param>
-        /// <returns>Returns any error that occurred in construction, if any</returns>
+        /// <param name="Token">(optional) The temporary token to use.  Default: null.</param>
+        /// <returns>Returns any error that occurred in construction, if any, or null.</returns>
         public static CLError CreateAndInitialize(
             string Key,
             string Secret,
-            out CLCredential credentials,
-            out CLCredentialsCreationStatus status/*,
-            string Token = null*/) // we don't support temporary credentials yet
+            out CLCredential credential,
+            out CLCredentialCreationStatus status,
+            string Token = null)  //TODO: Add support for temporary credential.
         {
-            status = CLCredentialsCreationStatus.ErrorUnknown;
+            status = CLCredentialCreationStatus.ErrorUnknown;
 
             try
             {
-                credentials = new CLCredential(
+                credential = new CLCredential(
                     Key,
-                    Secret/*,
-                    Token*/,
+                    Secret,
+                    Token,
                     ref status);
             }
             catch (Exception ex)
             {
-                credentials = Helpers.DefaultForType<CLCredential>();
+                credential = Helpers.DefaultForType<CLCredential>();
                 return ex;
             }
 
-            status = CLCredentialsCreationStatus.Success;
+            status = CLCredentialCreationStatus.Success;
             return null;
         }
+
+        /// <summary>
+        /// Private constructor
+        /// </summary>
         private CLCredential(
             string Key,
-            string Secret/*,
-            string Token*/,
-            ref CLCredentialsCreationStatus status) // we don't support temporary credentials yet
+            string Secret,
+            string Token,           //TODO: Provide support for temporary tokens.
+            ref CLCredentialCreationStatus status)
         {
             // check input parameters
 
             if (string.IsNullOrEmpty(Key))
             {
-                status = CLCredentialsCreationStatus.ErrorNullKey;
+                status = CLCredentialCreationStatus.ErrorNullKey;
                 throw new NullReferenceException("Key cannot be null");
             }
             if (string.IsNullOrEmpty(Secret))
             {
-                status = CLCredentialsCreationStatus.ErrorNullSecret;
+                status = CLCredentialCreationStatus.ErrorNullSecret;
                 throw new NullReferenceException("Secret cannot be null");
             }
 
-            //// we don't support temporary credentials yet
-            //// since we allow null then reverse-null coalesce from empty string
-            //if (Token == string.Empty)
-            //{
-            //    Token = null;
-            //}
+            //TODO: Provide support for temporary credential.
+            // Since we allow null then reverse-null coalesce from empty string
+            if (Token == string.Empty)
+            {
+                Token = null;
+            }
 
             this._key = Key;
             this._secret = Secret;
-            //// we don't support temporary credentials yet
-            //this._token = Token;
+            
+            this._token = Token;        //TODO: Provide support for temporary credential.
+        }
+
+        /// <summary>
+        /// Determine whether the credential was instantiated with a temporary token.
+        /// </summary>
+        /// <returns>bool: true: The token exists.</returns>
+        public bool CredentialHasToken()
+        {
+            return !String.IsNullOrEmpty(_token);
         }
     }
     /// <summary>
     /// Status of creation of <see cref="CLCredential"/>
     /// </summary>
-    public enum CLCredentialsCreationStatus : byte
+    public enum CLCredentialCreationStatus : byte
     {
         Success,
         ErrorNullKey,

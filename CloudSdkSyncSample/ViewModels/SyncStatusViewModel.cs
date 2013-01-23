@@ -194,7 +194,7 @@ namespace CloudSdkSyncSample.ViewModels
             {
                 // Set the overall sync status
                 CLSyncCurrentStatus currentStatus;
-                syncEngine.GetCLSyncCurrentStatus(out currentStatus);
+                syncEngine.GetEngineCurrentStatus(out currentStatus);
                 if (currentStatus.CurrentState == CLSyncCurrentState.Idle)
                 {
                     SyncStatus = SyncStates.Synced;
