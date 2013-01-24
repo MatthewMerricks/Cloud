@@ -52,6 +52,15 @@
     <AssemblyOriginatorKeyFile>
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNoSSL|AnyCPU'">
+    <OutputPath>bin\ReleaseNoSSL\</OutputPath>
+    <DefineConstants>TRACE;NOSSL</DefineConstants>
+    <DocumentationFile>bin\Release\CloudApiPublic.XML</DocumentationFile>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="BadgeCOMLib">
       <EmbedInteropTypes>False</EmbedInteropTypes>
@@ -334,6 +343,9 @@
     <EmbeddedResource Include="..\x86\sqlcese40.dll">
       <Link>SQLIndexer\SqlCE\x86\sqlcese40.dll</Link>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WindowsSdkReleaseNotes.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

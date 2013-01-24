@@ -139,8 +139,13 @@ namespace CloudApiPublic.Model
         // -David
         internal void AddFileStream(Stream fStream)
         {
+            if (fStream == null)
+            {
+                return;
+            }
+
             this.errorInfo.Add(CLError.ErrorInfo_FileStreamToDispose +
-                    this.errorInfo.Count(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_FileStreamToDispose)).ToString(),
+                    this.errorInfo.Count(currentPair => currentPair.Key != null && currentPair.Key.StartsWith(CLError.ErrorInfo_FileStreamToDispose)).ToString(),
                 fStream);
         }
 
@@ -154,7 +159,7 @@ namespace CloudApiPublic.Model
             if (ex != null)
             {
                 this.errorInfo.Add(CLError.ErrorInfo_Exception +
-                        this.errorInfo.Count(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception)).ToString(),
+                        this.errorInfo.Count(currentPair => currentPair.Key != null && currentPair.Key.StartsWith(CLError.ErrorInfo_Exception)).ToString(),
                     ex);
                 if (replaceErrorDescription)
                 {
@@ -181,7 +186,7 @@ namespace CloudApiPublic.Model
                     }
                     return currentPair.Value as Stream;
                 };
-            return this.errorInfo.Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_FileStreamToDispose)
+            return this.errorInfo.Where(currentPair => currentPair.Key != null && currentPair.Key.StartsWith(CLError.ErrorInfo_FileStreamToDispose)
                     && (tryCast = currentPair.Value as Stream) != null)
                 .ToArray()
                 .Select(currentPair => removeAndReturnValue(currentPair, this.errorInfo.Remove));
@@ -253,7 +258,7 @@ namespace CloudApiPublic.Model
         public IEnumerable<Exception> GrabExceptions()
         {
             List<Exception> toReturn = new List<Exception>();
-            foreach (Exception currentValue in this.errorInfo.Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception))
+            foreach (Exception currentValue in this.errorInfo.Where(currentPair => currentPair.Key != null && currentPair.Key.StartsWith(CLError.ErrorInfo_Exception))
                 .Select(currentPair => currentPair.Value))
             {
                 Exception castValue = currentValue as Exception;

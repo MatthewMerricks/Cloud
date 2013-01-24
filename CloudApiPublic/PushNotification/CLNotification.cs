@@ -221,10 +221,10 @@ namespace CloudApiPublic.PushNotification
                                         CLDefinitions.HeaderKeyAuthorization, 
                                         CLDefinitions.HeaderAppendCWS0 +
                                             CLDefinitions.HeaderAppendKey +
-                                            _syncBox.Credentials.Key + ", " +
+                                            _syncBox.Credential.Key + ", " +
                                             CLDefinitions.HeaderAppendSignature +
                                             Helpers.GenerateAuthorizationHeaderToken(
-                                                ApplicationSecret: _syncBox.Credentials.Secret,
+                                                secret: _syncBox.Credential.Secret,
                                                 httpMethod: CLDefinitions.HeaderAppendMethodGet, 
                                                 pathAndQueryStringAndFragment: pathAndQueryStringAndFragment))
                                 },
@@ -342,40 +342,49 @@ namespace CloudApiPublic.PushNotification
             for (int manualPollingIteration = CLDefinitions.ManualPollingIterationsBeforeConnectingPush - 1; manualPollingIteration >= 0; manualPollingIteration--)
             {
                 _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Top of manualPollingIteration loop.");
-                if (!servicesStartedSet)
+
+                // Loop checking for termination.  This loop allows this thread pool thread to exit earlier, rather than waiting for a long delay to check at the next poll
+                int innerLoopCount = CLDefinitions.ManualPollingIterationPeriodInMilliseconds / 1000;   // number of one-second sleeps before the next poll
+                for (int i = 0; i < innerLoopCount; ++i)
                 {
-                    _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: !servicesStartedSet.");
-                    if (castState != null)
+                    lock (castState)
                     {
-                        lock (castState)
+                        // Only the first time in, indicate that our push service is started.
+                        if (!servicesStartedSet)
                         {
-                            _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Set _serviceStarted.");
-                            castState._serviceStarted = true;
+                            _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: !servicesStartedSet.");
+                            if (castState != null)
+                            {
+                                _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Set _serviceStarted.");
+                                castState._serviceStarted = true;
+                            }
+                            servicesStartedSet = true;
+                        }
+                        // Other iterations will exit the thread if there was an error.
+                        else if (castState != null
+                            && !castState._serviceStarted)
+                        {
+                            _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Exit thread.");
+                            return;
+                        }
+
+                        // Exit if we have been closed or not initialized.
+                        if (!castState._isInitialized)
+                        {
+                            _trace.writeToLog(9, "CLNotification: FallbackToManualPolling (2): Exit thread.");
+
+                            castState._pushConnected = false;
+                            castState._serviceStarted = false;
+                            castState.CleanWebSocketAndRestart(castState._connection, doNotRestart: true);
+
+                            return;
                         }
                     }
-                    servicesStartedSet = true;
-                }
-                else if (castState != null
-                    && !castState._serviceStarted)
-                {
-                    _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Return.");
-                    return;
+
+                    Thread.Sleep(1000);
                 }
 
-                lock (castState)
-                {
-                    if (!castState._isInitialized)
-                    {
-                        _trace.writeToLog(9, "CLNotification: FallbackToManualPolling (2): Return.");
-
-                        castState._pushConnected = false;
-                        castState._serviceStarted = false;
-                        castState.CleanWebSocketAndRestart(castState._connection, doNotRestart: true);
-
-                        return;
-                    }
-                }
-
+                // Time to perform a manual sync_from to the MDS server.
                 CLError storeManualPollingError = null;
                 try
                 {
@@ -450,6 +459,7 @@ namespace CloudApiPublic.PushNotification
                     Thread.Sleep(CLDefinitions.ManualPollingIterationPeriodInMilliseconds);
                 }
             }
+            _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Exit thread (3).");
         }
 
         private void PerformManualSyncFrom()

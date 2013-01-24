@@ -598,24 +598,44 @@ namespace CloudApiPublic.Static
         /// </summary>
         public static string GetDefaultNameFromApplicationName()
         {
-            System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
-            foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in
-                entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyProductAttribute), false).OfType<System.Reflection.AssemblyProductAttribute>())
+            try
             {
-                if (!string.IsNullOrWhiteSpace(currentProductAttribute.Product))
+                System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
+                foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in
+                    entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyProductAttribute), false).OfType<System.Reflection.AssemblyProductAttribute>())
                 {
-                    return currentProductAttribute.Product;
+                    if (!string.IsNullOrWhiteSpace(currentProductAttribute.Product))
+                    {
+                        return currentProductAttribute.Product;
+                    }
+                }
+                foreach (System.Reflection.AssemblyTitleAttribute currentTitleAttribute in
+                    entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), false).OfType<System.Reflection.AssemblyTitleAttribute>())
+                {
+                    if (!string.IsNullOrWhiteSpace(currentTitleAttribute.Title))
+                    {
+                        return currentTitleAttribute.Title;
+                    }
+                }
+                return entryAssembly.GetName().Name;
+            }
+            catch
+            {
+                try
+                {
+                    // The calling thread may be from a native COM application.  If that is the case, the GetEntryAssembly() method throws an exception.
+                    // Get the application name via another method.
+                    // PInvoke:
+                    //    StringBuilder exePath = new StringBuilder(1024);
+                    //    int exePathLen = NativeMethods.GetModuleFileName(IntPtr.Zero, exePath, exePath.Capacity);
+                    return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+                }
+                catch
+                {
+                    // The PInvoke method failed too.  Return a placeholder string.
+                    return "PossiblyUnmanagedCode";
                 }
             }
-            foreach (System.Reflection.AssemblyTitleAttribute currentTitleAttribute in
-                entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), false).OfType<System.Reflection.AssemblyTitleAttribute>())
-            {
-                if (!string.IsNullOrWhiteSpace(currentTitleAttribute.Title))
-                {
-                    return currentTitleAttribute.Title;
-                }
-            }
-            return entryAssembly.GetName().Name;
         }
 
         /// <summary>
@@ -675,7 +695,7 @@ namespace CloudApiPublic.Static
 
                 // parse the character after the current character as the other half a byte into the current output index (will be the low half)
                 hexBuffer[hexBufferIndex] += byte.Parse(hexChars[charIndex + 1].ToString(), // current character as a string
-                    System.Globalization.NumberStyles.HexNumber, // parse as a hexadecimal number
+                   System.Globalization.NumberStyles.HexNumber, // parse as a hexadecimal number
                     System.Globalization.CultureInfo.InvariantCulture); // a-f must be static across locales
 
                 // increment the index into the output array for the next byte
@@ -1508,12 +1528,12 @@ namespace CloudApiPublic.Static
         /// <summary>
         /// Generate the signed token for the platform auth Authorization header.
         /// </summary>
-        /// <param name="ApplicationSecret">Secret from credentials</param>
+        /// <param name="secret">Secret from credential</param>
         /// <param name="httpMethod">The HTTP method.  e.g.: "POST".</param>
         /// <param name="pathAndQueryStringAndFragment">The HTTP path, query string and fragment.  The path is required.</param>
         /// <param name="serverUrl">The server URL.</param>
         /// <returns></returns>
-        internal static string GenerateAuthorizationHeaderToken(string ApplicationSecret, string httpMethod, string pathAndQueryStringAndFragment)
+        internal static string GenerateAuthorizationHeaderToken(string secret, string httpMethod, string pathAndQueryStringAndFragment)
         {
             string toReturn = String.Empty;
             try
@@ -1550,7 +1570,7 @@ namespace CloudApiPublic.Static
                         Uri.UnescapeDataString(queryString);
 
                 // Hash the string
-                byte[] secretByte = Encoding.UTF8.GetBytes(ApplicationSecret);
+                byte[] secretByte = Encoding.UTF8.GetBytes(secret);
                 HMACSHA256 hmac = new HMACSHA256(secretByte);
                 byte[] stringToHashBytes = Encoding.UTF8.GetBytes(stringToHash);
                 byte[] hashMessage = hmac.ComputeHash(stringToHashBytes);

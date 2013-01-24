@@ -17,6 +17,11 @@ namespace CloudApiPublic.Static
 {
     internal static class NativeMethods
     {
+        #region GetModuleFileName
+        [DllImport("coredll.dll", SetLastError=true)]
+        internal static extern int GetModuleFileName(IntPtr hModule, StringBuilder lpFilename, int nSize);       
+	    #endregion
+
         #region byte array compare
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int memcmp(byte[] b1, byte[] b2, UIntPtr count);
@@ -399,7 +404,7 @@ namespace CloudApiPublic.Static
         }
         #endregion // enum HChangeNotifyFlags
         #endregion
-
+;
         // Support for SQLIndexer
         #region find file
 

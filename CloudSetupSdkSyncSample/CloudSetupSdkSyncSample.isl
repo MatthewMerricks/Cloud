@@ -2124,6 +2124,7 @@
 		<row><td>system.data.sqlserverce.dll2</td><td>System.Data.SqlServerCe.dll2</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\System.Data.SqlServerCe.dll</td><td>1</td><td/></row>
 		<row><td>websocket4net.dll</td><td>WebSocket4Net.dll</td><td>WEBSOC~1.DLL|WebSocket4Net.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\WebSocket4Net.dll</td><td>1</td><td/></row>
 		<row><td>websocket4net.dll2</td><td>WebSocket4Net.dll2</td><td>WEBSOC~1.DLL|WebSocket4Net.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\WebSocket4Net.dll</td><td>1</td><td/></row>
+		<row><td>windowssdkreleasenotes.txt</td><td>ISX_DEFAULTCOMPONENT2</td><td>WINDOW~1.TXT|WindowsSdkReleaseNotes.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudApiPublic\WindowsSdkReleaseNotes.txt</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -4189,6 +4190,8 @@
 		<row><td>IDS__TargetReq_DESC_RAM</td><td>1033</td><td>The amount of RAM is not adequate for running [ProductName].</td><td>0</td><td/><td>-1642060529</td></row>
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>-1642060529</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td>http://www.Cloud.com</td><td>0</td><td/><td>-2136895888</td></row>
+		<row><td>ID_STRING10</td><td>1033</td><td>SHOWSD~1|Show SDK Release Notes</td><td>0</td><td/><td>-1197368049</td></row>
+		<row><td>ID_STRING11</td><td>1033</td><td>Show the SDK Release Notes</td><td>0</td><td/><td>-1197368017</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>144818611</td></row>
 		<row><td>ID_STRING3</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>-1642059280</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>Cloud</td><td>0</td><td/><td>-1642051088</td></row>
@@ -4196,6 +4199,7 @@
 		<row><td>ID_STRING6</td><td>1033</td><td>UNINST~1|Uninstall Cloud SDK</td><td>0</td><td/><td>-1642044848</td></row>
 		<row><td>ID_STRING7</td><td>1033</td><td>SHOWSD~1|Show SDK Documentation</td><td>0</td><td/><td>279046799</td></row>
 		<row><td>ID_STRING8</td><td>1033</td><td>VSCLOU~1|VS CloudSdkSyncSample Solution</td><td>0</td><td/><td>279036359</td></row>
+		<row><td>ID_STRING9</td><td>1033</td><td>SHOWRE~1|Show Release Notes</td><td>0</td><td/><td>-1331581138</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>-1642060529</td></row>
 	</table>
 
@@ -4905,6 +4909,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>NewShortcut2</td><td>ISX_DEFAULTCOMPONENT2</td><td/><td>newfolder2</td><td>2</td></row>
 		<row><td>NewShortcut3</td><td>ISX_DEFAULTCOMPONENT2</td><td/><td>newfolder2</td><td>2</td></row>
 		<row><td>NewShortcut4</td><td>ISX_DEFAULTCOMPONENT2</td><td/><td>newfolder2</td><td>2</td></row>
+		<row><td>NewShortcut5</td><td>ISX_DEFAULTCOMPONENT2</td><td/><td>newfolder2</td><td>2</td></row>
+		<row><td>NewShortcut6</td><td>ISX_DEFAULTCOMPONENT2</td><td/><td>newfolder2</td><td>2</td></row>
 	</table>
 
 	<table name="RemoveIniFile">
@@ -4994,6 +5000,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>NewShortcut2</td><td>newfolder2</td><td>##ID_STRING6##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[SystemFolder]MsiExec.exe</td><td>/x [ProductCode]</td><td/><td/><td>NewShortcut2_431FEEF588F3485E99EB34316A95EC2D.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut3</td><td>newfolder2</td><td>##ID_STRING7##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[DOCS]index.html</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut4</td><td>newfolder2</td><td>##ID_STRING8##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[CLOUDSDKSYNCSAMPLE1]CloudSdkSyncSample.sln</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut6</td><td>newfolder2</td><td>##ID_STRING10##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[INSTALLDIR]WindowsSdkReleaseNotes.txt</td><td/><td>##ID_STRING11##</td><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">
