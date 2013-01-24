@@ -581,7 +581,7 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Validate the length of the SyncBox full path.
             int tooLongChars;
-            CLError errorFromLengthCheck = Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
+            CLError errorFromLengthCheck = CloudApiPublic.Static.Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
             if (errorFromLengthCheck != null)
             {
                 MessageBox.Show(String.Format("The SyncBox Folder is too long by {0} characters.  Please shorten the path.", tooLongChars));
@@ -714,7 +714,11 @@ namespace CloudSdkSyncSample.ViewModels
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
-                startInfo.Verb = "runas";
+                if (!CloudSdkSyncSample.Static.Helpers.IsAdministrator())
+                {
+                    _trace.writeToLog(1, "MainViewModel: InstallBadging: Run as administrator.");
+                    startInfo.Verb = "runas";
+                }
                 _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run regsvr32. Program: {0}. Arguments: {1}.", commandProgram, commandArguments);
                 regsvr32Process = Process.Start(startInfo);
 
@@ -798,7 +802,11 @@ namespace CloudSdkSyncSample.ViewModels
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
-                startInfo.Verb = "runas";
+                if (!CloudSdkSyncSample.Static.Helpers.IsAdministrator())
+                {
+                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: Run as administrator.");
+                    startInfo.Verb = "runas";
+                }
                 regsvr32Process = Process.Start(startInfo);
 
                 // Wait for the process to exit
@@ -1348,7 +1356,7 @@ namespace CloudSdkSyncSample.ViewModels
                 if (System.Environment.OSVersion.Version.Major >= 6)
                 {
                     _trace.writeToLog(9, "MainViewModel: StartExplorer: Create medium integrity process. Explorer location: <{0}>.", explorerLocation);
-                    CreateProcessSupport.CreateMediumIntegrityProcess(explorerLocation, CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
+                    CloudSdkSyncSample.Static.Helpers.CreateMediumIntegrityProcess(explorerLocation, NativeMethod.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
                 }
                 else
                 {

@@ -1,7 +1,6 @@
 ﻿/****************************** Module Header ******************************\
  Module Name:  NativeMethod.cs
- Project:      CSCreateLowIntegrityProcess
- Copyright (c) Microsoft Corporation.
+ Portions Copyright (c) Microsoft Corporation.
  
  The P/Invoke signature some native Windows APIs used by the code sample.
  
@@ -13,7 +12,7 @@
  EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED 
  WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 \***************************************************************************/
-// This module from http://code.msdn.microsoft.com/windowsdesktop/CSCreateLowIntegrityProcess-5dbb7cb9/sourcecode?fileId=21657&pathId=1953311234
+// Portions of this module from http://code.msdn.microsoft.com/windowsdesktop/CSCreateLowIntegrityProcess-5dbb7cb9/sourcecode?fileId=21657&pathId=1953311234
 
 #region Using directives
 using System;
@@ -24,189 +23,6 @@ using Microsoft.Win32.SafeHandles;
 
 namespace CloudSdkSyncSample.Static
 {
-    /// <summary>
-    /// The TOKEN_INFORMATION_CLASS enumeration type contains values that 
-    /// specify the type of information being assigned to or retrieved from 
-    /// an access token.
-    /// </summary>
-    internal enum TOKEN_INFORMATION_CLASS
-    {
-        TokenUser = 1,
-        TokenGroups,
-        TokenPrivileges,
-        TokenOwner,
-        TokenPrimaryGroup,
-        TokenDefaultDacl,
-        TokenSource,
-        TokenType,
-        TokenImpersonationLevel,
-        TokenStatistics,
-        TokenRestrictedSids,
-        TokenSessionId,
-        TokenGroupsAndPrivileges,
-        TokenSessionReference,
-        TokenSandBoxInert,
-        TokenAuditPolicy,
-        TokenOrigin,
-        TokenElevationType,
-        TokenLinkedToken,
-        TokenElevation,
-        TokenHasRestrictions,
-        TokenAccessInformation,
-        TokenVirtualizationAllowed,
-        TokenVirtualizationEnabled,
-        TokenIntegrityLevel,
-        TokenUIAccess,
-        TokenMandatoryPolicy,
-        TokenLogonSid,
-        MaxTokenInfoClass
-    }
-
-    [Flags]
-    public enum CreateProcessFlags
-    {
-        CREATE_BREAKAWAY_FROM_JOB = 0x01000000,
-        CREATE_DEFAULT_ERROR_MODE = 0x04000000,
-        CREATE_NEW_CONSOLE = 0x00000010,
-        CREATE_NEW_PROCESS_GROUP = 0x00000200,
-        CREATE_NO_WINDOW = 0x08000000,
-        CREATE_PROTECTED_PROCESS = 0x00040000,
-        CREATE_PRESERVE_CODE_AUTHZ_LEVEL = 0x02000000,
-        CREATE_SEPARATE_WOW_VDM = 0x00000800,
-        CREATE_SHARED_WOW_VDM = 0x00001000,
-        CREATE_SUSPENDED = 0x00000004,
-        CREATE_UNICODE_ENVIRONMENT = 0x00000400,
-        DEBUG_ONLY_THIS_PROCESS = 0x00000002,
-        DEBUG_PROCESS = 0x00000001,
-        DETACHED_PROCESS = 0x00000008,
-        EXTENDED_STARTUPINFO_PRESENT = 0x00080000,
-        INHERIT_PARENT_AFFINITY = 0x00010000
-    }
-
-
-    /// <summary>
-    /// The SECURITY_IMPERSONATION_LEVEL enumeration type contains values 
-    /// that specify security impersonation levels. Security impersonation 
-    /// levels govern the degree to which a server process can act on behalf 
-    /// of a client process.
-    /// </summary>
-    internal enum SECURITY_IMPERSONATION_LEVEL
-    {
-        SecurityAnonymous, 
-        SecurityIdentification,
-        SecurityImpersonation,
-        SecurityDelegation
-    }
-
-    /// <summary>
-    /// The TOKEN_TYPE enumeration type contains values that differentiate 
-    /// between a primary token and an impersonation token. 
-    /// </summary>
-    internal enum TOKEN_TYPE
-    {
-        TokenPrimary = 1,
-        TokenImpersonation
-    }
-
-    /// <summary>
-    /// The structure represents a security identifier (SID) and its 
-    /// attributes. SIDs are used to uniquely identify users or groups.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct SID_AND_ATTRIBUTES
-    {
-        public IntPtr Sid;
-        public UInt32 Attributes;
-    }
-
-    /// <summary>
-    /// The SID_IDENTIFIER_AUTHORITY structure represents the top-level 
-    /// authority of a security identifier (SID).
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct SID_IDENTIFIER_AUTHORITY
-    {
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6, 
-            ArraySubType = UnmanagedType.I1)]
-        public byte[] Value;
-
-        public SID_IDENTIFIER_AUTHORITY(byte[] value)
-        {
-            this.Value = value;
-        }
-    }
-
-    /// <summary>
-    /// The structure specifies the mandatory integrity level for a token.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct TOKEN_MANDATORY_LABEL
-    {
-        public SID_AND_ATTRIBUTES Label;
-    }
-
-    /// <summary>
-    /// Specifies the window station, desktop, standard handles, and 
-    /// appearance of the main window for a process at creation time.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    internal struct STARTUPINFO
-    {
-        public Int32 cb;
-        public string lpReserved;
-        public string lpDesktop;
-        public string lpTitle;
-        public Int32 dwX;
-        public Int32 dwY;
-        public Int32 dwXSize;
-        public Int32 dwYSize;
-        public Int32 dwXCountChars;
-        public Int32 dwYCountChars;
-        public Int32 dwFillAttribute;
-        public Int32 dwFlags;
-        public Int16 wShowWindow;
-        public Int16 cbReserved2;
-        public IntPtr lpReserved2;
-        public IntPtr hStdInput;
-        public IntPtr hStdOutput;
-        public IntPtr hStdError;
-    }
-
-    /// <summary>
-    /// Contains information about a newly created process and its primary 
-    /// thread.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct PROCESS_INFORMATION
-    {
-        public IntPtr hProcess;
-        public IntPtr hThread;
-        public int dwProcessId;
-        public int dwThreadId;
-    }
-
-    /// <summary>
-    /// Represents a wrapper class for a token handle.
-    /// </summary>
-    internal class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
-    {
-        private SafeTokenHandle()
-            : base(true)
-        {
-        }
-
-        internal SafeTokenHandle(IntPtr handle)
-            : base(true)
-        {
-            base.SetHandle(handle);
-        }
-
-        protected override bool ReleaseHandle()
-        {
-            return NativeMethod.CloseHandle(base.handle);
-        }
-    }
-
     internal static class NativeMethod
     {
         // Token Specific Access Rights
@@ -260,7 +76,56 @@ namespace CloudSdkSyncSample.Static
             SE_GROUP_INTEGRITY | SE_GROUP_INTEGRITY_ENABLED);
 
 
+        [DllImport("advapi32.dll", SetLastError = true)]
+        public static extern bool GetTokenInformation(IntPtr tokenHandle, TokenInformationClass tokenInformationClass, IntPtr tokenInformation, int tokenInformationLength, out int returnLength);
+
         /// <summary>
+        /// Passed to <see cref="GetTokenInformation"/> to specify what
+        /// information about the token to return.
+        /// </summary>
+        public enum TokenInformationClass
+        {
+            TokenUser = 1,
+            TokenGroups,
+            TokenPrivileges,
+            TokenOwner,
+            TokenPrimaryGroup,
+            TokenDefaultDacl,
+            TokenSource,
+            TokenType,
+            TokenImpersonationLevel,
+            TokenStatistics,
+            TokenRestrictedSids,
+            TokenSessionId,
+            TokenGroupsAndPrivileges,
+            TokenSessionReference,
+            TokenSandBoxInert,
+            TokenAuditPolicy,
+            TokenOrigin,
+            TokenElevationType,
+            TokenLinkedToken,
+            TokenElevation,
+            TokenHasRestrictions,
+            TokenAccessInformation,
+            TokenVirtualizationAllowed,
+            TokenVirtualizationEnabled,
+            TokenIntegrityLevel,
+            TokenUiAccess,
+            TokenMandatoryPolicy,
+            TokenLogonSid,
+            MaxTokenInfoClass
+        }
+
+        /// <summary>
+        /// The elevation type for a user token.
+        /// </summary>
+        public enum TokenElevationType
+        {
+            TokenElevationTypeDefault = 1,
+            TokenElevationTypeFull,
+            TokenElevationTypeLimited
+        }        /// <summary>
+                 /// 
         /// The function opens the access token associated with a process.
         /// </summary>
         /// <param name="hProcess">
@@ -578,88 +443,271 @@ namespace CloudSdkSyncSample.Static
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool CloseHandle(IntPtr handle);
-    }
 
-    /// <summary>
-    /// Well-known folder paths
-    /// </summary>
-    internal class KnownFolder
-    {
-        private static readonly Guid LocalAppDataGuid = new Guid(
-            "F1B32785-6FBA-4FCF-9D55-7B8E7F157091");
-        public static string LocalAppData
+        /// <summary>
+        /// Well-known folder paths
+        /// </summary>
+        public class KnownFolder
         {
-            get { return SHGetKnownFolderPath(LocalAppDataGuid); }
+            private static readonly Guid LocalAppDataGuid = new Guid(
+                "F1B32785-6FBA-4FCF-9D55-7B8E7F157091");
+            public static string LocalAppData
+            {
+                get { return SHGetKnownFolderPath(LocalAppDataGuid); }
+            }
+
+            private static readonly Guid LocalAppDataLowGuid = new Guid(
+                "A520A1A4-1780-4FF6-BD18-167343C5AF16");
+            public static string LocalAppDataLow
+            {
+                get { return SHGetKnownFolderPath(LocalAppDataLowGuid); }
+            }
+
+
+            /// <summary>
+            /// Retrieves the full path of a known folder identified by the 
+            /// folder's KNOWNFOLDERID.
+            /// </summary>
+            /// <param name="rfid">
+            /// A reference to the KNOWNFOLDERID that identifies the folder.
+            /// </param>
+            /// <returns></returns>
+            public static string SHGetKnownFolderPath(Guid rfid)
+            {
+                IntPtr pPath = IntPtr.Zero;
+                string path = null;
+                try
+                {
+                    int hr = SHGetKnownFolderPath(rfid, 0, IntPtr.Zero, out pPath);
+                    if (hr != 0)
+                    {
+                        throw Marshal.GetExceptionForHR(hr);
+                    }
+                    path = Marshal.PtrToStringUni(pPath);
+                }
+                finally
+                {
+                    if (pPath != IntPtr.Zero)
+                    {
+                        Marshal.FreeCoTaskMem(pPath);
+                        pPath = IntPtr.Zero;
+                    }
+                }
+                return path;
+            }
+
+
+            /// <summary>
+            /// Retrieves the full path of a known folder identified by the 
+            /// folder's KNOWNFOLDERID.
+            /// </summary>
+            /// <param name="rfid">
+            /// A reference to the KNOWNFOLDERID that identifies the folder.
+            /// </param>
+            /// <param name="dwFlags">
+            /// Flags that specify special retrieval options.
+            /// </param>
+            /// <param name="hToken">
+            /// An access token that represents a particular user. If this 
+            /// parameter is NULL, which is the most common usage, the function 
+            /// requests the known folder for the current user.
+            /// </param>
+            /// <param name="pszPath">
+            /// When this method returns, contains the address of a pointer to a 
+            /// null-terminated Unicode string that specifies the path of the 
+            /// known folder. The calling process is responsible for freeing this 
+            /// resource once it is no longer needed by calling CoTaskMemFree.
+            /// </param>
+            /// <returns>HRESULT</returns>
+            [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+            private static extern int SHGetKnownFolderPath(
+                [MarshalAs(UnmanagedType.LPStruct)] Guid rfid,
+                uint dwFlags,
+                IntPtr hToken,
+                out IntPtr pszPath);
         }
 
-        private static readonly Guid LocalAppDataLowGuid = new Guid(
-            "A520A1A4-1780-4FF6-BD18-167343C5AF16");
-        public static string LocalAppDataLow
+        /// <summary>
+        /// The TOKEN_INFORMATION_CLASS enumeration type contains values that 
+        /// specify the type of information being assigned to or retrieved from 
+        /// an access token.
+        /// </summary>
+        public enum TOKEN_INFORMATION_CLASS
         {
-            get { return SHGetKnownFolderPath(LocalAppDataLowGuid); }
+            TokenUser = 1,
+            TokenGroups,
+            TokenPrivileges,
+            TokenOwner,
+            TokenPrimaryGroup,
+            TokenDefaultDacl,
+            TokenSource,
+            TokenType,
+            TokenImpersonationLevel,
+            TokenStatistics,
+            TokenRestrictedSids,
+            TokenSessionId,
+            TokenGroupsAndPrivileges,
+            TokenSessionReference,
+            TokenSandBoxInert,
+            TokenAuditPolicy,
+            TokenOrigin,
+            TokenElevationType,
+            TokenLinkedToken,
+            TokenElevation,
+            TokenHasRestrictions,
+            TokenAccessInformation,
+            TokenVirtualizationAllowed,
+            TokenVirtualizationEnabled,
+            TokenIntegrityLevel,
+            TokenUIAccess,
+            TokenMandatoryPolicy,
+            TokenLogonSid,
+            MaxTokenInfoClass
+        }
+
+        [Flags]
+        public enum CreateProcessFlags
+        {
+            CREATE_BREAKAWAY_FROM_JOB = 0x01000000,
+            CREATE_DEFAULT_ERROR_MODE = 0x04000000,
+            CREATE_NEW_CONSOLE = 0x00000010,
+            CREATE_NEW_PROCESS_GROUP = 0x00000200,
+            CREATE_NO_WINDOW = 0x08000000,
+            CREATE_PROTECTED_PROCESS = 0x00040000,
+            CREATE_PRESERVE_CODE_AUTHZ_LEVEL = 0x02000000,
+            CREATE_SEPARATE_WOW_VDM = 0x00000800,
+            CREATE_SHARED_WOW_VDM = 0x00001000,
+            CREATE_SUSPENDED = 0x00000004,
+            CREATE_UNICODE_ENVIRONMENT = 0x00000400,
+            DEBUG_ONLY_THIS_PROCESS = 0x00000002,
+            DEBUG_PROCESS = 0x00000001,
+            DETACHED_PROCESS = 0x00000008,
+            EXTENDED_STARTUPINFO_PRESENT = 0x00080000,
+            INHERIT_PARENT_AFFINITY = 0x00010000
         }
 
 
         /// <summary>
-        /// Retrieves the full path of a known folder identified by the 
-        /// folder's KNOWNFOLDERID.
+        /// The SECURITY_IMPERSONATION_LEVEL enumeration type contains values 
+        /// that specify security impersonation levels. Security impersonation 
+        /// levels govern the degree to which a server process can act on behalf 
+        /// of a client process.
         /// </summary>
-        /// <param name="rfid">
-        /// A reference to the KNOWNFOLDERID that identifies the folder.
-        /// </param>
-        /// <returns></returns>
-        public static string SHGetKnownFolderPath(Guid rfid)
+        public enum SECURITY_IMPERSONATION_LEVEL
         {
-            IntPtr pPath = IntPtr.Zero;
-            string path = null;
-            try
-            {
-                int hr = SHGetKnownFolderPath(rfid, 0, IntPtr.Zero, out pPath);
-                if (hr != 0)
-                {
-                    throw Marshal.GetExceptionForHR(hr);
-                }
-                path = Marshal.PtrToStringUni(pPath);
-            }
-            finally
-            {
-                if (pPath != IntPtr.Zero)
-                {
-                    Marshal.FreeCoTaskMem(pPath);
-                    pPath = IntPtr.Zero;
-                }
-            }
-            return path;
+            SecurityAnonymous,
+            SecurityIdentification,
+            SecurityImpersonation,
+            SecurityDelegation
         }
 
+        /// <summary>
+        /// The TOKEN_TYPE enumeration type contains values that differentiate 
+        /// between a primary token and an impersonation token. 
+        /// </summary>
+        public enum TOKEN_TYPE
+        {
+            TokenPrimary = 1,
+            TokenImpersonation
+        }
 
         /// <summary>
-        /// Retrieves the full path of a known folder identified by the 
-        /// folder's KNOWNFOLDERID.
+        /// The structure represents a security identifier (SID) and its 
+        /// attributes. SIDs are used to uniquely identify users or groups.
         /// </summary>
-        /// <param name="rfid">
-        /// A reference to the KNOWNFOLDERID that identifies the folder.
-        /// </param>
-        /// <param name="dwFlags">
-        /// Flags that specify special retrieval options.
-        /// </param>
-        /// <param name="hToken">
-        /// An access token that represents a particular user. If this 
-        /// parameter is NULL, which is the most common usage, the function 
-        /// requests the known folder for the current user.
-        /// </param>
-        /// <param name="pszPath">
-        /// When this method returns, contains the address of a pointer to a 
-        /// null-terminated Unicode string that specifies the path of the 
-        /// known folder. The calling process is responsible for freeing this 
-        /// resource once it is no longer needed by calling CoTaskMemFree.
-        /// </param>
-        /// <returns>HRESULT</returns>
-        [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern int SHGetKnownFolderPath(
-            [MarshalAs(UnmanagedType.LPStruct)] Guid rfid,
-            uint dwFlags,
-            IntPtr hToken,
-            out IntPtr pszPath);
-    }
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SID_AND_ATTRIBUTES
+        {
+            public IntPtr Sid;
+            public UInt32 Attributes;
+        }
+
+        /// <summary>
+        /// The SID_IDENTIFIER_AUTHORITY structure represents the top-level 
+        /// authority of a security identifier (SID).
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SID_IDENTIFIER_AUTHORITY
+        {
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6,
+                ArraySubType = UnmanagedType.I1)]
+            public byte[] Value;
+
+            public SID_IDENTIFIER_AUTHORITY(byte[] value)
+            {
+                this.Value = value;
+            }
+        }
+
+        /// <summary>
+        /// The structure specifies the mandatory integrity level for a token.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct TOKEN_MANDATORY_LABEL
+        {
+            public SID_AND_ATTRIBUTES Label;
+        }
+
+        /// <summary>
+        /// Specifies the window station, desktop, standard handles, and 
+        /// appearance of the main window for a process at creation time.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct STARTUPINFO
+        {
+            public Int32 cb;
+            public string lpReserved;
+            public string lpDesktop;
+            public string lpTitle;
+            public Int32 dwX;
+            public Int32 dwY;
+            public Int32 dwXSize;
+            public Int32 dwYSize;
+            public Int32 dwXCountChars;
+            public Int32 dwYCountChars;
+            public Int32 dwFillAttribute;
+            public Int32 dwFlags;
+            public Int16 wShowWindow;
+            public Int16 cbReserved2;
+            public IntPtr lpReserved2;
+            public IntPtr hStdInput;
+            public IntPtr hStdOutput;
+            public IntPtr hStdError;
+        }
+
+        /// <summary>
+        /// Contains information about a newly created process and its primary 
+        /// thread.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct PROCESS_INFORMATION
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public int dwProcessId;
+            public int dwThreadId;
+        }
+
+        /// <summary>
+        /// Represents a wrapper class for a token handle.
+        /// </summary>
+        public class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
+        {
+            private SafeTokenHandle()
+                : base(true)
+            {
+            }
+
+            internal SafeTokenHandle(IntPtr handle)
+                : base(true)
+            {
+                base.SetHandle(handle);
+            }
+
+            protected override bool ReleaseHandle()
+            {
+                return NativeMethod.CloseHandle(base.handle);
+            }
+        }
+    }  // end NativeMethod
 }

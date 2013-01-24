@@ -1,7 +1,6 @@
 ﻿/****************************** Module Header ******************************\
- Module Name:  NativeMethod.cs
- Project:      CSCreateLowIntegrityProcess
- Copyright (c) Microsoft Corporation.
+ Module Name:  Helpers.cs
+ Portions Copyright (c) Microsoft Corporation.
  
  The P/Invoke signature some native Windows APIs used by the code sample.
  
@@ -13,8 +12,7 @@
  EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE IMPLIED 
  WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR PURPOSE.
 \***************************************************************************/
-// This module from http://code.msdn.microsoft.com/windowsdesktop/CSCreateLowIntegrityProcess-5dbb7cb9/sourcecode?fileId=21657&pathId=1953311234
-// Changes made.
+// The CreateMediumIntegrityProcess() method from http://code.msdn.microsoft.com/windowsdesktop/CSCreateLowIntegrityProcess-5dbb7cb9/sourcecode?fileId=21657&pathId=1953311234, with modifications.
 
 using System;
 using System.Collections.Generic;
@@ -23,36 +21,41 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.ComponentModel;
+using System.Security.Principal;
+using CloudApiPublic.Support;
+using CloudApiPublic.Model;
 
 namespace CloudSdkSyncSample.Static
 {
-    public static class CreateProcessSupport
+    public static class Helpers
     {
+        private static CLTrace _trace = CLTrace.Instance;
+
         /// <summary>
-        /// The function launches an application at low integrity level. 
+        /// The function launches an application at medium integrity level. 
         /// </summary>
         /// <param name="commandLine">
         /// The command line to be executed. The maximum length of this string is 32K 
         /// characters. 
         /// </param>
         /// <remarks>
-        /// To start a low-integrity process, 
+        /// To start a medium-integrity process, 
         /// 1) Duplicate the handle of the current process, which is at medium 
         ///    integrity level.
         /// 2) Use SetTokenInformation to set the integrity level in the access token 
-        ///    to Low.
+        ///    to Medium.
         /// 3) Use CreateProcessAsUser to create a new process using the handle to 
-        ///    the low integrity access token.
+        ///    the medium integrity access token.
         /// </remarks>
-        public static void CreateMediumIntegrityProcess(string commandLine, CreateProcessFlags creationFlags)
+        internal static void CreateMediumIntegrityProcess(string commandLine, NativeMethod.CreateProcessFlags creationFlags)
         {
-            SafeTokenHandle hToken = null;
-            SafeTokenHandle hNewToken = null;
+            NativeMethod.SafeTokenHandle hToken = null;
+            NativeMethod.SafeTokenHandle hNewToken = null;
             IntPtr pIntegritySid = IntPtr.Zero;
             int cbTokenInfo = 0;
             IntPtr pTokenInfo = IntPtr.Zero;
-            STARTUPINFO si = new STARTUPINFO();
-            PROCESS_INFORMATION pi = new PROCESS_INFORMATION();
+            NativeMethod.STARTUPINFO si = new NativeMethod.STARTUPINFO();
+            NativeMethod.PROCESS_INFORMATION pi = new NativeMethod.PROCESS_INFORMATION();
 
             try
             {
@@ -67,8 +70,8 @@ namespace CloudSdkSyncSample.Static
 
                 // Duplicate the primary token of the current process.
                 if (!NativeMethod.DuplicateTokenEx(hToken, 0, IntPtr.Zero,
-                    SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
-                    TOKEN_TYPE.TokenPrimary, out hNewToken))
+                    NativeMethod.SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
+                    NativeMethod.TOKEN_TYPE.TokenPrimary, out hNewToken))
                 {
                     throw new Win32Exception();
                 }
@@ -82,7 +85,7 @@ namespace CloudSdkSyncSample.Static
                     throw new Win32Exception();
                 }
 
-                TOKEN_MANDATORY_LABEL tml;
+                NativeMethod.TOKEN_MANDATORY_LABEL tml;
                 tml.Label.Attributes = NativeMethod.SE_GROUP_INTEGRITY;
                 tml.Label.Sid = pIntegritySid;
 
@@ -93,7 +96,7 @@ namespace CloudSdkSyncSample.Static
 
                 // Set the integrity level in the access token to low.
                 if (!NativeMethod.SetTokenInformation(hNewToken,
-                    TOKEN_INFORMATION_CLASS.TokenIntegrityLevel, pTokenInfo,
+                    NativeMethod.TOKEN_INFORMATION_CLASS.TokenIntegrityLevel, pTokenInfo,
                     cbTokenInfo + NativeMethod.GetLengthSid(pIntegritySid)))
                 {
                     throw new Win32Exception();
@@ -145,6 +148,37 @@ namespace CloudSdkSyncSample.Static
             }
         }
 
+        /// <summary>
+        /// Determine whether the current process has administrative privileges.
+        /// </summary>
+        /// <returns>bool: true: Is in the Administrator group.</returns>
+        internal static bool IsAdministrator()
+        {
+            try
+            {
+                var identity = WindowsIdentity.GetCurrent();
+                if (identity == null)
+                {
+                    throw new InvalidOperationException("Couldn't get the current user identity");
+                }
+                var principal = new WindowsPrincipal(identity);
 
+                // Check if this user has the Administrator role. If they do, return immediately.
+                // If UAC is on, and the process is not elevated, then this will actually return false.
+                if (principal.IsInRole(WindowsBuiltInRole.Administrator))
+                {
+                    _trace.writeToLog(1, "Helpers: IsAdministrator: IsInRole adminstrator.  Return true.");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "Helpers: IsAdministrator: ERROR: Exception: Msg: <{0}>. Return false.", ex.Message);
+            }
+
+            return false;
+        }
     }
 }

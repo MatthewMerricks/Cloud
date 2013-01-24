@@ -30,5 +30,6 @@
   o Changed the installer to launch the SDK documentation rather than the sample app.
   o Fixed an unhandled exception thrown from CLSyncEngine.Start() when the assembly containing CloudApiPublic was loaded from an unmanaged application.
   o WebSocket support works properly now (no fall-back to polling).
+  o Fixed a bug.  Push notification was unique only to the SyncBoxId.  It is now unique to the combination of SyncBoxId and DeviceId.
 
 
