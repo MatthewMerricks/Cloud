@@ -55,7 +55,13 @@ namespace CloudApiPublic.BadgeNET
         /// </summary>
         ~IconOverlay()
         {
-            this.Dispose(false);
+            try
+            {
+                this.Dispose(false);
+            }
+            catch
+            {
+            }
         }
 
         #region public methods
