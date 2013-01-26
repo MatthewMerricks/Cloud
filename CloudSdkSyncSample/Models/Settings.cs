@@ -6,8 +6,9 @@ namespace CloudSdkSyncSample.Models
     public class Settings
     {
         public string SyncBoxFullPath { get; set; }
-        public string ApplicationKey { get; set; }
-        public string ApplicationSecret { get; set; }
+        public string Key { get; set; }
+        public string Secret { get; set; }
+        public string Token { get; set; }
         public string SyncBoxId { get; set; }
         public string UniqueDeviceId { get; set; }
         public string TempDownloadFolderFullPath { get; set; }
@@ -29,8 +30,9 @@ namespace CloudSdkSyncSample.Models
         public Settings(Settings settingsCopy)
         {
             SyncBoxFullPath = settingsCopy.SyncBoxFullPath;
-            ApplicationKey = settingsCopy.ApplicationKey;
-            ApplicationSecret = settingsCopy.ApplicationSecret;
+            Key = settingsCopy.Key;
+            Secret = settingsCopy.Secret;
+            Token = settingsCopy.Token;
             SyncBoxId = settingsCopy.SyncBoxId;
             UniqueDeviceId = settingsCopy.UniqueDeviceId;
             TempDownloadFolderFullPath = settingsCopy.TempDownloadFolderFullPath;
@@ -59,8 +61,9 @@ namespace CloudSdkSyncSample.Models
 
             // Use this pattern to compare reference members
             if (!Object.Equals(SyncBoxFullPath, otherSettings.SyncBoxFullPath)) return false;
-            if (!Object.Equals(ApplicationKey, otherSettings.ApplicationKey)) return false;
-            if (!Object.Equals(ApplicationSecret, otherSettings.ApplicationSecret)) return false;
+            if (!Object.Equals(Key, otherSettings.Key)) return false;
+            if (!Object.Equals(Secret, otherSettings.Secret)) return false;
+            if (!Object.Equals(Token, otherSettings.Token)) return false;
             if (!Object.Equals(SyncBoxId, otherSettings.SyncBoxId)) return false;
             if (!Object.Equals(UniqueDeviceId, otherSettings.UniqueDeviceId)) return false;
             if (!Object.Equals(TempDownloadFolderFullPath, otherSettings.TempDownloadFolderFullPath)) return false;
@@ -87,8 +90,9 @@ namespace CloudSdkSyncSample.Models
         public void GetSavedSettings()
         {
             this.SyncBoxFullPath = Properties.Settings.Default.SyncBoxFullPath;
-            this.ApplicationKey = Properties.Settings.Default.ApplicationKey;
-            this.ApplicationSecret = Properties.Settings.Default.ApplicationSecret;
+            this.Key = Properties.Settings.Default.Key;
+            this.Secret = Properties.Settings.Default.Secret;
+            this.Token = Properties.Settings.Default.Token;
             this.SyncBoxId = Properties.Settings.Default.SyncBoxId;
             this.UniqueDeviceId = Properties.Settings.Default.UniqueDeviceId;
             this.TempDownloadFolderFullPath = Properties.Settings.Default.TempDownloadFolderFullPath;

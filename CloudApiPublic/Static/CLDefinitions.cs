@@ -269,7 +269,7 @@ namespace CloudApiPublic.Static
         public const int SyncConstantsResponseBufferSize = 4096;
 
         // HttpWebRequest Header Append
-        public const string HeaderAppendToken = "Token token=";
+        public const string HeaderAppendToken = ", Token=";
         public const string HeaderAppendCWS0 = "CWS0 ";
         public const string HeaderAppendKey = "key=";
         public const string HeaderAppendSignature = "signature=";

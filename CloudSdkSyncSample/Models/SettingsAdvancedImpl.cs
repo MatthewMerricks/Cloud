@@ -90,30 +90,42 @@ namespace CloudSdkSyncSample.Models
         }
 
         /// <summary>
-        /// Application key is the identity of this application.
+        /// Key is the identity of this application.
         /// </summary>
-        public string ApplicationKey
+        public string Key
         {
             get
             {
-                return Properties.Settings.Default.ApplicationKey;
+                return Properties.Settings.Default.Key;
             }
         }
 
         /// <summary>
-        /// Application secret.
+        /// Secret.
         /// </summary>
         /// <remarks>NOTE: This should NOT be stored in the settings.  It should be retrieved dynamically from the developer's server.</remarks>
-        public string ApplicationSecret
+        public string Secret
         {
             get
             {
-                return Properties.Settings.Default.ApplicationSecret;
+                return Properties.Settings.Default.Secret;
             }
         }
 
         /// <summary>
-        /// The unique SyncBox ID within this Application key.
+        /// Token.
+        /// </summary>
+        /// <remarks>NOTE: This should NOT be stored in the settings.  It should be retrieved dynamically from the developer's server.</remarks>
+        public string Token
+        {
+            get
+            {
+                return Properties.Settings.Default.Token;
+            }
+        }
+
+        /// <summary>
+        /// The unique SyncBox ID within an application.
         /// </summary>
         public Nullable<long> SyncBoxId
         {

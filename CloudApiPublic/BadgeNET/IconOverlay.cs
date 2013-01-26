@@ -545,7 +545,7 @@ namespace CloudApiPublic.BadgeNET
             get
             {
                 bool rc;
-                lock(this)
+                lock (this)
                 {
                     rc = isInitialized;
                 }
@@ -1098,64 +1098,70 @@ namespace CloudApiPublic.BadgeNET
                 {
                     // locks on this in case initialization is occurring simultaneously
                     _trace.writeToLog(9, "IconOverlay: Dispose. Disposing.");
+                    bool shouldCleanUp = false;
                     lock (this)
                     {
-                        // only need to shutdown if it was initialized
+                        // only need to clean up if it was initialized
                         if (isInitialized)
                         {
-                            // lock on object containing intial pipe connection running state
-                            _trace.writeToLog(9, "IconOverlay: Dispose. Initialized.");
-                            lock (pipeLocker)
-                            {
-                                // set runningstate to off
-                                _trace.writeToLog(9, "IconOverlay: Dispose. PipeLocker.");
-                                pipeLocker.pipeRunning = false;
-                            }
-
-                            // Tell BadgeCom instances that we are going down.
-                            try
-                            {
-                                if (_badgeComPubSubEvents != null)
-                                {
-                                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                CLError error = ex;
-                                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                                _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncBoxFolderPath event. Msg: <{0}>.", ex.Message);
-                            }
-
-                            // Terminate the BadgeCom initialization watcher
-                            try
-                            {
-                                if (_badgeComPubSubEvents != null)
-                                {
-                                    _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
-                                    _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
-                                    _badgeComPubSubEvents.Dispose();
-                                    _badgeComPubSubEvents = null;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                CLError error = ex;
-                                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                                _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: <{0}>.", ex.Message);
-                            }
-
-                            // Clear other references.
-                            lock (_currentBadgesLocker)
-                            {
-                                if (_currentBadges != null)
-                                {
-                                    _currentBadges.Clear();
-                                    _currentBadges = null;
-                                }
-                            }
-
+                            shouldCleanUp = true;
                             isInitialized = false;
+                            
+                        }
+                    }
+
+                    if (shouldCleanUp)
+                    {
+                        // lock on object containing intial pipe connection running state
+                        _trace.writeToLog(9, "IconOverlay: Dispose. Initialized.");
+                        lock (pipeLocker)
+                        {
+                            // set runningstate to off
+                            _trace.writeToLog(9, "IconOverlay: Dispose. PipeLocker.");
+                            pipeLocker.pipeRunning = false;
+                        }
+
+                        // Tell BadgeCom instances that we are going down.
+                        try
+                        {
+                            if (_badgeComPubSubEvents != null)
+                            {
+                                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            CLError error = ex;
+                            error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                            _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncBoxFolderPath event. Msg: <{0}>.", ex.Message);
+                        }
+
+                        // Terminate the BadgeCom initialization watcher
+                        try
+                        {
+                            if (_badgeComPubSubEvents != null)
+                            {
+                                _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
+                                _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
+                                _badgeComPubSubEvents.Dispose();
+                                _badgeComPubSubEvents = null;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            CLError error = ex;
+                            error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                            _trace.writeToLog(1, "IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: <{0}>.", ex.Message);
+                        }
+
+                        // Clear other references.
+                        lock (_currentBadgesLocker)
+                        {
+                            if (_currentBadges != null)
+                            {
+                                _currentBadges.Clear();
+                                _currentBadges = null;
+                            }
                         }
                     }
                 }

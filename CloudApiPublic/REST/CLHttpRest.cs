@@ -4115,7 +4115,11 @@ namespace CloudApiPublic.REST
                                         Helpers.GenerateAuthorizationHeaderToken(
                                             _credential.Secret,
                                             httpMethod: httpRequest.Method,
-                                            pathAndQueryStringAndFragment: serverMethodPath);   // set the authentication token
+                                            pathAndQueryStringAndFragment: serverMethodPath) +
+                                            // Add token if specified
+                                            (!String.IsNullOrEmpty(_credential.Token) ?
+                                                    CLDefinitions.HeaderAppendToken + _credential.Token :
+                                                    String.Empty);
             httpRequest.SendChunked = false; // do not send chunked
             httpRequest.Timeout = timeoutMilliseconds; // set timeout by input parameter, timeout does not apply to the amount of time it takes to perform uploading or downloading of a file
 

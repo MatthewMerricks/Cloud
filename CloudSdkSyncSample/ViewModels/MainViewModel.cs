@@ -106,35 +106,51 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
-        public string AppKey
+        public string Key
         {
-            get { return _settingsCurrent.ApplicationKey; }
+            get { return _settingsCurrent.Key; }
             set
             {
-                if (value == _settingsCurrent.ApplicationKey)
+                if (value == _settingsCurrent.Key)
                 {
                     return;
                 }
 
-                _settingsCurrent.ApplicationKey = value;
+                _settingsCurrent.Key = value;
 
-                base.OnPropertyChanged("AppKey");
+                base.OnPropertyChanged("Key");
             }
         }
 
-        public string AppSecret
+        public string Secret
         {
-            get { return _settingsCurrent.ApplicationSecret; }
+            get { return _settingsCurrent.Secret; }
             set
             {
-                if (value == _settingsCurrent.ApplicationSecret)
+                if (value == _settingsCurrent.Secret)
                 {
                     return;
                 }
 
-                _settingsCurrent.ApplicationSecret = value;
+                _settingsCurrent.Secret = value;
 
-                base.OnPropertyChanged("AppSecret");
+                base.OnPropertyChanged("Secret");
+            }
+        }
+
+        public string Token
+        {
+            get { return _settingsCurrent.Token; }
+            set
+            {
+                if (value == _settingsCurrent.Token)
+                {
+                    return;
+                }
+
+                _settingsCurrent.Token = value;
+
+                base.OnPropertyChanged("Token");
             }
         }
 
@@ -191,39 +207,56 @@ namespace CloudSdkSyncSample.ViewModels
         }
         private bool _tbSyncBoxFolderEnabled = true;
 
-        public bool TbApplicationKeyEnabled
+        public bool TbKeyEnabled
         {
-            get { return _tbApplicationKeyEnabled; }
+            get { return _tbKeyEnabled; }
             set
             {
-                if (value == _tbApplicationKeyEnabled)
+                if (value == _tbKeyEnabled)
                 {
                     return;
                 }
 
-                _tbApplicationKeyEnabled = value;
+                _tbKeyEnabled = value;
 
-                base.OnPropertyChanged("TbApplicationKeyEnabled");
+                base.OnPropertyChanged("TbKeyEnabled");
             }
         }
-        private bool _tbApplicationKeyEnabled = true;
+        private bool _tbKeyEnabled = true;
 
-        public bool TbApplicationSecretEnabled
+        public bool TbSecretEnabled
         {
-            get { return _tbApplicationSecretEnabled; }
+            get { return _tbSecretEnabled; }
             set
             {
-                if (value == _tbApplicationSecretEnabled)
+                if (value == _tbSecretEnabled)
                 {
                     return;
                 }
 
-                _tbApplicationSecretEnabled = value;
+                _tbSecretEnabled = value;
 
-                base.OnPropertyChanged("TbApplicationSecretEnabled");
+                base.OnPropertyChanged("TbSecretEnabled");
             }
         }
-        private bool _tbApplicationSecretEnabled = true;
+        private bool _tbSecretEnabled = true;
+
+        public bool TbTokenEnabled
+        {
+            get { return _tbTokenEnabled; }
+            set
+            {
+                if (value == _tbTokenEnabled)
+                {
+                    return;
+                }
+
+                _tbTokenEnabled = value;
+
+                base.OnPropertyChanged("TbTokenEnabled");
+            }
+        }
+        private bool _tbTokenEnabled = true;
 
         public bool TbSyncBoxIdEnabled
         {
@@ -280,39 +313,56 @@ namespace CloudSdkSyncSample.ViewModels
         }
         private bool _isSyncBoxPathFocused;
 
-        public bool IsAppKeyFocused
+        public bool IsKeyFocused
         {
-            get { return _isAppKeyFocused; }
+            get { return _isKeyFocused; }
             set
             {
-                if (value == _isAppKeyFocused)
+                if (value == _isKeyFocused)
                 {
-                    _isAppKeyFocused = false;
-                    base.OnPropertyChanged("IsAppKeyFocused");
+                    _isKeyFocused = false;
+                    base.OnPropertyChanged("IsKeyFocused");
                 }
 
-                _isAppKeyFocused = value;
-                base.OnPropertyChanged("IsAppKeyFocused");
+                _isKeyFocused = value;
+                base.OnPropertyChanged("IsKeyFocused");
             }
         }
-        private bool _isAppKeyFocused;
+        private bool _isKeyFocused;
 
-        public bool IsAppSecretFocused
+        public bool IsSecretFocused
         {
-            get { return _isAppSecretFocused; }
+            get { return _isSecretFocused; }
             set
             {
-                if (value == _isAppSecretFocused)
+                if (value == _isSecretFocused)
                 {
-                    _isAppSecretFocused = false;
-                    base.OnPropertyChanged("IsAppSecretFocused");
+                    _isSecretFocused = false;
+                    base.OnPropertyChanged("IsSecretFocused");
                 }
 
-                _isAppSecretFocused = value;
-                base.OnPropertyChanged("IsAppSecretFocused");
+                _isSecretFocused = value;
+                base.OnPropertyChanged("IsSecretFocused");
             }
         }
-        private bool _isAppSecretFocused;
+        private bool _isSecretFocused;
+
+        public bool IsTokenFocused
+        {
+            get { return _isTokenFocused; }
+            set
+            {
+                if (value == _isTokenFocused)
+                {
+                    _isTokenFocused = false;
+                    base.OnPropertyChanged("IsTokenFocused");
+                }
+
+                _isTokenFocused = value;
+                base.OnPropertyChanged("IsTokenFocused");
+            }
+        }
+        private bool _isTokenFocused;
 
         public bool IsSyncBoxIdFocused
         {
@@ -609,26 +659,38 @@ namespace CloudSdkSyncSample.ViewModels
                 return;
             }
 
-            // Validate the App Key.
-            AppKey = AppKey.Trim();
-            if (String.IsNullOrEmpty(AppKey) ||
-                !OnlyHexInString(AppKey) ||
-                 AppKey.Length != 64)
+            // Validate the Key.
+            Key = Key.Trim();
+            if (String.IsNullOrEmpty(Key) ||
+                !OnlyHexInString(Key) ||
+                 Key.Length != 64)
             {
-                MessageBox.Show("The Application Key must be a 64 character long string with only hexadecimal characters.");
-                this.IsAppKeyFocused = true;
+                MessageBox.Show("The Key must be a 64 character long string with only hexadecimal characters.");
+                this.IsKeyFocused = true;
                 return;
             }
 
-            // Validate the App Secret.
+            // Validate the Secret.
             // NOTE: This private key should not be handled this way.  It should be retrieved dynamically from a remote server, or protected in some other way.
-            AppSecret = AppSecret.Trim();
-            if (String.IsNullOrEmpty(AppSecret) ||
-                !OnlyHexInString(AppSecret) ||
-                 AppSecret.Length != 64)
+            Secret = Secret.Trim();
+            if (String.IsNullOrEmpty(Secret) ||
+                !OnlyHexInString(Secret) ||
+                 Secret.Length != 64)
             {
-                MessageBox.Show("The Application Secret must be a 64 character long string with only hexadecimal characters.");
-                this.IsAppSecretFocused = true;
+                MessageBox.Show("The Secret must be a 64 character long string with only hexadecimal characters.");
+                this.IsSecretFocused = true;
+                return;
+            }
+
+            // Validate the Token.
+            // NOTE: The token should not be handled this way.  It should be retrieved dynamically from a remote server, or protected in some other way.
+            Token = Token.Trim();
+            if (!String.IsNullOrEmpty(Token) &&
+                (!OnlyHexInString(Token) ||
+                 Token.Length != 64))
+            {
+                MessageBox.Show("If the token is specified, it must be a 64 character long string with only hexadecimal characters.");
+                this.IsTokenFocused = true;
                 return;
             }
 
@@ -662,8 +724,9 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Save the values to Settings
             Properties.Settings.Default.SyncBoxFullPath = SyncRoot;
-            Properties.Settings.Default.ApplicationKey = AppKey;
-            Properties.Settings.Default.ApplicationSecret = AppSecret;
+            Properties.Settings.Default.Key = Key;
+            Properties.Settings.Default.Secret = Secret;
+            Properties.Settings.Default.Token = Token;
             Properties.Settings.Default.SyncBoxId = SyncBoxId;
             Properties.Settings.Default.UniqueDeviceId = DeviceId;
             Properties.Settings.Default.TempDownloadFolderFullPath = _settingsCurrent.TempDownloadFolderFullPath;
@@ -688,7 +751,7 @@ namespace CloudSdkSyncSample.ViewModels
         private bool ShouldWeRequestSyncDatabaseDeletion()
         {
             if (!string.Equals(_settingsCurrent.SyncBoxFullPath, _settingsInitial.SyncBoxFullPath, StringComparison.InvariantCultureIgnoreCase) ||
-                !string.Equals(_settingsCurrent.ApplicationKey, _settingsInitial.ApplicationKey, StringComparison.InvariantCultureIgnoreCase) ||
+                !string.Equals(_settingsCurrent.Key, _settingsInitial.Key, StringComparison.InvariantCultureIgnoreCase) ||
                 !string.Equals(_settingsCurrent.SyncBoxId, _settingsInitial.SyncBoxId, StringComparison.InvariantCultureIgnoreCase) ||
                 !string.Equals(_settingsCurrent.UniqueDeviceId, _settingsInitial.UniqueDeviceId, StringComparison.InvariantCultureIgnoreCase) ||
                 !string.Equals(_settingsCurrent.DatabaseFolderFullPath, _settingsInitial.DatabaseFolderFullPath, StringComparison.InvariantCultureIgnoreCase))
@@ -932,10 +995,11 @@ namespace CloudSdkSyncSample.ViewModels
                             CLCredential syncCredential;
                             CLCredentialCreationStatus syncCredentialStatus;
                             CLError errorCreateSyncCredential = CLCredential.CreateAndInitialize(
-                                SettingsAdvancedImpl.Instance.ApplicationKey,
-                                SettingsAdvancedImpl.Instance.ApplicationSecret,
+                                SettingsAdvancedImpl.Instance.Key,
+                                SettingsAdvancedImpl.Instance.Secret,
                                 out syncCredential,
-                                out syncCredentialStatus);
+                                out syncCredentialStatus,
+                                SettingsAdvancedImpl.Instance.Token);
 
                             if (errorCreateSyncCredential != null)
                             {
@@ -1540,8 +1604,9 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Set the TextBox dependent properties.
             TbSyncBoxFolderEnabled = !isStartedStateToSet;
-            TbApplicationKeyEnabled = !isStartedStateToSet;
-            TbApplicationSecretEnabled= !isStartedStateToSet;
+            TbKeyEnabled = !isStartedStateToSet;
+            TbSecretEnabled= !isStartedStateToSet;
+            TbTokenEnabled = !isStartedStateToSet;
             TbSyncBoxIdEnabled = !isStartedStateToSet;
             TbUniqueDeviceIdEnabled = !isStartedStateToSet;
         }

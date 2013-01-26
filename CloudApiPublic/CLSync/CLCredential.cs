@@ -19,7 +19,7 @@ namespace CloudApiPublic
     /// 
     /// The CLCredential class declares the interface used for authentication and authorization to Cloud.com <http://Cloud.com>.
     ///
-    /// The CLCredential class allows the developer to represent both the Application’s credential as well as temporary credential. The Application’s credential provides access to all of your Application’s SyncBoxes. Using a temporary credential, access can be limited to an individual SyncBox.
+    /// The CLCredential class allows the developer to represent both the Application’s credential as well as temporary session credential. The Application’s credential provides access to all of your Application’s SyncBoxes. Using a temporary credential, access can be limited to an individual SyncBox.
     ///
     /// If the CLCredential object does not contain a token, all authentication and authorization attempts will be made by looking up the credential in the Application space.
     ///
@@ -28,7 +28,7 @@ namespace CloudApiPublic
     public sealed class CLCredential
     {
         /// <summary>
-        /// The public key that identifies this application.
+        /// The public key that identifies this application or session.
         /// </summary>
         internal string Key
         {
@@ -40,7 +40,7 @@ namespace CloudApiPublic
         private readonly string _key;
 
         /// <summary>
-        /// The application secret private key.
+        /// The application or session secret private key.
         /// </summary>
         internal string Secret
         {
@@ -51,7 +51,9 @@ namespace CloudApiPublic
         }
         private readonly string _secret;
 
-        //TODO: Add support for temporary credential.
+        /// <summary>
+        /// The session token.
+        /// </summary>
         internal string Token
         {
             get
@@ -75,7 +77,7 @@ namespace CloudApiPublic
             string Secret,
             out CLCredential credential,
             out CLCredentialCreationStatus status,
-            string Token = null)  //TODO: Add support for temporary credential.
+            string Token = null)
         {
             status = CLCredentialCreationStatus.ErrorUnknown;
 
@@ -103,7 +105,7 @@ namespace CloudApiPublic
         private CLCredential(
             string Key,
             string Secret,
-            string Token,           //TODO: Provide support for temporary tokens.
+            string Token, 
             ref CLCredentialCreationStatus status)
         {
             // check input parameters
@@ -119,7 +121,6 @@ namespace CloudApiPublic
                 throw new NullReferenceException("Secret cannot be null");
             }
 
-            //TODO: Provide support for temporary credential.
             // Since we allow null then reverse-null coalesce from empty string
             if (Token == string.Empty)
             {
@@ -129,7 +130,7 @@ namespace CloudApiPublic
             this._key = Key;
             this._secret = Secret;
             
-            this._token = Token;        //TODO: Provide support for temporary credential.
+            this._token = Token;
         }
 
         /// <summary>
