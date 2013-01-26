@@ -79,6 +79,11 @@
                             ToolTip="Click to save settings.">
                         <AccessText Text="Sa_ve Settings"/>
                     </Button>
+                    <Button x:Name="cmdResetSync" HorizontalAlignment="Left" Width="130" Height="40" Margin="10,0,0,0"
+                            Command="{Binding Path=CommandResetSync, Mode=OneTime}" 
+                            ToolTip="Click to reset the sync engine.">
+                        <AccessText Text="Rese_t Sync"/>
+                    </Button>
                 </StackPanel>
             </StackPanel>
         </GroupBox>

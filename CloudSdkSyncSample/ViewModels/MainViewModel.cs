@@ -29,6 +29,7 @@ namespace CloudSdkSyncSample.ViewModels
         RelayCommand<object> _commandBrowseSyncBoxFolder;
         RelayCommand<object> _commandShowAdvancedOptions;
         RelayCommand<object> _commandSaveSettings;
+        RelayCommand<object> _commandResetSync;
         RelayCommand<object> _commandInstallBadging;
         RelayCommand<object> _commandUninstallBadging;
         RelayCommand<object> _commandShowSyncStatus;
@@ -406,6 +407,24 @@ namespace CloudSdkSyncSample.ViewModels
         }
 
         /// <summary>
+        /// Returns a command that resets the sync engine.
+        /// </summary>
+        public ICommand CommandResetSync
+        {
+            get
+            {
+                if (_commandResetSync == null)
+                {
+                    _commandResetSync = new RelayCommand<object>(
+                        param => this.ResetSync(),
+                        param => this.CanResetSync
+                        );
+                }
+                return _commandResetSync;
+            }
+        }
+
+        /// <summary>
         /// Returns a command that installs the BadgeCom badging COM object.
         /// </summary>
         public ICommand CommandInstallBadging
@@ -537,6 +556,7 @@ namespace CloudSdkSyncSample.ViewModels
             // Show the advanced options as a modal dialog.
             AdvancedOptionsView viewWindow = new AdvancedOptionsView();
             viewWindow.Owner = _mainWindow;
+            viewWindow.ShowInTaskbar = false;
             viewWindow.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner;
             viewWindow.ResizeMode = ResizeMode.NoResize;
 
@@ -616,7 +636,7 @@ namespace CloudSdkSyncSample.ViewModels
             SyncBoxId = SyncBoxId.Trim();
             if (String.IsNullOrEmpty(SyncBoxId))
             {
-                MessageBox.Show("The SyncBox ID must not be specified.");
+                MessageBox.Show("The SyncBox ID must be specified.");
                 this.IsSyncBoxIdFocused = true;
                 return;
             }
@@ -886,8 +906,8 @@ namespace CloudSdkSyncSample.ViewModels
             try
             {
                 bool startSyncBox = false;
-                // store syncBox
-                // It will be set under the locker which checks the _syncEngine, but started afterwards if it was set
+
+                // Store SyncBox.  It will be set under the locker which checks the _syncEngine, but started afterwards if it was set
                 CLSyncBox syncBox = null;
                 lock (_locker)
                 {
@@ -1079,6 +1099,34 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
+        /// <summary>
+        /// Reset the sync engine.
+        /// </summary>
+        public void ResetSync()
+        {
+            try
+            {
+                lock (_locker)
+                {
+                    // Don't do this if the sync engine has already been started.
+                    if (_syncEngine != null)
+                    {
+                        return;
+                    }
+
+                    // Request that the sync engine be reset the next time it starts.
+                    Properties.Settings.Default.ShouldResetSync = true;
+                    Properties.Settings.Default.Save();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: ResetSync: ERROR: Exception: Msg: <{0}>.", ex.Message);
+            }
+        }
 
         /// <summary>
         /// The sync status for this SyncBox has changed.  Pass this event to the sync status view.
@@ -1196,6 +1244,17 @@ namespace CloudSdkSyncSample.ViewModels
             get
             {
                 return !_settingsCurrent.Equals(_settingsInitial);
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the sync engine can be reset.
+        /// </summary>
+        private bool CanResetSync
+        {
+            get
+            {
+                return !_syncStarted;
             }
         }
 

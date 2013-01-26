@@ -31,5 +31,8 @@
   o Fixed an unhandled exception thrown from CLSyncEngine.Start() when the assembly containing CloudApiPublic was loaded from an unmanaged application.
   o WebSocket support works properly now (no fall-back to polling).
   o Fixed a bug.  Push notification was unique only to the SyncBoxId.  It is now unique to the combination of SyncBoxId and DeviceId.
+  o Re-tested across all operating systems supported (XpSp3X86, XpSp2X64, VistaX86, VistaX64, Win7X86, Win7X64, Win8X86, Win8X64) for three user types (Built-in Administrator, user in Administrator group, normal user).
+  o Added a "Reset Sync" button to the sample app to reset the sync engine.
+  o 
 
 
