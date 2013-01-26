@@ -64,6 +64,28 @@ namespace CloudApiPublic.Sync
         private readonly int FailedOutRetryMillisecondInterval;
         #endregion
 
+        #region is internet connected
+        public static bool InternetConnected
+        {
+            get
+            {
+                lock (InternetConnectedLocker)
+                {
+                    return _internetConnected;
+                }
+            }
+            set
+            {
+                lock (InternetConnectedLocker)
+                {
+                    _internetConnected = value;
+                }
+            }
+        }
+        private static bool _internetConnected = false;
+        private static readonly object InternetConnectedLocker = new object();
+        #endregion
+
         /// <summary>
         /// Engine constructor
         /// </summary>
@@ -1114,6 +1136,49 @@ namespace CloudApiPublic.Sync
                 if (CheckForMaxCommunicationFailuresHalt())
                 {
                     return new ObjectDisposedException("SyncEngine already halted from server connection failure");
+                }
+
+                // if internet is not connected, no point to try sync, so make sure sync is requeued and send the informational message
+                if (!InternetConnected)
+                {
+                    try
+                    {
+                        // check for Sync shutdown
+                        Monitor.Enter(FullShutdownToken);
+                        try
+                        {
+                            if (FullShutdownToken.Token.IsCancellationRequested)
+                            {
+                                throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
+                            }
+                        }
+                        finally
+                        {
+                            Monitor.Exit(FullShutdownToken);
+                        }
+
+                        // lock on timer for access to failure queue
+                        lock (FailureTimer.TimerRunningLocker)
+                        {
+                            if (FailedChangesQueue.Count == 0)
+                            {
+                                FailedChangesQueue.Enqueue(null);
+
+                                FailureTimer.StartTimerIfNotRunning();
+                            }
+                        }
+
+                        MessageEvents.FireNewEventMessage(this,
+                            "No internet connection detected. Retrying Sync after a short delay.",
+                            SyncBoxId: syncBox.SyncBoxId,
+                            DeviceId: syncBox.CopiedSettings.DeviceId);
+
+                        return null;
+                    }
+                    catch (Exception ex)
+                    {
+                        return ex;
+                    }
                 }
 
                 Guid runThreadId = Guid.NewGuid();

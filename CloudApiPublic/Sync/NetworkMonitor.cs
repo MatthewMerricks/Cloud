@@ -1,16 +1,25 @@
-﻿using CloudApiPublic.Model;
+﻿//
+// NetworkMonitor.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using CloudApiPublic.Model;
+using CloudApiPublic.Static;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
 namespace CloudApiPublic.Sync
 {
-    internal class NetworkMonitor : IDisposable
+    internal sealed class NetworkMonitor : IDisposable
     {
         #region singleton pattern
         public static NetworkMonitor Instance
@@ -93,109 +102,35 @@ namespace CloudApiPublic.Sync
         // my guess at what CheckResult probably means
         public void CheckResult(int hResult)
         {
-            if (hResult != 0)
+            if (hResult != 0
+                && hResult != -1) // seems like -1 was a common case for some reason
             {
                 throw new Win32Exception(hResult);
             }
         }
 
         #region WSAData
-        [StructLayout(LayoutKind.Sequential)]
-        public class WSAData
-        {
-            public Int16 wVersion;
-            public Int16 wHighVersion;
-            public String szDescription;
-            public String szSystemStatus;
-            public Int16 iMaxSockets;
-            public Int16 iMaxUdpDg;
-            public IntPtr lpVendorInfo;
-        }
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        public class WSAQUERYSET
-        {
-            public Int32 dwSize = 0;
-            public String szServiceInstanceName = null;
-            public IntPtr lpServiceClassId;
-            public IntPtr lpVersion;
-            public String lpszComment;
-            public Int32 dwNameSpace;
-            public IntPtr lpNSProviderId;
-            public String lpszContext;
-            public Int32 dwNumberOfProtocols;
-            public IntPtr lpafpProtocols;
-            public String lpszQueryString;
-            public Int32 dwNumberOfCsAddrs;
-            public IntPtr lpcsaBuffer;
-            public Int32 dwOutputFlags;
-            public IntPtr lpBlob;
-        }
-
-        [DllImport("Ws2_32.DLL", CharSet = CharSet.Auto,
-        SetLastError = true)]
-        private extern static
-          Int32 WSAStartup(Int16 wVersionRequested, WSAData wsaData);
-
-        [DllImport("Ws2_32.DLL", CharSet = CharSet.Auto,
-        SetLastError = true)]
-        private extern static
-          Int32 WSACleanup();
-
-        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto,
-        SetLastError = true)]
-        private extern static
-          Int32 WSALookupServiceBegin(WSAQUERYSET qsRestrictions,
-            Int32 dwControlFlags, ref Int32 lphLookup);
-
-        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto,
-        SetLastError = true)]
-        private extern static
-          Int32 WSALookupServiceNext(Int32 hLookup,
-            Int32 dwControlFlags,
-            ref Int32 lpdwBufferLength,
-            IntPtr pqsResults);
-
-        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto,
-        SetLastError = true)]
-        private extern static
-          Int32 WSALookupServiceEnd(Int32 hLookup);
-        #endregion
-
-        #region network event
-        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto,
-   SetLastError = true)]
-        private extern static Int32 WSANSPIoctl(
-          Int32 hLookup,
-          UInt32 dwControlCode,
-          IntPtr lpvInBuffer,
-          Int32 cbInBuffer,
-          IntPtr lpvOutBuffer,
-          Int32 cbOutBuffer,
-          ref Int32 lpcbBytesReturned,
-          IntPtr lpCompletion);
-
         public delegate void NetworkChangedEventHandler(object sender,
           NetworkChangedEventArgs e);
 
         private Int32 monitorLookup = 0;
 
-        protected void WaitForNetworkChanges()
+        private void WaitForNetworkChanges()
         {
-            WSAQUERYSET qsRestrictions = new WSAQUERYSET();
+            NativeMethods.WSAQUERYSET qsRestrictions = new NativeMethods.WSAQUERYSET();
             Int32 dwControlFlags;
 
-            qsRestrictions.dwSize = Marshal.SizeOf(typeof(WSAQUERYSET));
+            qsRestrictions.dwSize = Marshal.SizeOf(typeof(NativeMethods.WSAQUERYSET));
             qsRestrictions.dwNameSpace = 0; //NS_ALL;
 
             dwControlFlags = 0x0FF0; //LUP_RETURN_ALL;
 
-            int nResult = WSALookupServiceBegin(qsRestrictions,
+            int nResult = NativeMethods.WSALookupServiceBegin(qsRestrictions,
                   dwControlFlags, ref monitorLookup);
 
             Int32 dwBytesReturned = 0;
             UInt32 cCode = 0x88000019; //SIO_NSP_NOTIFY_CHANGE
-            nResult = WSANSPIoctl(monitorLookup, cCode,
+            nResult = NativeMethods.WSANSPIoctl(monitorLookup, cCode,
                   new IntPtr(), 0, new IntPtr(), 0,
                   ref dwBytesReturned,
                   new IntPtr());
@@ -205,49 +140,59 @@ namespace CloudApiPublic.Sync
                 CheckResult(nResult);
             }
 
-            nResult = WSALookupServiceEnd(monitorLookup);
+            nResult = NativeMethods.WSALookupServiceEnd(monitorLookup);
             monitorLookup = 0;
         }
 
         public event NetworkChangedEventHandler NetworkChanged;
 
-        protected void NetworkMonitor()
+        private void MonitorNetwork()
         {
             int nResult = 0;
+
+            bool firstChange = true;
+            bool internetIsConnected = false;
 
             while (0 == nResult)
             {
                 WaitForNetworkChanges();
 
-                ArrayList networks = GetConnectedNetworks();
+                bool changedValue = CheckInternetIsConnected();
 
-                NetworkChangedEventArgs eventArgs =
-                    new NetworkChangedEventArgs(networks);
-
-                try
+                if (firstChange
+                    || internetIsConnected != changedValue)
                 {
-                    if (null != NetworkChanged)
+                    firstChange = false;
+                    internetIsConnected = changedValue;
+
+                    NetworkChangedEventArgs eventArgs =
+                        new NetworkChangedEventArgs(internetIsConnected);
+
+                    try
                     {
-                        NetworkChanged(this, eventArgs);
+                        if (null != NetworkChanged)
+                        {
+                            NetworkChanged(this, eventArgs);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.Out.WriteLine(ex.ToString());
+                    catch (Exception ex)
+                    {
+                        Console.Out.WriteLine(ex.ToString());
+                    }
                 }
             }
         }
 
         private readonly GenericHolder<Thread> monitorThread = new GenericHolder<Thread>(null);
 
-        public virtual void StartNetworkMonitor()
+        public void StartNetworkMonitor()
         {
             lock (monitorThread)
             {
                 if (monitorThread.Value == null)
                 {
                     monitorThread.Value = new Thread(new
-                      ThreadStart(this.NetworkMonitor));
+                      ThreadStart(this.MonitorNetwork));
                     monitorThread.Value.Name = "Network Monitor";
                     monitorThread.Value.IsBackground = true;
                     monitorThread.Value.Start();
@@ -255,7 +200,7 @@ namespace CloudApiPublic.Sync
             }
         }
 
-        public virtual void StopNetworkMonitor()
+        public void StopNetworkMonitor()
         {
             lock (monitorThread)
             {
@@ -269,26 +214,28 @@ namespace CloudApiPublic.Sync
                     {
                     }
                     monitorThread.Value = null;
-                    WSALookupServiceEnd(monitorLookup);
+                    NativeMethods.WSALookupServiceEnd(monitorLookup);
                 }
             }
         }
         #endregion
 
-        #region GetConnectedNetworks
-        public virtual ArrayList GetConnectedNetworks()
+        #region IsConnectedToInternet
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public bool CheckInternetIsConnected()
         {
-            ArrayList networkConnections = new ArrayList();
-            WSAQUERYSET qsRestrictions;
+            bool toReturn = false;
+
+            NativeMethods.WSAQUERYSET qsRestrictions;
             Int32 dwControlFlags;
             Int32 valHandle = 0;
 
-            qsRestrictions = new WSAQUERYSET();
-            qsRestrictions.dwSize = Marshal.SizeOf(typeof(WSAQUERYSET));
+            qsRestrictions = new NativeMethods.WSAQUERYSET();
+            qsRestrictions.dwSize = Marshal.SizeOf(typeof(NativeMethods.WSAQUERYSET));
             qsRestrictions.dwNameSpace = 0; //NS_ALL;
             dwControlFlags = 0x0FF0; //LUP_RETURN_ALL;
 
-            int result = WSALookupServiceBegin(qsRestrictions,
+            int result = NativeMethods.WSALookupServiceBegin(qsRestrictions,
               dwControlFlags, ref valHandle);
 
             CheckResult(result);
@@ -298,39 +245,118 @@ namespace CloudApiPublic.Sync
                 Int32 dwBufferLength = 0x10000;
                 IntPtr pBuffer = Marshal.AllocHGlobal(dwBufferLength);
 
-                WSAQUERYSET qsResult = new WSAQUERYSET();
+                NativeMethods.WSAQUERYSET qsResult = new NativeMethods.WSAQUERYSET();
 
-                result = WSALookupServiceNext(valHandle, dwControlFlags,
+                result = NativeMethods.WSALookupServiceNext(valHandle, dwControlFlags,
                 ref dwBufferLength, pBuffer);
 
                 if (0 == result)
                 {
                     Marshal.PtrToStructure(pBuffer, qsResult);
-                    networkConnections.Add(
-                        qsResult.szServiceInstanceName);
+                    
+                    //// "qsResult.lpBlob" is a 32 bit size followed by a 32 bit pointer to the following structure:
+                    //typedef struct _NLA_BLOB {
+                    //  struct {
+                    //      NLA_BLOB_DATA_TYPE type;
+                    //      DWORD dwSize;
+                    //      DWORD nextOffset;
+                    //  } header;
+                    //  union {
+                    //      // header.type -> NLA_RAW_DATA
+                    //      CHAR rawData[1];
+                    //      // header.type -> NLA_INTERFACE
+                    //      struct {
+                    //          DWORD dwType;
+                    //          DWORD dwSpeed;
+                    //          CHAR adapterName[1];
+                    //      } interfaceData;
+                    //      // header.type -> NLA_802_1X_LOCATION
+                    //      struct {
+                    //          CHAR information[1];
+                    //      } locationData;
+                    //      // header.type -> NLA_CONNECTIVITY
+                    //      struct {
+                    //          NLA_CONNECTIVITY_TYPE type;
+                    //          NLA_INTERNET internet; // <-------------------------------- NLA_INTERNET_YES = 2, else no internet
+                    //      } connectivity;
+                    //      // header.type -> NLA_ICS
+                    //      struct {
+                    //          struct {
+                    //              DWORD speed;
+                    //              DWORD type;
+                    //              DWORD state;
+                    //              WCHAR machineName[256];
+                    //              WCHAR sharedAdapterName[256];
+                    //          } remote;
+                    //      } ICS;
+                    //  } data;
+                    //}
+
+                    if (qsResult.lpBlob != IntPtr.Zero)
+                    {
+                        NativeMethods.BLOB_INDIRECTION blob = (NativeMethods.BLOB_INDIRECTION)Marshal.PtrToStructure(qsResult.lpBlob, typeof(NativeMethods.BLOB_INDIRECTION));
+
+                        if (blob.pInfo != IntPtr.Zero)
+                        {
+                            IntPtr currentBlobPointer = blob.pInfo;
+                            NativeMethods.NLA_BLOB nlaBlob = (NativeMethods.NLA_BLOB)Marshal.PtrToStructure(currentBlobPointer, typeof(NativeMethods.NLA_BLOB));
+
+                            while (nlaBlob != null)
+                            {
+                                if (nlaBlob.header.type == NativeMethods.NLA_BLOB_DATA_TYPE.NLA_CONNECTIVITY)
+                                {
+                                    NativeMethods.NLA_BLOB_CONNECTIVITY connectivityBlob = (NativeMethods.NLA_BLOB_CONNECTIVITY)Marshal.PtrToStructure(currentBlobPointer, typeof(NativeMethods.NLA_BLOB_CONNECTIVITY));
+
+                                    toReturn = connectivityBlob.connectivity.internet == NativeMethods.NLA_INTERNET.NLA_INTERNET_YES;
+                                    break;
+                                }
+                                else
+                                {
+                                    if (nlaBlob.header.nextOffset == 0)
+                                    {
+                                        nlaBlob = null;
+                                    }
+                                    else
+                                    {
+                                        currentBlobPointer = IntPtr.Add(currentBlobPointer, nlaBlob.header.nextOffset);
+
+                                        nlaBlob = (NativeMethods.NLA_BLOB)Marshal.PtrToStructure(currentBlobPointer, typeof(NativeMethods.NLA_BLOB));
+                                    }
+                                }
+                            }
+
+                            if (toReturn)
+                            {
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 Marshal.FreeHGlobal(pBuffer);
             }
 
-            result = WSALookupServiceEnd(valHandle);
+            result = NativeMethods.WSALookupServiceEnd(valHandle);
 
-            return networkConnections;
+            return toReturn;
         }
         #endregion
     }
 
-    internal class NetworkChangedEventArgs : EventArgs
+    internal sealed class NetworkChangedEventArgs : EventArgs
     {
-        private ArrayList networkList;
-        public NetworkChangedEventArgs(ArrayList networks)
+        private readonly bool _isConnected;
+        public NetworkChangedEventArgs(bool connected)
         {
-            networkList = networks;
+            this._isConnected = connected;
         }
 
-        public ArrayList Networks
+        public bool IsConnected
         {
-            get { return networkList; }
+            get
+            {
+                return _isConnected;
+            }
         }
     }
 }

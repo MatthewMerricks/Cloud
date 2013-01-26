@@ -18,9 +18,9 @@ namespace CloudApiPublic.Static
     internal static class NativeMethods
     {
         #region GetModuleFileName
-        [DllImport("coredll.dll", SetLastError=true)]
-        internal static extern int GetModuleFileName(IntPtr hModule, StringBuilder lpFilename, int nSize);       
-	    #endregion
+        [DllImport("coredll.dll", SetLastError = true)]
+        public static extern int GetModuleFileName(IntPtr hModule, StringBuilder lpFilename, int nSize);
+        #endregion
 
         #region byte array compare
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -31,7 +31,7 @@ namespace CloudApiPublic.Static
         #region GET
         #region PRODUCT INFO
         [DllImport("Kernel32.dll")]
-        internal static extern bool GetProductInfo(
+        public static extern bool GetProductInfo(
             int osMajorVersion,
             int osMinorVersion,
             int spMajorVersion,
@@ -47,7 +47,7 @@ namespace CloudApiPublic.Static
 
         #region OSVERSIONINFOEX
         [StructLayout(LayoutKind.Sequential)]
-        internal struct OSVERSIONINFOEX
+        public struct OSVERSIONINFOEX
         {
             public int dwOSVersionInfoSize;
             public int dwMajorVersion;
@@ -122,7 +122,7 @@ namespace CloudApiPublic.Static
 
         #region client to screen
         [StructLayout(LayoutKind.Sequential)]
-        internal class POINT
+        public class POINT
         {
             public int x = 0;
             public int y = 0;
@@ -417,7 +417,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <see cref="http://msdn.microsoft.com/en-us/library/ms724284%28VS.85%29.aspx"/>
         [StructLayout(LayoutKind.Sequential)]
-        internal struct FILETIME
+        public struct FILETIME
         {
             public uint dwLowDateTime;
             public uint dwHighDateTime;
@@ -429,7 +429,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <see cref="http://msdn.microsoft.com/en-us/library/aa365740%28VS.85%29.aspx"/>
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        internal struct WIN32_FIND_DATA
+        public struct WIN32_FIND_DATA
         {
             public FileAttributes dwFileAttributes;
             public FILETIME ftCreationTime;
@@ -524,6 +524,137 @@ namespace CloudApiPublic.Static
         /// <see cref="http://msdn.microsoft.com/en-us/library/aa364413%28VS.85%29.aspx"/>
         [DllImport("kernel32", SetLastError = true)]
         public static extern bool FindClose(IntPtr hFindFile);
+        #endregion
+
+        #region network monitoring
+        [StructLayout(LayoutKind.Sequential)]
+        public sealed class WSAData
+        {
+            public Int16 wVersion;
+            public Int16 wHighVersion;
+            public String szDescription;
+            public String szSystemStatus;
+            public Int16 iMaxSockets;
+            public Int16 iMaxUdpDg;
+            public IntPtr lpVendorInfo;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public sealed class WSAQUERYSET
+        {
+            public Int32 dwSize = 0;
+            public String szServiceInstanceName = null;
+            public IntPtr lpServiceClassId;
+            public IntPtr lpVersion;
+            public String lpszComment;
+            public Int32 dwNameSpace;
+            public IntPtr lpNSProviderId;
+            public String lpszContext;
+            public Int32 dwNumberOfProtocols;
+            public IntPtr lpafpProtocols;
+            public String lpszQueryString;
+            public Int32 dwNumberOfCsAddrs;
+            public IntPtr lpcsaBuffer;
+            public Int32 dwOutputFlags;
+            public IntPtr lpBlob;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public sealed class BLOB_INDIRECTION
+        {
+            public UInt32 cbSize;
+            public IntPtr pInfo;
+        }
+
+        [StructLayout(LayoutKind.Explicit, Pack = 4)]
+        public sealed class NLA_BLOB
+        {
+            [FieldOffset(0)]
+            public NLA_Header header;
+
+            // [FieldOffset(12)]
+            // public UNIONED_DATA unionData;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        public struct NLA_Header
+        {
+            public NLA_BLOB_DATA_TYPE type;
+            public Int32 dwSize;
+            public Int32 nextOffset;
+        }
+
+        [StructLayout(LayoutKind.Explicit, Pack = 4)]
+        public struct NLA_BLOB_CONNECTIVITY
+        {
+            [FieldOffset(0)]
+            public NLA_Header header;
+
+            [FieldOffset(12)]
+            public NLA_Connectivity connectivity;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        public struct NLA_Connectivity
+        {
+            public UInt32 type;
+            public NLA_INTERNET internet;
+        }
+
+        public enum NLA_BLOB_DATA_TYPE : uint
+        {
+            NLA_RAW_DATA = 0,
+            NLA_INTERFACE = 1,
+            NLA_802_1X_LOCATION = 2,
+            NLA_CONNECTIVITY = 3,
+            NLA_ICS = 4
+        }
+
+        public enum NLA_INTERNET : uint
+        {
+            NLA_INTERNET_UNKNOWN = 0,
+            NLA_INTERNET_NO = 1,
+            NLA_INTERNET_YES = 2
+        }
+
+        [DllImport("Ws2_32.DLL", CharSet = CharSet.Auto,
+        SetLastError = true)]
+        public extern static
+          Int32 WSAStartup(Int16 wVersionRequested, WSAData wsaData);
+
+        [DllImport("Ws2_32.DLL", CharSet = CharSet.Auto,
+        SetLastError = true)]
+        public extern static
+          Int32 WSACleanup();
+
+        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public extern static
+          Int32 WSALookupServiceBegin(WSAQUERYSET qsRestrictions,
+            Int32 dwControlFlags, ref Int32 lphLookup);
+
+        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public extern static
+          Int32 WSALookupServiceNext(Int32 hLookup,
+            Int32 dwControlFlags,
+            ref Int32 lpdwBufferLength,
+            IntPtr pqsResults);
+
+        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public extern static
+          Int32 WSALookupServiceEnd(Int32 hLookup);
+
+        #region network event
+        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public extern static Int32 WSANSPIoctl(
+          Int32 hLookup,
+          UInt32 dwControlCode,
+          IntPtr lpvInBuffer,
+          Int32 cbInBuffer,
+          IntPtr lpvOutBuffer,
+          Int32 cbOutBuffer,
+          ref Int32 lpcbBytesReturned,
+          IntPtr lpCompletion);
+        #endregion
         #endregion
     }
 }

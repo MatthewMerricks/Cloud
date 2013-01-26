@@ -109,9 +109,9 @@ namespace CloudApiPublic.PushNotification
         private int _faultCount = 0;
 
         /// <summary>
-        /// Tracks the subscribed clients via their Settings SyncBoxId.
+        /// Tracks the subscribed clients via their SyncBoxId/DeviceId combination.
         /// </summary>
-        private static readonly Dictionary<Nullable<long>, CLNotification> NotificationClientsRunning = new Dictionary<Nullable<long>, CLNotification>();
+        private static readonly Dictionary<string, CLNotification> NotificationClientsRunning = new Dictionary<string, CLNotification>();
 
         /// <summary>
         /// Outputs the push notification server object for this client
@@ -130,10 +130,11 @@ namespace CloudApiPublic.PushNotification
 
                 lock (NotificationClientsRunning)
                 {
-                    Nullable<long> storeSyncBoxId = syncBox.SyncBoxId;
-                    if (!NotificationClientsRunning.TryGetValue(storeSyncBoxId, out notifications))
+                    string syncBoxDeviceCombination = syncBox.SyncBoxId.ToString() + " " + (syncBox.CopiedSettings.DeviceId ?? string.Empty);
+
+                    if (!NotificationClientsRunning.TryGetValue(syncBoxDeviceCombination, out notifications))
                     {
-                        NotificationClientsRunning.Add(storeSyncBoxId, notifications = new CLNotification(syncBox));
+                        NotificationClientsRunning.Add(syncBoxDeviceCombination, notifications = new CLNotification(syncBox));
                     }
                 }
             }
@@ -735,9 +736,11 @@ namespace CloudApiPublic.PushNotification
                 _trace.writeToLog(1, "CLNotification: DisconnectPushNotificationServer: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
 
-            if (_syncBox != null && _syncBox.SyncBoxId != null)
+            if (_syncBox != null)
             {
-                NotificationClientsRunning.Remove(_syncBox.SyncBoxId);
+                string syncBoxDeviceIdCombined = _syncBox.SyncBoxId.ToString() + " " + (_syncBox.CopiedSettings.DeviceId ?? string.Empty);
+
+                NotificationClientsRunning.Remove(syncBoxDeviceIdCombined);
             }
 
             lock (this)
