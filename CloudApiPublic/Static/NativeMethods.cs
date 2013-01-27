@@ -19,7 +19,7 @@ namespace CloudApiPublic.Static
     {
         #region GetModuleFileName
         [DllImport("coredll.dll", SetLastError=true)]
-        internal static extern int GetModuleFileName(IntPtr hModule, StringBuilder lpFilename, int nSize);       
+        public static extern int GetModuleFileName(IntPtr hModule, StringBuilder lpFilename, int nSize);       
 	    #endregion
 
         #region byte array compare
@@ -31,7 +31,7 @@ namespace CloudApiPublic.Static
         #region GET
         #region PRODUCT INFO
         [DllImport("Kernel32.dll")]
-        internal static extern bool GetProductInfo(
+        public static extern bool GetProductInfo(
             int osMajorVersion,
             int osMinorVersion,
             int spMajorVersion,
@@ -47,7 +47,7 @@ namespace CloudApiPublic.Static
 
         #region OSVERSIONINFOEX
         [StructLayout(LayoutKind.Sequential)]
-        internal struct OSVERSIONINFOEX
+        public struct OSVERSIONINFOEX
         {
             public int dwOSVersionInfoSize;
             public int dwMajorVersion;
@@ -122,7 +122,7 @@ namespace CloudApiPublic.Static
 
         #region client to screen
         [StructLayout(LayoutKind.Sequential)]
-        internal class POINT
+        public class POINT
         {
             public int x = 0;
             public int y = 0;
@@ -417,7 +417,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <see cref="http://msdn.microsoft.com/en-us/library/ms724284%28VS.85%29.aspx"/>
         [StructLayout(LayoutKind.Sequential)]
-        internal struct FILETIME
+        public struct FILETIME
         {
             public uint dwLowDateTime;
             public uint dwHighDateTime;
@@ -429,7 +429,7 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <see cref="http://msdn.microsoft.com/en-us/library/aa365740%28VS.85%29.aspx"/>
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        internal struct WIN32_FIND_DATA
+        public struct WIN32_FIND_DATA
         {
             public FileAttributes dwFileAttributes;
             public FILETIME ftCreationTime;

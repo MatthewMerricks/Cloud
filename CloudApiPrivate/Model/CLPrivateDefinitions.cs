@@ -25,5 +25,6 @@ namespace CloudApiPrivate.Model
 
         // General constants
         public const int MaxPathCharsIncludingTermination = 260;
+        public const int AppVersion = 0;
     }
 }

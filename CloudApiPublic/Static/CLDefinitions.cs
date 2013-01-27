@@ -27,7 +27,6 @@ namespace CloudApiPublic.Static
 #endif
 
         public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
-        public const int AppVersion = 0;
 
         public const int ManualPollingIterationsBeforeConnectingPush = 10;
         public const int ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
