@@ -31,6 +31,7 @@ namespace CloudApiPublic.Static
         public const int ManualPollingIterationsBeforeConnectingPush = 10;
         public const int ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
         public const int PushNotificationFaultLimitBeforeFallback = 5;
+        public const int MaxNumberOfServicePointConnectionsAllowed = 6;
 #if PRODUCTION_BACKEND
 
         // Registration

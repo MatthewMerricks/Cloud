@@ -26,8 +26,8 @@ namespace CloudApiPublic.Sync
     internal sealed class HttpScheduler : TaskScheduler, IDisposable
     {
         #region private fields
-        private const int _fromConcurrencyLevel = 6;// Limit of 6 simultaneous downloads
-        private const int _toConcurrencyLevel = 6;// Limit of 6 simultaneous uploads
+        private const int _fromConcurrencyLevel = CLDefinitions.MaxNumberOfServicePointConnectionsAllowed;  // Limit of simultaneous downloads
+        private const int _toConcurrencyLevel = CLDefinitions.MaxNumberOfServicePointConnectionsAllowed;  // Limit of simultaneous uploads
 
         // stores if this scheduler is for uploads or downloads; only one of each type exists
         private SyncDirection Direction;
