@@ -487,8 +487,8 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
 set ErrorTracker=25
-echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=Release
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=Release
+echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(Configurationname)
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(ConfigurationName)
 if errorlevel 1 goto BuildEventFailed
 
 set ErrorTracker=26

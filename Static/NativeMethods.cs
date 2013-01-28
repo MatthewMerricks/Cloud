@@ -103,14 +103,14 @@ namespace win_client.Static
         }
 
         [DllImport("user32.dll", SetLastError = true)]
-        internal static extern IntPtr SetWindowsHookEx(HookType hookType, IntPtr pFunc, IntPtr hMod, uint dwThreadId);
+        public static extern IntPtr SetWindowsHookEx(HookType hookType, IntPtr pFunc, IntPtr hMod, uint dwThreadId);
 
         [DllImport("user32.dll")]
-        internal static extern IntPtr CallNextHookEx(IntPtr hHook, int nCode, IntPtr wParam, IntPtr lParam);
+        public static extern IntPtr CallNextHookEx(IntPtr hHook, int nCode, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool UnhookWindowsHookEx(IntPtr hHook);
+        public static extern bool UnhookWindowsHookEx(IntPtr hHook);
         #endregion
 
         #region tray icon

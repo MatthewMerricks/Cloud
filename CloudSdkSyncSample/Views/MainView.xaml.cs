@@ -90,7 +90,7 @@ namespace CloudSdkSyncSample.Views
 
         private void OnNotifyException(object sender, Support.NotificationEventArgs<CloudApiPublic.Model.CLError> e)
         {
-            MessageBox.Show(String.Format("Error: {0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(String.Format("{0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         #endregion

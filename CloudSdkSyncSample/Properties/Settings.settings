@@ -5,10 +5,10 @@
     <Setting Name="SyncBoxFullPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="ApplicationKey" Type="System.String" Scope="User">
+    <Setting Name="Key" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="ApplicationSecret" Type="System.String" Scope="User">
+    <Setting Name="Secret" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="SyncBoxId" Type="System.String" Scope="User">
@@ -46,6 +46,9 @@
     </Setting>
     <Setting Name="ShouldResetSync" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Token" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>

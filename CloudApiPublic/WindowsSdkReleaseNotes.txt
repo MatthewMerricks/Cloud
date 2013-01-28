@@ -30,5 +30,16 @@
   o Changed the installer to launch the SDK documentation rather than the sample app.
   o Fixed an unhandled exception thrown from CLSyncEngine.Start() when the assembly containing CloudApiPublic was loaded from an unmanaged application.
   o WebSocket support works properly now (no fall-back to polling).
-
+  o Fixed a bug.  Push notification was unique only to the SyncBoxId.  It is now unique to the combination of SyncBoxId and DeviceId.
+  o Re-tested across all operating systems supported (XpSp3X86, XpSp2X64, VistaX86, VistaX64, Win7X86, Win7X64, Win8X86, Win8X64) 
+      for three user types (Built-in Administrator, user in Administrator group, normal user).  Tested installation, uninstall,
+	  badging installation, badging uninstall and syncing.
+  o Added a "Reset Sync" button to the sample app to reset the sync engine.
+  o Fixed an unhandled exception that would occur if BadgeCom.dll is not properly installed.
+  o Fixed a problem in CLSyncEngine.Start() that would return a path error when the settings were provided as ICLSyncSettings, rather than ICLSyncSettingsAdvanced.
+  o Tested WebSocket support with and without SSL (ws:// and wss://).
+  o Fixed a potential deadlock when stopping sync.
+  o Added session token support.
+  o Refactored the sample app code to refer to Secret (instead of ApplicationSecret), and Key (instead of ApplicationKey).
+  o Increased the maximum number of up/downloads from two to six.
 

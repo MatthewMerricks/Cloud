@@ -227,7 +227,11 @@ namespace CloudApiPublic.PushNotification
                                             Helpers.GenerateAuthorizationHeaderToken(
                                                 secret: _syncBox.Credential.Secret,
                                                 httpMethod: CLDefinitions.HeaderAppendMethodGet, 
-                                                pathAndQueryStringAndFragment: pathAndQueryStringAndFragment))
+                                                pathAndQueryStringAndFragment: pathAndQueryStringAndFragment) +
+                                                // Add token if specified
+                                                (!String.IsNullOrEmpty(_syncBox.Credential.Token) ? 
+                                                    CLDefinitions.HeaderAppendToken + _syncBox.Credential.Token : 
+                                                    String.Empty))
                                 },
                             userAgent: String.Empty,
                             origin: String.Empty,

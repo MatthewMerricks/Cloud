@@ -4999,7 +4999,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>NewShortcut1</td><td>newfolder2</td><td>##ID_STRING5##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[INSTALLDIR]CloudSdkSyncSample.exe</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut2</td><td>newfolder2</td><td>##ID_STRING6##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[SystemFolder]MsiExec.exe</td><td>/x [ProductCode]</td><td/><td/><td>NewShortcut2_431FEEF588F3485E99EB34316A95EC2D.exe</td><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut3</td><td>newfolder2</td><td>##ID_STRING7##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[DOCS]index.html</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
-		<row><td>NewShortcut4</td><td>newfolder2</td><td>##ID_STRING8##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[CLOUDSDKSYNCSAMPLE1]CloudSdkSyncSample.sln</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>NewShortcut4</td><td>newfolder2</td><td>##ID_STRING8##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[SAMPLEAPP]CloudSdkSyncSample.sln</td><td/><td/><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 		<row><td>NewShortcut6</td><td>newfolder2</td><td>##ID_STRING10##</td><td>ISX_DEFAULTCOMPONENT2</td><td>[INSTALLDIR]WindowsSdkReleaseNotes.txt</td><td/><td>##ID_STRING11##</td><td/><td/><td/><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 

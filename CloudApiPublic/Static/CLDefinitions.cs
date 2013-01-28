@@ -27,11 +27,12 @@ namespace CloudApiPublic.Static
 #endif
 
         public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
-        public const int AppVersion = 0;
 
         public const int ManualPollingIterationsBeforeConnectingPush = 10;
         public const int ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
         public const int PushNotificationFaultLimitBeforeFallback = 5;
+        public const int MaxNumberOfConcurrentUploads = 6;
+        public const int MaxNumberOfConcurrentDownloads = 6;
 #if PRODUCTION_BACKEND
 
         // Registration
@@ -269,7 +270,7 @@ namespace CloudApiPublic.Static
         public const int SyncConstantsResponseBufferSize = 4096;
 
         // HttpWebRequest Header Append
-        public const string HeaderAppendToken = "Token token=";
+        public const string HeaderAppendToken = ", token=";
         public const string HeaderAppendCWS0 = "CWS0 ";
         public const string HeaderAppendKey = "key=";
         public const string HeaderAppendSignature = "signature=";

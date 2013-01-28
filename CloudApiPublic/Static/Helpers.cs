@@ -1531,7 +1531,6 @@ namespace CloudApiPublic.Static
         /// <param name="secret">Secret from credential</param>
         /// <param name="httpMethod">The HTTP method.  e.g.: "POST".</param>
         /// <param name="pathAndQueryStringAndFragment">The HTTP path, query string and fragment.  The path is required.</param>
-        /// <param name="serverUrl">The server URL.</param>
         /// <returns></returns>
         internal static string GenerateAuthorizationHeaderToken(string secret, string httpMethod, string pathAndQueryStringAndFragment)
         {

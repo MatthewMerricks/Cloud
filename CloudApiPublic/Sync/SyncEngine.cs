@@ -200,6 +200,9 @@ namespace CloudApiPublic.Sync
             this.MaxNumberOfNotFounds = MaxNumberOfNotFounds;
             this.ErrorProcessingMillisecondInterval = ErrorProcessingMillisecondInterval;
             this.MaxNumberOfServerConnectionFailures = MaxNumberConnectionFailures;
+
+            // 2 is Default Connection Limit
+            ServicePointManager.DefaultConnectionLimit = CLDefinitions.MaxNumberOfConcurrentDownloads + CLDefinitions.MaxNumberOfConcurrentUploads;
             #endregion
         }
 

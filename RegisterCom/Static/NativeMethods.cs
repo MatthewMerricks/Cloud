@@ -17,13 +17,13 @@ namespace RegisterCom.Static
     {
         #region registrar
         [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-        internal static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+        public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        internal static extern IntPtr LoadLibrary(string lpFileName);
+        public static extern IntPtr LoadLibrary(string lpFileName);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool FreeLibrary(IntPtr hModule);
+        public static extern bool FreeLibrary(IntPtr hModule);
         #endregion
     }
 }

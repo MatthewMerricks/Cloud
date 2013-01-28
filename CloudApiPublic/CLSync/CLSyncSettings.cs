@@ -178,6 +178,27 @@ namespace CloudApiPublic
                 null);
         }
 
+        public static AdvancedSyncSettings CreateDefaultSettings(ICLSyncSettings syncSettings)
+        {
+            if (syncSettings == null)
+            {
+                throw new ArgumentNullException("syncSettings must not be null");
+            }
+
+            return new AdvancedSyncSettings(
+                false,
+                TraceType.NotEnabled,
+                null,
+                true,
+                0,
+                Environment.MachineName + Guid.NewGuid().ToString("N"),
+                null,
+                "SimpleClient01",
+                Environment.MachineName,
+                syncSettings.SyncRoot,
+                null);
+        }
+
         public AdvancedSyncSettings(
                     bool logErrors,
                     TraceType traceType,
@@ -209,6 +230,10 @@ namespace CloudApiPublic
     {
         public static AdvancedSyncSettings CopySettings(this ICLSyncSettingsAdvanced toCopy)
         {
+            if (toCopy == null)
+            {
+                throw new ArgumentNullException("toCopy must not be null");
+            }
             return new AdvancedSyncSettings(
                 toCopy.LogErrors,
                 toCopy.TraceType,
@@ -225,10 +250,15 @@ namespace CloudApiPublic
 
         public static AdvancedSyncSettings CopySettings(this ICLSyncSettings toCopy)
         {
+            if (toCopy == null)
+            {
+                throw new ArgumentNullException("toCopy must not be null");
+            }
             ICLSyncSettingsAdvanced advancedCopy = toCopy as ICLSyncSettingsAdvanced;
             if (advancedCopy == null)
             {
-                return AdvancedSyncSettings.CreateDefaultSettings();
+                
+                return AdvancedSyncSettings.CreateDefaultSettings(toCopy);
             }
             else
             {

@@ -95,7 +95,7 @@
     <Compile Include="Models\ConstructedHolder.cs" />
     <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\NativeMethod.cs" />
-    <Compile Include="Static\CreateProcess.cs" />
+    <Compile Include="Static\Helpers.cs" />
     <Compile Include="ViewModels\SyncStatusViewModel.cs" />
     <Compile Include="Views\SyncStatusView.xaml.cs">
       <DependentUpon>SyncStatusView.xaml</DependentUpon>
