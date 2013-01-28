@@ -175,7 +175,7 @@ namespace CloudApiPublic.Sync
             this.MaxNumberOfServerConnectionFailures = MaxNumberConnectionFailures;
 
             // 2 is Default Connection Limit
-            ServicePointManager.DefaultConnectionLimit = CLDefinitions.MaxNumberOfServicePointConnectionsAllowed;
+            ServicePointManager.DefaultConnectionLimit = CLDefinitions.MaxNumberOfConcurrentDownloads + CLDefinitions.MaxNumberOfConcurrentUploads;
             #endregion
         }
 

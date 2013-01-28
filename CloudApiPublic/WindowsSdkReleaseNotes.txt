@@ -41,5 +41,5 @@
   o Fixed a potential deadlock when stopping sync.
   o Added session token support.
   o Refactored the sample app code to refer to Secret (instead of ApplicationSecret), and Key (instead of ApplicationKey).
-
+  o Increased the maximum number of up/downloads from two to six.
 
