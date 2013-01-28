@@ -16,8 +16,6 @@
   o Added a public helper method "bool CLCredential.CredentialHasToken()".
   o Added some more documentation to CLCredential.
   o Added Cloud server connectivity monitoring.  This halts CLSyncEngine with new halted status if the Cloud servers are out of service for too long.
-  o Added Local Internet connectivity monitoring, with graceful recovery on reconnection.
-  o Added long timer recovery of repeated FileChange failures.
   o Completed uploads/downloads now properly clear out of the sample app sync status window, and are properly counted.
   o Fixed a badging issue where parent folders were badged "syncing" when all of the contents were badged "synced".
   o The sample app SyncBox folder Browse button now starts the browse in the user's desktop directory.
