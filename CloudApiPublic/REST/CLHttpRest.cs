@@ -635,7 +635,7 @@ namespace CloudApiPublic.REST
                     {
                         StorageKey = changeToDownload.Metadata.StorageKey // storage key parameter
                     },
-                    CLDefinitions.CLUploadDownloadServerURL, // server for download
+                    CLDefinitions.CLServerURL, // server for download
                     serverMethodPath, // dynamic method path to incorporate query string parameters
                     requestMethod.post, // download is a post
                     timeoutMilliseconds, // time before communication timeout (does not restrict time
@@ -962,7 +962,7 @@ namespace CloudApiPublic.REST
 
                 // run the HTTP communication
                 ProcessHttp(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
-                    CLDefinitions.CLUploadDownloadServerURL,  // Server URL
+                    CLDefinitions.CLServerURL,  // Server URL
                     serverMethodPath, // dynamic upload path to add device id
                     requestMethod.put, // upload is a put
                     timeoutMilliseconds, // time before communication timeout (does not restrict time for the actual file upload)
@@ -1198,7 +1198,7 @@ namespace CloudApiPublic.REST
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.Metadata>(
                     null, // HTTP Get method does not have content
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query metadata (dynamic based on file or folder)
                     requestMethod.get, // query metadata is a get
                     timeoutMilliseconds, // time before communication timeout
@@ -1404,7 +1404,7 @@ namespace CloudApiPublic.REST
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.PendingResponse>(
                     null, // HTTP Get method does not have content
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     serverMethodPath, // path to get pending
                     requestMethod.get, // get pending is a get
                     timeoutMilliseconds, // time before communication timeout
@@ -1810,7 +1810,7 @@ namespace CloudApiPublic.REST
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.Event>(requestContent, // dynamic type of request content based on method path
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     requestMethod.post, // one-off methods are all posts
                     timeoutMilliseconds, // time before communication timeout
@@ -2037,7 +2037,7 @@ namespace CloudApiPublic.REST
                         ServerId = deletionChange.Metadata.ServerId, // unique id on server
                         SyncBoxId = _syncBoxId // id of sync box
                     },
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     (deletionChange.Metadata.HashableProperties.IsFolder // folder/file switch
                         ? CLDefinitions.MethodPathFolderUndelete // path for folder undelete
                         : CLDefinitions.MethodPathFileUndelete), // path for file undelete
@@ -2357,7 +2357,7 @@ namespace CloudApiPublic.REST
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.FileVersion[]>(null, // get file versions has no request content
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     serverMethodPath, // use a dynamic method path because it needs query string parameters
                     requestMethod.get, // get file versions is a get
                     timeoutMilliseconds, // time before communication timeout
@@ -2550,7 +2550,7 @@ namespace CloudApiPublic.REST
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.UsedBytes>(null, // getting used bytes requires no request content
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     CLDefinitions.MethodPathGetUsedBytes + // path to get used bytes
                         Helpers.QueryStringBuilder(new[]
                         {
@@ -2858,7 +2858,7 @@ namespace CloudApiPublic.REST
                         RelativeToPath = copyTargetPath.GetRelativePath(_copiedSettings.SyncRoot, true), // location to copy file to
                         SyncBoxId = _syncBoxId // id of sync box
                     },
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     CLDefinitions.MethodPathFileCopy, // path for file copy
                     requestMethod.post, // file copy is a post
                     timeoutMilliseconds, // time before communication timeout
@@ -3057,7 +3057,7 @@ namespace CloudApiPublic.REST
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.Pictures>(
                     null, // HTTP Get method does not have content
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query pictures (dynamic adding query string)
                     requestMethod.get, // query pictures is a get
                     timeoutMilliseconds, // time before communication timeout
@@ -3256,7 +3256,7 @@ namespace CloudApiPublic.REST
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.SyncBoxUsage>(
                     null, // HTTP Get method does not have content
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query synx box usage (dynamic adding query string)
                     requestMethod.get, // query sync box usage is a get
                     timeoutMilliseconds, // time before communication timeout
@@ -3468,7 +3468,7 @@ namespace CloudApiPublic.REST
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.Folders>(
                     null, // HTTP Get method does not have content
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query folder hierarchy (dynamic adding query string)
                     requestMethod.get, // query folder hierarchy is a get
                     timeoutMilliseconds, // time before communication timeout
@@ -3711,7 +3711,7 @@ namespace CloudApiPublic.REST
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.FolderContents>(
                     null, // HTTP Get method does not have content
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query folder contents (dynamic adding query string)
                     requestMethod.get, // query folder contents is a get
                     timeoutMilliseconds, // time before communication timeout
@@ -3907,7 +3907,8 @@ namespace CloudApiPublic.REST
                     DeviceId = _copiedSettings.DeviceId,
                     SyncBoxId = _syncBoxId
                 },
-                    CLDefinitions.CLMetaDataServerURL, CLDefinitions.MethodPathPurgePending, // purge pending address
+                    CLDefinitions.CLServerURL, 
+                    CLDefinitions.MethodPathPurgePending, // purge pending address
                     requestMethod.post, // purge pending is a post operation
                     timeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
@@ -3954,7 +3955,7 @@ namespace CloudApiPublic.REST
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.To>(
                     syncToRequest, // object for request content
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     CLDefinitions.MethodPathSyncTo, // path to sync to
                     requestMethod.post, // sync_to is a post
                     timeoutMilliseconds, // time before communication timeout
@@ -4000,7 +4001,7 @@ namespace CloudApiPublic.REST
                 // run the HTTP communication and store the response object to the output parameter
                 response = ProcessHttp<JsonContracts.PushResponse>(
                     pushRequest, // object to write as request content to the server
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    CLDefinitions.CLServerURL, // base domain is the MDS server
                     CLDefinitions.MethodPathSyncFrom, // path to sync from
                     requestMethod.post, // sync_to is a post
                     timeoutMilliseconds, // time before communication timeout

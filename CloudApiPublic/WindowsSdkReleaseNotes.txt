@@ -1,7 +1,4 @@
                                                     WINDOWS SDK RELEASE NOTES
-                                                    
-
-01/16/2013 Initial release (CloudSDK-v0.1.zip)
 
 01/28/2013 CloudSDK-v0.1.02e37c3.zip
   o (API Breaking Changes): Changed some of the class and method names to be more consistent with the Mac OS X SDK.
@@ -39,5 +36,7 @@
   o Fixed a potential deadlock when stopping sync.
   o Added session token support.
   o Refactored the sample app code to refer to Secret (instead of ApplicationSecret), and Key (instead of ApplicationKey).
-  o Increased the maximum number of up/downloads from two to six.
+  o Increased the maximum number of up/downloads from two to six each.
+
+01/16/2013 Initial release (CloudSDK-v0.1.zip)
 
