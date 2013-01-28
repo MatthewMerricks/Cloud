@@ -232,7 +232,7 @@ namespace CloudApiPublic.Sync
 
             qsRestrictions = new NativeMethods.WSAQUERYSET();
             qsRestrictions.dwSize = Marshal.SizeOf(typeof(NativeMethods.WSAQUERYSET));
-            qsRestrictions.dwNameSpace = 0; //NS_ALL;
+            qsRestrictions.dwNameSpace = NativeMethods.NAMESPACE_PROVIDER_PTYPE.NS_NLA;
             dwControlFlags = 0x0FF0; //LUP_RETURN_ALL;
 
             int result = NativeMethods.WSALookupServiceBegin(qsRestrictions,
@@ -245,95 +245,109 @@ namespace CloudApiPublic.Sync
                 Int32 dwBufferLength = 0x10000;
                 IntPtr pBuffer = Marshal.AllocHGlobal(dwBufferLength);
 
-                NativeMethods.WSAQUERYSET qsResult = new NativeMethods.WSAQUERYSET();
-
-                result = NativeMethods.WSALookupServiceNext(valHandle, dwControlFlags,
-                ref dwBufferLength, pBuffer);
-
-                if (0 == result)
+                try
                 {
-                    Marshal.PtrToStructure(pBuffer, qsResult);
-                    
-                    //// "qsResult.lpBlob" is a 32 bit size followed by a 32 bit pointer to the following structure:
-                    //typedef struct _NLA_BLOB {
-                    //  struct {
-                    //      NLA_BLOB_DATA_TYPE type;
-                    //      DWORD dwSize;
-                    //      DWORD nextOffset;
-                    //  } header;
-                    //  union {
-                    //      // header.type -> NLA_RAW_DATA
-                    //      CHAR rawData[1];
-                    //      // header.type -> NLA_INTERFACE
-                    //      struct {
-                    //          DWORD dwType;
-                    //          DWORD dwSpeed;
-                    //          CHAR adapterName[1];
-                    //      } interfaceData;
-                    //      // header.type -> NLA_802_1X_LOCATION
-                    //      struct {
-                    //          CHAR information[1];
-                    //      } locationData;
-                    //      // header.type -> NLA_CONNECTIVITY
-                    //      struct {
-                    //          NLA_CONNECTIVITY_TYPE type;
-                    //          NLA_INTERNET internet; // <-------------------------------- NLA_INTERNET_YES = 2, else no internet
-                    //      } connectivity;
-                    //      // header.type -> NLA_ICS
-                    //      struct {
-                    //          struct {
-                    //              DWORD speed;
-                    //              DWORD type;
-                    //              DWORD state;
-                    //              WCHAR machineName[256];
-                    //              WCHAR sharedAdapterName[256];
-                    //          } remote;
-                    //      } ICS;
-                    //  } data;
-                    //}
+                    NativeMethods.WSAQUERYSET qsResult = new NativeMethods.WSAQUERYSET();
 
-                    if (qsResult.lpBlob != IntPtr.Zero)
+                    result = NativeMethods.WSALookupServiceNext(valHandle, dwControlFlags,
+                    ref dwBufferLength, pBuffer);
+
+                    if (0 == result)
                     {
-                        NativeMethods.BLOB_INDIRECTION blob = (NativeMethods.BLOB_INDIRECTION)Marshal.PtrToStructure(qsResult.lpBlob, typeof(NativeMethods.BLOB_INDIRECTION));
+                        Marshal.PtrToStructure(pBuffer, qsResult);
 
-                        if (blob.pInfo != IntPtr.Zero)
+                        //// "qsResult.lpBlob" is a 32 bit size followed by a 32 bit pointer to the following structure (an indirection):
+                        //typedef struct _NLA_BLOB {
+                        //  struct {
+                        //      NLA_BLOB_DATA_TYPE type;
+                        //      DWORD dwSize;
+                        //      DWORD nextOffset;
+                        //  } header;
+                        //  union {
+                        //      // header.type -> NLA_RAW_DATA
+                        //      CHAR rawData[1];
+                        //      // header.type -> NLA_INTERFACE
+                        //      struct {
+                        //          DWORD dwType;
+                        //          DWORD dwSpeed;
+                        //          CHAR adapterName[1];
+                        //      } interfaceData;
+                        //      // header.type -> NLA_802_1X_LOCATION
+                        //      struct {
+                        //          CHAR information[1];
+                        //      } locationData;
+                        //      // header.type -> NLA_CONNECTIVITY
+                        //      struct {
+                        //          NLA_CONNECTIVITY_TYPE type;
+                        //          NLA_INTERNET internet; // <-------------------------------- NLA_INTERNET_YES = 2, else no internet
+                        //      } connectivity;
+                        //      // header.type -> NLA_ICS
+                        //      struct {
+                        //          struct {
+                        //              DWORD speed;
+                        //              DWORD type;
+                        //              DWORD state;
+                        //              WCHAR machineName[256];
+                        //              WCHAR sharedAdapterName[256];
+                        //          } remote;
+                        //      } ICS;
+                        //  } data;
+                        //}
+
+                        if (qsResult.dwNameSpace == NativeMethods.NAMESPACE_PROVIDER_PTYPE.NS_NLA
+                            && qsResult.lpBlob != IntPtr.Zero)
                         {
-                            IntPtr currentBlobPointer = blob.pInfo;
-                            NativeMethods.NLA_BLOB nlaBlob = (NativeMethods.NLA_BLOB)Marshal.PtrToStructure(currentBlobPointer, typeof(NativeMethods.NLA_BLOB));
+                            NativeMethods.BLOB_INDIRECTION blob = (NativeMethods.BLOB_INDIRECTION)Marshal.PtrToStructure(qsResult.lpBlob, typeof(NativeMethods.BLOB_INDIRECTION));
 
-                            while (nlaBlob != null)
+                            if (blob.pInfo != IntPtr.Zero)
                             {
-                                if (nlaBlob.header.type == NativeMethods.NLA_BLOB_DATA_TYPE.NLA_CONNECTIVITY)
-                                {
-                                    NativeMethods.NLA_BLOB_CONNECTIVITY connectivityBlob = (NativeMethods.NLA_BLOB_CONNECTIVITY)Marshal.PtrToStructure(currentBlobPointer, typeof(NativeMethods.NLA_BLOB_CONNECTIVITY));
+                                IntPtr currentBlobPointer = blob.pInfo;
+                                UInt32 currentPointerOffset = 0;
+                                UInt32 blobSizeSum = 0;
+                                NativeMethods.NLA_BLOB nlaBlob = (NativeMethods.NLA_BLOB)Marshal.PtrToStructure(currentBlobPointer, typeof(NativeMethods.NLA_BLOB));
 
-                                    toReturn = connectivityBlob.connectivity.internet == NativeMethods.NLA_INTERNET.NLA_INTERNET_YES;
-                                    break;
-                                }
-                                else
+                                while (nlaBlob != null)
                                 {
-                                    if (nlaBlob.header.nextOffset == 0)
+                                    if (nlaBlob.header.type == NativeMethods.NLA_BLOB_DATA_TYPE.NLA_CONNECTIVITY)
                                     {
-                                        nlaBlob = null;
+                                        NativeMethods.NLA_BLOB_CONNECTIVITY connectivityBlob = (NativeMethods.NLA_BLOB_CONNECTIVITY)Marshal.PtrToStructure(currentBlobPointer, typeof(NativeMethods.NLA_BLOB_CONNECTIVITY));
+
+                                        toReturn = connectivityBlob.connectivity.internet == NativeMethods.NLA_INTERNET.NLA_INTERNET_YES;
+                                        break;
                                     }
                                     else
                                     {
-                                        currentBlobPointer = IntPtr.Add(currentBlobPointer, nlaBlob.header.nextOffset);
+                                        blobSizeSum += nlaBlob.header.dwSize;
 
-                                        nlaBlob = (NativeMethods.NLA_BLOB)Marshal.PtrToStructure(currentBlobPointer, typeof(NativeMethods.NLA_BLOB));
+                                        if (nlaBlob.header.nextOffset == 0
+                                            || currentPointerOffset == nlaBlob.header.nextOffset
+                                            || nlaBlob.header.nextOffset >= blob.cbSize
+                                            || nlaBlob.header.nextOffset < blobSizeSum)
+                                        {
+                                            nlaBlob = null;
+                                        }
+                                        else
+                                        {
+                                            currentPointerOffset = nlaBlob.header.nextOffset;
+                                            currentBlobPointer = IntPtr.Add(blob.pInfo, (int)currentPointerOffset);
+
+                                            nlaBlob = (NativeMethods.NLA_BLOB)Marshal.PtrToStructure(currentBlobPointer, typeof(NativeMethods.NLA_BLOB));
+                                        }
                                     }
                                 }
-                            }
 
-                            if (toReturn)
-                            {
-                                break;
+                                if (toReturn)
+                                {
+                                    break;
+                                }
                             }
                         }
                     }
                 }
-
-                Marshal.FreeHGlobal(pBuffer);
+                finally
+                {
+                    Marshal.FreeHGlobal(pBuffer);
+                }
             }
 
             result = NativeMethods.WSALookupServiceEnd(valHandle);

@@ -547,7 +547,7 @@ namespace CloudApiPublic.Static
             public IntPtr lpServiceClassId;
             public IntPtr lpVersion;
             public String lpszComment;
-            public Int32 dwNameSpace;
+            public NAMESPACE_PROVIDER_PTYPE dwNameSpace;
             public IntPtr lpNSProviderId;
             public String lpszContext;
             public Int32 dwNumberOfProtocols;
@@ -580,8 +580,8 @@ namespace CloudApiPublic.Static
         public struct NLA_Header
         {
             public NLA_BLOB_DATA_TYPE type;
-            public Int32 dwSize;
-            public Int32 nextOffset;
+            public UInt32 dwSize;
+            public UInt32 nextOffset;
         }
 
         [StructLayout(LayoutKind.Explicit, Pack = 4)]
@@ -615,6 +615,17 @@ namespace CloudApiPublic.Static
             NLA_INTERNET_UNKNOWN = 0,
             NLA_INTERNET_NO = 1,
             NLA_INTERNET_YES = 2
+        }
+
+        public enum NAMESPACE_PROVIDER_PTYPE : uint
+        {
+            NS_DNS = 12,
+            NS_NLA = 15,
+            NS_BTH = 16,
+            NS_NTDS = 32,
+            NS_EMAIL = 37,
+            NS_PNRPNAME = 38,
+            NS_PNRPCLOUD = 39
         }
 
         [DllImport("Ws2_32.DLL", CharSet = CharSet.Auto,
