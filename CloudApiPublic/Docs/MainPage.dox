@@ -176,7 +176,7 @@
 /// \subsection sampleapp-syncstatuswindow-subsec Sync Status Window
 /// The Sync Status Window is displayed when you click the Sync Status button on the main window:
 /// \image html SampleAppSyncStatusWindow.jpg "Sync Status Window"
-/// This window has three areas.  The upload and download graphical status bars appear on the top, each with historical bandwidth display.  Sync supports up to six upload and six download threads, but your local group policy may limit the number to two each.
+/// This window has three areas.  The upload and download graphical status bars appear on the top, each with historical bandwidth display.  Sync supports up to six upload and six download threads.
 /// If more than two upload or download threads are activated, a vertical scrollbar will appear.
 ///
 /// The middle area presents the real-time summary sync statistics, and an icon that changes from Synced (check mark) to Syncing (animated syncing icon).

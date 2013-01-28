@@ -3,7 +3,7 @@
 
 01/16/2013 Initial release (CloudSDK-v0.1.zip)
 
-01/28/2013 Build 1 (CloudSDK-v0.1.xxxxx.zip)
+01/28/2013 CloudSDK-v0.1.02e37c3.zip
   o (API Breaking Changes): Changed some of the class and method names to be more consistent with the Mac OS X SDK.
     - Renamed CLCredentials to CLCredential.
     - Renamed CLCredential.ApplicationKey to CLCredential.Key.
