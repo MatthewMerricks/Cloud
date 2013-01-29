@@ -1594,10 +1594,14 @@ namespace CloudApiPublic.Sync
                                 .Any(communicationIndex => changesForCommunication[communicationIndex].FileChange == currentErrorToQueue.FileChange))
                             .ToArray();
 
+                        // declare the enumerable of failures for the log
+                        IEnumerable<FileChange> failuresBeforeCommunicationToLog;
+
                         // add errors to failure queue (which will exclude changes which were succesfully completed)
                         CLError requeueFailureError = RequeueFailures(new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>(errorsToRequeue), // all communication errors and some completed events
                             successfulEventIds, // completed event ids, used to filter errors to just errors
-                            toReturn); // return error to aggregate with more errors
+                            toReturn, // return error to aggregate with more errors
+                            out failuresBeforeCommunicationToLog); // output the enumerable of failures for the log
                         if (requeueFailureError != null)
                         {
                             toReturn += new AggregateException("An error occurred requeuing failures from errorsToRequeue", requeueFailureError.GrabExceptions());
@@ -1615,7 +1619,7 @@ namespace CloudApiPublic.Sync
                         // for advanced trace, SyncRunRequeuedFailuresBeforeCommunication and SyncRunChangesForCommunication
                         if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, errorsToRequeue.Select(currentErrorToRequeue => currentErrorToRequeue.FileChange));
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, failuresBeforeCommunicationToLog);
                             ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
                         }
 
@@ -2364,16 +2368,20 @@ namespace CloudApiPublic.Sync
                 // which will be checked against successfulEventIds;
                 // this should be true regardless of whether a line in the main try/catch threw an exception since it should be up to date at all times
 
+                // declare enumerable of errors to log
+                IEnumerable<FileChange> syncRunEndFailuresToLog;
+
                 // add errors to failure queue (which will exclude changes which were succesfully completed)
                 toReturn = RequeueFailures(errorsToQueue, // all errors and some completed events
                     successfulEventIds, // completed event ids, used to filter errors to just errors
-                    toReturn); // return error to aggregate with more errors
+                    toReturn, // return error to aggregate with more errors
+                    out syncRunEndFailuresToLog); // output enumerable of errors to log
 
                 // advanced trace, SyncRunEndRequeuedFailures
                 if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow
                     && errorsToQueue != null) // <-- fixed a parameter exception on the Enumerable.Select extension method used in the trace statement
                 {
-                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, errorsToQueue.Select(currentErrorToQueue => currentErrorToQueue.FileChange));
+                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, syncRunEndFailuresToLog);
                 }
 
                 // errorsToQueue is no longer used (all its errors were added back to the failure queue)
@@ -2606,8 +2614,13 @@ namespace CloudApiPublic.Sync
         // add errors to failure queue (which will exclude changes which were succesfully completed)
         private CLError RequeueFailures(List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> errorsToQueue, // errors to queue (before filtering out successes)
             List<long> successfulEventIds, // successes to filter out
-            CLError appendErrors) // return error to aggregate with any errors that occur
+            CLError appendErrors, // return error to aggregate with any errors that occur
+            out IEnumerable<FileChange> filteredErrors) // errors which were actually queued (not successful events)
         {
+            List<FileChange> filteredErrorsList;
+            // use a list to append for the errors to log as queued failures
+            filteredErrors = filteredErrorsList = new List<FileChange>();
+
             // if there are any errors to queue,
             // then for any that are not also in the list of successful events, add then to the failure queue;
             // also add the FileStreams from the changes in error to the aggregated error output so they can be disposed;
@@ -2636,6 +2649,9 @@ namespace CloudApiPublic.Sync
                                     // if the current event was not found in the list of completed events, then it was a failed event: queue to failure queue
                                     if (successfulEventIds.BinarySearch(errorToQueue.FileChange.EventId) < 0)
                                     {
+                                        // the error has been filtered, add the list used for output
+                                        filteredErrorsList.Add(errorToQueue.FileChange);
+
                                         // declare an enumerable to store dependencies which were freed up when cancelling out a not found change
                                         IEnumerable<FileChange> notFoundDependencies;
 
@@ -5388,6 +5404,17 @@ namespace CloudApiPublic.Sync
                                     else
                                     {
                                         fileChangeForOriginalMetadata = ((PossiblyStreamableFileChange)matchedChange).FileChange;
+
+                                        // puts back the latest updated revision from the server (which would have been lost when the metadata instance would be replaced next below), update revision changer for difference
+                                        if (fileChangeForOriginalMetadata.Metadata != null
+                                            && string.IsNullOrEmpty(fileChangeForOriginalMetadata.Metadata.Revision)
+                                            && currentChange.Metadata != null
+                                            && !string.IsNullOrEmpty(currentChange.Metadata.Revision))
+                                        {
+                                            fileChangeForOriginalMetadata.Metadata.Revision = currentChange.Metadata.Revision;
+
+                                            fileChangeForOriginalMetadata.Metadata.RevisionChanger.FireRevisionChanged(fileChangeForOriginalMetadata.Metadata);
+                                        }
                                     }
 
                                     // set the metadata of the current FileChange as the metadata from the previous change (or fake previous change if server was queried for new metadata)
@@ -5420,7 +5447,6 @@ namespace CloudApiPublic.Sync
                                             && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerId != currentChange.Metadata.ServerId)
 
                                         // different if the revision is different
-                                        || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision != currentChange.Metadata.Revision
 
                                         // different if the change is not a rename and any remaining metadata is different (rename is not checked for other metadata here because the remaining metadata properties were copied from previous metadata and are therefore known to match)
                                         || (currentChange.Type != FileChangeType.Renamed
@@ -5507,9 +5533,9 @@ namespace CloudApiPublic.Sync
                                         {
                                             innerIncompleteChangesList.Add(innerCurrentChange.EventId,
                                                 new List<PossiblyStreamableAndPossiblyChangedFileChange>(new[]
-                                                        {
-                                                            addChange
-                                                        }));
+                                                    {
+                                                        addChange
+                                                    }));
                                         }
                                     };
 
