@@ -1509,6 +1509,7 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\release\$(
     </ClCompile>
     <ClCompile Include="BadgeIconFailed.cpp" />
     <ClCompile Include="BadgeIconSelective.cpp" />
+    <ClCompile Include="BadgeIconSupport.cpp" />
     <ClCompile Include="BadgeIconSynced.cpp" />
     <ClCompile Include="BadgeIconSyncing.cpp" />
     <ClCompile Include="CBadgeNetPubSubEvents.cpp" />
@@ -1619,6 +1620,7 @@ copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\release\$(
     <ClInclude Include="BadgeCOM_i.h" />
     <ClInclude Include="BadgeIconFailed.h" />
     <ClInclude Include="BadgeIconSelective.h" />
+    <ClInclude Include="BadgeIconSupport.h" />
     <ClInclude Include="BadgeIconSynced.h" />
     <ClInclude Include="BadgeIconSyncing.h" />
     <ClInclude Include="BoostSemaphore.h" />
