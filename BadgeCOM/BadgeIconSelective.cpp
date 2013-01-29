@@ -211,7 +211,9 @@ STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 	    // Should this path be badged?  It will be badged this exact path is found in the the badging dictionary,
 	    // and if the current badgeType value matches this icon handler.
 		CLTRACE(9, "CBadgeIconSelective: IsMemberOf: Entry. Path: <%ls>.", pwszPath);
-	    boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType>::iterator it = _mapBadges.find(pwszPath);
+        CComBSTR lowerCaseFullPath(pwszPath);  // this will free its memory when it goes out of scope.  See http://msdn.microsoft.com/en-us/library/bdyd6xz6(v=vs.80).aspx#programmingwithccombstr_memoryleaks
+        lowerCaseFullPath.ToLower();
+	    boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType>::iterator it = _mapBadges.find(lowerCaseFullPath.m_str);
 	    if (it != _mapBadges.end() && it->second == cloudAppBadgeSyncSelective)
 	    {
     		CLTRACE(9, "CBadgeIconSelective: IsMemberOf: Badge it!.");
@@ -244,8 +246,10 @@ void CBadgeIconSelective::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBad
 		if (badgeType == cloudAppBadgeSyncSelective)
 		{
 			CLTRACE(9, "CBadgeIconSelective: OnEventAddBadgePath: Entry. BadgeType: %d. Path: <%ls>.", badgeType, fullPath);
-			_mapBadges[fullPath] = badgeType;
-			SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
+            CComBSTR lowerCaseFullPath(fullPath);  // this will free its memory when it goes out of scope.  See http://msdn.microsoft.com/en-us/library/bdyd6xz6(v=vs.80).aspx#programmingwithccombstr_memoryleaks
+            lowerCaseFullPath.ToLower();
+			_mapBadges[lowerCaseFullPath.m_str] = badgeType;
+			SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(lowerCaseFullPath.m_str), NULL);
 		}
 	}
 	catch (const std::exception &ex)
@@ -268,8 +272,10 @@ void CBadgeIconSelective::OnEventRemoveBadgePath(BSTR fullPath)
 	{
 		// Remove the item with key fullPath.
 		CLTRACE(9, "CBadgeIconSelective: OnEventRemoveBadgePath: Entry. Path: <%ls>.", fullPath);
-		_mapBadges.erase(fullPath);
-        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
+        CComBSTR lowerCaseFullPath(fullPath);  // this will free its memory when it goes out of scope.  See http://msdn.microsoft.com/en-us/library/bdyd6xz6(v=vs.80).aspx#programmingwithccombstr_memoryleaks
+        lowerCaseFullPath.ToLower();
+		_mapBadges.erase(lowerCaseFullPath.m_str);
+        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(lowerCaseFullPath.m_str), NULL);
 	}
 	catch (const std::exception &ex)
 	{
@@ -292,8 +298,10 @@ void CBadgeIconSelective::OnEventAddSyncBoxFolderPath(BSTR fullPath)
 	{
 		// Add or update the fullPath.  The value is not used.
 		CLTRACE(9, "CBadgeIconSelective: OnEventAddSyncBoxFolderPath: Entry. Path: <%ls>.", fullPath);
-		_mapBadges[fullPath] = cloudAppBadgeNone;
-        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
+        CComBSTR lowerCaseFullPath(fullPath);  // this will free its memory when it goes out of scope.  See http://msdn.microsoft.com/en-us/library/bdyd6xz6(v=vs.80).aspx#programmingwithccombstr_memoryleaks
+        lowerCaseFullPath.ToLower();
+		_mapBadges[lowerCaseFullPath.m_str] = cloudAppBadgeNone;
+        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(lowerCaseFullPath.m_str), NULL);
 	}
 	catch (const std::exception &ex)
 	{
@@ -316,13 +324,15 @@ void CBadgeIconSelective::OnEventRemoveSyncBoxFolderPath(BSTR fullPath)
 	{
 		// Remove the item with key fullPath.
 		CLTRACE(9, "CBadgeIconSelective: OnEventRemoveSyncBoxFolderPath: Entry. Path: <%ls>.", fullPath);
-		_mapBadges.erase(fullPath);
-        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(fullPath), NULL);
+        CComBSTR lowerCaseFullPath(fullPath);  // this will free its memory when it goes out of scope.  See http://msdn.microsoft.com/en-us/library/bdyd6xz6(v=vs.80).aspx#programmingwithccombstr_memoryleaks
+        lowerCaseFullPath.ToLower();
+		_mapBadges.erase(lowerCaseFullPath.m_str);
+        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(lowerCaseFullPath.m_str), NULL);
 
 		// Delete all of the keys in the badging dictionary that have this folder path as a root.
 		for (boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType>::iterator it = _mapBadges.begin(); it != _mapBadges.end();  /* bump in body of code */)
 		{
-			if (IsPathInRootPath(it->first, fullPath))
+			if (IsPathInRootPath(it->first, lowerCaseFullPath.m_str))
 			{
         		CLTRACE(9, "CBadgeIconSelective: OnEventRemoveSyncBoxFolderPath: Erase path from badging dictionary: %ls.", it->first.c_str());
                 SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, it->first.c_str(), NULL);
@@ -347,7 +357,6 @@ void CBadgeIconSelective::OnEventRemoveSyncBoxFolderPath(BSTR fullPath)
 /// <summary>
 /// We received an error from the PubSubServer watcher.  We are no longer subscribed to badging events.
 /// </summary>
-/// <param name="fullPath">The full path of the folder being removed.</param>
 void CBadgeIconSelective::OnEventSubscriptionWatcherFailed()
 {
 	try
@@ -462,7 +471,6 @@ void CBadgeIconSelective::InitializeBadgeNetPubSubEvents()
 		_fIsInitialized = _pBadgeNetPubSubEvents->SubscribeToBadgeNetEvents();
 
 		// Tell BadgeNet we just initialized.
-		// Tell BadgeNet we just initialized.
         if (_fIsInitialized)
         {
 			BSTR dummy(L"");
@@ -473,10 +481,12 @@ void CBadgeIconSelective::InitializeBadgeNetPubSubEvents()
 	catch (const std::exception &ex)
 	{
 		CLTRACE(1, "CBadgeIconSelective: InitializeBadgeNetPubSubEvents: ERROR: Exception.  Message: %s.", ex.what());
+        _fIsInitialized = false;
 	}
     catch (...)
     {
 		CLTRACE(1, "CBadgeIconSelective: InitializeBadgeNetPubSubEvents: ERROR: C++ exception.");
+        _fIsInitialized = false;
     }
     CLTRACE(9, "CBadgeIconSelective: InitializeBadgeNetPubSubEvents: Exit.");
 }
