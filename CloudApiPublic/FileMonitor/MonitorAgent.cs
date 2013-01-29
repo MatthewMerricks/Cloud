@@ -882,12 +882,12 @@ namespace CloudApiPublic.FileMonitor
 
         private CLError AssignDependencies(KeyValuePair<FileChangeSource, FileChangeWithDependencies>[] dependencyChanges, Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>> OriginalFileChangeMappings, out HashSet<FileChangeWithDependencies> PulledChanges)
         {
+
             CLError toReturn = null;
             try
             {
-                //// ¡¡ SQL CE does not support transactions !!
-                //using (TransactionScope PreprocessingScope = new TransactionScope())
-                //{
+                List<FileChange> removeFromSql = new List<FileChange>();
+
                 Indexer.CELocker.EnterWriteLock();
                 try
                 {
@@ -949,15 +949,11 @@ namespace CloudApiPublic.FileMonitor
                                                 && OriginalFileChangeMappings.TryGetValue(CurrentDisposal, out CurrentOriginalMapping))
                                             {
                                                 CurrentOriginalMapping.Key.Dispose();
-                                                if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges)
+                                                if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges
+                                                    && RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key))
                                                 {
-                                                    RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key);
+                                                    removeFromSql.Add(CurrentDisposal);
                                                 }
-                                            }
-                                            CLError updateSQLError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(null, CurrentDisposal) }, true);
-                                            if (updateSQLError != null)
-                                            {
-                                                toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
                                             }
                                         }
                                     }
@@ -973,12 +969,26 @@ namespace CloudApiPublic.FileMonitor
                 }
                 finally
                 {
+                    if (removeFromSql.Count > 0)
+                    {
+                        try
+                        {
+                            CLError updateSQLError = Indexer.MergeEventsIntoDatabase(
+                                removeFromSql.Select(currentToRemove => new FileChangeMerge(null, currentToRemove)),
+                                true);
+                            if (updateSQLError != null)
+                            {
+                                toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            toReturn += new Exception("Error updating SQL", ex);
+                        }
+                    }
+
                     Indexer.CELocker.ExitWriteLock();
                 }
-                //// ¡¡ SQL CE does not support transactions !!
-                    //PreprocessingScope.Complete();
-                //}
-
             }
             catch (Exception ex)
             {

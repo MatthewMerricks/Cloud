@@ -777,6 +777,8 @@ namespace CloudSdkSyncSample.EventMessageReceiver
                 || pointOnElement.X >= growlElement.Width // mouse is to the right of the growl's right border
                 || pointOnElement.Y >= growlElement.Height) // mouse is to the bottom of the growl's bottom border
             {
+                bool needToStartTimer = false;
+
                 // lock on growl messages for modification
                 lock (_growlMessages)
                 {
@@ -841,9 +843,14 @@ namespace CloudSdkSyncSample.EventMessageReceiver
                             currentGrowl.CompleteFadeOut = newCompleteFadeOut;
                         }
 
-                        // may need to start the processing thread which sets the bindable animation times for fading in and out
-                        StartMessageTimerIfNeeded();
+                        needToStartTimer = true;
                     }
+                }
+
+                if (needToStartTimer)
+                {
+                    // may need to start the processing thread which sets the bindable animation times for fading in and out
+                    StartMessageTimerIfNeeded();
                 }
 
                 // return that the mouse left the growl FrameworkElement
@@ -874,6 +881,8 @@ namespace CloudSdkSyncSample.EventMessageReceiver
                     }
                 }
 
+                bool needToStartTimer = false;
+
                 // lock on growl messages for modification
                 lock (_growlMessages)
                 {
@@ -884,14 +893,20 @@ namespace CloudSdkSyncSample.EventMessageReceiver
                     {
                         // add the current message
                         _growlMessages.Add(toAdd);
-                        // may need to start the processing thread which sets the bindable animation times for fading in and out
-                        StartMessageTimerIfNeeded();
+
+                        needToStartTimer = true;
                     }
                     finally
                     {
                         // uses an extra unlock method on top of ObservableCollection which matches the earlier lock method
                         _growlMessages.UnlockCollectionChanged();
                     }
+                }
+
+                if (needToStartTimer)
+                {
+                    // may need to start the processing thread which sets the bindable animation times for fading in and out
+                    StartMessageTimerIfNeeded();
                 }
             }
         }

@@ -75,10 +75,14 @@ namespace CloudApiPublic
                 {
                     if (_syncEngine == null)
                     {
-                        throw new NullReferenceException("Sync not started");
+                        //throw new NullReferenceException("Sync not started");
+                        status = new CLSyncCurrentStatus(CLSyncCurrentState.Idle, null);
+                        return null;
                     }
-
-                    return _syncEngine.GetCurrentStatus(out status);
+                    else
+                    {
+                        return _syncEngine.GetCurrentStatus(out status);
+                    }
                 }
             }
             catch (Exception ex)
