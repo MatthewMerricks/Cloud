@@ -77,16 +77,19 @@ namespace CloudApiPublic.FileMonitor.SyncImplementation
         /// <param name="outputChanges">(output) The set of new file change events.</param>
         /// <param name="outputChangesInError">(output) The adjusted set of file change events in error.</param>
         /// <param name="nullChangeFound">(output) Whether a null FileChange was found in the processing queue (which does not get output)</param>
+        /// <param name="failedOutChanges">(optional) The list containing failed out changes which should be locked if it exists by the method caller</param>
         /// <returns>An error or null.</returns>
         public CLError grabChangesFromFileSystemMonitor(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
-            out bool nullChangeFound)
+            out bool nullChangeFound,
+            List<FileChange> failedOutChanges = null)
         {
             return Monitor.GrabPreprocessedChanges(initialFailures,
                 out outputChanges,
                 out outputChangesInError,
-                out nullChangeFound);
+                out nullChangeFound,
+                failedOutChanges);
         }
 
         /// <summary>
@@ -161,16 +164,19 @@ namespace CloudApiPublic.FileMonitor.SyncImplementation
         /// <param name="currentFailures">The current set of file change events in error.</param>
         /// <param name="outputChanges">(output) The new set of top-level file change events to process.</param>
         /// <param name="outputFailures">(output) The new set of file change events in error.</param>
+        /// <param name="failedOutChanges">(optional) The list containing failed out changes which should be locked if it exists by the method caller</param>
         /// <returns>An aggregated error or null.</returns>
         public CLError dependencyAssignment(IEnumerable<PossiblyStreamableFileChange> toAssign,
             IEnumerable<FileChange> currentFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
-            out IEnumerable<FileChange> outputFailures)
+            out IEnumerable<FileChange> outputFailures,
+            List<FileChange> failedOutChanges = null)
         {
             return Monitor.AssignDependencies(toAssign,
                 currentFailures,
                 out outputChanges,
-                out outputFailures);
+                out outputFailures,
+                failedOutChanges);
         }
 
         /// <summary>

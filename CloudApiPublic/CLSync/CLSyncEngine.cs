@@ -19,6 +19,7 @@ using CloudApiPublic.Static;
 using CloudApiPublic.Sync;
 using CloudApiPublic.BadgeNET;
 using CloudApiPublic.REST;
+using System.Collections;
 
 namespace CloudApiPublic
 {
@@ -34,6 +35,7 @@ namespace CloudApiPublic
         private bool _isStarted = false;
         private static CLTrace _trace = CLTrace.Instance;
         private SyncEngine _syncEngine = null;
+        private static readonly HashSet<SyncEngine> NetworkMonitoredEngines = new HashSet<SyncEngine>();
         private System.Threading.WaitCallback statusUpdated = null;
         private object statusUpdatedUserState = null;
         private readonly object _locker = new object();
@@ -73,10 +75,14 @@ namespace CloudApiPublic
                 {
                     if (_syncEngine == null)
                     {
-                        throw new NullReferenceException("Sync not started");
+                        //throw new NullReferenceException("Sync not started");
+                        status = new CLSyncCurrentStatus(CLSyncCurrentState.Idle, null);
+                        return null;
                     }
-
-                    return _syncEngine.GetCurrentStatus(out status);
+                    else
+                    {
+                        return _syncEngine.GetCurrentStatus(out status);
+                    }
                 }
             }
             catch (Exception ex)
@@ -460,6 +466,21 @@ namespace CloudApiPublic
                 {
                     lock (_locker)
                     {
+                        lock (NetworkMonitoredEngines)
+                        {
+                            bool startNetworkMonitor = NetworkMonitoredEngines.Count == 0;
+
+                            if (NetworkMonitoredEngines.Add(_syncEngine))
+                            {
+                                if (startNetworkMonitor)
+                                {
+                                    NetworkMonitor.Instance.NetworkChanged += NetworkChanged;
+                                    NetworkMonitor.Instance.StartNetworkMonitor();
+                                    SyncEngine.InternetConnected = NetworkMonitor.Instance.CheckInternetIsConnected();
+                                }
+                            }
+                        }
+
                         if (_monitor != null)
                         {
                             try
@@ -629,6 +650,20 @@ namespace CloudApiPublic
                     {
                         _trace.writeToLog(9, "CLSync: ReleaseResources: Stop the sync engine.");
                         _syncEngine.Dispose();
+
+                        // detach sync engine from network monitoring
+                        lock (NetworkMonitoredEngines)
+                        {
+                            if (NetworkMonitoredEngines.Remove(_syncEngine))
+                            {
+                                if (NetworkMonitoredEngines.Count == 0)
+                                {
+                                    NetworkMonitor.Instance.NetworkChanged -= NetworkChanged;
+                                    NetworkMonitor.Instance.StopNetworkMonitor();
+                                }
+                            }
+                        }
+
                         _syncEngine = null;
                         _trace.writeToLog(9, "CLSync: ReleaseResources: Sync engine stopped.");
                     }
@@ -692,6 +727,11 @@ namespace CloudApiPublic
             return toReturn;
         }
 
+        private static void NetworkChanged(object sender, NetworkChangedEventArgs e)
+        {
+            SyncEngine.InternetConnected = e.IsConnected;
+        }
+
         /// <summary>
         /// Stop syncing the SyncBox and free resources.
         /// </summary>
@@ -711,6 +751,9 @@ namespace CloudApiPublic
 
             // Shuts down the sync FileChange delay processing
             DelayProcessable<FileChange>.TerminateAllProcessing();
+
+            // Stops network change monitoring
+            NetworkMonitor.DisposeInstance();
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿//
-// Sync.cs
+// SyncEngine.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -32,8 +32,8 @@ namespace CloudApiPublic.Sync
     internal sealed class SyncEngine : IDisposable
     {
         #region instance fields, all readonly
-        // locker to prevent multiple simultaneous processing of the same SyncEngine
-        private readonly object RunLocker = new object();
+        // locker to prevent multiple simultaneous processing of the same SyncEngine, also storing whether Run has fired before for special initial upload/download processing
+        private readonly GenericHolder<bool> RunLocker = new GenericHolder<bool>(false);
         // holder to whether this SyncEngine has faulted on server connection failure
         private readonly GenericHolder<bool> HaltedOnServerConnectionFailure = new GenericHolder<bool>(false);
         // store event source
@@ -60,7 +60,33 @@ namespace CloudApiPublic.Sync
         private readonly GenericHolder<byte> UploadDownloadConnectionFailures = new GenericHolder<byte>(0);
         // holder for consecutive count of failures communicating with the metadata server
         private readonly GenericHolder<byte> MetadataConnectionFailures = new GenericHolder<byte>(0);
+        // time to wait to take everything that has failed out and retry
+        private readonly int FailedOutRetryMillisecondInterval;
         #endregion
+
+        #region is internet connected
+        public static bool InternetConnected
+        {
+            get
+            {
+                lock (InternetConnectedLocker)
+                {
+                    return _internetConnected;
+                }
+            }
+            set
+            {
+                lock (InternetConnectedLocker)
+                {
+                    _internetConnected = value;
+                }
+            }
+        }
+        private static bool _internetConnected = false;
+        private static readonly object InternetConnectedLocker = new object();
+        #endregion
+
+        private readonly GenericHolder<bool> CredentialErrorDetected = new GenericHolder<bool>();
 
         /// <summary>
         /// Engine constructor
@@ -87,7 +113,8 @@ namespace CloudApiPublic.Sync
             byte MaxNumberOfFailureRetries = 20,
             byte MaxNumberOfNotFounds = 10,
             int ErrorProcessingMillisecondInterval = 10000,// wait ten seconds between processing
-            byte MaxNumberConnectionFailures = 5) // should be 40
+            byte MaxNumberConnectionFailures = 40,
+            int FailedOutRetryMillisecondInterval = 14400000) // wait four hours between retrying failed out changes
         {
             try
             {
@@ -101,7 +128,8 @@ namespace CloudApiPublic.Sync
                     MaxNumberOfFailureRetries,
                     MaxNumberOfNotFounds,
                     ErrorProcessingMillisecondInterval,
-                    MaxNumberConnectionFailures);
+                    MaxNumberConnectionFailures,
+                    FailedOutRetryMillisecondInterval);
             }
             catch (Exception ex)
             {
@@ -120,7 +148,8 @@ namespace CloudApiPublic.Sync
             byte MaxNumberOfFailureRetries,
             byte MaxNumberOfNotFounds,
             int ErrorProcessingMillisecondInterval,
-            byte MaxNumberConnectionFailures)
+            byte MaxNumberConnectionFailures,
+            int FailedOutRetryMillisecondInterval)
         {
             #region validate parameters
             if (syncData == null)
@@ -174,7 +203,7 @@ namespace CloudApiPublic.Sync
             this.ErrorProcessingMillisecondInterval = ErrorProcessingMillisecondInterval;
             this.MaxNumberOfServerConnectionFailures = MaxNumberConnectionFailures;
 
-            // 2 is Default Connection Limit
+            // 12 is Default Connection Limit (6 up/6 down)
             ServicePointManager.DefaultConnectionLimit = CLDefinitions.MaxNumberOfConcurrentDownloads + CLDefinitions.MaxNumberOfConcurrentUploads;
             #endregion
         }
@@ -214,8 +243,46 @@ namespace CloudApiPublic.Sync
         private readonly object failureTimerLocker = new object();
 
         // private queue for failures;
-        // lock on failureTimer.TimerRunningLocker for all access
+        // lock on FailureTimer.TimerRunningLocker for all access
         private readonly Queue<FileChange> FailedChangesQueue = new Queue<FileChange>();
+
+        // Timer to handle wait callbacks to requeue failures to reprocess
+        private ProcessingQueuesTimer FailedOutTimer
+        {
+            get
+            {
+                // lock to prevent reading and writing to timer simultaneously
+                lock (failedOutTimerLocker)
+                {
+                    // if timer has not been created, then create it
+                    if (_failedOutTimer == null)
+                    {
+                        // create timer, store creation error
+                        CLError timerError = ProcessingQueuesTimer.CreateAndInitializeProcessingQueuesTimer(
+                            FailedOutProcessing, // callback when timer finishes
+                            FailedOutRetryMillisecondInterval, // length of timer
+                            out _failedOutTimer, // output new timer
+                            this); // user state
+
+                        // if an error occurred creating the timer, then rethrow the exception
+                        if (timerError != null)
+                        {
+                            throw timerError.GrabFirstException();
+                        }
+                    }
+                    // return existing or newly created timer
+                    return _failedOutTimer;
+                }
+            }
+        }
+        // storage of requeue failures timer
+        private ProcessingQueuesTimer _failedOutTimer = null;
+        // locker for creating or retrieving requeue failures timer
+        private readonly object failedOutTimerLocker = new object();
+
+        // private queue for changes which have failed out;
+        // lock on FailedOutTimer.TimerRunningLocker for all access
+        private readonly List<FileChange> FailedOutChanges = new List<FileChange>();
 
         // hashset of temp download folders marked as cleaned
         private static readonly HashSet<string> TempDownloadsCleaned = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
@@ -316,6 +383,118 @@ namespace CloudApiPublic.Sync
                             }
 
                             throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (storeSettings == null)
+                {
+                    System.Windows.MessageBox.Show("Unable to LogErrors since storeSettings is null. Original error: " + ex.Message);
+                }
+                else
+                {
+                    ((CLError)ex).LogErrors(storeSettings.TraceLocation, storeSettings.LogErrors);
+                }
+            }
+        }
+
+        // EventHandler for when the _failedOutTimer hits the end of its timer;
+        // state object must be the Function which adds failed items to the FileMonitor processing queue
+        private static void FailedOutProcessing(object state)
+        {
+            // settings is required to log errors, so declare its instance outside the try/catch and default to null
+            ICLSyncSettingsAdvanced storeSettings = null;
+            try
+            {
+                // try cast state
+                SyncEngine thisEngine = state as SyncEngine;
+
+                // if try cast was not successful, then throw exception
+                if (thisEngine == null)
+                {
+                    throw new NullReferenceException("state cannot be null and must be castable to SyncEngine");
+                }
+
+                // store settings from cast state
+                storeSettings = thisEngine.syncBox.CopiedSettings;
+
+                // retrieve failed out timer only once to save on the getter code execution
+                ProcessingQueuesTimer getTimer = thisEngine.FailedOutTimer;
+                // lock on timer for all failed out list access
+                lock (getTimer.TimerRunningLocker)
+                {
+                    // if any failed out changes are in their list, then try to requeue failed out changes for reprocessing
+                    if (thisEngine.FailedOutChanges.Count > 0)
+                    {
+                        // clear out all failed items into an array
+                        FileChange[] failedOutChanges = thisEngine.FailedOutChanges.ToArray();
+                        thisEngine.FailedOutChanges.Clear();
+
+                        // attempt to requeue failed out changes for reprocessing within a try/catch (upon failure, readd to failure queue)
+                        try
+                        {
+                            // Add failed out changes back to FileMonitor via cast state;
+                            // if there are any adds in error requeue them to the failure queue;
+                            // Log any errors
+                            GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
+                            CLError err = thisEngine.syncData.addChangesToProcessingQueue(failedOutChanges, true, errList);
+                            if (errList.Value != null)
+                            {
+                                // retrieve failed out timer only once to save on the getter code execution
+                                ProcessingQueuesTimer failureTimer = thisEngine.FailureTimer;
+
+                                lock (failureTimer.TimerRunningLocker)
+                                {
+                                    bool atLeastOneFailureAdded = false;
+
+                                    foreach (FileChange currentError in errList.Value)
+                                    {
+                                        thisEngine.FailedChangesQueue.Enqueue(currentError);
+
+                                        atLeastOneFailureAdded = true;
+                                    }
+
+                                    // if at least one failure was readded, start the failure timer
+                                    if (atLeastOneFailureAdded)
+                                    {
+                                        failureTimer.StartTimerIfNotRunning();
+                                    }
+                                }
+                            }
+                            if (err != null)
+                            {
+                                err.LogErrors(storeSettings.TraceLocation, storeSettings.LogErrors);
+                            }
+                        }
+                        catch
+                        {
+                            // retrieve failed out timer only once to save on the getter code execution
+                            ProcessingQueuesTimer failureTimer = thisEngine.FailureTimer;
+
+                            lock (failureTimer.TimerRunningLocker)
+                            {
+                                bool atLeastOneFailureAdded = false;
+
+                                // An error occurred adding all the failed changes to the FileMonitor;
+                                // requeue them all to the failure queue;
+                                // rethrow error for logging
+                                foreach (FileChange currentError in failedOutChanges)
+                                {
+                                    thisEngine.FailedChangesQueue.Enqueue(currentError);
+
+                                    atLeastOneFailureAdded = true;
+                                }
+
+                                // if at least one failure was readded, start the failure timer
+                                if (atLeastOneFailureAdded)
+                                {
+                                    failureTimer.StartTimerIfNotRunning();
+                                }
+
+                                throw;
+                            }
                         }
                     }
                 }
@@ -964,6 +1143,57 @@ namespace CloudApiPublic.Sync
                     return new ObjectDisposedException("SyncEngine already halted from server connection failure");
                 }
 
+                lock (CredentialErrorDetected)
+                {
+                    if (CredentialErrorDetected.Value)
+                    {
+                        return new ObjectDisposedException("SyncEngine already halted from authorization credentials error");
+                    }
+                }
+
+                // if internet is not connected, no point to try sync, so make sure sync is requeued and send the informational message
+                if (!InternetConnected)
+                {
+                    try
+                    {
+                        // check for Sync shutdown
+                        Monitor.Enter(FullShutdownToken);
+                        try
+                        {
+                            if (FullShutdownToken.Token.IsCancellationRequested)
+                            {
+                                throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
+                            }
+                        }
+                        finally
+                        {
+                            Monitor.Exit(FullShutdownToken);
+                        }
+
+                        // lock on timer for access to failure queue
+                        lock (FailureTimer.TimerRunningLocker)
+                        {
+                            if (FailedChangesQueue.Count == 0)
+                            {
+                                FailedChangesQueue.Enqueue(null);
+
+                                FailureTimer.StartTimerIfNotRunning();
+                            }
+                        }
+
+                        MessageEvents.FireNewEventMessage(this,
+                            "No internet connection detected. Retrying Sync after a short delay.",
+                            SyncBoxId: syncBox.SyncBoxId,
+                            DeviceId: syncBox.CopiedSettings.DeviceId);
+
+                        return null;
+                    }
+                    catch (Exception ex)
+                    {
+                        return ex;
+                    }
+                }
+
                 Guid runThreadId = Guid.NewGuid();
 
                 // declare error which will be aggregated with exceptions and returned
@@ -1129,11 +1359,23 @@ namespace CloudApiPublic.Sync
                             // declare a bool for whether a null change was in the processing queue in the FileSystemMonitor
                             bool nullChangeFoundInFileSystemMonitor;
 
-                            // retrieve events to process, with dependencies reassigned (including previous errors)
-                            toReturn = syncData.grabChangesFromFileSystemMonitor(initialErrors,
-                                out outputChanges,
-                                out outputChangesInError,
-                                out nullChangeFoundInFileSystemMonitor);
+                            lock (FailedOutTimer.TimerRunningLocker)
+                            {
+                                bool previousFailedOutChange = FailedOutChanges.Count > 0;
+
+                                // retrieve events to process, with dependencies reassigned (including previous errors)
+                                toReturn = syncData.grabChangesFromFileSystemMonitor(initialErrors,
+                                    out outputChanges,
+                                    out outputChangesInError,
+                                    out nullChangeFoundInFileSystemMonitor,
+                                    FailedOutChanges);
+
+                                if (previousFailedOutChange
+                                    && FailedOutChanges.Count == 0)
+                                {
+                                    FailedOutTimer.TriggerTimerCompletionImmediately();
+                                }
+                            }
 
                             // if there was a null change, then communication should occur regardless of other changes since we cannot communicate a null change on a SyncTo (will cause a SyncFrom if no other changes)
                             if (nullChangeFoundInFileSystemMonitor
@@ -1233,6 +1475,7 @@ namespace CloudApiPublic.Sync
                         // pull out inner dependencies and append to the enumerable thingsThatWereDependenciesToQueue;
                         // repeat this process with inner dependencies
                         List<PossiblyStreamableFileChange> preprocessedEvents = new List<PossiblyStreamableFileChange>();
+                        HashSet<long> syncFromInitialDownloadMetadataErrors = new HashSet<long>();
                         HashSet<long> preprocessedEventIds = new HashSet<long>();
                         // function which reinserts dependencies into topLevelChanges in sorted order and returns true for reprocessing
                         Func<bool> reprocessForDependencies = () =>
@@ -1244,8 +1487,9 @@ namespace CloudApiPublic.Sync
                                 return false;
                             }
 
-                            // create a list to store dependencies that cannot be processed since they were file uploads (and only highest level changes for file upload had streams)
-                            List<FileChange> uploadDependenciesWithoutStreams = new List<FileChange>();
+                            // create a list to store dependencies that cannot be processed since they were file uploads (and only highest level changes for file upload had streams);
+                            // also contains FileChanges for initial load condition where a metadata query was not successful
+                            List<FileChange> uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers = new List<FileChange>();
 
                             // loop through dependencies to either add to the list of errors (since they will be preprocessed) or to the list of unprocessable changes (requiring streams)
                             foreach (FileChange currentDependency in thingsThatWereDependenciesToQueue)
@@ -1262,32 +1506,32 @@ namespace CloudApiPublic.Sync
                                     || currentDependency.Metadata.HashableProperties.IsFolder // folders don't require streams
                                     || currentDependency.Type == FileChangeType.Deleted // deleted files don't require streams
                                     || currentDependency.Type == FileChangeType.Renamed // renamed files don't require streams
-                                    || currentDependency.Direction == SyncDirection.From) // files for download don't need upload streams
+                                    || (currentDependency.Direction == SyncDirection.From // files for download don't need upload streams
+                                        && !syncFromInitialDownloadMetadataErrors.Contains(currentDependency.EventId)))
                                 {
                                     errorsToQueue.Add(new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(true, currentDependency, null));
                                 }
                                 // else if any condition was not met, then the file change was missing a stream and cannot be processed, add to that list
                                 else
                                 {
-                                    uploadDependenciesWithoutStreams.Add(currentDependency);
+                                    uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers.Add(currentDependency);
                                 }
                             }
 
                             // if all the dependencies are not processable, return false to stop preprocessing
-                            if (Enumerable.SequenceEqual(thingsThatWereDependenciesToQueue, uploadDependenciesWithoutStreams))
+                            if (Enumerable.SequenceEqual(thingsThatWereDependenciesToQueue, uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers))
                             {
                                 return false;
                             }
 
                             // replace changes to process with previous changes except already preprocessed changes and then add in dependencies which were processable
-                            outputChanges = outputChanges // previous changes
-                                .Except(preprocessedEvents) // exclude already preprocessed events
+                            outputChanges = outputChanges // previous changes.Except(preprocessedEvents) // exclude already preprocessed events
                                 .Concat(thingsThatWereDependenciesToQueue // add dependencies from preprocessed events (see next line for condition)
-                                    .Except(uploadDependenciesWithoutStreams) // which are themselves processable
+                                    .Except(uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers) // which are themselves processable
                                     .Select(currentDependencyToQueue => new PossiblyStreamableFileChange(currentDependencyToQueue, null))); // all the processable dependencies are non-streamable
 
                             // the only dependencies not in the the output list (to process) are the non-processable changes which are now the thingsThatWereDependenciesToQueue
-                            thingsThatWereDependenciesToQueue = uploadDependenciesWithoutStreams;
+                            thingsThatWereDependenciesToQueue = uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers;
 
                             // return true to continue preprocessing
                             return true;
@@ -1306,9 +1550,14 @@ namespace CloudApiPublic.Sync
                         // create list to store changes which were asynchronously preprocessed (only file uploads/downloads)
                         List<FileChange> asynchronouslyPreprocessed = new List<FileChange>();
 
+                        bool confirmingMetadataForPreexistingUploadDownloads = false;
+                        bool unhandledPreexistingUploadDownloadEventMessage = false;
+
                         // process once then repeat if it needs to reprocess for dependencies
                         do
                         {
+                            List<FileChange> initialMetadataFailuresAsInnerDependencies = new List<FileChange>();
+
                             // loop through all changes to process
                             foreach (PossiblyStreamableFileChange topLevelChange in outputChanges)
                             {
@@ -1328,8 +1577,109 @@ namespace CloudApiPublic.Sync
                                     Monitor.Exit(FullShutdownToken);
                                 }
 
-                                // if a set of conditions are met, then preprocess the current change
-                                if (topLevelChange.FileChange.EventId > 0 // requires a valid event id
+                                bool initialUploadDownloadMetadataError = false;
+
+                                // if change is a valid upload/download but this is the initial Sync Run, then metadata needs to be verified
+                                if (!RunLocker.Value
+                                    && (topLevelChange.FileChange.Type == FileChangeType.Created || topLevelChange.FileChange.Type == FileChangeType.Modified)
+                                    && topLevelChange.FileChange.Metadata != null
+                                    && !topLevelChange.FileChange.Metadata.HashableProperties.IsFolder
+                                    && !string.IsNullOrEmpty(topLevelChange.FileChange.Metadata.StorageKey))
+                                {
+                                    if (!confirmingMetadataForPreexistingUploadDownloads)
+                                    {
+                                        try
+                                        {
+                                            confirmingMetadataForPreexistingUploadDownloads = EventHandledLevel.IsHandled ==
+                                                MessageEvents.FireNewEventMessage(this,
+                                                    "At least one preexisting upload or download was found on startup, confirming metadata before processing" +
+                                                        (unhandledPreexistingUploadDownloadEventMessage
+                                                            ? "; Handle message event to prevent duplicate messages"
+                                                            : string.Empty),
+                                                    EventMessageLevel.Regular,
+                                                    SyncBoxId: syncBox.SyncBoxId,
+                                                    DeviceId: syncBox.CopiedSettings.DeviceId);
+
+                                            unhandledPreexistingUploadDownloadEventMessage = !confirmingMetadataForPreexistingUploadDownloads;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            toReturn += ex;
+                                        }
+                                    }
+
+                                    CLHttpRestStatus resolveMetadataStatus;
+                                    JsonContracts.Metadata resolvedMetadata;
+                                    CLError resolveMetadataError = httpRestClient.GetMetadataAtPath(
+                                        topLevelChange.FileChange.NewPath,
+                                        false, // not a folder
+                                        HttpTimeoutMilliseconds,
+                                        out resolveMetadataStatus,
+                                        out resolvedMetadata);
+
+                                    if (resolveMetadataStatus != CLHttpRestStatus.Success
+                                        && resolveMetadataStatus != CLHttpRestStatus.NoContent)
+                                    {
+                                        string resolveMetadataErrorString = "Errors occurred confirming metadata for a preexisting " +
+                                            (topLevelChange.FileChange.Direction == SyncDirection.To
+                                                ? "upload"
+                                                : "download");
+
+                                        toReturn += new AggregateException(resolveMetadataErrorString,
+                                            resolveMetadataError.GrabExceptions());
+
+                                        try
+                                        {
+                                            MessageEvents.FireNewEventMessage(this,
+                                                resolveMetadataErrorString,
+                                                EventMessageLevel.Regular,
+                                                true,
+                                                syncBox.SyncBoxId,
+                                                syncBox.CopiedSettings.DeviceId);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            toReturn += ex;
+                                        }
+                                    }
+
+                                    byte[] topLevelChangeMD5;
+                                    CLError topLevelChangeMD5Error = topLevelChange.FileChange.GetMD5Bytes(out topLevelChangeMD5);
+                                    if (topLevelChangeMD5Error != null)
+                                    {
+                                        toReturn += new AggregateException("Error retrieving MD5 bytes for a preexisting " +
+                                                (topLevelChange.FileChange.Direction == SyncDirection.To
+                                                    ? "upload"
+                                                    : "download"),
+                                            topLevelChangeMD5Error.GrabExceptions());
+                                    }
+                                    byte[] parsedResolvedMetadataHash;
+
+                                    if (topLevelChangeMD5Error != null
+                                        || resolvedMetadata == null
+                                        || resolvedMetadata.CreatedDate == null
+                                        || !Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadata.CreatedDate, topLevelChange.FileChange.Metadata.HashableProperties.CreationTime)
+                                        || resolvedMetadata.ModifiedDate == null
+                                        || !Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadata.ModifiedDate, topLevelChange.FileChange.Metadata.HashableProperties.LastTime)
+                                        || resolvedMetadata.Size != topLevelChange.FileChange.Metadata.HashableProperties.Size
+                                        || (parsedResolvedMetadataHash = Helpers.ParseHexadecimalStringToByteArray(resolvedMetadata.Hash)) == null
+                                        || topLevelChangeMD5 == null
+                                        || NativeMethods.memcmp(topLevelChangeMD5, parsedResolvedMetadataHash, new UIntPtr((uint)topLevelChangeMD5.Length)) != 0)
+                                    {
+                                        if (topLevelChange.FileChange.Direction == SyncDirection.From)
+                                        {
+                                            syncFromInitialDownloadMetadataErrors.Add(topLevelChange.FileChange.EventId);
+                                        }
+
+                                        initialMetadataFailuresAsInnerDependencies.Add(topLevelChange.FileChange);
+
+                                        initialUploadDownloadMetadataError = true;
+                                    }
+                                }
+
+                                // preprocess the current change if valid
+                                if (!initialUploadDownloadMetadataError
+                                    && topLevelChange.FileChange.EventId > 0 // requires a valid event id
                                     && !preprocessedEventIds.Contains(topLevelChange.FileChange.EventId) // only preprocess if not already preprocessed
                                     && (topLevelChange.FileChange.Direction == SyncDirection.From // can preprocess all Sync From events
                                         || ((topLevelChange.FileChange.Type == FileChangeType.Created || topLevelChange.FileChange.Type == FileChangeType.Modified) // if not a Sync From event, first requirement for preprocessing is a creation or modification (file uploads)
@@ -1517,6 +1867,18 @@ namespace CloudApiPublic.Sync
                                     }
                                 }
                             }
+
+                            if (initialMetadataFailuresAsInnerDependencies.Count > 0)
+                            {
+                                if (thingsThatWereDependenciesToQueue == null)
+                                {
+                                    thingsThatWereDependenciesToQueue = initialMetadataFailuresAsInnerDependencies;
+                                }
+                                else
+                                {
+                                    thingsThatWereDependenciesToQueue = thingsThatWereDependenciesToQueue.Concat(initialMetadataFailuresAsInnerDependencies);
+                                }
+                            }
                         }
                         // run function which reinserts dependencies into topLevelChanges in sorted order and loops when true is returned for reprocessing
                         while (reprocessForDependencies());
@@ -1637,6 +1999,8 @@ namespace CloudApiPublic.Sync
                         // Declare string for the newest sync id from the server
                         string newSyncId;
 
+                        bool credentialsError;
+
                         // Communicate with server with all the changes to process, storing any exception that occurs
                         Exception communicationException = CommunicateWithServer(
                             changesForCommunication, // changes to process
@@ -1644,7 +2008,30 @@ namespace CloudApiPublic.Sync
                             out completedChanges, // output changes completed during communication
                             out incompleteChanges, // output changes that still need to be performed
                             out changesInError, // output changes that were marked in error during communication (i.e. conflicts)
-                            out newSyncId); // output newest sync id from server
+                            out newSyncId, // output newest sync id from server
+                            out credentialsError);
+
+                        if (credentialsError)
+                        {
+                            lock (CredentialErrorDetected)
+                            {
+                                CredentialErrorDetected.Value = true;
+                            }
+
+                            try
+                            {
+                                MessageEvents.FireNewEventMessage(this,
+                                    "SyncEngine halted after failing to authenticate",
+                                    EventMessageLevel.Important,
+                                    true,
+                                    syncBox.SyncBoxId,
+                                    syncBox.CopiedSettings.DeviceId);
+                            }
+                            catch (Exception ex)
+                            {
+                                toReturn += ex;
+                            }
+                        }
 
                         // if either an exception occurred in communication or there were no changes to sync (no new sync id returned),
                         // then the normal post-communication processing will not occur which includes moving synchronously completed pre-processing changes to a completed state,
@@ -1669,6 +2056,10 @@ namespace CloudApiPublic.Sync
                                 if (recordSyncError != null)
                                 {
                                     toReturn += recordSyncError.GrabFirstException();
+                                }
+                                else
+                                {
+                                    RunLocker.Value = true;
                                 }
                             }
                         }
@@ -1823,26 +2214,39 @@ namespace CloudApiPublic.Sync
                                             (thingsThatWereDependenciesToQueue ?? Enumerable.Empty<FileChange>())
                                             .Select(uploadFileWithoutStream => new PossiblyStreamableFileChange(uploadFileWithoutStream, null))); // reselected to appropriate format
 
-                                        // Assign dependencies through a callback to the event source,
-                                        // between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared;
-                                        // Store any error returned
-                                        CLError postCommunicationDependencyError = syncData.dependencyAssignment(
+                                        CLError postCommunicationDependencyError;
 
-                                            // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
-                                            (incompleteChanges ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
-                                                .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.Stream))
-                                                .Concat(uploadFilesWithoutStreams),
+                                        lock (FailedOutTimer.TimerRunningLocker)
+                                        {
+                                            bool previousFailedOutChange = FailedOutChanges.Count > 0;
 
-                                            // second pass the enumerable of errors from the changes which had an error during communication and the changes that were in the queue for reprocessing
-                                            dequeuedFailures.Concat((changesInError ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
-                                                .Select(currentChangeInError => currentChangeInError.FileChange)
-                                                .Where(currentChangeInError => currentChangeInError != null)),// FileChange could be null for errors if there was an exeption but no FileChange was built
+                                            // Assign dependencies through a callback to the event source,
+                                            // between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared;
+                                            // Store any error returned
+                                            postCommunicationDependencyError = syncData.dependencyAssignment(
 
-                                            // output changes to process
-                                            out outputChanges,
+                                                // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
+                                                (incompleteChanges ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
+                                                    .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.Stream))
+                                                    .Concat(uploadFilesWithoutStreams),
 
-                                            // output changes to put into failure queue for reprocessing
-                                            out topLevelErrors);
+                                                // second pass the enumerable of errors from the changes which had an error during communication and the changes that were in the queue for reprocessing
+                                                dequeuedFailures.Concat((changesInError ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
+                                                    .Select(currentChangeInError => currentChangeInError.FileChange)
+                                                    .Where(currentChangeInError => currentChangeInError != null)),// FileChange could be null for errors if there was an exeption but no FileChange was built
+
+                                                // output changes to process
+                                                out outputChanges,
+
+                                                // output changes to put into failure queue for reprocessing
+                                                out topLevelErrors);
+
+                                            if (previousFailedOutChange
+                                                && FailedOutChanges.Count == 0)
+                                            {
+                                                FailedOutTimer.TriggerTimerCompletionImmediately();
+                                            }
+                                        }
 
                                         // if there was an error assigning dependencies, then rethrow exception for null outputs or aggregate error to return and continue for non-null outputs
                                         if (postCommunicationDependencyError != null)
@@ -2070,6 +2474,10 @@ namespace CloudApiPublic.Sync
                             if (recordSyncError != null)
                             {
                                 toReturn += recordSyncError.GrabFirstException();
+                            }
+                            else
+                            {
+                                RunLocker.Value = true;
                             }
 
                             // update latest status
@@ -2465,15 +2873,24 @@ namespace CloudApiPublic.Sync
                 toReturn = HaltedOnServerConnectionFailure.Value;
             }
 
-            if (needToNotifyOnInitialHalting
-                && statusUpdated != null)
+            if (needToNotifyOnInitialHalting)
             {
-                try
+                MessageEvents.FireNewEventMessage(this,
+                    "SyncEngine halted after repeated failure to communicate over one of the Cloud server domains",
+                    EventMessageLevel.Important,
+                    true,
+                    syncBox.SyncBoxId,
+                    syncBox.CopiedSettings.DeviceId);
+
+                if (statusUpdated != null)
                 {
-                    statusUpdated(statusUpdatedUserState);
-                }
-                catch
-                {
+                    try
+                    {
+                        statusUpdated(statusUpdatedUserState);
+                    }
+                    catch
+                    {
+                    }
                 }
             }
 
@@ -2513,6 +2930,13 @@ namespace CloudApiPublic.Sync
                 lock (HaltedOnServerConnectionFailure)
                 {
                     halted = HaltedOnServerConnectionFailure.Value;
+                }
+                if (!halted)
+                {
+                    lock (CredentialErrorDetected)
+                    {
+                        halted = CredentialErrorDetected.Value;
+                    }
                 }
 
                 lock (StatusHolder)
@@ -2588,6 +3012,16 @@ namespace CloudApiPublic.Sync
                     }
                 }
             }
+
+            lock (FailureTimer.TimerRunningLocker)
+            {
+                FailureTimer.TriggerTimerCompletionImmediately();
+            }
+
+            lock (FailedOutTimer.TimerRunningLocker)
+            {
+                FailedOutTimer.TriggerTimerCompletionImmediately();
+            }
         }
 
         #region IDisposable members
@@ -2635,6 +3069,10 @@ namespace CloudApiPublic.Sync
                     {
                         // sort ids of completed events to allow for binary search
                         successfulEventIds.Sort();
+
+                        // define list for changes which have failed out to add to the failed out queue, defaulting to null
+                        List<FileChange> failedOutChanges = null;
+
                         // lock on failure queue timer for modifying the failure queue
                         lock (FailureTimer.TimerRunningLocker)
                         {
@@ -2670,6 +3108,44 @@ namespace CloudApiPublic.Sync
                                             // mark that an error was added to the failure queue
                                             atLeastOneErrorAdded = true;
                                         }
+                                        else
+                                        {
+                                            // define recursing action to reset failure counters for a FileChange (and any inner FileChanges)
+                                            Action<FileChange, object> recurseResetCounters = (currentLevelChange, thisAction) =>
+                                                {
+                                                    Action<FileChange, object> castAction;
+                                                    if ((castAction = thisAction as Action<FileChange, object>) != null)
+                                                    {
+                                                        currentLevelChange.NotFoundForStreamCounter = 0;
+                                                        currentLevelChange.FailureCounter = 0;
+
+                                                        FileChangeWithDependencies castChange = currentLevelChange as FileChangeWithDependencies;
+                                                        if (castChange != null
+                                                            && castChange.DependenciesCount > 0)
+                                                        {
+                                                            foreach (FileChange recurseChange in castChange.Dependencies)
+                                                            {
+                                                                if (recurseChange != null)
+                                                                {
+                                                                    castAction(recurseChange, thisAction);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                };
+                                            
+                                            // if there is a failed out change to add, then reset its failure counters recursively and add the change to the list of those failed out
+                                            if (errorToQueue.FileChange != null)
+                                            {
+                                                recurseResetCounters(errorToQueue.FileChange, recurseResetCounters);
+
+                                                if (failedOutChanges == null)
+                                                {
+                                                    failedOutChanges = new List<FileChange>();
+                                                }
+                                                failedOutChanges.Add(errorToQueue.FileChange);
+                                            }
+                                        }
 
                                         // if ContinueToRetry output freed dependencies to process, process them
                                         if (notFoundDependencies != null)
@@ -2701,6 +3177,19 @@ namespace CloudApiPublic.Sync
                             if (atLeastOneErrorAdded)
                             {
                                 FailureTimer.StartTimerIfNotRunning();
+                            }
+                        }
+
+                        if (failedOutChanges != null)
+                        {
+                            lock (FailedOutTimer.TimerRunningLocker)
+                            {
+                                foreach (FileChange currentFailedOut in failedOutChanges)
+                                {
+                                    FailedOutChanges.Add(currentFailedOut);
+                                }
+
+                                FailedOutTimer.StartTimerIfNotRunning();
                             }
                         }
                     }
@@ -3852,9 +4341,15 @@ namespace CloudApiPublic.Sync
             // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
             // attributes to set: creation time, last modified time, and last access time
 
-            Helpers.RunActionWithRetries(() => System.IO.File.SetCreationTimeUtc(tempFileFullPath, downloadChange.Metadata.HashableProperties.CreationTime), true);
-            Helpers.RunActionWithRetries(() => System.IO.File.SetLastAccessTimeUtc(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime), true);
-            Helpers.RunActionWithRetries(() => System.IO.File.SetLastWriteTimeUtc(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime), true);
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.CreationTime),
+                true);
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime),
+                true);
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime),
+                true);
 
             // fire callback to perform the actual move of the temp file to the final destination
             castState.MoveCompletedDownload(tempFileFullPath, // location of temp file
@@ -4492,8 +4987,11 @@ namespace CloudApiPublic.Sync
             out IEnumerable<PossiblyChangedFileChange> completedChanges,
             out IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange> incompleteChanges,
             out IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError> changesInError,
-            out string newSyncId)
+            out string newSyncId,
+            out bool credentialsError)
         {
+            credentialsError = false;
+
             // try/catch to perform all communication with the server (or no communication if not needed), on catch return the exception
             try
             {
@@ -4599,10 +5097,57 @@ namespace CloudApiPublic.Sync
                         out purgeStatus, // output the success/failure status
                         out purgeResponse); // output the response content (this response content does not get used anywhere later)
 
+                    // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+
+                    if (purgeStatus == CLHttpRestStatus.ConnectionFailed)
+                    {
+                        lock (MetadataConnectionFailures)
+                        {
+                            if (MetadataConnectionFailures.Value != ((byte)255))
+                            {
+                                MetadataConnectionFailures.Value = (byte)(MetadataConnectionFailures.Value + 1);
+                            }
+                        }
+                    }
+                    else if (purgeStatus == CLHttpRestStatus.NotAuthorized)
+                    {
+                        credentialsError = true;
+                    }
+                    else
+                    {
+                        lock (MetadataConnectionFailures)
+                        {
+                            if (MetadataConnectionFailures.Value != ((byte)0))
+                            {
+                                MetadataConnectionFailures.Value = 0;
+                            }
+                        }
+                    }
+
                     // check if an error occurred purging pending and if so, rethrow the error
                     if (purgePendingError != null)
                     {
-                        throw new AggregateException("Error purging existing pending items on first sync", purgePendingError.GrabExceptions());
+                        // if this would have been a SyncFrom, a null FileChange needs to be queued into errors to trigger a retry, otherwise it would never come back in without push notification/manual poll to retry SyncFrom
+                        CLError err;
+                        if (communicationArray.Length > 0)
+                        {
+                            err = null;
+                        }
+                        else
+                        {
+                            // adding a null FileChange to queue will trigger a SyncFrom without an extra change (gets filtered out on "ProcessingChanges.DequeueAll()" in FileMonitor)
+                            GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>(); // no need to check the failed to add list since we won't add a null FileChange to the list of failed changes
+                            err = syncData.addChangesToProcessingQueue(new FileChange[] { null }, true, errList);
+                        }
+
+                        throw new AggregateException("Error purging existing pending items on first sync" +
+                            (err == null
+                                ? string.Empty
+                                : " and an error occurred queueing for a new SyncFrom"),
+                            (err == null
+                                ? purgePendingError.GrabExceptions()
+                                : purgePendingError.GrabExceptions().Concat(
+                                    err.GrabExceptions())));
                     }
                 }
 
@@ -4827,6 +5372,10 @@ namespace CloudApiPublic.Sync
                                     MetadataConnectionFailures.Value = (byte)(MetadataConnectionFailures.Value + 1);
                                 }
                             }
+                        }
+                        else if (syncToStatus == CLHttpRestStatus.NotAuthorized)
+                        {
+                            credentialsError = true;
                         }
                         else
                         {
@@ -6293,6 +6842,10 @@ namespace CloudApiPublic.Sync
                                 }
                             }
                         }
+                        else if (syncFromStatus == CLHttpRestStatus.NotAuthorized)
+                        {
+                            credentialsError = true;
+                        }
                         else
                         {
                             lock (MetadataConnectionFailures)
@@ -6604,6 +7157,8 @@ namespace CloudApiPublic.Sync
 
                         incompleteChanges = Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>();
                         newSyncId = null; // the null sync id is used to check on the calling method whether communication occurred
+
+                        RunLocker.Value = true;
                     }
 
                     // Sync From never has complete changes
