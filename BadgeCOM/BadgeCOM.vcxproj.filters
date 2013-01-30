@@ -52,7 +52,7 @@
     <ClCompile Include="CBadgeNetPubSubEvents.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BadgeIconSupport.cpp">
+    <ClCompile Include="CBadgeIconBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -99,7 +99,7 @@
     <ClInclude Include="BoostSemaphore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BadgeIconSupport.h">
+    <ClInclude Include="CBadgeIconBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
