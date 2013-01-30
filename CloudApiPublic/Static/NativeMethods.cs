@@ -528,15 +528,20 @@ namespace CloudApiPublic.Static
 
         #region network monitoring
         [StructLayout(LayoutKind.Sequential)]
-        public sealed class WSAData
+        public struct WSAData
         {
-            public Int16 wVersion;
-            public Int16 wHighVersion;
-            public String szDescription;
-            public String szSystemStatus;
-            public Int16 iMaxSockets;
-            public Int16 iMaxUdpDg;
-            public IntPtr lpVendorInfo;
+            public Int16 version;
+            public Int16 highVersion;
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 257)]
+            public String description;
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 129)]
+            public String systemStatus;
+
+            public Int16 maxSockets;
+            public Int16 maxUdpDg;
+            public IntPtr vendorInfo;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
@@ -628,15 +633,11 @@ namespace CloudApiPublic.Static
             NS_PNRPCLOUD = 39
         }
 
-        [DllImport("Ws2_32.DLL", CharSet = CharSet.Auto,
-        SetLastError = true)]
-        public extern static
-          Int32 WSAStartup(Int16 wVersionRequested, WSAData wsaData);
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public extern static Int32 WSAStartup(Int16 wVersionRequested, out WSAData wsaData);
 
-        [DllImport("Ws2_32.DLL", CharSet = CharSet.Auto,
-        SetLastError = true)]
-        public extern static
-          Int32 WSACleanup();
+        [DllImport("Ws2_32.DLL", CharSet = CharSet.Auto, SetLastError = true)]
+        public extern static Int32 WSACleanup();
 
         [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public extern static
@@ -653,6 +654,206 @@ namespace CloudApiPublic.Static
         [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public extern static
           Int32 WSALookupServiceEnd(Int32 hLookup);
+
+        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public extern static Int32 WSAGetLastError();
+
+        #region WSAErrors
+
+        public enum WinSockErrors : int
+        {
+            /// <Summary>An application attempts to use an event object, but the specified handle is not valid. Note that this error is returned by the operating system, so the error number may change in future releases of Windows.</Summary>
+            WSA_INVALID_HANDLE = 6,
+            /// <Summary>Insufficient memory available.</Summary>
+            WSA_NOT_ENOUGH_MEMORY = 8,
+            /// <Summary>One or more parameters are invalid.</Summary>
+            WSA_INVALID_PARAMETER = 87,
+            /// <Summary>Overlapped operation aborted.</Summary>
+            WSA_OPERATION_ABORTED = 995,
+            /// <Summary>Overlapped I/O event object not in signaled state.</Summary>
+            WSA_IO_INCOMPLETE = 996,
+            /// <Summary>Overlapped operations will complete later.</Summary>
+            WSA_IO_PENDING = 997,
+            /// <Summary>Interrupted function call.</Summary>
+            WSAEINTR = 10004,
+            /// <Summary>File handle is not valid.</Summary>
+            WSAEBADF = 10009,
+            /// <Summary>Permission denied.</Summary>
+            WSAEACCES = 10013,
+            /// <Summary>Bad address.</Summary>
+            WSAEFAULT = 10014,
+            /// <Summary>Invalid argument.</Summary>
+            WSAEINVAL = 10022,
+            /// <Summary>Too many open files.</Summary>
+            WSAEMFILE = 10024,
+            /// <Summary>Resource temporarily unavailable.</Summary>
+            WSAEWOULDBLOCK = 10035,
+            /// <Summary>Operation now in progress.</Summary>
+            WSAEINPROGRESS = 10036,
+            /// <Summary>Operation already in progress.</Summary>
+            WSAEALREADY = 10037,
+            /// <Summary>Socket operation on nonsocket.</Summary>
+            WSAENOTSOCK = 10038,
+            /// <Summary>Destination address required.</Summary>
+            WSAEDESTADDRREQ = 10039,
+            /// <Summary>Message too long.</Summary>
+            WSAEMSGSIZE = 10040,
+            /// <Summary>Protocol wrong type for socket.</Summary>
+            WSAEPROTOTYPE = 10041,
+            /// <Summary>Bad protocol option.</Summary>
+            WSAENOPROTOOPT = 10042,
+            /// <Summary>Protocol not supported.</Summary>
+            WSAEPROTONOSUPPORT = 10043,
+            /// <Summary>Socket type not supported.</Summary>
+            WSAESOCKTNOSUPPORT = 10044,
+            /// <Summary>Operation not supported.</Summary>
+            WSAEOPNOTSUPP = 10045,
+            /// <Summary>Protocol family not supported.</Summary>
+            WSAEPFNOSUPPORT = 10046,
+            /// <Summary>Address family not supported by protocol family.</Summary>
+            WSAEAFNOSUPPORT = 10047,
+            /// <Summary>Address already in use.</Summary>
+            WSAEADDRINUSE = 10048,
+            /// <Summary>Cannot assign requested address.</Summary>
+            WSAEADDRNOTAVAIL = 10049,
+            /// <Summary>Network is down.</Summary>
+            WSAENETDOWN = 10050,
+            /// <Summary>Network is unreachable.</Summary>
+            WSAENETUNREACH = 10051,
+            /// <Summary>Network dropped connection on reset.</Summary>
+            WSAENETRESET = 10052,
+            /// <Summary>Software caused connection abort.</Summary>
+            WSAECONNABORTED = 10053,
+            /// <Summary>Connection reset by peer.</Summary>
+            WSAECONNRESET = 10054,
+            /// <Summary>No buffer space available.</Summary>
+            WSAENOBUFS = 10055,
+            /// <Summary>Socket is already connected.</Summary>
+            WSAEISCONN = 10056,
+            /// <Summary>Socket is not connected.</Summary>
+            WSAENOTCONN = 10057,
+            /// <Summary>Cannot send after socket shutdown.</Summary>
+            WSAESHUTDOWN = 10058,
+            /// <Summary>Too many references.</Summary>
+            WSAETOOMANYREFS = 10059,
+            /// <Summary>Connection timed out.</Summary>
+            WSAETIMEDOUT = 10060,
+            /// <Summary>Connection refused.</Summary>
+            WSAECONNREFUSED = 10061,
+            /// <Summary>Cannot translate name.</Summary>
+            WSAELOOP = 10062,
+            /// <Summary>Name too long.</Summary>
+            WSAENAMETOOLONG = 10063,
+            /// <Summary>Host is down.</Summary>
+            WSAEHOSTDOWN = 10064,
+            /// <Summary>No route to host.</Summary>
+            WSAEHOSTUNREACH = 10065,
+            /// <Summary>Directory not empty.</Summary>
+            WSAENOTEMPTY = 10066,
+            /// <Summary>Too many processes.</Summary>
+            WSAEPROCLIM = 10067,
+            /// <Summary>User quota exceeded.</Summary>
+            WSAEUSERS = 10068,
+            /// <Summary>Disk quota exceeded.</Summary>
+            WSAEDQUOT = 10069,
+            /// <Summary>Stale file handle reference.</Summary>
+            WSAESTALE = 10070,
+            /// <Summary>Item is remote.</Summary>
+            WSAEREMOTE = 10071,
+            /// <Summary>Network subsystem is unavailable.</Summary>
+            WSASYSNOTREADY = 10091,
+            /// <Summary>Winsock.dll version out of range.</Summary>
+            WSAVERNOTSUPPORTED = 10092,
+            /// <Summary>Successful WSAStartup not yet performed.</Summary>
+            WSANOTINITIALISED = 10093,
+            /// <Summary>Graceful shutdown in progress.</Summary>
+            WSAEDISCON = 10101,
+            /// <Summary>No more results.</Summary>
+            WSAENOMORE = 10102,
+            /// <Summary>Call has been canceled.</Summary>
+            WSAECANCELLED = 10103,
+            /// <Summary>Procedure call table is invalid.</Summary>
+            WSAEINVALIDPROCTABLE = 10104,
+            /// <Summary>Service provider is invalid.</Summary>
+            WSAEINVALIDPROVIDER = 10105,
+            /// <Summary>Service provider failed to initialize.</Summary>
+            WSAEPROVIDERFAILEDINIT = 10106,
+            /// <Summary>System call failure.</Summary>
+            WSASYSCALLFAILURE = 10107,
+            /// <Summary>Service not found.</Summary>
+            WSASERVICE_NOT_FOUND = 10108,
+            /// <Summary>Class type not found.</Summary>
+            WSATYPE_NOT_FOUND = 10109,
+            /// <Summary>No more results.</Summary>
+            WSA_E_NO_MORE = 10110,
+            /// <Summary>Call was canceled.</Summary>
+            WSA_E_CANCELLED = 10111,
+            /// <Summary>Database query was refused.</Summary>
+            WSAEREFUSED = 10112,
+            /// <Summary>Host not found.</Summary>
+            WSAHOST_NOT_FOUND = 11001,
+            /// <Summary>Nonauthoritative host not found.</Summary>
+            WSATRY_AGAIN = 11002,
+            /// <Summary>This is a nonrecoverable error.</Summary>
+            WSANO_RECOVERY = 11003,
+            /// <Summary>Valid name, no data record of requested type.</Summary>
+            WSANO_DATA = 11004,
+            /// <Summary>QoS receivers.</Summary>
+            WSA_QOS_RECEIVERS = 11005,
+            /// <Summary>QoS senders.</Summary>
+            WSA_QOS_SENDERS = 11006,
+            /// <Summary>No QoS senders.</Summary>
+            WSA_QOS_NO_SENDERS = 11007,
+            /// <Summary>QoS no receivers.</Summary>
+            WSA_QOS_NO_RECEIVERS = 11008,
+            /// <Summary>QoS request confirmed.</Summary>
+            WSA_QOS_REQUEST_CONFIRMED = 11009,
+            /// <Summary>QoS admission error.</Summary>
+            WSA_QOS_ADMISSION_FAILURE = 11010,
+            /// <Summary>QoS policy failure.</Summary>
+            WSA_QOS_POLICY_FAILURE = 11011,
+            /// <Summary>QoS bad style.</Summary>
+            WSA_QOS_BAD_STYLE = 11012,
+            /// <Summary>QoS bad object.</Summary>
+            WSA_QOS_BAD_OBJECT = 11013,
+            /// <Summary>QoS traffic control error.</Summary>
+            WSA_QOS_TRAFFIC_CTRL_ERROR = 11014,
+            /// <Summary>QoS generic error.</Summary>
+            WSA_QOS_GENERIC_ERROR = 11015,
+            /// <Summary>QoS service type error.</Summary>
+            WSA_QOS_ESERVICETYPE = 11016,
+            /// <Summary>QoS flowspec error.</Summary>
+            WSA_QOS_EFLOWSPEC = 11017,
+            /// <Summary>Invalid QoS provider buffer.</Summary>
+            WSA_QOS_EPROVSPECBUF = 11018,
+            /// <Summary>Invalid QoS filter style.</Summary>
+            WSA_QOS_EFILTERSTYLE = 11019,
+            /// <Summary>Invalid QoS filter type.</Summary>
+            WSA_QOS_EFILTERTYPE = 11020,
+            /// <Summary>Incorrect QoS filter count.</Summary>
+            WSA_QOS_EFILTERCOUNT = 11021,
+            /// <Summary>Invalid QoS object length.</Summary>
+            WSA_QOS_EOBJLENGTH = 11022,
+            /// <Summary>Incorrect QoS flow count.</Summary>
+            WSA_QOS_EFLOWCOUNT = 11023,
+            /// <Summary>Unrecognized QoS object.</Summary>
+            WSA_QOS_EUNKOWNPSOBJ = 11024,
+            /// <Summary>Invalid QoS policy object.</Summary>
+            WSA_QOS_EPOLICYOBJ = 11025,
+            /// <Summary>Invalid QoS flow descriptor.</Summary>
+            WSA_QOS_EFLOWDESC = 11026,
+            /// <Summary>Invalid QoS provider-specific flowspec.</Summary>
+            WSA_QOS_EPSFLOWSPEC = 11027,
+            /// <Summary>Invalid QoS provider-specific filterspec.</Summary>
+            WSA_QOS_EPSFILTERSPEC = 11028,
+            /// <Summary>Invalid QoS shape discard mode object.</Summary>
+            WSA_QOS_ESDMODEOBJ = 11029,
+            /// <Summary>Invalid QoS shaping rate object.</Summary>
+            WSA_QOS_ESHAPERATEOBJ = 11030,
+            /// <Summary>Reserved policy QoS element type.</Summary>
+            WSA_QOS_RESERVED_PETYPE = 11031
+        }
+        #endregion
 
         #region network event
         [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]

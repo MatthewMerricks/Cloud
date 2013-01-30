@@ -93,6 +93,19 @@ namespace CloudApiPublic.Sync
                     }
 
                     StopNetworkMonitor();
+
+                    StopWSA();
+                }
+            }
+        }
+
+        private void StopWSA()
+        {
+            lock (WSAStarted)
+            {
+                if (WSAStarted.Value)
+                {
+                    NativeMethods.WSACleanup();
                 }
             }
         }
@@ -115,8 +128,33 @@ namespace CloudApiPublic.Sync
 
         private Int32 monitorLookup = 0;
 
+        private readonly GenericHolder<bool> WSAStarted = new GenericHolder<bool>(false);
+        private void StartWSAIfNotStarted()
+        {
+            lock (WSAStarted)
+            {
+                if (WSAStarted.Value)
+                {
+                    return;
+                }
+
+                const short winSocksVersion = 0x0202; // version 2.2
+
+                NativeMethods.WSAData startupData = new NativeMethods.WSAData();
+                startupData.highVersion = 2;
+                startupData.version = 2;
+                int result = NativeMethods.WSAStartup(winSocksVersion, out startupData);
+
+                CheckResult(result);
+
+                WSAStarted.Value = true;
+            }
+        }
+
         private void WaitForNetworkChanges()
         {
+            StartWSAIfNotStarted();
+
             NativeMethods.WSAQUERYSET qsRestrictions = new NativeMethods.WSAQUERYSET();
             Int32 dwControlFlags;
 
@@ -224,6 +262,8 @@ namespace CloudApiPublic.Sync
         [MethodImpl(MethodImplOptions.Synchronized)]
         public bool CheckInternetIsConnected()
         {
+            StartWSAIfNotStarted();
+
             bool toReturn = false;
 
             NativeMethods.WSAQUERYSET qsRestrictions;
@@ -238,7 +278,15 @@ namespace CloudApiPublic.Sync
             int result = NativeMethods.WSALookupServiceBegin(qsRestrictions,
               dwControlFlags, ref valHandle);
 
-            CheckResult(result);
+            if (result != 0)
+            {
+                int wsaError = NativeMethods.WSAGetLastError();
+
+                throw new Exception("Error on internet lookup: " +
+                    (Enum.IsDefined(typeof(NativeMethods.WinSockErrors), wsaError)
+                        ? ((NativeMethods.WinSockErrors)wsaError).ToString()
+                        : "Unknown error code " + wsaError.ToString()));
+            }
 
             while (0 == result)
             {
