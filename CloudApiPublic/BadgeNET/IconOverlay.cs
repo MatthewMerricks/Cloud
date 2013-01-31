@@ -50,7 +50,8 @@ namespace CloudApiPublic.BadgeNET
             // _kEvent_BadgeNet_RemoveBadgePath event to the BadgeCom "old" type.
             _currentBadges = new Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>(FilePathComparer.Instance);
 
-            _guidPublisher = new Guid();
+            _guidPublisher = Guid.NewGuid();
+            _trace.writeToLog(9, "IconOverlay: IconOverlay: GUID for this publisher: {0}.", _guidPublisher.ToString());
         }
 
         /// <summary>
@@ -1154,7 +1155,8 @@ namespace CloudApiPublic.BadgeNET
                         {
                             if (_badgeComPubSubEvents != null)
                             {
-                                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString(), _guidPublisher);
+                                _trace.writeToLog(9, "IconOverlay: Dispose. Send BadgeNet_RemoveSyncBoxFolderPath event.");
+                                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, EnumCloudAppIconBadgeType.cloudAppBadgeNone /* not used */, _filePathCloudDirectory.ToString(), _guidPublisher);
                             }
                         }
                         catch (Exception ex)
@@ -1169,6 +1171,7 @@ namespace CloudApiPublic.BadgeNET
                         {
                             if (_badgeComPubSubEvents != null)
                             {
+                                _trace.writeToLog(9, "IconOverlay: Dispose. Unsubscribe from BadgeCom events.");
                                 _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
                                 _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
                                 _badgeComPubSubEvents.Dispose();
@@ -1187,6 +1190,7 @@ namespace CloudApiPublic.BadgeNET
                         {
                             if (_currentBadges != null)
                             {
+                                _trace.writeToLog(9, "IconOverlay: Dispose. Clear current badges.");
                                 _currentBadges.Clear();
                                 _currentBadges = null;
                             }

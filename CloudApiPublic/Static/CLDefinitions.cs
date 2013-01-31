@@ -5,9 +5,14 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
+// Back end definitions
 //#define PRODUCTION_BACKEND 
 #define DEV_BACKEND
 //#define QA_BACKEND
+
+// URL definitions
+#define URL_OLD
+//#define URL_API         // api.cloud.com
 
 namespace CloudApiPublic.Static
 {
@@ -25,7 +30,11 @@ namespace CloudApiPublic.Static
         public const string WsPrefix = "wss://";
 #endif
         // Define the subdomain
+#if URL_API
         public const string SubDomainPrefix = "api.";
+#else
+        public const string SubDomainPrefix = "";
+#endif  // !URL_API
 
         // Define the version
         public const string VersionPrefix = "/1";
@@ -38,8 +47,33 @@ namespace CloudApiPublic.Static
 #else
         public const string Domain = "cliff.cloudburrito.com";
 #endif
-        // Server URL built from the above definitions
-        public const string CLServerURL = HttpPrefix + SubDomainPrefix + Domain;
+
+        // Server URLs built from the above definitions
+#if URL_API
+        // Platform Auth
+        public const string CLPlatformAuthServerURL = HttpPrefix + SubDomainPrefix + Domain;
+
+        // Meta Data
+        public const string CLMetaDataServerURL = HttpPrefix + SubDomainPrefix + Domain;
+
+        // Notifications
+        public const string CLNotificationServerURL = WsPrefix + SubDomainPrefix + Domain;
+
+        // Upload/Download Server
+        public const string CLUploadDownloadServerURL = HttpPrefix + SubDomainPrefix + Domain;
+#else
+        // Platform Auth
+        public const string CLPlatformAuthServerURL = HttpPrefix + @"platform.cliff.cloudburrito.com";
+
+        // Meta Data
+        public const string CLMetaDataServerURL = HttpPrefix + @"mds.cliff.cloudburrito.com";
+
+        // Notifications
+        public const string CLNotificationServerURL = WsPrefix + @"push.cliff.cloudburrito.com";
+
+        // Upload/Download Server
+        public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";
+#endif  // !URL_API
 
         // Miscellaneous constants
         public const string CLRegistrationAccessTokenKey = "access_token";
@@ -55,6 +89,7 @@ namespace CloudApiPublic.Static
 
         // Method Path
 #if DEV_BACKEND || PRODUCTION_BACKEND || QA_BACKEND
+#if URL_API
         public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud";                            // POST
         public const string MethodPathDownload = VersionPrefix + "/sync/file/download";                         // POST
         public const string MethodPathUpload = VersionPrefix + "/sync/file/upload";                             // POST
@@ -72,7 +107,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathOneOffFileCreate = VersionPrefix + "/sync/file/add";                      // POST
         public const string MethodPathOneOffFileDelete = VersionPrefix + "/sync/file/delete";                   // POST
         public const string MethodPathOneOffFileModify = VersionPrefix + "/sync/file/modify";                   // POST
-        public const string MethodPathOneOffFileMove = VersionPrefix + "//syncfile/move";                       // POST
+        public const string MethodPathOneOffFileMove = VersionPrefix + "/syncfile/move";                        // POST
         /* duplicate functionality to file move:
         public const string MethodPathOneOffFileRename = VersionPrefix + "/sync/file/rename";                   // POST
  
@@ -109,6 +144,57 @@ namespace CloudApiPublic.Static
         #region Notification operations
         public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";          // GET
     	#endregion
+#else
+        public const string MethodPathSyncFrom = "/1/sync/from_cloud";                       // POST
+        public const string MethodPathDownload = "/1/get_file";                              // POST
+        public const string MethodPathUpload = "/1/put_file";                                // POST
+        public const string MethodPathSyncTo = "/1/sync/to_cloud";                           // POST
+        public const string MethodPathPurgePending = "/1/file/purge/pending";                // POST
+        public const string MethodPathGetPending = "/1/file/pending";                        // GET
+        public const string MethodPathGetFileMetadata = "/1/file/metadata";                  // GET
+        public const string MethodPathGetFolderMetadata = "/1/folder/metadata";              // GET
+        public const string MethodPathSyncBoxList = "/1/sync_box/list";                      // POST
+
+        public const string MethodPathGetUsedBytes = "/1/file/used_bytes";                   // GET
+
+        #region one-off
+        #region files
+        public const string MethodPathOneOffFileCreate = "/1/file/add";                      // POST
+        public const string MethodPathOneOffFileDelete = "/1/file/delete";                   // POST
+        public const string MethodPathOneOffFileModify = "/1/file/modify";                   // POST
+        public const string MethodPathOneOffFileMove = "/1/file/move";                       // POST
+        /* duplicate functionality to file move:
+        public const string MethodPathOneOffFileRename = "/1/file/rename";                   // POST
+         */
+        #endregion
+
+        #region folders
+        public const string MethodPathOneOffFolderCreate = "/1/folder/add";                  // POST
+        public const string MethodPathOneOffFolderDelete = "/1/folder/delete";               // POST
+        public const string MethodPathOneOffFolderMove = "/1/folder/move";                   // POST
+        /* duplicate functionality to folder move:
+        public const string MethodPathOneOffFolderRename = "/1/folder/rename";               // POST
+         */
+        #endregion
+        #endregion
+
+        #region other file operations
+        public const string MethodPathFileUndelete = "/1/file/undelete";                     // POST
+        public const string MethodPathFileGetVersions = "/1/file/versions";                  // GET
+        public const string MethodPathFileCopy = "/1/file/copy";                             // POST
+        public const string MethodPathGetPictures = "/1/file/pictures";                      // GET
+        #endregion
+
+        #region other folder operations
+        public const string MethodPathGetFolderContents = "/1/folder/contents";              // GET
+        public const string MethodPathGetFolderHierarchy = "/1/folder/hierarchy";            // GET
+        public const string MethodPathFolderUndelete = "/1/folder/undelete";                 // POST
+        #endregion
+
+        public const string MethodPathSyncBoxUsage = "/1/sync_box/usage";                    // GET
+
+        public const string MethodPathPushSubscribe = "/1/sync/subscribe";                   // GET
+#endif  // !URL_API
 #endif  // DEV_BACKEND || PRODUCTION_BACKEND || QA_BACKEND
 
         public const string AuthorizationFormatType = "CWS0";

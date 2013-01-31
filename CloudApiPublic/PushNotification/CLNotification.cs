@@ -189,7 +189,7 @@ namespace CloudApiPublic.PushNotification
                 // WebSocket4Net implementation.
                 try
                 {
-                    string url = CLDefinitions.CLServerURL;
+                    string url = CLDefinitions.CLNotificationServerURL;
                     string pathAndQueryStringAndFragment = String.Format(CLDefinitions.MethodPathPushSubscribe + "?sync_box_id={0}&device={1}", _syncBox.SyncBoxId, _syncBox.CopiedSettings.DeviceId);
                     _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>. QueryString: {1}.", url, pathAndQueryStringAndFragment);
 
