@@ -49,11 +49,12 @@ private:
     EnumCloudAppIconBadgeType _badgeType;       // designates the badge type to use for this instance.
 
     CBadgeNetPubSubEvents *_pBadgeNetPubSubEvents;
-    boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType> _mapBadges;             // the dictionary of fullPath->badgeType
+    boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH> _mapBadges;             // the dictionary of fullPath->(badgeType, unordered_map<PublisherProcessId, unordered_set<PublisherSyncBoxId>>)
     HANDLE _threadSubscriptionRestart;
     bool _fIsInitialized;
     GUID _guidPublisher;
     std::string _strBaseBadgeType;
+    boost::mutex _mutexBadgeDatabase;
 
     // Private methods
     void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG processId, GUID guidPublisher);

@@ -215,8 +215,8 @@ HRESULT CBadgeIconBase::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 		CLTRACE(9, "CBadgeIconBase: IsMemberOf: Entry. Path: <%ls>. Badge type: %s.", pwszPath, _strBaseBadgeType);
         CComBSTR lowerCaseFullPath(pwszPath);  // this will free its memory when it goes out of scope.  See http://msdn.microsoft.com/en-us/library/bdyd6xz6(v=vs.80).aspx#programmingwithccombstr_memoryleaks
         lowerCaseFullPath.ToLower();
-	    boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType>::iterator it = _mapBadges.find(lowerCaseFullPath.m_str);
-	    if (it != _mapBadges.end() && it->second == _badgeType)
+	    boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator it = _mapBadges.find(lowerCaseFullPath.m_str);
+	    if (it != _mapBadges.end() && it->second.badgeType == _badgeType)
 	    {
     		CLTRACE(9, "CBadgeIconBase: IsMemberOf: Badge it!.");
 		    result = S_OK;			// badge this icon
@@ -249,10 +249,59 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
 		// Add or update the <path,badgeType>
 		if (badgeType == _badgeType)
 		{
-			CLTRACE(9, "CBadgeIconBase: OnEventAddBadgePath: Entry. BadgeType: %d. Path: <%ls>. Base badge type: %s.", badgeType, fullPath, _strBaseBadgeType);
+			CLTRACE(9, "CBadgeIconBase: OnEventAddBadgePath: Entry. BadgeType: %d. Path: <%ls>. processIdPublisher: %d.  guidPublisher: %ls. Base badge type: %s.", badgeType, fullPath, processIdPublisher, CComBSTR(guidPublisher), _strBaseBadgeType);
             CComBSTR lowerCaseFullPath(fullPath);  // this will free its memory when it goes out of scope.  See http://msdn.microsoft.com/en-us/library/bdyd6xz6(v=vs.80).aspx#programmingwithccombstr_memoryleaks
             lowerCaseFullPath.ToLower();
-			_mapBadges[lowerCaseFullPath.m_str] = badgeType;
+
+            this->_mutexBadgeDatabase.lock();
+            {
+                // Find the value in _mapBadges by key: lowerCaseFullPath
+                boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator it = _mapBadges.find(lowerCaseFullPath.m_str);
+    	        if (it == _mapBadges.end() || it->second.badgeType != _badgeType)
+	            {
+        		    CLTRACE(9, "CBadgeIconBase: OnEventAddBadgePath: Did not find the path.  Add it.");
+                    boost::unordered_set<GUID> setOfGuids;
+                    setOfGuids.insert(guidPublisher);
+                    boost::unordered_map<ULONG, boost::unordered_set<GUID>> mapProcessIdToSetOfGuids;
+                    mapProcessIdToSetOfGuids[processIdPublisher] = setOfGuids;
+                    boost::unordered_map<EnumCloudAppIconBadgeType, boost::unordered_map<ULONG, boost::unordered_set<GUID>>> mapBadgeTypeToMapOfProcessIdsToSetOfGuids;
+                    mapBadgeTypeToMapOfProcessIdsToSetOfGuids[badgeType] = mapProcessIdToSetOfGuids;
+        			_mapBadges[lowerCaseFullPath.m_str] = mapBadgeTypeToMapOfProcessIdsToSetOfGuids;
+
+                    &&&&&&&&&&&
+                    create new pair <fullPath, unordered_map<EnumCloudAppIconBadgeType, unordered_map<ULONG, unordered_set<GUID>>>
+                    add pair to _mapBadges
+	            }
+                else
+                {
+                    get value to itPathValue.
+                    find value in itPathValue by key: badgeType
+                    if not found
+                      create new pair <badgeTypeEnumCloudAppIconBadgeType, unordered_map<ULONG, unordered_set<GUID>
+                      add pair to itPathValue
+                    else found
+                      get value to itBadgeTypeValue
+                      find in itBadgeTypeValue by key: processIdPublisher
+                      if not found
+                        create new pair <ULONG, unordered_set<GUID>>
+                        add pair to itBadgeTypeValue
+                      else found
+                        get value to itProcessIdPublisherValue
+                        find in itProcessIdPublisherValue by key: guidIdPublisher
+                        if not found
+                          add key guidIdPublisher to itProcessIdPublisherValue
+                        else found
+                          ; this badge is already stored.  Do nothing.
+                        endelse found
+                      endelse found
+                    endelse found
+                }
+            }
+            this->_mutexBadgeDatabase.unlock();
+
+
+            &&&&&&&&&&&&&&&&&&&&
+			_mapBadges[lowerCaseFullPath.m_str].badgeType = badgeType;
 			SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(lowerCaseFullPath.m_str), NULL);
 		}
 	}
@@ -308,7 +357,7 @@ void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath, ULONG processIdP
 		CLTRACE(9, "CBadgeIconBase: OnEventAddSyncBoxFolderPath: Entry. Path: <%ls>. Base badge type: %s.", fullPath, _strBaseBadgeType);
         CComBSTR lowerCaseFullPath(fullPath);  // this will free its memory when it goes out of scope.  See http://msdn.microsoft.com/en-us/library/bdyd6xz6(v=vs.80).aspx#programmingwithccombstr_memoryleaks
         lowerCaseFullPath.ToLower();
-		_mapBadges[lowerCaseFullPath.m_str] = cloudAppBadgeNone;
+		_mapBadges[lowerCaseFullPath.m_str].badgeType = cloudAppBadgeNone;
         SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(lowerCaseFullPath.m_str), NULL);
 	}
 	catch (const std::exception &ex)
@@ -340,7 +389,7 @@ void CBadgeIconBase::OnEventRemoveSyncBoxFolderPath(BSTR fullPath, ULONG process
         SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T(lowerCaseFullPath.m_str), NULL);
 
 		// Delete all of the keys in the badging dictionary that have this folder path as a root.
-		for (boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType>::iterator it = _mapBadges.begin(); it != _mapBadges.end();  /* bump in body of code */)
+		for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator it = _mapBadges.begin(); it != _mapBadges.end();  /* bump in body of code */)
 		{
 			if (IsPathInRootPath(it->first, lowerCaseFullPath.m_str))
 			{
