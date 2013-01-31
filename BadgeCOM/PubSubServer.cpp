@@ -255,6 +255,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 /// <param name="outEventSubType">(out) Pointer to the found event's subtype.</param>
 /// <param name="outBadgeType">(out) Pointer to the found event's badge type.</param>
 /// <param name="outFullPath">(out) Pointer to the found event's full path.</param>
+/// <param name="outProcessIdPublisher">(out) Pointer to the found event's process ID.</param>
 /// <param name="outGuidPublisher">(out) Pointer to the found event's publisher ID.</param>
 /// <param name="returnValue">(out) Pointer to the return code.</param>
 /// <returns>(int via returnValue): See RC_SUBSCRIBE_*.  Any non-zero HRESULT returned causes the .net wrapper code to throw an exception.</returns>
@@ -265,6 +266,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
             EnumEventSubType *outEventSubType,
             EnumCloudAppIconBadgeType *outBadgeType,
             BSTR *outFullPath,
+            ULONG *outProcessIdPublisher,
             GUID *outGuidPublisher,
             EnumPubSubServerSubscribeReturnCodes *returnValue)
 {
@@ -273,7 +275,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
     try
     {
-	    if (_pSegment == NULL || returnValue == NULL || outEventSubType == NULL || outBadgeType == NULL || outFullPath == NULL || outGuidPublisher == NULL)
+	    if (_pSegment == NULL || returnValue == NULL || outEventSubType == NULL || outBadgeType == NULL || outFullPath == NULL || outProcessIdPublisher == NULL || outGuidPublisher == NULL)
 	    {
 		    CLTRACE(1, "PubSubServer: Subscribe: ERROR. One or more required parameters are NULL.");
 		    return E_POINTER;
@@ -332,6 +334,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					*outEventSubType = itEvent->EventSubType_;
 					*outBadgeType = itEvent->BadgeType_;
 					*outFullPath = SysAllocString(itEvent->FullPath_.c_str());             // this is freed explicitly by the subscriber.  On the .Net side, the interop wrapper frees it.
+                    *outProcessIdPublisher = itEvent->ProcessId_;
                     *outGuidPublisher = itEvent->GuidPublisher_;
 					CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls. GuidPublisher: %ls.", *outEventSubType, *outBadgeType, *outFullPath, CComBSTR(*outGuidPublisher));
 

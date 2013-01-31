@@ -11,8 +11,8 @@
 //#define QA_BACKEND
 
 // URL definitions
-#define URL_OLD
-//#define URL_API         // api.cloud.com
+//#define URL_OLD
+#define URL_API         // api.cloud.com
 
 namespace CloudApiPublic.Static
 {

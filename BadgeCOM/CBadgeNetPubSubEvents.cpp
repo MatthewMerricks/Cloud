@@ -257,8 +257,9 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             EnumEventSubType eventSubType;
             EnumCloudAppIconBadgeType badgeType;
             BSTR bsFullPath;                                // allocated by Subscribe.  Must be freed eventually (SysFreeString()).
+            ULONG processIdPublisher;
             GUID guidPublisher;
-            HRESULT hr = pThis->_pPubSubServer->Subscribe(BadgeNet_To_BadgeCom, pThis->_guidSubscriber, _knSubscriptionTimeoutMs, &eventSubType, &badgeType, &bsFullPath, &guidPublisher, &result);
+            HRESULT hr = pThis->_pPubSubServer->Subscribe(BadgeNet_To_BadgeCom, pThis->_guidSubscriber, _knSubscriptionTimeoutMs, &eventSubType, &badgeType, &bsFullPath, &processIdPublisher, &guidPublisher, &result);
             if (!SUCCEEDED(hr))
             {
         		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: From Subscribe.  hr: %d.", hr);
@@ -272,7 +273,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 						try
 						{
 	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Fire event: BadgeNet_AddSyncBoxFolderPath.");
-		                    pThis->FireEventAddSyncBoxFolderPath(bsFullPath, guidPublisher);
+		                    pThis->FireEventAddSyncBoxFolderPath(bsFullPath, processIdPublisher, guidPublisher);
 						}
 						catch (const std::exception &ex)
 						{
@@ -287,7 +288,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 						try
 						{
 	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_RemoveSyncBoxFolderPath.");
-		                    pThis->FireEventRemoveSyncBoxFolderPath(bsFullPath, guidPublisher);
+		                    pThis->FireEventRemoveSyncBoxFolderPath(bsFullPath, processIdPublisher, guidPublisher);
 						}
 						catch (const std::exception &ex)
 						{
@@ -302,7 +303,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 						try
 						{
 	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_AddBadgePath.");
-		                    pThis->FireEventAddBadgePath(bsFullPath, badgeType, guidPublisher);
+		                    pThis->FireEventAddBadgePath(bsFullPath, badgeType, processIdPublisher, guidPublisher);
 						}
 						catch (const std::exception &ex)
 						{
@@ -317,7 +318,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 						try
 						{
 	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_RemoveBadgePath.");
-		                    pThis->FireEventRemoveBadgePath(bsFullPath, guidPublisher);
+		                    pThis->FireEventRemoveBadgePath(bsFullPath, processIdPublisher, guidPublisher);
 						}
 						catch (const std::exception &ex)
 						{

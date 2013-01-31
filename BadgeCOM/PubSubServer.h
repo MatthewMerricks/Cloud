@@ -208,6 +208,7 @@ public:
             EnumEventSubType *outEventSubType,
             EnumCloudAppIconBadgeType *outBadgeType,
             BSTR *outFullPath,
+            ULONG *outProcessId,
             GUID *outGuidPublisher,
             EnumPubSubServerSubscribeReturnCodes *returnValue);
     STDMETHOD(Publish)(EnumEventType EventType,

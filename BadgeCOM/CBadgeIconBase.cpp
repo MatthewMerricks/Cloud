@@ -240,7 +240,9 @@ HRESULT CBadgeIconBase::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 /// </summary>
 /// <param name="fullPath">The full path of the item being added.</param>
 /// <param name="badgeType">The type of the badge.</param>
-void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType)
+/// <param name="processIdPublisher">The process ID that sent the event.</param>
+/// <param name="guidPublisher">The ID of the SyncBox that sent the event.</param>
+void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG processIdPublisher, GUID guidPublisher)
 {
 	try
 	{
@@ -268,7 +270,9 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
 /// We received a request to remove a badging path from BadgeNet.  There will be no error if it doesn't exist.
 /// </summary>
 /// <param name="fullPath">The full path of the item being removed.</param>
-void CBadgeIconBase::OnEventRemoveBadgePath(BSTR fullPath)
+/// <param name="processIdPublisher">The process ID that sent the event.</param>
+/// <param name="guidPublisher">The ID of the SyncBox that sent the event.</param>
+void CBadgeIconBase::OnEventRemoveBadgePath(BSTR fullPath, ULONG processIdPublisher, GUID guidPublisher)
 {
 	try
 	{
@@ -294,7 +298,9 @@ void CBadgeIconBase::OnEventRemoveBadgePath(BSTR fullPath)
 /// There will be no error if we are already tracking that path.
 /// </summary>
 /// <param name="fullPath">The full path of the folder being added.</param>
-void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath)
+/// <param name="processIdPublisher">The process ID that sent the event.</param>
+/// <param name="guidPublisher">The ID of the SyncBox that sent the event.</param>
+void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath, ULONG processIdPublisher, GUID guidPublisher)
 {
 	try
 	{
@@ -320,7 +326,9 @@ void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath)
 /// There will be no error if we are already not tracking that path.
 /// </summary>
 /// <param name="fullPath">The full path of the folder being removed.</param>
-void CBadgeIconBase::OnEventRemoveSyncBoxFolderPath(BSTR fullPath)
+/// <param name="processIdPublisher">The process ID that sent the event.</param>
+/// <param name="guidPublisher">The ID of the SyncBox that sent the event.</param>
+void CBadgeIconBase::OnEventRemoveSyncBoxFolderPath(BSTR fullPath, ULONG processIdPublisher, GUID guidPublisher)
 {
 	try
 	{
@@ -463,10 +471,10 @@ void CBadgeIconBase::InitializeBadgeNetPubSubEvents()
 		_pBadgeNetPubSubEvents->Initialize();
 
 		// Hook up events.  The "_1" and "_2" are placeholders required by bind (placeholders for the parameters).
-		_pBadgeNetPubSubEvents->FireEventAddBadgePath.connect(boost::bind(&CBadgeIconBase::OnEventAddBadgePath, this, _1, _2));
-		_pBadgeNetPubSubEvents->FireEventRemoveBadgePath.connect(boost::bind(&CBadgeIconBase::OnEventRemoveBadgePath, this, _1));
-		_pBadgeNetPubSubEvents->FireEventAddSyncBoxFolderPath.connect(boost::bind(&CBadgeIconBase::OnEventAddSyncBoxFolderPath, this, _1));
-		_pBadgeNetPubSubEvents->FireEventRemoveSyncBoxFolderPath.connect(boost::bind(&CBadgeIconBase::OnEventRemoveSyncBoxFolderPath, this, _1));
+		_pBadgeNetPubSubEvents->FireEventAddBadgePath.connect(boost::bind(&CBadgeIconBase::OnEventAddBadgePath, this, _1, _2, _3, _4));
+		_pBadgeNetPubSubEvents->FireEventRemoveBadgePath.connect(boost::bind(&CBadgeIconBase::OnEventRemoveBadgePath, this, _1, _2, _3));
+		_pBadgeNetPubSubEvents->FireEventAddSyncBoxFolderPath.connect(boost::bind(&CBadgeIconBase::OnEventAddSyncBoxFolderPath, this, _1, _2, _3));
+		_pBadgeNetPubSubEvents->FireEventRemoveSyncBoxFolderPath.connect(boost::bind(&CBadgeIconBase::OnEventRemoveSyncBoxFolderPath, this, _1, _2, _3));
 		_pBadgeNetPubSubEvents->FireEventSubscriptionWatcherFailed.connect(boost::bind(&CBadgeIconBase::OnEventSubscriptionWatcherFailed, this));
 
         // Generate a GUID to represent this publisher

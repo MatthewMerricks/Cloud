@@ -56,10 +56,10 @@ private:
     std::string _strBaseBadgeType;
 
     // Private methods
-    void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType);
-    void OnEventRemoveBadgePath(BSTR fullPath);
-    void OnEventAddSyncBoxFolderPath(BSTR fullPath);
-    void OnEventRemoveSyncBoxFolderPath(BSTR fullPath);
+    void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG processId, GUID guidPublisher);
+    void OnEventRemoveBadgePath(BSTR fullPath, ULONG processId, GUID guidPublisher);
+    void OnEventAddSyncBoxFolderPath(BSTR fullPath, ULONG processId, GUID guidPublisher);
+    void OnEventRemoveSyncBoxFolderPath(BSTR fullPath, ULONG processId, GUID guidPublisher);
     void OnEventSubscriptionWatcherFailed();
     std::wstring NormalizePath(std::wstring inPath);
     bool IsPathInRootPath(std::wstring testPath, std::wstring rootPath);

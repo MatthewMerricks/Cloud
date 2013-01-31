@@ -201,10 +201,11 @@ namespace CloudApiPublic.BadgeNET
                     EnumEventSubType outEventSubType;
                     EnumCloudAppIconBadgeType outBadgeType;
                     string outFullPath;
+                    uint outPublisherProcessId;
                     Guid outGuidPublisher;
                     _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Call Subscribe.");
                     EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscriber, _knSubscriptionTimeoutMs,
-                                 out outEventSubType, out outBadgeType, out outFullPath, out outGuidPublisher);
+                                 out outEventSubType, out outBadgeType, out outFullPath, out outPublisherProcessId, out outGuidPublisher);
                     if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_GOT_EVENT)
                     {
                         try

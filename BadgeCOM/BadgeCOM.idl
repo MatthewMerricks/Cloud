@@ -145,6 +145,7 @@ library BadgeCOMLib
                         [out] EnumEventSubType *outEventSubType,
                         [out] EnumCloudAppIconBadgeType *outBadgeType,
                         [out] BSTR *outFullPath,
+                        [out] ULONG *outProcessId,
                         [out] GUID *GuidPublisher,
                         [out, retval] EnumPubSubServerSubscribeReturnCodes *returnValue);
 
