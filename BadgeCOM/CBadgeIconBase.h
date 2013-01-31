@@ -53,6 +53,7 @@ private:
     HANDLE _threadSubscriptionRestart;
     bool _fIsInitialized;
     GUID _guidPublisher;
+    std::string _strBaseBadgeType;
 
     // Private methods
     void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType);
@@ -66,4 +67,5 @@ private:
     void InitializeBadgeNetPubSubEvents();
     void InitializeBadgeNetPubSubEventsViaThread();
     static void InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserState);
+    static std::string BadgeTypeToString(EnumCloudAppIconBadgeType badgeType);
 };
