@@ -468,6 +468,15 @@ void CBadgeIconBase::InitializeBadgeNetPubSubEvents()
 		_pBadgeNetPubSubEvents->FireEventRemoveSyncBoxFolderPath.connect(boost::bind(&CBadgeIconBase::OnEventRemoveSyncBoxFolderPath, this, _1));
 		_pBadgeNetPubSubEvents->FireEventSubscriptionWatcherFailed.connect(boost::bind(&CBadgeIconBase::OnEventSubscriptionWatcherFailed, this));
 
+        // Generate a GUID to represent this publisher
+        HRESULT hr = CoCreateGuid(&_guidPublisher);
+        if (!SUCCEEDED(hr))
+        {
+    		CLTRACE(1, "CBadgeIconBase: InitializeBadgeNetPubSubEvents: ERROR: Creating GUID. hr: %d.", hr);
+            throw new std::exception("Error creating GUID");
+        }
+  		CLTRACE(9, "CBadgeIconBase: InitializeBadgeNetPubSubEvents: Publisher's GUID: %ls.", _guidPublisher);
+
 		// Subscribe to the events from BadgeNet
 		_fIsInitialized = _pBadgeNetPubSubEvents->SubscribeToBadgeNetEvents();
 
@@ -476,7 +485,7 @@ void CBadgeIconBase::InitializeBadgeNetPubSubEvents()
         {
     		BSTR dummy(L"");
     		CLTRACE(9, "CBadgeIconBase: InitializeBadgeNetPubSubEvents: Call PublishEventToBadgeNet.");
-    		_pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, &dummy /* not used */);
+    		_pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, &dummy /* not used */, _guidPublisher);
         }
 	}
 	catch (const std::exception &ex)

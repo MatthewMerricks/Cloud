@@ -52,6 +52,7 @@ private:
     boost::unordered_map<std::wstring, EnumCloudAppIconBadgeType> _mapBadges;             // the dictionary of fullPath->badgeType
     HANDLE _threadSubscriptionRestart;
     bool _fIsInitialized;
+    GUID _guidPublisher;
 
     // Private methods
     void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType);

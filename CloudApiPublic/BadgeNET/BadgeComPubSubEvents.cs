@@ -103,7 +103,7 @@ namespace CloudApiPublic.BadgeNET
         /// <summary>
         /// Publish an event to BadgeCom
         /// </summary>
-        public void PublishEventToBadgeCom(EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, string fullPath)
+        public void PublishEventToBadgeCom(EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, string fullPath, Guid guidPublisher)
         {
             try
             {
@@ -113,14 +113,14 @@ namespace CloudApiPublic.BadgeNET
                     return;
                 }
 
-                _trace.writeToLog(9, "BadgeComPubSubEvents: PublishEventToBadgeCom: Entry. eventType: {0}. eventSubType: {1}. badgeType: {2}. fullPath: {3}.", eventType, eventSubType, badgeType, fullPath);
+                _trace.writeToLog(9, "BadgeComPubSubEvents: PublishEventToBadgeCom: Entry. eventType: {0}. eventSubType: {1}. badgeType: {2}. fullPath: {3}. guidPublisher: {4}.", eventType, eventSubType, badgeType, fullPath, guidPublisher);
                 if (_pubSubServer == null || fullPath == null)
                 {
                     throw new Exception("Call Initialize() first");
                 }
 
                 // Publish the event
-                EnumPubSubServerPublishReturnCodes result = _pubSubServer.Publish(eventType, eventSubType, badgeType, fullPath);
+                EnumPubSubServerPublishReturnCodes result = _pubSubServer.Publish(eventType, eventSubType, badgeType, fullPath, guidPublisher);
                 if (result != EnumPubSubServerPublishReturnCodes.RC_PUBLISH_OK)
                 {
                     _trace.writeToLog(1, "BadgeComPubSubEvents: PublishEventToBadgeCom: ERROR: From Publish. Result: {0}.", result.ToString());
@@ -201,9 +201,10 @@ namespace CloudApiPublic.BadgeNET
                     EnumEventSubType outEventSubType;
                     EnumCloudAppIconBadgeType outBadgeType;
                     string outFullPath;
+                    Guid outGuidPublisher;
                     _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Call Subscribe.");
                     EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscriber, _knSubscriptionTimeoutMs,
-                                 out outEventSubType, out outBadgeType, out outFullPath);
+                                 out outEventSubType, out outBadgeType, out outFullPath, out outGuidPublisher);
                     if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_GOT_EVENT)
                     {
                         try

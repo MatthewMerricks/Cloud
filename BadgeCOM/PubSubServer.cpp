@@ -78,8 +78,9 @@ STDMETHODIMP CPubSubServer::Initialize()
 /// <param name="EventSubType">This is the event subtype being published.</param>
 /// <param name="BadgeType">This is the badge type being published.</param>
 /// <param name="FullPath">This is the full path of the file system item being badged with the badge type.</param>
+/// <param name="GuidPublisher">This is the identity of the publisher</param>
 /// <returns>(int via returnValue: See RC_PUBLISH_*.</returns>
-STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType EventSubType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, EnumPubSubServerPublishReturnCodes *returnValue)
+STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType EventSubType, EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, GUID GuidPublisher, EnumPubSubServerPublishReturnCodes *returnValue)
 {
     EnumPubSubServerPublishReturnCodes nResult = RC_PUBLISH_OK;                // assume no error
     char *pszExceptionStateTracker = "Start";
@@ -190,7 +191,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 						{
 							// The event queue has room.  Construct this event in shared memory and add it at the back of the event queue for this subscription.
 							CLTRACE(9, "PubSubServer: Publish: Post this event to subscription with GUID<%ls>. pSemaphoreSubscription local addr: %x.", CComBSTR(*itGuid), outOptrFoundSubscription->pSemaphoreSubscription_.get());
-							outOptrFoundSubscription->events_.emplace_back(EventType, EventSubType, processId, threadId, BadgeType, FullPath, alloc_inst);
+							outOptrFoundSubscription->events_.emplace_back(EventType, EventSubType, processId, threadId, BadgeType, FullPath, GuidPublisher, alloc_inst);
 
 							// Post the subscription's semaphore.
 							outOptrFoundSubscription->pSemaphoreSubscription_->post();
@@ -251,7 +252,12 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 /// <param name="EventType">This is the event type we want to receive.</param>
 /// <param name="guidSubscriber">Represents the subscriber.  A subscriber may subscribe to multiple EventTypes.</param>
 /// <param name="TimeoutMilliseconds">Wait for an event for up to this period of time.  If specified as 0, the wait will not time out.</param>
-/// <returns>(int via returnValue): See RC_SUBSCRIBE_*.</returns>
+/// <param name="outEventSubType">(out) Pointer to the found event's subtype.</param>
+/// <param name="outBadgeType">(out) Pointer to the found event's badge type.</param>
+/// <param name="outFullPath">(out) Pointer to the found event's full path.</param>
+/// <param name="outGuidPublisher">(out) Pointer to the found event's publisher ID.</param>
+/// <param name="returnValue">(out) Pointer to the return code.</param>
+/// <returns>(int via returnValue): See RC_SUBSCRIBE_*.  Any non-zero HRESULT returned causes the .net wrapper code to throw an exception.</returns>
 STDMETHODIMP CPubSubServer::Subscribe(
             EnumEventType EventType,
             GUID guidSubscriber,
@@ -259,6 +265,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
             EnumEventSubType *outEventSubType,
             EnumCloudAppIconBadgeType *outBadgeType,
             BSTR *outFullPath,
+            GUID *outGuidPublisher,
             EnumPubSubServerSubscribeReturnCodes *returnValue)
 {
     EnumPubSubServerSubscribeReturnCodes nResult;
@@ -266,7 +273,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
     try
     {
-	    if (_pSegment == NULL || returnValue == NULL || outEventSubType == NULL || outBadgeType == NULL || outFullPath == NULL)
+	    if (_pSegment == NULL || returnValue == NULL || outEventSubType == NULL || outBadgeType == NULL || outFullPath == NULL || outGuidPublisher == NULL)
 	    {
 		    CLTRACE(1, "PubSubServer: Subscribe: ERROR. One or more required parameters are NULL.");
 		    return E_POINTER;
@@ -325,7 +332,8 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					*outEventSubType = itEvent->EventSubType_;
 					*outBadgeType = itEvent->BadgeType_;
 					*outFullPath = SysAllocString(itEvent->FullPath_.c_str());             // this is freed explicitly by the subscriber.  On the .Net side, the interop wrapper frees it.
-					CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls.", *outEventSubType, *outBadgeType, *outFullPath);
+                    *outGuidPublisher = itEvent->GuidPublisher_;
+					CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls. GuidPublisher: %ls.", *outEventSubType, *outBadgeType, *outFullPath, CComBSTR(*outGuidPublisher));
 
 					// Remove the event from the vector.
 					CLTRACE(9, "PubSubServer: Subscribe: Erase the event.");
@@ -920,13 +928,14 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
 				// List all of the events
                 for (EventMessage_vector::iterator itEvent = itSubscription->second.events_.begin(); itEvent != itSubscription->second.events_.end(); ++itEvent)
                 {
-    				CLTRACE(9, "PubSubServer: TraceCurrentStateOfSharedMemory: Event: EventType: %d. ProcessId: %lx. ThreadId: %lx. EventSubType: %d. BadgeType: %d. FullPath: %ls.", 
+    				CLTRACE(9, "PubSubServer: TraceCurrentStateOfSharedMemory: Event: EventType: %d. ProcessId: %lx. ThreadId: %lx. EventSubType: %d. BadgeType: %d. FullPath: %ls. GuidPublisher: %ls.", 
                         itEvent->EventType_,
                         itEvent->ProcessId_,
                         itEvent->ThreadId_,
                         itEvent->EventSubType_,
                         itEvent->BadgeType_,
-                        itEvent->FullPath_.c_str()
+                        itEvent->FullPath_.c_str(),
+                        CComBSTR(itEvent->GuidPublisher_)
                         );
                 }
 			}
