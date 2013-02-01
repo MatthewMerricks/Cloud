@@ -51,6 +51,7 @@ public:
     boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG, GUID)> FireEventAddBadgePath;
     boost::signal<void (BSTR, ULONG, GUID)> FireEventRemoveBadgePath;
     boost::signal<void ()> FireEventSubscriptionWatcherFailed;
+    boost::signal<void ()> FireEventTimerTick;
 
     // Methods
 	void Initialize();

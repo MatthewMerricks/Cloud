@@ -256,6 +256,12 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
 
             this->_mutexBadgeDatabase.lock();
             {
+                // Add the publisher process to the list of active processes
+                if (_setActiveProcessIds.count(processIdPublisher) == 0)
+                {
+                    _setActiveProcessIds.insert(processIdPublisher);
+                }
+
                 // Find the value in _mapBadges by key: lowerCaseFullPath
                 boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapBadges.find(lowerCaseFullPath.m_str);
     	        if (itPathValue == _mapBadges.end())
@@ -453,6 +459,12 @@ void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath, ULONG processIdP
 
         this->_mutexBadgeDatabase.lock();
         {
+            // Add the publisher process to the list of active processes
+            if (_setActiveProcessIds.count(processIdPublisher) == 0)
+            {
+                _setActiveProcessIds.insert(processIdPublisher);
+            }
+
             // Find the value in _mapRootFolders by key: lowerCaseFullPath
             boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapRootFolders.find(lowerCaseFullPath.m_str);
     	    if (itPathValue == _mapRootFolders.end())
@@ -690,6 +702,93 @@ void CBadgeIconBase::OnEventSubscriptionWatcherFailed()
     }
 }
 
+/// <summary>
+/// We received a timer tick from the PubSubServer watcher.  Check for dead processes and clean up.
+/// </summary>
+void CBadgeIconBase::OnEventTimerTick()
+{
+	try
+	{
+        CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Entry.");
+        boost::unordered_set<ULONG> setCopyOfActiveProcesses;
+        this->_mutexBadgeDatabase.lock();
+        {
+            // Copy the active process set into a local set that we will process at this event.
+            CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Copy the active process IDs.");
+            setCopyOfActiveProcesses = boost::unordered_set<ULONG>(_setActiveProcessIds);
+        }
+        this->_mutexBadgeDatabase.unlock();
+
+        // Loop through the copied active process list.  Clean them if the process has died.
+        for (boost::unordered_set<ULONG>::iterator itProcess = _setActiveProcessIds.begin(); itProcess != _setActiveProcessIds.end();  ++itProcess)
+        {
+            if (!CPubSubServer::IsProcessRunning(*itProcess))
+            {
+                CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Process ID %x is dead.  Clean the badging database.", *itProcess);
+                CleanBadgingDatabaseForProcessId(*itProcess);   // locks on its own
+            }
+        }
+	}
+	catch (const std::exception &ex)
+	{
+		CLTRACE(1, "CBadgeIconBase: OnEventTimerTick: ERROR: Exception.  Message: %s.", ex.what());
+	}
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconBase: OnEventTimerTick: ERROR: C++ exception.");
+    }
+}
+
+/// <summary>
+/// Clean the badging database of any paths placed by this process.
+/// </summary>
+void CBadgeIconBase::CleanBadgingDatabaseForProcessId(ULONG processIdPublisher)
+{
+	try
+	{
+        this->_mutexBadgeDatabase.lock();
+        {
+            boost::unordered_set<std::wstring> setPathsToErase;         // the paths that we will need to erase from the badging database
+
+            // Loop through the badging database keys (paths).
+            for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapBadges.begin(); itPathValue != _mapBadges.end();  ++itPathValue)
+		    {
+                boost::unordered_map<ULONG, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
+        	    if (itProcessItValue != itPathValue->second.processesThatAddedThisBadge.end())
+	            {
+                    // We found the process here.  Remove it and free its guidPublishers.
+                    itProcessItValue->second.clear();           // clear the syncbox guidPublishers
+                    itPathValue->second.processesThatAddedThisBadge.erase(processIdPublisher);      // erase the process key from the map
+
+                    // If there are no more processes in the map, remember this path to delete from the badging database
+                    if (itPathValue->second.processesThatAddedThisBadge.size() == 0)
+                    {
+                        setPathsToErase.insert(itPathValue->first);
+                    }
+                }
+            }
+
+            // Now loop through the pathsToErase and erase them from the badging database.
+            for (boost::unordered_set<std::wstring>::iterator itPathToErase = setPathsToErase.begin(); itPathToErase != setPathsToErase.end(); ++itPathToErase)
+            {
+                _mapBadges.erase(*itPathToErase);
+            }
+
+            // Remove this process ID from the active process set
+            _setActiveProcessIds.erase(processIdPublisher);
+        }
+        this->_mutexBadgeDatabase.unlock();
+	}
+	catch (const std::exception &ex)
+	{
+		CLTRACE(1, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: ERROR: Exception.  Message: %s.", ex.what());
+	}
+    catch (...)
+    {
+		CLTRACE(1, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: ERROR: C++ exception.");
+    }
+}
+
 
 /// <summary>
 /// The BadgeNetPubSubEvents watcher failed.  We are no longer subscribed to badging events.  Restart
@@ -768,6 +867,7 @@ void CBadgeIconBase::InitializeBadgeNetPubSubEvents()
 		_pBadgeNetPubSubEvents->FireEventAddSyncBoxFolderPath.connect(boost::bind(&CBadgeIconBase::OnEventAddSyncBoxFolderPath, this, _1, _2, _3));
 		_pBadgeNetPubSubEvents->FireEventRemoveSyncBoxFolderPath.connect(boost::bind(&CBadgeIconBase::OnEventRemoveSyncBoxFolderPath, this, _1, _2, _3));
 		_pBadgeNetPubSubEvents->FireEventSubscriptionWatcherFailed.connect(boost::bind(&CBadgeIconBase::OnEventSubscriptionWatcherFailed, this));
+		_pBadgeNetPubSubEvents->FireEventTimerTick.connect(boost::bind(&CBadgeIconBase::OnEventTimerTick, this));
 
         // Generate a GUID to represent this publisher
         HRESULT hr = CoCreateGuid(&_guidPublisher);
@@ -831,39 +931,3 @@ std::string CBadgeIconBase::BadgeTypeToString(EnumCloudAppIconBadgeType badgeTyp
     }
 }
 
-
-
-//&&&&&&&&&&&&&
-// CBadgeIconSupport
-
-/// <summary>
-/// Add a badge to the badging dictionary under a lock.  This function maintains the badge type of the badge, and the list of processes that have added this badge.
-/// Note: Multiple processes may have added a badge
-/// </summary>
-/// <param name="pLocker *">A pointer to the lock to synchronize on.</param>
-/// <param name="pBadgeDictionaryguidSubscriber">A pointer to the badge dictionary.param>
-/// <param name="pathToAdd">The full path representing the file or folder to badge.</param>
-/// <param name="badgeType">The type of the badge.</param>
-/// <param name="processId">The process ID of the process that added the badge.</param>
-//void AddBadgeToDictionary(boost::mutex *pLocker, boost::unordered_map<std::wstring, DATAFORBADGEPATH> *pBadgeDictionary, std::wstring pathToAdd, EnumCloudAppIconBadgeType badgeType, ULONG processId)
-//{
-
-//}
-
-/// <summary>
-/// Remove a badge from the badging dictionary under a lock.
-/// </summary>
-/// <param name="pLocker *">A pointer to the lock to synchronize on.</param>
-/// <param name="pBadgeDictionaryguidSubscriber">A pointer to the badge dictionary.param>
-/// <param name="pathToAdd">The full path representing the file or folder to badge.</param>
-/// <param name="badgeType">The type of the badge.</param>
-/// <param name="processId">The process ID of the process that added the badge.</param>
-//void RemoveBadgeFromDictionary(boost::mutex *pLocker, boost::unordered_map<std::wstring, DATAFORBADGEPATH> *pBadgeDictionary, std::wstring pathToAdd, EnumCloudAppIconBadgeType badgeType, ULONG processId)
-//{
-
-//}
-
-
- //       o RemoveBadgeFromDictionary(&mutex, &boost::unordered_map<std::wstring fullPath, DataForBadgePath>, std::wstring pathToRemove, EnumCloudAppIconBadgeType badgeType, ULONG processID)
-        //o ShouldPathBeBadged(&mutex, &boost::unordered_map<std::wstring fullPath, DataForBadgePath>, std::wstring pathToCheck, EnumCloudAppIconBadgeType badgeType)
-        //o CheckAndRemoveDeadProcesses(&mutex, &boost::unordered_set<ULONG processId>)

@@ -1164,7 +1164,6 @@ BOOL CPubSubServer::IsProcessRunning(DWORD pid)
     DWORD ret = WaitForSingleObject(process, 0);
     CloseHandle(process);
     return ret == WAIT_TIMEOUT;
-
 }
 
 /// <summary>

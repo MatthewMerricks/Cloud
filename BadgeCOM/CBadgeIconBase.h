@@ -9,6 +9,7 @@
 #include "resource.h"       // main symbols
 #include "BadgeCOM_i.h"
 #include "CBadgeNetPubSubEvents.h"
+#include "PubSubServer.h"
 #include <boost\unordered_map.hpp>
 #include <boost\unordered\unordered_set.hpp>
 #include <Windows.h>
@@ -51,6 +52,7 @@ private:
     CBadgeNetPubSubEvents *_pBadgeNetPubSubEvents;
     boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH> _mapBadges;             // the dictionary of fullPath->(badgeType, unordered_map<PublisherProcessId, unordered_set<PublisherSyncBoxId>>) for the badges.
     boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH> _mapRootFolders;        // the dictionary of fullPath->(badgeType, unordered_map<PublisherProcessId, unordered_set<PublisherSyncBoxId>>) for the SyncBox root folders.
+    boost::unordered_set<ULONG> _setActiveProcessIds;                               // a set of active process ids.
     HANDLE _threadSubscriptionRestart;
     bool _fIsInitialized;
     GUID _guidPublisher;
@@ -63,6 +65,7 @@ private:
     void OnEventAddSyncBoxFolderPath(BSTR fullPath, ULONG processId, GUID guidPublisher);
     void OnEventRemoveSyncBoxFolderPath(BSTR fullPath, ULONG processId, GUID guidPublisher);
     void OnEventSubscriptionWatcherFailed();
+    void OnEventTimerTick();
     std::wstring NormalizePath(std::wstring inPath);
     bool IsPathInRootPath(std::wstring testPath, std::wstring rootPath);
     static void SubscriptionRestartThreadProc(LPVOID pUserState);
@@ -70,4 +73,5 @@ private:
     void InitializeBadgeNetPubSubEventsViaThread();
     static void InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserState);
     static std::string BadgeTypeToString(EnumCloudAppIconBadgeType badgeType);
+    void CleanBadgingDatabaseForProcessId(ULONG processIdPublisher);
 };

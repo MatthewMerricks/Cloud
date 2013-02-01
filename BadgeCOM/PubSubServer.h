@@ -224,6 +224,9 @@ public:
 
     // Public OLE accessible properties
     STDMETHOD(get_SharedMemoryName)(BSTR* pVal);
+public:
+    // Public methods
+    static BOOL IsProcessRunning(DWORD pid);
 private:
     // Private structs
     typedef struct UniqueSubscription_tag
@@ -239,7 +242,6 @@ private:
 				eventtype_map_guid_subscription_map::iterator *outItEventType,
 				guid_subscription_map::iterator *outItSubscription,
 				offset_ptr<Subscription> *outOptrFoundSubscription);
-    BOOL IsProcessRunning(DWORD pid);
     void TraceCurrentStateOfSharedMemory(Base *pBase);
     std::string GetSharedMemoryNameWithVersion();
     std::wstring GetSharedMemoryNameWithVersionWide();

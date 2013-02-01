@@ -423,6 +423,10 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
                 break;
             }
 
+            // Fire a timer tick to subscribers
+            pThis->FireEventTimerTick();                // notify the delegates
+
+
             // Did the subscribing thread do any work?
             pThis->_locker.lock();
             {
