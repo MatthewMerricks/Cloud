@@ -93,12 +93,13 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		    return E_POINTER;
 	    }
 
-	    CLTRACE(9, "PubSubServer: Publish: Entry. EventType: %d. EventSubType: %d. BadgeType: %d. FullPath: %ls.", EventType, EventSubType, BadgeType, *FullPath);
-        Base *pBase = NULL;
-
         ULONG processId = GetCurrentProcessId();
         ULONG threadId = GetCurrentThreadId();
 		std::vector<GUID> subscribers;
+
+	    CLTRACE(9, "PubSubServer: Publish: Entry. EventType: %d. EventSubType: %d. BadgeType: %d. FullPath: %ls. processId: %x. GuidPublisher: %ls.", EventType, EventSubType, BadgeType, *FullPath, processId, CComBSTR(GuidPublisher));
+        Base *pBase = NULL;
+
 
         // Open the shared memory segment, or create it if it is not there.  This is atomic.
         // An allocator convertible to any allocator<T, segment_manager_t> type.
@@ -336,7 +337,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					*outFullPath = SysAllocString(itEvent->FullPath_.c_str());             // this is freed explicitly by the subscriber.  On the .Net side, the interop wrapper frees it.
                     *outProcessIdPublisher = itEvent->ProcessId_;
                     *outGuidPublisher = itEvent->GuidPublisher_;
-					CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls. GuidPublisher: %ls.", *outEventSubType, *outBadgeType, *outFullPath, CComBSTR(*outGuidPublisher));
+					CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls. ProcessId: %x. GuidPublisher: %ls.", *outEventSubType, *outBadgeType, *outFullPath, *outProcessIdPublisher, CComBSTR(*outGuidPublisher));
 
 					// Remove the event from the vector.
 					CLTRACE(9, "PubSubServer: Subscribe: Erase the event.");
