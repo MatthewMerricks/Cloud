@@ -257,10 +257,7 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
             this->_mutexBadgeDatabase.lock();
             {
                 // Add the publisher process to the list of active processes
-                if (_setActiveProcessIds.count(processIdPublisher) == 0)
-                {
-                    _setActiveProcessIds.insert(processIdPublisher);
-                }
+                _setActiveProcessIds.insert(processIdPublisher);
 
                 // Find the value in _mapBadges by key: lowerCaseFullPath
                 boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapBadges.find(lowerCaseFullPath.m_str);
@@ -460,10 +457,7 @@ void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath, ULONG processIdP
         this->_mutexBadgeDatabase.lock();
         {
             // Add the publisher process to the list of active processes
-            if (_setActiveProcessIds.count(processIdPublisher) == 0)
-            {
-                _setActiveProcessIds.insert(processIdPublisher);
-            }
+            _setActiveProcessIds.insert(processIdPublisher);
 
             // Find the value in _mapRootFolders by key: lowerCaseFullPath
             boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapRootFolders.find(lowerCaseFullPath.m_str);
@@ -720,7 +714,7 @@ void CBadgeIconBase::OnEventTimerTick()
         this->_mutexBadgeDatabase.unlock();
 
         // Loop through the copied active process list.  Clean them if the process has died.
-        for (boost::unordered_set<ULONG>::iterator itProcess = _setActiveProcessIds.begin(); itProcess != _setActiveProcessIds.end();  ++itProcess)
+        for (boost::unordered_set<ULONG>::iterator itProcess = setCopyOfActiveProcesses.begin(); itProcess != setCopyOfActiveProcesses.end();  ++itProcess)
         {
             if (!CPubSubServer::IsProcessRunning(*itProcess))
             {
@@ -751,30 +745,81 @@ void CBadgeIconBase::CleanBadgingDatabaseForProcessId(ULONG processIdPublisher)
             boost::unordered_set<std::wstring> setPathsToErase;         // the paths that we will need to erase from the badging database
 
             // Loop through the badging database keys (paths).
+			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Entry.  ProcessId: %x.", processIdPublisher);
             for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapBadges.begin(); itPathValue != _mapBadges.end();  ++itPathValue)
 		    {
+				CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Process path <%ls>. BadgeType: %d.", itPathValue->first.c_str(), itPathValue->second.badgeType);
                 boost::unordered_map<ULONG, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
         	    if (itProcessItValue != itPathValue->second.processesThatAddedThisBadge.end())
 	            {
                     // We found the process here.  Remove it and free its guidPublishers.
+					CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Found process here.  Clear the guids.");
                     itProcessItValue->second.clear();           // clear the syncbox guidPublishers
                     itPathValue->second.processesThatAddedThisBadge.erase(processIdPublisher);      // erase the process key from the map
 
                     // If there are no more processes in the map, remember this path to delete from the badging database
                     if (itPathValue->second.processesThatAddedThisBadge.size() == 0)
                     {
+						CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Save this path to erase.");
                         setPathsToErase.insert(itPathValue->first);
                     }
                 }
             }
 
             // Now loop through the pathsToErase and erase them from the badging database.
+			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Now loop erasing the paths for this process.");
             for (boost::unordered_set<std::wstring>::iterator itPathToErase = setPathsToErase.begin(); itPathToErase != setPathsToErase.end(); ++itPathToErase)
             {
+				CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Erase path <%ls>.", (*itPathToErase).c_str());
                 _mapBadges.erase(*itPathToErase);
             }
 
             // Remove this process ID from the active process set
+			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Remove process ID %x from the active list.", processIdPublisher);
+            _setActiveProcessIds.erase(processIdPublisher);
+        }
+        this->_mutexBadgeDatabase.unlock();
+
+		// Now do it again for the root folder database.
+        this->_mutexBadgeDatabase.lock();
+        {
+            boost::unordered_set<std::wstring> setPathsToErase;         // the paths that we will need to erase from the badging database
+
+            // Loop through the badging database keys (paths).
+			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Start cleaning the root folder database for processId: %x.", processIdPublisher);
+            for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapRootFolders.begin(); itPathValue != _mapRootFolders.end();  ++itPathValue)
+		    {
+				CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Process path <%ls>. BadgeType: %d.", itPathValue->first.c_str(), itPathValue->second.badgeType);
+                boost::unordered_map<ULONG, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
+        	    if (itProcessItValue != itPathValue->second.processesThatAddedThisBadge.end())
+	            {
+                    // We found the process here.  Remove it and free its guidPublishers.
+					CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Found process in root folder database.  Clear the guids.");
+                    itProcessItValue->second.clear();           // clear the syncbox guidPublishers
+                    itPathValue->second.processesThatAddedThisBadge.erase(processIdPublisher);      // erase the process key from the map
+
+                    // If there are no more processes in the map, remember this path to delete from the badging database
+                    if (itPathValue->second.processesThatAddedThisBadge.size() == 0)
+                    {
+						CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Save this path to erase later.");
+                        setPathsToErase.insert(itPathValue->first);
+                    }
+                }
+            }
+
+            // Now loop through the pathsToErase and erase them from the badging database.
+			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Now loop erasing the root paths for this process.");
+            for (boost::unordered_set<std::wstring>::iterator itPathToErase = setPathsToErase.begin(); itPathToErase != setPathsToErase.end(); ++itPathToErase)
+            {
+				CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Erase root path <%ls>.", (*itPathToErase).c_str());
+                _mapBadges.erase(*itPathToErase);
+
+				// Notify Explorer about this root path change.
+		        SHChangeNotify(SHCNE_ATTRIBUTES, SHCNF_PATH, COLE2T((*itPathToErase).c_str()), NULL);
+            }
+
+            // Remove this process ID from the active process set
+			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Remove process ID %x from the active list.", processIdPublisher);
             _setActiveProcessIds.erase(processIdPublisher);
         }
         this->_mutexBadgeDatabase.unlock();
@@ -876,7 +921,7 @@ void CBadgeIconBase::InitializeBadgeNetPubSubEvents()
     		CLTRACE(1, "CBadgeIconBase: InitializeBadgeNetPubSubEvents: ERROR: Creating GUID. hr: %d.", hr);
             throw new std::exception("Error creating GUID");
         }
-  		CLTRACE(9, "CBadgeIconBase: InitializeBadgeNetPubSubEvents: Publisher's GUID: %ls.", _guidPublisher);
+  		CLTRACE(9, "CBadgeIconBase: InitializeBadgeNetPubSubEvents: Publisher's GUID: %ls.", CComBSTR(_guidPublisher));
 
 		// Subscribe to the events from BadgeNet
 		_fIsInitialized = _pBadgeNetPubSubEvents->SubscribeToBadgeNetEvents();
