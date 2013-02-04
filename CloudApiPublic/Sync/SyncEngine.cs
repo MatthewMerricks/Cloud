@@ -71,7 +71,8 @@ namespace CloudApiPublic.Sync
             {
                 lock (InternetConnectedLocker)
                 {
-                    return _internetConnected;
+                    return true;
+                    //TODO: Debug on SkyNet and revert to this statement: return _internetConnected;
                 }
             }
             set

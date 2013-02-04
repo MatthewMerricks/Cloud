@@ -1,5 +1,11 @@
                                                     WINDOWS SDK RELEASE NOTES
 
+02/04/2013 CloudSDK-v0.1.2.zip
+  o The sample program now supports a "red X" icon that will display on fatal errors when the sync engine cannot logically continue.  This fatal error summary status condition was
+    already being returned in previous builds, but never set by the engine.  The proper response to this error is to stop and restart sync.
+  o Fixed a bug: Badges were sometimes displayed or not depending on the path used to launch the Explorer window (e.g: Favorites shortcut or Explorer address line).
+  o Added an engine message to indicate that badging initialization failed and badging will not be available. 
+
 01/28/2013 CloudSDK-v0.1.02e37c3.zip
   o (API Breaking Changes): Changed some of the class and method names to be more consistent with the Mac OS X SDK.
     - Renamed CLCredentials to CLCredential.
