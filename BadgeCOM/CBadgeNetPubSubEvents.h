@@ -46,15 +46,16 @@ public:
     ~CBadgeNetPubSubEvents(void);
 
     // Events
-    boost::signal<void (BSTR)> FireEventAddSyncBoxFolderPath;
-    boost::signal<void (BSTR)> FireEventRemoveSyncBoxFolderPath;
-    boost::signal<void (BSTR, EnumCloudAppIconBadgeType)> FireEventAddBadgePath;
-    boost::signal<void (BSTR)> FireEventRemoveBadgePath;
+    boost::signal<void (BSTR, ULONG, GUID)> FireEventAddSyncBoxFolderPath;
+    boost::signal<void (BSTR, ULONG, GUID)> FireEventRemoveSyncBoxFolderPath;
+    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG, GUID)> FireEventAddBadgePath;
+    boost::signal<void (BSTR, ULONG, GUID)> FireEventRemoveBadgePath;
     boost::signal<void ()> FireEventSubscriptionWatcherFailed;
+    boost::signal<void ()> FireEventTimerTick;
 
     // Methods
 	void Initialize();
-    void PublishEventToBadgeNet(EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, BSTR *fullPath);
+    void PublishEventToBadgeNet(EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, BSTR *fullPath, GUID guidPublisher);
     bool SubscribeToBadgeNetEvents();
     static void SubscribingThreadProc(LPVOID pUserState);
     static void WatchingThreadProc(LPVOID pUserState);

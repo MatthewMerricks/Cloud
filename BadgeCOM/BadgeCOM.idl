@@ -130,7 +130,13 @@ library BadgeCOMLib
 
 	    [id(1), helpstring("method Initialize")] HRESULT(Initialize)();
 
-	    [id(2), helpstring("method Publish")] HRESULT(Publish)([in] EnumEventType EventType, [in] EnumEventSubType EventSubType, [in] EnumCloudAppIconBadgeType BadgeType, [in] BSTR *FullPath, [out, retval] EnumPubSubServerPublishReturnCodes *returnValue);
+	    [id(2), helpstring("method Publish")] HRESULT(Publish)(
+                        [in] EnumEventType EventType, 
+                        [in] EnumEventSubType EventSubType, 
+                        [in] EnumCloudAppIconBadgeType BadgeType, 
+                        [in] BSTR *FullPath, 
+                        [in] GUID GuidPublisher,
+                        [out, retval] EnumPubSubServerPublishReturnCodes *returnValue);
 
 	    [id(3), helpstring("method Subscribe")] HRESULT(Subscribe)(
                         [in] EnumEventType EventType,
@@ -139,6 +145,8 @@ library BadgeCOMLib
                         [out] EnumEventSubType *outEventSubType,
                         [out] EnumCloudAppIconBadgeType *outBadgeType,
                         [out] BSTR *outFullPath,
+                        [out] ULONG *outProcessId,
+                        [out] GUID *GuidPublisher,
                         [out, retval] EnumPubSubServerSubscribeReturnCodes *returnValue);
 
 	    [id(4), helpstring("method CancelWaitingSubscription")] HRESULT(CancelWaitingSubscription)(

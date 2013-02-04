@@ -282,26 +282,26 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=15
-echo xcopy /Y /S $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
-xcopy /Y /S $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+echo xcopy /Y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+xcopy /Y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=16
-echo xcopy /y /S $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
-xcopy /y /S $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+echo xcopy /y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+xcopy /y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=17
-echo xcopy /Y /S $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
-xcopy /Y /S $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+echo xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=18
-echo xcopy /Y /S $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
-xcopy /Y /S $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
+echo xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
+xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------

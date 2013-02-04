@@ -368,7 +368,7 @@ namespace CloudApiPublic
                 {
                     _iconOverlay = new IconOverlay();
                 }
-                CLError iconOverlayError = _iconOverlay.Initialize(this._syncBox.CopiedSettings);
+                CLError iconOverlayError = _iconOverlay.Initialize(this._syncBox.CopiedSettings, this._syncBox.SyncBoxId);
                 if (iconOverlayError != null)
                 {
                     // Failure to start badging does not prevent syncing.  Just log it.

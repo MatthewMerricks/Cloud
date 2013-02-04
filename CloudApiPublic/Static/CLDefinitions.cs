@@ -5,11 +5,15 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
+// Back end definitions
 //#define PRODUCTION_BACKEND 
-#define CLIFF_SERVERS
-//#define STAGING
+#define DEV_BACKEND
+//#define QA_BACKEND
 
-// Merged 7/3/12
+// URL definitions
+//#define URL_OLD
+#define URL_API         // api.cloud.com
+
 namespace CloudApiPublic.Static
 {
     /// <summary>
@@ -17,7 +21,7 @@ namespace CloudApiPublic.Static
     /// </summary>
     public static class CLDefinitions
     {
-        public const string CLRegistrationAccessTokenKey = "access_token";
+        // Define the HTTP prefix to use.
 #if NOSSL
         public const string HttpPrefix = "http://";
         public const string WsPrefix = "ws://";
@@ -25,54 +29,39 @@ namespace CloudApiPublic.Static
         public const string HttpPrefix = "https://";
         public const string WsPrefix = "wss://";
 #endif
+        // Define the subdomain
+#if URL_API
+        public const string SubDomainPrefix = "api.";
+#else
+        public const string SubDomainPrefix = "";
+#endif  // !URL_API
 
-        public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
+        // Define the version
+        public const string VersionPrefix = "/1";
 
-        public const int ManualPollingIterationsBeforeConnectingPush = 10;
-        public const int ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
-        public const int PushNotificationFaultLimitBeforeFallback = 5;
-        public const int MaxNumberOfConcurrentUploads = 6;
-        public const int MaxNumberOfConcurrentDownloads = 6;
+        // Define the domain
 #if PRODUCTION_BACKEND
+        public const string Domain = "cloud.com";
+#elif QA_BACKEND
+        public const string Domain = "cloudstaging.us";
+#else
+        public const string Domain = "cliff.cloudburrito.com";
+#endif
 
-        // Registration
-        public const string CLRegistrationCreateRequestURLString  = HttpPrefix + @"auth.cloud.com/user/create.json";
-        public const string CLRegistrationCreateRequestBodyString = @"user[first_name]={0}&user[last_name]={1}&user[email]={2}&user[password]={3}&device[friendly_name]={4}&device[device_uuid]={5}&device[os_type]={6}&device[os_version]={7}&device[app_version]={8}";
-
-        // Link/Unlink
-        public const string CLRegistrationUnlinkRequestURLString  = HttpPrefix + @"auth.cloud.com/device/unlink.json";
-        public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + @"=[0]";
-        public const string CLRegistrationLinkRequestURLString    = HttpPrefix + @"HttpPrefix + ://auth.cloud.com/device/link.json";
-        public const string CLRegistrationLinkRequestBodyString   = @"email={0}&password={1}&device[friendly_name]={2}&device[device_uuid]={3}&device[os_type]={4}&device[os_version]={5}&device[app_version]={6}";
+        // Server URLs built from the above definitions
+#if URL_API
+        // Platform Auth
+        public const string CLPlatformAuthServerURL = HttpPrefix + SubDomainPrefix + Domain;
 
         // Meta Data
-        public const string CLMetaDataServerURL = HttpPrefix + @"mds.cloud.com";
+        public const string CLMetaDataServerURL = HttpPrefix + SubDomainPrefix + Domain;
 
         // Notifications
-        public const string CLNotificationServerURL = WsPrefix + @"push.cloud.com/events";
+        public const string CLNotificationServerURL = WsPrefix + SubDomainPrefix + Domain;
 
         // Upload/Download Server
-        public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cloud.com";
-
-#else  // !PRODUCTION_BACKEND
-#if CLIFF_SERVERS
-        //// Current registration is no longer done with username/password
-        ////
-        //// Registration
-        //public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/user/create.json";
-        //public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
-        //                                                            "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6},\"os_platform\":{7}," +
-        //                                                            "\"os_version\":{8},\"app_version\":{9}}},\"client_id\":{10},\"client_secret\":{11}}}";
-
-        //// Link/Unlink
-        //public const string CLRegistrationUnlinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/unlink.json";
-        //public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + "={0}";
-
-        //public const string CLRegistrationLinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/link.json";
-        //public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
-        //                                                             "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
-        //                                                             "\"client_id\":{8},\"client_secret\":{9}}}";
-
+        public const string CLUploadDownloadServerURL = HttpPrefix + SubDomainPrefix + Domain;
+#else
         // Platform Auth
         public const string CLPlatformAuthServerURL = HttpPrefix + @"platform.cliff.cloudburrito.com";
 
@@ -84,67 +73,78 @@ namespace CloudApiPublic.Static
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";
-#elif STAGING
-        //// Current registration is no longer done with username/password
-        ////
-        //// Registration
-        //public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth.cloudstaging.us/user/create.json";
-        //public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
-        //                                                            "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6},\"os_platform\":{7}," +
-        //                                                            "\"os_version\":{8},\"app_version\":{9}}},\"client_id\":{10},\"client_secret\":{11}}}";
+#endif  // !URL_API
 
-        //// Link/Unlink
-        //public const string CLRegistrationUnlinkRequestURLString = HttpPrefix + "auth.cloudstaging.us/device/unlink.json";
-        //public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + "={0}";
+        // Miscellaneous constants
+        public const string CLRegistrationAccessTokenKey = "access_token";
+        public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
 
-        //public const string CLRegistrationLinkRequestURLString = HttpPrefix + "auth.cloudstaging.us/device/link.json";
-        //public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
-        //                                                             "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
-        //                                                             "\"client_id\":{8},\"client_secret\":{9}}}";
+        public const int ManualPollingIterationsBeforeConnectingPush = 10;
+        public const int ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
+        public const int PushNotificationFaultLimitBeforeFallback = 5;
+        public const int MaxNumberOfConcurrentUploads = 6;
+        public const int MaxNumberOfConcurrentDownloads = 6;
 
-        // Platform Auth
-        public const string CLPlatformAuthServerURL = HttpPrefix + @"platform.cloudstaging.us";
-
-        // Meta Data
-        public const string CLMetaDataServerURL = HttpPrefix + @"mds.cloudstaging.us";
-
-        // Notifications
-        public const string CLNotificationServerURL = WsPrefix + @"push.cloudstaging.us";
-
-        // Upload/Download Server
-        public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cloudstaging.us";
-#else   // !CLIFF_SERVERS
-        // Registration
-        public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth-edge.cloudburrito.com/user/create.json";
-        public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
-                                                                    "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6},\"os_platform\":{7}," +
-                                                                    "\"os_version\":{8},\"app_version\":{9}}},\"client_id\":{10},\"client_secret\":{11}}}";
-
-        // Link/Unlink
-        public const string CLRegistrationUnlinkRequestURLString = HttpPrefix + "auth-edge.cloudburrito.com/device/unlink.json";
-        public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + "={0}";
-
-        public const string CLRegistrationLinkRequestURLString = HttpPrefix + "auth-edge.cloudburrito.com/device/link.json";
-        public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
-                                                                     "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
-                                                                     "\"client_id\":{8},\"client_secret\":{9}}}";
-
-        // Meta Data
-        public const string CLMetaDataServerURL = HttpPrefix + @"mds-edge.cloudburrito.com";
-
-        // Notifications
-        public const string CLNotificationServerURL = WsPrefix + @"push-edge.cloudburrito.com/events";
-
-        // Upload/Download Server
-        public const string CLUploadDownloadServerURL = HttpPrefix + @"upd-edge.cloudburrito.com";
-#endif  // !CLIFF_SERVERS
-#endif  // !PRODUCTION_BACKEND
-
-        // Twitter page
         public const string CLTwitterPageUrl = "http://twitter.com/clouddotcom";
 
         // Method Path
-#if CLIFF_SERVERS || PRODUCTION_BACKEND || STAGING
+#if DEV_BACKEND || PRODUCTION_BACKEND || QA_BACKEND
+#if URL_API
+        public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud";                            // POST
+        public const string MethodPathDownload = VersionPrefix + "/sync/file/download";                         // POST
+        public const string MethodPathUpload = VersionPrefix + "/sync/file/upload";                             // POST
+        public const string MethodPathSyncTo = VersionPrefix + "/sync/to_cloud";                                // POST
+        public const string MethodPathPurgePending = VersionPrefix + "/sync/file/purge_pending";                // POST
+        public const string MethodPathGetPending = VersionPrefix + "/sync/file/pending";                        // GET
+        public const string MethodPathGetFileMetadata = VersionPrefix + "/sync/file/metadata";                  // GET
+        public const string MethodPathGetFolderMetadata = VersionPrefix + "/sync/folder/metadata";              // GET
+        public const string MethodPathSyncBoxList = VersionPrefix + "/sync/syncbox/list";                       // POST
+
+        public const string MethodPathGetUsedBytes = VersionPrefix + "/sync/file/used_bytes";                   // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
+
+        #region one-off
+        #region files
+        public const string MethodPathOneOffFileCreate = VersionPrefix + "/sync/file/add";                      // POST
+        public const string MethodPathOneOffFileDelete = VersionPrefix + "/sync/file/delete";                   // POST
+        public const string MethodPathOneOffFileModify = VersionPrefix + "/sync/file/modify";                   // POST
+        public const string MethodPathOneOffFileMove = VersionPrefix + "/syncfile/move";                        // POST
+        /* duplicate functionality to file move:
+        public const string MethodPathOneOffFileRename = VersionPrefix + "/sync/file/rename";                   // POST
+ 
+        */
+        #endregion
+
+        #region folders
+        public const string MethodPathOneOffFolderCreate = VersionPrefix + "/sync/folder/add";                  // POST
+        public const string MethodPathOneOffFolderDelete = VersionPrefix + "/sync/folder/delete";               // POST
+        public const string MethodPathOneOffFolderMove = VersionPrefix + "/sync/folder/move";                   // POST
+        /* duplicate functionality to folder move:
+        public const string MethodPathOneOffFolderRename = VersionPrefix + "/sync/folder/rename";               // POST
+         */
+        #endregion
+        #endregion
+
+        #region other file operations
+        public const string MethodPathFileUndelete = VersionPrefix + "/sync/file/undelete";                     // POST
+        public const string MethodPathFileGetVersions = VersionPrefix + "/sync/file/versions";                  // GET
+        public const string MethodPathFileCopy = VersionPrefix + "/sync/file/copy";                             // POST
+        public const string MethodPathGetPictures = VersionPrefix + "/sync/file/pictures";                      // GET
+        #endregion
+
+        #region other folder operations
+        public const string MethodPathGetFolderContents = VersionPrefix + "/sync/folder/contents";              // GET
+        public const string MethodPathGetFolderHierarchy = VersionPrefix + "/sync/folder/hierarchy";            // GET
+        public const string MethodPathFolderUndelete = VersionPrefix + "/sync/folder/undelete";                 // POST
+        #endregion
+
+        #region SyncBox operations
+        public const string MethodPathSyncBoxUsage = VersionPrefix + "/sync/syncbox/usage";                     // GET
+    	#endregion
+
+        #region Notification operations
+        public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";          // GET
+    	#endregion
+#else
         public const string MethodPathSyncFrom = "/1/sync/from_cloud";                       // POST
         public const string MethodPathDownload = "/1/get_file";                              // POST
         public const string MethodPathUpload = "/1/put_file";                                // POST
@@ -193,16 +193,11 @@ namespace CloudApiPublic.Static
 
         public const string MethodPathSyncBoxUsage = "/1/sync_box/usage";                    // GET
 
+        public const string MethodPathPushSubscribe = "/1/sync/subscribe";                   // GET
+#endif  // !URL_API
+#endif  // DEV_BACKEND || PRODUCTION_BACKEND || QA_BACKEND
+
         public const string AuthorizationFormatType = "CWS0";
-#else   // !CLIFF_SERVERS
-        public const string MethodPathSyncFrom = "/sync/from_cloud";
-        public const string MethodPathDownload = "/get_file";
-        public const string MethodPathUpload = "/put_file";
-        public const string MethodPathSyncTo = "/sync/to_cloud";
-        public const string MethodPathPurgePending = "/private/purge_pending";
-        public const string MethodPathGetFileMetadata = "/file_objects/metadata";
-        public const string MethodPathGetFolderMetadata = "/folder_objects/metadata";
-#endif  // !CLIFF_SERVERS
 
         // Common Json field names
         public const string JsonResponseStatus = "status";
@@ -484,5 +479,23 @@ namespace CloudApiPublic.Static
         public const string kTempDownloadFolderName = "DownloadTemp";   // the folder to hold temporary downloaded files before moving them to their permanent location.
         public const string kSyncDatabaseFileName = "IndexDB.sdf";
         public const int kMaxTraceFilenameExtLength = 60;               // maximum length of trace filenames (including the extension).
+
+        //// Old definitions used by the full client.
+        ////
+        //// Registration
+        //public const string CLRegistrationCreateRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/user/create.json";
+        //public const string CLRegistrationCreateRequestBodyString = "{{\"user\":{{\"first_name\":{0},\"last_name\":{1},\"email\":{2},\"password\":{3}}}," +
+        //                                                            "\"device\":{{\"friendly_name\":{4},\"device_uuid\":{5},\"os_type\":{6},\"os_platform\":{7}," +
+        //                                                            "\"os_version\":{8},\"app_version\":{9}}},\"client_id\":{10},\"client_secret\":{11}}}";
+
+        //// Link/Unlink
+        //public const string CLRegistrationUnlinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/unlink.json";
+        //public const string CLRegistrationUnlinkRequestBodyString = CLRegistrationAccessTokenKey + "={0}";
+
+        //public const string CLRegistrationLinkRequestURLString = HttpPrefix + "auth.cliff.cloudburrito.com/device/link.json";
+        //public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
+        //                                                             "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
+        //                                                             "\"client_id\":{8},\"client_secret\":{9}}}";
+
     }
 }

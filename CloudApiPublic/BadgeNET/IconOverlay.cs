@@ -36,6 +36,7 @@ namespace CloudApiPublic.BadgeNET
     {
         private CLTrace _trace;
         private ICLSyncSettingsAdvanced _syncSettings;
+        private Guid _guidPublisher;
 
         /// <summary>
         /// Public constructor.
@@ -48,6 +49,9 @@ namespace CloudApiPublic.BadgeNET
             // badge type for that path changes.  We send a _kEvent_BadgeNet_AddBadgePath event to the BadgeCom "new" type, and a
             // _kEvent_BadgeNet_RemoveBadgePath event to the BadgeCom "old" type.
             _currentBadges = new Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>(FilePathComparer.Instance);
+
+            _guidPublisher = Guid.NewGuid();
+            _trace.writeToLog(9, "IconOverlay: IconOverlay: GUID for this publisher: {0}.", _guidPublisher.ToString());
         }
 
         /// <summary>
@@ -72,7 +76,8 @@ namespace CloudApiPublic.BadgeNET
         /// </summary>
         /// <param name="initialList">(optional) list to start with for badged objects, filepaths in keys must not be null nor empty</param>
         /// <param name="syncSettings">The settings to use for this instance.</param>
-        public CLError Initialize(ICLSyncSettings syncSettings, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
+        /// <param name="syncBoxId">The syncBoxId to use for this instance.</param>
+        public CLError Initialize(ICLSyncSettings syncSettings, long syncBoxId, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
@@ -88,7 +93,7 @@ namespace CloudApiPublic.BadgeNET
                 CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
 
                 _trace.writeToLog(9, "IconOverlay: Initialize: Entry.");
-                return pInitialize(syncSettings.SyncRoot, initialList);
+                return pInitialize(syncBoxId, initialList);
             }
             catch (Exception ex)
             {
@@ -98,16 +103,22 @@ namespace CloudApiPublic.BadgeNET
                 return ex;
             }
         }
-        private CLError pInitialize(string cloudRoot, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
+        private CLError pInitialize(long syncBoxId, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
+                string cloudRoot = _syncSettings.SyncRoot;
+                if (String.IsNullOrWhiteSpace(cloudRoot))
+                {
+                    throw new ArgumentException("cloudRoot must not be null or empty");
+                }
+
                 // ensure IconOverlay is only ever initialized once
                 lock (this)
                 {
                     if (isInitialized)
                     {
-                        _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: THROW: Instance already initailized.");
+                        _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: THROW: Instance already initialized.");
                         throw new Exception("IconOverlay Instance already initialized");
                     }
                     isInitialized = true;
@@ -170,6 +181,7 @@ namespace CloudApiPublic.BadgeNET
                                 nonNullState.Key.Set();
                             }
 
+                            _trace.writeToLog(9, "IconOverlay: threadInit: Exit thread (2).");
                             return;
                         }
 
@@ -193,6 +205,14 @@ namespace CloudApiPublic.BadgeNET
                             CLError error = ex;
                             error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                             _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>.", ex.Message);
+
+                            MessageEvents.FireNewEventMessage(
+                                sender: ex,
+                                Message: "Explorer icon badging has failed",
+                                Level: EventMessageLevel.Important,
+                                IsError: false,
+                                SyncBoxId: syncBoxId,
+                                DeviceId: _syncSettings.DeviceId);
                         }
                         _trace.writeToLog(9, "IconOverlay: threadInit: Exit thread.");
                     }));
@@ -258,6 +278,14 @@ namespace CloudApiPublic.BadgeNET
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 isInitialized = false;
                 _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>.", ex.Message);
+
+                MessageEvents.FireNewEventMessage(
+                    sender: ex,
+                    Message: "Explorer icon badging has failed",
+                    Level: EventMessageLevel.Important,
+                    IsError: false,
+                    SyncBoxId: syncBoxId,
+                    DeviceId: _syncSettings.DeviceId);
                 return ex;
             }
             _trace.writeToLog(9, "IconOverlay: pInitialize: Return success.");
@@ -369,10 +397,10 @@ namespace CloudApiPublic.BadgeNET
                 if (_badgeComPubSubEvents != null)
                 {
                     // Publish the remove SyncBox folder path event back to all BadgeCom instances.  This will clear any dictionaries involving those folder paths.
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, EnumCloudAppIconBadgeType.cloudAppBadgeNone /* not used */, _filePathCloudDirectory.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, EnumCloudAppIconBadgeType.cloudAppBadgeNone /* not used */, _filePathCloudDirectory.ToString(), _guidPublisher);
 
                     // Publish the add SyncBox folder path event back to all BadgeCom instances.
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, EnumCloudAppIconBadgeType.cloudAppBadgeNone /* not used */, _filePathCloudDirectory.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddSyncBoxFolderPath, EnumCloudAppIconBadgeType.cloudAppBadgeNone /* not used */, _filePathCloudDirectory.ToString(), _guidPublisher);
                     
                     // Do not want to process COM publishing logic while holding up the lock, so make a copy under the lock instead.
                     Func<Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>, object, 
@@ -389,7 +417,7 @@ namespace CloudApiPublic.BadgeNET
                     foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in copyBadgesUnderLock(_currentBadges, _currentBadgesLocker))
                     {
                         // Publish a badge add path event to BadgeCom.
-                        _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)item.Value.Value, item.Key.ToString());
+                        _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)item.Value.Value, item.Key.ToString(), _guidPublisher);
                     }
                 }
             }
@@ -559,7 +587,8 @@ namespace CloudApiPublic.BadgeNET
         /// </summary>
         /// <param name="initialList">list to start with for badged objects, all filepaths in keys must not be null nor empty</param>
         /// <param name="pathRootDirectory">The full path to the Cloud root directory.</param>
-        public CLError InitializeOrReplace(string pathRootDirectory, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList)
+        /// <param name="syncBoxId">The SyncBox ID.</param>
+        public CLError InitializeOrReplace(string pathRootDirectory, long syncBoxId, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList)
         {
             try
             {
@@ -573,7 +602,7 @@ namespace CloudApiPublic.BadgeNET
                     if (!isInitialized)
                     {
                         _trace.writeToLog(9, "IconOverlay: InitializeOrReplace. Not initialized yet.  Initialize.");
-                        pInitialize(pathRootDirectory, initialList);
+                        pInitialize(syncBoxId, initialList);
                         // store that list was already processed by initialization
                         listProcessed = true;
                     }
@@ -1126,7 +1155,8 @@ namespace CloudApiPublic.BadgeNET
                         {
                             if (_badgeComPubSubEvents != null)
                             {
-                                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, 0 /* not used */, _filePathCloudDirectory.ToString());
+                                _trace.writeToLog(9, "IconOverlay: Dispose. Send BadgeNet_RemoveSyncBoxFolderPath event.");
+                                _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, EnumCloudAppIconBadgeType.cloudAppBadgeNone /* not used */, _filePathCloudDirectory.ToString(), _guidPublisher);
                             }
                         }
                         catch (Exception ex)
@@ -1141,6 +1171,7 @@ namespace CloudApiPublic.BadgeNET
                         {
                             if (_badgeComPubSubEvents != null)
                             {
+                                _trace.writeToLog(9, "IconOverlay: Dispose. Unsubscribe from BadgeCom events.");
                                 _badgeComPubSubEvents.BadgeComInitialized -= BadgeComPubSubEvents_OnBadgeComInitialized;
                                 _badgeComPubSubEvents.BadgeComInitializedSubscriptionFailed -= _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed;
                                 _badgeComPubSubEvents.Dispose();
@@ -1159,6 +1190,7 @@ namespace CloudApiPublic.BadgeNET
                         {
                             if (_currentBadges != null)
                             {
+                                _trace.writeToLog(9, "IconOverlay: Dispose. Clear current badges.");
                                 _currentBadges.Clear();
                                 _currentBadges = null;
                             }
@@ -1542,7 +1574,7 @@ namespace CloudApiPublic.BadgeNET
                 if (_badgeComPubSubEvents != null)
                 {
                     _trace.writeToLog(9, "IconOverlay: SendAddBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)badgeType.Value, nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_AddBadgePath, (EnumCloudAppIconBadgeType)badgeType.Value, nodePath.ToString(), _guidPublisher);
                 }
 	        }
 	        catch (global::System.Exception ex)
@@ -1564,7 +1596,7 @@ namespace CloudApiPublic.BadgeNET
                 if (_badgeComPubSubEvents != null)
                 {
                     _trace.writeToLog(9, "IconOverlay: SendRemoveBadgePathEvent. Entry.  Path: {0}.", nodePath.ToString());
-                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveBadgePath, 0 /* not used */, nodePath.ToString());
+                    _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveBadgePath, 0 /* not used */, nodePath.ToString(), _guidPublisher);
                 }
 	        }
 	        catch (global::System.Exception ex)

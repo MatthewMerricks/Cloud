@@ -52,6 +52,9 @@
     <ClCompile Include="CBadgeNetPubSubEvents.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CBadgeIconBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -94,6 +97,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="BoostSemaphore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CBadgeIconBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

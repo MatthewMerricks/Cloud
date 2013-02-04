@@ -98,12 +98,13 @@ public:
 		ULONG						ThreadId_;                  // for logging only
 		EnumCloudAppIconBadgeType	BadgeType_;                 // the badge type associated with this event
 		wchar_string				FullPath_;                  // the full path associated with this event
+        GUID                        GuidPublisher_;             // the identity of the publisher
 
 		// Constructor
 		EventMessage(EnumEventType EventType, EnumEventSubType EventSubType, ULONG ProcessId, ULONG ThreadId, 
-				EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, const wchar_string::allocator_type &allocator) :
+				EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, GUID GuidPublisher, const wchar_string::allocator_type &allocator) :
 				EventType_(EventType), EventSubType_(EventSubType), ProcessId_(ProcessId), ThreadId_(ThreadId), 
-					BadgeType_(BadgeType), FullPath_(*FullPath, allocator) {}
+					BadgeType_(BadgeType), FullPath_(*FullPath, allocator), GuidPublisher_(GuidPublisher) {}
 	};
 
 	// Event allocators
@@ -207,11 +208,14 @@ public:
             EnumEventSubType *outEventSubType,
             EnumCloudAppIconBadgeType *outBadgeType,
             BSTR *outFullPath,
+            ULONG *outProcessId,
+            GUID *outGuidPublisher,
             EnumPubSubServerSubscribeReturnCodes *returnValue);
     STDMETHOD(Publish)(EnumEventType EventType,
             EnumEventSubType EventSubType, 
             EnumCloudAppIconBadgeType BadgeType, 
             BSTR *FullPath, 
+            GUID GuidPublisher,
             EnumPubSubServerPublishReturnCodes *returnValue);
 	STDMETHOD(CancelWaitingSubscription)(EnumEventType EventType, GUID guidSubscriber, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
 	STDMETHOD(CancelSubscriptionsForProcessId)(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue);
@@ -220,6 +224,9 @@ public:
 
     // Public OLE accessible properties
     STDMETHOD(get_SharedMemoryName)(BSTR* pVal);
+public:
+    // Public methods
+    static BOOL IsProcessRunning(DWORD pid);
 private:
     // Private structs
     typedef struct UniqueSubscription_tag
@@ -235,7 +242,6 @@ private:
 				eventtype_map_guid_subscription_map::iterator *outItEventType,
 				guid_subscription_map::iterator *outItSubscription,
 				offset_ptr<Subscription> *outOptrFoundSubscription);
-    BOOL IsProcessRunning(DWORD pid);
     void TraceCurrentStateOfSharedMemory(Base *pBase);
     std::string GetSharedMemoryNameWithVersion();
     std::wstring GetSharedMemoryNameWithVersionWide();

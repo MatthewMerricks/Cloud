@@ -3907,7 +3907,8 @@ namespace CloudApiPublic.REST
                     DeviceId = _copiedSettings.DeviceId,
                     SyncBoxId = _syncBoxId
                 },
-                    CLDefinitions.CLMetaDataServerURL, CLDefinitions.MethodPathPurgePending, // purge pending address
+                    CLDefinitions.CLMetaDataServerURL,      // MDS server URL
+                    CLDefinitions.MethodPathPurgePending, // purge pending address
                     requestMethod.post, // purge pending is a post operation
                     timeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
