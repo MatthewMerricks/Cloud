@@ -7,12 +7,12 @@
 
 // Back end definitions
 //#define PRODUCTION_BACKEND 
-#define DEV_BACKEND
-//#define QA_BACKEND
+//#define DEV_BACKEND
+#define QA_BACKEND
 
 // URL definitions
-//#define URL_OLD
-#define URL_API         // api.cloud.com
+#define URL_OLD
+//#define URL_API         // api.cloud.com
 
 namespace CloudApiPublic.Static
 {
@@ -63,16 +63,16 @@ namespace CloudApiPublic.Static
         public const string CLUploadDownloadServerURL = HttpPrefix + SubDomainPrefix + Domain;
 #else
         // Platform Auth
-        public const string CLPlatformAuthServerURL = HttpPrefix + @"platform.cliff.cloudburrito.com";
+        public const string CLPlatformAuthServerURL = HttpPrefix + @"platform-management." + Domain;
 
         // Meta Data
-        public const string CLMetaDataServerURL = HttpPrefix + @"mds.cliff.cloudburrito.com";
+        public const string CLMetaDataServerURL = HttpPrefix + @"mds." + Domain;
 
         // Notifications
-        public const string CLNotificationServerURL = WsPrefix + @"push.cliff.cloudburrito.com";
+        public const string CLNotificationServerURL = WsPrefix + @"push." + Domain;
 
         // Upload/Download Server
-        public const string CLUploadDownloadServerURL = HttpPrefix + @"upd.cliff.cloudburrito.com";
+        public const string CLUploadDownloadServerURL = HttpPrefix + @"upd." + Domain;
 #endif  // !URL_API
 
         // Miscellaneous constants
