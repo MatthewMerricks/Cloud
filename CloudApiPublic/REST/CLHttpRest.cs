@@ -25,6 +25,7 @@ using System.Windows;
 
 namespace CloudApiPublic.REST
 {
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     /// <summary>
     /// Client for manual HTTP communication calls to the Cloud
     /// </summary>
