@@ -1418,8 +1418,8 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=4
-echo copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
-copy $(OutDir)$(TargetName).dll $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
+copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------

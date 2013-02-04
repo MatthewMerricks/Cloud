@@ -748,7 +748,9 @@ EXCLUDE_SYMBOLS        = CloudApiPublic::Interfaces::ISyncDataObject \
                          CloudApiPublic::Static::TraceFileChangeType \
                          CloudApiPublic::Static::FileChangeFlowEntryPositionInFlow \
                          CloudApiPublic::Static::CommunicationEntryDirection \
-                         CloudApiPublic::Static::OSVersionInfo
+                         CloudApiPublic::Static::OSVersionInfo \
+						 CloudApiPublic::CLSyncBox::HttpRestClient \
+						 CloudApiPublic::REST::CLHttpRest
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see

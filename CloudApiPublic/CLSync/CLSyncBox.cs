@@ -7,7 +7,9 @@
 
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
+using CloudApiPublic.REST;
 using CloudApiPublic.Static;
+using CloudApiPublic.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,8 @@ namespace CloudApiPublic
     /// </summary>
     public sealed class CLSyncBox
     {
+        private static CLTrace _trace = CLTrace.Instance;
+
         /// <summary>
         /// Contains authentication information required for all communication and services
         /// </summary>
@@ -55,6 +59,19 @@ namespace CloudApiPublic
             }
         }
         private readonly ICLSyncSettingsAdvanced _copiedSettings;
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        /// <summary>
+        /// Internal client for passing HTTP REST calls to the server
+        /// </summary>
+        public CLHttpRest HttpRestClient
+        {
+            get
+            {
+                return _httpRestClient;
+            }
+        }
+        private readonly CLHttpRest _httpRestClient;
 
         /// <summary>
         /// Creates an object which represents a SyncBox in Cloud
@@ -98,12 +115,6 @@ namespace CloudApiPublic
         {
             // check input parameters
 
-            if (Credential == null)
-            {
-                status = CLSyncBoxCreationStatus.ErrorNullCredential;
-                throw new NullReferenceException("Credential cannot be null");
-            }
-
             this._credential = Credential;
             this._syncBoxId = SyncBoxId;
             if (Settings == null)
@@ -114,7 +125,1151 @@ namespace CloudApiPublic
             {
                 this._copiedSettings = Settings.CopySettings();
             }
+
+            // Initialize trace in case it is not already initialized.
+            CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
+            _trace.writeToLog(1, "CLSyncBox: Constructing...");
+
+            if (Credential == null)
+            {
+                const string credentialError = "Credential cannot be null";
+                status = CLSyncBoxCreationStatus.ErrorNullCredential;
+                _trace.writeToLog(1, "CLSyncBox: Construction: ERROR: {0}.", credentialError);
+                throw new NullReferenceException(credentialError);
+            }
+
+            // Create the http rest client
+            _trace.writeToLog(9, "CLSyncBox: Start: Create rest client.");
+            CLError createRestClientError = CLHttpRest.CreateAndInitialize(this._credential, this._syncBoxId, out _httpRestClient, this._copiedSettings);
+            if (createRestClientError != null)
+            {
+                _trace.writeToLog(1, "CLSyncBox: Construction: ERROR: Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());
+                status = CLSyncBoxCreationStatus.ErrorCreatingRestClient;
+                throw new AggregateException("Error creating REST HTTP client", createRestClientError.GrabExceptions());
+            }
+            if (_httpRestClient == null)
+            {
+                const string nullRestClient = "Unknown error creating HTTP REST client";
+                _trace.writeToLog(1, "CLSyncBox: Construction: ERROR: Msg: {0}.", nullRestClient);
+                status = CLSyncBoxCreationStatus.ErrorCreatingRestClient;
+                throw new NullReferenceException(nullRestClient);
+            }
         }
+
+        #region forwarded rest http calls
+        #region GetMetadataAtPath
+        /// <summary>
+        /// Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
+        /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetMetadataAtPath(AsyncCallback aCallback,
+            object aState,
+            FilePath fullPath,
+            bool isFolder,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetMetadataAtPath(aCallback,
+                aState,
+                fullPath,
+                isFolder,
+                timeoutMilliseconds);
+        }
+        
+        /// <summary>
+        /// Finishes a metadata query if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetMetadataAtPath(IAsyncResult aResult, out GetMetadataAtPathResult result)
+        {
+            return _httpRestClient.EndGetMetadataAtPath(aResult, out result);
+        }
+        
+        /// <summary>
+        /// Queries the server at a given file or folder path (must be specified) for existing metadata at that path; outputs CLHttpRestStatus.NoContent for status if not found on server
+        /// </summary>
+        /// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
+        /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetMetadataAtPath(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
+        {
+            return _httpRestClient.GetMetadataAtPath(fullPath, isFolder, timeoutMilliseconds, out status, out response);
+        }
+        #endregion
+
+        #region GetFileVersions
+        /// <summary>
+        /// Asynchronously starts querying the server for all versions of a given file
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
+            object aState,
+            string fileServerId,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetFileVersions(aCallback,
+                aState,
+                fileServerId,
+                timeoutMilliseconds);
+        }
+        
+        /// <summary>
+        /// Asynchronously starts querying the server for all versions of a given file
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
+            object aState,
+            string fileServerId,
+            int timeoutMilliseconds,
+            bool includeDeletedVersions)
+        {
+            return _httpRestClient.BeginGetFileVersions(aCallback,
+                aState,
+                fileServerId,
+                timeoutMilliseconds,
+                includeDeletedVersions);
+        }
+        
+        /// <summary>
+        /// Asynchronously starts querying the server for all versions of a given file
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            FilePath pathToFile)
+        {
+            return _httpRestClient.BeginGetFileVersions(aCallback, aState, timeoutMilliseconds, pathToFile);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying the server for all versions of a given file
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            FilePath pathToFile,
+            bool includeDeletedVersions)
+        {
+            return _httpRestClient.BeginGetFileVersions(aCallback, aState, timeoutMilliseconds, pathToFile, includeDeletedVersions);
+        }
+        
+        /// <summary>
+        /// Asynchronously starts querying the server for all versions of a given file
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
+            object aState,
+            string fileServerId,
+            int timeoutMilliseconds,
+            FilePath pathToFile)
+        {
+            return _httpRestClient.BeginGetFileVersions(aCallback, aState, fileServerId, timeoutMilliseconds, pathToFile);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying the server for all versions of a given file
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
+            object aState,
+            string fileServerId,
+            int timeoutMilliseconds,
+            FilePath pathToFile,
+            bool includeDeletedVersions)
+        {
+            return _httpRestClient.BeginGetFileVersions(aCallback, aState, fileServerId, timeoutMilliseconds, pathToFile, includeDeletedVersions);
+        }
+
+        /// <summary>
+        /// Finishes querying for all versions of a given file if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting undoing the deletion</param>
+        /// <param name="result">(output) The result from undoing the deletion</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetFileVersions(IAsyncResult aResult, out GetFileVersionsResult result)
+        {
+            return _httpRestClient.EndGetFileVersions(aResult, out result);
+        }
+        
+        /// <summary>
+        /// Queries the server for all versions of a given file
+        /// </summary>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response)
+        {
+            return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, out status, out response);
+        }
+
+        /// <summary>
+        /// Queries the server for all versions of a given file
+        /// </summary>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response, bool includeDeletedVersions)
+        {
+            return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, out status, out response, includeDeletedVersions);
+        }
+
+        /// <summary>
+        /// Queries the server for all versions of a given file
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response)
+        {
+            return _httpRestClient.GetFileVersions(timeoutMilliseconds, pathToFile, out status, out response);
+        }
+
+        /// <summary>
+        /// Queries the server for all versions of a given file
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response, bool includeDeletedVersions)
+        {
+            return _httpRestClient.GetFileVersions(timeoutMilliseconds, pathToFile, out status, out response, includeDeletedVersions);
+        }
+
+        /// <summary>
+        /// Queries the server for all versions of a given file
+        /// </summary>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response)
+        {
+            return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out status, out response);
+        }
+
+        /// <summary>
+        /// Queries the server for all versions of a given file
+        /// </summary>
+        /// <param name="fileServerId">Unique id to the file on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response, bool includeDeletedVersions)
+        {
+            return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out status, out response, includeDeletedVersions);
+        }
+        #endregion
+
+        #region GetPictures
+        /// <summary>
+        /// Asynchronously starts querying the server for pictures
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetPictures(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetPictures(aCallback, aState, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Finishes querying for pictures if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the pictures query</param>
+        /// <param name="result">(output) The result from the pictures query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetPictures(IAsyncResult aResult, out GetPicturesResult result)
+        {
+            return _httpRestClient.EndGetPictures(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the server for pictures
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetPictures(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Pictures response)
+        {
+            return _httpRestClient.GetPictures(timeoutMilliseconds, out status, out response);
+        }
+        #endregion
+
+        #region GetFolderContents
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// A simple object for holding a boolean in order to differentiate overloads on <see cref="CLSyncBox.BeginGetFolderContents"/>
+        /// </summary>
+        public sealed class SpecialBoolParameter
+        {
+            public bool Value
+            {
+                get
+                {
+                    return _value;
+                }
+            }
+            private readonly bool _value;
+
+            public SpecialBoolParameter(bool Value)
+            {
+                this._value = Value;
+            }
+        }
+        
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            SpecialBoolParameter includeCount)
+        {
+            if (includeCount == null)
+            {
+                return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds);
+            }
+            else
+            {
+                return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                    includeCount: includeCount.Value);
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="contentsRoot">(optional) root path of contents query</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            FilePath contentsRoot)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                contentsRoot: contentsRoot);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="contentsRoot">(optional) root path of contents query</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            bool includeCount,
+            FilePath contentsRoot)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                includeCount: includeCount,
+                contentsRoot: contentsRoot);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            Nullable<byte> depthLimit)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                depthLimit: depthLimit);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            bool includeCount,
+            Nullable<byte> depthLimit)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                includeCount: includeCount,
+                depthLimit: depthLimit);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="contentsRoot">(optional) root path of contents query</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            FilePath contentsRoot,
+            Nullable<byte> depthLimit)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                contentsRoot: contentsRoot,
+                depthLimit: depthLimit);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="contentsRoot">(optional) root path of contents query</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            bool includeCount,
+            FilePath contentsRoot,
+            Nullable<byte> depthLimit)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                includeCount: includeCount,
+                contentsRoot: contentsRoot,
+                depthLimit: depthLimit);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            bool includeDeleted)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            bool includeCount,
+            bool includeDeleted)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                includeCount: includeCount,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="contentsRoot">(optional) root path of contents query</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            FilePath contentsRoot,
+            bool includeDeleted)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                contentsRoot: contentsRoot,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="contentsRoot">(optional) root path of contents query</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            bool includeCount,
+            FilePath contentsRoot,
+            bool includeDeleted)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                includeCount: includeCount,
+                contentsRoot: contentsRoot,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            Nullable<byte> depthLimit,
+            bool includeDeleted)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                depthLimit: depthLimit,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            bool includeCount,
+            Nullable<byte> depthLimit,
+            bool includeDeleted)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                includeCount: includeCount,
+                depthLimit: depthLimit,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="contentsRoot">(optional) root path of contents query</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            FilePath contentsRoot,
+            Nullable<byte> depthLimit,
+            bool includeDeleted)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                contentsRoot: contentsRoot,
+                depthLimit: depthLimit,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="contentsRoot">(optional) root path of contents query</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            bool includeCount,
+            FilePath contentsRoot,
+            Nullable<byte> depthLimit,
+            bool includeDeleted)
+        {
+            return _httpRestClient.BeginGetFolderContents(aCallback, aState, timeoutMilliseconds,
+                includeCount: includeCount,
+                contentsRoot: contentsRoot,
+                depthLimit: depthLimit,
+                includeDeleted: includeDeleted);
+        }
+        
+        /// <summary>
+        /// Finishes getting folder contents if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="result">(output) The result from folder contents</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetFolderContents(IAsyncResult aResult, out GetFolderContentsResult result)
+        {
+            return _httpRestClient.EndGetFolderContents(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            SpecialBoolParameter includeCount)
+        {
+            if (includeCount == null)
+            {
+                return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response);
+            }
+            else
+            {
+                return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                    includeCount: includeCount.Value);
+            }
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="contentsRoot">(optional) root path of hierarchy query</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            FilePath contentsRoot)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                contentsRoot: contentsRoot);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="contentsRoot">(optional) root path of hierarchy query</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            bool includeCount,
+            FilePath contentsRoot)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                includeCount: includeCount,
+                contentsRoot: contentsRoot);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            Nullable<byte> depthLimit)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                depthLimit: depthLimit);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            bool includeCount,
+            Nullable<byte> depthLimit)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                includeCount: includeCount,
+                depthLimit: depthLimit);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="contentsRoot">(optional) root path of hierarchy query</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>\
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            FilePath contentsRoot,
+            Nullable<byte> depthLimit)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                contentsRoot: contentsRoot,
+                depthLimit: depthLimit);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="contentsRoot">(optional) root path of hierarchy query</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            bool includeCount,
+            FilePath contentsRoot,
+            Nullable<byte> depthLimit)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                includeCount: includeCount,
+                contentsRoot: contentsRoot,
+                depthLimit: depthLimit);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            bool includeDeleted)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            bool includeCount,
+            bool includeDeleted)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                includeCount: includeCount,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="contentsRoot">(optional) root path of hierarchy query</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            FilePath contentsRoot,
+            bool includeDeleted)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                contentsRoot: contentsRoot,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="contentsRoot">(optional) root path of hierarchy query</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            bool includeCount,
+            FilePath contentsRoot,
+            bool includeDeleted)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                includeCount: includeCount,
+                contentsRoot: contentsRoot,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            Nullable<byte> depthLimit,
+            bool includeDeleted)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                depthLimit: depthLimit,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            bool includeCount,
+            Nullable<byte> depthLimit,
+            bool includeDeleted)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                includeCount: includeCount,
+                depthLimit: depthLimit,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="contentsRoot">(optional) root path of hierarchy query</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            FilePath contentsRoot,
+            Nullable<byte> depthLimit,
+            bool includeDeleted)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                contentsRoot: contentsRoot,
+                depthLimit: depthLimit,
+                includeDeleted: includeDeleted);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
+        /// <param name="contentsRoot">(optional) root path of hierarchy query</param>
+        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
+        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContents(
+            int timeoutMilliseconds,
+            out CLHttpRestStatus status,
+            out JsonContracts.FolderContents response,
+            bool includeCount,
+            FilePath contentsRoot,
+            Nullable<byte> depthLimit,
+            bool includeDeleted)
+        {
+            return _httpRestClient.GetFolderContents(timeoutMilliseconds, out status, out response,
+                includeCount: includeCount,
+                contentsRoot: contentsRoot,
+                depthLimit: depthLimit,
+                includeDeleted: includeDeleted);
+        }
+        #endregion
+        
+        #region GetFolderHierarchy
+        /// <summary>
+        /// Asynchronously starts querying folder hierarchy with optional path
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetFolderHierarchy(aCallback, aState, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying folder hierarchy with optional path
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            FilePath hierarchyRoot)
+        {
+            return _httpRestClient.BeginGetFolderHierarchy(aCallback, aState, timeoutMilliseconds, hierarchyRoot);
+        }
+        
+        /// <summary>
+        /// Finishes getting folder hierarchy if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting getting folder hierarchy</param>
+        /// <param name="result">(output) The result from folder hierarchy</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetFolderHierarchy(IAsyncResult aResult, out GetFolderHierarchyResult result)
+        {
+            return _httpRestClient.EndGetFolderHierarchy(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries server for folder hierarchy with an optional path
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderHierarchy(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Folders response)
+        {
+            return _httpRestClient.GetFolderHierarchy(timeoutMilliseconds, out status, out response);
+        }
+
+        /// <summary>
+        /// Queries server for folder hierarchy with an optional path
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderHierarchy(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Folders response, FilePath hierarchyRoot)
+        {
+            return _httpRestClient.GetFolderHierarchy(timeoutMilliseconds, out status, out response, hierarchyRoot);
+        }
+        #endregion
+
+        #region GetSyncBoxUsage
+        /// <summary>
+        /// Asynchronously starts getting sync box usage
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetSyncBoxUsage(AsyncCallback aCallback, object aState, int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetSyncBoxUsage(aCallback, aState, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Finishes getting sync box usage if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting getting sync box usage</param>
+        /// <param name="result">(output) The result from getting sync box usage</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetSyncBoxUsage(IAsyncResult aResult, out GetSyncBoxUsageResult result)
+        {
+            return _httpRestClient.EndGetSyncBoxUsage(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the server for sync box usage
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetSyncBoxUsage(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxUsage response)
+        {
+            return _httpRestClient.GetSyncBoxUsage(timeoutMilliseconds, out status, out response);
+        }
+        #endregion
+        #endregion
     }
     /// <summary>
     /// Status of creation of <see cref="CLSyncBox"/>
@@ -123,6 +1278,7 @@ namespace CloudApiPublic
     {
         Success,
         ErrorNullCredential,
-        ErrorUnknown
+        ErrorUnknown,
+        ErrorCreatingRestClient
     }
 }

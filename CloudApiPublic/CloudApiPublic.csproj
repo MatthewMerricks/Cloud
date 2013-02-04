@@ -158,6 +158,7 @@
     <Compile Include="Model\IMessageSender.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
+    <Compile Include="REST\AsyncResults.cs" />
     <Compile Include="REST\CLHttpRest.cs" />
     <Compile Include="REST\GenericAsyncResult.cs" />
     <Compile Include="REST\TransferProgress.cs" />

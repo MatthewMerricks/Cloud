@@ -19,7 +19,7 @@ namespace CloudApiPublic.JsonContracts
     /// Result (in array format) from <see cref="CloudApiPublic.REST.CLHttpRest.GetFileVersions"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class FileVersion
+    public sealed class FileVersion
     {
         [DataMember(Name = CLDefinitions.CLMetadataFileCAttributes, IsRequired = false)]
         public string CustomAttributes { get; set; }

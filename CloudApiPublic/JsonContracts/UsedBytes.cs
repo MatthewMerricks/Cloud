@@ -19,7 +19,7 @@ namespace CloudApiPublic.JsonContracts
     /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetUsedBytes"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class UsedBytes
+    public sealed class UsedBytes
     {
         [DataMember(Name = CLDefinitions.CLSyncBoxStoredBytes, IsRequired = false)]
         public Nullable<long> StoredBytes { get; set; }
