@@ -19,7 +19,7 @@ namespace CloudApiPublic.JsonContracts
     /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetPictures"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class Pictures
+    public sealed class Pictures
     {
         [DataMember(Name = CLDefinitions.CLMetadataCount, IsRequired = false)]
         public Nullable<long> Count { get; set; }

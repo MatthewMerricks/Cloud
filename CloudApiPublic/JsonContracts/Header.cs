@@ -18,7 +18,7 @@ namespace CloudApiPublic.JsonContracts
     /// An inner object containing header properties for an <see cref="Event"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class Header
+    public sealed class Header
     {
         [DataMember(Name = CLDefinitions.CLSyncEvent, IsRequired = false)]
         public string Action { get; set; }
