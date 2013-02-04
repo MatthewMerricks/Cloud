@@ -6,11 +6,13 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 // Back end definitions
+// @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND 
-//#define DEV_BACKEND
-#define QA_BACKEND
+//#define DEVELOPMENT_BACKEND
+#define STAGING_BACKEND
 
 // URL definitions
+// @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
 #define URL_OLD
 //#define URL_API         // api.cloud.com
 
@@ -42,7 +44,7 @@ namespace CloudApiPublic.Static
         // Define the domain
 #if PRODUCTION_BACKEND
         public const string Domain = "cloud.com";
-#elif QA_BACKEND
+#elif STAGING_BACKEND
         public const string Domain = "cloudstaging.us";
 #else
         public const string Domain = "cliff.cloudburrito.com";
@@ -80,7 +82,8 @@ namespace CloudApiPublic.Static
         public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
 
         public const int ManualPollingIterationsBeforeConnectingPush = 10;
-        public const int ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
+        public const int MaxManualPollingPeriodSeconds = 60;    // the manual polling period is a random number between these numbers.
+        public const int MinManualPollingPeriodSeconds = 30;    // ....
         public const int PushNotificationFaultLimitBeforeFallback = 5;
         public const int MaxNumberOfConcurrentUploads = 6;
         public const int MaxNumberOfConcurrentDownloads = 6;
@@ -88,7 +91,7 @@ namespace CloudApiPublic.Static
         public const string CLTwitterPageUrl = "http://twitter.com/clouddotcom";
 
         // Method Path
-#if DEV_BACKEND || PRODUCTION_BACKEND || QA_BACKEND
+#if DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 #if URL_API
         public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud";                            // POST
         public const string MethodPathDownload = VersionPrefix + "/sync/file/download";                         // POST
@@ -195,7 +198,7 @@ namespace CloudApiPublic.Static
 
         public const string MethodPathPushSubscribe = "/1/sync/subscribe";                   // GET
 #endif  // !URL_API
-#endif  // DEV_BACKEND || PRODUCTION_BACKEND || QA_BACKEND
+#endif  // DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 
         public const string AuthorizationFormatType = "CWS0";
 
