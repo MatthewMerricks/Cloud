@@ -140,6 +140,8 @@
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
     <Compile Include="Interfaces\IEventMessageReceiver.cs" />
     <Compile Include="Interfaces\ITransferTaskState.cs" />
+    <Compile Include="JsonContracts\SseResponse.cs" />
+    <Compile Include="JsonContracts\SseRequest.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />
     <Compile Include="JsonContracts\FileCopy.cs" />
     <Compile Include="JsonContracts\FileOrFolderDelete.cs" />

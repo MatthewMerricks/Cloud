@@ -217,6 +217,12 @@ namespace CloudApiPublic.PushNotification
                         _syncBox.CopiedSettings.TraceExcludeAuthorization);
                 }
 
+                SseRequest sseRequest = new SseRequest();
+                sseRequest.DeviceId = _syncBox.CopiedSettings.DeviceId;
+                sseRequest.SyncBoxId = _syncBox.SyncBoxId;
+
+                CLError errorFromConnectServerSentEvents = TestConnectServerSentEvents(sseRequest, HttpTimeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SseResponse response)
+
             }
             catch (Exception ex)
             {

@@ -8,13 +8,13 @@
 // Back end definitions
 // @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND 
-//#define DEVELOPMENT_BACKEND
-#define STAGING_BACKEND
+#define DEVELOPMENT_BACKEND
+//#define STAGING_BACKEND
 
 // URL definitions
 // @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
-#define URL_OLD
-//#define URL_API         // api.cloud.com
+//#define URL_OLD
+#define URL_API         // api.cloud.com
 
 namespace CloudApiPublic.Static
 {

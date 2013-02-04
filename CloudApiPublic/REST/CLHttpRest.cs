@@ -3973,6 +3973,52 @@ namespace CloudApiPublic.REST
         }
 
         /// <summary>
+        /// Sends a Server-Sent-Events connection request to the server.
+        /// </summary>
+        /// <param name="sseRequest">The parameters to send to the server.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        internal CLError TestConnectServerSentEvents(SseRequest sseRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SseResponse response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+
+            // try/catch to process the sync_to request, on catch return the error
+            try
+            {
+                // check input parameters
+                if (sseRequest == null)
+                {
+                    throw new ArgumentException("sseRequest must not be null");
+                }
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = ProcessHttp<JsonContracts.SseResponse>(
+                    sseRequest, // object to write as request content to the server
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server  //TODO: This is wrong.  It is OK for the api.* servers, but this should be using CLNotificationServerURL which is specified as ws:/ or wss:/ currently.
+                    CLDefinitions.MethodPathPushSubscribe, // 
+                    requestMethod.get, // SSE connection is a get
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    okAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status); // reference to update the output success/failure status for the communication
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.SseResponse>();
+                return ex;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Sends a list of sync events to the server.  The events must be batched in groups of 1,000 or less.
         /// </summary>
         /// <param name="pushRequest">The parameters to send to the server.</param>
