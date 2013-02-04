@@ -3338,6 +3338,19 @@ namespace CloudApiPublic.Sync
                         // if an error occurred performing the event, rethrow the error
                         if (applyChangeError != null)
                         {
+                            try
+                            {
+                                MessageEvents.FireNewEventMessage(this,
+                                    "Error applying change locally: " + applyChangeError.errorDescription,
+                                    EventMessageLevel.Regular,
+                                    true,
+                                    syncBox.SyncBoxId,
+                                    syncBox.CopiedSettings.DeviceId);
+                            }
+                            catch
+                            {
+                            }
+
                             throw applyChangeError.GrabFirstException();
                         }
                         // event was completed synchronously, output successful event id
@@ -5071,6 +5084,7 @@ namespace CloudApiPublic.Sync
                 // set the previously recoded sync ID, defaulting to "0" and if it is "0", then purge pending changes on the server
                 if ((syncString = (syncData.getLastSyncId ?? CLDefinitions.CLDefaultSyncID)) == CLDefinitions.CLDefaultSyncID)
                 {
+                    #region purge pending on SID "0"
                     // declare the json contract object for the response content
                     PendingResponse purgeResponse;
                     // declare the success/failure status for the communication
@@ -5133,6 +5147,7 @@ namespace CloudApiPublic.Sync
                                 : purgePendingError.GrabExceptions().Concat(
                                     err.GrabExceptions())));
                     }
+                    #endregion
                 }
 
                 // check for sync shutdown

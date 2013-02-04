@@ -225,7 +225,6 @@ namespace CloudApiPublic.FileMonitor
         /// the initial index list to begin processing via BeginProcessing(initialList)
         /// </summary>
         /// <param name="syncBox">SyncBox to monitor</param>
-        /// <param name="syncSettings">The settings to be used with this instance of the file system monitor</param>
         /// <param name="indexer">Created and initialized but not started SQLIndexer</param>
         /// <param name="httpRestClient">Client for Http REST communication</param>
         /// <param name="StatusUpdated">Callback to fire upon update of the running status</param>

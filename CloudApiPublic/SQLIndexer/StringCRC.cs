@@ -13,7 +13,7 @@ using System.Text;
 
 namespace CloudApiPublic.SQLIndexer
 {
-    internal class StringCRC : HashAlgorithm //Core code
+    internal sealed class StringCRC : HashAlgorithm //Core code
     {
         public const UInt32 DefaultPolynomial = 0xedb88320;
         public const UInt32 DefaultSeed = 0xffffffff;
@@ -23,14 +23,14 @@ namespace CloudApiPublic.SQLIndexer
         private UInt32[] table;
         private static UInt32[] defaultTable;
 
-        public StringCRC()
+        private StringCRC()
         {
             table = InitializeTable(DefaultPolynomial);
             seed = DefaultSeed;
             Initialize();
         }
 
-        public StringCRC(UInt32 polynomial, UInt32 seed)
+        private StringCRC(UInt32 polynomial, UInt32 seed)
         {
             table = InitializeTable(polynomial);
             this.seed = seed;
@@ -117,8 +117,6 @@ namespace CloudApiPublic.SQLIndexer
                  (byte)(x & 0xff)
              };
         }
-
-
 
         public static int Crc(string toHash) // invoke code
         {
