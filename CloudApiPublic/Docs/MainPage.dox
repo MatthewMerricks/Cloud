@@ -31,10 +31,11 @@
 ///             CLCredential credential; // declare credential object
 ///             CLCredentialCreationStatus credentialStatus; // declare status enumeration
 ///             CLCredential.CreateAndInitialize( // creation returns a CLError which can be checked
-///                     Key: "My application key from the Cloud developer Dashboard",
-///                     Secret: "My application secret from the Cloud developer Dashboard",
+///                     Key: "My key from the Cloud developer Dashboard",
+///                     Secret: "My secret from the Cloud developer Dashboard",
 ///                     credential: out credential, // output the created credential object here
-///                     status: out credentialStatus); // output the status from creating credential
+///                     status: out credentialStatus,  // output the status from creating credential
+///                     Token: "My session token from the Cloud developer Dashboard"); // (optional)
 ///
 ///             // optionally check credentialStatus/returned CLError here before continuing
 ///            
@@ -89,8 +90,8 @@
 ///     - Cloud
 ///       + Start CloudSdkSyncSample: Starts the pre-built sample program which demonstrates the use of the API provided in the SDK.
 ///       + Show SDK Documentation: Launches your default browser to view this documentation.
-///       + Uninstall Cloud SDK:  Uninstalls the SDK.
 ///       + VS CloudSdkSyncSample Solution: Launches Visual Studio with the sample app project.
+///       + Uninstall Cloud SDK:  Uninstalls the SDK.
 ///       .
 ///     .
 ///   .
@@ -112,8 +113,9 @@
 /// \image html SampleAppMainWindow.jpg "Sample App Main Window"
 /// You will enter information into the following Required Settings fields:
 /// - SyncBoxFolder: This is the full path of the folder on your computer that will be synced.  The folder must be on a locally-attached drive.  Typically you will specify a folder in your user directory. You may use the Browse button to locate the folder to be synced.
-/// - Application Key:  Paste this key from your Cloud developer DashBoard web page (https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal).  This key uniquely identifies your application.
-/// - Application Secret:  Paste this private key from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this private key from a secure location.
+/// - Key:  Paste this key from your Cloud developer DashBoard web page (https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal).  This key uniquely identifies your application.
+/// - Secret:  Paste this private key from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this private key from a secure location.
+/// - Token:  Paste this session token from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this token from a secure location.
 /// - SyncBox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the SyncBox.  It represents a folder that will be synced across all of your devices, and to Cloud.
 /// - (Optional) Unique Device ID: Choose a unique name (within this SyncBox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If you do not specify the device ID, it will default to a unique ID.
 /// .
@@ -121,6 +123,7 @@
 /// Buttons:
 /// - Advanced Options: Click this button to see the advanced options dialog (described below).
 /// - Save Settings:  Click this button to save the Required Settings and any Advanced Options you have set.  You can start syncing after valid settings have been saved. 
+/// - Reset Sync:  Click this button to reset the persisted sync status.  The local sync status will be recreated via a full scan of the SyncBox folder.
 /// - Install Badging: Click this button to install the badging Explorer shell extension (BadgeCom.dll).  This is discussed below.  Installation of the badging DLL involves stopping Explorer, registering BadgeCom.dll and restarting Explorer.  Clicking this button
 /// multiple times will have no additional effect.  The installation of badging support is optional.
 /// - Uninstall Badging:  Click this button to uninstall the badging shell extension dll.  Again, this involves stopping Explorer, unregistering BadgeCom.dll and restarting Explorer.  Clicking this button twice will result in an error message because the dll has
