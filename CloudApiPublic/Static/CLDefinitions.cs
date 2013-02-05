@@ -59,7 +59,8 @@ namespace CloudApiPublic.Static
         public const string CLMetaDataServerURL = HttpPrefix + SubDomainPrefix + Domain;
 
         // Notifications
-        public const string CLNotificationServerURL = WsPrefix + SubDomainPrefix + Domain;
+        public const string CLNotificationServerWsURL = WsPrefix + SubDomainPrefix + Domain;
+        public const string CLNotificationServerSseURL = HttpPrefix + SubDomainPrefix + Domain;
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + SubDomainPrefix + Domain;
@@ -71,7 +72,8 @@ namespace CloudApiPublic.Static
         public const string CLMetaDataServerURL = HttpPrefix + @"mds." + Domain;
 
         // Notifications
-        public const string CLNotificationServerURL = WsPrefix + @"push." + Domain;
+        public const string CLNotificationServerWsURL = WsPrefix + @"push." + Domain;
+        public const string CLNotificationServerSseURL = HttpPrefix + @"push." + Domain;
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd." + Domain;
@@ -87,6 +89,7 @@ namespace CloudApiPublic.Static
         public const int PushNotificationFaultLimitBeforeFallback = 5;
         public const int MaxNumberOfConcurrentUploads = 6;
         public const int MaxNumberOfConcurrentDownloads = 6;
+        public const int HttpTimeoutDefaultMilliseconds = 180000;
 
         public const string CLTwitterPageUrl = "http://twitter.com/clouddotcom";
 
@@ -256,6 +259,7 @@ namespace CloudApiPublic.Static
         public const string QueryStringIncludeDeleted = "include_deleted";
         public const string QueryStringDepth = "depth";
         public const string QueryStringIncludeCount = "include_count";
+        public const string QueryStringSender = "sender";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
@@ -278,7 +282,7 @@ namespace CloudApiPublic.Static
         public const string HeaderAppendMethodPost = "POST";
         public const string HeaderAppendMethodGet = "GET";
         public const string HeaderAppendMethodPut = "PUT";
-        public const string HeaderAppendCloudClient = "Cloud Client";
+        public const string HeaderAppendCloudClient = "Windows SDK Client";
         public const string HeaderAppendStorageKey = "X-Ctx-Storage-Key";
         public const string HeaderAppendContentMD5 = "Content-MD5";
 

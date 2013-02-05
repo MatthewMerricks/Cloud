@@ -110,7 +110,7 @@ namespace CloudApiPublic.Sync
             out SyncEngine engine,
             System.Threading.WaitCallback statusUpdated = null,
             object statusUpdatedUserState = null,
-            int HttpTimeoutMilliseconds = 180000,// 180 seconds
+            int HttpTimeoutMilliseconds = CLDefinitions.HttpTimeoutDefaultMilliseconds,
             byte MaxNumberOfFailureRetries = 20,
             byte MaxNumberOfNotFounds = 10,
             int ErrorProcessingMillisecondInterval = 10000,// wait ten seconds between processing

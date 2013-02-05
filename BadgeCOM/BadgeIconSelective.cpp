@@ -35,10 +35,7 @@ CBadgeIconSelective::CBadgeIconSelective()
 
 	    // Allocate the base shell extension.
 		CLTRACE(9, "CBadgeIconSelective: CBadgeIconSelective: Entry.");
-        if (_pBaseShellExtension == NULL)
-        {
-            _pBaseShellExtension = new CBadgeIconBase(2 /* Selective icon index */, cloudAppBadgeSyncSelective);
-        }
+        _pBaseShellExtension = new CBadgeIconBase(2 /* Selective icon index */, cloudAppBadgeSyncSelective);
     }
     catch (const std::exception &ex)
     {

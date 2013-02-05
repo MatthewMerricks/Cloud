@@ -72,6 +72,6 @@ private:
     void InitializeBadgeNetPubSubEvents();
     void InitializeBadgeNetPubSubEventsViaThread();
     static void InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserState);
-    static std::string BadgeTypeToString(EnumCloudAppIconBadgeType badgeType);
+    static char *BadgeTypeToString(EnumCloudAppIconBadgeType badgeType);
     void CleanBadgingDatabaseForProcessId(ULONG processIdPublisher);
 };

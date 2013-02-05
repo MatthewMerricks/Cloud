@@ -21,6 +21,7 @@ using CloudApiPublic.Interfaces;
 using CloudApiPublic.JsonContracts;
 using CloudApiPublic.REST;
 
+#if TRASH
 namespace CloudApiPublic.PushNotification
 {
     extern alias WebSocket4NetBase;
@@ -247,7 +248,7 @@ namespace CloudApiPublic.PushNotification
                 // WebSocket4Net implementation.
                 try
                 {
-                    string url = CLDefinitions.CLNotificationServerURL;
+                    string url = CLDefinitions.CLNotificationServerWsURL;
                     string pathAndQueryStringAndFragment = String.Format(CLDefinitions.MethodPathPushSubscribe + "?sync_box_id={0}&device={1}", _syncBox.SyncBoxId, _syncBox.CopiedSettings.DeviceId);
                     _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>. QueryString: {1}.", url, pathAndQueryStringAndFragment);
 
@@ -812,3 +813,4 @@ namespace CloudApiPublic.PushNotification
         }
     }
 }
+#endif // TRASH
