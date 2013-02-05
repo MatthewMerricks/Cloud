@@ -16,7 +16,7 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetSyncBoxUsage"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetSyncBoxUsage"/>
     /// </summary>
     [DataContract]
     public sealed class SyncBoxUsage

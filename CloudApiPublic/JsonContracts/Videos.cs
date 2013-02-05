@@ -1,5 +1,5 @@
 ﻿//
-// Folders.cs
+// Videos.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -16,15 +16,18 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetFolderHierarchy"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetVideos"/>
     /// </summary>
     [DataContract]
-    public sealed class Folders
+    public sealed class Videos
     {
         [DataMember(Name = CLDefinitions.CLMetadataCount, IsRequired = false)]
         public Nullable<long> Count { get; set; }
 
-        [DataMember(Name = CLDefinitions.CLMetadataFolders, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.CLSyncEventMetadata, IsRequired = false)]
         public JsonContracts.Metadata[] Metadata { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataMoreItems, IsRequired = false)]
+        public Nullable<bool> MoreItems { get; set; }
     }
 }

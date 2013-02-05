@@ -18,7 +18,7 @@ namespace CloudApiPublic.JsonContracts
     /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.PostFileChange"/>, <see cref="CloudApiPublic.REST.CLHttpRest.UndoDeletionFileChange"/>, and <see cref="CloudApiPublic.REST.CLHttpRest.CopyFile"/>
     /// </summary>
     [DataContract]
-    public sealed class Event
+    internal sealed class Event
     {
         [DataMember(Name = CLDefinitions.CLSyncEvent, IsRequired = false)]
         public string Action { get; set; }
