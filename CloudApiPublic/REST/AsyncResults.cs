@@ -148,15 +148,17 @@ namespace CloudApiPublic.REST
             : base(Error, Status, Result) { }
     }
 
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class GetUsedBytesResult : BaseCLHttpRestResult<JsonContracts.UsedBytes>
-    {
-        // construct with all readonly properties
-        internal GetUsedBytesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.UsedBytes Result)
-            : base(Error, Status, Result) { }
-    }
+    //// GetUsedBytes is deprecated
+    //
+    ///// <summary>
+    ///// Holds result properties
+    ///// </summary>
+    //public sealed class GetUsedBytesResult : BaseCLHttpRestResult<JsonContracts.UsedBytes>
+    //{
+    //    // construct with all readonly properties
+    //    internal GetUsedBytesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.UsedBytes Result)
+    //        : base(Error, Status, Result) { }
+    //}
 
     /// <summary>
     /// Holds result properties
@@ -175,6 +177,46 @@ namespace CloudApiPublic.REST
     {
         // construct with all readonly properties
         internal GetPicturesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Pictures Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class GetVideosResult : BaseCLHttpRestResult<JsonContracts.Videos>
+    {
+        // construct with all readonly properties
+        internal GetVideosResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Videos Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class GetAudiosResult : BaseCLHttpRestResult<JsonContracts.Audios>
+    {
+        // construct with all readonly properties
+        internal GetAudiosResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Audios Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class GetArchivesResult : BaseCLHttpRestResult<JsonContracts.Archives>
+    {
+        // construct with all readonly properties
+        internal GetArchivesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Archives Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class GetRecentsResult : BaseCLHttpRestResult<JsonContracts.Recents>
+    {
+        // construct with all readonly properties
+        internal GetRecentsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Recents Result)
             : base(Error, Status, Result) { }
     }
 

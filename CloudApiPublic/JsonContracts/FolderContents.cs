@@ -16,7 +16,7 @@ using CloudApiPublic.Static;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetFolderContents"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetFolderContents"/>
     /// </summary>
     [DataContract]
     public sealed class FolderContents

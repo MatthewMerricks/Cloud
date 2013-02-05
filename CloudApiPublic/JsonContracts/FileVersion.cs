@@ -16,7 +16,7 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result (in array format) from <see cref="CloudApiPublic.REST.CLHttpRest.GetFileVersions"/>
+    /// Result (in array format) from <see cref="CloudApiPublic.CLSyncBox.GetFileVersions"/>
     /// </summary>
     [DataContract]
     public sealed class FileVersion

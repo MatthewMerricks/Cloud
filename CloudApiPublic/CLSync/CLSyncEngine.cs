@@ -26,7 +26,7 @@ namespace CloudApiPublic
     /// <summary>
     /// A class used to create a SyncBox to synchronize the contents of a local disk directory.
     /// </summary>
-    public class CLSyncEngine
+    public sealed class CLSyncEngine
     {
         private IconOverlay _iconOverlay = null;
         private MonitorAgent _monitor = null;

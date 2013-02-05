@@ -15,16 +15,18 @@ using System.Text;
 
 namespace CloudApiPublic.JsonContracts
 {
-    /// <summary>
-    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetUsedBytes"/>
-    /// </summary>
-    [DataContract]
-    public sealed class UsedBytes
-    {
-        [DataMember(Name = CLDefinitions.CLSyncBoxStoredBytes, IsRequired = false)]
-        public Nullable<long> StoredBytes { get; set; }
+    //// GetUsedBytes is deprecated
+    //
+    ///// <summary>
+    ///// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetUsedBytes"/>
+    ///// </summary>
+    //[DataContract]
+    //public sealed class UsedBytes
+    //{
+    //    [DataMember(Name = CLDefinitions.CLSyncBoxStoredBytes, IsRequired = false)]
+    //    public Nullable<long> StoredBytes { get; set; }
 
-        [DataMember(Name = CLDefinitions.CLSyncBoxPendingBytes, IsRequired = false)]
-        public Nullable<long> PendingBytes { get; set; }
-    }
+    //    [DataMember(Name = CLDefinitions.CLSyncBoxPendingBytes, IsRequired = false)]
+    //    public Nullable<long> PendingBytes { get; set; }
+    //}
 }

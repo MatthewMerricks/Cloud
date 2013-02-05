@@ -18,7 +18,7 @@ namespace CloudApiPublic.JsonContracts
     /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetAllPending"/>
     /// </summary>
     [DataContract]
-    public sealed class PendingResponse
+    internal sealed class PendingResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataFiles, IsRequired = false)]
         public Metadata[] Files { get; set; }
