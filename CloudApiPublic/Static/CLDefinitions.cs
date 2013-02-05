@@ -100,7 +100,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathGetFolderMetadata = VersionPrefix + "/sync/folder/metadata";              // GET
         public const string MethodPathSyncBoxList = VersionPrefix + "/sync/syncbox/list";                       // POST
 
-        public const string MethodPathGetUsedBytes = VersionPrefix + "/sync/file/used_bytes";                   // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
+        //public const string MethodPathGetUsedBytes = VersionPrefix + "/sync/file/used_bytes";                   // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
 
         #region one-off
         #region files
@@ -129,6 +129,10 @@ namespace CloudApiPublic.Static
         public const string MethodPathFileGetVersions = VersionPrefix + "/sync/file/versions";                  // GET
         public const string MethodPathFileCopy = VersionPrefix + "/sync/file/copy";                             // POST
         public const string MethodPathGetPictures = VersionPrefix + "/sync/file/pictures";                      // GET
+        public const string MethodPathGetVideos = VersionPrefix + "/sync/file/videos";                          // GET
+        public const string MethodPathGetAudios = VersionPrefix + "/sync/file/audios";                          // GET
+        public const string MethodPathGetArchives = VersionPrefix + "/sync/file/archives";                      // GET
+        public const string MethodPathGetRecents = VersionPrefix + "/sync/file/recents";                        // GET
         #endregion
 
         #region other folder operations
@@ -155,7 +159,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathGetFolderMetadata = "/1/folder/metadata";              // GET
         public const string MethodPathSyncBoxList = "/1/sync_box/list";                      // POST
 
-        public const string MethodPathGetUsedBytes = "/1/file/used_bytes";                   // GET
+        //public const string MethodPathGetUsedBytes = "/1/file/used_bytes";                   // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
 
         #region one-off
         #region files
@@ -183,6 +187,10 @@ namespace CloudApiPublic.Static
         public const string MethodPathFileGetVersions = "/1/file/versions";                  // GET
         public const string MethodPathFileCopy = "/1/file/copy";                             // POST
         public const string MethodPathGetPictures = "/1/file/pictures";                      // GET
+        public const string MethodPathGetVideos = "/1/file/videos";                          // GET
+        public const string MethodPathGetAudios = "/1/file/audios";                          // GET
+        public const string MethodPathGetArchives = "/1/file/archives";                      // GET
+        public const string MethodPathGetRecents = "/1/file/recents";                        // GET
         #endregion
 
         #region other folder operations

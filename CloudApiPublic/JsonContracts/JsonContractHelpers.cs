@@ -317,6 +317,62 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _picturesSerializer = null;
         private static readonly object PicturesSerializerLocker = new object();
 
+        public static DataContractJsonSerializer VideosSerializer
+        {
+            get
+            {
+                lock (VideosSerializerLocker)
+                {
+                    return _videosSerializer
+                        ?? (_videosSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Videos)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _videosSerializer = null;
+        private static readonly object VideosSerializerLocker = new object();
+
+        public static DataContractJsonSerializer AudiosSerializer
+        {
+            get
+            {
+                lock (AudiosSerializerLocker)
+                {
+                    return _audiosSerializer
+                        ?? (_audiosSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Audios)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _audiosSerializer = null;
+        private static readonly object AudiosSerializerLocker = new object();
+
+        public static DataContractJsonSerializer ArchivesSerializer
+        {
+            get
+            {
+                lock (ArchivesSerializerLocker)
+                {
+                    return _archivesSerializer
+                        ?? (_archivesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Archives)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _archivesSerializer = null;
+        private static readonly object ArchivesSerializerLocker = new object();
+
+        public static DataContractJsonSerializer RecentsSerializer
+        {
+            get
+            {
+                lock (RecentsSerializerLocker)
+                {
+                    return _recentsSerializer
+                        ?? (_recentsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Recents)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _recentsSerializer = null;
+        private static readonly object RecentsSerializerLocker = new object();
+
         public static DataContractJsonSerializer SyncBoxUsageSerializer
         {
             get
