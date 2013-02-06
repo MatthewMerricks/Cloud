@@ -148,6 +148,10 @@ namespace CloudApiPublic.Static
         #region Notification operations
         public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";          // GET
     	#endregion
+
+        #region Platform Management operations
+        public const string MethodPathAuthCreateSyncBox = VersionPrefix + "/sync_box/create";                   // POST
+        #endregion
 #else
         public const string MethodPathSyncFrom = "/1/sync/from_cloud";                       // POST
         public const string MethodPathDownload = "/1/get_file";                              // POST
@@ -202,6 +206,10 @@ namespace CloudApiPublic.Static
         public const string MethodPathSyncBoxUsage = "/1/sync_box/usage";                    // GET
 
         public const string MethodPathPushSubscribe = "/1/sync/subscribe";                   // GET
+
+        #region Platform Management operations
+        public const string MethodPathAuthCreateSyncBox = "/1/sync_box/create";              // POST
+        #endregion
 #endif  // !URL_API
 #endif  // DEV_BACKEND || PRODUCTION_BACKEND || QA_BACKEND
 
@@ -488,6 +496,20 @@ namespace CloudApiPublic.Static
         public const string kSyncDatabaseFileName = "IndexDB.sdf";
         public const int kMaxTraceFilenameExtLength = 60;               // maximum length of trace filenames (including the extension).
 
+        // REST Response Status "status"
+        public const string RESTResponseStatus = "status";
+        public const string RESTResponseStatusSuccess = "success";
+        public const string RESTResponseStatusFailed = "error";
+
+        public const string RESTResponseMessage = "message";
+
+        // REST Response SyncBox
+        public const string RESTResponseSyncBox = "sync_box";
+        public const string RESTResponseSyncBoxId = "id";
+        public const string RESTResponseSyncBoxStorageQuota = "storage_quota";
+        public const string RESTResponseSyncBoxCreatedAt = "created_at";
+        public const string RESTResponseSyncBoxFriendlyName = "friendly_name";
+
         //// Old definitions used by the full client.
         ////
         //// Registration
@@ -504,6 +526,5 @@ namespace CloudApiPublic.Static
         //public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
         //                                                             "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
         //                                                             "\"client_id\":{8},\"client_secret\":{9}}}";
-
     }
 }

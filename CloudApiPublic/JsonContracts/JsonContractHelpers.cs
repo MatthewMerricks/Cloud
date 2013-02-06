@@ -414,6 +414,20 @@ namespace CloudApiPublic.JsonContracts
         }
         private static DataContractJsonSerializer _folderContentsSerializer = null;
         private static readonly object FolderContentsSerializerLocker = new object();
+
+        public static DataContractJsonSerializer CreateSyncBoxSerializer
+        {
+            get
+            {
+                lock (CreateSyncBoxSerializerLocker)
+                {
+                    return _createSyncBoxSerializer
+                        ?? (_createSyncBoxSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CreateSyncBox)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _createSyncBoxSerializer = null;
+        private static readonly object CreateSyncBoxSerializerLocker = new object();
         #endregion
     }
 }

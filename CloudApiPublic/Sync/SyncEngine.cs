@@ -7488,6 +7488,7 @@ namespace CloudApiPublic.Sync
         private readonly object UpDownEventLocker = new object();
         #endregion
     }
+
     /// <summary>
     /// Delegate to FileTransferStatusUpdate in SyncEngine which fires status change callbacks to CLSyncEngine
     /// </summary>

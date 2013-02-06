@@ -257,7 +257,6 @@ namespace CloudApiPublic
             ICLSyncSettingsAdvanced advancedCopy = toCopy as ICLSyncSettingsAdvanced;
             if (advancedCopy == null)
             {
-                
                 return AdvancedSyncSettings.CreateDefaultSettings(toCopy);
             }
             else

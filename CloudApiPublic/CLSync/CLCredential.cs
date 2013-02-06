@@ -5,6 +5,7 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using System;
@@ -141,6 +142,81 @@ namespace CloudApiPublic
         {
             return !String.IsNullOrEmpty(_token);
         }
+
+        #region public authorization HTTP API calls
+        private sealed class NullSyncRoot : ICLSyncSettings
+        {
+            public string SyncRoot
+            {
+                get
+                {
+                    return null;
+                }
+            }
+
+            public static readonly NullSyncRoot Instance = new NullSyncRoot();
+
+            private NullSyncRoot() { }
+        }
+
+        /// <summary>
+        /// Add a Sync box on the server for the current application
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="friendlyName">(optional) Friendly name of the Sync box</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError AddSyncBoxOnServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.CreateSyncBox response, ICLCredentialSettings settings = null, string friendlyName = null)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the metadata query, on catch return the error
+            try
+            {
+                // copy settings so they don't change while processing; this also defaults some values
+                ICLSyncSettingsAdvanced copiedSettings = (settings == null
+                    ? NullSyncRoot.Instance.CopySettings()
+                    : settings.CopySettings());
+
+                // check input parameters
+
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                JsonContracts.CreateSyncBox inputBox = (string.IsNullOrEmpty(friendlyName)
+                    ? null
+                    : new JsonContracts.CreateSyncBox()
+                        {
+                            SyncBox = new JsonContracts.SyncBox()
+                            {
+                                FriendlyName = friendlyName
+                            }
+                        });
+
+                response = Helpers.ProcessHttp<JsonContracts.CreateSyncBox>(
+                    inputBox,
+                    CLDefinitions.CLPlatformAuthServerURL,
+                    CLDefinitions.MethodPathAuthCreateSyncBox,
+                    Helpers.requestMethod.post,
+                    timeoutMilliseconds,
+                    null, // not an upload nor download
+                    Helpers.HttpStatusesOkAccepted,
+                    ref status,
+                    copiedSettings,
+                    this,
+                    null);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.CreateSyncBox>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion
     }
     /// <summary>
     /// Status of creation of <see cref="CLCredential"/>
