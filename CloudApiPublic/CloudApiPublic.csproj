@@ -158,9 +158,6 @@
     <Compile Include="Model\IMessageSender.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
-    <Compile Include="PushNotification\CLNotificationSseEngine.cs" />
-    <Compile Include="PushNotification\ICLNotificationEngine.cs" />
-    <Compile Include="PushNotification\CLNotificationService.cs" />
     <Compile Include="REST\CLHttpRest.cs" />
     <Compile Include="REST\GenericAsyncResult.cs" />
     <Compile Include="REST\TransferProgress.cs" />
