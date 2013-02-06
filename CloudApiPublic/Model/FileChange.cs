@@ -175,7 +175,7 @@ namespace CloudApiPublic.Model
         /// DelayCompletedLocker to lock upon delay completion must be provided for syncing the DelayCompleted boolean
         /// </summary>
         /// <param name="DelayCompletedLocker">Object to lock on to synchronize setting DelayCompleted boolean</param>
-        public FileChange(object DelayCompletedLocker) : base(DelayCompletedLocker)
+        internal FileChange(object DelayCompletedLocker) : base(DelayCompletedLocker)
         {
             SetIncrementedId();
         }

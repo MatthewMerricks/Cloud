@@ -1084,6 +1084,7 @@ namespace CloudApiPublic.REST
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IAsyncResult BeginGetAllPending(AsyncCallback aCallback,
             object aState,
             int timeoutMilliseconds)
@@ -1161,6 +1162,7 @@ namespace CloudApiPublic.REST
         /// <param name="aResult">The asynchronous result provided upon starting the pending query</param>
         /// <param name="result">(output) The result from the pending query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError EndGetAllPending(IAsyncResult aResult, out GetAllPendingResult result)
         {
             // declare the specific type of asynchronous result for pending query
@@ -1222,6 +1224,7 @@ namespace CloudApiPublic.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError GetAllPending(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
