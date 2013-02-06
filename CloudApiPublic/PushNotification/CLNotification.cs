@@ -21,7 +21,6 @@ using CloudApiPublic.Interfaces;
 using CloudApiPublic.JsonContracts;
 using CloudApiPublic.REST;
 
-#if TRASH
 namespace CloudApiPublic.PushNotification
 {
     extern alias WebSocket4NetBase;
@@ -174,10 +173,11 @@ namespace CloudApiPublic.PushNotification
             CLTrace.Instance.writeToLog(9, "CLNotification: CLNotification: Entry");
 
             // Initialize members, etc. here (at static initialization time).
-            //&&&&&ConnectPushNotificationServer();  //TODO: DEBUG ONLY.  REMOVE.
-            ConnectPushNotificationServerSse();
+            ConnectPushNotificationServer();  //TODO: DEBUG ONLY.  REMOVE.
+            //&&&&& TEST ONLYConnectPushNotificationServerSse();
         }
 
+#if TRASH
         public void ConnectPushNotificationServerSse()
         {
             try
@@ -229,6 +229,8 @@ namespace CloudApiPublic.PushNotification
             {
             }
         }
+
+#endif //TRASH
 
         /// <summary>
         /// Call to initialize and make a connection to the push notification server.
@@ -813,4 +815,3 @@ namespace CloudApiPublic.PushNotification
         }
     }
 }
-#endif // TRASH

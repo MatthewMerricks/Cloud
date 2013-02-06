@@ -31,7 +31,7 @@ namespace CloudApiPublic
         private IconOverlay _iconOverlay = null;
         private MonitorAgent _monitor = null;
         private IndexingAgent _indexer = null;
-        private CLNotificationService _notifier = null;
+        private CLNotification _notifier = null;
         private bool _isStarted = false;
         private static CLTrace _trace = CLTrace.Instance;
         private SyncEngine _syncEngine = null;
@@ -394,7 +394,7 @@ namespace CloudApiPublic
                 _trace.writeToLog(9, "CLSync: Start: Start the notifier.");
                 lock (_locker)
                 {
-                    CLError getNotificationError = CLNotificationService.GetInstance(this._syncBox, out _notifier);
+                    CLError getNotificationError = CLNotification.GetInstance(this._syncBox, out _notifier);
                     if (getNotificationError != null
                         || _notifier == null)
                     {

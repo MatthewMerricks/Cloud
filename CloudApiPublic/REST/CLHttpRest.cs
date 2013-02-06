@@ -3972,6 +3972,7 @@ namespace CloudApiPublic.REST
             return null;
         }
 
+#if TRASH
         /// <summary>
         /// Sends a Server-Sent-Events connection request to the server.
         /// </summary>
@@ -4017,6 +4018,7 @@ namespace CloudApiPublic.REST
 
             return null;
         }
+#endif  // TRASH
 
         /// <summary>
         /// Sends a list of sync events to the server.  The events must be batched in groups of 1,000 or less.

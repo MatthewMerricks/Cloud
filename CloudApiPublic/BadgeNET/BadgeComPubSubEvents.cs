@@ -25,7 +25,7 @@ namespace CloudApiPublic.BadgeNET
     {
         #region Public events
 
-        public event EventHandler<EventArgs> BadgeComInitialized;
+        public event EventHandler<BadgeTypeEventArgs> BadgeComInitialized;
         public event EventHandler<EventArgs> BadgeComInitializedSubscriptionFailed;
 
         #endregion
@@ -54,6 +54,26 @@ namespace CloudApiPublic.BadgeNET
         private bool _fIsInitialized = false;
         private ICLSyncSettingsAdvanced _syncSettings;
         
+        #endregion
+
+        #region Public classes
+
+        public sealed class BadgeTypeEventArgs : EventArgs
+        {
+            private EnumCloudAppIconBadgeType _badgeType;
+            public EnumCloudAppIconBadgeType BadgeType
+            {
+                set
+                {
+                    _badgeType = value;
+                }
+                get
+                {
+                    return this._badgeType;
+                }
+            }
+        }
+
         #endregion
 
         #region Public methods
@@ -113,13 +133,13 @@ namespace CloudApiPublic.BadgeNET
                     return;
                 }
 
-                _trace.writeToLog(9, "BadgeComPubSubEvents: PublishEventToBadgeCom: Entry. eventType: {0}. eventSubType: {1}. badgeType: {2}. fullPath: {3}. guidPublisher: {4}.", eventType, eventSubType, badgeType, fullPath, guidPublisher);
                 if (_pubSubServer == null || fullPath == null)
                 {
                     throw new Exception("Call Initialize() first");
                 }
 
                 // Publish the event
+                _trace.writeToLog(9, "BadgeComPubSubEvents: PublishEventToBadgeCom: Entry. eventType: {0}. eventSubType: {1}. badgeType: {2}. fullPath: {3}. guidPublisher: {4}.", eventType, eventSubType, badgeType, fullPath, guidPublisher);
                 EnumPubSubServerPublishReturnCodes result = _pubSubServer.Publish(eventType, eventSubType, badgeType, fullPath, guidPublisher);
                 if (result != EnumPubSubServerPublishReturnCodes.RC_PUBLISH_OK)
                 {
@@ -211,10 +231,13 @@ namespace CloudApiPublic.BadgeNET
                         try
                         {
                             _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Got an event.");
-                            EventHandler<EventArgs> handler = BadgeComInitialized;
+                            BadgeTypeEventArgs args = new BadgeTypeEventArgs();
+                            args.BadgeType = outBadgeType;
+                            EventHandler<BadgeTypeEventArgs> handler = BadgeComInitialized;
                             if (handler != null)
                             {
-                                handler(this, EventArgs.Empty);
+
+                                handler(this, args);
                             }
 
                             // Exit if we were requested to kill ourselves.

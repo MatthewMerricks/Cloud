@@ -4,6 +4,7 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
+#if TRASH2
 using System;
 using System.Windows;
 using System.Collections.Generic;
@@ -236,3 +237,4 @@ namespace CloudApiPublic.PushNotification
 #endif // TRASH
     }
 }
+#endif // TRASH2
