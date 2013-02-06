@@ -275,19 +275,21 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _fileVersionsSerializer = null;
         private static readonly object FileVersionsSerializerLocker = new object();
 
-        public static DataContractJsonSerializer UsedBytesSerializer
-        {
-            get
-            {
-                lock (UsedBytesSerializerLocker)
-                {
-                    return _usedBytesSerializer
-                        ?? (_usedBytesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.UsedBytes)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _usedBytesSerializer = null;
-        private static readonly object UsedBytesSerializerLocker = new object();
+        ////Used bytes Serializer is depricated
+        //
+        //public static DataContractJsonSerializer UsedBytesSerializer
+        //{
+        //    get
+        //    {
+        //        lock (UsedBytesSerializerLocker)
+        //        {
+        //            return _usedBytesSerializer
+        //                ?? (_usedBytesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.UsedBytes)));
+        //        }
+        //    }
+        //}
+        //private static DataContractJsonSerializer _usedBytesSerializer = null;
+        //private static readonly object UsedBytesSerializerLocker = new object();
 
         public static DataContractJsonSerializer FileCopySerializer
         {
