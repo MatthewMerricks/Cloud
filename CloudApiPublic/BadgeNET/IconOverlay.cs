@@ -6,7 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 // Enable the following definition to trace the badging dictionaries.
-#define TRACE_BADGING_DICTIONARIES
+//#define TRACE_BADGING_DICTIONARIES
 
 using System;
 using System.Collections.Generic;
@@ -198,10 +198,18 @@ namespace CloudApiPublic.BadgeNET
                                 throw new Exception("Subscription failed");
                             }
 
-                            // Send our badging dictionary to the BadgeCom subscribers.
+                            // Send our badging dictionary to the BadgeCom subscribers.  Send it to each of the badge type instances.
                             _trace.writeToLog(9, "IconOverlay: threadInit: Send badging dictionary.");
-                            BadgeComPubSubEvents_OnBadgeComInitialized(null, null);
-                            _trace.writeToLog(9, "IconOverlay: threadInit: Back from send badging dictionary.");
+                            foreach (EnumCloudAppIconBadgeType type in Helpers.EnumUtil.GetValues<EnumCloudAppIconBadgeType>())
+                            {
+                                if (type != EnumCloudAppIconBadgeType.cloudAppBadgeNone)
+                                {
+                                    BadgeComPubSubEvents.BadgeTypeEventArgs args = new BadgeComPubSubEvents.BadgeTypeEventArgs();
+                                    args.BadgeType = type;
+                                    BadgeComPubSubEvents_OnBadgeComInitialized(this, args);
+                                }
+                            }
+                            _trace.writeToLog(9, "IconOverlay: threadInit: Finished sending badging dictionary.");
                         }
                         catch (Exception ex)
                         {
@@ -410,10 +418,10 @@ namespace CloudApiPublic.BadgeNET
                     }
                 }
 
-                _trace.writeToLog(9, "IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: Entry.");
+                _trace.writeToLog(9, "IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: Entry. BadgeType: {0}.", e.BadgeType);
                 if (_badgeComPubSubEvents != null)
                 {
-                    // Publish the remove SyncBox folder path event back to all BadgeCom instances.  This will clear any dictionaries involving those folder paths.
+                    // Publish the remove SyncBox folder path event back to all BadgeCom instances.  This will clear any dictionaries involving those folder paths.  Each instance will clear only the path added by this process and _guidPublisher.
                     _badgeComPubSubEvents.PublishEventToBadgeCom(EnumEventType.BadgeNet_To_BadgeCom, EnumEventSubType.BadgeNet_RemoveSyncBoxFolderPath, e.BadgeType, _filePathCloudDirectory.ToString(), _guidPublisher);
 
                     // Publish the add SyncBox folder path event back to all BadgeCom instances.
@@ -1756,7 +1764,7 @@ namespace CloudApiPublic.BadgeNET
                                 }
                                 else
                                 {
-                                    _currentBadgesSynced.Remove(nodePath);
+                                    _currentBadgesSynced[nodePath] = null;
                                 }
                             }
                         }
@@ -1770,7 +1778,7 @@ namespace CloudApiPublic.BadgeNET
                         {
                             if (_currentBadgesSynced != null)
                             {
-                                _currentBadgesSynced.Remove(nodePath);
+                                _currentBadgesSynced[nodePath] = null;
                             }
                         }
                     }

@@ -1731,5 +1731,17 @@ namespace CloudApiPublic.Static
                 throw ex;
             }
         }
+
+        /// <summary>
+        /// Get an enumeration of an enum type.
+        /// Usage: var values = EnumUtil.GetValues&lt;your_enum_type&gt;();
+        /// </summary>
+        internal static class EnumUtil
+        {
+            public static IEnumerable<T> GetValues<T>()
+            {
+                return Enum.GetValues(typeof(T)).Cast<T>();
+            }
+        }
     }
 }

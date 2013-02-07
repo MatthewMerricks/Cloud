@@ -63,13 +63,13 @@ namespace CloudApiPublic.BadgeNET
             private EnumCloudAppIconBadgeType _badgeType;
             public EnumCloudAppIconBadgeType BadgeType
             {
-                set
-                {
-                    _badgeType = value;
-                }
                 get
                 {
                     return this._badgeType;
+                }
+                set
+                {
+                    _badgeType = value;
                 }
             }
         }
@@ -230,7 +230,7 @@ namespace CloudApiPublic.BadgeNET
                     {
                         try
                         {
-                            _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Got an event.");
+                            _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Got an event. EventSubType: {0}. BadgeType: {1}. Path: <{2}>. PubProcessId: {3}. GuidPublisher: {4}.", outEventSubType, outBadgeType, outFullPath, outPublisherProcessId, outGuidPublisher.ToString());
                             BadgeTypeEventArgs args = new BadgeTypeEventArgs();
                             args.BadgeType = outBadgeType;
                             EventHandler<BadgeTypeEventArgs> handler = BadgeComInitialized;

@@ -480,7 +480,8 @@ namespace CloudApiPublic.Model
                 // check if innerFolders contains a recursed parent path of the key and call its indexer to set the value;
                 // If a place to put the value is found, set it at that location, otherwise add it as a new key/value
 
-                if (key == null)
+                if (key == null
+                    || FilePathComparer.Instance.Equals(key, this.CurrentFilePath))
                 {
                     if (CurrentValue == null)
                     {
