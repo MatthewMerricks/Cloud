@@ -743,14 +743,24 @@ void CBadgeIconBase::OnEventTimerTick()
         this->_mutexBadgeDatabase.unlock();
 
         // Loop through the copied active process list.  Clean them if the process has died.
+        bool fAtLeastOneProcessCleaned = false;
         for (boost::unordered_set<ULONG>::iterator itProcess = setCopyOfActiveProcesses.begin(); itProcess != setCopyOfActiveProcesses.end();  ++itProcess)
         {
             if (!CPubSubServer::IsProcessRunning(*itProcess))
             {
                 CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Process ID %lx is dead.  Clean the badging database.", *itProcess);
+                fAtLeastOneProcessCleaned = true;
                 CleanBadgingDatabaseForProcessId(*itProcess);   // locks on its own
             }
         }
+
+        // Notify Explorer to do a full reset.
+        if (fAtLeastOneProcessCleaned)
+        {
+            CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Notify Explorer to do a full refresh.");
+	        SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+        }
+
 	}
 	catch (const std::exception &ex)
 	{
