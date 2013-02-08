@@ -214,5 +214,17 @@ namespace CloudSdkSyncSample.Properties {
                 this["Token"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool BadgingEnabled {
+            get {
+                return ((bool)(this["BadgingEnabled"]));
+            }
+            set {
+                this["BadgingEnabled"] = value;
+            }
+        }
     }
 }

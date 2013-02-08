@@ -459,6 +459,166 @@ namespace CloudApiPublic
         }
         #endregion
 
+        #region GetVideos
+        /// <summary>
+        /// Asynchronously starts querying the server for videos
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetVideos(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetVideos(aCallback, aState, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Finishes querying for videos if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the videos query</param>
+        /// <param name="result">(output) The result from the videos query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetVideos(IAsyncResult aResult, out GetVideosResult result)
+        {
+            return _httpRestClient.EndGetVideos(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the server for videos
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetVideos(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Videos response)
+        {
+            return _httpRestClient.GetVideos(timeoutMilliseconds, out status, out response);
+        }
+        #endregion
+
+        #region GetAudios
+        /// <summary>
+        /// Asynchronously starts querying the server for audios
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetAudios(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetAudios(aCallback, aState, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Finishes querying for audios if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the audios query</param>
+        /// <param name="result">(output) The result from the audios query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetAudios(IAsyncResult aResult, out GetAudiosResult result)
+        {
+            return _httpRestClient.EndGetAudios(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the server for audios
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetAudios(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Audios response)
+        {
+            return _httpRestClient.GetAudios(timeoutMilliseconds, out status, out response);
+        }
+        #endregion
+
+        #region GetArchives
+        /// <summary>
+        /// Asynchronously starts querying the server for archives
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetArchives(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetArchives(aCallback, aState, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Finishes querying for archives if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the archives query</param>
+        /// <param name="result">(output) The result from the archives query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetArchives(IAsyncResult aResult, out GetArchivesResult result)
+        {
+            return _httpRestClient.EndGetArchives(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the server for archives
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetArchives(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Archives response)
+        {
+            return _httpRestClient.GetArchives(timeoutMilliseconds, out status, out response);
+        }
+        #endregion
+
+        #region GetRecents
+        /// <summary>
+        /// Asynchronously starts querying the server for recents
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetRecents(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetRecents(aCallback, aState, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Finishes querying for recents if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the recents query</param>
+        /// <param name="result">(output) The result from the recents query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetRecents(IAsyncResult aResult, out GetRecentsResult result)
+        {
+            return _httpRestClient.EndGetRecents(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the server for recents
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetRecents(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Recents response)
+        {
+            return _httpRestClient.GetRecents(timeoutMilliseconds, out status, out response);
+        }
+        #endregion
+
         #region GetFolderContents
         /// <summary>
         /// Asynchronously starts querying folder contents with optional path and optional depth limit

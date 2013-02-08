@@ -6,13 +6,15 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 // Back end definitions
+// @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND 
-//#define DEV_BACKEND
-#define QA_BACKEND
+#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
+//#define STAGING_BACKEND       // cloudstaging.us
 
 // URL definitions
-#define URL_OLD
-//#define URL_API         // api.cloud.com
+// @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
+//#define URL_OLD
+#define URL_API         // api.cloud.com
 
 namespace CloudApiPublic.Static
 {
@@ -42,7 +44,7 @@ namespace CloudApiPublic.Static
         // Define the domain
 #if PRODUCTION_BACKEND
         public const string Domain = "cloud.com";
-#elif QA_BACKEND
+#elif STAGING_BACKEND
         public const string Domain = "cloudstaging.us";
 #else
         public const string Domain = "cliff.cloudburrito.com";
@@ -57,7 +59,8 @@ namespace CloudApiPublic.Static
         public const string CLMetaDataServerURL = HttpPrefix + SubDomainPrefix + Domain;
 
         // Notifications
-        public const string CLNotificationServerURL = WsPrefix + SubDomainPrefix + Domain;
+        public const string CLNotificationServerWsURL = WsPrefix + SubDomainPrefix + Domain;
+        public const string CLNotificationServerSseURL = HttpPrefix + SubDomainPrefix + Domain;
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + SubDomainPrefix + Domain;
@@ -69,7 +72,8 @@ namespace CloudApiPublic.Static
         public const string CLMetaDataServerURL = HttpPrefix + @"mds." + Domain;
 
         // Notifications
-        public const string CLNotificationServerURL = WsPrefix + @"push." + Domain;
+        public const string CLNotificationServerWsURL = WsPrefix + @"push." + Domain;
+        public const string CLNotificationServerSseURL = HttpPrefix + @"push." + Domain;
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd." + Domain;
@@ -80,15 +84,17 @@ namespace CloudApiPublic.Static
         public const string CLClientVersionHeaderName = "X-Cld-Client-Version";
 
         public const int ManualPollingIterationsBeforeConnectingPush = 10;
-        public const int ManualPollingIterationPeriodInMilliseconds = 60000; // 60 second wait between manual polls
+        public const int MaxManualPollingPeriodSeconds = 60;    // the manual polling period is a random number between these numbers.
+        public const int MinManualPollingPeriodSeconds = 30;    // ....
         public const int PushNotificationFaultLimitBeforeFallback = 5;
         public const int MaxNumberOfConcurrentUploads = 6;
         public const int MaxNumberOfConcurrentDownloads = 6;
+        public const int HttpTimeoutDefaultMilliseconds = 180000;
 
         public const string CLTwitterPageUrl = "http://twitter.com/clouddotcom";
 
         // Method Path
-#if DEV_BACKEND || PRODUCTION_BACKEND || QA_BACKEND
+#if DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 #if URL_API
         public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud";                            // POST
         public const string MethodPathDownload = VersionPrefix + "/sync/file/download";                         // POST
@@ -148,6 +154,11 @@ namespace CloudApiPublic.Static
         #region Notification operations
         public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";          // GET
     	#endregion
+
+        #region Platform Management operations
+        public const string MethodPathAuthCreateSyncBox = VersionPrefix + "/sync/syncbox/create";               // POST
+        public const string MethodPathAuthListSyncBoxes = VersionPrefix + "/sync/syncbox/list";                 // POST
+        #endregion
 #else
         public const string MethodPathSyncFrom = "/1/sync/from_cloud";                       // POST
         public const string MethodPathDownload = "/1/get_file";                              // POST
@@ -202,8 +213,13 @@ namespace CloudApiPublic.Static
         public const string MethodPathSyncBoxUsage = "/1/sync_box/usage";                    // GET
 
         public const string MethodPathPushSubscribe = "/1/sync/subscribe";                   // GET
+
+        #region Platform Management operations
+        public const string MethodPathAuthCreateSyncBox = "/1/sync/sync_box/create";         // POST
+        public const string MethodPathAuthListSyncBoxes = "/1/sync/sync_box/list";           // POST
+        #endregion
 #endif  // !URL_API
-#endif  // DEV_BACKEND || PRODUCTION_BACKEND || QA_BACKEND
+#endif  // DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 
         public const string AuthorizationFormatType = "CWS0";
 
@@ -261,6 +277,7 @@ namespace CloudApiPublic.Static
         public const string QueryStringIncludeDeleted = "include_deleted";
         public const string QueryStringDepth = "depth";
         public const string QueryStringIncludeCount = "include_count";
+        public const string QueryStringSender = "sender";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
@@ -283,7 +300,7 @@ namespace CloudApiPublic.Static
         public const string HeaderAppendMethodPost = "POST";
         public const string HeaderAppendMethodGet = "GET";
         public const string HeaderAppendMethodPut = "PUT";
-        public const string HeaderAppendCloudClient = "Cloud Client";
+        public const string HeaderAppendCloudClient = "Windows SDK Client";
         public const string HeaderAppendStorageKey = "X-Ctx-Storage-Key";
         public const string HeaderAppendContentMD5 = "Content-MD5";
 
@@ -488,6 +505,22 @@ namespace CloudApiPublic.Static
         public const string kSyncDatabaseFileName = "IndexDB.sdf";
         public const int kMaxTraceFilenameExtLength = 60;               // maximum length of trace filenames (including the extension).
 
+        // REST Response Status "status"
+        public const string RESTResponseStatus = "status";
+        public const string RESTResponseStatusSuccess = "success";
+        public const string RESTResponseStatusFailed = "error";
+
+        public const string RESTResponseMessage = "message";
+
+        // REST Response SyncBox
+        public const string RESTResponseSyncBox = "sync_box";
+        public const string RESTResponseSyncBoxes = "sync_boxes";
+        public const string RESTResponseSyncBoxId = "sync_box_id";
+        public const string RESTResponseSyncBoxStorageQuota = "storage_quota";
+        public const string RESTResponseSyncBoxCreatedAt = "created_at";
+        public const string RESTResponseSyncBoxFriendlyName = "friendly_name";
+        public const string RESTResponseSyncBoxMetadata = "metadata";
+
         //// Old definitions used by the full client.
         ////
         //// Registration
@@ -504,6 +537,5 @@ namespace CloudApiPublic.Static
         //public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
         //                                                             "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
         //                                                             "\"client_id\":{8},\"client_secret\":{9}}}";
-
     }
 }

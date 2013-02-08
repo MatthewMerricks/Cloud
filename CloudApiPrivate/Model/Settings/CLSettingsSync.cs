@@ -84,6 +84,15 @@ namespace CloudApiPrivate.Model.Settings
                 return Settings.Instance.DeviceId;
             }
         }
+
+        public bool BadgingEnabled
+        {
+            get
+            {
+                return Settings.Instance.BadgingEnabled;
+            }
+        }
+
         /// <summary>
         /// Application secret.
         /// </summary>

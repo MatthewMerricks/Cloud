@@ -62,8 +62,8 @@ private:
     // Private methods
     void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG processId, GUID guidPublisher);
     bool OnEventRemoveBadgePath(BSTR fullPath, ULONG processId, GUID guidPublisher);
-    void OnEventAddSyncBoxFolderPath(BSTR fullPath, ULONG processId, GUID guidPublisher);
-    void OnEventRemoveSyncBoxFolderPath(BSTR fullPath, ULONG processId, GUID guidPublisher);
+    void OnEventAddSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG processId, GUID guidPublisher);
+    void OnEventRemoveSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG processId, GUID guidPublisher);
     void OnEventSubscriptionWatcherFailed();
     void OnEventTimerTick();
     std::wstring NormalizePath(std::wstring inPath);
@@ -72,6 +72,6 @@ private:
     void InitializeBadgeNetPubSubEvents();
     void InitializeBadgeNetPubSubEventsViaThread();
     static void InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserState);
-    static std::string BadgeTypeToString(EnumCloudAppIconBadgeType badgeType);
+    static char *BadgeTypeToString(EnumCloudAppIconBadgeType badgeType);
     void CleanBadgingDatabaseForProcessId(ULONG processIdPublisher);
 };

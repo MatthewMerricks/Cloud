@@ -105,6 +105,9 @@ namespace CloudApiPublic
         }
         private readonly int _traceLevel;
 
+        /// <summary>
+        /// The ID of this device, unique within the SyncBox.
+        /// </summary>
         public string DeviceId
         {
             get
@@ -113,6 +116,18 @@ namespace CloudApiPublic
             }
         }
         private readonly string _deviceId;
+
+        /// <summary>
+        /// True: Enable badging.
+        /// </summary>
+        public bool BadgingEnabled
+        {
+            get
+            {
+                return _badgingEnabled;
+            }
+        }
+        private readonly bool _badgingEnabled;
 
         /// <summary>
         /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
@@ -171,6 +186,7 @@ namespace CloudApiPublic
                 true,
                 0,
                 Environment.MachineName + Guid.NewGuid().ToString("N"),
+                true,
                 null,
                 "SimpleClient01",
                 Environment.MachineName,
@@ -192,6 +208,7 @@ namespace CloudApiPublic
                 true,
                 0,
                 Environment.MachineName + Guid.NewGuid().ToString("N"),
+                true,
                 null,
                 "SimpleClient01",
                 Environment.MachineName,
@@ -206,10 +223,11 @@ namespace CloudApiPublic
                     bool traceExcludeAuthorization,
                     int traceLevel,
                     string deviceId,
+                    bool badgingEnabled,
                     string tempDownloadFolderFullPath,
                     string clientVersion,
                     string friendlyName,
-                    string cloudRoot,
+                    string syncRoot,
                     string databaseFolder)
         {
             this._logErrors = logErrors;
@@ -218,10 +236,11 @@ namespace CloudApiPublic
             this._traceExcludeAuthorization = traceExcludeAuthorization;
             this._traceLevel = traceLevel;
             this._deviceId = deviceId;
+            this._badgingEnabled = badgingEnabled;
             this._tempDownloadFolderFullPath = tempDownloadFolderFullPath;
             this._clientVersion = clientVersion;
             this._friendlyName = friendlyName;
-            this._syncRoot = cloudRoot;
+            this._syncRoot = syncRoot;
             this._databaseFolder = databaseFolder;
         }
     }
@@ -241,6 +260,7 @@ namespace CloudApiPublic
                 toCopy.TraceExcludeAuthorization,
                 toCopy.TraceLevel,
                 String.IsNullOrWhiteSpace(toCopy.DeviceId) ? Environment.MachineName + Guid.NewGuid().ToString("N") : toCopy.DeviceId,
+                toCopy.BadgingEnabled,
                 toCopy.TempDownloadFolderFullPath,
                 toCopy.ClientVersion,
                 toCopy.FriendlyName,
@@ -257,7 +277,6 @@ namespace CloudApiPublic
             ICLSyncSettingsAdvanced advancedCopy = toCopy as ICLSyncSettingsAdvanced;
             if (advancedCopy == null)
             {
-                
                 return AdvancedSyncSettings.CreateDefaultSettings(toCopy);
             }
             else

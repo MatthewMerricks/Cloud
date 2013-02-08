@@ -35,10 +35,7 @@ CBadgeIconSyncing::CBadgeIconSyncing()
 
 	    // Allocate the base shell extension.
 		CLTRACE(9, "CBadgeIconSyncing: CBadgeIconSyncing: Entry.");
-        if (_pBaseShellExtension == NULL)
-        {
-            _pBaseShellExtension = new CBadgeIconBase(0 /* Syncing icon index */, cloudAppBadgeSyncing);
-        }
+        _pBaseShellExtension = new CBadgeIconBase(0 /* Syncing icon index */, cloudAppBadgeSyncing);
     }
     catch (const std::exception &ex)
     {

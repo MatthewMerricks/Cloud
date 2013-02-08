@@ -111,6 +111,7 @@ namespace CloudApiPublic.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class GetAllPendingResult : BaseCLHttpRestResult<JsonContracts.PendingResponse>
     {
         // construct with all readonly properties
@@ -257,6 +258,26 @@ namespace CloudApiPublic.REST
     {
         // construct with all readonly properties
         internal PurgePendingResult(CLError Error, CLHttpRestStatus Status, JsonContracts.PendingResponse Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class AddSyncBoxOnServerResult : BaseCLHttpRestResult<JsonContracts.CreateSyncBox>
+    {
+        // construct with all readonly properties
+        internal AddSyncBoxOnServerResult(CLError Error, CLHttpRestStatus Status, JsonContracts.CreateSyncBox Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class ListSyncBoxesResult : BaseCLHttpRestResult<JsonContracts.ListSyncBoxes>
+    {
+        // construct with all readonly properties
+        internal ListSyncBoxesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListSyncBoxes Result)
             : base(Error, Status, Result) { }
     }
 }

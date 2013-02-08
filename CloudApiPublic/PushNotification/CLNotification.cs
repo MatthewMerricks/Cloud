@@ -107,6 +107,7 @@ namespace CloudApiPublic.PushNotification
         private bool _serviceStarted;               // True: the push notification service has been started.
         private bool _pushConnected = false;
         private int _faultCount = 0;
+        private int _manualPollIntervalSeconds = 0;     // the actual number of seconds to use.  This is random between the max and min.
 
         /// <summary>
         /// Tracks the subscribed clients via their SyncBoxId/DeviceId combination.
@@ -160,6 +161,10 @@ namespace CloudApiPublic.PushNotification
                 throw new NullReferenceException("syncBox CopiedSettings DeviceId cannot be null");
             }
 
+            // Determine the manual polling interval to use for this instance.
+            Random rnd = new Random();
+            _manualPollIntervalSeconds = rnd.Next(CLDefinitions.MinManualPollingPeriodSeconds, CLDefinitions.MaxManualPollingPeriodSeconds);
+
             // sync settings are copied so that changes require stopping and starting notification services
             this._syncBox = syncBox;
 
@@ -168,7 +173,7 @@ namespace CloudApiPublic.PushNotification
             CLTrace.Instance.writeToLog(9, "CLNotification: CLNotification: Entry");
 
             // Initialize members, etc. here (at static initialization time).
-            ConnectPushNotificationServer();
+            ConnectPushNotificationServer();  //TODO: DEBUG ONLY.  REMOVE.
         }
 
         /// <summary>
@@ -189,7 +194,7 @@ namespace CloudApiPublic.PushNotification
                 // WebSocket4Net implementation.
                 try
                 {
-                    string url = CLDefinitions.CLNotificationServerURL;
+                    string url = CLDefinitions.CLNotificationServerWsURL;
                     string pathAndQueryStringAndFragment = String.Format(CLDefinitions.MethodPathPushSubscribe + "?sync_box_id={0}&device={1}", _syncBox.SyncBoxId, _syncBox.CopiedSettings.DeviceId);
                     _trace.writeToLog(9, "CLNotification: ConnectPushNotificationServer: Establish connection with push server. url: <{0}>. QueryString: {1}.", url, pathAndQueryStringAndFragment);
 
@@ -349,7 +354,7 @@ namespace CloudApiPublic.PushNotification
                 _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Top of manualPollingIteration loop.");
 
                 // Loop checking for termination.  This loop allows this thread pool thread to exit earlier, rather than waiting for a long delay to check at the next poll
-                int innerLoopCount = CLDefinitions.ManualPollingIterationPeriodInMilliseconds / 1000;   // number of one-second sleeps before the next poll
+                int innerLoopCount = castState._manualPollIntervalSeconds;   // number of one-second sleeps before the next poll
                 for (int i = 0; i < innerLoopCount; ++i)
                 {
                     lock (castState)
@@ -453,7 +458,7 @@ namespace CloudApiPublic.PushNotification
                             manualPollSuccessful = false;
                             manualPollingIteration = CLDefinitions.ManualPollingIterationsBeforeConnectingPush - 1;
                             _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Decremented manualPollingIteration count: {0}.", manualPollingIteration);
-                            Thread.Sleep(CLDefinitions.ManualPollingIterationPeriodInMilliseconds);
+                            Thread.Sleep(castState._manualPollIntervalSeconds * 1000);
                         }
 
                         error.LogErrors(castState._syncBox.CopiedSettings.TraceLocation, forceErrors || castState._syncBox.CopiedSettings.LogErrors);
@@ -461,7 +466,7 @@ namespace CloudApiPublic.PushNotification
                 }
                 else
                 {
-                    Thread.Sleep(CLDefinitions.ManualPollingIterationPeriodInMilliseconds);
+                    Thread.Sleep(castState._manualPollIntervalSeconds * 1000);
                 }
             }
             _trace.writeToLog(9, "CLNotification: FallbackToManualPolling: Exit thread (3).");

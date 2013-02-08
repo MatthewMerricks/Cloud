@@ -35,10 +35,7 @@ CBadgeIconFailed::CBadgeIconFailed()
 
 	    // Allocate the base shell extension.
 		CLTRACE(9, "CBadgeIconFailed: CBadgeIconFailed: Entry.");
-        if (_pBaseShellExtension == NULL)
-        {
-            _pBaseShellExtension = new CBadgeIconBase(3 /* Failed icon index */, cloudAppBadgeFailed);
-        }
+        _pBaseShellExtension = new CBadgeIconBase(3 /* Failed icon index */, cloudAppBadgeFailed);
     }
     catch (const std::exception &ex)
     {
@@ -57,8 +54,10 @@ CBadgeIconFailed::~CBadgeIconFailed()
 {
     try
     {
+        CLTRACE(9, "CBadgeIconFailed: ~CBadgeIconFailed: Entry.");
         if (_pBaseShellExtension != NULL)
         {
+    		CLTRACE(9, "CBadgeIconFailed: CBadgeIconFailed: Destruct base.");
             _pBaseShellExtension->~CBadgeIconBase();
             _pBaseShellExtension = NULL;
         }
