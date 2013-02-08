@@ -76,6 +76,10 @@ namespace CloudApiPublic.Interfaces
         /// </summary>
         string DeviceId { get; }
         /// <summary>
+        /// True: Enable badging.
+        /// </summary>
+        bool BadgingEnabled { get; }
+        /// <summary>
         /// Version letters/numbers used in communication with the server to identify the type of client (i.e. "MyClient01"); do not mimic values passed by other Cloud applications
         /// </summary>
         string ClientVersion { get; }

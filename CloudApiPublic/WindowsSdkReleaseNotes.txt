@@ -1,8 +1,10 @@
                                                     WINDOWS SDK RELEASE NOTES
 
 02/11/2013 CloudSDK-v0.1.3.zip
+
   o Feature: Switched to the api.cloudstaging.com URL and routes.
-  o Feature: All of the public non-"file/folder one-off" APIs have been implemented and tested.
+  o Feature: All of the MDS public non-"file/folder one-off" APIs have been implemented.  The /1/sync/sync_box/create and /1/sync/sync_box/list APIs were also implemented.
+  o Feature: There is now a setting "BadgingEnabled" that can be used to enable or disable badging.  This setting can be set via a sample program checkbox on the Advanced Options dialog.  Badging must be installed and enabled before badges will appear.
   o Bug fix: Badging was not working properly on Windows 8 systems.
 
 02/04/2013 CloudSDK-v0.1.2.zip

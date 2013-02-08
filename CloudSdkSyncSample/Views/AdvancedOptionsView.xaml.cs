@@ -128,7 +128,7 @@ namespace CloudSdkSyncSample.Views
 
         private void OnNotifyAdvancedSettingsChanged(object sender, Support.NotificationEventArgs<string, bool> e)
         {
-            MessageBoxResult result = MessageBox.Show("Some settings have changed.  Do you want to cancel the changes anyway?", "Cancel Anyway?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            MessageBoxResult result = MessageBox.Show("Some settings have changed.  Do you want to cancel the changes and exit anyway?", "Cancel and Exit Anyway?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             e.Completed(result == MessageBoxResult.Yes);
         }
     }

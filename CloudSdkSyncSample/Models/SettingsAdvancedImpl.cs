@@ -90,6 +90,17 @@ namespace CloudSdkSyncSample.Models
         }
 
         /// <summary>
+        /// True: Enable badging.
+        /// </summary>
+        public bool BadgingEnabled
+        {
+            get
+            {
+                return Properties.Settings.Default.BadgingEnabled;
+            }
+        }
+
+        /// <summary>
         /// Key is the identity of this application.
         /// </summary>
         public string Key

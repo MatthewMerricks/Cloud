@@ -139,6 +139,7 @@
 /// Enter the following information:
 /// - Folder for Temporary Download Files: (Optional) This is the full path of a folder to be used to store files that are being actively downloaded.  When the download is complete, the files are moved to their permanent position in the SyncBox folder.
 /// - Folder for Database File: (Optional) This is the full path of a folder to be used to store the sync database file.
+/// - Badging Enabled: This is a checkbox that will enable or disable badging.  Badging must installed (main window) and enabled before badges will appear.
 /// - Trace Folder: (Optional) This is the full path to store trace files.  There are several types of trace files stored there.  This field is required if Log Errors (below) is checked.
 /// - Trace Type:  This is a bit mask (flagged enum) to control the sync trace output.  It is built from the following definition:
 /// \code{.cs}

@@ -95,6 +95,13 @@ namespace CloudApiPublic.BadgeNET
                 // Initialize trace in case it is not already initialized.
                 CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
 
+                // Just exit if badging is not enabled.
+                if (!_syncSettings.BadgingEnabled)
+                {
+                    _trace.writeToLog(9, "IconOverlay: Badging is not enabled. Exit.");
+                    return null;
+                }
+
                 _trace.writeToLog(9, "IconOverlay: Initialize: Entry.");
                 return pInitialize(syncBoxId, initialList);
             }

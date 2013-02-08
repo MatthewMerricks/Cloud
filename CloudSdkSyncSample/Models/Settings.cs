@@ -13,6 +13,7 @@ namespace CloudSdkSyncSample.Models
         public string UniqueDeviceId { get; set; }
         public string TempDownloadFolderFullPath { get; set; }
         public string DatabaseFolderFullPath { get; set; }
+        public bool BadgingEnabled { get; set; }
         public bool LogErrors { get; set; }
         public TraceType TraceType { get; set; }
         public string TraceFolderFullPath { get; set; }
@@ -37,6 +38,7 @@ namespace CloudSdkSyncSample.Models
             UniqueDeviceId = settingsCopy.UniqueDeviceId;
             TempDownloadFolderFullPath = settingsCopy.TempDownloadFolderFullPath;
             DatabaseFolderFullPath = settingsCopy.DatabaseFolderFullPath;
+            BadgingEnabled = settingsCopy.BadgingEnabled;
             LogErrors = settingsCopy.LogErrors;
             TraceType = settingsCopy.TraceType;
             TraceFolderFullPath = settingsCopy.TraceFolderFullPath;
@@ -68,6 +70,7 @@ namespace CloudSdkSyncSample.Models
             if (!Object.Equals(UniqueDeviceId, otherSettings.UniqueDeviceId)) return false;
             if (!Object.Equals(TempDownloadFolderFullPath, otherSettings.TempDownloadFolderFullPath)) return false;
             if (!Object.Equals(DatabaseFolderFullPath, otherSettings.DatabaseFolderFullPath)) return false;
+            if (!Object.Equals(BadgingEnabled, otherSettings.BadgingEnabled)) return false;
             if (!Object.Equals(TraceFolderFullPath, otherSettings.TraceFolderFullPath)) return false;
 
             // Use this pattern to compare value members
@@ -97,6 +100,7 @@ namespace CloudSdkSyncSample.Models
             this.UniqueDeviceId = Properties.Settings.Default.UniqueDeviceId;
             this.TempDownloadFolderFullPath = Properties.Settings.Default.TempDownloadFolderFullPath;
             this.DatabaseFolderFullPath = Properties.Settings.Default.DatabaseFolderFullPath;
+            this.BadgingEnabled = Properties.Settings.Default.BadgingEnabled;
             this.LogErrors = Properties.Settings.Default.LogErrors;
             this.TraceType = Properties.Settings.Default.TraceType;
             this.TraceFolderFullPath = Properties.Settings.Default.TraceFolderFullPath;
