@@ -1,5 +1,10 @@
                                                     WINDOWS SDK RELEASE NOTES
 
+02/11/2013 CloudSDK-v0.1.3.zip
+  o Feature: Switched to the api.cloudstaging.com URL and routes.
+  o Feature: All of the public non-"file/folder one-off" APIs have been implemented and tested.
+  o Bug fix: Badging was not working properly on Windows 8 systems.
+
 02/04/2013 CloudSDK-v0.1.2.zip
   o The sample program now supports a "red X" icon that will display on fatal errors when the sync engine cannot logically continue.  This fatal error summary status condition was
     already being returned in previous builds, but never set by the engine.  The proper response to this error is to stop and restart sync.

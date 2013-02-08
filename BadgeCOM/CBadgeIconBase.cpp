@@ -254,7 +254,7 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
 		// Add or update the <path,badgeType>
 		if (badgeType == _badgeType)
 		{
-			CLTRACE(9, "CBadgeIconBase: OnEventAddBadgePath: Entry. BadgeType: %d. Path: <%ls>. processIdPublisher: %x.  guidPublisher: %ls. Base badge type: %s.", badgeType, fullPath, processIdPublisher, CComBSTR(guidPublisher), _strBaseBadgeType.c_str());
+			CLTRACE(9, "CBadgeIconBase: OnEventAddBadgePath: Entry. BadgeType: %d. Path: <%ls>. processIdPublisher: %lx.  guidPublisher: %ls. Base badge type: %s.", badgeType, fullPath, processIdPublisher, CComBSTR(guidPublisher), _strBaseBadgeType.c_str());
             CComBSTR lowerCaseFullPath(fullPath);  // this will free its memory when it goes out of scope.  See http://msdn.microsoft.com/en-us/library/bdyd6xz6(v=vs.80).aspx#programmingwithccombstr_memoryleaks
             lowerCaseFullPath.ToLower();
 
@@ -360,7 +360,7 @@ bool CBadgeIconBase::OnEventRemoveBadgePath(BSTR fullPath, ULONG processIdPublis
 	try
 	{
 		// Remove the item with key fullPath.
-		CLTRACE(9, "CBadgeIconBase: OnEventRemoveBadgePath: Entry. Path: <%ls>. processIdPublisher: %x. guidPublisher: %ls. Base badge type: %s.", fullPath, processIdPublisher, CComBSTR(guidPublisher), _strBaseBadgeType.c_str());
+		CLTRACE(9, "CBadgeIconBase: OnEventRemoveBadgePath: Entry. Path: <%ls>. processIdPublisher: %lx. guidPublisher: %ls. Base badge type: %s.", fullPath, processIdPublisher, CComBSTR(guidPublisher), _strBaseBadgeType.c_str());
         CComBSTR lowerCaseFullPath(fullPath);  // this will free its memory when it goes out of scope.  See http://msdn.microsoft.com/en-us/library/bdyd6xz6(v=vs.80).aspx#programmingwithccombstr_memoryleaks
         lowerCaseFullPath.ToLower();
 
@@ -410,7 +410,7 @@ bool CBadgeIconBase::OnEventRemoveBadgePath(BSTR fullPath, ULONG processIdPublis
                         if (itProcessItValue->second.size() < 1)
                         {
                             // remove this processIdPublisher from the dictionary.
-       		                CLTRACE(9, "CBadgeIconBase: OnEventRemoveBadgePath: Remove processIdPublisher: %x.", processIdPublisher);
+       		                CLTRACE(9, "CBadgeIconBase: OnEventRemoveBadgePath: Remove processIdPublisher: %lx.", processIdPublisher);
                             itPathValue->second.processesThatAddedThisBadge.erase(processIdPublisher);
 
                             // If all keys in the processIdPublisher dictionary are now gone, remove the badge path itself.
@@ -456,11 +456,12 @@ void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIcon
 {
 	try
 	{
-		CLTRACE(9, "CBadgeIconBase: OnEventAddSyncBoxFolderPath: Entry. Path: <%ls>. processIdPublisher: %d.  guidPublisher: %ls. Base badge type: %s.", fullPath, processIdPublisher, CComBSTR(guidPublisher), _strBaseBadgeType.c_str());
+		CLTRACE(9, "CBadgeIconBase: OnEventAddSyncBoxFolderPath: Entry. Path: <%ls>. badgeType: %d. processIdPublisher: %lx.  guidPublisher: %ls. Base badge type: %s.", fullPath, badgeType, processIdPublisher, CComBSTR(guidPublisher), _strBaseBadgeType.c_str());
 
         // Don't process this event if it is not for us.
         if (badgeType != cloudAppBadgeNone && badgeType != _badgeType)
         {
+    		CLTRACE(9, "CBadgeIconBase: OnEventAddSyncBoxFolderPath: Don't process this event.");
             return;
         }
 
@@ -569,11 +570,12 @@ void CBadgeIconBase::OnEventRemoveSyncBoxFolderPath(BSTR fullPath, EnumCloudAppI
 {
 	try
 	{
-		CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Entry. Path: <%ls>. processIdPublisher: %x.  guidPublisher: %ls. Base badge type: %s.", fullPath, processIdPublisher, CComBSTR(guidPublisher), _strBaseBadgeType.c_str());
+		CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Entry. Path: <%ls>. badgeType: %d. processIdPublisher: %lx.  guidPublisher: %ls. Base badge type: %s.", fullPath, badgeType, processIdPublisher, CComBSTR(guidPublisher), _strBaseBadgeType.c_str());
 
         // Don't process this event if it is not for us.
         if (badgeType != cloudAppBadgeNone && badgeType != _badgeType)
         {
+    		CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Don't process this event.");
             return;
         }
 
@@ -627,41 +629,45 @@ void CBadgeIconBase::OnEventRemoveSyncBoxFolderPath(BSTR fullPath, EnumCloudAppI
                         if (itProcessItValue->second.size() < 1)
                         {
                             // remove this processIdPublisher from the dictionary.
-       		                CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Remove processIdPublisher: %x.", processIdPublisher);
+       		                CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Remove processIdPublisher: %lx.", processIdPublisher);
                             itPathValue->second.processesThatAddedThisBadge.erase(processIdPublisher);
 
                             // If all keys in the processIdPublisher dictionary are now gone, remove the badge path itself.
                             if (itPathValue->second.processesThatAddedThisBadge.size() < 1)
                             {
                                 // Remove this path from the badge dictionary
-           		                CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Remove path <%ls> from the badging dictionary.", lowerCaseFullPath);
+           		                CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Remove path <%ls> from the root folders dictionary.", lowerCaseFullPath);
                                 _mapRootFolders.erase(lowerCaseFullPath.m_str);
 
 		                        // Delete all of the keys in the badging dictionary that have this folder path as a root.
 
-                                bool fRemovedPathKey;
-                                do
-                                {
-                                    fRemovedPathKey = false;
-		                            for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator it = _mapBadges.begin(); it != _mapBadges.end();  ++it)
-		                            {
-                   		                CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Found path <%ls>.", lowerCaseFullPath);
-			                            if (IsPathInRootPath(it->first, lowerCaseFullPath.m_str))
-			                            {
-                                            // Remove this path, processIdPublisher, guidPublisher combination.
-        		                            CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Remove this path only for this processId and guidPublisher: %ls.", it->first.c_str());
-                                            fRemovedPathKey = OnEventRemoveBadgePath(CComBSTR(it->first.c_str()), processIdPublisher, guidPublisher);
+                                bool fRemovedPathKey = false;
+                                boost::unordered_set<std::wstring> pathsToDelete;
+               		            CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Find all badge paths that overlap this root path: <%ls>.", lowerCaseFullPath);
+		                        for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator it = _mapBadges.begin(); it != _mapBadges.end();  ++it)
+		                        {
+                   		            CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Top of loop path <%s>.", it->first.c_str());
+			                        if (IsPathInRootPath(it->first, lowerCaseFullPath.m_str))
+			                        {
+                    					CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Save this path to erase.");
+                                        pathsToDelete.insert(it->first);
+			                        }
+		                        }
 
-                                            // If it was removed, notify Explorer to update the icon.
-                                            if (fRemovedPathKey)
-                                            {
-            		                            CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Path was removed.");
-                                                SHChangeNotify(SHCHANGENOTIFY_EVENTID_TO_USE, SHCNF_PATH, it->first.c_str(), NULL);
-                                                break;          // back to loop again so the iterator will be good
-                                            }
-			                            }
-		                            }
-                                } while (fRemovedPathKey);
+                                // Now delete the paths where we don't have to worry about iterator management.
+                                for (boost::unordered_set<std::wstring>::iterator itPath = pathsToDelete.begin(); itPath != pathsToDelete.end(); ++itPath)
+                                {
+                                        // Remove this path, processIdPublisher, guidPublisher combination.
+        		                        CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Remove this path only for this processId and guidPublisher: %ls.", itPath->c_str());
+                                        fRemovedPathKey = OnEventRemoveBadgePath(CComBSTR(itPath->c_str()), processIdPublisher, guidPublisher);
+
+                                        // If it was removed, notify Explorer to update the icon.
+                                        if (fRemovedPathKey)
+                                        {
+            		                        CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Path was removed.");
+                                            SHChangeNotify(SHCHANGENOTIFY_EVENTID_TO_USE, SHCNF_PATH, itPath->c_str(), NULL);
+                                        }
+                                }
           		                CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Finished removing.");
                             }
                         }
@@ -737,14 +743,24 @@ void CBadgeIconBase::OnEventTimerTick()
         this->_mutexBadgeDatabase.unlock();
 
         // Loop through the copied active process list.  Clean them if the process has died.
+        bool fAtLeastOneProcessCleaned = false;
         for (boost::unordered_set<ULONG>::iterator itProcess = setCopyOfActiveProcesses.begin(); itProcess != setCopyOfActiveProcesses.end();  ++itProcess)
         {
             if (!CPubSubServer::IsProcessRunning(*itProcess))
             {
-                CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Process ID %x is dead.  Clean the badging database.", *itProcess);
+                CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Process ID %lx is dead.  Clean the badging database.", *itProcess);
+                fAtLeastOneProcessCleaned = true;
                 CleanBadgingDatabaseForProcessId(*itProcess);   // locks on its own
             }
         }
+
+        // Notify Explorer to do a full reset.
+        if (fAtLeastOneProcessCleaned)
+        {
+            CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Notify Explorer to do a full refresh.");
+	        SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+        }
+
 	}
 	catch (const std::exception &ex)
 	{
@@ -769,7 +785,7 @@ void CBadgeIconBase::CleanBadgingDatabaseForProcessId(ULONG processIdPublisher)
             boost::unordered_set<std::wstring> setPathsToErase;         // the paths that we will need to erase from the badging database
 
             // Loop through the badging database keys (paths).
-			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Entry.  ProcessId: %x.", processIdPublisher);
+			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Entry.  ProcessId: %lx.", processIdPublisher);
             for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapBadges.begin(); itPathValue != _mapBadges.end();  ++itPathValue)
 		    {
 				CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Process path <%ls>. BadgeType: %d.", itPathValue->first.c_str(), itPathValue->second.badgeType);
@@ -799,7 +815,7 @@ void CBadgeIconBase::CleanBadgingDatabaseForProcessId(ULONG processIdPublisher)
             }
 
             // Remove this process ID from the active process set
-			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Remove process ID %x from the active list.", processIdPublisher);
+			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Remove process ID %lx from the active list.", processIdPublisher);
             _setActiveProcessIds.erase(processIdPublisher);
         }
         this->_mutexBadgeDatabase.unlock();
@@ -810,7 +826,7 @@ void CBadgeIconBase::CleanBadgingDatabaseForProcessId(ULONG processIdPublisher)
             boost::unordered_set<std::wstring> setPathsToErase;         // the paths that we will need to erase from the badging database
 
             // Loop through the badging database keys (paths).
-			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Start cleaning the root folder database for processId: %x.", processIdPublisher);
+			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Start cleaning the root folder database for processId: %lx.", processIdPublisher);
             for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapRootFolders.begin(); itPathValue != _mapRootFolders.end();  ++itPathValue)
 		    {
 				CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Process path <%ls>. BadgeType: %d.", itPathValue->first.c_str(), itPathValue->second.badgeType);
@@ -843,7 +859,7 @@ void CBadgeIconBase::CleanBadgingDatabaseForProcessId(ULONG processIdPublisher)
             }
 
             // Remove this process ID from the active process set
-			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Remove process ID %x from the active list.", processIdPublisher);
+			CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Remove process ID %lx from the active list.", processIdPublisher);
             _setActiveProcessIds.erase(processIdPublisher);
         }
         this->_mutexBadgeDatabase.unlock();
@@ -957,8 +973,8 @@ void CBadgeIconBase::InitializeBadgeNetPubSubEvents()
         if (_fIsInitialized)
         {
     		BSTR dummy(L"");
-    		CLTRACE(9, "CBadgeIconBase: InitializeBadgeNetPubSubEvents: Call PublishEventToBadgeNet.");
-    		_pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, cloudAppBadgeNone /* not used */, &dummy /* not used */, _guidPublisher);
+    		CLTRACE(9, "CBadgeIconBase: InitializeBadgeNetPubSubEvents: Call PublishEventToBadgeNet for badgeType %s.", _strBaseBadgeType.c_str());
+    		_pBadgeNetPubSubEvents->PublishEventToBadgeNet(BadgeCom_To_BadgeNet, BadgeCom_Initialization, _badgeType, &dummy /* not used */, _guidPublisher);
         }
 	}
 	catch (const std::exception &ex)

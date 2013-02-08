@@ -45,7 +45,7 @@ STDMETHODIMP CPubSubServer::Initialize()
 			segment_manager_t *segm = _pSegment->get_segment_manager();
             pszExceptionStateTracker = "Call get_address";
 			shm_base = _pSegment->get_address();
-			CLTRACE(9, "PubSubServer: Initialize: shm_base: Address in this process: %x.", shm_base);
+			CLTRACE(9, "PubSubServer: Initialize: shm_base: Address in this process: %p.", shm_base);
 			//bool fIsSane = segm->check_sanity();
 			//if (!fIsSane)
 			//{
@@ -53,7 +53,7 @@ STDMETHODIMP CPubSubServer::Initialize()
 			//	throw new std::exception("ERROR: Shared memory segment is corrupted.");
 			//}
 		}
-       	CLTRACE(9, "PubSubServer: Initialize: Segment: %x.", _pSegment);
+       	CLTRACE(9, "PubSubServer: Initialize: Segment: %p.", _pSegment);
     }
     catch (const std::exception &ex)
     {
@@ -97,7 +97,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
         ULONG threadId = GetCurrentThreadId();
 		std::vector<GUID> subscribers;
 
-	    CLTRACE(9, "PubSubServer: Publish: Entry. EventType: %d. EventSubType: %d. BadgeType: %d. FullPath: %ls. processId: %x. GuidPublisher: %ls.", EventType, EventSubType, BadgeType, *FullPath, processId, CComBSTR(GuidPublisher));
+	    CLTRACE(9, "PubSubServer: Publish: Entry. EventType: %d. EventSubType: %d. BadgeType: %d. FullPath: %ls. processId: %lx. GuidPublisher: %ls.", EventType, EventSubType, BadgeType, *FullPath, processId, CComBSTR(GuidPublisher));
         Base *pBase = NULL;
 
 
@@ -191,7 +191,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 						else
 						{
 							// The event queue has room.  Construct this event in shared memory and add it at the back of the event queue for this subscription.
-							CLTRACE(9, "PubSubServer: Publish: Post this event to subscription with GUID<%ls>. pSemaphoreSubscription local addr: %x.", CComBSTR(*itGuid), outOptrFoundSubscription->pSemaphoreSubscription_.get());
+							CLTRACE(9, "PubSubServer: Publish: Post this event to subscription with GUID<%ls>. pSemaphoreSubscription local addr: %p.", CComBSTR(*itGuid), outOptrFoundSubscription->pSemaphoreSubscription_.get());
 							outOptrFoundSubscription->events_.emplace_back(EventType, EventSubType, processId, threadId, BadgeType, FullPath, GuidPublisher, alloc_inst);
 
 							// Post the subscription's semaphore.
@@ -294,16 +294,16 @@ STDMETHODIMP CPubSubServer::Subscribe(
         ULONG threadId = GetCurrentThreadId();
 
         // An allocator convertible to any allocator<T, segment_manager_t> type.
-	    CLTRACE(9, "PubSubServer: Subscribe: Call get_segment_manager. _pSegment: %x.", _pSegment);
+	    CLTRACE(9, "PubSubServer: Subscribe: Call get_segment_manager. _pSegment: %p.", _pSegment);
         pszExceptionStateTracker = "Call get_segment_manager";
         void_allocator alloc_inst(_pSegment->get_segment_manager());
 	    CLTRACE(9, "PubSubServer: Subscribe: After call to get_segment_manager.");
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
-	    CLTRACE(9, "PubSubServer: Subscribe: Call find_or_construct.  _pSegment: %x.", _pSegment);
+	    CLTRACE(9, "PubSubServer: Subscribe: Call find_or_construct.  _pSegment: %p.", _pSegment);
         pszExceptionStateTracker = "Call find_or_construct";
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
-	    CLTRACE(9, "PubSubServer: Subscribe: After call to find_or_construct. pBase: %x.", pBase);
+	    CLTRACE(9, "PubSubServer: Subscribe: After call to find_or_construct. pBase: %p.", pBase);
 
 	    pBase->mutexSharedMemory_.lock();
 		try
@@ -337,7 +337,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					*outFullPath = SysAllocString(itEvent->FullPath_.c_str());             // this is freed explicitly by the subscriber.  On the .Net side, the interop wrapper frees it.
                     *outProcessIdPublisher = itEvent->ProcessId_;
                     *outGuidPublisher = itEvent->GuidPublisher_;
-					CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls. ProcessId: %x. GuidPublisher: %ls.", *outEventSubType, *outBadgeType, *outFullPath, *outProcessIdPublisher, CComBSTR(*outGuidPublisher));
+					CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls. ProcessId: %lx. GuidPublisher: %ls.", *outEventSubType, *outBadgeType, *outFullPath, *outProcessIdPublisher, CComBSTR(*outGuidPublisher));
 
 					// Remove the event from the vector.
 					CLTRACE(9, "PubSubServer: Subscribe: Erase the event.");
@@ -407,7 +407,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			if (fSubscriptionFound && fWaitRequired)
 			{
 				pFoundSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
-				CLTRACE(9, "PubSubServer: Subscribe: optrSemaphore local address under lock: %x.", pFoundSemaphore);
+				CLTRACE(9, "PubSubServer: Subscribe: optrSemaphore local address under lock: %p.", pFoundSemaphore);
 			}
 
 			pBase->mutexSharedMemory_.unlock();
@@ -432,7 +432,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
             if (TimeoutMilliseconds != 0)
             {
                 // Wait for a matching event to arrive.  Use a timed wait.
-				CLTRACE(9, "PubSubServer: Subscribe: Wait with timeout. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore local addr: %x.", processId, threadId, CComBSTR(guidSubscriber), pFoundSemaphore);
+				CLTRACE(9, "PubSubServer: Subscribe: Wait with timeout. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore local addr: %p.", processId, threadId, CComBSTR(guidSubscriber), pFoundSemaphore);
                 pszExceptionStateTracker = "Call timed_wait";
                 boost::posix_time::ptime tNow(boost::posix_time::microsec_clock::universal_time());
                 bool fDidNotTimeOut = pFoundSemaphore->timed_wait(tNow + boost::posix_time::milliseconds(TimeoutMilliseconds));
@@ -450,7 +450,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
             else
             {
                 // Wait forever for a matching event to arrive.
-				CLTRACE(9, "PubSubServer: Subscribe: Wait forever for an event to arrive. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore addr: %x.", processId, threadId, CComBSTR(guidSubscriber), pFoundSemaphore);
+				CLTRACE(9, "PubSubServer: Subscribe: Wait forever for an event to arrive. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore addr: %p.", processId, threadId, CComBSTR(guidSubscriber), pFoundSemaphore);
                 pszExceptionStateTracker = "Call wait";
                 pFoundSemaphore->wait();
 				CLTRACE(9, "PubSubServer: Subscribe: Got an event or posted by a cancel(2).  Return code 'try again'.");
@@ -676,7 +676,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 				// Found our subscription.  Post the semaphore to allow the waiting thread to fall through the wait.
 				// Set a flag in the subscription to indicate that it is cancelled.  This will prevent the subscribing thread
 				// from waiting again.
-				CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Found our subscription. Mark cancelled and post it. Thread Waiting: %d. ProcessId: %lx. ThreadId: %lx. Semaphore local addr: %x. Guid: %ls.", 
+				CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Found our subscription. Mark cancelled and post it. Thread Waiting: %d. ProcessId: %lx. ThreadId: %lx. Semaphore local addr: %p. Guid: %ls.", 
 										outOptrFoundSubscription->fWaiting_, outOptrFoundSubscription->uSubscribingProcessId_, 
 										outOptrFoundSubscription->uSubscribingThreadId_, outOptrFoundSubscription->pSemaphoreSubscription_.get(), 
 										CComBSTR(outOptrFoundSubscription->guidSubscriber_));
@@ -702,7 +702,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 						if (!outOptrFoundSubscription->fCancelled_)
 						{
 							// The subscriber placed a new subscription.  Cancel it again.
-            				CLTRACE(9, "PubSubServer: CancelWaitingSubscription: New subscription placed.  Cancel it and post it again. Thread Waiting: %d. ProcessId: %lx. ThreadId: %lx. Semaphore addr: %x. Guid: %ls.", 
+            				CLTRACE(9, "PubSubServer: CancelWaitingSubscription: New subscription placed.  Cancel it and post it again. Thread Waiting: %d. ProcessId: %lx. ThreadId: %lx. Semaphore addr: %p. Guid: %ls.", 
 										outOptrFoundSubscription->fWaiting_, outOptrFoundSubscription->uSubscribingProcessId_, 
 										outOptrFoundSubscription->uSubscribingThreadId_, outOptrFoundSubscription->pSemaphoreSubscription_.get(), 
 										CComBSTR(outOptrFoundSubscription->guidSubscriber_));
@@ -918,7 +918,7 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
 			for (guid_subscription_map::iterator itSubscription = itEventType->second.begin(); itSubscription != itEventType->second.end(); ++itSubscription)
 			{
 				// Log this subscription
-				CLTRACE(9, "PubSubServer: TraceCurrentStateOfSharedMemory: Subscription: EventType: %d. ProcessId: %lx. ThreadId: %lx. Guid: %ls. fCancelled: %d. fDestructed: %d. fWaiting: %d. pSemaphoreSubscription: %x.", 
+				CLTRACE(9, "PubSubServer: TraceCurrentStateOfSharedMemory: Subscription: EventType: %d. ProcessId: %lx. ThreadId: %lx. Guid: %ls. fCancelled: %d. fDestructed: %d. fWaiting: %d. pSemaphoreSubscription: %p.", 
 						itSubscription->second.nEventType_,
                         itSubscription->second.uSubscribingProcessId_, 
 						itSubscription->second.uSubscribingThreadId_,

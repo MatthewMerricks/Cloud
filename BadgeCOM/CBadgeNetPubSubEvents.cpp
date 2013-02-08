@@ -61,7 +61,7 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semWaitForSubscriptionThre
             }
 
             // Release the class factory
-  		    CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: Allocated _pPubSubServer: %x.", _pPubSubServer); 
+  		    CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: Allocated _pPubSubServer: %p.", _pPubSubServer); 
             pIClassFactory->Release();
             pIClassFactory = NULL;
         }

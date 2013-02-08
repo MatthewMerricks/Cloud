@@ -31,6 +31,7 @@ namespace CloudSdkSyncSample.EventMessageReceiver
         private EventMessageLevel ImportanceFilterNonErrors;
         private EventMessageLevel ImportanceFilterErrors;
         private static readonly TimeSpan MinimumStartupProcessingTime = TimeSpan.FromSeconds(1d);
+        private static CLTrace _trace = CLTrace.Instance;
 
         // needs to be set from settings upon construction
         private double _dblCurrentBandwidthBitsPerSecondUpload = 0d;
@@ -141,6 +142,7 @@ namespace CloudSdkSyncSample.EventMessageReceiver
                     }
 
                     // add the new message to the end
+                    _trace.writeToLog(9, "WindowSyncStatusViewModel: AddStatusMessage: Message: {0}.", Message);
                     ListMessages.Add(new CLStatusMessage()
                     {
                         MessageText = Message
@@ -198,12 +200,19 @@ namespace CloudSdkSyncSample.EventMessageReceiver
 
                     foreach (KeyValuePair<long, CLStatusFileTransferUpdateParameters> currentParameter in dequeuedParameters)
                     {
+                        bool currentUpdateFired;
+
                         ProcessUpdateParameters(thisReceiver,
                             dispatchersFired,
-                            out atLeastOneDispatcherFired,
+                            out currentUpdateFired,
                             dispatchersToFire,
                             currentParameter,
                             isUpload: true);
+
+                        if (currentUpdateFired)
+                        {
+                            atLeastOneDispatcherFired = true;
+                        }
                     }
 
                     foreach (Tuple<Action<bool, CLStatusFileTransfer, int, EventMessageReceiver, GenericHolder<int>>, bool, CLStatusFileTransfer, int, EventMessageReceiver, GenericHolder<int>> currentDispatch
@@ -216,24 +225,6 @@ namespace CloudSdkSyncSample.EventMessageReceiver
                             currentDispatch.Item4,
                             currentDispatch.Item5,
                             currentDispatch.Item6);
-                    }
-
-                    object pulseback = new object();
-
-                    lock (pulseback)
-                    {
-                        Application.Current.Dispatcher.BeginInvoke((Action<object, object>)((innerList, innerPulseback) =>
-                            {
-                                lock (innerPulseback)
-                                {
-                                    Monitor.Pulse(innerPulseback);
-                                }
-                            }),
-                            DispatcherPriority.Render,
-                            thisReceiver.ListFilesUploading,
-                            pulseback);
-
-                        Monitor.Wait(pulseback);
                     }
 
                     if (atLeastOneDispatcherFired)
@@ -288,12 +279,19 @@ namespace CloudSdkSyncSample.EventMessageReceiver
 
                     foreach (KeyValuePair<long, CLStatusFileTransferUpdateParameters> currentParameter in dequeuedParameters)
                     {
+                        bool currentUpdateFired;
+
                         ProcessUpdateParameters(thisReceiver,
                             dispatchersFired,
-                            out atLeastOneDispatcherFired,
+                            out currentUpdateFired,
                             dispatchersToFire,
                             currentParameter,
                             isUpload: false);
+
+                        if (currentUpdateFired)
+                        {
+                            atLeastOneDispatcherFired = true;
+                        }
                     }
 
                     foreach (Tuple<Action<bool, CLStatusFileTransfer, int, EventMessageReceiver, GenericHolder<int>>, bool, CLStatusFileTransfer, int, EventMessageReceiver, GenericHolder<int>> currentDispatch
@@ -306,24 +304,6 @@ namespace CloudSdkSyncSample.EventMessageReceiver
                             currentDispatch.Item4,
                             currentDispatch.Item5,
                             currentDispatch.Item6);
-                    }
-
-                    object pulseback = new object();
-
-                    lock (pulseback)
-                    {
-                        Application.Current.Dispatcher.BeginInvoke((Action<object, object>)((innerList, innerPulseback) =>
-                            {
-                                lock (innerPulseback)
-                                {
-                                    Monitor.Pulse(innerPulseback);
-                                }
-                            }),
-                            DispatcherPriority.Render,
-                            thisReceiver.ListFilesDownloading,
-                            pulseback);
-
-                        Monitor.Wait(pulseback);
                     }
 
                     if (atLeastOneDispatcherFired)
@@ -347,12 +327,12 @@ namespace CloudSdkSyncSample.EventMessageReceiver
 
         private static void ProcessUpdateParameters(EventMessageReceiver thisReceiver, GenericHolder<int> dispatchersFired, out bool atLeastOneDispatcherFired, List<Tuple<Action<bool, CLStatusFileTransfer, int, EventMessageReceiver, GenericHolder<int>>, bool, CLStatusFileTransfer, int, EventMessageReceiver, GenericHolder<int>>> dispatchersToFire, KeyValuePair<long, CLStatusFileTransferUpdateParameters> currentParameter, bool isUpload)
         {
+            atLeastOneDispatcherFired = false; // default to false for output, will be set to true only under certain conditions later
             DateTime currentSampleTime = DateTime.Now;
             TimeSpan elapsedTime = currentSampleTime.Subtract(currentParameter.Value.TransferStartTime);
             if (currentParameter.Value.ByteProgress >= currentParameter.Value.ByteSize
                 || elapsedTime.CompareTo(MinimumStartupProcessingTime) >= 0)
             {
-                atLeastOneDispatcherFired = false;
                 CLStatusFileTransfer transferToUpdate;
                 GenericHolder<Nullable<int>> addTransferIndex = new GenericHolder<Nullable<int>>(null);
 
@@ -462,13 +442,10 @@ namespace CloudSdkSyncSample.EventMessageReceiver
                                         : innerReceiver.ListFilesDownloading).Add(toAdd);
                                 }
 
-                                lock (dispatchCounter)
+                                dispatchCounter.Value = dispatchCounter.Value - 1;
+                                if (dispatchCounter.Value == 0)
                                 {
-                                    dispatchCounter.Value = dispatchCounter.Value - 1;
-                                    if (dispatchCounter.Value == 0)
-                                    {
-                                        ThreadPool.UnsafeQueueUserWorkItem((forUpload ? (WaitCallback)ProcessUploadParameters : ProcessDownloadParameters), innerReceiver);
-                                    }
+                                    ThreadPool.UnsafeQueueUserWorkItem((forUpload ? (WaitCallback)ProcessUploadParameters : ProcessDownloadParameters), innerReceiver);
                                 }
                             },
                             isUpload,
@@ -559,13 +536,10 @@ namespace CloudSdkSyncSample.EventMessageReceiver
                                     : innerReceiver.ListFilesDownloading).Add(toAdd);
                             }
 
-                            lock (dispatchCounter)
+                            dispatchCounter.Value = dispatchCounter.Value - 1;
+                            if (dispatchCounter.Value == 0)
                             {
-                                dispatchCounter.Value = dispatchCounter.Value - 1;
-                                if (dispatchCounter.Value == 0)
-                                {
-                                    ThreadPool.UnsafeQueueUserWorkItem((forUpload ? (WaitCallback)ProcessUploadParameters : ProcessDownloadParameters), innerReceiver);
-                                }
+                                ThreadPool.UnsafeQueueUserWorkItem((forUpload ? (WaitCallback)ProcessUploadParameters : ProcessDownloadParameters), innerReceiver);
                             }
                         },
                         isUpload,
@@ -575,10 +549,6 @@ namespace CloudSdkSyncSample.EventMessageReceiver
                         dispatchersFired));
                     }
                 }
-            }
-            else
-            {
-                atLeastOneDispatcherFired = false;
             }
         }
         #endregion
