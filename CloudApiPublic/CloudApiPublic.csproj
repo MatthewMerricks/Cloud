@@ -93,6 +93,7 @@
     </Reference>
     <Reference Include="SimpleJson, Version=0.1.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\SimpleJson.dll</HintPath>
+      <Aliases>global,SimpleJsonBase</Aliases>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Common, Version=0.2.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll</HintPath>
@@ -143,6 +144,7 @@
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
     <Compile Include="JsonContracts\Audios.cs" />
+    <Compile Include="JsonContracts\ContainsMetadataDictionaryAttribute.cs" />
     <Compile Include="JsonContracts\CreateSyncBox.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />
     <Compile Include="JsonContracts\FileCopy.cs" />
@@ -155,6 +157,8 @@
     <Compile Include="JsonContracts\FolderContents.cs" />
     <Compile Include="JsonContracts\Folders.cs" />
     <Compile Include="JsonContracts\ItemCount.cs" />
+    <Compile Include="JsonContracts\ListSyncBoxes.cs" />
+    <Compile Include="JsonContracts\MetadataDictionary.cs" />
     <Compile Include="JsonContracts\Pictures.cs" />
     <Compile Include="JsonContracts\Recents.cs" />
     <Compile Include="JsonContracts\SyncBox.cs" />

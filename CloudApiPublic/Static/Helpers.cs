@@ -31,6 +31,10 @@ using System.Windows.Threading;
 
 namespace CloudApiPublic.Static
 {
+    extern alias SimpleJsonBase;
+    using System.Linq.Expressions;
+    using System.Runtime.Serialization;
+
     /// <summary>
     /// Class containing commonly usable static helper methods
     /// </summary>
@@ -1804,7 +1808,8 @@ namespace CloudApiPublic.Static
             { typeof(JsonContracts.FolderContents), JsonContractHelpers.FolderContentsSerializer },
 
             #region platform management
-            { typeof(JsonContracts.CreateSyncBox), JsonContractHelpers.CreateSyncBoxSerializer }
+            { typeof(JsonContracts.CreateSyncBox), JsonContractHelpers.CreateSyncBoxSerializer },
+            { typeof(JsonContracts.ListSyncBoxes), JsonContractHelpers.ListSyncBoxesSerializer }
             #endregion
         };
         #endregion
@@ -1812,7 +1817,7 @@ namespace CloudApiPublic.Static
         /// <summary>
         /// event handler fired upon transfer buffer clears for uploads/downloads to relay to the global event
         /// </summary>
-        internal static void HandleUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource)
+        internal static void HandleUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource, Nullable<long> syncBoxId, string deviceId)
         {
             // validate parameter which can throw an exception in this method
 
@@ -1828,8 +1833,8 @@ namespace CloudApiPublic.Static
                     sender: eventSource, // source of the event (the event itself)
                     eventId: eventSource.EventId, // the id for the event
                     parameters: status, // the event arguments describing the status change
-                    SyncBoxId: this._syncBoxId,
-                    DeviceId: this._copiedSettings.DeviceId);
+                    SyncBoxId: syncBoxId,
+                    DeviceId: deviceId);
             }
             else
             {
@@ -1837,8 +1842,8 @@ namespace CloudApiPublic.Static
                     sender: eventSource, // source of the event (the event itself)
                     eventId: eventSource.EventId, // the id for the event
                     parameters: status,  // the event arguments describing the status change
-                    SyncBoxId: this._syncBoxId,
-                    DeviceId: this._copiedSettings.DeviceId);
+                    SyncBoxId: syncBoxId,
+                    DeviceId: deviceId);
             }
         }
 
@@ -1961,6 +1966,23 @@ namespace CloudApiPublic.Static
 
                         // grab the string from the serialized data
                         requestString = Encoding.Default.GetString(requestMemory.ToArray());
+
+                        if (requestType.GetCustomAttributes(typeof(JsonContracts.ContainsMetadataDictionaryAttribute), false).Length == 1)
+                        {
+                            SimpleJsonBase.SimpleJson.JsonObject myDeserialized = SimpleJsonBase.SimpleJson.SimpleJson.DeserializeObject(requestString) as SimpleJsonBase.SimpleJson.JsonObject;
+
+                            if (myDeserialized == null)
+                            {
+                                throw new NullReferenceException("Deserialized JsonObject null from requestString");
+                            }
+
+                            foreach (KeyValuePair<string, object> myDeserializedPair in myDeserialized)
+                            {
+                                CleanTypeKeys(myDeserializedPair.Value);
+                            }
+
+                            requestString = SimpleJsonBase.SimpleJson.SimpleJson.SerializeObject(myDeserialized);
+                        }
                     }
 
                     // grab the bytes for the serialized request body content
@@ -2166,7 +2188,9 @@ namespace CloudApiPublic.Static
                                     storeSizeForStatus, // total size of file
                                     uploadDownload.RelativePathForStatus, // relative path of file
                                     totalBytesUploaded), // bytes uploaded so far
-                                uploadDownload.ChangeToTransfer); // the source of the event (the event itself)
+                                uploadDownload.ChangeToTransfer, // the source of the event (the event itself)
+                                SyncBoxId, // pass in sync box id to allow filtering
+                                CopiedSettings.DeviceId); // pass in device id to allow filtering
 
                             if (uploadDownload.StatusUpdate != null
                                 && uploadDownload.StatusUpdateId != null)
@@ -2544,7 +2568,9 @@ namespace CloudApiPublic.Static
                                                 storeSizeForStatus, // total file size
                                                 uploadDownload.RelativePathForStatus, // relative path of file
                                                 totalBytesDownloaded), // current count of completed download bytes
-                                        uploadDownload.ChangeToTransfer); // the source of the event, the event itself
+                                        uploadDownload.ChangeToTransfer, // the source of the event, the event itself
+                                        SyncBoxId, // pass in sync box id for filtering
+                                        CopiedSettings.DeviceId); // pass in device id for filtering
                                 }
                                 // flush file stream to finish the file
                                 tempFileStream.Flush();
@@ -2619,8 +2645,42 @@ namespace CloudApiPublic.Static
                                 CopiedSettings.TraceExcludeAuthorization); // whether to include authorization in the trace (such as the authentication key)
                         }
 
-                        // deserialize the response content into the appropriate json contract object
-                        toReturn = (T)outSerializer.ReadObject(serializationStream);
+                        if (typeof(T).GetCustomAttributes(typeof(JsonContracts.ContainsMetadataDictionaryAttribute), false).Length == 1)
+                        {
+                            string responseString;
+                            using (StreamReader responseReader = new StreamReader(serializationStream, Encoding.UTF8))
+                            {
+                                responseString = responseReader.ReadToEnd();
+                            }
+
+                            SimpleJsonBase.SimpleJson.JsonObject deserializedResponse = SimpleJsonBase.SimpleJson.SimpleJson.DeserializeObject(responseString) as SimpleJsonBase.SimpleJson.JsonObject;
+
+                            if (deserializedResponse == null)
+                            {
+                                throw new NullReferenceException("Deserialized JsonObject null from responseString");
+                            }
+
+                            foreach (KeyValuePair<string, object> myDeserializedPair in deserializedResponse)
+                            {
+                                AddBackMetadataType(myDeserializedPair, typeof(T));
+                            }
+
+                            string appendedString = SimpleJsonBase.SimpleJson.SimpleJson.SerializeObject(deserializedResponse);
+                            using (MemoryStream appendedStream = new MemoryStream())
+                            {
+                                byte[] appendedBytes = Encoding.Default.GetBytes(appendedString);
+                                appendedStream.Write(appendedBytes, 0, appendedBytes.Length);
+                                appendedStream.Flush();
+                                appendedStream.Seek(0, SeekOrigin.Begin);
+
+                                toReturn = (T)outSerializer.ReadObject(appendedStream);
+                            }
+                        }
+                        else
+                        {
+                            // deserialize the response content into the appropriate json contract object
+                            toReturn = (T)outSerializer.ReadObject(serializationStream);
+                        }
                     }
                     // else if the output type is not in the dictionary of those serializable and if the output type is either object or string,
                     // then process the response content as a string to output directly
@@ -2673,7 +2733,9 @@ namespace CloudApiPublic.Static
 
                                 // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
                                 uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0),
-                            uploadDownload.ChangeToTransfer); // sender of event (the event itself)
+                            uploadDownload.ChangeToTransfer, // sender of event (the event itself)
+                            SyncBoxId, // pass in sync box id for filtering
+                            CopiedSettings.DeviceId); // pass in device id for filtering
                     }
                     catch
                     {
@@ -2762,6 +2824,125 @@ namespace CloudApiPublic.Static
                 }
             }
         }
+
+        private static void CleanTypeKeys(object valueToClean)
+        {
+            SimpleJsonBase.SimpleJson.JsonObject recurseJson;
+            SimpleJsonBase.SimpleJson.JsonArray recurseArray;
+            if (valueToClean != null)
+            {
+                if ((recurseJson = valueToClean as SimpleJsonBase.SimpleJson.JsonObject) != null)
+                {
+                    recurseJson.Remove(MetadataDictionaryJsonTypePair.Key);
+                    foreach (object recurseJsonValue in recurseJson.Values)
+                    {
+                        CleanTypeKeys(recurseJsonValue);
+                    }
+                }
+                else if ((recurseArray = valueToClean as SimpleJsonBase.SimpleJson.JsonArray) != null)
+                {
+                    recurseArray.ForEach(recurseJsonValue => CleanTypeKeys(recurseJsonValue));
+                }
+            }
+        }
+
+        private static void AddBackMetadataType(KeyValuePair<string, object> valueToAppend, Type parentType)
+        {
+            SimpleJsonBase.SimpleJson.JsonObject recurseJson;
+            SimpleJsonBase.SimpleJson.JsonArray recurseArray;
+            if (valueToAppend.Value != null)
+            {
+                if ((recurseJson = valueToAppend.Value as SimpleJsonBase.SimpleJson.JsonObject) != null)
+                {
+                    DataMemberAttribute[] innerMemberAttributes;
+                    PropertyInfo innerProperty = parentType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                        .SingleOrDefault(currentInnerProperty => (innerMemberAttributes = currentInnerProperty.GetCustomAttributes(typeof(DataMemberAttribute), false).Cast<DataMemberAttribute>().ToArray()).Length >= 1
+                            && (string.IsNullOrEmpty(innerMemberAttributes[0].Name)
+                                ? currentInnerProperty.Name == valueToAppend.Key
+                                : innerMemberAttributes[0].Name == valueToAppend.Key));
+
+                    bool passedFirstTypeValue;
+                    if (innerProperty == null
+                        || innerProperty.PropertyType == typeof(MetadataDictionary))
+                    {
+                        KeyValuePair<string, object>[] backupArray = new KeyValuePair<string, object>[recurseJson.Count];
+                        recurseJson.CopyTo(backupArray, 0);
+
+                        recurseJson.Clear();
+                        recurseJson.Add(MetadataDictionaryJsonTypePair);
+                        Array.ForEach(backupArray, currentBackup => recurseJson.Add(currentBackup));
+
+                        passedFirstTypeValue = false;
+                    }
+                    else
+                    {
+                        passedFirstTypeValue = true;
+                    }
+
+                    foreach (KeyValuePair<string, object> recurseJsonPair in recurseJson)
+                    {
+                        if (passedFirstTypeValue)
+                        {
+                            AddBackMetadataType(recurseJsonPair,
+                                (innerProperty == null
+                                    ? typeof(MetadataDictionary)
+                                    : innerProperty.PropertyType));
+                        }
+                        else
+                        {
+                            passedFirstTypeValue = true;
+                        }
+                    }
+                }
+                else if ((recurseArray = valueToAppend.Value as SimpleJsonBase.SimpleJson.JsonArray) != null)
+                {
+                    recurseArray.ForEach(recurseJsonValue => 
+                        AddBackMetadataType(new KeyValuePair<string, object>(GenericHolderValuePropertyName, recurseJsonValue), typeof(GenericHolder<object>)));
+                }
+            }
+        }
+
+        private static string GenericHolderValuePropertyName
+        {
+            get
+            {
+                lock (_genericHolderValuePropertyName)
+                {
+                    if (_genericHolderValuePropertyName.Value == null)
+                    {
+                        _genericHolderValuePropertyName.Value = ((MemberExpression)((Expression<Func<GenericHolder<object>, object>>)(member => member.Value)).Body).Member.Name;
+                    }
+
+                    return _genericHolderValuePropertyName.Value;
+                }
+            }
+        }
+        private static readonly GenericHolder<string> _genericHolderValuePropertyName = new GenericHolder<string>(null);
+
+        private static KeyValuePair<string, object> MetadataDictionaryJsonTypePair
+        {
+            get
+            {
+                lock (_metadataDictionaryJsonTypePair)
+                {
+                    if (_metadataDictionaryJsonTypePair.Value == null)
+                    {
+                        string serialized;
+                        using (MemoryStream memStream = new MemoryStream())
+                        {
+                            (new DataContractJsonSerializer(typeof(GenericHolder<object>)))
+                                .WriteObject(memStream, new GenericHolder<object>(new MetadataDictionary()));
+                            serialized = Encoding.Default.GetString(memStream.ToArray());
+                        }
+
+                        Dictionary<string, object> jsonDeserialized = SimpleJsonBase.SimpleJson.SimpleJson.DeserializeObject<Dictionary<string, object>>(serialized);
+                        _metadataDictionaryJsonTypePair.Value = ((SimpleJsonBase.SimpleJson.JsonObject)jsonDeserialized.Single().Value).Single();
+                    }
+                    return (KeyValuePair<string, object>)_metadataDictionaryJsonTypePair.Value;
+                }
+            }
+        }
+        private static readonly GenericHolder<Nullable<KeyValuePair<string, object>>> _metadataDictionaryJsonTypePair = new GenericHolder<Nullable<KeyValuePair<string, object>>>(null);
 
         /// <summary>
         /// a dual-function wrapper for making asynchronous calls for either retrieving an upload request stream or retrieving a download response
@@ -3400,7 +3581,9 @@ namespace CloudApiPublic.Static
         /// </summary>
         /// <param name="status">The parameters which describe the progress itself</param>
         /// <param name="eventSource">The FileChange describing the change to upload or download</param>
-        internal delegate void SendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource);
+        /// <param name="syncBoxId">The unique id of the sync box on the server</param>
+        /// <param name="deviceId">The id of this device</param>
+        internal delegate void SendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource, Nullable<long> syncBoxId, string deviceId);
 
         /// <summary>
         /// Handler called before a download starts with the temporary file id (used as filename for the download in the temp download folder) and passes through UserState

@@ -261,6 +261,21 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _fileOrFolderUndeleteSerializer = null;
         private static readonly object FileOrFolderUndeleteSerializerLocker = new object();
 
+        public static DataContractJsonSerializer FileCopySerializer
+        {
+            get
+            {
+                lock (FileCopySerializerLocker)
+                {
+                    return _fileCopySerializer
+                        ?? (_fileCopySerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileCopy)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileCopySerializer = null;
+        private static readonly object FileCopySerializerLocker = new object();
+        #endregion
+
         public static DataContractJsonSerializer FileVersionsSerializer
         {
             get
@@ -290,20 +305,6 @@ namespace CloudApiPublic.JsonContracts
         //}
         //private static DataContractJsonSerializer _usedBytesSerializer = null;
         //private static readonly object UsedBytesSerializerLocker = new object();
-
-        public static DataContractJsonSerializer FileCopySerializer
-        {
-            get
-            {
-                lock (FileCopySerializerLocker)
-                {
-                    return _fileCopySerializer
-                        ?? (_fileCopySerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileCopy)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _fileCopySerializer = null;
-        private static readonly object FileCopySerializerLocker = new object();
 
         public static DataContractJsonSerializer PicturesSerializer
         {
@@ -417,6 +418,7 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _folderContentsSerializer = null;
         private static readonly object FolderContentsSerializerLocker = new object();
 
+        #region platform management
         public static DataContractJsonSerializer CreateSyncBoxSerializer
         {
             get
@@ -430,6 +432,20 @@ namespace CloudApiPublic.JsonContracts
         }
         private static DataContractJsonSerializer _createSyncBoxSerializer = null;
         private static readonly object CreateSyncBoxSerializerLocker = new object();
+
+        public static DataContractJsonSerializer ListSyncBoxesSerializer
+        {
+            get
+            {
+                lock (ListSyncBoxesSerializerLocker)
+                {
+                    return _listSyncBoxesSerializer
+                        ?? (_listSyncBoxesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ListSyncBoxes)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _listSyncBoxesSerializer = null;
+        private static readonly object ListSyncBoxesSerializerLocker = new object();
         #endregion
     }
 }

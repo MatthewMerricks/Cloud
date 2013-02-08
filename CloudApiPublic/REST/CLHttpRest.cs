@@ -878,10 +878,9 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetMetadataAtPathResult>, AsyncCallback, FilePath, bool, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetMetadataAtPathResult>, AsyncCallback, FilePath, bool, int>(
+            Tuple<GenericAsyncResult<GetMetadataAtPathResult>, FilePath, bool, int> asyncParams =
+                new Tuple<GenericAsyncResult<GetMetadataAtPathResult>, FilePath, bool, int>(
                     toReturn,
-                    aCallback,
                     fullPath,
                     isFolder,
                     timeoutMilliseconds);
@@ -890,7 +889,7 @@ namespace CloudApiPublic.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetMetadataAtPathResult>, AsyncCallback, FilePath, bool, int> castState = state as Tuple<GenericAsyncResult<GetMetadataAtPathResult>, AsyncCallback, FilePath, bool, int>;
+                Tuple<GenericAsyncResult<GetMetadataAtPathResult>, FilePath, bool, int> castState = state as Tuple<GenericAsyncResult<GetMetadataAtPathResult>, FilePath, bool, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -908,9 +907,9 @@ namespace CloudApiPublic.REST
                         JsonContracts.Metadata result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetMetadataAtPath(
+                            castState.Item2,
                             castState.Item3,
                             castState.Item4,
-                            castState.Item5,
                             out status,
                             out result);
 
@@ -1095,17 +1094,16 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetAllPendingResult>, AsyncCallback, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetAllPendingResult>, AsyncCallback, int>(
+            Tuple<GenericAsyncResult<GetAllPendingResult>, int> asyncParams =
+                new Tuple<GenericAsyncResult<GetAllPendingResult>, int>(
                     toReturn,
-                    aCallback,
                     timeoutMilliseconds);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetAllPendingResult>, AsyncCallback, int> castState = state as Tuple<GenericAsyncResult<GetAllPendingResult>, AsyncCallback, int>;
+                Tuple<GenericAsyncResult<GetAllPendingResult>, int> castState = state as Tuple<GenericAsyncResult<GetAllPendingResult>, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -1123,7 +1121,7 @@ namespace CloudApiPublic.REST
                         JsonContracts.PendingResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetAllPending(
-                            castState.Item3,
+                            castState.Item2,
                             out status,
                             out result);
 
@@ -1298,10 +1296,9 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<PostFileChangeResult>, AsyncCallback, FileChange, int> asyncParams =
-                new Tuple<GenericAsyncResult<PostFileChangeResult>, AsyncCallback, FileChange, int>(
+            Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int> asyncParams =
+                new Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int>(
                     toReturn,
-                    aCallback,
                     toCommunicate,
                     timeoutMilliseconds);
 
@@ -1309,7 +1306,7 @@ namespace CloudApiPublic.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<PostFileChangeResult>, AsyncCallback, FileChange, int> castState = state as Tuple<GenericAsyncResult<PostFileChangeResult>, AsyncCallback, FileChange, int>;
+                Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int> castState = state as Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -1327,8 +1324,8 @@ namespace CloudApiPublic.REST
                         JsonContracts.Event result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = PostFileChange(
+                            castState.Item2,
                             castState.Item3,
-                            castState.Item4,
                             out status,
                             out result);
 
@@ -1697,10 +1694,9 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, AsyncCallback, FileChange, int> asyncParams =
-                new Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, AsyncCallback, FileChange, int>(
+            Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int> asyncParams =
+                new Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int>(
                     toReturn,
-                    aCallback,
                     deletionChange,
                     timeoutMilliseconds);
 
@@ -1708,7 +1704,7 @@ namespace CloudApiPublic.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, AsyncCallback, FileChange, int> castState = state as Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, AsyncCallback, FileChange, int>;
+                Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int> castState = state as Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -1726,8 +1722,8 @@ namespace CloudApiPublic.REST
                         JsonContracts.Event result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = UndoDeletionFileChange(
+                            castState.Item2,
                             castState.Item3,
-                            castState.Item4,
                             out status,
                             out result);
 
@@ -1970,10 +1966,9 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetFileVersionsResult>, AsyncCallback, string, int, FilePath, bool> asyncParams =
-                new Tuple<GenericAsyncResult<GetFileVersionsResult>, AsyncCallback, string, int, FilePath, bool>(
+            Tuple<GenericAsyncResult<GetFileVersionsResult>, string, int, FilePath, bool> asyncParams =
+                new Tuple<GenericAsyncResult<GetFileVersionsResult>, string, int, FilePath, bool>(
                     toReturn,
-                    aCallback,
                     fileServerId,
                     timeoutMilliseconds,
                     pathToFile,
@@ -1983,7 +1978,7 @@ namespace CloudApiPublic.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetFileVersionsResult>, AsyncCallback, string, int, FilePath, bool> castState = state as Tuple<GenericAsyncResult<GetFileVersionsResult>, AsyncCallback, string, int, FilePath, bool>;
+                Tuple<GenericAsyncResult<GetFileVersionsResult>, string, int, FilePath, bool> castState = state as Tuple<GenericAsyncResult<GetFileVersionsResult>, string, int, FilePath, bool>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -2001,9 +1996,9 @@ namespace CloudApiPublic.REST
                         JsonContracts.FileVersion[] result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetFileVersions(
+                            castState.Item2,
                             castState.Item3,
                             castState.Item4,
-                            castState.Item5,
                             out status,
                             out result);
 
@@ -2228,17 +2223,16 @@ namespace CloudApiPublic.REST
         //        aState);
 
         //    // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-        //    Tuple<GenericAsyncResult<GetUsedBytesResult>, AsyncCallback, int> asyncParams =
-        //        new Tuple<GenericAsyncResult<GetUsedBytesResult>, AsyncCallback, int>(
+        //    Tuple<GenericAsyncResult<GetUsedBytesResult>, int> asyncParams =
+        //        new Tuple<GenericAsyncResult<GetUsedBytesResult>, int>(
         //            toReturn,
-        //            aCallback,
         //            timeoutMilliseconds);
 
         //    // create the thread from a void (object) parameterized start which wraps the synchronous method call
         //    (new Thread(new ParameterizedThreadStart(state =>
         //    {
         //        // try cast the state as the object with all the input parameters
-        //        Tuple<GenericAsyncResult<GetUsedBytesResult>, AsyncCallback, int> castState = state as Tuple<GenericAsyncResult<GetUsedBytesResult>, AsyncCallback, int>;
+        //        Tuple<GenericAsyncResult<GetUsedBytesResult>, int> castState = state as Tuple<GenericAsyncResult<GetUsedBytesResult>, int>;
         //        // if the try cast failed, then show a message box for this unrecoverable error
         //        if (castState == null)
         //        {
@@ -2256,7 +2250,7 @@ namespace CloudApiPublic.REST
         //                JsonContracts.UsedBytes result;
         //                // run the download of the file with the passed parameters, storing any error that occurs
         //                CLError processError = GetUsedBytes(
-        //                    castState.Item3,
+        //                    castState.Item2,
         //                    out status,
         //                    out result);
 
@@ -2471,10 +2465,9 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<CopyFileResult>, AsyncCallback, string, int, FilePath, FilePath> asyncParams =
-                new Tuple<GenericAsyncResult<CopyFileResult>, AsyncCallback, string, int, FilePath, FilePath>(
+            Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath> asyncParams =
+                new Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath>(
                     toReturn,
-                    aCallback,
                     fileServerId,
                     timeoutMilliseconds,
                     pathToFile,
@@ -2484,7 +2477,7 @@ namespace CloudApiPublic.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<CopyFileResult>, AsyncCallback, string, int, FilePath, FilePath> castState = state as Tuple<GenericAsyncResult<CopyFileResult>, AsyncCallback, string, int, FilePath, FilePath>;
+                Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath> castState = state as Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -2502,9 +2495,9 @@ namespace CloudApiPublic.REST
                         JsonContracts.Event result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = CopyFile(
+                            castState.Item2,
                             castState.Item3,
                             castState.Item4,
-                            castState.Item5,
                             out status,
                             out result);
 
@@ -2715,17 +2708,16 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetPicturesResult>, AsyncCallback, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetPicturesResult>, AsyncCallback, int>(
+            Tuple<GenericAsyncResult<GetPicturesResult>, int> asyncParams =
+                new Tuple<GenericAsyncResult<GetPicturesResult>, int>(
                     toReturn,
-                    aCallback,
                     timeoutMilliseconds);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetPicturesResult>, AsyncCallback, int> castState = state as Tuple<GenericAsyncResult<GetPicturesResult>, AsyncCallback, int>;
+                Tuple<GenericAsyncResult<GetPicturesResult>, int> castState = state as Tuple<GenericAsyncResult<GetPicturesResult>, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -2743,7 +2735,7 @@ namespace CloudApiPublic.REST
                         JsonContracts.Pictures result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetPictures(
-                            castState.Item3,
+                            castState.Item2,
                             out status,
                             out result);
 
@@ -2907,17 +2899,16 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetVideosResult>, AsyncCallback, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetVideosResult>, AsyncCallback, int>(
+            Tuple<GenericAsyncResult<GetVideosResult>, int> asyncParams =
+                new Tuple<GenericAsyncResult<GetVideosResult>, int>(
                     toReturn,
-                    aCallback,
                     timeoutMilliseconds);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetVideosResult>, AsyncCallback, int> castState = state as Tuple<GenericAsyncResult<GetVideosResult>, AsyncCallback, int>;
+                Tuple<GenericAsyncResult<GetVideosResult>, int> castState = state as Tuple<GenericAsyncResult<GetVideosResult>, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -2935,7 +2926,7 @@ namespace CloudApiPublic.REST
                         JsonContracts.Videos result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetVideos(
-                            castState.Item3,
+                            castState.Item2,
                             out status,
                             out result);
 
@@ -3099,17 +3090,16 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetAudiosResult>, AsyncCallback, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetAudiosResult>, AsyncCallback, int>(
+            Tuple<GenericAsyncResult<GetAudiosResult>, int> asyncParams =
+                new Tuple<GenericAsyncResult<GetAudiosResult>, int>(
                     toReturn,
-                    aCallback,
                     timeoutMilliseconds);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetAudiosResult>, AsyncCallback, int> castState = state as Tuple<GenericAsyncResult<GetAudiosResult>, AsyncCallback, int>;
+                Tuple<GenericAsyncResult<GetAudiosResult>, int> castState = state as Tuple<GenericAsyncResult<GetAudiosResult>, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -3127,7 +3117,7 @@ namespace CloudApiPublic.REST
                         JsonContracts.Audios result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetAudios(
-                            castState.Item3,
+                            castState.Item2,
                             out status,
                             out result);
 
@@ -3291,17 +3281,16 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetArchivesResult>, AsyncCallback, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetArchivesResult>, AsyncCallback, int>(
+            Tuple<GenericAsyncResult<GetArchivesResult>, int> asyncParams =
+                new Tuple<GenericAsyncResult<GetArchivesResult>, int>(
                     toReturn,
-                    aCallback,
                     timeoutMilliseconds);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetArchivesResult>, AsyncCallback, int> castState = state as Tuple<GenericAsyncResult<GetArchivesResult>, AsyncCallback, int>;
+                Tuple<GenericAsyncResult<GetArchivesResult>, int> castState = state as Tuple<GenericAsyncResult<GetArchivesResult>, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -3319,7 +3308,7 @@ namespace CloudApiPublic.REST
                         JsonContracts.Archives result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetArchives(
-                            castState.Item3,
+                            castState.Item2,
                             out status,
                             out result);
 
@@ -3483,17 +3472,16 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetRecentsResult>, AsyncCallback, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetRecentsResult>, AsyncCallback, int>(
+            Tuple<GenericAsyncResult<GetRecentsResult>, int> asyncParams =
+                new Tuple<GenericAsyncResult<GetRecentsResult>, int>(
                     toReturn,
-                    aCallback,
                     timeoutMilliseconds);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetRecentsResult>, AsyncCallback, int> castState = state as Tuple<GenericAsyncResult<GetRecentsResult>, AsyncCallback, int>;
+                Tuple<GenericAsyncResult<GetRecentsResult>, int> castState = state as Tuple<GenericAsyncResult<GetRecentsResult>, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -3511,7 +3499,7 @@ namespace CloudApiPublic.REST
                         JsonContracts.Recents result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetRecents(
-                            castState.Item3,
+                            castState.Item2,
                             out status,
                             out result);
 
@@ -3675,17 +3663,16 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetSyncBoxUsageResult>, AsyncCallback, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetSyncBoxUsageResult>, AsyncCallback, int>(
+            Tuple<GenericAsyncResult<GetSyncBoxUsageResult>, int> asyncParams =
+                new Tuple<GenericAsyncResult<GetSyncBoxUsageResult>, int>(
                     toReturn,
-                    aCallback,
                     timeoutMilliseconds);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetSyncBoxUsageResult>, AsyncCallback, int> castState = state as Tuple<GenericAsyncResult<GetSyncBoxUsageResult>, AsyncCallback, int>;
+                Tuple<GenericAsyncResult<GetSyncBoxUsageResult>, int> castState = state as Tuple<GenericAsyncResult<GetSyncBoxUsageResult>, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -3703,7 +3690,7 @@ namespace CloudApiPublic.REST
                         JsonContracts.SyncBoxUsage result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetSyncBoxUsage(
-                            castState.Item3,
+                            castState.Item2,
                             out status,
                             out result);
 
@@ -3869,10 +3856,9 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetFolderHierarchyResult>, AsyncCallback, int, FilePath> asyncParams =
-                new Tuple<GenericAsyncResult<GetFolderHierarchyResult>, AsyncCallback, int, FilePath>(
+            Tuple<GenericAsyncResult<GetFolderHierarchyResult>, int, FilePath> asyncParams =
+                new Tuple<GenericAsyncResult<GetFolderHierarchyResult>, int, FilePath>(
                     toReturn,
-                    aCallback,
                     timeoutMilliseconds,
                     hierarchyRoot);
 
@@ -3880,7 +3866,7 @@ namespace CloudApiPublic.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetFolderHierarchyResult>, AsyncCallback, int, FilePath> castState = state as Tuple<GenericAsyncResult<GetFolderHierarchyResult>, AsyncCallback, int, FilePath>;
+                Tuple<GenericAsyncResult<GetFolderHierarchyResult>, int, FilePath> castState = state as Tuple<GenericAsyncResult<GetFolderHierarchyResult>, int, FilePath>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -3898,10 +3884,10 @@ namespace CloudApiPublic.REST
                         JsonContracts.Folders result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetFolderHierarchy(
-                            castState.Item3,
+                            castState.Item2,
                             out status,
                             out result,
-                            castState.Item4);
+                            castState.Item3);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
                         if (castState.Item1 != null)
@@ -4080,10 +4066,9 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetFolderContentsResult>, AsyncCallback, int, bool, FilePath, Nullable<byte>, bool> asyncParams =
-                new Tuple<GenericAsyncResult<GetFolderContentsResult>, AsyncCallback, int, bool, FilePath, Nullable<byte>, bool>(
+            Tuple<GenericAsyncResult<GetFolderContentsResult>, int, bool, FilePath, Nullable<byte>, bool> asyncParams =
+                new Tuple<GenericAsyncResult<GetFolderContentsResult>, int, bool, FilePath, Nullable<byte>, bool>(
                     toReturn,
-                    aCallback,
                     timeoutMilliseconds,
                     includeCount,
                     contentsRoot,
@@ -4094,7 +4079,7 @@ namespace CloudApiPublic.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetFolderContentsResult>, AsyncCallback, int, bool, FilePath, Nullable<byte>, bool> castState = state as Tuple<GenericAsyncResult<GetFolderContentsResult>, AsyncCallback, int, bool, FilePath, Nullable<byte>, bool>;
+                Tuple<GenericAsyncResult<GetFolderContentsResult>, int, bool, FilePath, Nullable<byte>, bool> castState = state as Tuple<GenericAsyncResult<GetFolderContentsResult>, int, bool, FilePath, Nullable<byte>, bool>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -4112,13 +4097,13 @@ namespace CloudApiPublic.REST
                         JsonContracts.FolderContents result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetFolderContents(
-                            castState.Item3,
+                            castState.Item2,
                             out status,
                             out result,
+                            castState.Item3,
                             castState.Item4,
                             castState.Item5,
-                            castState.Item6,
-                            castState.Item7);
+                            castState.Item6);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
                         if (castState.Item1 != null)
@@ -4311,17 +4296,16 @@ namespace CloudApiPublic.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<PurgePendingResult>, AsyncCallback, int> asyncParams =
-                new Tuple<GenericAsyncResult<PurgePendingResult>, AsyncCallback, int>(
+            Tuple<GenericAsyncResult<PurgePendingResult>, int> asyncParams =
+                new Tuple<GenericAsyncResult<PurgePendingResult>, int>(
                     toReturn,
-                    aCallback,
                     timeoutMilliseconds);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<PurgePendingResult>, AsyncCallback, int> castState = state as Tuple<GenericAsyncResult<PurgePendingResult>, AsyncCallback, int>;
+                Tuple<GenericAsyncResult<PurgePendingResult>, int> castState = state as Tuple<GenericAsyncResult<PurgePendingResult>, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -4339,7 +4323,7 @@ namespace CloudApiPublic.REST
                         JsonContracts.PendingResponse result;
                         // purge pending files with the passed parameters, storing any error that occurs
                         CLError processError = PurgePending(
-                            castState.Item3,
+                            castState.Item2,
                             out status,
                             out result);
 
