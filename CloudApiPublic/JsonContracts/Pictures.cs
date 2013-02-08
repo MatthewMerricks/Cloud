@@ -16,10 +16,10 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetPictures"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetPictures"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class Pictures
+    public sealed class Pictures
     {
         [DataMember(Name = CLDefinitions.CLMetadataCount, IsRequired = false)]
         public Nullable<long> Count { get; set; }

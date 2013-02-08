@@ -44,7 +44,7 @@ namespace CloudApiPublic.Interfaces
     /// <summary>
     /// Basic settings for active sync (<see cref="CloudApiPublic.CLSyncEngine"/>).
     /// </summary>
-    public interface ICLSyncSettings// : IHttpSettings
+    public interface ICLSyncSettings
     {
         /// <summary>
         /// Full path to the directory to be synced (do not include a trailing slash except for a drive root)
@@ -55,8 +55,12 @@ namespace CloudApiPublic.Interfaces
     /// <summary>
     /// Advanced settings for active sync (<see cref="CloudApiPublic.CLSyncEngine"/>). The addition over basic settings is <see cref="ICLAddTraceSettings"/>.
     /// </summary>
-    public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLAddTraceSettings
+    public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLCredentialSettings
     {
+        /// <summary>
+        /// True: Enable badging.
+        /// </summary>
+        bool BadgingEnabled { get; }
         /// <summary>
         /// Location to store temporary downloads before they complete downloading and get moved to the final location;
         /// Use a different download folder path for each SyncBox or SyncEngine (the SyncEngine will clean out existing files in the provided directory);
@@ -75,13 +79,15 @@ namespace CloudApiPublic.Interfaces
         /// Device id (each SyncBox may contain multiple devices, each with a unique id within the SyncBox).
         /// </summary>
         string DeviceId { get; }
-        /// <summary>
-        /// True: Enable badging.
-        /// </summary>
-        bool BadgingEnabled { get; }
+    }
+
+    public interface ICLAddClientVersion
+    {
         /// <summary>
         /// Version letters/numbers used in communication with the server to identify the type of client (i.e. "MyClient01"); do not mimic values passed by other Cloud applications
         /// </summary>
         string ClientVersion { get; }
     }
+
+    public interface ICLCredentialSettings : ICLAddTraceSettings, ICLAddClientVersion { }
 }

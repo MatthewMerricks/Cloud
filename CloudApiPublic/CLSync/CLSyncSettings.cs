@@ -227,7 +227,7 @@ namespace CloudApiPublic
                     string tempDownloadFolderFullPath,
                     string clientVersion,
                     string friendlyName,
-                    string cloudRoot,
+                    string syncRoot,
                     string databaseFolder)
         {
             this._logErrors = logErrors;
@@ -240,7 +240,7 @@ namespace CloudApiPublic
             this._tempDownloadFolderFullPath = tempDownloadFolderFullPath;
             this._clientVersion = clientVersion;
             this._friendlyName = friendlyName;
-            this._syncRoot = cloudRoot;
+            this._syncRoot = syncRoot;
             this._databaseFolder = databaseFolder;
         }
     }
@@ -277,7 +277,6 @@ namespace CloudApiPublic
             ICLSyncSettingsAdvanced advancedCopy = toCopy as ICLSyncSettingsAdvanced;
             if (advancedCopy == null)
             {
-                
                 return AdvancedSyncSettings.CreateDefaultSettings(toCopy);
             }
             else

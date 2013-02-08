@@ -18,7 +18,7 @@ namespace CloudApiPublic.JsonContracts
     /// Notification from server contained in EventArgs: <see cref="CloudApiPublic.PushNotification.NotificationEventArgs"/> via events in <see cref="CloudApiPublic.PushNotification.CLNotification"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class NotificationResponse
+    public sealed class NotificationResponse
     {
         [DataMember(Name = CLDefinitions.NotificationMessageBody, IsRequired = false)]
         public string Body { get; set; }

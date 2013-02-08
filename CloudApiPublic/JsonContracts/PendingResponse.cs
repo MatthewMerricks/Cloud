@@ -18,7 +18,8 @@ namespace CloudApiPublic.JsonContracts
     /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetAllPending"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class PendingResponse
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class PendingResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataFiles, IsRequired = false)]
         public Metadata[] Files { get; set; }

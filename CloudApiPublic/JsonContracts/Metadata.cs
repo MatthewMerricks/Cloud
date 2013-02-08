@@ -15,11 +15,12 @@ using CloudApiPublic.Static;
 
 namespace CloudApiPublic.JsonContracts
 {
+    // removed "<see cref="PendingResponse"/>, " from the summary below because it's internal
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetMetadataAtPath"/>; also an inner object containing metadata properties for <see cref="Event"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="PendingResponse"/>, and <see cref="Pictures"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetMetadataAtPath"/>; also an inner object containing metadata properties for <see cref="Event"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="Pictures"/>, <see cref="Videos"/>, <see cref="Audios"/>, <see cref="Archives"/>, and <see cref="Recents"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class Metadata
+    public sealed class Metadata
     {
         [DataMember(Name = CLDefinitions.CLMetadataServerId, IsRequired = false)]
         public string ServerId { get; set; }

@@ -16,10 +16,10 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetFolderHierarchy"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetFolderHierarchy"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class Folders
+    public sealed class Folders
     {
         [DataMember(Name = CLDefinitions.CLMetadataCount, IsRequired = false)]
         public Nullable<long> Count { get; set; }

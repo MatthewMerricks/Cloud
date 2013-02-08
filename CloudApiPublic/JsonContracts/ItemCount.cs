@@ -18,7 +18,7 @@ namespace CloudApiPublic.JsonContracts
     /// An inner object containing item count properties for <see cref="Metadata"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class ItemCount
+    public sealed class ItemCount
     {
         [DataMember(Name = CLDefinitions.CLMetadataFiles, IsRequired = false)]
         public Nullable<long> FileCount { get; set; }

@@ -16,10 +16,10 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetSyncBoxUsage"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetSyncBoxUsage"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class SyncBoxUsage
+    public sealed class SyncBoxUsage
     {
         [DataMember(Name = CLDefinitions.CLMetadataLocal, IsRequired = false)]
         public Nullable<long> Local { get; set; }

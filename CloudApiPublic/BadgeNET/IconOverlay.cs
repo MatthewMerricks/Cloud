@@ -207,7 +207,7 @@ namespace CloudApiPublic.BadgeNET
 
                             // Send our badging dictionary to the BadgeCom subscribers.  Send it to each of the badge type instances.
                             _trace.writeToLog(9, "IconOverlay: threadInit: Send badging dictionary.");
-                            foreach (EnumCloudAppIconBadgeType type in Helpers.EnumUtil.GetValues<EnumCloudAppIconBadgeType>())
+                            foreach (EnumCloudAppIconBadgeType type in Enum.GetValues(typeof(EnumCloudAppIconBadgeType)).Cast<EnumCloudAppIconBadgeType>())
                             {
                                 if (type != EnumCloudAppIconBadgeType.cloudAppBadgeNone)
                                 {

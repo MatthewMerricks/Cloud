@@ -1,3 +1,10 @@
+//
+// FilePath.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -97,7 +104,6 @@ namespace CloudApiPublic.Model
             }
         }
 
-        
         /// <summary>
         /// Implicitly converts DirectoryInfo to FilePath, loses all data except the path itself
         /// </summary>
