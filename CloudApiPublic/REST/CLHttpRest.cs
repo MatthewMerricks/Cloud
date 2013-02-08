@@ -5079,7 +5079,8 @@ namespace CloudApiPublic.REST
                             throw new NullReferenceException(String.Format("httpResponse GetResponse at URL {0}, MethodPath {1}",
                                         (serverUrl ?? "{missing serverUrl}"),
                                         (serverMethodPath ?? "{missing serverMethodPath}"))
-                                        + " threw a WebException without a WebResponse");
+                                        + " threw a WebException without a WebResponse",
+                                        ex);
                         }
 
                         httpResponse = (HttpWebResponse)ex.Response;

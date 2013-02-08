@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<SmokeTest xmlns="http://www.cloud.com/InputParameters.xsd"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.cloud.com InputParameters.xsd">
+  <Copyright>
+    <ActiveSync_Folder></ActiveSync_Folder>
+  </Copyright>
+  <InputParams>
+    <API_Key>af5c9411437af584cb31506e0d41b34cfd4b6085bf9b51a5ee480c424b5932ff</API_Key>
+    <API_Secret>fc50fff51344faca5ed6cc38e4398e622963d055713db0895a144c8315c5204b</API_Secret>
+    <ActiveSync_Folder>"C:\\TestSyncBoxes\\Auto_SyncBoxA"</ActiveSync_Folder>
+    <ActiveSync_TraceFolder>"C:\\TestSyncBoxes\\Traces\\AutoSyncTraces"</ActiveSync_TraceFolder>
+    <ActiveSyncBoxID>81</ActiveSyncBoxID>
+    <ManualSyncBoxID>81</ManualSyncBoxID>
+    <ManualSync_Folder>"C:\\TestSyncBoxes\\Manual_SyncBoxA"</ManualSync_Folder>
+    <ManualSync_TraceFolder>"C:\\TestSyncBoxes\\Traces\\ManualSyncTraces"</ManualSync_TraceFolder>
+    <Token></Token>
+    <TraceLevel>5</TraceLevel>
+    <TraceType>4</TraceType>
+  </InputParams>
+  <Scenario>
+    <ScenarioTasks>
+      <SmokeTask xsi:type="FileCreation">
+        <type>FileCreation</type>
+        <FileName>ZacksFile1.txt</FileName>
+        <FilePath>"C:\\TestSyncBoxes\\Manual_SyncBoxA"</FilePath>
+      </SmokeTask>
+      <SmokeTask xsi:type="DownloadAllSyncBoxContent">
+        <type>DownloadAllSyncBoxContent</type>
+        <FolderPath>"C:\\TestSyncBoxes\\Manual_SyncBoxA"</FolderPath>
+        <FilePath></FilePath>
+      </SmokeTask>
+    </ScenarioTasks>
+  </Scenario>
+</SmokeTest>
