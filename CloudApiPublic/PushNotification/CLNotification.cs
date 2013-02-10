@@ -21,10 +21,12 @@ using CloudApiPublic.Interfaces;
 using CloudApiPublic.JsonContracts;
 using CloudApiPublic.REST;
 
+#if TRASH
 namespace CloudApiPublic.PushNotification
 {
     extern alias WebSocket4NetBase;
 
+#if TRASH
     /// <summary>
     /// Properties for a received notification message
     /// </summary>
@@ -74,6 +76,7 @@ namespace CloudApiPublic.PushNotification
             this._errorStillDisconnectedPing = ErrorStillDisconnectedPing;
         }
     }
+#endif // TRASH
     
     /// <summary>
     /// Used to establish a connection to server notifications and provides events for notifications\errors
@@ -173,64 +176,8 @@ namespace CloudApiPublic.PushNotification
             CLTrace.Instance.writeToLog(9, "CLNotification: CLNotification: Entry");
 
             // Initialize members, etc. here (at static initialization time).
-            ConnectPushNotificationServer();  //TODO: DEBUG ONLY.  REMOVE.
-            //&&&&& TEST ONLYConnectPushNotificationServerSse();
+            ConnectPushNotificationServer();
         }
-
-#if TRASH
-        public void ConnectPushNotificationServerSse()
-        {
-            try
-            {
-
-                _trace.writeToLog(9, "CLNotification: ConnectPushNotifriicationServerSse: Entry.");
-                string url = CLDefinitions.HttpPrefix + CLDefinitions.SubDomainPrefix + CLDefinitions.Domain;
-                string pathAndQueryStringAndFragment = String.Format(CLDefinitions.MethodPathPushSubscribe + "?sync_box_id={0}&device={1}", _syncBox.SyncBoxId, _syncBox.CopiedSettings.DeviceId);
-
-                Dictionary<string, string> headers = new Dictionary<string, string>();
-                headers.Add(
-                    CLDefinitions.HeaderKeyAuthorization,
-                    CLDefinitions.HeaderAppendCWS0 +
-                                            CLDefinitions.HeaderAppendKey +
-                                            _syncBox.Credential.Key + ", " +
-                                            CLDefinitions.HeaderAppendSignature +
-                                            Helpers.GenerateAuthorizationHeaderToken(
-                                                secret: _syncBox.Credential.Secret,
-                                                httpMethod: CLDefinitions.HeaderAppendMethodGet,
-                                                pathAndQueryStringAndFragment: pathAndQueryStringAndFragment) +
-                                                // Add token if specified
-                                                (!String.IsNullOrEmpty(_syncBox.Credential.Token) ?
-                                                    CLDefinitions.HeaderAppendToken + _syncBox.Credential.Token :
-                                                    String.Empty));
-
-                if ((_syncBox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
-                {
-                    ComTrace.LogCommunication(_syncBox.CopiedSettings.TraceLocation,
-                        _syncBox.CopiedSettings.DeviceId,
-                        _syncBox.SyncBoxId,
-                        CommunicationEntryDirection.Request,
-                        url + pathAndQueryStringAndFragment,
-                        true,
-                        null,
-                        null,
-                        null,
-                        null,
-                        _syncBox.CopiedSettings.TraceExcludeAuthorization);
-                }
-
-                SseRequest sseRequest = new SseRequest();
-                sseRequest.DeviceId = _syncBox.CopiedSettings.DeviceId;
-                sseRequest.SyncBoxId = _syncBox.SyncBoxId;
-
-                CLError errorFromConnectServerSentEvents = TestConnectServerSentEvents(sseRequest, HttpTimeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SseResponse response)
-
-            }
-            catch (Exception ex)
-            {
-            }
-        }
-
-#endif //TRASH
 
         /// <summary>
         /// Call to initialize and make a connection to the push notification server.
@@ -815,3 +762,4 @@ namespace CloudApiPublic.PushNotification
         }
     }
 }
+#endif // TRASH

@@ -4,7 +4,6 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
-#if TRASH2
 using System;
 using System.Windows;
 using System.Collections.Generic;
@@ -103,6 +102,10 @@ namespace CloudApiPublic.PushNotification
         private static CLTrace _trace = CLTrace.Instance;
         private readonly CLSyncBox _syncBox;
         private bool _serviceStarted;               // True: the push notification service has been started.
+        private readonly GenericHolder<Thread> _engineThread = new GenericHolder<Thread>(null);
+        private Dictionary<NotificationEngines, ICLNotificationEngine> _dictEngines;  // holds the various push notification engines
+        private Timer _timerEngine = null;
+        private ICLNotificationEngine _currentEngine = null;
 
         /// <summary>
         /// Tracks the subscribed clients via their SyncBoxId/DeviceId combination.
@@ -145,32 +148,307 @@ namespace CloudApiPublic.PushNotification
         // This is a private constructor, meaning no outsiders have access.
         private CLNotificationService(CLSyncBox syncBox)
         {
-            // check input parameters
-
-            if (syncBox == null)
+            try
             {
-                throw new NullReferenceException("syncBox cannot be null");
+                // check input parameters
+
+                if (syncBox == null)
+                {
+                    throw new NullReferenceException("syncBox cannot be null");
+                }
+                if (string.IsNullOrEmpty(syncBox.CopiedSettings.DeviceId))
+                {
+                    throw new NullReferenceException("syncBox CopiedSettings DeviceId cannot be null");
+                }
+
+                lock (this)
+                {
+                    // Initialize trace in case it is not already initialized.
+                    CLTrace.Initialize(syncBox.CopiedSettings.TraceLocation, "Cloud", "log", syncBox.CopiedSettings.TraceLevel, syncBox.CopiedSettings.LogErrors);
+                    _trace.writeToLog(9, "CLNotificationService: CLNotificationService: Entry");
+
+                    // sync settings are copied so that changes require stopping and starting notification services
+                    this._syncBox = syncBox;
+
+                    this._dictEngines = new Dictionary<NotificationEngines, ICLNotificationEngine>();
+
+                    // Construct the engines
+                    //CLNotificationSseEngine engineSse = new CLNotificationSseEngine(
+                    //            syncBox: this._syncBox,
+                    //            delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
+                    //            delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback);
+                    //_dictEngines.Add(NotificationEngines.NotificationEngine_SSE, engineSse);
+
+                    //CLNotificationWebSocketsEngine engineWebSockets = new CLNotificationWebSocketseEngine(
+                    //            syncBox: this._syncBox,
+                    //            delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
+                    //            delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback);
+                    //_dictEngines.Add(NotificationEngines.NotificationEngine_WebSockets, engineWebSockets);
+
+                    //CLNotificationLongPollingEngine engineLongPolling = new CLNotificationLongPollingEngine(
+                    //            syncBox: this._syncBox,
+                    //            delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
+                    //            delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback);
+                    //_dictEngines.Add(NotificationEngines.NotificationEngine_LongPolling, engineLongPolling);
+
+                    CLNotificationManualPollingEngine engineManualPolling = new CLNotificationManualPollingEngine(
+                                syncBox: this._syncBox,
+                                delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
+                                delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback,
+                                delegateSendManualPoll: this.SendManualPollCallback);
+                    _dictEngines.Add(NotificationEngines.NotificationEngine_ManualPolling, engineManualPolling);
+
+                    // Start the thread that will run the engines
+                    StartEngineThread();
+
+                    // Initialized now
+                    _serviceStarted = true;
+                }
             }
-            if (string.IsNullOrEmpty(syncBox.CopiedSettings.DeviceId))
+            catch (Exception ex)
             {
-                throw new NullReferenceException("syncBox CopiedSettings DeviceId cannot be null");
+                _trace.writeToLog(1, "CLNotificationService: CLNotificationService: ERROR: Exception: Msg: {0}.", ex.Message);
+                throw;
             }
-
-            // sync settings are copied so that changes require stopping and starting notification services
-            this._syncBox = syncBox;
-
-            // Initialize trace in case it is not already initialized.
-            CLTrace.Initialize(syncBox.CopiedSettings.TraceLocation, "Cloud", "log", syncBox.CopiedSettings.TraceLevel, syncBox.CopiedSettings.LogErrors);
-            CLTrace.Instance.writeToLog(9, "CLNotificationService: CLNotificationService: Entry");
-
-            // Initialize members, etc. here (at static initialization time).
-            //&&&&&ConnectPushNotificationServer();  //TODO: DEBUG ONLY.  REMOVE.
-            //&&&&&ConnectPushNotificationServerSse();
         }
 
+        /// <summary>
+        /// Call to terminate and disconnect from the push notification server.
+        /// </summary>
         public void DisconnectPushNotificationServer()
         {
+            try
+            {
+                lock (this)
+                {
+                    if (_syncBox != null)
+                    {
+                        string syncBoxDeviceIdCombined = _syncBox.SyncBoxId.ToString() + " " + (_syncBox.CopiedSettings.DeviceId ?? string.Empty);
+
+                        NotificationClientsRunning.Remove(syncBoxDeviceIdCombined);
+                    }
+
+                    if (_timerEngine != null)
+                    {
+                        _timerEngine.Dispose();
+                        _timerEngine = null;
+                    }
+
+                    StopEngineThread();
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "DisconnectPushNotificationServer: DisconnectPushNotificationServer: ERROR: Exception: Msg: {0}.", ex.Message);
+            }
         }
+
+        private void StartEngineThread()
+        {
+            try
+            {
+                lock (this)
+                {
+                    if (_engineThread.Value == null)
+                    {
+                        _engineThread.Value = new Thread(new ParameterizedThreadStart(this.EngineThreadProc));
+                        _engineThread.Value.Name = "Notification Engine";
+                        _engineThread.Value.IsBackground = true;
+                        _engineThread.Value.Start(this);
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "StartEngineThread: StartEngineThread: ERROR: Exception: Msg: {0}.", ex.Message);
+                throw;
+            }
+        }
+
+        private void StopEngineThread()
+        {
+            try
+            {
+                lock (this)
+                {
+                    if (_engineThread.Value != null)
+                    {
+                        try
+                        {
+                            _engineThread.Value.Abort();
+                        }
+                        catch
+                        {
+                        }
+                        _engineThread.Value = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "StartEngineThread: StopEngineThread: ERROR: Exception: Msg: {0}.", ex.Message);
+            }
+        }
+
+        private void EngineThreadProc(object obj)
+        {
+            // Initialize
+            CLNotificationService castState = obj as CLNotificationService;
+            if (castState == null)
+            {
+                throw new InvalidCastException("obj must be a CLNotificationService");
+            }
+
+            try
+            {
+                // Loop processing forever until we have a serious error and have to stop.
+                while (true)
+                {
+                    bool fBackToTopOfList = false;
+
+                    // Loop through the engines (first to last, highest priority to lowest priority).
+                    IEnumerable<NotificationEngines> engineIndices = Helpers.EnumUtil.GetValues<NotificationEngines>();
+                    foreach (NotificationEngines engineIndex in engineIndices)
+                    {
+                        int successes = 0;
+                        int failures = 0;
+
+                        // Loop running this particular engine
+                        while (true)
+                        {
+                            // Start this engine
+                            bool engineStartDidReturnSuccess = _dictEngines[engineIndex].Start();
+                            if (engineStartDidReturnSuccess)
+                            {
+                                ++successes;
+                                if (successes >= _dictEngines[engineIndex].MaxSuccesses)
+                                {
+                                    fBackToTopOfList = true;
+                                    break;          // start back at the top of the list again.
+                                }
+                            }
+                            else
+                            {
+                                // Start failed for this engine
+                                ++failures;
+                                if (failures >= _dictEngines[engineIndex].MaxFailures)
+                                {
+                                    // DO NOTHING. Iterate to the next engine down the list.
+                                }
+                            }
+                        }
+
+                        if (fBackToTopOfList)
+                        {
+                            break;              // back to the top of the engine list
+                        }
+                    }
+
+                    // If all of the engines failed, stop the service.
+                    if (!fBackToTopOfList)
+                    {
+                        //TODO: Notify sync push notification stopped.
+                        return;     // exit this thread
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "StartEngineThread: EngineThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
+            }
+        }
+
+        #region Callbacks
+
+        private void SendManualPollCallback()
+        {
+            if (NotificationStillDisconnectedPing != null)
+            {
+                _trace.writeToLog(9, "CLNotificationService: PerformManualSyncFrom: Fire event to request the application to send a Sync_From request.");
+                NotificationEventArgs args = new NotificationEventArgs(
+                    new NotificationResponse()
+                    {
+                        Body = CLDefinitions.CLNotificationTypeNew
+                    });
+                NotificationStillDisconnectedPing(this, args);
+            }
+        }
+
+        void StartEngineTimeoutCallback(int timeoutMilliseconds, object userState)
+        {
+            try
+            {
+                lock (this)
+                {
+                    if (_timerEngine != null)
+                    {
+                        _timerEngine.Dispose();
+                        _timerEngine = new Timer(callback: TimerCallback, state: userState, dueTime: 0, period: timeoutMilliseconds);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLNotificationService: StartEngineTimeoutCallback: ERROR: Exception: Msg: {0}.", ex.Message);
+            }
+        }
+
+        void TimerCallback(object userState)
+        {
+            try
+            {
+                ICLNotificationEngine engineToCall = null;
+                lock (this)
+                {
+                    if (_timerEngine != null)
+                    {
+                        _timerEngine.Dispose();
+                        _timerEngine = null;
+                    }
+
+                    if (_currentEngine != null)
+                    {
+                        engineToCall = _currentEngine;
+                    }
+                }
+
+                // Call the engine with this timer expiration.
+                if (engineToCall != null)
+                {
+                    engineToCall.TimerExpired(userState);
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLNotificationService: TimerCallback: ERROR: Exception: Msg: {0}.", ex.Message);
+            }
+        }
+
+        void CancelEngineTimeoutCallback()
+        {
+            try
+            {
+                lock (this)
+                {
+                    if (_timerEngine != null)
+                    {
+                        _timerEngine.Dispose();
+                        _timerEngine = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLNotificationService: CancelEngineTimeoutCallback: ERROR: Exception: Msg: {0}.", ex.Message);
+            }
+        }
+
+        #endregion
+
+
+
+
 
 #if TRASH
         public void ConnectPushNotificationServerSse()
@@ -237,4 +515,3 @@ namespace CloudApiPublic.PushNotification
 #endif // TRASH
     }
 }
-#endif // TRASH2

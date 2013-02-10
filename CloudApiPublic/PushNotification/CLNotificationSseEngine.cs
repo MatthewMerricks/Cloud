@@ -1,4 +1,4 @@
-﻿//  ICLNotificationSseEngine.cs
+﻿//  CLNotificationSseEngine.cs
 //  Cloud Windows
 //
 //  Created by BobS.
@@ -15,6 +15,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
+
 #if TRASH
 
 namespace CloudApiPublic.PushNotification
@@ -24,16 +25,11 @@ namespace CloudApiPublic.PushNotification
         #region Private fields
 
         private static CLTrace _trace = CLTrace.Instance;
-        private const int _maxFailures = 1;
-        private const int _maxReconnects = 5;
-        private int _currentOpenAttemptCount = 0;
-        private int _currentReconnectAttemptCount = 0;
-        private readonly GenericHolder<Thread> engineThread = new GenericHolder<Thread>(null);
-        private readonly object _locker = new object();
-        private bool _IsInitialized = false;
         private CLSyncBox _syncBox = null;
         private ICLSyncSettingsAdvanced _copiedSettings = null;
-        private static ManualResetEvent allDone = new ManualResetEvent(false);
+        private StartEngineTimeout _delegateStartEngineTimeout = null;
+        private CancelEngineTimeout _delegateCancelEngineTimeout = null;
+        private SendManualPoll _delegateSendManualPoll = null;
         const int BUFFER_SIZE = 1024;
 
         #endregion
@@ -68,23 +64,55 @@ namespace CloudApiPublic.PushNotification
             {
                 return _state;
             }
-            private set
-            {
-                _state = value;
-            }
         }
         private NotificationEngineStates _state = NotificationEngineStates.NotificationEngineState_Idle;
 
-        public event EventHandler<EventArgs> EvtFailureCountReached;
-    
+        public int MaxSuccesses
+        {
+            get
+            {
+                return _maxSuccesses;
+            }
+        }
+        private int _maxSuccesses = 10;
+
+        public int MaxFailures
+        {
+            get
+            {
+                return _maxFailures;
+            }
+        }
+        private int _maxFailures = 1;
+
         #endregion
 
         #region Constructors
 
-        public CLNotificationSseEngine(CLSyncBox syncBox)
+        public CLNotificationSseEngine(
+                        CLSyncBox syncBox, 
+                        StartEngineTimeout delegateStartEngineTimeout, 
+                        CancelEngineTimeout delegateCancelEngineTimeout,
+                        SendManualPoll delegateSendManualPoll = null)   // optional
         {
+            if (syncBox == null)
+            {
+                throw new ArgumentNullException("syncBox must not be null");
+            }
+            if (delegateStartEngineTimeout == null)
+            {
+                throw new ArgumentNullException("delegateStartEngineTimeout must not be null");
+            }
+            if (delegateCancelEngineTimeout == null)
+            {
+                throw new ArgumentNullException("delegateCancelEngineTimeout must not be null");
+            }
+
             _syncBox = syncBox;
             _copiedSettings = syncBox.CopiedSettings;
+            _delegateStartEngineTimeout = delegateStartEngineTimeout;
+            _delegateCancelEngineTimeout = delegateCancelEngineTimeout;
+            _delegateSendManualPoll = delegateSendManualPoll;
         }
 
         public CLNotificationSseEngine()
@@ -96,61 +124,72 @@ namespace CloudApiPublic.PushNotification
 
         #region Public methods
 
-        public void Open()
+        public bool Start()
         {
-            lock (_locker)
+            bool fToReturnIsSuccess = true;     // assume success
+            try
             {
-                if (_IsInitialized)
+                lock (_locker)
                 {
-                    throw new InvalidOperationException("Already initialized");
-                }
+                    if (_isInitialized)
+                    {
+                        throw new InvalidOperationException("Already initialized");
+                    }
 
-                StartEngineThread();
-                _IsInitialized = true;
+                    StartEngineThread();
+                    _isInitialized = true;
+                }
             }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLNotificationSseEngine: Start: ERROR: Exception: Msg: {0}.", ex.Message);
+                fToReturnIsSuccess = false;
+            }
+
+            return fToReturnIsSuccess;
         }
+
         public void Close()
         {
             lock (_locker)
             {
                 StopEngineThread();
-                _IsInitialized = false;
+                _isInitialized = false;
             }
         }
         
         #endregion
 
-
         #region Private methods
-        
+
         private void StartEngineThread()
         {
-            lock (engineThread)
+            lock (_engineThread)
             {
-                if (engineThread.Value == null)
+                if (_engineThread.Value == null)
                 {
-                    engineThread.Value = new Thread(new ParameterizedThreadStart(this.OpenThreadProc));
-                    engineThread.Value.Name = "Notification Engine";
-                    engineThread.Value.IsBackground = true;
-                    engineThread.Value.Start(this);
+                    _engineThread.Value = new Thread(new ParameterizedThreadStart(this.OpenThreadProc));
+                    _engineThread.Value.Name = "Notification Engine";
+                    _engineThread.Value.IsBackground = true;
+                    _engineThread.Value.Start(this);
                 }
             }
         }
 
         private void StopEngineThread()
         {
-            lock (engineThread)
+            lock (_engineThread)
             {
-                if (engineThread.Value != null)
+                if (_engineThread.Value != null)
                 {
                     try
                     {
-                        engineThread.Value.Abort();
+                        _engineThread.Value.Abort();
                     }
                     catch
                     {
                     }
-                    engineThread.Value = null;
+                    _engineThread.Value = null;
                     // Call event here: NativeMethods.WSALookupServiceEnd(monitorLookup);
                 }
             }
@@ -166,7 +205,7 @@ namespace CloudApiPublic.PushNotification
             }
             castState._currentOpenAttemptCount = 0;
             castState._currentReconnectAttemptCount = 0;
-            castState.State = NotificationEngineStates.NotificationEngineState_Starting;
+            castState._state = NotificationEngineStates.NotificationEngineState_Starting;
 
             // Loop attempting to open to the server
             for (_currentOpenAttemptCount = 0; _currentOpenAttemptCount < _maxFailures; ++_currentOpenAttemptCount)
@@ -243,7 +282,7 @@ namespace CloudApiPublic.PushNotification
             // Did we fail?
             if (_currentOpenAttemptCount >= _maxFailures)
             {
-                castState.State = NotificationEngineStates.NotificationEngineState_Failed;
+                castState._state = NotificationEngineStates.NotificationEngineState_Failed;
                 if (EvtFailureCountReached != null)
                 {
                     EvtFailureCountReached(this, new EventArgs());
@@ -264,6 +303,10 @@ namespace CloudApiPublic.PushNotification
                     request.Abort();
                 }
             }
+        }
+
+        public void TimerExpired(object userState)
+        {
         }
 
         private static void RespCallback(IAsyncResult asynchronousResult)

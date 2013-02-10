@@ -158,6 +158,7 @@
     <Compile Include="Model\IMessageSender.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
+    <Compile Include="PushNotification\CLNotificationManualPollingEngine.cs" />
     <Compile Include="PushNotification\CLNotificationSseEngine.cs" />
     <Compile Include="PushNotification\ICLNotificationEngine.cs" />
     <Compile Include="PushNotification\CLNotificationService.cs" />
