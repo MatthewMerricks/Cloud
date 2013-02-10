@@ -173,11 +173,11 @@ namespace CloudApiPublic.PushNotification
                     this._dictEngines = new Dictionary<NotificationEngines, ICLNotificationEngine>();
 
                     // Construct the engines
-                    //CLNotificationSseEngine engineSse = new CLNotificationSseEngine(
-                    //            syncBox: this._syncBox,
-                    //            delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
-                    //            delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback);
-                    //_dictEngines.Add(NotificationEngines.NotificationEngine_SSE, engineSse);
+                    CLNotificationSseEngine engineSse = new CLNotificationSseEngine(
+                                syncBox: this._syncBox,
+                                delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
+                                delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback);
+                    _dictEngines.Add(NotificationEngines.NotificationEngine_SSE, engineSse);
 
                     //CLNotificationWebSocketsEngine engineWebSockets = new CLNotificationWebSocketseEngine(
                     //            syncBox: this._syncBox,

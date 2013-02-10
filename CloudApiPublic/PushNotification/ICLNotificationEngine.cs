@@ -23,7 +23,7 @@ namespace CloudApiPublic.PushNotification
 
     public enum NotificationEngines : uint
     {
-        //NotificationEngine_SSE,
+        NotificationEngine_SSE,
         //NotificationEngine_WebSockets,
         NotificationEngine_ManualPolling,
     }
