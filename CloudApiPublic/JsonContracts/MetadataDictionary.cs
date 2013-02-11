@@ -138,15 +138,24 @@ namespace CloudApiPublic.JsonContracts
                             Type[] dictionaryGenericTypes = implementedInterfaceType.GetGenericArguments();
                             if (dictionaryGenericTypes[0] == typeof(string))
                             {
-                                IDictionary<string, object> wrappedDict = (IDictionary<string, object>)
-                                    typeof(DictionaryWrapper<>)
-                                        .MakeGenericType(dictionaryGenericTypes[1])
-                                        .GetConstructor(new[]
-                                        {
-                                            typeof(IDictionary<,>)
-                                                .MakeGenericType(typeof(string), dictionaryGenericTypes[1])
-                                        })
-                                        .Invoke(new[] { stringDictObject });
+                                IDictionary<string, object> wrappedDict;
+                                if (dictionaryGenericTypes[1] == typeof(object))
+                                {
+                                    wrappedDict = (IDictionary<string, object>)stringDictObject;
+                                }
+                                else
+                                {
+                                    wrappedDict = (IDictionary<string, object>)
+                                        typeof(DictionaryWrapper<>)
+                                            .MakeGenericType(dictionaryGenericTypes[1])
+                                            .GetConstructor(new[]
+                                                {
+                                                    typeof(IDictionary<,>)
+                                                        .MakeGenericType(typeof(string), dictionaryGenericTypes[1])
+                                                })
+                                            .Invoke(new[] { stringDictObject });
+                                }
+
                                 stringDictObject = new MetadataDictionary(wrappedDict);
                                 break;
                             }
