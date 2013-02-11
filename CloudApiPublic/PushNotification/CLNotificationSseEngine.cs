@@ -302,39 +302,44 @@ namespace CloudApiPublic.PushNotification
                             {
                                 // cancel engine timeout delegate
 
-                                // Loop reading commands from the server.
-                                while (true)
+                                using (StreamReader readStream = new StreamReader(receiveStream, Encoding.UTF8))
                                 {
-                                    // Start the engine timeout delegate
-
-                                    Console.WriteLine("Start reading the data");
-                                    StringBuilder sbReceived = new StringBuilder(null);
+                                    // Loop reading commands from the server.
                                     while (true)
                                     {
-                                        int intByteRead = receiveStream.ReadByte();
+                                        // Start the engine timeout delegate
 
-                                        if (intByteRead != -1)
+                                        Console.WriteLine("Start reading the data");
+                                        StringBuilder sbReceived = new StringBuilder(null);
+                                        while (true)
                                         {
-                                            // Got a byte.  Add it to the received string.
-                                            sbReceived.Append(intByteRead);
+                                            char[] unicodeCharBuffer = new char[1];
+                                            int bytesRead = readStream.Read(unicodeCharBuffer, 0, 1);        // read one byte
+
+                                            if (bytesRead != 0)
+                                            {
+                                                // Got a byte.  Add it to the received string.
+                                                sbReceived.Append(unicodeCharBuffer[0]);
+                                            }
+                                            else
+                                            {
+                                                // We are at the end of the stream
+                                                break;
+                                            }
                                         }
-                                        else
-                                        {
-                                            // We are at the end of the stream
-                                            break;
-                                        }
+
+                                        // Cancel the engine timeout delegate.
+
+                                        // We have a buffer full of data that should represent one or more commands from the server.
+                                        Console.WriteLine("Data read: {" + sbReceived + "}");
+
+                                        // process events here, but be careful of splits between buffers
+                                        // follow specifications at http://www.w3.org/TR/2009/WD-eventsource-20091029/#parsing-an-event-stream
+                                        // the character combination "\r\n" for carriage return plus line feed is the exact split between events in a stream, but may be omitted for the final event so check once more at the end
+                                        // store excess characters from the end of the buffer (may be unlimitted size if a single event can be at least the size of one buffer) to be processed seperately at the end
                                     }
-
-                                    // Cancel the engine timeout delegate.
-
-                                    // We have a buffer full of data that should represent one or more commands from the server.
-                                    Console.WriteLine("Data read: {" + sbReceived + "}");
-
-                                    // process events here, but be careful of splits between buffers
-                                    // follow specifications at http://www.w3.org/TR/2009/WD-eventsource-20091029/#parsing-an-event-stream
-                                    // the character combination "\r\n" for carriage return plus line feed is the exact split between events in a stream, but may be omitted for the final event so check once more at the end
-                                    // store excess characters from the end of the buffer (may be unlimitted size if a single event can be at least the size of one buffer) to be processed seperately at the end
                                 }
+
                             }
 
                             // Successful.  Post the waiting event.

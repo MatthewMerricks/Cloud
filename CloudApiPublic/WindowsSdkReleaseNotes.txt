@@ -8,6 +8,8 @@
   o Bug fix: Badging was not working properly on Windows 8 systems.
   o Known issue: Push notification: A temporary platform issue is causing the WebSockets support to be unavailable.  This release of the Windows SDK supports only WebSockets and manual polling, so there will always be
     fallback to manual polling until the platform issue is fixed, or until Server-Sent-Events is implemented in the Windows SDK.  Manual polls occur randomly from 30 to 60 seconds.  Therefore, you may notice that syncs are slow to occur on other devices.
+  o Known issue: Paths with Windows-restricted characters or extended UTF-8 encoded characters will not sync, and same paths with only case-sensitivity differences may overwrite local files.
+  o Known issue: Paths longer than 259 characters will not sync (FAT-32 limit).
 
 02/04/2013 CloudSDK-v0.1.2.zip
   o The sample program now supports a "red X" icon that will display on fatal errors when the sync engine cannot logically continue.  This fatal error summary status condition was

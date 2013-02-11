@@ -308,7 +308,7 @@ namespace CloudApiPublic.PushNotification
                     bool fBackToTopOfList = false;
 
                     // Loop through the engines (first to last, highest priority to lowest priority).
-                    IEnumerable<NotificationEngines> engineIndices = Helpers.EnumUtil.GetValues<NotificationEngines>();
+                    IEnumerable<NotificationEngines> engineIndices = Enum.GetValues(typeof(NotificationEngines)).Cast<NotificationEngines>();
                     foreach (NotificationEngines engineIndex in engineIndices)
                     {
                         int successes = 0;
