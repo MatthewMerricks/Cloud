@@ -33,8 +33,9 @@ namespace CloudApiPublic.PushNotification
         private bool _isConnectionSuccesful = false;
         private readonly object _locker = new object();
         private readonly GenericHolder<Thread> _engineThread = new GenericHolder<Thread>(null);
-        private static ManualResetEvent _startComplete = new ManualResetEvent(false);
+        private static readonly ManualResetEvent _startComplete = new ManualResetEvent(false);
         const int BUFFER_SIZE = 1024;
+        const int DELAY_RECONNECT_MILLISECONDS = 3000; // default 3 second delay
 
         #endregion
 
@@ -157,7 +158,7 @@ namespace CloudApiPublic.PushNotification
                     if (_engineThread.Value == null)
                     {
                         _engineThread.Value = new Thread(new ParameterizedThreadStart(this.StartThreadProc));
-                        _engineThread.Value.Name = "Notification Engine";
+                        _engineThread.Value.Name = "SSE Engine";
                         _engineThread.Value.IsBackground = true;
                         _engineThread.Value.Start(this);
                     }
@@ -199,77 +200,178 @@ namespace CloudApiPublic.PushNotification
             }
             castState._state = NotificationEngineStates.NotificationEngineState_Starting;
 
-            // Attempt to open to the server
-            HttpWebRequest sseRequest = (HttpWebRequest)HttpWebRequest.Create(CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe);
-            sseRequest.Method = CLDefinitions.HeaderAppendMethodGet;
-            sseRequest.Accept = "text/event-stream";
-            sseRequest.Referer = CLDefinitions.CLNotificationServerSseURL;
-            sseRequest.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore);
-            sseRequest.Headers["Accept-Language"] = "en-us,en;q=0.9";
-            sseRequest.KeepAlive = true; // <-- Connection
-            sseRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
-            
-            // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-            sseRequest.Headers[CLDefinitions.CLClientVersionHeaderName] =  _copiedSettings.ClientVersion; // set client version
-            sseRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
-                                CLDefinitions.HeaderAppendKey +
-                                _syncBox.Credential.Key + ", " +
-                                CLDefinitions.HeaderAppendSignature +
-                                        Helpers.GenerateAuthorizationHeaderToken(
-                                            _syncBox.Credential.Secret,
-                                            httpMethod: sseRequest.Method,
-                                            pathAndQueryStringAndFragment: CLDefinitions.MethodPathPushSubscribe) +
-                                            // Add token if specified
-                                            (!String.IsNullOrEmpty(_syncBox.Credential.Token) ?
-                                                    CLDefinitions.HeaderAppendToken + _syncBox.Credential.Token :
-                                                    String.Empty);
-            sseRequest.SendChunked = false; // do not send chunked
-            sseRequest.Timeout = CLDefinitions.HttpTimeoutDefaultMilliseconds; // set timeout.  The timeout does not apply to the amount of time the readStream stays open to read server events.
+            // Build the query string.
+            string query = Helpers.QueryStringBuilder(
+                new[]
+                {
+                    new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBox.SyncBoxId.ToString()), // no need to escape string characters since the source is an integer
+                    new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
+                });
 
-            #region trace request
-            // if communication is supposed to be traced, then trace it
-            if ((_copiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
+            bool continueReconnecting = true;
+            while (continueReconnecting)
             {
-                // trace communication for the current request
-                ComTrace.LogCommunication(_copiedSettings.TraceLocation, // location of trace file
-                    _copiedSettings.DeviceId, // device id
-                    _syncBox.SyncBoxId, // syncbox id
-                    CommunicationEntryDirection.Request, // direction is request
-                    CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe, // location for the server method
-                    true, // trace is enabled
-                    sseRequest.Headers, // headers of request
-                    (string) null,  // no body
-                    null, // no status code for requests
-                    _copiedSettings.TraceExcludeAuthorization, // whether or not to exclude authorization information (like the authentication key)
-                    sseRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
-                    null,  // no content length header
-                    (sseRequest.Expect == null ? "100-continue" : sseRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
-                    (sseRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
+                HttpWebRequest sseRequest = (HttpWebRequest)HttpWebRequest.Create(
+                                    CLDefinitions.CLNotificationServerSseURL +
+                                    CLDefinitions.MethodPathPushSubscribe +
+                                    query);
+
+                sseRequest.Method = CLDefinitions.HeaderAppendMethodGet;
+                sseRequest.Accept = "text/event-stream";
+                sseRequest.Referer = CLDefinitions.CLNotificationServerSseURL;
+                sseRequest.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore);
+                sseRequest.Headers["Accept-Language"] = "en-us,en;q=0.9";
+                sseRequest.KeepAlive = true; // <-- Connection
+                sseRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
+
+                // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
+                sseRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = _copiedSettings.ClientVersion; // set client version
+                sseRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
+                                    CLDefinitions.HeaderAppendKey +
+                                    _syncBox.Credential.Key + ", " +
+                                    CLDefinitions.HeaderAppendSignature +
+                                            Helpers.GenerateAuthorizationHeaderToken(
+                                                _syncBox.Credential.Secret,
+                                                httpMethod: sseRequest.Method,
+                                                pathAndQueryStringAndFragment: CLDefinitions.MethodPathPushSubscribe + query) +
+                                               // Add token if specified
+                                                (!String.IsNullOrEmpty(_syncBox.Credential.Token) ?
+                                                        CLDefinitions.HeaderAppendToken + _syncBox.Credential.Token :
+                                                        String.Empty);
+                sseRequest.SendChunked = false; // do not send chunked
+                sseRequest.Timeout = CLDefinitions.HttpTimeoutDefaultMilliseconds; // set timeout.  The timeout does not apply to the amount of time the readStream stays open to read server events.
+
+                #region trace request
+                // if communication is supposed to be traced, then trace it
+                if ((_copiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
+                {
+                    // trace communication for the current request
+                    ComTrace.LogCommunication(_copiedSettings.TraceLocation, // location of trace file
+                        _copiedSettings.DeviceId, // device id
+                        _syncBox.SyncBoxId, // syncbox id
+                        CommunicationEntryDirection.Request, // direction is request
+                        CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe, // location for the server method
+                        true, // trace is enabled
+                        sseRequest.Headers, // headers of request
+                        (string)null,  // no body
+                        null, // no status code for requests
+                        _copiedSettings.TraceExcludeAuthorization, // whether or not to exclude authorization information (like the authentication key)
+                        sseRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
+                        null,  // no content length header
+                        (sseRequest.Expect == null ? "100-continue" : sseRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
+                        (sseRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
+                }
+                #endregion
+
+                #region Send the request and get the response.
+
+                // Send the request and receive the immediate response.
+                _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
+                HttpWebResponse response;
+                WebException storeWebEx = null;
+                try
+                {
+                    response = (HttpWebResponse)sseRequest.GetResponse();
+                }
+                catch (WebException ex)
+                {
+                    if (ex.Response != null)
+                    {
+                        response = (HttpWebResponse)ex.Response;
+                        storeWebEx = ex;
+                    }
+                    else
+                    {
+                        throw new Exception("WebException thrown without a Response", ex);
+                    }
+                }
+
+                try
+                {
+                    _delegateCancelEngineTimeout();
+
+                    // check response status code == 200 here
+                    switch (response.StatusCode)
+                    {
+                        case HttpStatusCode.OK: // continue reconnecting case, may or may not have data
+
+                            // start engine timeout delegate
+
+                            // Get the stream associated with the response.
+                            using (Stream receiveStream = response.GetResponseStream())
+                            {
+                                // cancel engine timeout delegate
+
+                                // Loop reading commands from the server.
+                                while (true)
+                                {
+                                    // Start the engine timeout delegate
+
+                                    Console.WriteLine("Start reading the data");
+                                    StringBuilder sbReceived = new StringBuilder(null);
+                                    while (true)
+                                    {
+                                        int intByteRead = receiveStream.ReadByte();
+
+                                        if (intByteRead != -1)
+                                        {
+                                            // Got a byte.  Add it to the received string.
+                                            sbReceived.Append(intByteRead);
+                                        }
+                                        else
+                                        {
+                                            // We are at the end of the stream
+                                            break;
+                                        }
+                                    }
+
+                                    // Cancel the engine timeout delegate.
+
+                                    // We have a buffer full of data that should represent one or more commands from the server.
+                                    Console.WriteLine("Data read: {" + sbReceived + "}");
+
+                                    // process events here, but be careful of splits between buffers
+                                    // follow specifications at http://www.w3.org/TR/2009/WD-eventsource-20091029/#parsing-an-event-stream
+                                    // the character combination "\r\n" for carriage return plus line feed is the exact split between events in a stream, but may be omitted for the final event so check once more at the end
+                                    // store excess characters from the end of the buffer (may be unlimitted size if a single event can be at least the size of one buffer) to be processed seperately at the end
+                                }
+                            }
+
+                            // Successful.  Post the waiting event.
+                            _isConnectionSuccesful = true;
+                            _startComplete.Set();
+
+                            Thread.Sleep(DELAY_RECONNECT_MILLISECONDS); // delay as per SSE specification
+
+                            break;
+
+                        case HttpStatusCode.NoContent: // do not continue reconnecting, do not check for data
+
+                            continueReconnecting = false; // no content status code is used by the server to end a connection
+
+                            // force close the underlying connection somehow (don't know how)
+
+                            // for tracing purposes only, may still want to 'try' to pull out response stream here if there is any response body content (which is incorrect given the no content status code!)
+
+                            // Successful.  Post the waiting event.
+                            _isConnectionSuccesful = true;
+                            _startComplete.Set();
+
+                            break;
+
+                        default: // invalid status code
+
+                            // pull out response stream here for trace output to see the actual error message from the server
+
+                            throw storeWebEx; // rethrow the stored exception from above, also may be wrapped with an outer exception message and passed via InnerException
+                    }
+                }
+                finally
+                {
+                    response.Close();
+                }
+                #endregion
             }
-            #endregion
-
-            #region Send the request and get the response.
-
-            // Send the request and receive the immediate response.
-            _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
-            HttpWebResponse response = (HttpWebResponse)sseRequest.GetResponse();
-            _delegateCancelEngineTimeout();
-
-            // Get the stream associated with the response.
-            Stream receiveStream = response.GetResponseStream();
-
-            // Get a stream reader hooked up to the response stream.
-            StreamReader readStream = new StreamReader(receiveStream, Encoding.UTF8);
-
-            // Test read the bytes to see how long it stays open.
-            Console.WriteLine("Start reading the data");
-            Console.WriteLine(readStream.ReadToEnd());
-
-            // Successful.  Post the waiting event.
-            _isConnectionSuccesful = true;
-            _startComplete.Set();
-
-            #endregion
 
             return;  // exit thread
         }
