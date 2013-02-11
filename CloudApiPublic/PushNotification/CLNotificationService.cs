@@ -1,4 +1,4 @@
-﻿//  CLNotificationService.cs
+//  CLNotificationService.cs
 //  Cloud Windows
 //
 //  Created by BobS.

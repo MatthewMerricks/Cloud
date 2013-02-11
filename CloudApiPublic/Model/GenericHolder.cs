@@ -12,12 +12,17 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System;
 using System.Reflection;
+using System.Runtime.Serialization;
+using CloudApiPublic.JsonContracts;
 
 namespace CloudApiPublic.Model
 {
+    [DataContract]
+    [KnownType(typeof(MetadataDictionary))]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class GenericHolder<T>
     {
+        [DataMember]
         public T Value { get; set; }
 
         public static readonly PropertyInfo ValueInfo = typeof(GenericHolder<T>)

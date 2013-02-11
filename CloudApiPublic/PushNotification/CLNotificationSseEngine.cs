@@ -1,4 +1,4 @@
-﻿//  CLNotificationSseEngine.cs
+//  CLNotificationSseEngine.cs
 //  Cloud Windows
 //
 //  Created by BobS.

@@ -93,6 +93,7 @@
     </Reference>
     <Reference Include="SimpleJson, Version=0.1.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\SimpleJson.dll</HintPath>
+      <Aliases>global,SimpleJsonBase</Aliases>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Common, Version=0.2.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll</HintPath>
@@ -132,6 +133,7 @@
     <Compile Include="BadgeNET\Enums.cs" />
     <Compile Include="BadgeNET\IconOverlay.cs" />
     <Compile Include="CLSync\CLCredential.cs" />
+    <Compile Include="CLSync\CLCredentialSettings.cs" />
     <Compile Include="CLSync\CLSyncBox.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
@@ -140,6 +142,10 @@
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
     <Compile Include="Interfaces\IEventMessageReceiver.cs" />
     <Compile Include="Interfaces\ITransferTaskState.cs" />
+    <Compile Include="JsonContracts\Archives.cs" />
+    <Compile Include="JsonContracts\Audios.cs" />
+    <Compile Include="JsonContracts\ContainsMetadataDictionaryAttribute.cs" />
+    <Compile Include="JsonContracts\CreateSyncBox.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />
     <Compile Include="JsonContracts\FileCopy.cs" />
     <Compile Include="JsonContracts\FileOrFolderDelete.cs" />
@@ -151,14 +157,20 @@
     <Compile Include="JsonContracts\FolderContents.cs" />
     <Compile Include="JsonContracts\Folders.cs" />
     <Compile Include="JsonContracts\ItemCount.cs" />
+    <Compile Include="JsonContracts\ListSyncBoxes.cs" />
+    <Compile Include="JsonContracts\MetadataDictionary.cs" />
     <Compile Include="JsonContracts\Pictures.cs" />
+    <Compile Include="JsonContracts\Recents.cs" />
+    <Compile Include="JsonContracts\SyncBox.cs" />
     <Compile Include="JsonContracts\SyncBoxUsage.cs" />
     <Compile Include="JsonContracts\UsedBytes.cs" />
+    <Compile Include="JsonContracts\Videos.cs" />
     <Compile Include="Model\ConstructedHolder.cs" />
     <Compile Include="Model\IMessageSender.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
     <Compile Include="PushNotification\CLNotificationManualPollingEngine.cs" />
+    <Compile Include="REST\AsyncResults.cs" />
     <Compile Include="PushNotification\CLNotificationSseEngine.cs" />
     <Compile Include="PushNotification\ICLNotificationEngine.cs" />
     <Compile Include="PushNotification\CLNotificationService.cs" />

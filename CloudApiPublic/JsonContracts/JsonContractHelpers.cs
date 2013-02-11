@@ -261,6 +261,21 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _fileOrFolderUndeleteSerializer = null;
         private static readonly object FileOrFolderUndeleteSerializerLocker = new object();
 
+        public static DataContractJsonSerializer FileCopySerializer
+        {
+            get
+            {
+                lock (FileCopySerializerLocker)
+                {
+                    return _fileCopySerializer
+                        ?? (_fileCopySerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileCopy)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileCopySerializer = null;
+        private static readonly object FileCopySerializerLocker = new object();
+        #endregion
+
         public static DataContractJsonSerializer FileVersionsSerializer
         {
             get
@@ -275,33 +290,21 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _fileVersionsSerializer = null;
         private static readonly object FileVersionsSerializerLocker = new object();
 
-        public static DataContractJsonSerializer UsedBytesSerializer
-        {
-            get
-            {
-                lock (UsedBytesSerializerLocker)
-                {
-                    return _usedBytesSerializer
-                        ?? (_usedBytesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.UsedBytes)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _usedBytesSerializer = null;
-        private static readonly object UsedBytesSerializerLocker = new object();
-
-        public static DataContractJsonSerializer FileCopySerializer
-        {
-            get
-            {
-                lock (FileCopySerializerLocker)
-                {
-                    return _fileCopySerializer
-                        ?? (_fileCopySerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileCopy)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _fileCopySerializer = null;
-        private static readonly object FileCopySerializerLocker = new object();
+        ////Used bytes Serializer is depricated
+        //
+        //public static DataContractJsonSerializer UsedBytesSerializer
+        //{
+        //    get
+        //    {
+        //        lock (UsedBytesSerializerLocker)
+        //        {
+        //            return _usedBytesSerializer
+        //                ?? (_usedBytesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.UsedBytes)));
+        //        }
+        //    }
+        //}
+        //private static DataContractJsonSerializer _usedBytesSerializer = null;
+        //private static readonly object UsedBytesSerializerLocker = new object();
 
         public static DataContractJsonSerializer PicturesSerializer
         {
@@ -316,6 +319,62 @@ namespace CloudApiPublic.JsonContracts
         }
         private static DataContractJsonSerializer _picturesSerializer = null;
         private static readonly object PicturesSerializerLocker = new object();
+
+        public static DataContractJsonSerializer VideosSerializer
+        {
+            get
+            {
+                lock (VideosSerializerLocker)
+                {
+                    return _videosSerializer
+                        ?? (_videosSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Videos)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _videosSerializer = null;
+        private static readonly object VideosSerializerLocker = new object();
+
+        public static DataContractJsonSerializer AudiosSerializer
+        {
+            get
+            {
+                lock (AudiosSerializerLocker)
+                {
+                    return _audiosSerializer
+                        ?? (_audiosSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Audios)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _audiosSerializer = null;
+        private static readonly object AudiosSerializerLocker = new object();
+
+        public static DataContractJsonSerializer ArchivesSerializer
+        {
+            get
+            {
+                lock (ArchivesSerializerLocker)
+                {
+                    return _archivesSerializer
+                        ?? (_archivesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Archives)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _archivesSerializer = null;
+        private static readonly object ArchivesSerializerLocker = new object();
+
+        public static DataContractJsonSerializer RecentsSerializer
+        {
+            get
+            {
+                lock (RecentsSerializerLocker)
+                {
+                    return _recentsSerializer
+                        ?? (_recentsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Recents)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _recentsSerializer = null;
+        private static readonly object RecentsSerializerLocker = new object();
 
         public static DataContractJsonSerializer SyncBoxUsageSerializer
         {
@@ -358,6 +417,35 @@ namespace CloudApiPublic.JsonContracts
         }
         private static DataContractJsonSerializer _folderContentsSerializer = null;
         private static readonly object FolderContentsSerializerLocker = new object();
+
+        #region platform management
+        public static DataContractJsonSerializer CreateSyncBoxSerializer
+        {
+            get
+            {
+                lock (CreateSyncBoxSerializerLocker)
+                {
+                    return _createSyncBoxSerializer
+                        ?? (_createSyncBoxSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CreateSyncBox)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _createSyncBoxSerializer = null;
+        private static readonly object CreateSyncBoxSerializerLocker = new object();
+
+        public static DataContractJsonSerializer ListSyncBoxesSerializer
+        {
+            get
+            {
+                lock (ListSyncBoxesSerializerLocker)
+                {
+                    return _listSyncBoxesSerializer
+                        ?? (_listSyncBoxesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ListSyncBoxes)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _listSyncBoxesSerializer = null;
+        private static readonly object ListSyncBoxesSerializerLocker = new object();
         #endregion
     }
 }

@@ -50,6 +50,49 @@ namespace CloudApiPublic.Static
     }
 
     /// <summary>
+    /// Status from a call to one of the CLHttpRest communications methods
+    /// </summary>
+    public enum CLHttpRestStatus : byte
+    {
+        /// <summary>
+        /// Method completed without error and has a normal response
+        /// </summary>
+        Success,
+        /// <summary>
+        /// Method invoked a not found (404) response from the server
+        /// </summary>
+        NotFound,
+        /// <summary>
+        /// Method invoked a server error (5xx) response from the server
+        /// </summary>
+        ServerError,
+        /// <summary>
+        /// Method had some other problem with parameters processed locally or parameters sent up to the server
+        /// </summary>
+        BadRequest,
+        /// <summary>
+        /// Method was cancelled via a provided cancellation token before completion
+        /// </summary>
+        Cancelled,
+        /// <summary>
+        /// Method completed without error but has no response; it means that no data exists for given parameter(s)
+        /// </summary>
+        NoContent,
+        /// <summary>
+        /// Method invoked an unauthorized (401) response from the server
+        /// </summary>
+        NotAuthorized,
+        /// <summary>
+        /// Method invoked a storage quota exceeded (507) response from the server
+        /// </summary>
+        QuotaExceeded,
+        /// <summary>
+        /// Unable to establish connection (possible local internet connection error or server is otherwise unreachable)
+        /// </summary>
+        ConnectionFailed
+    }
+
+    /// <summary>
     /// Enumeration for direction of sync
     /// </summary>
     public enum SyncDirection : byte

@@ -106,7 +106,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathGetFolderMetadata = VersionPrefix + "/sync/folder/metadata";              // GET
         public const string MethodPathSyncBoxList = VersionPrefix + "/sync/syncbox/list";                       // POST
 
-        public const string MethodPathGetUsedBytes = VersionPrefix + "/sync/file/used_bytes";                   // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
+        //public const string MethodPathGetUsedBytes = VersionPrefix + "/sync/file/used_bytes";                   // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
 
         #region one-off
         #region files
@@ -135,6 +135,10 @@ namespace CloudApiPublic.Static
         public const string MethodPathFileGetVersions = VersionPrefix + "/sync/file/versions";                  // GET
         public const string MethodPathFileCopy = VersionPrefix + "/sync/file/copy";                             // POST
         public const string MethodPathGetPictures = VersionPrefix + "/sync/file/pictures";                      // GET
+        public const string MethodPathGetVideos = VersionPrefix + "/sync/file/videos";                          // GET
+        public const string MethodPathGetAudios = VersionPrefix + "/sync/file/audios";                          // GET
+        public const string MethodPathGetArchives = VersionPrefix + "/sync/file/archives";                      // GET
+        public const string MethodPathGetRecents = VersionPrefix + "/sync/file/recents";                        // GET
         #endregion
 
         #region other folder operations
@@ -150,6 +154,11 @@ namespace CloudApiPublic.Static
         #region Notification operations
         public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";          // GET
     	#endregion
+
+        #region Platform Management operations
+        public const string MethodPathAuthCreateSyncBox = VersionPrefix + "/sync/syncbox/create";               // POST
+        public const string MethodPathAuthListSyncBoxes = VersionPrefix + "/sync/syncbox/list";                 // POST
+        #endregion
 #else
         public const string MethodPathSyncFrom = "/1/sync/from_cloud";                       // POST
         public const string MethodPathDownload = "/1/get_file";                              // POST
@@ -161,7 +170,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathGetFolderMetadata = "/1/folder/metadata";              // GET
         public const string MethodPathSyncBoxList = "/1/sync_box/list";                      // POST
 
-        public const string MethodPathGetUsedBytes = "/1/file/used_bytes";                   // GET
+        //public const string MethodPathGetUsedBytes = "/1/file/used_bytes";                   // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
 
         #region one-off
         #region files
@@ -189,6 +198,10 @@ namespace CloudApiPublic.Static
         public const string MethodPathFileGetVersions = "/1/file/versions";                  // GET
         public const string MethodPathFileCopy = "/1/file/copy";                             // POST
         public const string MethodPathGetPictures = "/1/file/pictures";                      // GET
+        public const string MethodPathGetVideos = "/1/file/videos";                          // GET
+        public const string MethodPathGetAudios = "/1/file/audios";                          // GET
+        public const string MethodPathGetArchives = "/1/file/archives";                      // GET
+        public const string MethodPathGetRecents = "/1/file/recents";                        // GET
         #endregion
 
         #region other folder operations
@@ -200,6 +213,11 @@ namespace CloudApiPublic.Static
         public const string MethodPathSyncBoxUsage = "/1/sync_box/usage";                    // GET
 
         public const string MethodPathPushSubscribe = "/1/sync/subscribe";                   // GET
+
+        #region Platform Management operations
+        public const string MethodPathAuthCreateSyncBox = "/1/sync/sync_box/create";         // POST
+        public const string MethodPathAuthListSyncBoxes = "/1/sync/sync_box/list";           // POST
+        #endregion
 #endif  // !URL_API
 #endif  // DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 
@@ -487,6 +505,22 @@ namespace CloudApiPublic.Static
         public const string kSyncDatabaseFileName = "IndexDB.sdf";
         public const int kMaxTraceFilenameExtLength = 60;               // maximum length of trace filenames (including the extension).
 
+        // REST Response Status "status"
+        public const string RESTResponseStatus = "status";
+        public const string RESTResponseStatusSuccess = "success";
+        public const string RESTResponseStatusFailed = "error";
+
+        public const string RESTResponseMessage = "message";
+
+        // REST Response SyncBox
+        public const string RESTResponseSyncBox = "sync_box";
+        public const string RESTResponseSyncBoxes = "sync_boxes";
+        public const string RESTResponseSyncBoxId = "sync_box_id";
+        public const string RESTResponseSyncBoxStorageQuota = "storage_quota";
+        public const string RESTResponseSyncBoxCreatedAt = "created_at";
+        public const string RESTResponseSyncBoxFriendlyName = "friendly_name";
+        public const string RESTResponseSyncBoxMetadata = "metadata";
+
         //// Old definitions used by the full client.
         ////
         //// Registration
@@ -503,6 +537,5 @@ namespace CloudApiPublic.Static
         //public const string CLRegistrationLinkRequestBodyString = "{{\"email\":{0},\"password\":{1},\"device\":{{\"friendly_name\":{2},\"device_uuid\":{3}," +
         //                                                             "\"os_type\":{4},\"os_platform\":{5},\"os_version\":{6},\"app_version\":{7}}}," +
         //                                                             "\"client_id\":{8},\"client_secret\":{9}}}";
-
     }
 }

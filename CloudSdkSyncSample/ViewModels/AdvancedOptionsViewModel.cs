@@ -82,6 +82,22 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
+        public bool BadgingEnabled
+        {
+            get { return _settingsCurrent.BadgingEnabled; }
+            set
+            {
+                if (value == _settingsCurrent.BadgingEnabled)
+                {
+                    return;
+                }
+
+                _settingsCurrent.BadgingEnabled = value;
+
+                base.OnPropertyChanged("BadgingEnabled");
+            }
+        }
+
         public bool LogErrors
         {
             get { return _settingsCurrent.LogErrors; }
@@ -437,6 +453,7 @@ namespace CloudSdkSyncSample.ViewModels
             // Save the values to caller's settings
             _settingsCaller.TempDownloadFolderFullPath = TempDownloadFolderFullPath;
             _settingsCaller.DatabaseFolderFullPath = DatabaseFolderFullPath;
+            _settingsCaller.BadgingEnabled = BadgingEnabled;
             _settingsCaller.LogErrors = LogErrors;
             _settingsCaller.TraceType = (TraceType)Convert.ToInt32(TraceType);
             _settingsCaller.TraceFolderFullPath = TraceFolderFullPath;

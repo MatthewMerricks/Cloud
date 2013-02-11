@@ -16,10 +16,10 @@ using CloudApiPublic.Static;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetFolderContents"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetFolderContents"/>
     /// </summary>
     [DataContract]
-    internal /*public*/ sealed class FolderContents
+    public sealed class FolderContents
     {
         [DataMember(Name = CLDefinitions.CLMetadataCount, IsRequired = false)]
         public Nullable<long> Count { get; set; }

@@ -24,7 +24,6 @@ namespace CloudApiPublic
         ErrorAlreadyStarted,
         ErrorIndexCreation,
         ErrorStartingNotification,
-        ErrorCreatingRestClient,
         ErrorCreatingFileMonitor,
         ErrorStartingFileMonitor,
         ErrorStartingInitialIndexing,

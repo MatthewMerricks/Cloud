@@ -21,11 +21,11 @@
         <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="1">
             <!-- Temporary download file Folder -->
             <Grid>
-                <Label Content="Folder for Temporary Download Files:" Target="{Binding ElementName=tbTempDownloadFolder}"/>
+                <Label Content="Folder for Temporary _Download Files:" Target="{Binding ElementName=tbTempDownloadFolder}"/>
                 <Button x:Name="cmdBrowseTempDownloadFolder" HorizontalAlignment="Right" Width="75" Margin="2" 
                         Height="26" Command="{Binding Path=CommandBrowseTempDownloadFolder, Mode=OneTime}" 
                         ToolTip="Click to choose a folder to be used for the temporary download files.">
-                    <AccessText Text="Browse..."/>
+                    <AccessText Text="Bro_wse..."/>
                 </Button>
             </Grid>
             <TextBox x:Name="tbTempDownloadFolder" Margin="10,0,0,0" 
@@ -34,26 +34,30 @@
                      ToolTip="Enter the full path of the folder to be used for temporary download files."/>
             <!-- Database file -->
             <Grid>
-                <Label Content="Folder for Database _File:" Target="{Binding ElementName=tbDatabaseFolderFullPath}"/>
+                <Label Content="Folder for Datab_ase File:" Target="{Binding ElementName=tbDatabaseFolderFullPath}"/>
                 <Button x:Name="cmdBrowseDatabaseFolder" HorizontalAlignment="Right" Width="75" Margin="2" 
                         Height="26" Command="{Binding Path=CommandBrowseDatabaseFolder, Mode=OneTime}" 
                         ToolTip="Click to choose a folder to be used for the database file.">
-                    <AccessText Text="Browse..."/>
+                    <AccessText Text="Brow_se..."/>
                 </Button>
             </Grid>
             <TextBox Name="tbDatabaseFolderFullPath" Margin="10,0,0,0" 
                     Text="{Binding DatabaseFolderFullPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      ext:FocusExtension.IsFocused="{Binding IsDatabaseFolderFullPathFocused}"
                     ToolTip="Folder to use for the database file.  Enter the full path of the folder to hold the IndexDB.sdf database file."/>
+            <CheckBox Content="Badging _Enabled" Margin="10,10,0,0"
+                                    IsChecked="{Binding BadgingEnabled, Mode=TwoWay}"
+                                    ToolTip="Check to enable Explorer icon badging."/>
+
             <GroupBox Header="Trace" HorizontalAlignment="Stretch" Margin="0,10,0,0">
                 <StackPanel Orientation="Vertical" Margin="5,10,5,5">                   
                     <!-- Trace folder full path -->
                     <Grid>
-                        <Label Content="Trace Folder:" Target="{Binding ElementName=tbTraceFolder}"/>
+                        <Label Content="Trace _Folder:" Target="{Binding ElementName=tbTraceFolder}"/>
                         <Button x:Name="cmdBrowseTraceFolder" HorizontalAlignment="Right" Width="75" Margin="2" 
                         Height="26" Command="{Binding Path=CommandBrowseTraceFolder, Mode=OneTime}" 
                         ToolTip="Click to choose a folder to be used for the trace files.">
-                            <AccessText Text="Browse..."/>
+                            <AccessText Text="_Browse..."/>
                         </Button>
                     </Grid>
                     <TextBox x:Name="tbTraceFolder" Margin="10,0,0,0" 
@@ -61,18 +65,18 @@
                          ext:FocusExtension.IsFocused="{Binding IsTraceFolderFullPathFocused}"
                         ToolTip="Folder for trace files."/>
                     <!-- Trace Type -->
-                    <Label Content="Trace Type:" Target="{Binding ElementName=tbTraceType}"/>
+                    <Label Content="Trace _Type:" Target="{Binding ElementName=tbTraceType}"/>
                     <TextBox x:Name="tbTraceType" Margin="10,0,0,0" Width="75" HorizontalAlignment="Left"
                         Text="{Binding TraceType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          ext:FocusExtension.IsFocused="{Binding IsTraceTypeFocused}"
                         ToolTip="Bitmask for items to be traced."/>
                     <!-- Trace Level -->
-                    <Label Content="Trace Level:" Target="{Binding ElementName=tbTraceLevel}"/>
+                    <Label Content="Trace Le_vel:" Target="{Binding ElementName=tbTraceLevel}"/>
                     <TextBox x:Name="tbTraceLevel" Margin="10,0,0,0" Width="75" HorizontalAlignment="Left"
                         Text="{Binding TraceLevel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          ext:FocusExtension.IsFocused="{Binding IsTraceLevelFocused}"
                         ToolTip="Higher number for more functional trace.  Zero for no trace.  10 for all trace."/>
-                    <CheckBox Content="Log Errors" Margin="10,10,0,0"
+                    <CheckBox Content="_Log Errors" Margin="10,10,0,0"
                                     IsChecked="{Binding LogErrors, Mode=TwoWay}"
                                     ToolTip="Check to log errors to an error trace file."/>
                 </StackPanel>

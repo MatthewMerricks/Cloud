@@ -188,6 +188,7 @@ namespace CloudApiPrivate.Model.Settings
         public const string kSid = "sid";
         public const string kRecentFileItems = "recent_file_items";
         public const string kUdid = "device_udid";
+        public const string kBadgingEnabled = "badging_enabled";
         public const string kLogErrors = "log_errors";
         public const string kLogErrorLocation = "log_error_location";
         public const string kCloudFolderCreationTimeUtc = "cloud_folder_path_creation_time";
@@ -521,8 +522,19 @@ namespace CloudApiPrivate.Model.Settings
                 SettingsBase.Write<string>(kUdid, value);
             }
         }
-        
 
+        private bool _badgingEnabled;
+        public bool BadgingEnabled
+        {
+            get { return _badgingEnabled; }
+            set
+            {
+                _badgingEnabled = value;
+                _trace.writeToLog(9, "CLSettings: Instance: Set new BadgingEnabled: {0}.", _badgingEnabled);
+                SettingsBase.Write<bool>(kUdid, value);
+            }
+        }
+        
         private Boolean _completedSetup;
         public Boolean CompletedSetup
         {
@@ -905,6 +917,7 @@ namespace CloudApiPrivate.Model.Settings
             _akey = ""; // only available when registered.
             _syncBoxId = ""; // only available when registered.
             _deviceId = "";
+            _badgingEnabled = true;
             _userName = "";
             _userFullName = "";
             _deviceName = "";
@@ -1226,6 +1239,12 @@ namespace CloudApiPrivate.Model.Settings
             {
                 _deviceId = tempString;
                 _trace.writeToLog(9, "CLSettings: Instance: Initialize Udid: {0} from Settings file.", _deviceId);
+            }
+
+            isPresent = SettingsBase.ReadIfPresent<Boolean>(kBadgingEnabled, out tempBoolean);
+            if (isPresent)
+            {
+                _badgingEnabled = tempBoolean;
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kMainWindowPlacement, out tempString);

@@ -1,4 +1,4 @@
-﻿//  ICLNotificationEngine.cs
+//  ICLNotificationEngine.cs
 //  Cloud Windows
 //
 //  Created by BobS.

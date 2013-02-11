@@ -1,9 +1,13 @@
                                                     WINDOWS SDK RELEASE NOTES
 
 02/11/2013 CloudSDK-v0.1.3.zip
+
   o Feature: Switched to the api.cloudstaging.com URL and routes.
-  o Feature: All of the public non-"file/folder one-off" APIs have been implemented and tested.
+  o Feature: All of the MDS public non-"file/folder one-off" APIs have been implemented.  The /1/sync/sync_box/create and /1/sync/sync_box/list APIs were also implemented.
+  o Feature: There is now a setting "BadgingEnabled" that can be used to enable or disable badging.  This setting can be set via a sample program checkbox on the Advanced Options dialog.  Badging must be installed and enabled before badges will appear.
   o Bug fix: Badging was not working properly on Windows 8 systems.
+  o Known issue: Push notification: A temporary platform issue is causing the WebSockets support to be unavailable.  This release of the Windows SDK supports only WebSockets and manual polling, so there will always be
+    fallback to manual polling until the platform issue is fixed, or until Server-Sent-Events is implemented in the Windows SDK.  Manual polls occur randomly from 30 to 60 seconds.  Therefore, you may notice that syncs are slow to occur on other devices.
 
 02/04/2013 CloudSDK-v0.1.2.zip
   o The sample program now supports a "red X" icon that will display on fatal errors when the sync engine cannot logically continue.  This fatal error summary status condition was

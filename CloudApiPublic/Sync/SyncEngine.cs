@@ -5987,6 +5987,7 @@ namespace CloudApiPublic.Sync
                                 }
 
                                 // if a previous FileChange could be found or previous metadata could be found on the client, then determine what to do to about the current event
+                                
                                 if (!notFoundRename)
                                 {
                                     // define a bool for whether the creation time is the same from previous metadata and the current event
@@ -6103,7 +6104,10 @@ namespace CloudApiPublic.Sync
                                                     }));
                                         }
                                     };
-
+                                    //ZW: this is where the Processing of the Event Header (Return ) Status is processed including conflict rename handling 
+                                    //ZW: If Changes are triggered by muliple actions at the same time, async  processes may try to operate on the 
+                                    //ZW: the same file before the previous change is complete. In this case there are dependencies, which arise for ordering the changes
+                                    //ZW: Change 2 is Dependent on change 1. 
                                     // switch on direction of change first (Sync From versus Sync To)
                                     switch (currentChange.Direction)
                                     {
@@ -6234,7 +6238,7 @@ namespace CloudApiPublic.Sync
                                                         }
                                                     }
                                                     break;
-
+                                                //ZW: File Rename scheme for conflicting file names 
                                                 // case that triggers moving the local file to a new location in the same directory and processing it as a new file creation (the latest version of the file at the original location will likely be downloaded from a Sync From event)
                                                 case CLDefinitions.CLEventTypeConflict:
                                                     // store original path for current change (a new path with "CONFLICT" appended to the name will be calculated)
@@ -7489,6 +7493,7 @@ namespace CloudApiPublic.Sync
         private readonly object UpDownEventLocker = new object();
         #endregion
     }
+
     /// <summary>
     /// Delegate to FileTransferStatusUpdate in SyncEngine which fires status change callbacks to CLSyncEngine
     /// </summary>

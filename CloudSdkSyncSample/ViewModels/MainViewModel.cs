@@ -186,6 +186,22 @@ namespace CloudSdkSyncSample.ViewModels
             }
         }
 
+        public bool BadgingEnabled
+        {
+            get { return _settingsCurrent.BadgingEnabled; }
+            set
+            {
+                if (value == _settingsCurrent.BadgingEnabled)
+                {
+                    return;
+                }
+
+                _settingsCurrent.BadgingEnabled= value;
+
+                base.OnPropertyChanged("BadgingEnabled");
+            }
+        }
+
         #endregion
 
         #region IsEnabled Properties
@@ -729,8 +745,10 @@ namespace CloudSdkSyncSample.ViewModels
             Properties.Settings.Default.Token = Token;
             Properties.Settings.Default.SyncBoxId = SyncBoxId;
             Properties.Settings.Default.UniqueDeviceId = DeviceId;
+            Properties.Settings.Default.BadgingEnabled = BadgingEnabled;
             Properties.Settings.Default.TempDownloadFolderFullPath = _settingsCurrent.TempDownloadFolderFullPath;
             Properties.Settings.Default.DatabaseFolderFullPath = _settingsCurrent.DatabaseFolderFullPath;
+            Properties.Settings.Default.BadgingEnabled = _settingsCurrent.BadgingEnabled;
             Properties.Settings.Default.LogErrors = _settingsCurrent.LogErrors;
             Properties.Settings.Default.TraceType = _settingsCurrent.TraceType;
             Properties.Settings.Default.TraceFolderFullPath = _settingsCurrent.TraceFolderFullPath;
