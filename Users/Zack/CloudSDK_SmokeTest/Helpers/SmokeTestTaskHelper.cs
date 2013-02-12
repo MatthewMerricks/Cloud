@@ -14,20 +14,51 @@ namespace CloudSDK_SmokeTest.Helpers
         #region Constants
         public const string FileCreationString = "FileCreation";
         #endregion 
+
         #region Static
-        public static void RouteToTaskMethod(InputParams paramSet, SmokeTask smokeTask, GenericHolder<CLError> ProcessingErrorHolder)
+        public static long RouteToTaskMethod(InputParams paramSet, SmokeTask smokeTask, GenericHolder<CLError> ProcessingErrorHolder)
         {
+            long returnValue = -1;
             ManualSyncManager manager = new ManualSyncManager(paramSet);
             switch (smokeTask.type)
             { 
+                case SmokeTaskType.CreateSyncBox:
+                    returnValue = RunCreateSyncBoxTask(paramSet, smokeTask, ref ProcessingErrorHolder );
+                    break;
                 case SmokeTaskType.FileCreation:
-                    //RunFileCreationTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                    RunFileCreationTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.DownloadAllSyncBoxContent:
                     RunDownloadAllSyncBoxContentTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
                     break;
 
             }
+            return returnValue;
+        }
+
+        public static long RunCreateSyncBoxTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            long? newBoxId;
+            CreateSyncBox createTask = smokeTask as CreateSyncBox;
+            if (createTask != null && createTask.CreateNew == true)
+            {
+                newBoxId = SyncBoxManager.StartCreateNewSyncBox(paramSet, ref ProcessingErrorHolder);
+                if (newBoxId == (long)0)
+                {
+                    Exception newSyncBoxException = new Exception("There was an error creating a new Sync Box.");
+                    lock (ProcessingErrorHolder)
+                    {
+                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + newSyncBoxException;
+                    }
+                }
+                    
+            }
+            else 
+            { 
+                SyncBoxMapper.SyncBoxes.Add(SyncBoxMapper.SyncBoxes.Count(), paramSet.ManualSyncBoxID);
+                newBoxId = paramSet.ManualSyncBoxID;
+            }        
+            return newBoxId.HasValue ? newBoxId.Value : 0;
         }
 
         public static void RunFileCreationTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
@@ -81,9 +112,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 }
             }
         }
-        #endregion 
-
-        
+        #endregion         
 
         #region Private
         private static bool pathEndsWithSlash(string path)
@@ -105,7 +134,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 if (pathEndsWithSlash(modPath))
                     modPath = modPath.Remove(modPath.Count() - 1, 1);
 
-                fullPath = modPath + "\\\\" + modName;
+                fullPath = modPath + "\\" + modName;
             }
             else
             {
@@ -128,6 +157,8 @@ namespace CloudSDK_SmokeTest.Helpers
                 }
             }
         }
+
+
         #endregion 
     }
 }

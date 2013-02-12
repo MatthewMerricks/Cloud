@@ -84,15 +84,22 @@
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\MD5_Helper.cs" />
     <Compile Include="Helpers\SmokeTestTaskHelper.cs" />
+    <Compile Include="Helpers\XMLHelper.cs" />
     <Compile Include="Managers\FileMetadataManager.cs" />
     <Compile Include="Managers\ManagerConstants.cs" />
     <Compile Include="Managers\RestStatusResponseManager.cs" />
     <Compile Include="Managers\ManualSyncManager.cs" />
     <Compile Include="Managers\ManagerBase.cs" />
+    <Compile Include="Managers\ServerPathMappingManager.cs" />
+    <Compile Include="Helpers\SyncBoxMapper.cs" />
+    <Compile Include="Managers\SyncBoxManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\AdvancedSyncSettings.cs" />
     <Compile Include="Settings\CloudSDK_InputParams.cs" />
+    <Compile Include="Settings\FileMappings.cs">
+      <DependentUpon>FileMappings.xsd</DependentUpon>
+    </Compile>
     <Compile Include="Settings\InputParameters.cs">
       <DependentUpon>InputParameters.xsd</DependentUpon>
     </Compile>
@@ -100,9 +107,13 @@
     <Compile Include="TestClasses\AppTestClasses.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Settings\FileMappingsForIntelleSense.xml" />
     <Content Include="Settings\Settings.xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Settings\FileMappings.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Settings\InputParameters.xsd">
       <SubType>Designer</SubType>
     </None>

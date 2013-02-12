@@ -26,6 +26,8 @@
       <xs:element name="Token" type="xs:string" minOccurs="0"/>
       <xs:element name="TraceType" type="xs:int" minOccurs="1"/>
       <xs:element name="TraceLevel" type="xs:int" minOccurs="1"/>
+      <xs:element name ="SettingsPath" type="xs:string" minOccurs="1" />
+      <xs:element name="FileNameMappingFile" type="xs:string" minOccurs="1" />
     </xs:all>
   </xs:complexType>
 
@@ -34,6 +36,7 @@
       <xs:element name="type" >
         <xs:simpleType>
           <xs:restriction base ="xs:string" >
+            <xs:enumeration value ="CreateSyncBox" />
             <xs:enumeration value ="FileCreation" />
             <xs:enumeration value="FileDeletion" />
             <xs:enumeration value="DownloadAllSyncBoxContent" />
@@ -60,6 +63,16 @@
         <xs:sequence>
           <xs:element name="FolderPath" type ="xs:string" />
           <xs:element name="FilePath" type ="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="CreateSyncBox">
+    <xs:complexContent >
+      <xs:extension base="SmokeTask" >
+        <xs:sequence>
+          <xs:element name="CreateNew" type="xs:boolean"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

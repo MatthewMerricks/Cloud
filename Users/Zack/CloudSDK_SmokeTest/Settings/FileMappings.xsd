@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="FileMappings"
+    targetNamespace="http://www.cloud.com/FileMappings.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://www.cloud.com/FileMappings.xsd"
+    xmlns:mstns="http://www.cloud.com/FileMappings.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+
+  <xs:complexType name="PathMappingElement">
+    <xs:all>
+      <xs:element name="ID" type="xs:string" minOccurs="1"/>
+      <xs:element name="LocalPath" type="xs:string" minOccurs="1"/>
+      <xs:element name="ServerPath" type="xs:string" minOccurs="1"/>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="MappingRecords">
+    <xs:choice >
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="PathMappingElement" type="PathMappingElement" />
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:element name="AllMappings">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="MappingRecords" type="MappingRecords" />
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

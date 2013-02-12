@@ -2,26 +2,38 @@
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudSDK_SmokeTest.Managers;
+using CloudSDK_SmokeTest.Settings;
+using CloudSDK_SmopkeTest.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace CloudSDK_SmokeTest.Helpers
 {
     public class FileHelper
     {
-        public static string CreateNewFileName(string filePath, bool isCopy, ref GenericHolder<CLError> ProcessingErrorHolder)
+        #region Create 
+        public static string CreateNewFileName(string filePath, bool isCopy, bool isCaseSentitiveIssue, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             string returnValue = string.Empty;
             int pathEndsAt = filePath.LastIndexOf('\\');
+            int fileNameBeginsAt = pathEndsAt + 1;
             int extensionBeginsAt = filePath.LastIndexOf('.');
             string suffix = filePath.Substring(extensionBeginsAt, ((filePath.Count()) - extensionBeginsAt));
             StringBuilder builder = new StringBuilder(filePath.Substring(0, pathEndsAt) + '\\');
-            if (!isCopy)
+            if (!isCopy && !isCaseSentitiveIssue)
             {
                 builder.Append(filePath.Substring(pathEndsAt, (filePath.Count() - pathEndsAt)).Replace(suffix, "") + "_Copy" + suffix);
+                returnValue = builder.ToString();
+            }
+            else if (!isCopy && isCaseSentitiveIssue)
+            {
+                string fileName = filePath.Substring(fileNameBeginsAt, (filePath.Count() - fileNameBeginsAt)).Replace(suffix, "");
+                builder.Append("BADNAME_" + fileName + suffix);
                 returnValue = builder.ToString();
             }
             else
@@ -48,6 +60,44 @@ namespace CloudSDK_SmokeTest.Helpers
             return returnValue;
         }
 
+        public static byte[] CreateFileChangeObject(string filePath, FileChangeType type, bool getHash, long? size, string storageKey, string serverId, out FileChange fileChange)
+        {
+            byte[] md5Bytes = null;
+            long fileSize = 0;
+            DateTime currentTime = DateTime.UtcNow;
+            if (getHash)
+            {
+                md5Bytes = MD5_Helper.GetHashOfStream(
+                                                        new System.IO.FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read),
+                                                        out fileSize);
+            }
+            else
+            {
+                if (size.HasValue)
+                {
+                    fileSize = size.HasValue ? size.Value : 0;
+                }
+            }
+            fileChange = new CloudApiPublic.Model.FileChange()
+            {
+                Direction = CloudApiPublic.Static.SyncDirection.To,
+                Metadata = new CloudApiPublic.Model.FileMetadata()
+                {
+                    //TODO: Get the filesize of the file being uploaded 
+                    HashableProperties = new CloudApiPublic.Model.FileMetadataHashableProperties(false, currentTime, currentTime, fileSize),
+                    //LinkTargetPath -- TTarget Pth of a Shortcut file 
+                    //MimeType = null, //unsude by windows but could be calced by file extension 
+                    StorageKey = storageKey,
+                    ServerId = serverId
+                },
+                NewPath = filePath,//path to the file as it exists on disk 
+                Type = type,
+            };
+            return md5Bytes;
+        }
+        #endregion 
+
+        #region Modify 
         public static int TryUpload(string filePath, string fileName, CLSyncBox syncBox, FileChange fileChange,
                                 CLHttpRestStatus restStatus, CloudApiPublic.JsonContracts.Event returnEvent, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
@@ -68,35 +118,21 @@ namespace CloudSDK_SmokeTest.Helpers
             }
             return responseCode;
         }
-        
-        public static byte[] CreateFileChangeObject(string filePath, FileChangeType type, bool getHash, long? inputFileSize, out FileChange fileChange)
+
+        #endregion 
+
+        #region Compare
+        public static bool ShouldUpdateFile(InputParams paramSet, CLSyncBox syncBox, string filePath, CloudApiPublic.JsonContracts.Metadata mdObject, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
-            byte[] md5Bytes = null;
-            long fileSize = 0;
-            DateTime currentTime = DateTime.UtcNow;
-            if (getHash)
-            {
-                md5Bytes = MD5_Helper.GetHashOfStream(
-                                                        new System.IO.FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read),
-                                                        out fileSize);
-            }
-            else
-                fileSize = inputFileSize.HasValue ? inputFileSize.Value : 0;
-            fileChange = new CloudApiPublic.Model.FileChange()
-            {
-                Direction = CloudApiPublic.Static.SyncDirection.To,
-                Metadata = new CloudApiPublic.Model.FileMetadata()
-                {
-                    //TODO: Get the filesize of the file being uploaded 
-                    HashableProperties = new CloudApiPublic.Model.FileMetadataHashableProperties(false, currentTime, currentTime, fileSize),
-                    //LinkTargetPath -- TTarget Pth of a Shortcut file 
-                    //MimeType = null, //unsude by windows but could be calced by file extension 
-                },
-                NewPath = filePath,//path to the file as it exists on disk 
-                Type = type,
-            };
-            return md5Bytes;
+
+            AllMappings mappings = XMLHelper.GetMappingItems(paramSet.FileNameMappingFile, ref ProcessingErrorHolder);
+            PathMappingElement mappingElement = mappings.MappingRecords.Items.Where(i => i.ID == mdObject.ServerId).FirstOrDefault();
+            return false;
         }
+        #endregion 
+
+
+        #region Responses
 
         public static void HandleUnsuccessfulUpload(FileChange fileChange, CloudApiPublic.JsonContracts.Event returnEvent, CLHttpRestStatus restStatus, CLError updateError, string requestType, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
@@ -153,5 +189,7 @@ namespace CloudSDK_SmokeTest.Helpers
                     break;
             }
         }
+        
+        #endregion 
     }
 }

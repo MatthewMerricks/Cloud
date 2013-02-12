@@ -16,15 +16,15 @@ namespace CloudSDK_SmokeTest
     public sealed class Program
     {
         #region Constants
-        public const string SettingsPath = "C:\\Projects\\CloudSDK_SmokeTest\\CloudSDK_SmokeTest\\Settings\\Settings.xml";
-        #endregion 
+        //TODO: Pull this from the XSD
+        public const string SettingsPath = "C:\\Cloud\\windows-client\\Users\\Zack\\CloudSDK_SmokeTest\\Settings\\Settings.xml";
+        #endregion
 
-        #region Properties 
+        #region Properties
         private static readonly GenericHolder<CLError> ProcessingErrorHolder = new GenericHolder<CLError>(null);
-        #endregion 
+        #endregion
 
-
-        #region Implementation 
+        #region Implementation
         [STAThread]
         static int Main(string[] args)
         {
@@ -40,22 +40,25 @@ namespace CloudSDK_SmokeTest
 
                 Monitor.Wait(waitForCompletion);
             }
-
+            bool isError = false;
             lock (ProcessingErrorHolder)
             {
                 if (ProcessingErrorHolder.Value != null)
                 {
                     Console.WriteLine("Error processing smoke test: " + ProcessingErrorHolder.Value.errorDescription);
-                    return (int)MainResult.UnknownError;
+                    isError = true;                    
                 }
             }
 
             WriteExceptionsToScreen(ProcessingErrorHolder);
-            return (int)MainResult.Success;        
+            if(isError)
+                return (int)MainResult.UnknownError;
+            else
+                return (int)MainResult.Success;
         }
-        #endregion 
+        #endregion
 
-        #region Private 
+        #region Private
         private static void SmokeTestProcessor(object state)
         {
             object waitForCompletion = null;
@@ -69,17 +72,45 @@ namespace CloudSDK_SmokeTest
                 using (XmlReader reader = XmlReader.Create(SettingsPath))
                 {
                     SmokeTest smokeTestClass = (SmokeTest)serializer.Deserialize(reader);
-                     //for each Scenario in the Smoke Test Class Run the Scenario. 
+                    //for each Scenario in the Smoke Test Class Run the Scenario. 
                     Console.WriteLine("Xml Data Initialized From Schema...");
                     Console.WriteLine();
-                   InputParams.PrintDefaultValues(smokeTestClass.InputParams);
-                    System.Threading.Tasks.Parallel.ForEach(smokeTestClass.Scenario.Items, (scenarioItem) =>{
-                        foreach (SmokeTask smokeTask in scenarioItem.Items)
-                        {
-                            SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, smokeTask, ProcessingErrorHolder);
-                        }
-                    });
-                }               
+                    InputParams.PrintDefaultValues(smokeTestClass.InputParams);
+
+                    //SmokeTask task = GetCreateSyncBoxTask(smokeTestClass);
+                    //if (task != null)
+                    //{
+                    //    SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, task, ProcessingErrorHolder);
+                    //}
+                    //else
+                    //{
+                    //    Exception exception = new Exception("A Create SyncBox Task is Required in the Settings File, even if its CreateBox Boolean is Set to False");
+                    //    lock (ProcessingErrorHolder)
+                    //    {
+                    //        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
+                    //    }
+                    //}
+                    //// use this to run the task sets in parallel
+                    //System.Threading.Tasks.Parallel.ForEach(smokeTestClass.Scenario.Items, (scenarioItem) =>
+                    //{
+                    //    foreach (SmokeTask smokeTask in scenarioItem.Items)
+                    //    {
+                    //        if (smokeTask.type != SmokeTaskType.CreateSyncBox)
+                    //            SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, smokeTask, ProcessingErrorHolder);
+                    //    }
+                    //});
+
+                    #region Syncronous Op Code
+                    //// use this to serialize the parallel tasks
+                    //
+                    //foreach (ParallelTaskSet scenarioItem in smokeTestClass.Scenario.Items)
+                    //{
+                    //    foreach(SmokeTask smokeTask in scenarioItem.Items)
+                    //         SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, smokeTask, ProcessingErrorHolder);
+                    //}
+                    #endregion                 
+
+                }
 
                 lock (waitForCompletion)
                 {
@@ -106,6 +137,27 @@ namespace CloudSDK_SmokeTest
             }
         }
 
+        private static SmokeTask GetCreateSyncBoxTask(SmokeTest smokeTestClass)
+        {
+            SmokeTask task = null;
+            foreach (ParallelTaskSet taskSet in smokeTestClass.Scenario.Items)
+            {
+                bool canContinue = false;
+                foreach (SmokeTask smokeTask in taskSet.Items)
+                {
+                    if (smokeTask.type == SmokeTaskType.CreateSyncBox)
+                    {
+                        task = smokeTask;
+                        canContinue = false;
+                        break;
+                    }
+                }
+                if (!canContinue)
+                    break;
+            }
+            return task;
+        }
+
         private static void WriteExceptionsToScreen(GenericHolder<CLError> ProcessingErrorHolder)
         {
             if (ProcessingErrorHolder.Value == null)
@@ -126,6 +178,6 @@ namespace CloudSDK_SmokeTest
                 }
             }
         }
-        #endregion 
+        #endregion
     }
 }

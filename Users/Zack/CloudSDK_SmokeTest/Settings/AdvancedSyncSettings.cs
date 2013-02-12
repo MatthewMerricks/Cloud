@@ -9,6 +9,15 @@ namespace CloudSDK_SmokeTest.Settings
 {
     internal sealed class AdvancedSyncSettings : ICLSyncSettingsAdvanced
     {
+        public bool BadgingEnabled
+        {
+            get
+            {
+                return _badgingEnabled;
+            }
+        }
+        private readonly bool _badgingEnabled = false;
+
         /// <summary>
         /// Set to true if errors should be logged.
         /// </summary>
@@ -131,6 +140,7 @@ namespace CloudSDK_SmokeTest.Settings
         {
             return new AdvancedSyncSettings(
                 false,
+                false,
                 TraceType.NotEnabled,
                 null,
                 true,
@@ -152,6 +162,7 @@ namespace CloudSDK_SmokeTest.Settings
 
             return new AdvancedSyncSettings(
                 false,
+                false,
                 TraceType.NotEnabled,
                 null,
                 true,
@@ -165,6 +176,7 @@ namespace CloudSDK_SmokeTest.Settings
         }
 
         public AdvancedSyncSettings(
+                    bool badgingEnabled,
                     bool logErrors,
                     TraceType traceType,
                     string traceLocation,
@@ -177,6 +189,7 @@ namespace CloudSDK_SmokeTest.Settings
                     string cloudRoot,
                     string databaseFolder)
         {
+            this._badgingEnabled = badgingEnabled;
             this._logErrors = logErrors;
             this._traceType = traceType;
             this._traceLocation = traceLocation;
@@ -188,6 +201,21 @@ namespace CloudSDK_SmokeTest.Settings
             this._friendlyName = friendlyName;
             this._syncRoot = cloudRoot;
             this._databaseFolder = databaseFolder;
+        }
+
+        public AdvancedSyncSettings(string syncRootPath)
+        {
+            this._logErrors = true;
+            this._traceType = TraceType.CommunicationIncludeAuthorization | TraceType.FileChangeFlow;
+            this._traceLocation = "C:\\Users\\Public\\Documents\\Cloud";
+            this._traceExcludeAuthorization = false;
+            this._traceLevel = 9;
+            this._deviceId = "SimpleClient";
+            this._tempDownloadFolderFullPath = null;
+            this._clientVersion = "SmokeTest1";
+            this._friendlyName = "Smoke Test";
+            this._syncRoot = syncRootPath;
+            this._databaseFolder = null;
         }
     }
 }

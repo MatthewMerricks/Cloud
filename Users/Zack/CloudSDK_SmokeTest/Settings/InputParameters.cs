@@ -83,6 +83,7 @@ namespace CloudSDK_SmokeTest.Settings {
     }
     
     /// <remarks/>
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(CreateSyncBox))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(DownloadAllSyncBoxContent))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(FileCreation))]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
@@ -112,6 +113,9 @@ namespace CloudSDK_SmokeTest.Settings {
     public enum SmokeTaskType {
         
         /// <remarks/>
+        CreateSyncBox,
+        
+        /// <remarks/>
         FileCreation,
         
         /// <remarks/>
@@ -119,6 +123,27 @@ namespace CloudSDK_SmokeTest.Settings {
         
         /// <remarks/>
         DownloadAllSyncBoxContent,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class CreateSyncBox : SmokeTask {
+        
+        private bool createNewField;
+        
+        /// <remarks/>
+        public bool CreateNew {
+            get {
+                return this.createNewField;
+            }
+            set {
+                this.createNewField = value;
+            }
+        }
     }
     
     /// <remarks/>
@@ -261,6 +286,10 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private int traceLevelField;
         
+        private string settingsPathField;
+        
+        private string fileNameMappingFileField;
+        
         /// <remarks/>
         public string API_Key {
             get {
@@ -368,6 +397,26 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.traceLevelField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string SettingsPath {
+            get {
+                return this.settingsPathField;
+            }
+            set {
+                this.settingsPathField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string FileNameMappingFile {
+            get {
+                return this.fileNameMappingFileField;
+            }
+            set {
+                this.fileNameMappingFileField = value;
             }
         }
     }
