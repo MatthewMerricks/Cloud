@@ -1,5 +1,5 @@
 ﻿//
-// CreateSyncBox.cs
+// SyncBoxHolder.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -20,7 +20,7 @@ namespace CloudApiPublic.JsonContracts
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary] // within SyncBox SyncBox
-    public sealed class CreateSyncBox
+    public sealed class SyncBoxHolder
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }

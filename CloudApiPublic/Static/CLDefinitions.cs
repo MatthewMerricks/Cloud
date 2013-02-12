@@ -96,127 +96,133 @@ namespace CloudApiPublic.Static
         // Method Path
 #if DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 #if URL_API
-        public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud";                            // POST
-        public const string MethodPathDownload = VersionPrefix + "/sync/file/download";                         // POST
-        public const string MethodPathUpload = VersionPrefix + "/sync/file/upload";                             // POST
-        public const string MethodPathSyncTo = VersionPrefix + "/sync/to_cloud";                                // POST
-        public const string MethodPathPurgePending = VersionPrefix + "/sync/file/purge_pending";                // POST
-        public const string MethodPathGetPending = VersionPrefix + "/sync/file/pending";                        // GET
-        public const string MethodPathGetFileMetadata = VersionPrefix + "/sync/file/metadata";                  // GET
-        public const string MethodPathGetFolderMetadata = VersionPrefix + "/sync/folder/metadata";              // GET
-        public const string MethodPathSyncBoxList = VersionPrefix + "/sync/syncbox/list";                       // POST
+        public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud";                                    // POST
+        public const string MethodPathDownload = VersionPrefix + "/sync/file/download";                                 // POST
+        public const string MethodPathUpload = VersionPrefix + "/sync/file/upload";                                     // POST
+        public const string MethodPathSyncTo = VersionPrefix + "/sync/to_cloud";                                        // POST
+        public const string MethodPathPurgePending = VersionPrefix + "/sync/file/purge_pending";                        // POST
+        public const string MethodPathGetPending = VersionPrefix + "/sync/file/pending";                                // GET
+        public const string MethodPathGetFileMetadata = VersionPrefix + "/sync/file/metadata";                          // GET
+        public const string MethodPathGetFolderMetadata = VersionPrefix + "/sync/folder/metadata";                      // GET
+        public const string MethodPathSyncBoxList = VersionPrefix + "/sync/syncbox/list";                               // POST
 
-        //public const string MethodPathGetUsedBytes = VersionPrefix + "/sync/file/used_bytes";                   // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
+        //public const string MethodPathGetUsedBytes = VersionPrefix + "/sync/file/used_bytes";                           // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
 
         #region one-off
         #region files
-        public const string MethodPathOneOffFileCreate = VersionPrefix + "/sync/file/add";                      // POST
-        public const string MethodPathOneOffFileDelete = VersionPrefix + "/sync/file/delete";                   // POST
-        public const string MethodPathOneOffFileModify = VersionPrefix + "/sync/file/modify";                   // POST
-        public const string MethodPathOneOffFileMove = VersionPrefix + "/syncfile/move";                        // POST
+        public const string MethodPathOneOffFileCreate = VersionPrefix + "/sync/file/add";                              // POST
+        public const string MethodPathOneOffFileDelete = VersionPrefix + "/sync/file/delete";                           // POST
+        public const string MethodPathOneOffFileModify = VersionPrefix + "/sync/file/modify";                           // POST
+        public const string MethodPathOneOffFileMove = VersionPrefix + "/syncfile/move";                                // POST
         /* duplicate functionality to file move:
-        public const string MethodPathOneOffFileRename = VersionPrefix + "/sync/file/rename";                   // POST
+        public const string MethodPathOneOffFileRename = VersionPrefix + "/sync/file/rename";                           // POST
  
         */
         #endregion
 
         #region folders
-        public const string MethodPathOneOffFolderCreate = VersionPrefix + "/sync/folder/add";                  // POST
-        public const string MethodPathOneOffFolderDelete = VersionPrefix + "/sync/folder/delete";               // POST
-        public const string MethodPathOneOffFolderMove = VersionPrefix + "/sync/folder/move";                   // POST
+        public const string MethodPathOneOffFolderCreate = VersionPrefix + "/sync/folder/add";                          // POST
+        public const string MethodPathOneOffFolderDelete = VersionPrefix + "/sync/folder/delete";                       // POST
+        public const string MethodPathOneOffFolderMove = VersionPrefix + "/sync/folder/move";                           // POST
         /* duplicate functionality to folder move:
-        public const string MethodPathOneOffFolderRename = VersionPrefix + "/sync/folder/rename";               // POST
+        public const string MethodPathOneOffFolderRename = VersionPrefix + "/sync/folder/rename";                       // POST
          */
         #endregion
         #endregion
 
         #region other file operations
-        public const string MethodPathFileUndelete = VersionPrefix + "/sync/file/undelete";                     // POST
-        public const string MethodPathFileGetVersions = VersionPrefix + "/sync/file/versions";                  // GET
-        public const string MethodPathFileCopy = VersionPrefix + "/sync/file/copy";                             // POST
-        public const string MethodPathGetPictures = VersionPrefix + "/sync/file/pictures";                      // GET
-        public const string MethodPathGetVideos = VersionPrefix + "/sync/file/videos";                          // GET
-        public const string MethodPathGetAudios = VersionPrefix + "/sync/file/audios";                          // GET
-        public const string MethodPathGetArchives = VersionPrefix + "/sync/file/archives";                      // GET
-        public const string MethodPathGetRecents = VersionPrefix + "/sync/file/recents";                        // GET
+        public const string MethodPathFileUndelete = VersionPrefix + "/sync/file/undelete";                             // POST
+        public const string MethodPathFileGetVersions = VersionPrefix + "/sync/file/versions";                          // GET
+        public const string MethodPathFileCopy = VersionPrefix + "/sync/file/copy";                                     // POST
+        public const string MethodPathGetPictures = VersionPrefix + "/sync/file/pictures";                              // GET
+        public const string MethodPathGetVideos = VersionPrefix + "/sync/file/videos";                                  // GET
+        public const string MethodPathGetAudios = VersionPrefix + "/sync/file/audios";                                  // GET
+        public const string MethodPathGetArchives = VersionPrefix + "/sync/file/archives";                              // GET
+        public const string MethodPathGetRecents = VersionPrefix + "/sync/file/recents";                                // GET
         #endregion
 
         #region other folder operations
-        public const string MethodPathGetFolderContents = VersionPrefix + "/sync/folder/contents";              // GET
-        public const string MethodPathGetFolderHierarchy = VersionPrefix + "/sync/folder/hierarchy";            // GET
-        public const string MethodPathFolderUndelete = VersionPrefix + "/sync/folder/undelete";                 // POST
+        public const string MethodPathGetFolderContents = VersionPrefix + "/sync/folder/contents";                      // GET
+        public const string MethodPathGetFolderHierarchy = VersionPrefix + "/sync/folder/hierarchy";                    // GET
+        public const string MethodPathFolderUndelete = VersionPrefix + "/sync/folder/undelete";                         // POST
         #endregion
 
         #region SyncBox operations
-        public const string MethodPathSyncBoxUsage = VersionPrefix + "/sync/syncbox/usage";                     // GET
+        public const string MethodPathSyncBoxUsage = VersionPrefix + "/sync/syncbox/usage";                             // GET
     	#endregion
 
         #region Notification operations
-        public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";          // GET
+        public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";                  // GET
     	#endregion
 
         #region Platform Management operations
-        public const string MethodPathAuthCreateSyncBox = VersionPrefix + "/sync/syncbox/create";               // POST
-        public const string MethodPathAuthListSyncBoxes = VersionPrefix + "/sync/syncbox/list";                 // POST
+        public const string MethodPathAuthCreateSyncBox = VersionPrefix + "/sync/syncbox/create";                       // POST
+        public const string MethodPathAuthListSyncBoxes = VersionPrefix + "/sync/syncbox/list";                         // POST
+        public const string MethodPathAuthSyncBoxExtendedMetadata = VersionPrefix + "/sync/syncbox/update_metadata";    // POST
+        public const string MethodPathAuthSyncBoxQuota = VersionPrefix + "/sync/syncbox/update_quota";                  // POST
+        public const string MethodPathAuthDeleteSyncBox = VersionPrefix + "/sync/syncbox/delete";                       // POST
         #endregion
 #else
-        public const string MethodPathSyncFrom = "/1/sync/from_cloud";                       // POST
-        public const string MethodPathDownload = "/1/get_file";                              // POST
-        public const string MethodPathUpload = "/1/put_file";                                // POST
-        public const string MethodPathSyncTo = "/1/sync/to_cloud";                           // POST
-        public const string MethodPathPurgePending = "/1/file/purge/pending";                // POST
-        public const string MethodPathGetPending = "/1/file/pending";                        // GET
-        public const string MethodPathGetFileMetadata = "/1/file/metadata";                  // GET
-        public const string MethodPathGetFolderMetadata = "/1/folder/metadata";              // GET
-        public const string MethodPathSyncBoxList = "/1/sync_box/list";                      // POST
+        public const string MethodPathSyncFrom = "/1/sync/from_cloud";                                  // POST
+        public const string MethodPathDownload = "/1/get_file";                                         // POST
+        public const string MethodPathUpload = "/1/put_file";                                           // POST
+        public const string MethodPathSyncTo = "/1/sync/to_cloud";                                      // POST
+        public const string MethodPathPurgePending = "/1/file/purge/pending";                           // POST
+        public const string MethodPathGetPending = "/1/file/pending";                                   // GET
+        public const string MethodPathGetFileMetadata = "/1/file/metadata";                             // GET
+        public const string MethodPathGetFolderMetadata = "/1/folder/metadata";                         // GET
+        public const string MethodPathSyncBoxList = "/1/sync_box/list";                                 // POST
 
-        //public const string MethodPathGetUsedBytes = "/1/file/used_bytes";                   // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
+        //public const string MethodPathGetUsedBytes = "/1/file/used_bytes";                              // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
 
         #region one-off
         #region files
-        public const string MethodPathOneOffFileCreate = "/1/file/add";                      // POST
-        public const string MethodPathOneOffFileDelete = "/1/file/delete";                   // POST
-        public const string MethodPathOneOffFileModify = "/1/file/modify";                   // POST
-        public const string MethodPathOneOffFileMove = "/1/file/move";                       // POST
+        public const string MethodPathOneOffFileCreate = "/1/file/add";                                 // POST
+        public const string MethodPathOneOffFileDelete = "/1/file/delete";                              // POST
+        public const string MethodPathOneOffFileModify = "/1/file/modify";                              // POST
+        public const string MethodPathOneOffFileMove = "/1/file/move";                                  // POST
         /* duplicate functionality to file move:
-        public const string MethodPathOneOffFileRename = "/1/file/rename";                   // POST
+        public const string MethodPathOneOffFileRename = "/1/file/rename";                              // POST
          */
         #endregion
 
         #region folders
-        public const string MethodPathOneOffFolderCreate = "/1/folder/add";                  // POST
-        public const string MethodPathOneOffFolderDelete = "/1/folder/delete";               // POST
-        public const string MethodPathOneOffFolderMove = "/1/folder/move";                   // POST
+        public const string MethodPathOneOffFolderCreate = "/1/folder/add";                             // POST
+        public const string MethodPathOneOffFolderDelete = "/1/folder/delete";                          // POST
+        public const string MethodPathOneOffFolderMove = "/1/folder/move";                              // POST
         /* duplicate functionality to folder move:
-        public const string MethodPathOneOffFolderRename = "/1/folder/rename";               // POST
+        public const string MethodPathOneOffFolderRename = "/1/folder/rename";                          // POST
          */
         #endregion
         #endregion
 
         #region other file operations
-        public const string MethodPathFileUndelete = "/1/file/undelete";                     // POST
-        public const string MethodPathFileGetVersions = "/1/file/versions";                  // GET
-        public const string MethodPathFileCopy = "/1/file/copy";                             // POST
-        public const string MethodPathGetPictures = "/1/file/pictures";                      // GET
-        public const string MethodPathGetVideos = "/1/file/videos";                          // GET
-        public const string MethodPathGetAudios = "/1/file/audios";                          // GET
-        public const string MethodPathGetArchives = "/1/file/archives";                      // GET
-        public const string MethodPathGetRecents = "/1/file/recents";                        // GET
+        public const string MethodPathFileUndelete = "/1/file/undelete";                                // POST
+        public const string MethodPathFileGetVersions = "/1/file/versions";                             // GET
+        public const string MethodPathFileCopy = "/1/file/copy";                                        // POST
+        public const string MethodPathGetPictures = "/1/file/pictures";                                 // GET
+        public const string MethodPathGetVideos = "/1/file/videos";                                     // GET
+        public const string MethodPathGetAudios = "/1/file/audios";                                     // GET
+        public const string MethodPathGetArchives = "/1/file/archives";                                 // GET
+        public const string MethodPathGetRecents = "/1/file/recents";                                   // GET
         #endregion
 
         #region other folder operations
-        public const string MethodPathGetFolderContents = "/1/folder/contents";              // GET
-        public const string MethodPathGetFolderHierarchy = "/1/folder/hierarchy";            // GET
-        public const string MethodPathFolderUndelete = "/1/folder/undelete";                 // POST
+        public const string MethodPathGetFolderContents = "/1/folder/contents";                         // GET
+        public const string MethodPathGetFolderHierarchy = "/1/folder/hierarchy";                       // GET
+        public const string MethodPathFolderUndelete = "/1/folder/undelete";                            // POST
         #endregion
 
-        public const string MethodPathSyncBoxUsage = "/1/sync_box/usage";                    // GET
+        public const string MethodPathSyncBoxUsage = "/1/sync_box/usage";                               // GET
 
-        public const string MethodPathPushSubscribe = "/1/sync/subscribe";                   // GET
+        public const string MethodPathPushSubscribe = "/1/sync/subscribe";                              // GET
 
         #region Platform Management operations
-        public const string MethodPathAuthCreateSyncBox = "/1/sync/sync_box/create";         // POST
-        public const string MethodPathAuthListSyncBoxes = "/1/sync/sync_box/list";           // POST
+        public const string MethodPathAuthCreateSyncBox = "/1/sync/sync_box/create";                    // POST
+        public const string MethodPathAuthListSyncBoxes = "/1/sync/sync_box/list";                      // POST
+        public const string MethodPathAuthSyncBoxExtendedMetadata = "/1/sync/sync_box/update_metadata"; // POST
+        public const string MethodPathAuthSyncBoxQuota = "/1/sync/sync_box/update_quota";               // POST
+        public const string MethodPathAuthDeleteSyncBox = "/1/sync/sync_box/delete";                    // POST
         #endregion
 #endif  // !URL_API
 #endif  // DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
@@ -517,6 +523,7 @@ namespace CloudApiPublic.Static
         public const string RESTResponseSyncBoxes = "sync_boxes";
         public const string RESTResponseSyncBoxId = "sync_box_id";
         public const string RESTResponseSyncBoxStorageQuota = "storage_quota";
+        public const string RESTResponseSyncBoxStorageQuotaUpdateOnly = "quota_size";
         public const string RESTResponseSyncBoxCreatedAt = "created_at";
         public const string RESTResponseSyncBoxFriendlyName = "friendly_name";
         public const string RESTResponseSyncBoxMetadata = "metadata";

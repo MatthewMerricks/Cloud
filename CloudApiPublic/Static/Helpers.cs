@@ -1782,7 +1782,10 @@ namespace CloudApiPublic.Static
             { typeof(JsonContracts.FileCopy), JsonContractHelpers.FileCopySerializer },
 
             #region platform management
-            { typeof(JsonContracts.CreateSyncBox), JsonContractHelpers.CreateSyncBoxSerializer }
+            { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
+            { typeof(JsonContracts.SyncBoxMetadata), JsonContractHelpers.SyncBoxMetadataSerializer },
+            { typeof(JsonContracts.SyncBoxQuota), JsonContractHelpers.SyncBoxQuotaSerializer },
+            { typeof(JsonContracts.SyncBoxDelete), JsonContractHelpers.SyncBoxDeleteSerializer }
             #endregion
         };
 
@@ -1807,7 +1810,7 @@ namespace CloudApiPublic.Static
             { typeof(JsonContracts.FolderContents), JsonContractHelpers.FolderContentsSerializer },
 
             #region platform management
-            { typeof(JsonContracts.CreateSyncBox), JsonContractHelpers.CreateSyncBoxSerializer },
+            { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
             { typeof(JsonContracts.ListSyncBoxes), JsonContractHelpers.ListSyncBoxesSerializer }
             #endregion
         };

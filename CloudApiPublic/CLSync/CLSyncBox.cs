@@ -1429,6 +1429,161 @@ namespace CloudApiPublic
             return _httpRestClient.GetSyncBoxUsage(timeoutMilliseconds, out status, out response);
         }
         #endregion
+
+        #region SyncBoxUpdateExtendedMetadata
+        /// <summary>
+        /// Asynchronously updates the extended metadata on a sync box
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginSyncBoxUpdateExtendedMetadata<T>(AsyncCallback aCallback,
+            object aState,
+            IDictionary<string, T> metadata,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginSyncBoxUpdateExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Asynchronously updates the extended metadata on a sync box
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginSyncBoxUpdateExtendedMetadata(AsyncCallback aCallback,
+            object aState,
+            JsonContracts.MetadataDictionary metadata,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginSyncBoxUpdateExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Finishes updating the extended metadata on a sync box if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting updating extended metadata</param>
+        /// <param name="result">(output) The result from updating extended metadata</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndSyncBoxUpdateExtendedMetadata(IAsyncResult aResult, out SyncBoxUpdateExtendedMetadataResult result)
+        {
+            return _httpRestClient.EndSyncBoxUpdateExtendedMetadata(aResult, out result);
+        }
+
+        /// <summary>
+        /// Updates the extended metadata on a sync box
+        /// </summary>
+        /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError SyncBoxUpdateExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        {
+            return _httpRestClient.SyncBoxUpdateExtendedMetadata(metadata, timeoutMilliseconds, out status, out response);
+        }
+
+        /// <summary>
+        /// Updates the extended metadata on a sync box
+        /// </summary>
+        /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError SyncBoxUpdateExtendedMetadata(JsonContracts.MetadataDictionary metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        {
+            return _httpRestClient.SyncBoxUpdateExtendedMetadata(metadata, timeoutMilliseconds, out status, out response);
+        }
+        #endregion
+
+        #region SyncBoxUpdateQuota
+        /// <summary>
+        /// Asynchronously updates the storage quota on a sync box
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="quotaSize">How many bytes big to make the storage quota</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginSyncBoxUpdateQuota(AsyncCallback aCallback,
+            object aState,
+            long quotaSize,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginSyncBoxUpdateQuota(aCallback, aState, quotaSize, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Finishes updating the storage quota on a sync box if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting updating storage quota</param>
+        /// <param name="result">(output) The result from updating storage quota</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndSyncBoxUpdateQuota(IAsyncResult aResult, out SyncBoxUpdateQuotaResult result)
+        {
+            return _httpRestClient.EndSyncBoxUpdateQuota(aResult, out result);
+        }
+
+        /// <summary>
+        /// Updates the storage quota on a sync box
+        /// </summary>
+        /// <param name="quotaSize">How many bytes big to make the storage quota</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError SyncBoxUpdateQuota(long quotaSize, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        {
+            return _httpRestClient.SyncBoxUpdateQuota(quotaSize, timeoutMilliseconds, out status, out response);
+        }
+        #endregion
+        
+        #region DeleteSyncBox
+        /// <summary>
+        /// ¡¡ Do not use lightly !! Asynchronously deletes a sync box
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginDeleteSyncBox(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginDeleteSyncBox(aCallback, aState, timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Finishes deleting a sync box if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting deleting the sync box</param>
+        /// <param name="result">(output) The result from deleting the sync box</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndDeleteSyncBox(IAsyncResult aResult, out DeleteSyncBoxResult result)
+        {
+            return _httpRestClient.EndDeleteSyncBox(aResult, out result);
+        }
+
+        /// <summary>
+        /// ¡¡ Do not use lightly !! Deletes a sync box
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError DeleteSyncBox(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        {
+            return _httpRestClient.DeleteSyncBox(timeoutMilliseconds, out status, out response);
+        }
+        #endregion
         #endregion
     }
     /// <summary>
