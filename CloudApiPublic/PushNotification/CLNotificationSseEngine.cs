@@ -40,7 +40,6 @@ namespace CloudApiPublic.PushNotification
         private string _eventName = String.Empty;
         private string _lastEventId = String.Empty;
         private int _reconnectionTime = 0;
-        private SseEngineStates _state = SseEngineStates.SseEngineState_Idle;
         private EnumSseStates _stateParse = EnumSseStates.SseState_Idle;
         private HashSet<IDisposable> _resourcesToCleanUp = new HashSet<IDisposable>();
 
@@ -53,7 +52,7 @@ namespace CloudApiPublic.PushNotification
 
         private enum EnumSseStates : uint
         {
-            SseState_Idle,
+            SseState_Idle = 0,
             SseState_LookForLineEndingChar,
             SseState_LookForLineEndingGotCR
         }
@@ -78,7 +77,7 @@ namespace CloudApiPublic.PushNotification
                 return _maxSuccesses;
             }
         }
-        private int _maxSuccesses = 10;
+        private int _maxSuccesses = 5;
 
         public int MaxFailures
         {
@@ -137,6 +136,7 @@ namespace CloudApiPublic.PushNotification
             bool fToReturnIsSuccess = true;     // assume success
             try
             {
+                _trace.writeToLog(9, "CLNotificationSseEngine: Start: Entry.");
                 lock (_locker)
                 {
                     if (_isStarted)
@@ -159,7 +159,15 @@ namespace CloudApiPublic.PushNotification
                 fToReturnIsSuccess = false;
             }
 
+            _trace.writeToLog(9, "CLNotificationSseEngine: Start: Exit.  Return: {0}.", fToReturnIsSuccess);
             return fToReturnIsSuccess;
+        }
+
+        public void Stop()
+        {
+            // Stop this engine's thread
+            _trace.writeToLog(9, "CLNotificationSseEngine: Stop: Entry.");
+            TimerExpired(this);
         }
 
         #endregion
@@ -188,34 +196,16 @@ namespace CloudApiPublic.PushNotification
             }
         }
 
-        private void StopEngineThread()
-        {
-            lock (_engineThread)
-            {
-                if (_engineThread.Value != null)
-                {
-                    try
-                    {
-                        _engineThread.Value.Abort();
-                    }
-                    catch (Exception ex)
-                    {
-                        _trace.writeToLog(1, "CLNotificationSseEngine: StopEngineThread: ERROR: Exception: Msg: {0}.", ex.Message);
-                    }
-                    _engineThread.Value = null;
-                }
-            }
-        }
-
         private void StartThreadProc(object obj)
         {
+            bool wasThreadAborted = false;
+
             #region Build HTTP SSE Request
 
             string query = String.Empty;
             HttpWebRequest sseRequest = null;
             try
             {
-
                 // Initialize
                 _trace.writeToLog(9, "CLNotificationSseEngine: StartEngineThread: Entry.");
                 CLNotificationSseEngine castState = obj as CLNotificationSseEngine;
@@ -223,7 +213,6 @@ namespace CloudApiPublic.PushNotification
                 {
                     throw new InvalidCastException("obj must be a CLNotificationSseEngine");
                 }
-                castState._state = SseEngineStates.SseEngineState_Starting;
 
                 // Build the query string.
                 query = Helpers.QueryStringBuilder(
@@ -292,16 +281,20 @@ namespace CloudApiPublic.PushNotification
                 }
                 #endregion
             }
-            catch (ThreadAbortException ex)
+            catch (ThreadAbortException)
             {
+                wasThreadAborted = true;
             }
             catch (Exception ex)
             {
-                CLError error = ex;
-                _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}.", ex.Message);
-                error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
-                _isConnectionSuccesful = false;
-                _startComplete.Set();
+                if (!wasThreadAborted)
+                {
+                    CLError error = ex;
+                    _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}.", ex.Message);
+                    error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                    _isConnectionSuccesful = false;
+                    _startComplete.Set();
+                }
             }
 
             #endregion  
@@ -309,35 +302,38 @@ namespace CloudApiPublic.PushNotification
             #region Send the request and get the response.
 
             // Send the request and receive the immediate response.
-            _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
             WebResponse boxedResponse = null;
             HttpWebResponse response = null;
             WebException storeWebEx = null;
 
             try
             {
+                _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
                 try
                 {
                     boxedResponse = sseRequest.GetResponse();   // sends the request and blocks for the response
                     _resourcesToCleanUp.Add(boxedResponse);
                     response = (HttpWebResponse)boxedResponse;
                 }
-                catch (ThreadAbortException ex)
+                catch (ThreadAbortException)
                 {
+                    wasThreadAborted = true;
                 }
                 catch (WebException ex)
                 {
-                    if (ex.Response != null)
+                    if (!wasThreadAborted)
                     {
-                        boxedResponse = ex.Response;
-                        _resourcesToCleanUp.Add(boxedResponse);
-                        response = (HttpWebResponse)boxedResponse;
-                        storeWebEx = ex;
-                    }
-                    else
-                    {
-                        _delegateCancelEngineTimeout();
-                        throw new Exception("WebException thrown without a Response", ex);
+                        if (ex.Response != null)
+                        {
+                            boxedResponse = ex.Response;
+                            _resourcesToCleanUp.Add(boxedResponse);
+                            response = (HttpWebResponse)boxedResponse;
+                            storeWebEx = ex;
+                        }
+                        else
+                        {
+                            throw new Exception("WebException thrown without a Response", ex);
+                        }
                     }
                 }
 
@@ -386,20 +382,36 @@ namespace CloudApiPublic.PushNotification
                                         }
                                     }
                                 }
+                                catch (ThreadAbortException)
+                                {
+                                    wasThreadAborted = true;
+                                }
                                 finally
                                 {
-                                    if (readStream != null)
+                                    if (!wasThreadAborted)
                                     {
-                                        _resourcesToCleanUp.Remove(readStream);
+                                        _delegateCancelEngineTimeout();
+                                        if (readStream != null)
+                                        {
+                                            _resourcesToCleanUp.Remove(readStream);
+                                        }
                                     }
                                 }
                             }
                         }
+                        catch (ThreadAbortException)
+                        {
+                            wasThreadAborted = true;
+                        }
                         finally
                         {
-                            if (receiveStream != null)
+                            if (!wasThreadAborted)
                             {
-                                _resourcesToCleanUp.Remove(receiveStream);
+                                _delegateCancelEngineTimeout();
+                                if (receiveStream != null)
+                                {
+                                    _resourcesToCleanUp.Remove(receiveStream);
+                                }
                             }
                         }
 
@@ -474,32 +486,41 @@ namespace CloudApiPublic.PushNotification
             }
             catch (ThreadAbortException)
             {
+                wasThreadAborted = true;
             }
             catch (Exception ex)
             {
-                CLError error = ex;
-                _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
-                error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
-                _isConnectionSuccesful = false;
-                _startComplete.Set();
+                if (!wasThreadAborted)
+                {
+                    CLError error = ex;
+                    _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
+                    error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                    _isConnectionSuccesful = false;
+                    _startComplete.Set();
+                }
             }
             finally
             {
-                if (boxedResponse != null)
+                if (!wasThreadAborted)
                 {
-                    try
+                    _delegateCancelEngineTimeout();
+                    if (boxedResponse != null)
                     {
-                        ((IDisposable)boxedResponse).Dispose();
+                        try
+                        {
+                            ((IDisposable)boxedResponse).Dispose();
+                        }
+                        catch (ThreadAbortException)
+                        {
+                            wasThreadAborted = true;
+                        }
+                        catch
+                        {
+                        }
+                        _resourcesToCleanUp.Remove(boxedResponse);
+                        boxedResponse = null;
+                        response = null;
                     }
-                    catch (ThreadAbortException)
-                    {
-                    }
-                    catch
-                    {
-                    }
-                    _resourcesToCleanUp.Remove(boxedResponse);
-                    boxedResponse = null;
-                    response = null;
                 }
             }
 
@@ -661,7 +682,7 @@ namespace CloudApiPublic.PushNotification
 
         private bool IsEventNameRecognized(string _eventName)
         {
-            //TODO: Fix this.
+            //TODO: Fix this when we need formal events.
             return true;
         }
 
@@ -678,31 +699,49 @@ namespace CloudApiPublic.PushNotification
         /// <param name="userState">The state of this object.</param>
         public void TimerExpired(object userState)
         {
-            _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: Entry.");
+
             try
             {
-                // Kill the engine thread
-                if (_engineThread.Value != null)
+                // Get back the state.
+                _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: Entry.");
+                CLNotificationSseEngine castState = userState as CLNotificationSseEngine;
+                if (castState != null)
                 {
-                    _engineThread.Value.Abort();
-                }
+                    // Fail the service manager thread.
+                    _isConnectionSuccesful = false;
+                    _startComplete.Set();
 
-                // Clean up any resources left over.
-                foreach (IDisposable toDispose in _resourcesToCleanUp)
+                    // Kill the engine thread
+                    if (_engineThread.Value != null)
+                    {
+                        _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: Abort the engine thread.");
+                        _engineThread.Value.Abort();
+                    }
+
+                    // Clean up any resources left over.
+                    foreach (IDisposable toDispose in _resourcesToCleanUp)
+                    {
+                        try
+                        {
+                            toDispose.Dispose();
+                        }
+                        catch
+                        {
+                        }
+                    }
+
+                    _resourcesToCleanUp.Clear();
+                }
+                else
                 {
-                    try
-                    {
-                        toDispose.Dispose();
-                    }
-                    catch
-                    {
-                    }
+                    _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Improper user state.");
                 }
-
-                _resourcesToCleanUp.Clear();
             }
-            catch
+            catch (Exception ex)
             {
+                CLError error = ex;
+                _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Exception: Msg: {0}.", ex.Message);
+                error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
             }
         }
 

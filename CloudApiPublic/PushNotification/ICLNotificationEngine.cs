@@ -45,6 +45,7 @@ namespace CloudApiPublic.PushNotification
         int MaxSuccesses { get; }
         int MaxFailures { get; }
         bool Start();
+        void Stop();
         void TimerExpired(object userState);
     }
 }

@@ -151,6 +151,11 @@ namespace CloudApiPublic.PushNotification
             return fToReturnSuccess;
         }
 
+        public void Stop()
+        {
+            // Nothing to do here
+        }
+
         public void TimerExpired(object userState)
         {
             // Nothing to do here.

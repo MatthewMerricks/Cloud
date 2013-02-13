@@ -97,15 +97,14 @@ namespace CloudApiPublic.PushNotification
         /// </summary>
         public event EventHandler<NotificationErrorEventArgs> ConnectionError;
 
-        private static CLNotificationService _instance = null;
         private static object _instanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance;
         private readonly CLSyncBox _syncBox;
         private bool _isServiceStarted;               // True: the push notification service has been started.
-        private readonly GenericHolder<Thread> _engineThread = new GenericHolder<Thread>(null);
-        private Dictionary<NotificationEngines, ICLNotificationEngine> _dictEngines;  // holds the various push notification engines
-        private Timer _timerEngine = null;
+        private readonly GenericHolder<Thread> _serviceManagerThread = new GenericHolder<Thread>(null);
+        private Timer _timerEngineWatcher = null;
         private ICLNotificationEngine _currentEngine = null;
+        private NotificationEngines _currentEngineIndex;
 
         /// <summary>
         /// Tracks the subscribed clients via their SyncBoxId/DeviceId combination.
@@ -176,37 +175,8 @@ namespace CloudApiPublic.PushNotification
                     // sync settings are copied so that changes require stopping and starting notification services
                     this._syncBox = syncBox;
 
-                    this._dictEngines = new Dictionary<NotificationEngines, ICLNotificationEngine>();
-
-                    // Construct the engines
-                    CLNotificationSseEngine engineSse = new CLNotificationSseEngine(
-                                syncBox: this._syncBox,
-                                delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
-                                delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback,
-                                delegateSendNotificationEvent: this.SendNotificationEventCallback);
-                    _dictEngines.Add(NotificationEngines.NotificationEngine_SSE, engineSse);
-
-                    //CLNotificationWebSocketsEngine engineWebSockets = new CLNotificationWebSocketseEngine(
-                    //            syncBox: this._syncBox,
-                    //            delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
-                    //            delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback);
-                    //_dictEngines.Add(NotificationEngines.NotificationEngine_WebSockets, engineWebSockets);
-
-                    //CLNotificationLongPollingEngine engineLongPolling = new CLNotificationLongPollingEngine(
-                    //            syncBox: this._syncBox,
-                    //            delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
-                    //            delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback);
-                    //_dictEngines.Add(NotificationEngines.NotificationEngine_LongPolling, engineLongPolling);
-
-                    CLNotificationManualPollingEngine engineManualPolling = new CLNotificationManualPollingEngine(
-                                syncBox: this._syncBox,
-                                delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
-                                delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback,
-                                delegateSendManualPoll: this.SendManualPollCallback);
-                    _dictEngines.Add(NotificationEngines.NotificationEngine_ManualPolling, engineManualPolling);
-
                     // Start the thread that will run the engines
-                    StartEngineThread();
+                    StartServiceManagerThread();
 
                     // Initialized now
                     _isServiceStarted = true;
@@ -228,6 +198,7 @@ namespace CloudApiPublic.PushNotification
             {
                 lock (this)
                 {
+                    _trace.writeToLog(9, "StartEngineThread: DisconnectPushNotificationServer: Entry.");
                     _isServiceStarted = false;
 
                     if (_syncBox != null)
@@ -237,13 +208,20 @@ namespace CloudApiPublic.PushNotification
                         NotificationClientsRunning.Remove(syncBoxDeviceIdCombined);
                     }
 
-                    if (_timerEngine != null)
+                    if (_timerEngineWatcher != null)
                     {
-                        _timerEngine.Dispose();
-                        _timerEngine = null;
+                        _timerEngineWatcher.Dispose();
+                        _timerEngineWatcher = null;
                     }
 
-                    StopEngineThread();
+                    // Stop the current engine if it is running
+                    if (_currentEngine != null)
+                    {
+                        _currentEngine.Stop();
+                        _currentEngine = null;
+                    }
+
+                    StopServiceManagerThread();
                 }
             }
             catch (Exception ex)
@@ -252,21 +230,22 @@ namespace CloudApiPublic.PushNotification
             }
         }
 
-        private void StartEngineThread()
+        private void StartServiceManagerThread()
         {
             try
             {
                 lock (this)
                 {
-                    if (_engineThread.Value == null)
+                    _trace.writeToLog(9, "StartEngineThread: StartServiceManagerThread: Entry.");
+                    if (_serviceManagerThread.Value == null)
                     {
-                        _engineThread.Value = new Thread(new ParameterizedThreadStart(this.EngineThreadProc));
-                        _engineThread.Value.Name = "Notification Engine";
-                        _engineThread.Value.IsBackground = true;
-                        _engineThread.Value.Start(this);
+                        _trace.writeToLog(9, "StartEngineThread: StartServiceManagerThread: Start the service manager thread.");
+                        _serviceManagerThread.Value = new Thread(new ParameterizedThreadStart(this.ServiceManagerThreadProc));
+                        _serviceManagerThread.Value.Name = "Notification Engine";
+                        _serviceManagerThread.Value.IsBackground = true;
+                        _serviceManagerThread.Value.Start(this);
                     }
                 }
-
             }
             catch (Exception ex)
             {
@@ -275,22 +254,24 @@ namespace CloudApiPublic.PushNotification
             }
         }
 
-        private void StopEngineThread()
+        private void StopServiceManagerThread()
         {
             try
             {
                 lock (this)
                 {
-                    if (_engineThread.Value != null)
+                    _trace.writeToLog(9, "StartEngineThread: StopServiceManagerThread: Entry.");
+                    if (_serviceManagerThread.Value != null)
                     {
                         try
                         {
-                            _engineThread.Value.Abort();
+                            _trace.writeToLog(9, "StartEngineThread: StopServiceManagerThread: Abort the service manager thread.");
+                            _serviceManagerThread.Value.Abort();
                         }
                         catch
                         {
                         }
-                        _engineThread.Value = null;
+                        _serviceManagerThread.Value = null;
                     }
                 }
             }
@@ -300,23 +281,27 @@ namespace CloudApiPublic.PushNotification
             }
         }
 
-        private void EngineThreadProc(object obj)
+        private void ServiceManagerThreadProc(object obj)
         {
-            // Initialize
-            CLNotificationService castState = obj as CLNotificationService;
-            if (castState == null)
-            {
-                throw new InvalidCastException("obj must be a CLNotificationService");
-            }
+            bool wasThreadAborted = false;
 
             try
             {
+                // Initialize
+                _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Entry.");
+                CLNotificationService castState = obj as CLNotificationService;
+                if (castState == null)
+                {
+                    throw new InvalidCastException("obj must be a CLNotificationService");
+                }
+
                 // Loop processing forever until we have a serious error and have to stop.
                 while (true)
                 {
                     bool fBackToTopOfList = false;
 
                     // Loop through the engines (first to last, highest priority to lowest priority).
+                    _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Restart at top of list.");
                     IEnumerable<NotificationEngines> engineIndices = Enum.GetValues(typeof(NotificationEngines)).Cast<NotificationEngines>();
                     foreach (NotificationEngines engineIndex in engineIndices)
                     {
@@ -326,30 +311,96 @@ namespace CloudApiPublic.PushNotification
                         // Loop running this particular engine
                         while (true)
                         {
-                            // Start this engine
-                            bool engineStartDidReturnSuccess = _dictEngines[engineIndex].Start();
+                            // Construct a new instance and start this engine.
+                            _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Top of loop running engine {0}.", engineIndex.ToString());
+                            lock (this)
+                            {
+                                switch (engineIndex)
+                                {
+                                    case NotificationEngines.NotificationEngine_SSE:
+                                        _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Instantiate SSE engine.");
+                                        CLNotificationSseEngine engineSse = new CLNotificationSseEngine(
+                                                    syncBox: this._syncBox,
+                                                    delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
+                                                    delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback,
+                                                    delegateSendNotificationEvent: this.SendNotificationEventCallback);
+                                        _currentEngine = engineSse;
+                                        _currentEngineIndex = engineIndex;
+                                        break;
+
+                                    //case NotificationEngines.NotificationEngine_ManualPolling:
+                                    //CLNotificationWebSocketsEngine engineWebSockets = new CLNotificationWebSocketseEngine(
+                                    //            syncBox: this._syncBox,
+                                    //            delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
+                                    //            delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback);
+                                    //break;
+
+                                    //case NotificationEngines.NotificationEngine_LongPolling:
+                                    //CLNotificationLongPollingEngine engineLongPolling = new CLNotificationLongPollingEngine(
+                                    //            syncBox: this._syncBox,
+                                    //            delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
+                                    //            delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback);
+                                    //break;
+
+                                    case NotificationEngines.NotificationEngine_ManualPolling:
+                                        _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Instantiate manual polling engine.");
+                                        CLNotificationManualPollingEngine engineManualPolling = new CLNotificationManualPollingEngine(
+                                                    syncBox: this._syncBox,
+                                                    delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
+                                                    delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback,
+                                                    delegateSendManualPoll: this.SendManualPollCallback);
+                                        _currentEngine = engineManualPolling;
+                                        _currentEngineIndex = engineIndex;
+                                        break;
+
+                                    default:
+                                        throw new InvalidOperationException("Unknown engine index");
+                                }
+                            }
+
+                            // Start the engine and run it on this thread (might not return for a very long time)
+                            _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Start the engine.");
+                            bool engineStartDidReturnSuccess = _currentEngine.Start();
+
+                            // Cancel any outstanding engine watcher timer.
+                            CancelEngineTimeoutCallback();
+
+                            // Determine which engine will run next
                             if (engineStartDidReturnSuccess)
                             {
+                                _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Engine {0} returned success.", engineIndex.ToString());
                                 ++successes;
-                                if (successes >= _dictEngines[engineIndex].MaxSuccesses)
+                                if (successes >= _currentEngine.MaxSuccesses)
                                 {
-                                    fBackToTopOfList = true;
+                                    if (_currentEngineIndex == NotificationEngines.NotificationEngine_SSE)
+                                    {
+                                        // Do nothing in this case.  We will go down the list if SSE has had MaxSuccesses reconnections.
+                                        _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Select next in list.");
+                                    }
+                                    else
+                                    {
+                                        _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Select back to top of list.");
+                                        fBackToTopOfList = true;
+                                    }
                                     break;          // start back at the top of the list again.
                                 }
                             }
                             else
                             {
-                                // Start failed for this engine
+                                // The engine returned failure.
+                                _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Engine {0} returned failure.", engineIndex.ToString());
                                 ++failures;
-                                if (failures >= _dictEngines[engineIndex].MaxFailures)
+                                if (failures >= _currentEngine.MaxFailures)
                                 {
                                     // DO NOTHING. Iterate to the next engine down the list.
+                                    _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Select next in list (2).");
                                 }
                             }
                         }
 
                         if (fBackToTopOfList)
                         {
+                            _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Break to go to top of list.");
                             break;              // back to the top of the engine list
                         }
                     }
@@ -357,14 +408,35 @@ namespace CloudApiPublic.PushNotification
                     // If all of the engines failed, stop the service.
                     if (!fBackToTopOfList)
                     {
-                        //TODO: Notify sync push notification stopped.
+                        // Let everyone know that we have had a serious error.
+                        _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: ERROR: All engines failed.");
+                        NotificationErrorEventArgs err = new NotificationErrorEventArgs(new Exception("Notification service has failed"), null);
+                        castState.ConnectionError(castState, err);
+
+                        // Not running now
+                        lock (this)
+                        {
+                            _currentEngine = null;
+                            _serviceManagerThread.Value = null;
+                        }
+
+                        // Free resources
+                        DisconnectPushNotificationServer();
+
                         return;     // exit this thread
                     }
                 }
             }
+            catch (ThreadAbortException ex)
+            {
+                wasThreadAborted = true;
+            }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "StartEngineThread: EngineThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
+                if (!wasThreadAborted)
+                {
+                    _trace.writeToLog(1, "StartEngineThread: EngineThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
+                }
             }
         }
 
@@ -390,10 +462,10 @@ namespace CloudApiPublic.PushNotification
             {
                 lock (this)
                 {
-                    if (_timerEngine != null)
+                    if (_timerEngineWatcher != null)
                     {
-                        _timerEngine.Dispose();
-                        _timerEngine = new Timer(callback: TimerCallback, state: userState, dueTime: 0, period: timeoutMilliseconds);
+                        _timerEngineWatcher.Dispose();
+                        _timerEngineWatcher = new Timer(callback: TimerCallback, state: userState, dueTime: 0, period: timeoutMilliseconds);
                     }
                 }
             }
@@ -410,10 +482,10 @@ namespace CloudApiPublic.PushNotification
                 ICLNotificationEngine engineToCall = null;
                 lock (this)
                 {
-                    if (_timerEngine != null)
+                    if (_timerEngineWatcher != null)
                     {
-                        _timerEngine.Dispose();
-                        _timerEngine = null;
+                        _timerEngineWatcher.Dispose();
+                        _timerEngineWatcher = null;
                     }
 
                     if (_currentEngine != null)
@@ -440,10 +512,10 @@ namespace CloudApiPublic.PushNotification
             {
                 lock (this)
                 {
-                    if (_timerEngine != null)
+                    if (_timerEngineWatcher != null)
                     {
-                        _timerEngine.Dispose();
-                        _timerEngine = null;
+                        _timerEngineWatcher.Dispose();
+                        _timerEngineWatcher = null;
                     }
                 }
             }
@@ -508,73 +580,5 @@ namespace CloudApiPublic.PushNotification
         }
 
         #endregion
-
-
-
-
-
-#if TRASH
-        public void ConnectPushNotificationServerSse()
-        {
-            try
-            {
-                _trace.writeToLog(9, "CLNotificationService: ConnectPushNotifriicationServerSse: Entry.");
-                string url = CLDefinitions.HttpPrefix + CLDefinitions.SubDomainPrefix + CLDefinitions.Domain;
-                string pathAndQueryStringAndFragment = String.Format(CLDefinitions.MethodPathPushSubscribe + "?sync_box_id={0}&device={1}", _syncBox.SyncBoxId, _syncBox.CopiedSettings.DeviceId);
-
-                Dictionary<string, string> headers = new Dictionary<string, string>();
-                headers.Add(
-                    CLDefinitions.HeaderKeyAuthorization,
-                    CLDefinitions.HeaderAppendCWS0 +
-                                            CLDefinitions.HeaderAppendKey +
-                                            _syncBox.Credential.Key + ", " +
-                                            CLDefinitions.HeaderAppendSignature +
-                                            Helpers.GenerateAuthorizationHeaderToken(
-                                                secret: _syncBox.Credential.Secret,
-                                                httpMethod: CLDefinitions.HeaderAppendMethodGet,
-                                                pathAndQueryStringAndFragment: pathAndQueryStringAndFragment) +
-                    // Add token if specified
-                                                (!String.IsNullOrEmpty(_syncBox.Credential.Token) ?
-                                                    CLDefinitions.HeaderAppendToken + _syncBox.Credential.Token :
-                                                    String.Empty));
-
-                if ((_syncBox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
-                {
-                    ComTrace.LogCommunication(_syncBox.CopiedSettings.TraceLocation,
-                        _syncBox.CopiedSettings.DeviceId,
-                        _syncBox.SyncBoxId,
-                        CommunicationEntryDirection.Request,
-                        url + pathAndQueryStringAndFragment,
-                        true,
-                        null,
-                        null,
-                        null,
-                        null,
-                        _syncBox.CopiedSettings.TraceExcludeAuthorization);
-                }
-
-                SseRequest sseRequest = new SseRequest();
-                sseRequest.DeviceId = _syncBox.CopiedSettings.DeviceId;
-                sseRequest.SyncBoxId = _syncBox.SyncBoxId;
-
-
-                CLHttpRestStatus status;
-                JsonContracts.SseResponse response;
-                CLError errorFromConnectServerSentEvents = _httpRestClient.TestConnectServerSentEvents(sseRequest, CLDefinitions.HttpTimeoutDefaultMilliseconds, out status, out response);
-                if (errorFromConnectServerSentEvents != null)
-                {
-                    _trace.writeToLog(1, "CLNotificationService: ConnectPushNotificationServer: ERROR: From TestConnectServerSentEvents. Msg: <{0}>.", errorFromConnectServerSentEvents.errorDescription);
-                    errorFromConnectServerSentEvents.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
-                }
-
-            }
-            catch (Exception ex)
-            {
-                CLError error = ex;
-                _trace.writeToLog(1, "CLNotificationService: ConnectPushNotificationServer: ERROR: Exception connecting with the push server. Msg: <{0}>.", ex.Message);
-                error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
-            }
-        }
-#endif // TRASH
     }
 }
