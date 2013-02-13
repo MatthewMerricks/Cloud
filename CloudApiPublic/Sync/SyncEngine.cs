@@ -1551,6 +1551,117 @@ namespace CloudApiPublic.Sync
                         // create list to store changes which were asynchronously preprocessed (only file uploads/downloads)
                         List<FileChange> asynchronouslyPreprocessed = new List<FileChange>();
 
+                        Func<List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>, List<long>, IEnumerable<FileChange>, List<FileChange>, PossiblyStreamableFileChange, Nullable<long>, IEnumerable<FileChange>> onSynchronousCompletion =
+							(innerErrorsToQueue, innerSuccessfulEventIds, innerThingsThatWereDependenciesToQueue, innerSynchronouslyPreprocessed, innerTopLevelChange, innerSuccessfulEventId) =>
+                            {
+                                // add change to synchronous list
+                                innerSynchronouslyPreprocessed.Add(innerTopLevelChange.FileChange);
+
+                                // add successful id for completed event
+                                innerSuccessfulEventIds.Add((long)innerSuccessfulEventId);
+
+                                // search for the FileChange in the errors by FileChange equality and Stream equality
+                                Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> foundErrorToRemove = innerErrorsToQueue
+                                    .Where(findErrorToQueue => findErrorToQueue.FileChange == innerTopLevelChange.FileChange && findErrorToQueue.Stream == innerTopLevelChange.Stream)
+                                    .Select(findErrorToQueue => (Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>)findErrorToQueue)
+                                    .FirstOrDefault();
+                                // if a matching error was found, then remove it from the errors
+                                if (foundErrorToRemove != null)
+                                {
+                                    innerErrorsToQueue.Remove((PossiblyStreamableAndPossiblyPreexistingErrorFileChange)foundErrorToRemove);
+                                }
+
+                                // try to cast the successful change as one with dependencies
+                                FileChangeWithDependencies changeWithDependencies = innerTopLevelChange.FileChange as FileChangeWithDependencies;
+                                // if change was one with dependencies and has a dependency, then concatenate the dependencies into thingsThatWereDependenciesToQueue
+                                if (changeWithDependencies != null
+                                    && changeWithDependencies.DependenciesCount > 0)
+                                {
+                                    if (innerThingsThatWereDependenciesToQueue == null)
+                                    {
+                                        innerThingsThatWereDependenciesToQueue = changeWithDependencies.Dependencies;
+                                    }
+                                    else
+                                    {
+                                        innerThingsThatWereDependenciesToQueue = innerThingsThatWereDependenciesToQueue.Concat(changeWithDependencies.Dependencies);
+                                    }
+                                }
+
+                                return innerThingsThatWereDependenciesToQueue;
+                            };
+
+                        Func<CLError, PossiblyStreamableFileChange, KeyValuePair<Metadata, CLError>> getMetadataForUploadDownloadResolving =
+                            (innerToReturn, innerTopLevelChange) =>
+                            {
+                                CLHttpRestStatus resolveMetadataStatus;
+                                JsonContracts.Metadata resolvedMetadata;
+                                CLError resolveMetadataError = httpRestClient.GetMetadataAtPath(
+                                    innerTopLevelChange.FileChange.NewPath,
+                                    false, // not a folder
+                                    HttpTimeoutMilliseconds,
+                                    out resolveMetadataStatus,
+                                    out resolvedMetadata);
+
+                                if (resolveMetadataStatus != CLHttpRestStatus.Success
+                                    && resolveMetadataStatus != CLHttpRestStatus.NoContent)
+                                {
+                                    string resolveMetadataErrorString = "Errors occurred confirming metadata for a preexisting " +
+                                        (innerTopLevelChange.FileChange.Direction == SyncDirection.To
+                                            ? "upload"
+                                            : "download");
+
+                                    innerToReturn += new AggregateException(resolveMetadataErrorString,
+                                        resolveMetadataError.GrabExceptions());
+
+                                    try
+                                    {
+                                        MessageEvents.FireNewEventMessage(this,
+                                            resolveMetadataErrorString,
+                                            EventMessageLevel.Regular,
+                                            true,
+                                            syncBox.SyncBoxId,
+                                            syncBox.CopiedSettings.DeviceId);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        innerToReturn += ex;
+                                    }
+                                }
+                                return new KeyValuePair<Metadata, CLError>(resolvedMetadata, innerToReturn);
+                            };
+
+                        Func<CLError, bool, bool, KeyValuePair<CLError, KeyValuePair<bool, bool>>> notifyOnConfirmMetadata =
+                            (innerToReturn, innerConfirmingMetadataForPreexistingUploadDownloads, innerUnhandledPreexistingUploadDownloadEventMessage) =>
+                            {
+                                if (!innerConfirmingMetadataForPreexistingUploadDownloads)
+                                {
+                                    try
+                                    {
+                                        innerConfirmingMetadataForPreexistingUploadDownloads = EventHandledLevel.IsHandled ==
+                                            MessageEvents.FireNewEventMessage(this,
+                                                "At least one preexisting upload or download was found on startup, confirming metadata before processing" +
+                                                    (innerUnhandledPreexistingUploadDownloadEventMessage
+                                                        ? "; Handle message event to prevent duplicate messages"
+                                                        : string.Empty),
+                                                EventMessageLevel.Regular,
+                                                SyncBoxId: syncBox.SyncBoxId,
+                                                DeviceId: syncBox.CopiedSettings.DeviceId);
+
+                                        innerUnhandledPreexistingUploadDownloadEventMessage = !innerConfirmingMetadataForPreexistingUploadDownloads;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        innerToReturn += ex;
+                                    }
+                                }
+
+                                return new KeyValuePair<CLError, KeyValuePair<bool, bool>>(
+                                    innerToReturn,
+                                    new KeyValuePair<bool, bool>(
+                                        innerConfirmingMetadataForPreexistingUploadDownloads,
+                                        innerUnhandledPreexistingUploadDownloadEventMessage));
+                            };
+
                         bool confirmingMetadataForPreexistingUploadDownloads = false;
                         bool unhandledPreexistingUploadDownloadEventMessage = false;
 
@@ -1587,94 +1698,175 @@ namespace CloudApiPublic.Sync
                                     && !topLevelChange.FileChange.Metadata.HashableProperties.IsFolder
                                     && !string.IsNullOrEmpty(topLevelChange.FileChange.Metadata.StorageKey))
                                 {
-                                    if (!confirmingMetadataForPreexistingUploadDownloads)
-                                    {
-                                        try
-                                        {
-                                            confirmingMetadataForPreexistingUploadDownloads = EventHandledLevel.IsHandled ==
-                                                MessageEvents.FireNewEventMessage(this,
-                                                    "At least one preexisting upload or download was found on startup, confirming metadata before processing" +
-                                                        (unhandledPreexistingUploadDownloadEventMessage
-                                                            ? "; Handle message event to prevent duplicate messages"
-                                                            : string.Empty),
-                                                    EventMessageLevel.Regular,
-                                                    SyncBoxId: syncBox.SyncBoxId,
-                                                    DeviceId: syncBox.CopiedSettings.DeviceId);
+                                    // compare metadata with disk first
 
-                                            unhandledPreexistingUploadDownloadEventMessage = !confirmingMetadataForPreexistingUploadDownloads;
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            toReturn += ex;
-                                        }
+                                    byte[] existingFileMD5;
+                                    CLError existingFileMD5Error = topLevelChange.FileChange.GetMD5Bytes(out existingFileMD5);
+                                    if (existingFileMD5Error != null)
+                                    {
+                                        toReturn += new AggregateException("Error retrieving MD5 from topLevelChange FileChange", existingFileMD5Error.GrabExceptions());
                                     }
+                                    string existingFilePath = topLevelChange.FileChange.NewPath.ToString();
 
-                                    CLHttpRestStatus resolveMetadataStatus;
-                                    JsonContracts.Metadata resolvedMetadata;
-                                    CLError resolveMetadataError = httpRestClient.GetMetadataAtPath(
-                                        topLevelChange.FileChange.NewPath,
-                                        false, // not a folder
-                                        HttpTimeoutMilliseconds,
-                                        out resolveMetadataStatus,
-                                        out resolvedMetadata);
-
-                                    if (resolveMetadataStatus != CLHttpRestStatus.Success
-                                        && resolveMetadataStatus != CLHttpRestStatus.NoContent)
+                                    switch (topLevelChange.FileChange.Direction)
                                     {
-                                        string resolveMetadataErrorString = "Errors occurred confirming metadata for a preexisting " +
-                                            (topLevelChange.FileChange.Direction == SyncDirection.To
-                                                ? "upload"
-                                                : "download");
+                                        case SyncDirection.From:
+                                            // TODO: remove all references of System.IO in this engine, should be a callback to the event source (FileMonitor)
 
-                                        toReturn += new AggregateException(resolveMetadataErrorString,
-                                            resolveMetadataError.GrabExceptions());
+                                            FileInfo existingFile = new FileInfo(existingFilePath);
+                                            bool matchingFileFound;
+                                            if (existingFileMD5Error == null
+                                                && existingFileMD5 != null
+                                                && existingFile.Exists
+                                                && (topLevelChange.FileChange.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || topLevelChange.FileChange.Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || Helpers.DateTimesWithinOneSecond(topLevelChange.FileChange.Metadata.HashableProperties.CreationTime, existingFile.CreationTimeUtc))
+                                                && (topLevelChange.FileChange.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || topLevelChange.FileChange.Metadata.HashableProperties.LastTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || Helpers.DateTimesWithinOneSecond(topLevelChange.FileChange.Metadata.HashableProperties.LastTime, existingFile.LastWriteTimeUtc))
+                                                && topLevelChange.FileChange.Metadata.HashableProperties.Size != null
+                                                && ((long)topLevelChange.FileChange.Metadata.HashableProperties.Size) == existingFile.Length)
+                                            {
+                                                // create MD5 to calculate hash
+                                                MD5 md5Hasher = MD5.Create();
 
-                                        try
-                                        {
-                                            MessageEvents.FireNewEventMessage(this,
-                                                resolveMetadataErrorString,
-                                                EventMessageLevel.Regular,
-                                                true,
-                                                syncBox.SyncBoxId,
-                                                syncBox.CopiedSettings.DeviceId);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            toReturn += ex;
-                                        }
-                                    }
+                                                // define buffer for reading the file
+                                                byte[] fileBuffer = new byte[FileConstants.BufferSize];
+                                                // declare int for storying how many bytes were read on each buffer transfer
+                                                int fileReadBytes;
 
-                                    byte[] topLevelChangeMD5;
-                                    CLError topLevelChangeMD5Error = topLevelChange.FileChange.GetMD5Bytes(out topLevelChangeMD5);
-                                    if (topLevelChangeMD5Error != null)
-                                    {
-                                        toReturn += new AggregateException("Error retrieving MD5 bytes for a preexisting " +
-                                                (topLevelChange.FileChange.Direction == SyncDirection.To
-                                                    ? "upload"
-                                                    : "download"),
-                                            topLevelChangeMD5Error.GrabExceptions());
-                                    }
-                                    byte[] parsedResolvedMetadataHash;
+                                                try
+                                                {
+                                                    // open a file read stream for reading the hash at the existing temp file location
+                                                    using (FileStream verifyTempDownloadStream = new FileStream(existingFilePath,
+                                                        FileMode.Open,
+                                                        FileAccess.Read,
+                                                        FileShare.Read))
+                                                    {
+                                                        // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file
+                                                        while ((fileReadBytes = verifyTempDownloadStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
+                                                        {
+                                                            // add the buffer block to the hash calculation
+                                                            md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                                        }
 
-                                    if (topLevelChangeMD5Error != null
-                                        || resolvedMetadata == null
-                                        || resolvedMetadata.CreatedDate == null
-                                        || !Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadata.CreatedDate, topLevelChange.FileChange.Metadata.HashableProperties.CreationTime)
-                                        || resolvedMetadata.ModifiedDate == null
-                                        || !Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadata.ModifiedDate, topLevelChange.FileChange.Metadata.HashableProperties.LastTime)
-                                        || resolvedMetadata.Size != topLevelChange.FileChange.Metadata.HashableProperties.Size
-                                        || (parsedResolvedMetadataHash = Helpers.ParseHexadecimalStringToByteArray(resolvedMetadata.Hash)) == null
-                                        || topLevelChangeMD5 == null
-                                        || NativeMethods.memcmp(topLevelChangeMD5, parsedResolvedMetadataHash, new UIntPtr((uint)topLevelChangeMD5.Length)) != 0)
-                                    {
-                                        if (topLevelChange.FileChange.Direction == SyncDirection.From)
-                                        {
-                                            syncFromInitialDownloadMetadataErrors.Add(topLevelChange.FileChange.EventId);
-                                        }
+                                                        // transform one final empty block to complete the hash calculation
+                                                        md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
 
-                                        initialMetadataFailuresAsInnerDependencies.Add(topLevelChange.FileChange);
+                                                        // if the existing file has an identical hash, then use the existing file for the current download
+                                                        matchingFileFound = NativeMethods.memcmp(existingFileMD5, md5Hasher.Hash, new UIntPtr((uint)md5Hasher.Hash.Length)) == 0; // matching hash
+                                                    }
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    toReturn += new Exception("Error comparing MD5 hashes from topLevelChange FileChange with the file at its path on disk", ex);
+                                                    matchingFileFound = false;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                matchingFileFound = false;
+                                            }
 
-                                        initialUploadDownloadMetadataError = true;
+                                            if (matchingFileFound)
+                                            {
+                                                thingsThatWereDependenciesToQueue = onSynchronousCompletion(
+                                                    errorsToQueue,
+                                                    successfulEventIds,
+                                                    thingsThatWereDependenciesToQueue,
+                                                    synchronouslyPreprocessed,
+                                                    topLevelChange,
+                                                    topLevelChange.FileChange.EventId);
+                                            }
+                                            else
+                                            {
+                                                KeyValuePair<CLError, KeyValuePair<bool, bool>> notifyMetadataResultDown = notifyOnConfirmMetadata(toReturn, confirmingMetadataForPreexistingUploadDownloads, unhandledPreexistingUploadDownloadEventMessage);
+                                                toReturn = notifyMetadataResultDown.Key;
+                                                confirmingMetadataForPreexistingUploadDownloads = notifyMetadataResultDown.Value.Key;
+                                                unhandledPreexistingUploadDownloadEventMessage = notifyMetadataResultDown.Value.Value;
+
+                                                KeyValuePair<Metadata, CLError> getMetadataPairDown = getMetadataForUploadDownloadResolving(toReturn, topLevelChange);
+                                                JsonContracts.Metadata resolvedMetadataDown = getMetadataPairDown.Key;
+                                                toReturn = getMetadataPairDown.Value;
+
+                                                byte[] topLevelChangeMD5;
+                                                CLError topLevelChangeMD5Error = topLevelChange.FileChange.GetMD5Bytes(out topLevelChangeMD5);
+                                                if (topLevelChangeMD5Error != null)
+                                                {
+                                                    toReturn += new AggregateException("Error retrieving MD5 bytes for a preexisting download",
+                                                        topLevelChangeMD5Error.GrabExceptions());
+                                                }
+
+                                                byte[] parsedResolvedMetadataHash;
+                                                if (topLevelChangeMD5Error != null
+                                                    || resolvedMetadataDown == null
+                                                    || resolvedMetadataDown.CreatedDate == null
+                                                    || !Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadataDown.CreatedDate, topLevelChange.FileChange.Metadata.HashableProperties.CreationTime)
+                                                    || resolvedMetadataDown.ModifiedDate == null
+                                                    || !Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadataDown.ModifiedDate, topLevelChange.FileChange.Metadata.HashableProperties.LastTime)
+                                                    || resolvedMetadataDown.Size != topLevelChange.FileChange.Metadata.HashableProperties.Size
+                                                    || (parsedResolvedMetadataHash = Helpers.ParseHexadecimalStringToByteArray(resolvedMetadataDown.Hash)) == null
+                                                    || (topLevelChangeMD5 != null // <-- normal case when loaded from database since we are currently not storing file hash
+                                                        && NativeMethods.memcmp(topLevelChangeMD5, parsedResolvedMetadataHash, new UIntPtr((uint)topLevelChangeMD5.Length)) != 0))
+                                                {
+                                                    if (topLevelChange.FileChange.Direction == SyncDirection.From)
+                                                    {
+                                                        syncFromInitialDownloadMetadataErrors.Add(topLevelChange.FileChange.EventId);
+                                                    }
+
+                                                    initialMetadataFailuresAsInnerDependencies.Add(topLevelChange.FileChange);
+
+                                                    initialUploadDownloadMetadataError = true;
+                                                }
+                                            }
+                                            break;
+
+                                        case SyncDirection.To:
+                                            KeyValuePair<CLError, KeyValuePair<bool, bool>> notifyMetadataResultUp = notifyOnConfirmMetadata(toReturn, confirmingMetadataForPreexistingUploadDownloads, unhandledPreexistingUploadDownloadEventMessage);
+                                            toReturn = notifyMetadataResultUp.Key;
+                                            confirmingMetadataForPreexistingUploadDownloads = notifyMetadataResultUp.Value.Key;
+                                            unhandledPreexistingUploadDownloadEventMessage = notifyMetadataResultUp.Value.Value;
+
+                                            KeyValuePair<Metadata, CLError> getMetadataPairUp = getMetadataForUploadDownloadResolving(toReturn, topLevelChange);
+                                            JsonContracts.Metadata resolvedMetadataUp = getMetadataPairUp.Key;
+                                            toReturn = getMetadataPairUp.Value;
+
+                                            if (resolvedMetadataUp != null)
+                                            {
+                                                byte[] topLevelChangeMD5;
+                                                CLError topLevelChangeMD5Error = topLevelChange.FileChange.GetMD5Bytes(out topLevelChangeMD5);
+                                                if (topLevelChangeMD5Error != null)
+                                                {
+                                                    toReturn += new AggregateException("Error retrieving MD5 bytes for a preexisting upload",
+                                                        topLevelChangeMD5Error.GrabExceptions());
+                                                }
+
+                                                byte[] parsedResolvedMetadataHash;
+                                                if (topLevelChangeMD5Error == null
+                                                    && resolvedMetadataUp.CreatedDate != null
+                                                    && Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadataUp.CreatedDate, topLevelChange.FileChange.Metadata.HashableProperties.CreationTime)
+                                                    && resolvedMetadataUp.ModifiedDate != null
+                                                    && Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadataUp.ModifiedDate, topLevelChange.FileChange.Metadata.HashableProperties.LastTime)
+                                                    && resolvedMetadataUp.Size != null
+                                                    && topLevelChange.FileChange.Metadata.HashableProperties.Size != null
+                                                    && ((long)resolvedMetadataUp.Size) == ((long)topLevelChange.FileChange.Metadata.HashableProperties.Size)
+                                                    && (parsedResolvedMetadataHash = Helpers.ParseHexadecimalStringToByteArray(resolvedMetadataUp.Hash)) != null
+                                                    && (topLevelChangeMD5 == null // <-- normal case since MD5 is not currently stored in the database
+                                                        || NativeMethods.memcmp(topLevelChangeMD5, parsedResolvedMetadataHash, new UIntPtr((uint)topLevelChangeMD5.Length)) == 0))
+                                                {
+                                                    thingsThatWereDependenciesToQueue = onSynchronousCompletion(
+                                                        errorsToQueue,
+                                                        successfulEventIds,
+                                                        thingsThatWereDependenciesToQueue,
+                                                        synchronouslyPreprocessed,
+                                                        topLevelChange,
+                                                        topLevelChange.FileChange.EventId);
+                                                }
+                                            }
+                                            break;
+
+                                        default:
+                                            throw new NotSupportedException("Unknown topLevelChange FileChange Direction: " + topLevelChange.FileChange.Direction.ToString());
                                     }
                                 }
 
@@ -1710,38 +1902,13 @@ namespace CloudApiPublic.Sync
                                     if (successfulEventId != null
                                         && (long)successfulEventId > 0)
                                     {
-                                        // add change to synchronous list
-                                        synchronouslyPreprocessed.Add(topLevelChange.FileChange);
-
-                                        // add successful id for completed event
-                                        successfulEventIds.Add((long)successfulEventId);
-
-                                        // search for the FileChange in the errors by FileChange equality and Stream equality
-                                        Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> foundErrorToRemove = errorsToQueue
-                                            .Where(findErrorToQueue => findErrorToQueue.FileChange == topLevelChange.FileChange && findErrorToQueue.Stream == topLevelChange.Stream)
-                                            .Select(findErrorToQueue => (Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>)findErrorToQueue)
-                                            .FirstOrDefault();
-                                        // if a matching error was found, then remove it from the errors
-                                        if (foundErrorToRemove != null)
-                                        {
-                                            errorsToQueue.Remove((PossiblyStreamableAndPossiblyPreexistingErrorFileChange)foundErrorToRemove);
-                                        }
-
-                                        // try to cast the successful change as one with dependencies
-                                        FileChangeWithDependencies changeWithDependencies = topLevelChange.FileChange as FileChangeWithDependencies;
-                                        // if change was one with dependencies and has a dependency, then concatenate the dependencies into thingsThatWereDependenciesToQueue
-                                        if (changeWithDependencies != null
-                                            && changeWithDependencies.DependenciesCount > 0)
-                                        {
-                                            if (thingsThatWereDependenciesToQueue == null)
-                                            {
-                                                thingsThatWereDependenciesToQueue = changeWithDependencies.Dependencies;
-                                            }
-                                            else
-                                            {
-                                                thingsThatWereDependenciesToQueue = thingsThatWereDependenciesToQueue.Concat(changeWithDependencies.Dependencies);
-                                            }
-                                        }
+                                        thingsThatWereDependenciesToQueue = onSynchronousCompletion(
+                                            errorsToQueue,
+                                            successfulEventIds,
+                                            thingsThatWereDependenciesToQueue,
+                                            synchronouslyPreprocessed,
+                                            topLevelChange,
+                                            successfulEventId);
                                     }
                                     // else if there was not a valid successful event id, then process for errors or async tasks
                                     else
