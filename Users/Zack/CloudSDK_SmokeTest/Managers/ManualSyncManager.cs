@@ -53,7 +53,16 @@ namespace CloudSDK_SmokeTest.Managers
         #endregion 
 
         #region Create File
-
+        /// <summary>
+        ///    This method is called to create a file in the Cloud Syncbox from a File on the Client Machine 
+        /// </summary>
+        /// <param name="paramSet"></param>
+        /// <param name="fileInfo"></param>
+        /// <param name="fileName"></param>
+        /// <param name="ProcessingErrorHolder"></param>
+        /// <returns>
+        ///     int uploadResponseCode -- Defines the type of response returned form the server.
+        /// </returns>
         public override int Create(Settings.InputParams paramSet, FileInfo fileInfo, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             this.ProcessingErrorHolder = ProcessingErrorHolder;
@@ -65,7 +74,6 @@ namespace CloudSDK_SmokeTest.Managers
             if (!File.Exists(fullPath))
                 WriteFile(RootDirectory.FullName, fileInfo.Name);
 
-            // Try to Create a Credentail set to make the Change 
             InitalizeCredentials("ManualSyncManager.CreateFile", out creds, out credsCreateStatus);
             // If Status returns anything other than success notify the user and stop the process.
             if (credsCreateStatus != CLCredentialCreationStatus.Success)
@@ -124,7 +132,7 @@ namespace CloudSDK_SmokeTest.Managers
         }
 
         private FileChange CreateFileChangeWithNewName(FileChange oldFileChange)
-        {
+        {   
             FileChange fileChange = new FileChange();
             bool isDuplicate = true;
             int counter = 0;
@@ -198,8 +206,6 @@ namespace CloudSDK_SmokeTest.Managers
             {
                 string fullPath = oldFileChange.NewPath.Parent.ToString() + '\\' + newFileName;
                 WriteFile(oldFileChange.NewPath.Parent.ToString(), newFileName);
-                //File.Create(oldFileChange.NewPath.Parent.ToString() + newFileName);
-                //File.Replace(oldFileChange.NewPath.ToString(), oldFileChange.NewPath.Parent.ToString() + newFileName, newFileName + "_bak");
                 md5 = FileHelper.CreateFileChangeObject(fullPath, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
                 fileChange.SetMD5(md5);
             }
@@ -256,8 +262,57 @@ namespace CloudSDK_SmokeTest.Managers
             CLError hashError = fileChange.SetMD5(md5Bytes);
             if (hashError != null)
             {
-                IEnumerable<Exception> exceptions = hashError.GrabExceptions();
-                foreach (Exception exception in exceptions)
+                Exception[] exceptions = hashError.GrabExceptions().ToArray();
+                lock (this.ProcessingErrorHolder)
+                {
+                    foreach (Exception ex in exceptions)
+                    {
+                        this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                    }                    
+                }                
+            }
+            return fileChange;
+        }
+
+        private FileChange PrepareFileChangeForModification(InputParams paramSet, FileChangeType changeType, CLSyncBox syncBox, string filePath)
+        {
+            CLHttpRestStatus restStatus;
+            FileChange fileChange = new FileChange();
+            byte[] md5Bytes;
+            if (!File.Exists(filePath))
+            {
+                Exception fileNotFound = new FileNotFoundException(string.Format("PrepareFileChangeForModification: {0}", filePath));
+                lock (this.ProcessingErrorHolder)
+                {
+                    this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + fileNotFound;
+                }
+            }
+            else
+            {
+                try
+                {
+                    FileInfo filetoDelete = new FileInfo(filePath);
+                    CloudApiPublic.JsonContracts.Metadata metaDataResponse;
+                    CLError badPathError = CloudApiPublic.Static.Helpers.CheckForBadPath(filePath);
+                    CLError metaDataRequestError =  syncBox.GetMetadataAtPath(filePath, false, ManagerConstants.TimeOutMilliseconds, out restStatus, out metaDataResponse);
+                    if (metaDataRequestError == null && (metaDataResponse.Deleted == null || metaDataResponse.Deleted == false))
+                        md5Bytes = FileHelper.CreateFileChangeObject(filePath, changeType, true, metaDataResponse.Size, metaDataResponse.StorageKey, metaDataResponse.ServerId, out fileChange);
+                    else
+                    {
+                        Exception[] exceptions = metaDataRequestError.GrabExceptions().ToArray();
+                        if (exceptions.Length > 0)
+                        {
+                            lock (this.ProcessingErrorHolder)
+                            {
+                                foreach (Exception ex in exceptions)
+                                {
+                                    this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception exception)
                 {
                     lock (this.ProcessingErrorHolder)
                     {
@@ -312,28 +367,68 @@ namespace CloudSDK_SmokeTest.Managers
 
             }
             Console.WriteLine("TryUpload Exited...");
-            if (this.ProcessingErrorHolder == null)
+            lock (ProcessingErrorHolder)
             {
                 IEnumerable<Exception> exceptions = errorHolder.Value.GrabExceptions();
-                if (exceptions.Count() > 0)
-                {
-                    foreach (Exception ex in exceptions)
-                        this.ProcessingErrorHolder.Value.AddException(ex);
-                }
+                foreach (Exception exception in exceptions)
+                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
             }
             return uploadResponseCode;            
         }
-        #endregion 
+        #endregion
 
-        public override int Delete(Settings.InputParams paramSet)
+        /// <summary>
+        /// This methid is used to delete a specific file stored oin the SyncBox -- This operation only affects the server version of the file 
+        /// this will not delete the client version of the file. 
+        /// Note: If a Sync From happens After the server has deleted the file, but the file still exists in the client root, the file will be re-added to SyncBox
+        /// </summary>
+        /// <param name="paramSet"></param>
+        /// <param name="filePath"></param>
+        /// <returns>
+        ///     int deleteFileResponse -- value returned depending on the completion status of the operation
+        /// </returns>
+        public override int Delete(Settings.InputParams paramSet, string filePath)
         {
+            int deleteResponseCode = 0;
             CLCredential creds;
             CLCredentialCreationStatus credsCreateStatus;
             CLSyncBox syncBox;
             CLSyncBoxCreationStatus boxCreateStatus;
-            ICLSyncSettings settings = new CLSyncSettings(paramSet.ActiveSync_Folder);
-            //TODO: Add Delete File Functionality 
-            return 0;
+            CLHttpRestStatus restStatus = new CLHttpRestStatus();
+            
+            InitalizeCredentials("ManualSyncManager.CreateFile", out creds, out credsCreateStatus);
+            ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", ""));
+            if (credsCreateStatus != CLCredentialCreationStatus.Success)
+            {
+                Console.WriteLine("There was an error Crteating Credentials In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
+                Console.WriteLine("Exiting Process...");
+                return (int)FileManagerResponseCodes.InitializeCredsError;
+            }
+            CloudApiPublic.JsonContracts.Event returnEvent; 
+            long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
+            CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
+            FileChange fileChange = PrepareFileChangeForModification(paramSet, FileChangeType.Deleted, syncBox, filePath);
+            CLError postFileError = syncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
+            if (postFileError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                if (postFileError != null)
+                {
+                    Exception[] exceptions = postFileError.GrabExceptions().ToArray();
+                    lock (this.ProcessingErrorHolder)
+                    {
+                        foreach (Exception exception in exceptions)
+                        {
+                            this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
+                        }                        
+                    }                    
+                }
+                if (restStatus != CLHttpRestStatus.Success)
+                { 
+                    FileInfo info = new FileInfo(filePath);
+                    Exception unsuccessfulDeleteError = new Exception(string.Format("The Returned Response for Attempt to Delete File {0} is {1}", info.Name, restStatus));
+                }                
+            }
+            return deleteResponseCode;
         }
 
         public override int Undelte(Settings.InputParams paramSet)
@@ -342,23 +437,50 @@ namespace CloudSDK_SmokeTest.Managers
             CLCredentialCreationStatus credsCreateStatus;
             CLSyncBox syncBox;
             CLSyncBoxCreationStatus boxCreateStatus;
-            ICLSyncSettings settings = new CLSyncSettings(paramSet.ActiveSync_Folder);
+            ICLSyncSettings settings = new CLSyncSettings(paramSet.ActiveSync_Folder);            
             //TODO: Add Undelete File Functionality
+            
             return 0;
         }
 
-        public override int Rename(Settings.InputParams paramSet)
+        public override int Rename(Settings.InputParams paramSet, string directoryRelativeToRoot, string oldFileName, string newFileName)
         {
+            int renameResponseCode = 0;
             CLCredential creds;
             CLCredentialCreationStatus credsCreateStatus;
             CLSyncBox syncBox;
             CLSyncBoxCreationStatus boxCreateStatus;
-            ICLSyncSettings settings = new CLSyncSettings(paramSet.ActiveSync_Folder);
-            //TODO: Add Rename File Functionality
+            CLHttpRestStatus restStatus = new CLHttpRestStatus();
+            ICLSyncSettings settings = new AdvancedSyncSettings(paramSet.ManualSync_Folder.Replace("\"", ""));
+
+            InitalizeCredentials("ManualSync.RenameFile", out creds, out credsCreateStatus);
+            if (credsCreateStatus != CLCredentialCreationStatus.Success)
+            {
+                Console.WriteLine("There was an error Crteating Credentials In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
+                Console.WriteLine("Exiting Process...");
+                return (int)FileManagerResponseCodes.InitializeCredsError;
+            }
+            string fullPath = directoryRelativeToRoot + oldFileName;
+            CloudApiPublic.JsonContracts.Event returnEvent;
+            long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
+            CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
+            FileChange fileChange = PrepareFileChangeForModification(paramSet, FileChangeType.Renamed, syncBox, fullPath);
+            
+            CLError postFileError = syncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
+
             return 0;
         }
 
         #region Download All Content
+
+        /// <summary>
+        /// This method is called to overwrite the entire contents of the clients Machine Sync Path with the current SyncBox content
+        /// </summary>
+        /// <param name="smokeTask"></param>
+        /// <param name="ProcessingErrorHolder"></param>
+        /// <returns>
+        ///     int downloadAllResponseCode -- Description of Completion of Process 
+        /// </returns>
         public int InitiateDownloadAll(SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             CurrentTask = smokeTask;
@@ -443,46 +565,40 @@ namespace CloudSDK_SmokeTest.Managers
             //Async Parallel Opperations
             //System.Threading.Tasks.Parallel.ForEach(folderContents.Objects, (mdObject) =>
             //{
-            //    if (mdObject.IsFolder == true)
-            //        HandleAddFolder(mdObject, syncBox);
-            //    else if (mdObject.IsFolder == false)
-            //        HandleAddFile(creds, mdObject, syncBox);
+            //      HandleAdd(mdObject, syncBox);
             //});
             
             //Synchronous Opperations
             foreach (CloudApiPublic.JsonContracts.Metadata mdObject in folderContents.Objects)
-            { 
-                 if (mdObject.IsFolder == true)
-                    HandleAddFolder(mdObject, syncBox);
-                else if (mdObject.IsFolder == false)
-                    HandleAddFile(creds, mdObject, syncBox);
-            }
+                HandleAdd(mdObject, syncBox);
 
             Console.WriteLine(string.Format("Add File Counter: {0}", AddFileCounter.ToString()));           
 
         }
 
-        private void HandleAddFolder(CloudApiPublic.JsonContracts.Metadata mdObject, CLSyncBox syncBox)
+        private void HandleAdd(CloudApiPublic.JsonContracts.Metadata mdObject, CLSyncBox syncBox)
         {
-            string directoryPath = RootDirectory.FullName + mdObject.RelativePathWithoutEnclosingSlashes.Replace("\"", "");
-            if (!Directory.Exists(directoryPath))
+            if (mdObject.IsFolder.HasValue && mdObject.IsFolder.Value)
             {
-                Directory.CreateDirectory(directoryPath);
-            }
-        }
-
-        private void HandleAddFile(CLCredential creds, CloudApiPublic.JsonContracts.Metadata mdObject, CLSyncBox syncBox)
-        {
-            AddFileCounter++;
-            string filePath = RootDirectory.FullName + mdObject.RelativePathWithoutEnclosingSlashes.Replace("/", "\\").Replace("\"", "");
-            FileInfo fileInfo = new FileInfo(filePath);
-            if (fileInfo == null)
-            {
-                CompleteAddFile(syncBox, filePath, mdObject);
+                string directoryPath = RootDirectory.FullName + mdObject.RelativePathWithoutEnclosingSlashes.Replace("\"", "");
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
             }
             else
             {
-                HandleFileComparison(syncBox, filePath, mdObject);
+                AddFileCounter++;
+                string filePath = RootDirectory.FullName + mdObject.RelativePathWithoutEnclosingSlashes.Replace("/", "\\").Replace("\"", "");
+                FileInfo fileInfo = new FileInfo(filePath);
+                if (!fileInfo.Exists)
+                {
+                    CompleteAddFile(syncBox, filePath, mdObject);
+                }
+                else
+                {
+                    HandleFileComparison(syncBox, filePath, mdObject);
+                }
             }
         }
 
@@ -496,7 +612,6 @@ namespace CloudSDK_SmokeTest.Managers
             currentFile.Direction = SyncDirection.From;
             object state = new object();
             CLError downloadError = syncBox.HttpRestClient.DownloadFile(currentFile, AfterDownloadCallback, state, ManagerConstants.TimeOutMilliseconds, out restStatus);
-
             if (ProcessingErrorHolder == null)
                 ProcessingErrorHolder = new GenericHolder<CLError>();
             if (downloadError != null)
@@ -565,17 +680,17 @@ namespace CloudSDK_SmokeTest.Managers
                         if (continueMove)
                         {
                             File.Move(inputString, destination);
-                            if (!string.IsNullOrEmpty(fileChange.Metadata.ServerId))
-                                ServerIdAndPaths.Add(destination, fileChange.Metadata.ServerId);
+                            //No Need to Map the files, we are not yewt supporting duplicate file names.
+                            //if (!string.IsNullOrEmpty(fileChange.Metadata.ServerId))
+                            //    ServerIdAndPaths.Add(destination, fileChange.Metadata.ServerId);
                         }
                     }
                     catch (Exception exception)
                     {
                         ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-
                         //if the exception is of type File Exists Exception it means there is a duplicate name,
                         // or the Delta is case sensitivity
-                        RetryDownloadCallbackRecursive(exception, fileChange, inputString, destination, rootString);                  
+                        //RetryDownloadCallbackRecursive(exception, fileChange, inputString, destination, rootString);                  
                     }
                 }
                 Console.WriteLine(string.Format("After File Download Counter: {0}", AfterDownloadCallbackCounter.ToString()));
@@ -584,6 +699,9 @@ namespace CloudSDK_SmokeTest.Managers
 
         private void RetryDownloadCallbackRecursive(Exception exception, FileChange fileChange, string originalPath, string destination, string rootString)
         {
+            //ZW: Since we are not yet supporting mutiple files with the same name, this function should not ever get called. 
+            
+
             if (exception.Message == CaseSensitiveFileNameString || exception.Message == DuplicateFileErrorString)
             {
                 GenericHolder<CLError> errorHolder;
@@ -596,14 +714,18 @@ namespace CloudSDK_SmokeTest.Managers
                 try
                 {
                     File.Move(originalPath, destination);
-                    AddEntryToMappingFile(originalPath, destination);
+                    //ZW no need to map the files, duplicate names unsupported 
+                    //AddEntryToMappingFile(originalPath, destination);
                 }
                 catch (Exception exception2)
                 {
-                    ProcessingErrorHolder.Value.AddException(exception);
+                    lock(ProcessingErrorHolder)
+                    {
+                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception2;
+                    }
                     //if the exception is of type File Exists Exception it means there is a duplicate name,
                     // or the Delta is case sensitivity
-                    RetryDownloadCallbackRecursive(exception2, fileChange, originalPath, destination, rootString);
+                    //RetryDownloadCallbackRecursive(exception2, fileChange, originalPath, destination, rootString);
                 }
             }
         }
@@ -632,6 +754,9 @@ namespace CloudSDK_SmokeTest.Managers
 
         private void AddEntryToMappingFile(string originalName, string localName)
         {
+            //ZW: Not yet mapping files Throw breaking exception if this methiod gets called 
+            throw new NotImplementedException("AddEntryToMappingFile Method of Manual Sync Manager");
+
             string mappingFilePath = InputParams.FileNameMappingFile.Replace("\"", "");
             FileStream fileStream;
             try
@@ -667,6 +792,7 @@ namespace CloudSDK_SmokeTest.Managers
                 }
             }
         }
+
         #endregion 
 
         #region All

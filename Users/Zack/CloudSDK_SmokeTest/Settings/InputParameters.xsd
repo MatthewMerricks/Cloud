@@ -36,10 +36,12 @@
       <xs:element name="type" >
         <xs:simpleType>
           <xs:restriction base ="xs:string" >
-            <xs:enumeration value ="CreateSyncBox" />
-            <xs:enumeration value ="FileCreation" />
-            <xs:enumeration value="FileDeletion" />
-            <xs:enumeration value="DownloadAllSyncBoxContent" />
+            <xs:enumeration value = "CreateSyncBox" />
+            <xs:enumeration value = "FileCreation" />
+            <xs:enumeration value = "FileDeletion" />
+            <xs:enumeration value = "DownloadAllSyncBoxContent" />
+            <xs:enumeration value = "FileRename" />
+            <xs:enumeration value = "FileUndelete" />
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
@@ -56,7 +58,44 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  
+  <xs:complexType name="FileDeletion">
+    <xs:complexContent >
+      <xs:extension base="SmokeTask" >
+        <xs:sequence>
+          <xs:element name="FileName" type ="xs:string" />
+          <xs:element name="FilePath" type ="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
 
+
+  <xs:complexType name="FileRename">
+    <xs:complexContent >
+      <xs:extension base="SmokeTask" >
+        <xs:sequence>
+          <xs:element name="OldName" type ="xs:string" />
+          <xs:element name="NewName" type ="xs:string" />
+          <xs:element name="RelativeDirectoryPath" type ="xs:string" />
+          <xs:element name="IsFolder" type ="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="FileUndelete">
+    <xs:complexContent >
+      <xs:extension base="SmokeTask" >
+        <xs:sequence>
+          <xs:element name="FullPath" type ="xs:string" />
+          <xs:element name="FileName" type ="xs:string" />
+          <xs:element name="Version" type ="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
   <xs:complexType name="DownloadAllSyncBoxContent">
     <xs:complexContent >
       <xs:extension base="SmokeTask" >

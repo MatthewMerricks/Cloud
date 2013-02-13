@@ -77,28 +77,31 @@ namespace CloudSDK_SmokeTest
                     Console.WriteLine();
                     InputParams.PrintDefaultValues(smokeTestClass.InputParams);
 
-                    //SmokeTask task = GetCreateSyncBoxTask(smokeTestClass);
-                    //if (task != null)
-                    //{
-                    //    SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, task, ProcessingErrorHolder);
-                    //}
-                    //else
-                    //{
-                    //    Exception exception = new Exception("A Create SyncBox Task is Required in the Settings File, even if its CreateBox Boolean is Set to False");
-                    //    lock (ProcessingErrorHolder)
-                    //    {
-                    //        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-                    //    }
-                    //}
-                    //// use this to run the task sets in parallel
-                    //System.Threading.Tasks.Parallel.ForEach(smokeTestClass.Scenario.Items, (scenarioItem) =>
-                    //{
-                    //    foreach (SmokeTask smokeTask in scenarioItem.Items)
-                    //    {
-                    //        if (smokeTask.type != SmokeTaskType.CreateSyncBox)
-                    //            SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, smokeTask, ProcessingErrorHolder);
-                    //    }
-                    //});
+                    SmokeTask task = GetCreateSyncBoxTask(smokeTestClass);
+                    if (task != null)
+                    {
+                        SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, task, ProcessingErrorHolder);
+                    }
+                    else
+                    {
+                        Exception exception = new Exception("A Create SyncBox Task is Required in the Settings File, even if its CreateBox Boolean is Set to False");
+                        lock (ProcessingErrorHolder)
+                        {
+                            ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
+                        }
+                    }
+
+                    #region Parallel Op Code
+                    // use this to run the task sets in parallel
+                    System.Threading.Tasks.Parallel.ForEach(smokeTestClass.Scenario.Items, (scenarioItem) =>
+                    {
+                        foreach (SmokeTask smokeTask in scenarioItem.Items)
+                        {
+                            if (smokeTask.type != SmokeTaskType.CreateSyncBox)
+                                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, smokeTask, ProcessingErrorHolder);
+                        }
+                    });
+                    #endregion 
 
                     #region Syncronous Op Code
                     //// use this to serialize the parallel tasks

@@ -10,8 +10,8 @@ namespace CloudSDK_SmokeTest.Managers
     public abstract class ManagerBase
     {
         public abstract int Create(Settings.InputParams paramSet, FileInfo fileInfo, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder);
-        public abstract int Delete(Settings.InputParams paramSet);
+        public abstract int Delete(Settings.InputParams paramSet, string filePath);
         public abstract int Undelte(Settings.InputParams paramSet);
-        public abstract int Rename(Settings.InputParams paramSet);
+        public abstract int Rename(Settings.InputParams paramSet, string directoryRelativetoRoot, string oldName, string newName);
     }
 }

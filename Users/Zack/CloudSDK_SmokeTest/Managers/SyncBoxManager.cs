@@ -27,7 +27,7 @@ namespace CloudSDK_SmokeTest.Managers
                 return null;
             }
 
-            syncBoxId = CreateNewSyncBoxAndAddToDictionary(creds, ref ProcessingExceptionHolder);
+            syncBoxId = CreateNewSyncBoxAndAddToDictionary(paramSet, creds, ref ProcessingExceptionHolder);
             return syncBoxId;
         }
 
@@ -52,12 +52,13 @@ namespace CloudSDK_SmokeTest.Managers
             }
         }
 
-        private static long? CreateNewSyncBoxAndAddToDictionary(CloudApiPublic.CLCredential creds, ref GenericHolder<CLError> ProcessingExceptionHolder)
+        private static long? CreateNewSyncBoxAndAddToDictionary(InputParams paramSet, CloudApiPublic.CLCredential creds, ref GenericHolder<CLError> ProcessingExceptionHolder)
         {
             long? returnValue = 0;
             CloudApiPublic.Static.CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.CreateSyncBox syncBox = null;
-            AdvancedSyncSettings settings = new AdvancedSyncSettings(null);
+            CloudApiPublic.JsonContracts.CreateSyncBox syncBox;
+            string strippedFolderPath = paramSet.ManualSync_Folder.Replace("\"", "");
+            AdvancedSyncSettings settings = new AdvancedSyncSettings(strippedFolderPath);
             CLError newBoxError = creds.AddSyncBoxOnServer(ManagerConstants.TimeOutMilliseconds, out restStatus, out syncBox, settings, null);
 
             if (restStatus != CLHttpRestStatus.Success || newBoxError != null)

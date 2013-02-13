@@ -38,6 +38,8 @@ namespace CloudSDK_SmokeTest.Helpers
 
         public static AllMappings GetMappingItems(string mappingFilePath, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
+            //ZW No dup file name support, this method dshould not get called. 
+            throw new NotImplementedException("GetMappingItems Method of XML helper Should Not Get called.");
             AllMappings mappings = null;
             try
             {

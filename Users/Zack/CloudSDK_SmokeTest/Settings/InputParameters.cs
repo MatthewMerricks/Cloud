@@ -85,6 +85,9 @@ namespace CloudSDK_SmokeTest.Settings {
     /// <remarks/>
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(CreateSyncBox))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(DownloadAllSyncBoxContent))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(FileUndelete))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(FileRename))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(FileDeletion))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(FileCreation))]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
     [System.SerializableAttribute()]
@@ -123,6 +126,12 @@ namespace CloudSDK_SmokeTest.Settings {
         
         /// <remarks/>
         DownloadAllSyncBoxContent,
+        
+        /// <remarks/>
+        FileRename,
+        
+        /// <remarks/>
+        FileUndelete,
     }
     
     /// <remarks/>
@@ -165,6 +174,129 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.folderPathField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string FilePath {
+            get {
+                return this.filePathField;
+            }
+            set {
+                this.filePathField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class FileUndelete : SmokeTask {
+        
+        private string fullPathField;
+        
+        private string fileNameField;
+        
+        private string versionField;
+        
+        /// <remarks/>
+        public string FullPath {
+            get {
+                return this.fullPathField;
+            }
+            set {
+                this.fullPathField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string FileName {
+            get {
+                return this.fileNameField;
+            }
+            set {
+                this.fileNameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string Version {
+            get {
+                return this.versionField;
+            }
+            set {
+                this.versionField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class FileRename : SmokeTask {
+        
+        private string oldNameField;
+        
+        private string newNameField;
+        
+        private string relativeDirectoryPathField;
+        
+        /// <remarks/>
+        public string OldName {
+            get {
+                return this.oldNameField;
+            }
+            set {
+                this.oldNameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string NewName {
+            get {
+                return this.newNameField;
+            }
+            set {
+                this.newNameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string RelativeDirectoryPath {
+            get {
+                return this.relativeDirectoryPathField;
+            }
+            set {
+                this.relativeDirectoryPathField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class FileDeletion : SmokeTask {
+        
+        private string fileNameField;
+        
+        private string filePathField;
+        
+        /// <remarks/>
+        public string FileName {
+            get {
+                return this.fileNameField;
+            }
+            set {
+                this.fileNameField = value;
             }
         }
         

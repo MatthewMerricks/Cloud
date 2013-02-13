@@ -214,7 +214,10 @@ namespace CloudSDK_SmokeTest.Settings
             this._tempDownloadFolderFullPath = null;
             this._clientVersion = "SmokeTest1";
             this._friendlyName = "Smoke Test";
-            this._syncRoot = syncRootPath;
+            if (syncRootPath.LastIndexOf('\\') == syncRootPath.Count() - 1)
+                this._syncRoot = syncRootPath.Substring(0, (syncRootPath.Count() - 1));
+            else
+                this._syncRoot = syncRootPath;
             this._databaseFolder = null;
         }
     }
