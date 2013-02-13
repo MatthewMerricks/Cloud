@@ -16,8 +16,6 @@ using System.Net;
 using System.Text;
 using System.Threading;
 
-//#if TRASH
-
 namespace CloudApiPublic.PushNotification
 {
     internal sealed class CLNotificationSseEngine : ICLNotificationEngine
@@ -29,26 +27,49 @@ namespace CloudApiPublic.PushNotification
         private ICLSyncSettingsAdvanced _copiedSettings = null;
         private StartEngineTimeout _delegateStartEngineTimeout = null;
         private CancelEngineTimeout _delegateCancelEngineTimeout = null;
+        private SendNotificationEvent _delegateSendNotificationEvent = null;
         private bool _isStarted = false;
         private bool _isConnectionSuccesful = false;
         private readonly object _locker = new object();
         private readonly GenericHolder<Thread> _engineThread = new GenericHolder<Thread>(null);
         private static readonly ManualResetEvent _startComplete = new ManualResetEvent(false);
+        private StringBuilder _sbCurrentLine = new StringBuilder(null);
+        private StringBuilder _sbData = new StringBuilder(null);
+        private string _field = String.Empty;
+        private string _value = String.Empty;
+        private string _eventName = String.Empty;
+        private string _lastEventId = String.Empty;
+        private int _reconnectionTime = 0;
+        private SseEngineStates _state = SseEngineStates.SseEngineState_Idle;
+        private EnumSseStates _stateParse = EnumSseStates.SseState_Idle;
+        private HashSet<IDisposable> _resourcesToCleanUp = new HashSet<IDisposable>();
+
         const int BUFFER_SIZE = 1024;
         const int DELAY_RECONNECT_MILLISECONDS = 3000; // default 3 second delay
 
-        #endregion
+        #endregion  // Private fields
+
+        #region Private Enumerations
+
+        private enum EnumSseStates : uint
+        {
+            SseState_Idle,
+            SseState_LookForLineEndingChar,
+            SseState_LookForLineEndingGotCR
+        }
+
+        private enum SseEngineStates : uint
+        {
+            SseEngineState_Idle = 0,
+            SseEngineState_Starting,
+            SseEngineState_Started,
+            SseEngineState_Cancelled,
+            SseEngineState_Failed,
+        }
+
+        #endregion  // Private enumerations
 
         #region Public properties
-
-        public NotificationEngineStates State
-        {
-            get
-            {
-                return _state;
-            }
-        }
-        private NotificationEngineStates _state = NotificationEngineStates.NotificationEngineState_Idle;
 
         public int MaxSuccesses
         {
@@ -68,7 +89,7 @@ namespace CloudApiPublic.PushNotification
         }
         private int _maxFailures = 1;
 
-        #endregion
+        #endregion  // Public properties
 
         #region Constructors
 
@@ -76,7 +97,7 @@ namespace CloudApiPublic.PushNotification
                         CLSyncBox syncBox, 
                         StartEngineTimeout delegateStartEngineTimeout, 
                         CancelEngineTimeout delegateCancelEngineTimeout,
-                        SendManualPoll delegateSendManualPoll = null)   // not used
+                        SendNotificationEvent delegateSendNotificationEvent)
         {
             if (syncBox == null)
             {
@@ -90,11 +111,16 @@ namespace CloudApiPublic.PushNotification
             {
                 throw new ArgumentNullException("delegateCancelEngineTimeout must not be null");
             }
+            if (delegateSendNotificationEvent == null)
+            {
+                throw new ArgumentNullException("delegateSendNotificationEvent must not be null");
+            }
 
             _syncBox = syncBox;
             _copiedSettings = syncBox.CopiedSettings;
             _delegateStartEngineTimeout = delegateStartEngineTimeout;
             _delegateCancelEngineTimeout = delegateCancelEngineTimeout;
+            _delegateSendNotificationEvent = delegateSendNotificationEvent;
         }
 
         public CLNotificationSseEngine()
@@ -136,15 +162,6 @@ namespace CloudApiPublic.PushNotification
             return fToReturnIsSuccess;
         }
 
-        public void Close()
-        {
-            lock (_locker)
-            {
-                StopEngineThread();
-                _isStarted = false;
-            }
-        }
-        
         #endregion
 
         #region Private methods
@@ -181,48 +198,60 @@ namespace CloudApiPublic.PushNotification
                     {
                         _engineThread.Value.Abort();
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        _trace.writeToLog(1, "CLNotificationSseEngine: StopEngineThread: ERROR: Exception: Msg: {0}.", ex.Message);
                     }
                     _engineThread.Value = null;
-                    // Call event here: NativeMethods.WSALookupServiceEnd(monitorLookup);
                 }
             }
         }
 
         private void StartThreadProc(object obj)
         {
-            // Initialize
-            CLNotificationSseEngine castState = obj as CLNotificationSseEngine;
-            if (castState == null)
-            {
-                throw new InvalidCastException("obj must be a CLNotificationSseEngine");
-            }
-            castState._state = NotificationEngineStates.NotificationEngineState_Starting;
+            #region Build HTTP SSE Request
 
-            // Build the query string.
-            string query = Helpers.QueryStringBuilder(
-                new[]
+            string query = String.Empty;
+            HttpWebRequest sseRequest = null;
+            try
+            {
+
+                // Initialize
+                _trace.writeToLog(9, "CLNotificationSseEngine: StartEngineThread: Entry.");
+                CLNotificationSseEngine castState = obj as CLNotificationSseEngine;
+                if (castState == null)
                 {
-                    new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBox.SyncBoxId.ToString()), // no need to escape string characters since the source is an integer
-                    new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
-                });
+                    throw new InvalidCastException("obj must be a CLNotificationSseEngine");
+                }
+                castState._state = SseEngineStates.SseEngineState_Starting;
 
-            bool continueReconnecting = true;
-            while (continueReconnecting)
-            {
-                HttpWebRequest sseRequest = (HttpWebRequest)HttpWebRequest.Create(
+                // Build the query string.
+                query = Helpers.QueryStringBuilder(
+                    new[]
+                    {
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBox.SyncBoxId.ToString()), // no need to escape string characters since the source is an integer
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
+                    });
+
+                sseRequest = (HttpWebRequest)HttpWebRequest.Create(
                                     CLDefinitions.CLNotificationServerSseURL +
                                     CLDefinitions.MethodPathPushSubscribe +
                                     query);
 
                 sseRequest.Method = CLDefinitions.HeaderAppendMethodGet;
-                sseRequest.Accept = "text/event-stream";
+                sseRequest.Accept = CLDefinitions.HeaderSseEventStreamValue;
                 sseRequest.Referer = CLDefinitions.CLNotificationServerSseURL;
                 sseRequest.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore);
-                sseRequest.Headers["Accept-Language"] = "en-us,en;q=0.9";
+                sseRequest.Headers[CLDefinitions.HeaderAcceptLanguage] = CLDefinitions.HeaderSseAcceptLanguageValue;
                 sseRequest.KeepAlive = true; // <-- Connection
                 sseRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
+
+
+                // Send a Last-Event-ID header on a reconnect.
+                if (_lastEventId.Length != 0)
+                {
+                    sseRequest.Headers[CLDefinitions.HeaderLastEventId] = _lastEventId;
+                }
 
                 // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
                 sseRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = _copiedSettings.ClientVersion; // set client version
@@ -234,7 +263,7 @@ namespace CloudApiPublic.PushNotification
                                                 _syncBox.Credential.Secret,
                                                 httpMethod: sseRequest.Method,
                                                 pathAndQueryStringAndFragment: CLDefinitions.MethodPathPushSubscribe + query) +
-                                               // Add token if specified
+                    // Add token if specified
                                                 (!String.IsNullOrEmpty(_syncBox.Credential.Token) ?
                                                         CLDefinitions.HeaderAppendToken + _syncBox.Credential.Token :
                                                         String.Empty);
@@ -262,131 +291,421 @@ namespace CloudApiPublic.PushNotification
                         (sseRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
                 }
                 #endregion
+            }
+            catch (ThreadAbortException ex)
+            {
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}.", ex.Message);
+                error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                _isConnectionSuccesful = false;
+                _startComplete.Set();
+            }
 
-                #region Send the request and get the response.
+            #endregion  
 
-                // Send the request and receive the immediate response.
-                _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
-                HttpWebResponse response;
-                WebException storeWebEx = null;
+            #region Send the request and get the response.
+
+            // Send the request and receive the immediate response.
+            _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
+            WebResponse boxedResponse = null;
+            HttpWebResponse response = null;
+            WebException storeWebEx = null;
+
+            try
+            {
                 try
                 {
-                    response = (HttpWebResponse)sseRequest.GetResponse();
+                    boxedResponse = sseRequest.GetResponse();   // sends the request and blocks for the response
+                    _resourcesToCleanUp.Add(boxedResponse);
+                    response = (HttpWebResponse)boxedResponse;
+                }
+                catch (ThreadAbortException ex)
+                {
                 }
                 catch (WebException ex)
                 {
                     if (ex.Response != null)
                     {
-                        response = (HttpWebResponse)ex.Response;
+                        boxedResponse = ex.Response;
+                        _resourcesToCleanUp.Add(boxedResponse);
+                        response = (HttpWebResponse)boxedResponse;
                         storeWebEx = ex;
                     }
                     else
                     {
+                        _delegateCancelEngineTimeout();
                         throw new Exception("WebException thrown without a Response", ex);
                     }
                 }
 
-                try
+                _delegateCancelEngineTimeout();
+
+                // check response status code == 200 here
+                switch (response.StatusCode)
                 {
-                    _delegateCancelEngineTimeout();
+                    case HttpStatusCode.OK: // continue reconnecting case, may or may not have data
 
-                    // check response status code == 200 here
-                    switch (response.StatusCode)
-                    {
-                        case HttpStatusCode.OK: // continue reconnecting case, may or may not have data
-
-                            // start engine timeout delegate
-
-                            // Get the stream associated with the response.
-                            using (Stream receiveStream = response.GetResponseStream())
+                        // Get the stream associated with the response.
+                        _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
+                        Stream receiveStream = null;
+                        try
+                        {
+                            using (receiveStream = response.GetResponseStream())
                             {
-                                // cancel engine timeout delegate
+                                _resourcesToCleanUp.Add(receiveStream);
+                                _delegateCancelEngineTimeout();
 
-                                using (StreamReader readStream = new StreamReader(receiveStream, Encoding.UTF8))
+                                StreamReader readStream = null;
+                                try
                                 {
-                                    // Loop reading commands from the server.
-                                    while (true)
+                                    using (readStream = new StreamReader(receiveStream, Encoding.UTF8))
                                     {
-                                        // Start the engine timeout delegate
-
-                                        Console.WriteLine("Start reading the data");
-                                        StringBuilder sbReceived = new StringBuilder(null);
+                                        _resourcesToCleanUp.Add(readStream);
+                                        _trace.writeToLog(9, "CLNotificationSseEngine: StartThreadProc: Start reading data from the response stream.");
                                         while (true)
                                         {
                                             char[] unicodeCharBuffer = new char[1];
+                                            _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
                                             int bytesRead = readStream.Read(unicodeCharBuffer, 0, 1);        // read one byte
+                                            _delegateCancelEngineTimeout();
 
                                             if (bytesRead != 0)
                                             {
-                                                // Got a byte.  Add it to the received string.
-                                                sbReceived.Append(unicodeCharBuffer[0]);
+                                                // Got a byte.  Process it.
+                                                ProcessReceivedCharacter(unicodeCharBuffer[0]);
                                             }
                                             else
                                             {
                                                 // We are at the end of the stream
+                                                ProcessEndOfStream();
                                                 break;
                                             }
                                         }
-
-                                        // Cancel the engine timeout delegate.
-
-                                        // We have a buffer full of data that should represent one or more commands from the server.
-                                        Console.WriteLine("Data read: {" + sbReceived + "}");
-
-                                        // process events here, but be careful of splits between buffers
-                                        // follow specifications at http://www.w3.org/TR/2009/WD-eventsource-20091029/#parsing-an-event-stream
-                                        // the character combination "\r\n" for carriage return plus line feed is the exact split between events in a stream, but may be omitted for the final event so check once more at the end
-                                        // store excess characters from the end of the buffer (may be unlimitted size if a single event can be at least the size of one buffer) to be processed seperately at the end
                                     }
                                 }
-
+                                finally
+                                {
+                                    if (readStream != null)
+                                    {
+                                        _resourcesToCleanUp.Remove(readStream);
+                                    }
+                                }
                             }
+                        }
+                        finally
+                        {
+                            if (receiveStream != null)
+                            {
+                                _resourcesToCleanUp.Remove(receiveStream);
+                            }
+                        }
 
-                            // Successful.  Post the waiting event.
-                            _isConnectionSuccesful = true;
-                            _startComplete.Set();
 
-                            Thread.Sleep(DELAY_RECONNECT_MILLISECONDS); // delay as per SSE specification
+                        // At this point the server has normally closed the session for some reason.  We will wait the specified amount of time, then
+                        // post the service manager thread to continue with a success, and this thread will exit, freeing any resources.  The service
+                        // manager will decide which engine to restart.
+                        int reconnectionTimeout = DELAY_RECONNECT_MILLISECONDS;     // default from SSE spec
+                        if (_reconnectionTime != 0)
+                        {
+                            reconnectionTimeout = _reconnectionTime;
+                        }
+                        Thread.Sleep(reconnectionTimeout);
 
-                            break;
+                        // Successful.  Post the waiting event.
+                        _isConnectionSuccesful = true;
+                        _startComplete.Set();
 
-                        case HttpStatusCode.NoContent: // do not continue reconnecting, do not check for data
+                        break;
 
-                            continueReconnecting = false; // no content status code is used by the server to end a connection
+                    case HttpStatusCode.NoContent: // do not continue reconnecting, do not check for data
 
-                            // force close the underlying connection somehow (don't know how)
+                        _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: Received 204 no content.");
+                        if ((_syncBox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
+                        {
+                            using (Stream responseStream = response.GetResponseStream())
+                            {
 
-                            // for tracing purposes only, may still want to 'try' to pull out response stream here if there is any response body content (which is incorrect given the no content status code!)
+                                ComTrace.LogCommunication(
+                                    traceLocation: _syncBox.CopiedSettings.TraceLocation,
+                                    UserDeviceId: _syncBox.CopiedSettings.DeviceId,
+                                    SyncBoxId: _syncBox.SyncBoxId,
+                                    Direction: CommunicationEntryDirection.Response,
+                                    DomainAndMethodUri: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
+                                    traceEnabled: true,
+                                    headers: (WebHeaderCollection)null,
+                                    body: responseStream,
+                                    statusCode: (int)HttpStatusCode.NoContent,
+                                    excludeAuthorization: _syncBox.CopiedSettings.TraceExcludeAuthorization);
+                            }
+                        }
 
-                            // Successful.  Post the waiting event.
-                            _isConnectionSuccesful = true;
-                            _startComplete.Set();
+                        // Successful.  Post the waiting event.
+                        _isConnectionSuccesful = true;
+                        _startComplete.Set();
 
-                            break;
+                        break;
 
-                        default: // invalid status code
+                    default: // invalid status code
 
-                            // pull out response stream here for trace output to see the actual error message from the server
+                        _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: Received invalid status code.");
+                        if ((_syncBox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
+                        {
+                            using (Stream responseStream = response.GetResponseStream())
+                            {
+                                ComTrace.LogCommunication(
+                                    traceLocation: _syncBox.CopiedSettings.TraceLocation,
+                                    UserDeviceId: _syncBox.CopiedSettings.DeviceId,
+                                    SyncBoxId: _syncBox.SyncBoxId,
+                                    Direction: CommunicationEntryDirection.Response,
+                                    DomainAndMethodUri: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
+                                    traceEnabled: true,
+                                    headers: (WebHeaderCollection)null,
+                                    body: responseStream,
+                                    statusCode: (int)response.StatusCode,
+                                    excludeAuthorization: _syncBox.CopiedSettings.TraceExcludeAuthorization);
+                            }
+                        }
 
-                            throw storeWebEx; // rethrow the stored exception from above, also may be wrapped with an outer exception message and passed via InnerException
-                    }
+                        throw storeWebEx; // rethrow the stored exception from above, also may be wrapped with an outer exception message and passed via InnerException
                 }
-                finally
+            }
+            catch (ThreadAbortException)
+            {
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
+                error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                _isConnectionSuccesful = false;
+                _startComplete.Set();
+            }
+            finally
+            {
+                if (boxedResponse != null)
                 {
-                    response.Close();
+                    try
+                    {
+                        ((IDisposable)boxedResponse).Dispose();
+                    }
+                    catch (ThreadAbortException)
+                    {
+                    }
+                    catch
+                    {
+                    }
+                    _resourcesToCleanUp.Remove(boxedResponse);
+                    boxedResponse = null;
+                    response = null;
                 }
-                #endregion
             }
 
-            return;  // exit thread
+            // Exit the thread here
+            _trace.writeToLog(9, "CLNotificationSseEngine: StartEngineThread: Exit.");
+            #endregion
         }
 
+        private void ProcessReceivedCharacter(char cCharRead)
+        {
+            // The first character received might be a BYTE ORDER MARK.  If we find one, ignore it.
+            if (_stateParse == EnumSseStates.SseState_Idle)
+            {
+                if (cCharRead == 0xFEFF)
+                {
+                    return;       // ignore this BYTE ORDER MARK character
+                }
+                _stateParse = EnumSseStates.SseState_LookForLineEndingChar;
+            }
+
+            // Process by state
+            switch (_stateParse)
+            {
+                case EnumSseStates.SseState_LookForLineEndingChar:
+                    if (cCharRead == '\r')
+                    {
+                        _stateParse = EnumSseStates.SseState_LookForLineEndingGotCR;
+                    }
+                    else if (cCharRead == '\n')
+                    {
+                        ProcessCurrentLine();
+                    }
+                    else
+                    {
+                        _sbCurrentLine.Append(cCharRead);
+                    }
+                    break;
+                case EnumSseStates.SseState_LookForLineEndingGotCR:
+                    if (cCharRead == '\r')
+                    {
+                        ProcessCurrentLine();
+                        _stateParse = EnumSseStates.SseState_LookForLineEndingGotCR;
+                    }
+                    else if (cCharRead == '\n')
+                    {
+                        ProcessCurrentLine();
+                        _stateParse = EnumSseStates.SseState_LookForLineEndingChar;
+                    }
+                    else
+                    {
+                        ProcessCurrentLine();
+                        _sbCurrentLine.Append(cCharRead);
+                        _stateParse = EnumSseStates.SseState_LookForLineEndingChar;
+                    }
+                    break;
+                default:
+                    _trace.writeToLog(1, "CLNotificationSseEngine: ProcessReceivedCharacter: ERROR. Not expecting char: {0}.", cCharRead);
+                    break;
+            }
+        }
+
+        private void ProcessCurrentLine()
+        {
+            string currentLine = _sbCurrentLine.ToString().Trim();
+            if (currentLine.Length == 0)
+            {
+                DispatchEvent();
+            }
+            else if (currentLine[0] == ':')
+            {
+                // Specifically do nothing (ignore this line).
+            }
+            else if (currentLine.Contains(':'))
+            {
+                _field = currentLine.Substring(0, currentLine.IndexOf(':'));
+                _value = currentLine.Substring(currentLine.IndexOf(':') + 1);
+                ProcessField();
+            }
+            else
+            {
+                _field = currentLine;
+                _value = string.Empty;
+                ProcessField();
+            }
+
+            _sbCurrentLine.Clear();
+        }
+
+        private void ProcessField()
+        {
+            if (_field == "event")
+            {
+                _eventName = _value;
+            }
+            else if (_field == "data")
+            {
+                _sbData.Append(_value);
+                _sbData.Append("\n");
+            }
+            else if (_field == "id")
+            {
+                _lastEventId = _value;
+            }
+            else if (_field == "retry")
+            {
+                int result;
+                if (!int.TryParse(_value, out result))
+                {
+                    _trace.writeToLog(1, "CLNotificationSseEngine: ProcessReceivedCharacter: Value is not an int: {0}.", _value);
+                }
+                else
+                {
+                    _reconnectionTime = result;
+                }
+            }
+            else
+            {
+                // Intentionally do nothing (ignore the field).
+            }
+        }
+
+        private void DispatchEvent()
+        {
+            if (_sbData.Length == 0)
+            {
+                _sbData.Clear();
+                _eventName = String.Empty;
+                return;
+            }
+
+            if (_sbData[_sbData.Length - 1] == '\n')
+            {
+                _sbData.Length = _sbData.Length - 1;    // remove the newline
+            }
+
+            if (_eventName.Length > 0 && !IsEventNameRecognized(_eventName))
+            {
+                _trace.writeToLog(1, "CLNotificationSseEngine: ProcessReceivedCharacter: Value is not an int: {0}.", _value);
+                return;
+            }
+
+            // Create a new notification event
+            CLNotificationEvent evt = new CLNotificationEvent();
+            evt.Name = _eventName;
+            evt.Data = _sbData.ToString();
+            evt.Origin = CLDefinitions.CLNotificationServerSseURL;
+            evt.LastEventId = _lastEventId;
+
+            // Reset for the next event
+            _sbData.Clear();
+            _eventName = string.Empty;
+
+            // Send the event
+            if (_delegateSendNotificationEvent != null)
+            {
+                _delegateSendNotificationEvent(evt);
+            }
+        }
+
+        private bool IsEventNameRecognized(string _eventName)
+        {
+            //TODO: Fix this.
+            return true;
+        }
+
+        private void ProcessEndOfStream()
+        {
+            ProcessCurrentLine();
+            DispatchEvent();
+        }
+
+        /// <summary>
+        /// This method handles the situation where this engine's thread becomes stuck.  Any disposable resources
+        /// are cleaned up, and then the ManualResetEvent is set to allow the service manager thread to exit with a failure indication.
+        /// </summary>
+        /// <param name="userState">The state of this object.</param>
         public void TimerExpired(object userState)
         {
             _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: Entry.");
+            try
+            {
+                // Kill the engine thread
+                if (_engineThread.Value != null)
+                {
+                    _engineThread.Value.Abort();
+                }
+
+                // Clean up any resources left over.
+                foreach (IDisposable toDispose in _resourcesToCleanUp)
+                {
+                    try
+                    {
+                        toDispose.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                _resourcesToCleanUp.Clear();
+            }
+            catch
+            {
+            }
         }
 
         #endregion
     }
 }
-//#endif // TRASH

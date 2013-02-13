@@ -63,7 +63,7 @@ namespace CloudApiPublic.PushNotification
                         CLSyncBox syncBox, 
                         StartEngineTimeout delegateStartEngineTimeout, 
                         CancelEngineTimeout delegateCancelEngineTimeout,
-                        SendManualPoll delegateSendManualPoll)   // not optional for this engine
+                        SendManualPoll delegateSendManualPoll)
         {
             if (syncBox == null)
             {

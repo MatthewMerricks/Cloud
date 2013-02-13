@@ -101,7 +101,7 @@ namespace CloudApiPublic.PushNotification
         private static object _instanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance;
         private readonly CLSyncBox _syncBox;
-        private bool _serviceStarted;               // True: the push notification service has been started.
+        private bool _isServiceStarted;               // True: the push notification service has been started.
         private readonly GenericHolder<Thread> _engineThread = new GenericHolder<Thread>(null);
         private Dictionary<NotificationEngines, ICLNotificationEngine> _dictEngines;  // holds the various push notification engines
         private Timer _timerEngine = null;
@@ -167,6 +167,12 @@ namespace CloudApiPublic.PushNotification
                     CLTrace.Initialize(syncBox.CopiedSettings.TraceLocation, "Cloud", "log", syncBox.CopiedSettings.TraceLevel, syncBox.CopiedSettings.LogErrors);
                     _trace.writeToLog(9, "CLNotificationService: CLNotificationService: Entry");
 
+                    // We should not already be started
+                    if (_isServiceStarted)
+                    {
+                        throw new InvalidOperationException("Already started");
+                    }
+
                     // sync settings are copied so that changes require stopping and starting notification services
                     this._syncBox = syncBox;
 
@@ -176,7 +182,8 @@ namespace CloudApiPublic.PushNotification
                     CLNotificationSseEngine engineSse = new CLNotificationSseEngine(
                                 syncBox: this._syncBox,
                                 delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
-                                delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback);
+                                delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback,
+                                delegateSendNotificationEvent: this.SendNotificationEventCallback);
                     _dictEngines.Add(NotificationEngines.NotificationEngine_SSE, engineSse);
 
                     //CLNotificationWebSocketsEngine engineWebSockets = new CLNotificationWebSocketseEngine(
@@ -202,7 +209,7 @@ namespace CloudApiPublic.PushNotification
                     StartEngineThread();
 
                     // Initialized now
-                    _serviceStarted = true;
+                    _isServiceStarted = true;
                 }
             }
             catch (Exception ex)
@@ -221,6 +228,8 @@ namespace CloudApiPublic.PushNotification
             {
                 lock (this)
                 {
+                    _isServiceStarted = false;
+
                     if (_syncBox != null)
                     {
                         string syncBoxDeviceIdCombined = _syncBox.SyncBoxId.ToString() + " " + (_syncBox.CopiedSettings.DeviceId ?? string.Empty);
@@ -441,6 +450,60 @@ namespace CloudApiPublic.PushNotification
             catch (Exception ex)
             {
                 _trace.writeToLog(1, "CLNotificationService: CancelEngineTimeoutCallback: ERROR: Exception: Msg: {0}.", ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Handle a notification message from sync push notification.  The evt.data property is JSON and looks like:
+        ///     {"message_body":"new","message_author":"BobSamsung"}
+        /// Deserialize the JSON to a class and send the message on to its destination.
+        /// </summary>
+        /// <param name="evt"></param>
+        void SendNotificationEventCallback(CLNotificationEvent evt)
+        {
+            try
+            {
+                _trace.writeToLog(1, "CLNotificationService: SendNotificationEventCallback: Send notification msg: <{0}>.", evt.Data);
+
+                if ((_syncBox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
+                {
+                    ComTrace.LogCommunication(_syncBox.CopiedSettings.TraceLocation,
+                        _syncBox.CopiedSettings.DeviceId,
+                        _syncBox.SyncBoxId,
+                        CommunicationEntryDirection.Response,
+                        evt.Origin,
+                        true,
+                        null,
+                        evt.Data,
+                        null, //<-- actually this is the valid response, but push doesn't exactly give a 200 that I can detect
+                        _syncBox.CopiedSettings.TraceExcludeAuthorization);
+                }
+
+                try
+                {
+                    NotificationResponse parsedResponse = JsonContractHelpers.ParseNotificationResponse(evt.Data);
+                    if (parsedResponse == null
+                        || parsedResponse.Body != CLDefinitions.CLNotificationTypeNew
+                        || parsedResponse.Author.ToUpper() != _syncBox.CopiedSettings.DeviceId.ToUpper())
+                    {
+                        _trace.writeToLog(9, "CLNotificationService: SendNotificationEventCallback: Send DidReceivePushNotificationFromServer.");
+                        if (NotificationReceived != null)
+                        {
+                            _trace.writeToLog(9, "CLNotificationService: PerformManualSyncFrom: Fire event to notify the application  Msg: {0}.", evt.Data);
+                            NotificationEventArgs args = new NotificationEventArgs(
+                                parsedResponse);
+                            NotificationReceived(this, args);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _trace.writeToLog(1, "CLNotificationService: SendNotificationEventCallback: ERROR: Exception.  Msg: <{0}>.", ex.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLNotificationService: SendNotificationEventCallback: ERROR: Exception (2): Msg: {0}.", ex.Message);
             }
         }
 

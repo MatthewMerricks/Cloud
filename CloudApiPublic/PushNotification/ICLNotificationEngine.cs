@@ -12,15 +12,6 @@ using System.Text;
 
 namespace CloudApiPublic.PushNotification
 {
-    public enum NotificationEngineStates : uint
-    {
-        NotificationEngineState_Idle = 0,
-        NotificationEngineState_Starting,
-        NotificationEngineState_Started,
-        NotificationEngineState_Cancelled,
-        NotificationEngineState_Failed,
-    }
-
     public enum NotificationEngines : uint
     {
         NotificationEngine_SSE,
@@ -28,9 +19,26 @@ namespace CloudApiPublic.PushNotification
         NotificationEngine_ManualPolling,
     }
 
+    public sealed class CLNotificationEvent
+    {
+        public string Name { get; set; }
+        public string Data { get; set; }
+        public string Origin { get; set; }
+        public string LastEventId { get; set; }
+
+        public CLNotificationEvent()
+        {
+            Name = string.Empty;
+            Data = string.Empty;
+            Origin = string.Empty;
+            LastEventId = string.Empty;
+        }
+    }
+
     public delegate void StartEngineTimeout(int timeoutMilliseconds, object userState);
     public delegate void CancelEngineTimeout();
     public delegate void SendManualPoll();
+    public delegate void SendNotificationEvent(CLNotificationEvent evt);
 
     internal interface ICLNotificationEngine
     {
