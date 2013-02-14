@@ -426,7 +426,7 @@ namespace CloudApiPublic.JsonContracts
                 lock (CreateSyncBoxSerializerLocker)
                 {
                     return _createSyncBoxSerializer
-                        ?? (_createSyncBoxSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CreateSyncBox)));
+                        ?? (_createSyncBoxSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxHolder)));
                 }
             }
         }
@@ -446,6 +446,48 @@ namespace CloudApiPublic.JsonContracts
         }
         private static DataContractJsonSerializer _listSyncBoxesSerializer = null;
         private static readonly object ListSyncBoxesSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncBoxMetadataSerializer
+        {
+            get
+            {
+                lock (SyncBoxMetadataSerializerLocker)
+                {
+                    return _syncBoxMetadataSerializer
+                        ?? (_syncBoxMetadataSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxMetadata)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncBoxMetadataSerializer = null;
+        private static readonly object SyncBoxMetadataSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncBoxQuotaSerializer
+        {
+            get
+            {
+                lock (SyncBoxQuotaSerializerLocker)
+                {
+                    return _syncBoxQuotaSerializer
+                        ?? (_syncBoxQuotaSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxQuota)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncBoxQuotaSerializer = null;
+        private static readonly object SyncBoxQuotaSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncBoxDeleteSerializer
+        {
+            get
+            {
+                lock (SyncBoxDeleteSerializerLocker)
+                {
+                    return _syncBoxDeleteSerializer
+                        ?? (_syncBoxDeleteSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxIdOnly)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncBoxDeleteSerializer = null;
+        private static readonly object SyncBoxDeleteSerializerLocker = new object();
         #endregion
     }
 }

@@ -16,7 +16,7 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Contains actual response properties for <see cref="CreateSyncBox"/>
+    /// Contains actual response properties for <see cref="SyncBoxHolder"/>
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary]

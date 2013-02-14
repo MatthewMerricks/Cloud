@@ -177,12 +177,12 @@ namespace CloudApiPublic
         ///// <param name="friendlyName">(optional) friendly name of the Sync box</param>
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public IAsyncResult BeginAddSyncBoxOnServer(AsyncCallback aCallback,
+        //public IAsyncResult BeginAddSyncBoxOnServer<T>(AsyncCallback aCallback,
         //    object aState,
         //    int timeoutMilliseconds,
         //    ICLCredentialSettings settings = null,
         //    string friendlyName = null,
-        //    IDictionary<string, object> metadata = null)
+        //    IDictionary<string, T> metadata = null)
         //{
         //    // create the asynchronous result to return
         //    GenericAsyncResult<AddSyncBoxOnServerResult> toReturn = new GenericAsyncResult<AddSyncBoxOnServerResult>(
@@ -190,8 +190,8 @@ namespace CloudApiPublic
         //        aState);
 
         //    // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-        //    Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, object>> asyncParams =
-        //        new Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, object>>(
+        //    Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>> asyncParams =
+        //        new Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>>(
         //            toReturn,
         //            timeoutMilliseconds,
         //            settings,
@@ -202,7 +202,7 @@ namespace CloudApiPublic
         //    (new Thread(new ParameterizedThreadStart(state =>
         //    {
         //        // try cast the state as the object with all the input parameters
-        //        Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, object>> castState = state as Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, object>>;
+        //        Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>> castState = state as Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>>;
         //        // if the try cast failed, then show a message box for this unrecoverable error
         //        if (castState == null)
         //        {
@@ -308,7 +308,7 @@ namespace CloudApiPublic
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.CreateSyncBox result;
+                        JsonContracts.SyncBoxHolder result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = AddSyncBoxOnServer(
                             castState.Item2,
@@ -419,9 +419,24 @@ namespace CloudApiPublic
         ///// <param name="friendlyName">(optional) friendly name of the Sync box</param>
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError AddSyncBoxOnServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.CreateSyncBox response, ICLCredentialSettings settings = null, string friendlyName = null, IDictionary<string, object> metadata = null)
+        //public CLError AddSyncBoxOnServer<T>(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response, ICLCredentialSettings settings = null, string friendlyName = null, IDictionary<string, T> metadata = null)
         //{
-        //    return AddSyncBoxOnServer(timeoutMilliseconds, out status, out response, settings, friendlyName, (metadata == null ? null : new JsonContracts.MetadataDictionary(metadata)));
+        //    try
+        //    {
+        //        return AddSyncBoxOnServer(timeoutMilliseconds, out status, out response, settings, friendlyName,
+        //            (metadata == null
+        //                ? null
+        //                : new JsonContracts.MetadataDictionary(
+        //                    ((metadata is IDictionary<string, object>)
+        //                        ? (IDictionary<string, object>)metadata
+        //                        : new JsonContracts.MetadataDictionary.DictionaryWrapper<T>(metadata)))));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        status = CLHttpRestStatus.BadRequest;
+        //        response = Helpers.DefaultForType<JsonContracts.SyncBoxHolder>();
+        //        return ex;
+        //    }
         //}
 
         /// <summary>
@@ -437,7 +452,7 @@ namespace CloudApiPublic
         //
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddSyncBoxOnServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.CreateSyncBox response, ICLCredentialSettings settings = null, string friendlyName = null/*, JsonContracts.MetadataDictionary metadata = null*/)
+        public CLError AddSyncBoxOnServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response, ICLCredentialSettings settings = null, string friendlyName = null/*, JsonContracts.MetadataDictionary metadata = null*/)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -456,10 +471,10 @@ namespace CloudApiPublic
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                JsonContracts.CreateSyncBox inputBox = (/*metadata == null
+                JsonContracts.SyncBoxHolder inputBox = (/*metadata == null
                         && */string.IsNullOrEmpty(friendlyName)
                     ? null
-                    : new JsonContracts.CreateSyncBox()
+                    : new JsonContracts.SyncBoxHolder()
                     {
                         SyncBox = new JsonContracts.SyncBox()
                         {
@@ -470,7 +485,7 @@ namespace CloudApiPublic
                         }
                     });
 
-                response = Helpers.ProcessHttp<JsonContracts.CreateSyncBox>(
+                response = Helpers.ProcessHttp<JsonContracts.SyncBoxHolder>(
                     inputBox,
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthCreateSyncBox,
@@ -485,7 +500,7 @@ namespace CloudApiPublic
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.CreateSyncBox>();
+                response = Helpers.DefaultForType<JsonContracts.SyncBoxHolder>();
                 return ex;
             }
             return null;

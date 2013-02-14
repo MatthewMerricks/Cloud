@@ -101,10 +101,10 @@ namespace CloudApiPublic.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetMetadataAtPathResult : BaseCLHttpRestResult<JsonContracts.Metadata>
+    public sealed class GetMetadataResult : BaseCLHttpRestResult<JsonContracts.Metadata>
     {
         // construct with all readonly properties
-        internal GetMetadataAtPathResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Metadata Result)
+        internal GetMetadataResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Metadata Result)
             : base(Error, Status, Result) { }
     }
 
@@ -264,10 +264,10 @@ namespace CloudApiPublic.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class AddSyncBoxOnServerResult : BaseCLHttpRestResult<JsonContracts.CreateSyncBox>
+    public sealed class AddSyncBoxOnServerResult : BaseCLHttpRestResult<JsonContracts.SyncBoxHolder>
     {
         // construct with all readonly properties
-        internal AddSyncBoxOnServerResult(CLError Error, CLHttpRestStatus Status, JsonContracts.CreateSyncBox Result)
+        internal AddSyncBoxOnServerResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncBoxHolder Result)
             : base(Error, Status, Result) { }
     }
 
@@ -278,6 +278,46 @@ namespace CloudApiPublic.REST
     {
         // construct with all readonly properties
         internal ListSyncBoxesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListSyncBoxes Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncBoxUpdateExtendedMetadataResult : BaseCLHttpRestResult<JsonContracts.SyncBoxHolder>
+    {
+        // construct with all readonly properties
+        internal SyncBoxUpdateExtendedMetadataResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncBoxHolder Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncBoxUpdateQuotaResult : BaseCLHttpRestResult<JsonContracts.SyncBoxHolder>
+    {
+        // construct with all readonly properties
+        internal SyncBoxUpdateQuotaResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncBoxHolder Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class DeleteSyncBoxResult : BaseCLHttpRestResult<JsonContracts.SyncBoxHolder>
+    {
+        // construct with all readonly properties
+        internal DeleteSyncBoxResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncBoxHolder Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class GetSyncBoxStatusResult : BaseCLHttpRestResult<JsonContracts.SyncBoxHolder>
+    {
+        // construct with all readonly properties
+        internal GetSyncBoxStatusResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncBoxHolder Result)
             : base(Error, Status, Result) { }
     }
 }

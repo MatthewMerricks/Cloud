@@ -287,6 +287,7 @@ namespace CloudApiPublic
 			System.Threading.WaitCallback StatusUpdated = null,
 			object StatusUpdatedUserState = null)
         {
+            bool reservedSyncBox = false;
             try
             {
                 if (SyncBox == null)
@@ -297,8 +298,24 @@ namespace CloudApiPublic
                     return new NullReferenceException(settingsError);
                 }
 
+                if (!SyncBox.TryReserveForActiveSync())
+                {
+                    const string modificationError = "syncBox cannot be modifying server SyncBox via public API calls (i.e. DeleteSyncBox or SyncBoxUpdateQuota)";
+                    _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", modificationError);
+                    Status = CLSyncStartStatus.ErrorInProcessOfModification;
+                    return new ArgumentException(modificationError);
+                }
+
+                reservedSyncBox = true;
+
                 if (string.IsNullOrEmpty(SyncBox.CopiedSettings.DeviceId))
                 {
+                    if (reservedSyncBox
+                        && SyncBox != null)
+                    {
+                        SyncBox.ResetReserveForActiveSync();
+                    }
+
                     const string settingsError = "syncBox CopiedSettings DeviceId cannot be null";
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", settingsError);
                     Status = CLSyncStartStatus.ErrorNullDeviceId;
@@ -322,7 +339,16 @@ namespace CloudApiPublic
                 // Check the TraceLocation vs. LogErrors
                 if (string.IsNullOrWhiteSpace(this._syncBox.CopiedSettings.TraceLocation) && this._syncBox.CopiedSettings.LogErrors)
                 {
-                    throw new ArgumentException("TraceLocation must be set if LogErrors is checked");
+                    if (reservedSyncBox
+                        && SyncBox != null)
+                    {
+                        SyncBox.ResetReserveForActiveSync();
+                    }
+
+                    const string verifyTraceError = "TraceLocation must be set if LogErrors is checked";
+                    _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", verifyTraceError);
+                    Status = CLSyncStartStatus.ErrorTraceEnabledWithoutDirectory;
+                    return new ArgumentException(verifyTraceError);
                 }
 
                 // Initialize trace in case it is not already initialized.
@@ -332,6 +358,12 @@ namespace CloudApiPublic
                 CLError checkBadPath = Helpers.CheckForBadPath(this._syncBox.CopiedSettings.SyncRoot);
                 if (checkBadPath != null)
                 {
+                    if (reservedSyncBox
+                        && SyncBox != null)
+                    {
+                        SyncBox.ResetReserveForActiveSync();
+                    }
+
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkBadPath.errorDescription);
                     Status = CLSyncStartStatus.ErrorBadRootPath;
                     return new ArgumentException("CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath", checkBadPath.GrabFirstException());
@@ -341,6 +373,12 @@ namespace CloudApiPublic
                 CLError checkPathLength = Helpers.CheckSyncRootLength(this._syncBox.CopiedSettings.SyncRoot, out tooLongChars);
                 if (checkPathLength != null)
                 {
+                    if (reservedSyncBox
+                        && SyncBox != null)
+                    {
+                        SyncBox.ResetReserveForActiveSync();
+                    }
+
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkPathLength.errorDescription);
                     Status = CLSyncStartStatus.ErrorLongRootPath;
                     return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.GrabFirstException());
@@ -350,6 +388,12 @@ namespace CloudApiPublic
                 _trace.writeToLog(1, "CLSyncEngine: Start: Entry.");
                 if (_isStarted)
                 {
+                    if (reservedSyncBox
+                        && SyncBox != null)
+                    {
+                        SyncBox.ResetReserveForActiveSync();
+                    }
+
                     CLError error = new Exception("Already started");
                     _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: {0}.", error.errorDescription);
                     Status = CLSyncStartStatus.ErrorAlreadyStarted;
@@ -357,10 +401,39 @@ namespace CloudApiPublic
                 }
 
                 // Create the SyncBox directory if it doesn't exist
+                bool alreadyExists = true;
                 System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncBox.CopiedSettings.SyncRoot);
                 if (!rootInfo.Exists)
                 {
+                    alreadyExists = false;
                     rootInfo.Create();
+                }
+
+                bool caseMatches;
+                CLError caseCheckError = Helpers.DirectoryMatchesCaseWithDisk(_syncBox.CopiedSettings.SyncRoot,
+                    out caseMatches);
+
+                if (caseCheckError != null)
+                {
+                    _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkBadPath.errorDescription);
+                    Status = CLSyncStartStatus.ErrorBadRootPath;
+                    return new ArgumentException("CloudRoot in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk", caseCheckError.GrabFirstException());
+                }
+
+                if (!caseMatches)
+                {
+                    const string badCaseErrorCreated = "A new directory was created on disk at the specified settings SyncRoot, but its resulting path does not match case";
+                    const string badCaseErrorExists = "An existing directory was found at the specified settings SyncRoot, but its path does not match case";
+                    _trace.writeToLog(1, "CLSyncEngine: ERROR: BadCase (1). {0}.", (alreadyExists ? badCaseErrorExists : badCaseErrorCreated));
+                    Status = CLSyncStartStatus.ErrorBadRootPath;
+                    if (alreadyExists)
+                    {
+                        return new Exception(badCaseErrorExists);
+                    }
+                    else
+                    {
+                        return new Exception(badCaseErrorCreated);
+                    }
                 }
 				
                 // Start badging
@@ -384,6 +457,12 @@ namespace CloudApiPublic
                 }
                 if (indexCreationError != null)
                 {
+                    if (reservedSyncBox
+                        && SyncBox != null)
+                    {
+                        SyncBox.ResetReserveForActiveSync();
+                    }
+
                     _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, ((int)indexCreationError.code).ToString());
                     ReleaseResources();
                     Status = CLSyncStartStatus.ErrorIndexCreation;
@@ -398,6 +477,12 @@ namespace CloudApiPublic
                     if (getNotificationError != null
                         || _notifier == null)
                     {
+                        if (reservedSyncBox
+                            && SyncBox != null)
+                        {
+                            SyncBox.ResetReserveForActiveSync();
+                        }
+
                         CLError error;
                         if (getNotificationError == null)
                         {
@@ -435,6 +520,12 @@ namespace CloudApiPublic
 
                 if (fileMonitorCreationError != null)
                 {
+                    if (reservedSyncBox
+                        && SyncBox != null)
+                    {
+                        SyncBox.ResetReserveForActiveSync();
+                    }
+
                     _trace.writeToLog(1, "CLSyncEngine: Start: ERROR(4): Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, ((int)fileMonitorCreationError.code).ToString());
                     lock (_locker)
                     {
@@ -472,6 +563,12 @@ namespace CloudApiPublic
                                 CLError fileMonitorStartError = _monitor.Start(out returnStatus);
                                 if (fileMonitorStartError != null)
                                 {
+                                    if (reservedSyncBox
+                                        && SyncBox != null)
+                                    {
+                                        SyncBox.ResetReserveForActiveSync();
+                                    }
+
                                     _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, ((int)fileMonitorStartError.code).ToString());
                                     ReleaseResources();
                                     Status = CLSyncStartStatus.ErrorStartingFileMonitor;
@@ -483,6 +580,12 @@ namespace CloudApiPublic
                                                 _monitor.GetCurrentPath);
                                 if (indexerStartError != null)
                                 {
+                                    if (reservedSyncBox
+                                        && SyncBox != null)
+                                    {
+                                        SyncBox.ResetReserveForActiveSync();
+                                    }
+
                                     _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, ((int)indexerStartError.code).ToString());
                                     ReleaseResources();
                                     Status = CLSyncStartStatus.ErrorStartingInitialIndexing;
@@ -491,6 +594,12 @@ namespace CloudApiPublic
                             }
                             catch (Exception ex)
                             {
+                                if (reservedSyncBox
+                                    && SyncBox != null)
+                                {
+                                    SyncBox.ResetReserveForActiveSync();
+                                }
+
                                 CLError error = ex;
                                 error.LogErrors(this._syncBox.CopiedSettings.TraceLocation, this._syncBox.CopiedSettings.LogErrors);
                                 _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(5).  Msg: <{0}>.", ex.Message);
@@ -506,6 +615,12 @@ namespace CloudApiPublic
             }
             catch (Exception ex)
             {
+                if (reservedSyncBox
+                    && SyncBox != null)
+                {
+                    SyncBox.ResetReserveForActiveSync();
+                }
+
                 CLError error = ex;
                 error.LogErrors(this._syncBox.CopiedSettings.TraceLocation, this._syncBox.CopiedSettings.LogErrors);
                 _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(6).  Msg: <{0}>.", ex.Message);
@@ -720,6 +835,14 @@ namespace CloudApiPublic
         /// </summary>
         public void Stop()
         {
+            lock (_locker)
+            {
+                if (this._syncBox != null)
+                {
+                    this._syncBox.ResetReserveForActiveSync();
+                }
+            }
+
             _trace.writeToLog(1, "CLSyncEngine: Stop: Entry.");
             ReleaseResources();
         }
