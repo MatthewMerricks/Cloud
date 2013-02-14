@@ -25,14 +25,16 @@ namespace CloudApiPublic.PushNotification
         private static CLTrace _trace = CLTrace.Instance;
         private CLSyncBox _syncBox = null;
         private ICLSyncSettingsAdvanced _copiedSettings = null;
+        private CreateEngineTimer _delegateCreateEngineTimer = null;
         private StartEngineTimeout _delegateStartEngineTimeout = null;
         private CancelEngineTimeout _delegateCancelEngineTimeout = null;
+        private DisposeEngineTimer _delegateDisposeEngineTimer = null;
         private SendNotificationEvent _delegateSendNotificationEvent = null;
         private bool _isStarted = false;
         private bool _isConnectionSuccesful = false;
         private readonly object _locker = new object();
         private readonly GenericHolder<Thread> _engineThread = new GenericHolder<Thread>(null);
-        private static readonly ManualResetEvent _startComplete = new ManualResetEvent(false);
+        private readonly ManualResetEvent _startComplete = new ManualResetEvent(false);
         private StringBuilder _sbCurrentLine = new StringBuilder(null);
         private StringBuilder _sbData = new StringBuilder(null);
         private string _field = String.Empty;
@@ -94,13 +96,19 @@ namespace CloudApiPublic.PushNotification
 
         public CLNotificationSseEngine(
                         CLSyncBox syncBox, 
+                        CreateEngineTimer delegateCreateEngineTimer,
                         StartEngineTimeout delegateStartEngineTimeout, 
                         CancelEngineTimeout delegateCancelEngineTimeout,
+                        DisposeEngineTimer delegateDisposeEngineTimer,
                         SendNotificationEvent delegateSendNotificationEvent)
         {
             if (syncBox == null)
             {
                 throw new ArgumentNullException("syncBox must not be null");
+            }
+            if (delegateCreateEngineTimer == null)
+            {
+                throw new ArgumentNullException("delegateCreateEngineTimer must not be null");
             }
             if (delegateStartEngineTimeout == null)
             {
@@ -110,6 +118,10 @@ namespace CloudApiPublic.PushNotification
             {
                 throw new ArgumentNullException("delegateCancelEngineTimeout must not be null");
             }
+            if (delegateDisposeEngineTimer == null)
+            {
+                throw new ArgumentNullException("delegateDisposeEngineTimer must not be null");
+            }
             if (delegateSendNotificationEvent == null)
             {
                 throw new ArgumentNullException("delegateSendNotificationEvent must not be null");
@@ -117,8 +129,10 @@ namespace CloudApiPublic.PushNotification
 
             _syncBox = syncBox;
             _copiedSettings = syncBox.CopiedSettings;
+            _delegateCreateEngineTimer = delegateCreateEngineTimer;
             _delegateStartEngineTimeout = delegateStartEngineTimeout;
             _delegateCancelEngineTimeout = delegateCancelEngineTimeout;
+            _delegateDisposeEngineTimer= delegateDisposeEngineTimer;
             _delegateSendNotificationEvent = delegateSendNotificationEvent;
         }
 
@@ -143,6 +157,8 @@ namespace CloudApiPublic.PushNotification
                     {
                         throw new InvalidOperationException("Already initialized");
                     }
+
+                    _delegateCreateEngineTimer(this);
 
                     // Start the engine.
                     StartEngineThread();
@@ -308,7 +324,7 @@ namespace CloudApiPublic.PushNotification
 
             try
             {
-                _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
+                _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds);
                 try
                 {
                     boxedResponse = sseRequest.GetResponse();   // sends the request and blocks for the response
@@ -329,6 +345,10 @@ namespace CloudApiPublic.PushNotification
                             _resourcesToCleanUp.Add(boxedResponse);
                             response = (HttpWebResponse)boxedResponse;
                             storeWebEx = ex;
+
+                            CLError error = ex;
+                            _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception (4): Msg: {0}.", ex.Message);
+                            error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
                         }
                         else
                         {
@@ -345,7 +365,7 @@ namespace CloudApiPublic.PushNotification
                     case HttpStatusCode.OK: // continue reconnecting case, may or may not have data
 
                         // Get the stream associated with the response.
-                        _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
+                        _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds);
                         Stream receiveStream = null;
                         try
                         {
@@ -364,7 +384,7 @@ namespace CloudApiPublic.PushNotification
                                         while (true)
                                         {
                                             char[] unicodeCharBuffer = new char[1];
-                                            _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds, userState: this);
+                                            _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds);
                                             int bytesRead = readStream.Read(unicodeCharBuffer, 0, 1);        // read one byte
                                             _delegateCancelEngineTimeout();
 
@@ -452,6 +472,7 @@ namespace CloudApiPublic.PushNotification
                                     statusCode: (int)HttpStatusCode.NoContent,
                                     excludeAuthorization: _syncBox.CopiedSettings.TraceExcludeAuthorization);
                             }
+                            _trace.writeToLog(9, "CLNotificationSseEngine: StartThreadProc: Received no content from server.");
                         }
 
                         // Successful.  Post the waiting event.

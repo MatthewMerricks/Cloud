@@ -35,8 +35,10 @@ namespace CloudApiPublic.PushNotification
         }
     }
 
-    public delegate void StartEngineTimeout(int timeoutMilliseconds, object userState);
+    public delegate void CreateEngineTimer(object userState);
+    public delegate void StartEngineTimeout(int timeoutMilliseconds);
     public delegate void CancelEngineTimeout();
+    public delegate void DisposeEngineTimer();
     public delegate void SendManualPoll();
     public delegate void SendNotificationEvent(CLNotificationEvent evt);
 

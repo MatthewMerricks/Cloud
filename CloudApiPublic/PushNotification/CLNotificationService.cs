@@ -295,7 +295,7 @@ namespace CloudApiPublic.PushNotification
                     throw new InvalidCastException("obj must be a CLNotificationService");
                 }
 
-                // Loop processing forever until we have a serious error and have to stop.
+                // Loop processing forever until we have a serious error and have to stop.  Start each loop at the top of the engine list.
                 while (true)
                 {
                     bool fBackToTopOfList = false;
@@ -321,8 +321,10 @@ namespace CloudApiPublic.PushNotification
                                         _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Instantiate SSE engine.");
                                         CLNotificationSseEngine engineSse = new CLNotificationSseEngine(
                                                     syncBox: this._syncBox,
+                                                    delegateCreateEngineTimer: this.CreateEngineTimer,
                                                     delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
                                                     delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback,
+                                                    delegateDisposeEngineTimer: this.DisposeEngineTimer,
                                                     delegateSendNotificationEvent: this.SendNotificationEventCallback);
                                         _currentEngine = engineSse;
                                         _currentEngineIndex = engineIndex;
@@ -346,8 +348,6 @@ namespace CloudApiPublic.PushNotification
                                         _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Instantiate manual polling engine.");
                                         CLNotificationManualPollingEngine engineManualPolling = new CLNotificationManualPollingEngine(
                                                     syncBox: this._syncBox,
-                                                    delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
-                                                    delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback,
                                                     delegateSendManualPoll: this.SendManualPollCallback);
                                         _currentEngine = engineManualPolling;
                                         _currentEngineIndex = engineIndex;
@@ -363,7 +363,8 @@ namespace CloudApiPublic.PushNotification
                             bool engineStartDidReturnSuccess = _currentEngine.Start();
 
                             // Cancel any outstanding engine watcher timer.
-                            CancelEngineTimeoutCallback();
+                            DisposeEngineTimer();
+
 
                             // Determine which engine will run next
                             if (engineStartDidReturnSuccess)
@@ -382,7 +383,7 @@ namespace CloudApiPublic.PushNotification
                                         _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Select back to top of list.");
                                         fBackToTopOfList = true;
                                     }
-                                    break;          // start back at the top of the list again.
+                                    break;    // stop running this engine.  Select the next in the list, or start at the top of the list.
                                 }
                             }
                             else
@@ -392,18 +393,18 @@ namespace CloudApiPublic.PushNotification
                                 ++failures;
                                 if (failures >= _currentEngine.MaxFailures)
                                 {
-                                    // DO NOTHING. Iterate to the next engine down the list.
                                     _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Select next in list (2).");
                                 }
+                                break;    // stop running this engine.  Select the next in the list.
                             }
-                        }
+                        }   // end loop running this particular engint
 
                         if (fBackToTopOfList)
                         {
                             _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Break to go to top of list.");
-                            break;              // back to the top of the engine list
+                            break;
                         }
-                    }
+                    }  // end loop through the engines to run.
 
                     // If all of the engines failed, stop the service.
                     if (!fBackToTopOfList)
@@ -456,7 +457,7 @@ namespace CloudApiPublic.PushNotification
             }
         }
 
-        void StartEngineTimeoutCallback(int timeoutMilliseconds, object userState)
+        void CreateEngineTimer(object userState)
         {
             try
             {
@@ -464,9 +465,30 @@ namespace CloudApiPublic.PushNotification
                 {
                     if (_timerEngineWatcher != null)
                     {
-                        _timerEngineWatcher.Dispose();
-                        _timerEngineWatcher = new Timer(callback: TimerCallback, state: userState, dueTime: 0, period: timeoutMilliseconds);
+                        throw new InvalidOperationException("Already created");
                     }
+
+                    _timerEngineWatcher = new Timer(callback: TimerCallback, state: userState, dueTime: Timeout.Infinite, period: Timeout.Infinite);
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLNotificationService: CreateEngineTimer: ERROR: Exception: Msg: {0}.", ex.Message);
+            }
+        }
+
+        void StartEngineTimeoutCallback(int timeoutMilliseconds)
+        {
+            try
+            {
+                lock (this)
+                {
+                    if (_timerEngineWatcher == null)
+                    {
+                        throw new InvalidOperationException("CreateEngineTimer first");
+                    }
+
+                    _timerEngineWatcher.Change(dueTime: timeoutMilliseconds, period: timeoutMilliseconds);
                 }
             }
             catch (Exception ex)
@@ -512,6 +534,26 @@ namespace CloudApiPublic.PushNotification
             {
                 lock (this)
                 {
+                    if (_timerEngineWatcher == null)
+                    {
+                        throw new InvalidOperationException("CreateEngineTimer first");
+                    }
+
+                    _timerEngineWatcher.Change(dueTime: Timeout.Infinite, period: Timeout.Infinite);
+                }
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLNotificationService: CancelEngineTimeoutCallback: ERROR: Exception: Msg: {0}.", ex.Message);
+            }
+        }
+
+        void DisposeEngineTimer()
+        {
+            try
+            {
+                lock (this)
+                {
                     if (_timerEngineWatcher != null)
                     {
                         _timerEngineWatcher.Dispose();
@@ -521,7 +563,7 @@ namespace CloudApiPublic.PushNotification
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "CLNotificationService: CancelEngineTimeoutCallback: ERROR: Exception: Msg: {0}.", ex.Message);
+                _trace.writeToLog(1, "CLNotificationService: DisposeEngineTimer: ERROR: Exception: Msg: {0}.", ex.Message);
             }
         }
 

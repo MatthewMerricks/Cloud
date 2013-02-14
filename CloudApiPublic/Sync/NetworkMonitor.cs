@@ -159,7 +159,7 @@ namespace CloudApiPublic.Sync
             Int32 dwControlFlags;
 
             qsRestrictions.dwSize = Marshal.SizeOf(typeof(NativeMethods.WSAQUERYSET));
-            qsRestrictions.dwNameSpace = 0; //NS_ALL;
+            qsRestrictions.dwNameSpace = NativeMethods.NAMESPACE_PROVIDER_PTYPE.NS_NLA;
 
             dwControlFlags = 0x0FF0; //LUP_RETURN_ALL;
 

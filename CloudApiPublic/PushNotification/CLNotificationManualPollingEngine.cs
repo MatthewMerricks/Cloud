@@ -61,21 +61,11 @@ namespace CloudApiPublic.PushNotification
 
         public CLNotificationManualPollingEngine(
                         CLSyncBox syncBox, 
-                        StartEngineTimeout delegateStartEngineTimeout, 
-                        CancelEngineTimeout delegateCancelEngineTimeout,
                         SendManualPoll delegateSendManualPoll)
         {
             if (syncBox == null)
             {
                 throw new ArgumentNullException("syncBox must not be null");
-            }
-            if (delegateStartEngineTimeout == null)
-            {
-                throw new ArgumentNullException("delegateStartEngineTimeout must not be null");
-            }
-            if (delegateCancelEngineTimeout == null)
-            {
-                throw new ArgumentNullException("delegateCancelEngineTimeout must not be null");
             }
             if (delegateSendManualPoll == null)
             {
@@ -91,8 +81,6 @@ namespace CloudApiPublic.PushNotification
 
                 _syncBox = syncBox;
                 _copiedSettings = syncBox.CopiedSettings;
-                _delegateStartEngineTimeout = delegateStartEngineTimeout;
-                _delegateCancelEngineTimeout = delegateCancelEngineTimeout;
                 _delegateSendManualPoll = delegateSendManualPoll;
                 _isInitialized = true;
 
