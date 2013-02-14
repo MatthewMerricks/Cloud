@@ -89,7 +89,11 @@ namespace CloudApiPublic.Static
         /// <summary>
         /// Unable to establish connection (possible local internet connection error or server is otherwise unreachable)
         /// </summary>
-        ConnectionFailed
+        ConnectionFailed,
+        /// <summary>
+        /// The current SyncBox is actively syncing so cannot make modifications
+        /// </summary>
+        ReservedForActiveSync
     }
 
     /// <summary>

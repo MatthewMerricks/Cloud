@@ -161,6 +161,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathAuthSyncBoxExtendedMetadata = VersionPrefix + "/sync/syncbox/update_metadata";    // POST
         public const string MethodPathAuthSyncBoxQuota = VersionPrefix + "/sync/syncbox/update_quota";                  // POST
         public const string MethodPathAuthDeleteSyncBox = VersionPrefix + "/sync/syncbox/delete";                       // POST
+        public const string MethodPathAuthSyncBoxStatus = VersionPrefix + "/sync/syncbox/status";                       // POST
         #endregion
 #else
         public const string MethodPathSyncFrom = "/1/sync/from_cloud";                                  // POST
@@ -223,6 +224,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathAuthSyncBoxExtendedMetadata = "/1/sync/sync_box/update_metadata"; // POST
         public const string MethodPathAuthSyncBoxQuota = "/1/sync/sync_box/update_quota";               // POST
         public const string MethodPathAuthDeleteSyncBox = "/1/sync/sync_box/delete";                    // POST
+        public const string MethodPathAuthSyncBoxStatus = "/1/sync/sync_box/status";                    // POST
         #endregion
 #endif  // !URL_API
 #endif  // DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND

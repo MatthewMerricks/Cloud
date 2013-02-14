@@ -24,6 +24,40 @@ namespace CloudApiPublic
     {
         private static CLTrace _trace = CLTrace.Instance;
 
+        internal bool ReservedForActiveSync
+        {
+            get
+            {
+                lock (_reservedForActiveSync)
+                {
+                    return _reservedForActiveSync.Value;
+                }
+            }
+        }
+        internal bool TryReserveForActiveSync()
+        {
+            if (_httpRestClient.IsModifyingSyncBoxViaPublicAPICalls)
+            {
+                lock (_reservedForActiveSync)
+                {
+                    if (!_reservedForActiveSync.Value)
+                    {
+                        _reservedForActiveSync.Value = true;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        internal void ResetReserveForActiveSync()
+        {
+            lock (_reservedForActiveSync)
+            {
+                _reservedForActiveSync.Value = false;
+            }
+        }
+        private readonly GenericHolder<bool> _reservedForActiveSync = new GenericHolder<bool>(false);
+
         /// <summary>
         /// Contains authentication information required for all communication and services
         /// </summary>
@@ -72,6 +106,14 @@ namespace CloudApiPublic
             }
         }
         private readonly CLHttpRest _httpRestClient;
+
+        internal bool IsModifyingSyncBoxViaPublicAPICalls
+        {
+            get
+            {
+                return _httpRestClient.IsModifyingSyncBoxViaPublicAPICalls;
+            }
+        }
 
         /// <summary>
         /// Creates an object which represents a SyncBox in Cloud
@@ -157,9 +199,10 @@ namespace CloudApiPublic
         }
 
         #region forwarded rest http calls
-        #region GetMetadataAtPath
+        #region GetMetadata
         /// <summary>
-        /// Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path
+        /// Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path; outputs CLHttpRestStatus.NoContent for status if not found on server;
+        /// Check for Deleted flag being true in case the metadata represents a deleted item
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
         /// <param name="aState">Userstate to pass when firing async callback</param>
@@ -167,16 +210,39 @@ namespace CloudApiPublic
         /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetMetadataAtPath(AsyncCallback aCallback,
+        public IAsyncResult BeginGetMetadata(AsyncCallback aCallback,
             object aState,
             FilePath fullPath,
             bool isFolder,
             int timeoutMilliseconds)
         {
-            return _httpRestClient.BeginGetMetadataAtPath(aCallback,
+            return _httpRestClient.BeginGetMetadata(aCallback,
                 aState,
                 fullPath,
                 isFolder,
+                timeoutMilliseconds);
+        }
+
+        /// <summary>
+        /// Asynchronously starts querying the server at a given file or folder server id (must be specified) for existing metadata at that id; outputs CLHttpRestStatus.NoContent for status if not found on server;
+        /// Check for Deleted flag being true in case the metadata represents a deleted item
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
+        /// <param name="serverId">Unique id of the item on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetMetadata(AsyncCallback aCallback,
+            object aState,
+            bool isFolder,
+            string serverId,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetMetadata(aCallback,
+                aState,
+                isFolder,
+                serverId,
                 timeoutMilliseconds);
         }
         
@@ -187,13 +253,14 @@ namespace CloudApiPublic
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) The result from the metadata query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetMetadataAtPath(IAsyncResult aResult, out GetMetadataAtPathResult result)
+        public CLError EndGetMetadata(IAsyncResult aResult, out GetMetadataResult result)
         {
-            return _httpRestClient.EndGetMetadataAtPath(aResult, out result);
+            return _httpRestClient.EndGetMetadata(aResult, out result);
         }
         
         /// <summary>
-        /// Queries the server at a given file or folder path (must be specified) for existing metadata at that path; outputs CLHttpRestStatus.NoContent for status if not found on server
+        /// Queries the server at a given file or folder path (must be specified) for existing metadata at that path; outputs CLHttpRestStatus.NoContent for status if not found on server;
+        /// Check for Deleted flag being true in case the metadata represents a deleted item
         /// </summary>
         /// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
         /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
@@ -201,9 +268,24 @@ namespace CloudApiPublic
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetMetadataAtPath(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
+        public CLError GetMetadata(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
         {
-            return _httpRestClient.GetMetadataAtPath(fullPath, isFolder, timeoutMilliseconds, out status, out response);
+            return _httpRestClient.GetMetadata(fullPath, isFolder, timeoutMilliseconds, out status, out response);
+        }
+
+        /// <summary>
+        /// Queries the server at a given file or folder server id (must be specified) for existing metadata at that id; outputs CLHttpRestStatus.NoContent for status if not found on server;
+        /// Check for Deleted flag being true in case the metadata represents a deleted item
+        /// </summary>
+        /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
+        /// <param name="serverId">Unique id of the item on the server</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetMetadata(bool isFolder, string serverId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
+        {
+            return _httpRestClient.GetMetadata(isFolder, serverId, timeoutMilliseconds, out status, out response);
         }
         #endregion
 
@@ -1516,7 +1598,7 @@ namespace CloudApiPublic
             long quotaSize,
             int timeoutMilliseconds)
         {
-            return _httpRestClient.BeginSyncBoxUpdateQuota(aCallback, aState, quotaSize, timeoutMilliseconds);
+            return _httpRestClient.BeginSyncBoxUpdateQuota(aCallback, aState, quotaSize, timeoutMilliseconds, ReservedForActiveSync);
         }
 
         /// <summary>
@@ -1541,7 +1623,7 @@ namespace CloudApiPublic
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError SyncBoxUpdateQuota(long quotaSize, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
         {
-            return _httpRestClient.SyncBoxUpdateQuota(quotaSize, timeoutMilliseconds, out status, out response);
+            return _httpRestClient.SyncBoxUpdateQuota(quotaSize, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
         }
         #endregion
         
@@ -1557,7 +1639,7 @@ namespace CloudApiPublic
             object aState,
             int timeoutMilliseconds)
         {
-            return _httpRestClient.BeginDeleteSyncBox(aCallback, aState, timeoutMilliseconds);
+            return _httpRestClient.BeginDeleteSyncBox(aCallback, aState, timeoutMilliseconds, ReservedForActiveSync);
         }
 
         /// <summary>
@@ -1581,7 +1663,47 @@ namespace CloudApiPublic
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteSyncBox(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
         {
-            return _httpRestClient.DeleteSyncBox(timeoutMilliseconds, out status, out response);
+            return _httpRestClient.DeleteSyncBox(timeoutMilliseconds, out status, out response, ReservedForActiveSync);
+        }
+        #endregion
+
+        #region GetSyncBoxStatus
+        /// <summary>
+        /// Asynchronously gets the status of this SyncBox
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetSyncBoxStatus(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginGetSyncBoxStatus(aCallback, aState, timeoutMilliseconds);
+        }
+        
+        /// <summary>
+        /// Finishes getting sync box status if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting getting sync box status</param>
+        /// <param name="result">(output) The result from getting sync box status</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetSyncBoxStatus(IAsyncResult aResult, out GetSyncBoxStatusResult result)
+        {
+            return _httpRestClient.EndGetSyncBoxStatus(aResult, out result);
+        }
+
+        /// <summary>
+        /// Gets the status of this SyncBox
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetSyncBoxStatus(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        {
+            return _httpRestClient.GetSyncBoxStatus(timeoutMilliseconds, out status, out response);
         }
         #endregion
         #endregion

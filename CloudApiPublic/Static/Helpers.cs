@@ -34,6 +34,9 @@ using System.Runtime.Serialization;
 namespace CloudApiPublic.Static
 {
     extern alias SimpleJsonBase;
+    using System.ComponentModel;
+    using System.Runtime.InteropServices;
+    using CloudApiPublic.SQLIndexer.Model;
     /// <summary>
     /// Class containing commonly usable static helper methods
     /// </summary>
@@ -1004,7 +1007,12 @@ namespace CloudApiPublic.Static
                             throw new ArgumentException("settings.CloudRoot must start at a drive letter");
                         }
 
-                        DriveInfo rootDrive = new DriveInfo(checkForEmptyName.Name.Substring(0, 1));
+                        char rootDriveLetter = checkForEmptyName.Name[0];
+                        if (!char.IsUpper(rootDriveLetter))
+                        {
+                            throw new ArgumentException("settings.CloudRoot must start with a upper-case drive letter");
+                        }
+                        DriveInfo rootDrive = new DriveInfo(new string(new[] { rootDriveLetter }));
                         switch (rootDrive.DriveType)
                         {
                             case DriveType.CDRom:
@@ -1740,6 +1748,52 @@ namespace CloudApiPublic.Static
             }
         }
 
+        /// <summary>
+        /// Validates a directory path's case-sensitivity with an existing folder on disk
+        /// </summary>
+        /// <param name="path">Path to query</param>
+        /// <param name="matches">Whether the path matches perfectly (including case-sensitivity) with a path on disk</param>
+        /// <returns>Any error which occurred while checking the disk</returns>
+        public static CLError DirectoryMatchesCaseWithDisk(FilePath path, out bool matches)
+        {
+            try
+            {
+                if (path == null)
+                {
+                    throw new NullReferenceException("path cannot be null");
+                }
+
+                NativeMethods.WIN32_FIND_DATA fileData;
+                SafeSearchHandle searchHandle = null;
+                try
+                {
+                    searchHandle = NativeMethods.FindFirstFileEx(//"\\\\?\\" + // Allows searching paths up to 32,767 characters in length, but not supported on XP
+                        path.ToString(),
+                        NativeMethods.FINDEX_INFO_LEVELS.FindExInfoStandard,// Basic would be optimal but it's only supported in Windows 7 on up
+                        out fileData,
+                        NativeMethods.FINDEX_SEARCH_OPS.FindExSearchLimitToDirectories,
+                        IntPtr.Zero,
+                        NativeMethods.FINDEX_ADDITIONAL_FLAGS.FIND_FIRST_EX_CASE_SENSITIVE);
+
+                    matches = !searchHandle.IsInvalid;
+                }
+                finally
+                {
+                    if (searchHandle != null
+                        && !searchHandle.IsInvalid)
+                    {
+                        searchHandle.Dispose();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                matches = Helpers.DefaultForType<bool>();
+                return ex;
+            }
+            return null;
+        }
+
         #region ProcessHttp
         #region readonly fields
         /// <summary>
@@ -1785,7 +1839,7 @@ namespace CloudApiPublic.Static
             { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
             { typeof(JsonContracts.SyncBoxMetadata), JsonContractHelpers.SyncBoxMetadataSerializer },
             { typeof(JsonContracts.SyncBoxQuota), JsonContractHelpers.SyncBoxQuotaSerializer },
-            { typeof(JsonContracts.SyncBoxDelete), JsonContractHelpers.SyncBoxDeleteSerializer }
+            { typeof(JsonContracts.SyncBoxIdOnly), JsonContractHelpers.SyncBoxDeleteSerializer }
             #endregion
         };
 

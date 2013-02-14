@@ -1595,7 +1595,7 @@ namespace CloudApiPublic.Sync
                             {
                                 CLHttpRestStatus resolveMetadataStatus;
                                 JsonContracts.Metadata resolvedMetadata;
-                                CLError resolveMetadataError = httpRestClient.GetMetadataAtPath(
+                                CLError resolveMetadataError = httpRestClient.GetMetadata(
                                     innerTopLevelChange.FileChange.NewPath,
                                     false, // not a folder
                                     HttpTimeoutMilliseconds,
@@ -1800,6 +1800,7 @@ namespace CloudApiPublic.Sync
                                                 byte[] parsedResolvedMetadataHash;
                                                 if (topLevelChangeMD5Error != null
                                                     || resolvedMetadataDown == null
+                                                    || resolvedMetadataDown.Deleted == true
                                                     || resolvedMetadataDown.CreatedDate == null
                                                     || !Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadataDown.CreatedDate, topLevelChange.FileChange.Metadata.HashableProperties.CreationTime)
                                                     || resolvedMetadataDown.ModifiedDate == null
@@ -1831,7 +1832,9 @@ namespace CloudApiPublic.Sync
                                             JsonContracts.Metadata resolvedMetadataUp = getMetadataPairUp.Key;
                                             toReturn = getMetadataPairUp.Value;
 
-                                            if (resolvedMetadataUp != null)
+                                            if (resolvedMetadataUp != null
+                                                && (resolvedMetadataUp.Deleted == null
+                                                    || resolvedMetadataUp.Deleted == false))
                                             {
                                                 byte[] topLevelChangeMD5;
                                                 CLError topLevelChangeMD5Error = topLevelChange.FileChange.GetMD5Bytes(out topLevelChangeMD5);
@@ -6001,7 +6004,7 @@ namespace CloudApiPublic.Sync
                                                     // declare the response object of the actual metadata when returned
                                                     JsonContracts.Metadata newMetadata;
                                                     // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
-                                                    CLError getNewMetadataError = httpRestClient.GetMetadataAtPath(currentChange.NewPath, // path to query
+                                                    CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath, // path to query
                                                         currentChange.Metadata.HashableProperties.IsFolder, // whether path represents a folder (as opposed to a file or shortcut)
                                                         HttpTimeoutMilliseconds, // milliseconds before communication would expire on an operation
                                                         out getNewMetadataStatus, // output the status of communication
@@ -6014,7 +6017,8 @@ namespace CloudApiPublic.Sync
                                                     }
 
                                                     // if there was no content, then the metadata was not found at the given path so throw an error
-                                                    if (getNewMetadataStatus == CLHttpRestStatus.NoContent)
+                                                    if (getNewMetadataStatus == CLHttpRestStatus.NoContent
+                                                        || newMetadata.Deleted == true)
                                                     {
                                                         throw new Exception("Metadata not found for given path");
                                                     }
@@ -7219,7 +7223,7 @@ namespace CloudApiPublic.Sync
                                     // declare the response object of the actual metadata when returned
                                     JsonContracts.Metadata newMetadata;
                                     // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
-                                    CLError getNewMetadataError = httpRestClient.GetMetadataAtPath(currentChange.NewPath,
+                                    CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath,
                                         currentChange.Metadata.HashableProperties.IsFolder,
                                         HttpTimeoutMilliseconds,
                                         out getNewMetadataStatus,
@@ -7232,7 +7236,8 @@ namespace CloudApiPublic.Sync
                                     }
 
                                     // if there was no content, then the metadata was not found at the given path so throw an error
-                                    if (getNewMetadataStatus == CLHttpRestStatus.NoContent)
+                                    if (getNewMetadataStatus == CLHttpRestStatus.NoContent
+                                        || newMetadata.Deleted == true)
                                     {
                                         throw new Exception("Metadata not found for given path");
                                     }

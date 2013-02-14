@@ -482,7 +482,7 @@ namespace CloudApiPublic.JsonContracts
                 lock (SyncBoxDeleteSerializerLocker)
                 {
                     return _syncBoxDeleteSerializer
-                        ?? (_syncBoxDeleteSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxDelete)));
+                        ?? (_syncBoxDeleteSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxIdOnly)));
                 }
             }
         }

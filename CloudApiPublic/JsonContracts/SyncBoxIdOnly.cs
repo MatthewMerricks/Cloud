@@ -1,5 +1,5 @@
 ﻿//
-// SyncBoxDelete.cs
+// SyncBoxIdOnly.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -15,11 +15,8 @@ using System.Text;
 
 namespace CloudApiPublic.JsonContracts
 {
-    /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.SyncBoxUpdateQuota"/>
-    /// </summary>
     [DataContract]
-    internal sealed class SyncBoxDelete
+    internal sealed class SyncBoxIdOnly
     {
         [DataMember(Name = CLDefinitions.RESTResponseSyncBoxId, IsRequired = false)]
         public Nullable<long> Id { get; set; }

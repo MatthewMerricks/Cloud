@@ -16,7 +16,9 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLCredential.AddSyncBoxOnServer"/>
+    /// Result from <see cref="CloudApiPublic.CLCredential.AddSyncBoxOnServer"/>, <see cref="CloudApiPublic.CLSyncBox.SyncBoxUpdateExtendedMetadata"/>,
+    /// <see cref="CloudApiPublic.CLSyncBox.SyncBoxUpdateQuota"/>, <see cref="CloudApiPublic.CLSyncBox.DeleteSyncBox"/>, and
+    /// <see cref="CloudApiPublic.CLSyncBox.GetSyncBoxStatus"/>
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary] // within SyncBox SyncBox
