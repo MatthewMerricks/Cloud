@@ -132,6 +132,40 @@ namespace CloudSDK_SmokeTest.Helpers
         }
         #endregion 
 
+        #region Search
+        public static FileInfo FindFirstFileInDirectory(string directoryPath)
+        {
+            if (!Directory.Exists(directoryPath))
+                throw new Exception("The specified directory path does not exist.");
+
+            FileInfo returnValue = null;
+
+            DirectoryInfo dInfo = new DirectoryInfo(directoryPath);
+            returnValue = dInfo.EnumerateFiles().FirstOrDefault();
+            if (returnValue == null)
+            {
+                IEnumerable<DirectoryInfo> childFolders = dInfo.EnumerateDirectories();
+                foreach (DirectoryInfo directory in childFolders)
+                {
+                    FileInfo fInfo = directory.EnumerateFiles().FirstOrDefault();
+                    if (fInfo != null)
+                    {
+                        returnValue = fInfo;
+                    }
+                    else
+                    {
+                        //recursive call to nested folders.
+                        fInfo = FindFirstFileInDirectory(directory.FullName);
+                        if (fInfo != null)
+                            returnValue = fInfo;
+                    }
+                    if (fInfo != null)
+                        break;
+                }
+            }
+            return returnValue;
+        }
+        #endregion
 
         #region Responses
 

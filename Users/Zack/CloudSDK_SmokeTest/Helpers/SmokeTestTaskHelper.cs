@@ -127,36 +127,8 @@ namespace CloudSDK_SmokeTest.Helpers
                 if (!(smokeTask is FileDeletion))
                     throw new Exception("Task Passed to File Deletion was not of type FileDeletion");
 
-                if (!string.IsNullOrEmpty((smokeTask as FileDeletion).FilePath))
-                {
-                    if (File.Exists((smokeTask as FileDeletion).FilePath))
-                        deleteReturnCode = manager.Delete(paramSet, (smokeTask as FileDeletion).FilePath);
-                }
-                else
-                {
-                    string folderName = paramSet.ManualSync_Folder.Replace("\"", "");
-                    if (Directory.Exists(folderName))
-                    {
-                        DirectoryInfo dInfo = new DirectoryInfo(folderName);
-                        IEnumerable<FileInfo> items = dInfo.EnumerateFiles().OrderBy(f => f.Extension);
-                        if (items.Count() > 0)
-                        {
-                            FileInfo fInfo = items.FirstOrDefault();
-                            if (fInfo != null)
-                                deleteReturnCode = manager.Delete(paramSet, fInfo.FullName);
-                        }
-                        else
-                        {
-                            FileInfo fInfo = FindFirstFileInDirectory(folderName);
-                            if (fInfo != null)
-                                deleteReturnCode = manager.Delete(paramSet, fInfo.FullName);
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("The selected manual sync folder does not exist.");
-                    }
-                }
+                deleteReturnCode = manager.Delete(paramSet, smokeTask);
+                
                 
             }
             catch (Exception exception)
@@ -178,8 +150,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 FileRename task = smokeTask as FileRename;
                 if (task == null)
                     throw new Exception("There was an error casting the FileRename SmokeTask to type FileRename");
-                //if(File.Exists())
-                //int renameResponseCode = 0;
+
                 manager.Rename(paramSet, task.RelativeDirectoryPath, task.OldName, task.NewName);
             }
             catch (Exception exception)
@@ -190,6 +161,8 @@ namespace CloudSDK_SmokeTest.Helpers
                 }
             }
         }
+
+        
         #endregion         
 
         #region Private
@@ -235,36 +208,6 @@ namespace CloudSDK_SmokeTest.Helpers
                     ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex ;
                 }
             }
-        }
-
-        private static FileInfo FindFirstFileInDirectory(string directoryPath)
-        {
-            if (!Directory.Exists(directoryPath))
-                throw new Exception("The specified directory path does not exist.");
-
-            FileInfo returnValue = null;
-
-            DirectoryInfo dInfo = new DirectoryInfo(directoryPath);
-            IEnumerable<DirectoryInfo> childFolders = dInfo.EnumerateDirectories();
-
-            foreach (DirectoryInfo directory in childFolders)
-            {
-                FileInfo fInfo = directory.EnumerateFiles().FirstOrDefault();
-                if (fInfo != null)
-                {
-                    returnValue = fInfo;
-                }
-                else
-                {
-                    //recursive call to nested folders.
-                    fInfo = FindFirstFileInDirectory(directory.FullName);
-                    if (fInfo != null)
-                        returnValue = fInfo;
-                }
-                if (fInfo != null)
-                    break;
-            }
-            return returnValue;
         }
         #endregion 
     }

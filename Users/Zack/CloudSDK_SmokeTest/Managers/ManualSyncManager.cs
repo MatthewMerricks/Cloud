@@ -274,55 +274,7 @@ namespace CloudSDK_SmokeTest.Managers
             return fileChange;
         }
 
-        private FileChange PrepareFileChangeForModification(InputParams paramSet, FileChangeType changeType, CLSyncBox syncBox, string filePath)
-        {
-            CLHttpRestStatus restStatus;
-            FileChange fileChange = new FileChange();
-            byte[] md5Bytes;
-            if (!File.Exists(filePath))
-            {
-                Exception fileNotFound = new FileNotFoundException(string.Format("PrepareFileChangeForModification: {0}", filePath));
-                lock (this.ProcessingErrorHolder)
-                {
-                    this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + fileNotFound;
-                }
-            }
-            else
-            {
-                try
-                {
-                    FileInfo filetoDelete = new FileInfo(filePath);
-                    CloudApiPublic.JsonContracts.Metadata metaDataResponse;
-                    CLError badPathError = CloudApiPublic.Static.Helpers.CheckForBadPath(filePath);
-                    CLError metaDataRequestError =  syncBox.GetMetadataAtPath(filePath, false, ManagerConstants.TimeOutMilliseconds, out restStatus, out metaDataResponse);
-                    if (metaDataRequestError == null && (metaDataResponse.Deleted == null || metaDataResponse.Deleted == false))
-                        md5Bytes = FileHelper.CreateFileChangeObject(filePath, changeType, true, metaDataResponse.Size, metaDataResponse.StorageKey, metaDataResponse.ServerId, out fileChange);
-                    else
-                    {
-                        Exception[] exceptions = metaDataRequestError.GrabExceptions().ToArray();
-                        if (exceptions.Length > 0)
-                        {
-                            lock (this.ProcessingErrorHolder)
-                            {
-                                foreach (Exception ex in exceptions)
-                                {
-                                    this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception exception)
-                {
-                    lock (this.ProcessingErrorHolder)
-                    {
-                        this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-                    }
-                }
-            }
-            return fileChange;
-        }
-
+        
         private int TryUpload(InputParams paramSet, CLCredential creds,  string filePath, FileInfo fileInfo, ref FileChange fileChange)
         {
             Console.WriteLine("Try Upload Entered...");
@@ -387,7 +339,7 @@ namespace CloudSDK_SmokeTest.Managers
         /// <returns>
         ///     int deleteFileResponse -- value returned depending on the completion status of the operation
         /// </returns>
-        public override int Delete(Settings.InputParams paramSet, string filePath)
+        public override int Delete(Settings.InputParams paramSet, SmokeTask smokeTask)
         {
             int deleteResponseCode = 0;
             CLCredential creds;
@@ -407,7 +359,12 @@ namespace CloudSDK_SmokeTest.Managers
             CloudApiPublic.JsonContracts.Event returnEvent; 
             long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
             CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
-            FileChange fileChange = PrepareFileChangeForModification(paramSet, FileChangeType.Deleted, syncBox, filePath);
+            FileInfo forDelete = GetFileForDelete(paramSet, smokeTask);
+            if (forDelete == null)
+            {
+                return -1;//There are no files to be deleted. 
+            }
+            FileChange fileChange = PrepareFileChangeForModification(paramSet, FileChangeType.Deleted, syncBox, forDelete.FullName);
             CLError postFileError = syncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
             if (postFileError != null || restStatus != CLHttpRestStatus.Success)
             {
@@ -423,8 +380,8 @@ namespace CloudSDK_SmokeTest.Managers
                     }                    
                 }
                 if (restStatus != CLHttpRestStatus.Success)
-                { 
-                    FileInfo info = new FileInfo(filePath);
+                {
+                    FileInfo info = new FileInfo((smokeTask as FileDeletion).FilePath + (smokeTask as FileDeletion).FileName);
                     Exception unsuccessfulDeleteError = new Exception(string.Format("The Returned Response for Attempt to Delete File {0} is {1}", info.Name, restStatus));
                 }                
             }
@@ -443,6 +400,16 @@ namespace CloudSDK_SmokeTest.Managers
             return 0;
         }
 
+
+        /// <summary>
+        /// Currently this method will rename a specific file if specified but if not will rename the first file it arrives at by iterating through the Directory Structure 
+        /// if 
+        /// </summary>
+        /// <param name="paramSet"></param>
+        /// <param name="directoryRelativeToRoot"></param>
+        /// <param name="oldFileName"></param>
+        /// <param name="newFileName"></param>
+        /// <returns></returns>
         public override int Rename(Settings.InputParams paramSet, string directoryRelativeToRoot, string oldFileName, string newFileName)
         {
             int renameResponseCode = 0;
@@ -460,12 +427,16 @@ namespace CloudSDK_SmokeTest.Managers
                 Console.WriteLine("Exiting Process...");
                 return (int)FileManagerResponseCodes.InitializeCredsError;
             }
-            string fullPath = directoryRelativeToRoot + oldFileName;
+            //string fullPath = directoryRelativeToRoot + oldFileName;
+            FileInfo forRename = GetFileForRename(paramSet, directoryRelativeToRoot, oldFileName);
+
             CloudApiPublic.JsonContracts.Event returnEvent;
             long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
             CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
-            FileChange fileChange = PrepareFileChangeForModification(paramSet, FileChangeType.Renamed, syncBox, fullPath);
-            
+            FileChange fileChange = PrepareFileChangeForModification(paramSet, FileChangeType.Renamed, syncBox, forRename.FullName);
+           // fileChange.NewPath = forRename.DirectoryName + newFileName + forRename.Extension;
+            fileChange.NewPath = forRename.DirectoryName + '\\' + newFileName + forRename.Extension;
+            fileChange.OldPath = forRename.FullName;
             CLError postFileError = syncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
 
             return 0;
@@ -812,6 +783,117 @@ namespace CloudSDK_SmokeTest.Managers
             {
                 ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + outerException;
             }
+        }
+
+        private FileChange PrepareFileChangeForModification(InputParams paramSet, FileChangeType changeType, CLSyncBox syncBox, string filePath)
+        {
+            CLHttpRestStatus restStatus;
+            FileChange fileChange = new FileChange();
+            byte[] md5Bytes;
+            if (!File.Exists(filePath))
+            {
+                Exception fileNotFound = new FileNotFoundException(string.Format("PrepareFileChangeForModification: {0}", filePath));
+                lock (this.ProcessingErrorHolder)
+                {
+                    this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + fileNotFound;
+                }
+            }
+            else
+            {
+                try
+                {
+                    FileInfo filetoDelete = new FileInfo(filePath);
+                    CloudApiPublic.JsonContracts.Metadata metaDataResponse;
+                    CLError badPathError = CloudApiPublic.Static.Helpers.CheckForBadPath(filePath);
+                    CLError metaDataRequestError = syncBox.GetMetadataAtPath(filePath, false, ManagerConstants.TimeOutMilliseconds, out restStatus, out metaDataResponse);
+                    if (metaDataRequestError == null && (metaDataResponse.Deleted == null || metaDataResponse.Deleted == false))
+                        md5Bytes = FileHelper.CreateFileChangeObject(filePath, changeType, true, metaDataResponse.Size, metaDataResponse.StorageKey, metaDataResponse.ServerId, out fileChange);
+                    else
+                    {
+                        Exception[] exceptions = metaDataRequestError.GrabExceptions().ToArray();
+                        if (exceptions.Length > 0)
+                        {
+                            lock (this.ProcessingErrorHolder)
+                            {
+                                foreach (Exception ex in exceptions)
+                                {
+                                    this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    lock (this.ProcessingErrorHolder)
+                    {
+                        this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
+                    }
+                }
+            }
+            return fileChange;
+        }
+
+        private FileInfo GetFileForDelete(InputParams paramSet, SmokeTask smokeTask)
+        { 
+            bool exists = false;
+            FileInfo returnValue = null;
+            string inputFilePath = (smokeTask as FileDeletion).FilePath;
+            if (!string.IsNullOrEmpty(inputFilePath))
+            {
+                if (File.Exists(inputFilePath))
+                {
+                    returnValue = new FileInfo(inputFilePath);
+                    exists = true;
+                }
+                else
+                {
+                    inputFilePath += (smokeTask as FileDeletion).FileName;
+                    if (File.Exists(inputFilePath))
+                        returnValue = new FileInfo(inputFilePath);
+                }
+            }
+            else
+            {
+                string folderName = paramSet.ManualSync_Folder.Replace("\"", "");
+                if (Directory.Exists(folderName))
+                {
+                    DirectoryInfo dInfo = new DirectoryInfo(folderName);
+                    IEnumerable<FileInfo> items = dInfo.EnumerateFiles().OrderBy(f => f.Extension);
+                    if (items.Count() > 0)
+                        returnValue = items.FirstOrDefault();
+                    else
+                        returnValue = FileHelper.FindFirstFileInDirectory(folderName);
+                }
+                else
+                {
+                    throw new Exception("The selected manual sync folder does not exist.");
+                }
+            }
+            return returnValue;
+        }
+
+        private FileInfo GetFileForRename(InputParams paramSet, string relativePathToRoot, string oldFileName)
+        {
+            FileInfo returnValue = null;
+            try 
+            {
+                string rootFolder = paramSet.ManualSync_Folder.Replace("\"", "");
+                string fullPath = string.Concat(rootFolder, string.Concat(relativePathToRoot, oldFileName));
+                if (File.Exists(fullPath))
+                    returnValue = new FileInfo(fullPath);
+                else
+                    returnValue = FileHelper.FindFirstFileInDirectory(rootFolder);
+                
+            }
+            catch (Exception exception)
+            {
+                lock (ProcessingErrorHolder)
+                {
+                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
+                }
+            }
+            return returnValue;
         }
         #endregion 
     }

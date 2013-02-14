@@ -113,7 +113,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathOneOffFileCreate = VersionPrefix + "/sync/file/add";                      // POST
         public const string MethodPathOneOffFileDelete = VersionPrefix + "/sync/file/delete";                   // POST
         public const string MethodPathOneOffFileModify = VersionPrefix + "/sync/file/modify";                   // POST
-        public const string MethodPathOneOffFileMove = VersionPrefix + "/syncfile/move";                        // POST
+        public const string MethodPathOneOffFileMove = VersionPrefix + "/sync/file/move";                        // POST
         /* duplicate functionality to file move:
         public const string MethodPathOneOffFileRename = VersionPrefix + "/sync/file/rename";                   // POST
  

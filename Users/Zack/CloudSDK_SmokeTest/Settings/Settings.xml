@@ -10,8 +10,8 @@
     <API_Secret>fc50fff51344faca5ed6cc38e4398e622963d055713db0895a144c8315c5204b</API_Secret>
     <ActiveSync_Folder>"C:\TestSyncBoxes\Auto_SyncBoxA"</ActiveSync_Folder>
     <ActiveSync_TraceFolder>"C:\TestSyncBoxes\Traces\AutoSyncTraces"</ActiveSync_TraceFolder>
-    <ActiveSyncBoxID>112</ActiveSyncBoxID>
-    <ManualSyncBoxID>112</ManualSyncBoxID>
+    <ActiveSyncBoxID>115</ActiveSyncBoxID>
+    <ManualSyncBoxID>115</ManualSyncBoxID>
     <ManualSync_Folder>"C:\Users\t_zacharyw\Cloud\"</ManualSync_Folder>
     <ManualSync_TraceFolder>"C:\TestSyncBoxes\Traces\ManualSyncTraces"</ManualSync_TraceFolder>
     <Token></Token>
@@ -23,19 +23,26 @@
     <ScenarioTasks>
       <!--<SmokeTask xsi:type="FileCreation">
         <type>FileCreation</type>
-        <FileName>ZacksFile2.txt</FileName>
+        <FileName>ZacksFile5.txt</FileName>
         <FilePath>"C:\Users\t_zacharyw\Cloud\"</FilePath>
       </SmokeTask>-->
-      <SmokeTask xsi:type="DownloadAllSyncBoxContent">
+      <!--<SmokeTask xsi:type="DownloadAllSyncBoxContent">
         <type>DownloadAllSyncBoxContent</type>
         <FolderPath>"C:\Users\t_zacharyw\Cloud\"</FolderPath>
         <FilePath></FilePath>
-      </SmokeTask>
+      </SmokeTask>-->
       <!--<SmokeTask xsi:type="FileDeletion">
         <type>FileDeletion</type>
         <FileName></FileName>
         <FilePath></FilePath>
       </SmokeTask>-->
+      <SmokeTask xsi:type="FileRename">
+        <type>FileRename</type>
+        <OldName></OldName>
+        <NewName>FileRenameTest</NewName>
+        <RelativeDirectoryPath></RelativeDirectoryPath>
+        <IsFolder>False</IsFolder>
+      </SmokeTask>
       <SmokeTask xsi:type="CreateSyncBox">
         <type>CreateSyncBox</type>
         <CreateNew>false</CreateNew>
