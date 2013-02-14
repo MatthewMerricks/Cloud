@@ -56,7 +56,7 @@ namespace CloudSDK_SmokeTest.Managers
         {
             long? returnValue = 0;
             CloudApiPublic.Static.CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.CreateSyncBox syncBox;
+            CloudApiPublic.JsonContracts.SyncBoxHolder syncBox;
             string strippedFolderPath = paramSet.ManualSync_Folder.Replace("\"", "");
             AdvancedSyncSettings settings = new AdvancedSyncSettings(strippedFolderPath);
             CLError newBoxError = creds.AddSyncBoxOnServer(ManagerConstants.TimeOutMilliseconds, out restStatus, out syncBox, settings, null);

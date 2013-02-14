@@ -104,7 +104,6 @@
       <DependentUpon>InputParameters.xsd</DependentUpon>
     </Compile>
     <Compile Include="Settings\InputParameters_Methods.cs" />
-    <Compile Include="TestClasses\AppTestClasses.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Settings\FileMappingsForIntelleSense.xml" />

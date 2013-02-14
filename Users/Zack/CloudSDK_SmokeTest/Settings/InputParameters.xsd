@@ -37,7 +37,7 @@
         <xs:simpleType>
           <xs:restriction base ="xs:string" >
             <xs:enumeration value = "CreateSyncBox" />
-            <xs:enumeration value = "FileCreation" />
+            <xs:enumeration value = "Creation" />
             <xs:enumeration value = "FileDeletion" />
             <xs:enumeration value = "DownloadAllSyncBoxContent" />
             <xs:enumeration value = "FileRename" />
@@ -45,15 +45,18 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
+      <xs:element name="Group" type="xs:int" minOccurs="0" maxOccurs="1" nillable="true"/>
+      <xs:element name="Sequence" type="xs:int" minOccurs="0" maxOccurs="1" nillable="true"/>
     </xs:sequence>   
   </xs:complexType>
 
-  <xs:complexType name="FileCreation">
+  <xs:complexType name="Creation">
     <xs:complexContent >
       <xs:extension base="SmokeTask" >
         <xs:sequence>
-          <xs:element name="FileName" type ="xs:string" />
-          <xs:element name="FilePath" type ="xs:string" />
+          <xs:element name="Name" type ="xs:string" />
+          <xs:element name="Path" type ="xs:string" />
+          <xs:element name="IsFile" type="xs:boolean" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -78,7 +81,7 @@
           <xs:element name="OldName" type ="xs:string" />
           <xs:element name="NewName" type ="xs:string" />
           <xs:element name="RelativeDirectoryPath" type ="xs:string" />
-          <xs:element name="IsFolder" type ="xs:string" />
+          <xs:element name="IsFolder" type ="xs:boolean" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -123,11 +126,11 @@
     </xs:choice>    
   </xs:complexType>
 
-  <xs:complexType name="Scenario">
+  <!--<xs:complexType name="Scenario">
     <xs:choice>
       <xs:element name="ScenarioTasks" type="ParallelTaskSet" minOccurs="0" maxOccurs="unbounded" />
     </xs:choice>
-  </xs:complexType>
+  </xs:complexType>-->
 
   <xs:complexType name="MockFile" >
     <xs:sequence>
@@ -161,8 +164,16 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  
   <xs:element name="SmokeTest">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="Copyright" type="Copyright" />
+        <xs:element name="InputParams" type="InputParams" />
+        <xs:element name="ParallelTaskSet" type="ParallelTaskSet" />
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  <!--<xs:element name="SmokeTest">
     <xs:complexType>
       <xs:all>
         <xs:element name="Copyright" type="Copyright" />
@@ -170,5 +181,5 @@
         <xs:element name="Scenario" type="Scenario" />
       </xs:all>
     </xs:complexType>
-  </xs:element>
+  </xs:element>-->
 </xs:schema>

@@ -16,6 +16,7 @@ namespace CloudSDK_SmokeTest.Helpers
 
         ///Example Implementation:
         ///
+
         //GenericHolder<CLError> refToErrorHolder = ProcessingErrorHolder;
         //            XmlNode newElement = XMLHelper.ReturnNewMappingNode( smokeTestClass.InputParams.FileNameMappingFile, 
         //                                                                    string.Format("Id:{0}", random1.ToString()), 

@@ -2,7 +2,6 @@
 using CloudSDK_SmokeTest.Helpers;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
-using CloudSDK_SmokeTest.TestClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,7 +75,6 @@ namespace CloudSDK_SmokeTest
                     Console.WriteLine("Xml Data Initialized From Schema...");
                     Console.WriteLine();
                     InputParams.PrintDefaultValues(smokeTestClass.InputParams);
-
                     SmokeTask task = GetCreateSyncBoxTask(smokeTestClass);
                     if (task != null)
                     {
@@ -93,28 +91,29 @@ namespace CloudSDK_SmokeTest
 
                     #region Parallel Op Code
                     // use this to run the task sets in parallel
-                    System.Threading.Tasks.Parallel.ForEach(smokeTestClass.Scenario.Items, (scenarioItem) =>
-                    {
-                        foreach (SmokeTask smokeTask in scenarioItem.Items)
-                        {
-                            if (smokeTask.type != SmokeTaskType.CreateSyncBox)
-                                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, smokeTask, ProcessingErrorHolder);
-                        }
-                    });
+                    //System.Threading.Tasks.Parallel.ForEach(smokeTestClass.Scenario.Items, (scenarioItem) =>
+                    //{
+                    //    foreach (SmokeTask smokeTask in scenarioItem.Items)
+                    //    {
+                    //        if (smokeTask.type != SmokeTaskType.CreateSyncBox)
+                    //            SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, smokeTask, ProcessingErrorHolder);
+                    //    }
+                    //});
                     #endregion 
 
-                    #region Syncronous Op Code
-                    //// use this to serialize the parallel tasks
-                    //
-                    //foreach (ParallelTaskSet scenarioItem in smokeTestClass.Scenario.Items)
-                    //{
-                    //    foreach(SmokeTask smokeTask in scenarioItem.Items)
-                    //         SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, smokeTask, ProcessingErrorHolder);
-                    //}
-                    #endregion                 
 
+                    var groupped = smokeTestClass.ParallelTaskSet.Items.GroupBy(i => i.Group);
+                    //Runs the Steps In the order they explicitly define in their properties -- 
+                    //Groupped By Group Property and Ordered By Sequence Property 
+                    for (int x = 0; x < groupped.Count(); x++)
+                    {
+                        SmokeTask[] tasks = groupped.ElementAt(x).OrderBy(i => i.Sequence).ToArray();
+                        for (int x2 = 0; x2 < tasks.Count(); x2++)
+                        {
+                            SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, tasks[x2], ProcessingErrorHolder);
+                        }
+                    }
                 }
-
                 lock (waitForCompletion)
                 {
                     Monitor.Pulse(waitForCompletion);
@@ -143,20 +142,13 @@ namespace CloudSDK_SmokeTest
         private static SmokeTask GetCreateSyncBoxTask(SmokeTest smokeTestClass)
         {
             SmokeTask task = null;
-            foreach (ParallelTaskSet taskSet in smokeTestClass.Scenario.Items)
+            foreach (SmokeTask smokeTask in smokeTestClass.ParallelTaskSet.Items)
             {
-                bool canContinue = false;
-                foreach (SmokeTask smokeTask in taskSet.Items)
+                if (smokeTask.type == SmokeTaskType.CreateSyncBox)
                 {
-                    if (smokeTask.type == SmokeTaskType.CreateSyncBox)
-                    {
-                        task = smokeTask;
-                        canContinue = false;
-                        break;
-                    }
-                }
-                if (!canContinue)
+                    task = smokeTask;
                     break;
+                }
             }
             return task;
         }

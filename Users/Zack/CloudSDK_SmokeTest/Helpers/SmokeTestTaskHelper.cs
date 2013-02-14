@@ -25,8 +25,8 @@ namespace CloudSDK_SmokeTest.Helpers
                 case SmokeTaskType.CreateSyncBox:
                     returnValue = RunCreateSyncBoxTask(paramSet, smokeTask, ref ProcessingErrorHolder );
                     break;
-                case SmokeTaskType.FileCreation:
-                    RunFileCreationTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                case SmokeTaskType.Creation:
+                    RunCreationTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.DownloadAllSyncBoxContent:
                     RunDownloadAllSyncBoxContentTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
@@ -67,43 +67,52 @@ namespace CloudSDK_SmokeTest.Helpers
             return newBoxId.HasValue ? newBoxId.Value : 0;
         }
 
-        public static void RunFileCreationTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static void RunCreationTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             string fullPath = string.Empty;
             FileInfo fi = null;
-            FileCreation creation = smokeTask as FileCreation;
-            try
+            Creation creation = smokeTask as Creation;
+            if (!creation.IsFile)
             {
-                CreateFilePathString(creation, out fullPath);
-                if (!string.IsNullOrEmpty(fullPath))
-                {
-                    fi = new FileInfo(fullPath);
-                }
+                AddFolder(paramSet, creation, ref ProcessingErrorHolder, ref manager);
             }
-            catch (Exception ex)
+            else
             {
-                Exception outerException = new Exception();
-                if (creation != null)
+                try
                 {
-                    outerException = new Exception(
-                                                        string.Format("There was an error obtaining the Local File to Create. FilePath: {0}, FileName={1}",
-                                                        creation.FilePath ?? "<filepath>",
-                                                        creation.FileName ?? "<filename>"),
-                                                        ex
-                                                    );
+
+                    CreateFilePathString(creation, out fullPath);
+                    if (!string.IsNullOrEmpty(fullPath))
+                    {
+                        fi = new FileInfo(fullPath);
+                    }
                 }
-                lock (ProcessingErrorHolder)
+                catch (Exception ex)
                 {
-                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
-                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + outerException;
+                    Exception outerException = new Exception();
+                    if (creation != null)
+                    {
+                        outerException = new Exception(
+                                                            string.Format("There was an error obtaining the Local File to Create. FilePath: {0}, FileName={1}",
+                                                            creation.Path ?? "<filepath>",
+                                                            creation.Name ?? "<filename>"),
+                                                            ex
+                                                        );
+                    }
+                    lock (ProcessingErrorHolder)
+                    {
+                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + outerException;
+                    }
                 }
-            }
-            if (fi != null)
-            {
-                TryCreateFile(paramSet, fi, creation.FileName, ref ProcessingErrorHolder, ref manager);
+                if (fi != null)
+                {
+                    TryCreateFile(paramSet, fi, creation.Name, ref ProcessingErrorHolder, ref manager);
+                }
             }
         }
 
+        
         public static void RunDownloadAllSyncBoxContentTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             try
@@ -151,7 +160,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 if (task == null)
                     throw new Exception("There was an error casting the FileRename SmokeTask to type FileRename");
 
-                manager.Rename(paramSet, task.RelativeDirectoryPath, task.OldName, task.NewName);
+                manager.Rename(paramSet, task, task.RelativeDirectoryPath, task.OldName, task.NewName);
             }
             catch (Exception exception)
             {
@@ -175,14 +184,14 @@ namespace CloudSDK_SmokeTest.Helpers
                 return false;
         }
 
-        private static void CreateFilePathString(FileCreation creation, out string fullPath)
+        private static void CreateFilePathString(Creation creation, out string fullPath)
         {
             string modPath = string.Empty;
             string modName = string.Empty;
-            if (creation.FileName != null && creation.FilePath != null)
+            if (creation.Name != null && creation.Path != null)
             {
-                modPath = creation.FilePath.Replace("\"", "");
-                modName = creation.FileName.Replace("\"", "");
+                modPath = creation.Path.Replace("\"", "");
+                modName = creation.Name.Replace("\"", "");
                 if (pathEndsWithSlash(modPath))
                     modPath = modPath.Remove(modPath.Count() - 1, 1);
 
@@ -208,6 +217,11 @@ namespace CloudSDK_SmokeTest.Helpers
                     ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex ;
                 }
             }
+        }
+
+        private static void AddFolder(InputParams paramSet, Creation creationTask, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
+        {
+            manager.AddFolder();
         }
         #endregion 
     }
