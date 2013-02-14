@@ -36,7 +36,7 @@ namespace CloudApiPublic
         }
         internal bool TryReserveForActiveSync()
         {
-            if (_httpRestClient.IsModifyingSyncBoxViaPublicAPICalls)
+            if (!_httpRestClient.IsModifyingSyncBoxViaPublicAPICalls)
             {
                 lock (_reservedForActiveSync)
                 {
