@@ -111,7 +111,6 @@ namespace CloudApiPublic.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class GetAllPendingResult : BaseCLHttpRestResult<JsonContracts.PendingResponse>
     {
         // construct with all readonly properties

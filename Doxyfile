@@ -751,11 +751,6 @@ EXCLUDE_SYMBOLS        = CloudApiPublic::Interfaces::ISyncDataObject \
                          CloudApiPublic::Static::OSVersionInfo \
 						 CloudApiPublic::CLSyncBox::HttpRestClient \
 						 CloudApiPublic::REST::CLHttpRest \
-						 CloudApiPublic::JsonContracts::PendingResponse \
-						 CloudApiPublic::REST::GetAllPendingResult \
-						 CloudApiPublic::REST::CLHttpRest::BeginGetAllPending \
-						 CloudApiPublic::REST::CLHttpRest::EndGetAllPending \
-						 CloudApiPublic::REST::CLHttpRest::GetAllPending \
 						 CloudApiPublic::JsonContracts::Event \
 						 CloudApiPublic::JsonContracts::Header
 						 

@@ -449,6 +449,9 @@ namespace CloudApiPublic.Static
         public const string CLMetadataIsDirectory = "is_folder";
         public const string CLMetadataFileIsLink = "is_link";
         public const string CLMetadataFileSize = "file_size";
+        /// <summary>
+        /// Be careful, this may be the wrong key name, you may need <see cref="CLDefinitions.CLMetadataIsStored"/>
+        /// </summary>
         public const string CLMetadataIsPending = "is_pending";
         public const string CLMetadataFromPath = "from_path";
         public const string CLMetadataToPath = "to_path";
@@ -465,6 +468,7 @@ namespace CloudApiPublic.Static
         public const string CLMetadataFile = "file";
         public const string CLMetadataServerId = "uid";
         public const string CLMetadataCount = "count";
+        public const string CLMetadataIsStored = "is_stored";
         public const string CLMetadataMoreItems = "more_items";
         public const string CLMetadataLocal = "local";
         public const string CLMetadataShared = "shared";
