@@ -72,47 +72,39 @@ namespace CloudSDK_SmokeTest.Helpers
             string fullPath = string.Empty;
             FileInfo fi = null;
             Creation creation = smokeTask as Creation;
-            if (!creation.IsFile)
+            try
             {
-                AddFolder(paramSet, creation, ref ProcessingErrorHolder, ref manager);
-            }
-            else
-            {
-                try
-                {
 
-                    CreateFilePathString(creation, out fullPath);
-                    if (!string.IsNullOrEmpty(fullPath))
-                    {
-                        fi = new FileInfo(fullPath);
-                    }
-                }
-                catch (Exception ex)
+                CreateFilePathString(creation, out fullPath);
+                if (!string.IsNullOrEmpty(fullPath))
                 {
-                    Exception outerException = new Exception();
-                    if (creation != null)
-                    {
-                        outerException = new Exception(
-                                                            string.Format("There was an error obtaining the Local File to Create. FilePath: {0}, FileName={1}",
-                                                            creation.Path ?? "<filepath>",
-                                                            creation.Name ?? "<filename>"),
-                                                            ex
-                                                        );
-                    }
-                    lock (ProcessingErrorHolder)
-                    {
-                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
-                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + outerException;
-                    }
+                    fi = new FileInfo(fullPath);
                 }
                 if (fi != null)
                 {
-                    TryCreateFile(paramSet, fi, creation.Name, ref ProcessingErrorHolder, ref manager);
+                    TryCreate(paramSet, smokeTask, fi, creation.Name, ref ProcessingErrorHolder, ref manager);
                 }
             }
-        }
-
-        
+            catch (Exception ex)
+            {
+                Exception outerException = new Exception();
+                if (creation != null)
+                {
+                    outerException = new Exception(
+                                                        string.Format("There was an error obtaining the Local File to Create. FilePath: {0}, FileName={1}",
+                                                        creation.Path ?? "<filepath>",
+                                                        creation.Name ?? "<filename>"),
+                                                        ex
+                                                    );
+                }
+                lock (ProcessingErrorHolder)
+                {
+                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + outerException;
+                }
+            }
+            
+        }        
         public static void RunDownloadAllSyncBoxContentTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             try
@@ -204,11 +196,11 @@ namespace CloudSDK_SmokeTest.Helpers
             }
         }
 
-        private static void TryCreateFile(InputParams paramSet, FileInfo fi, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
+        private static void TryCreate(InputParams paramSet, SmokeTask smokeTask, FileInfo fi, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
         {
             try
             {
-               int responseCode =  manager.Create(paramSet, fi, fileName, ref ProcessingErrorHolder);
+               int responseCode =  manager.Create(paramSet, smokeTask, fi, fileName, ref ProcessingErrorHolder);
             }
             catch (Exception ex)
             {
@@ -219,10 +211,6 @@ namespace CloudSDK_SmokeTest.Helpers
             }
         }
 
-        private static void AddFolder(InputParams paramSet, Creation creationTask, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
-        {
-            manager.AddFolder();
-        }
         #endregion 
     }
 }

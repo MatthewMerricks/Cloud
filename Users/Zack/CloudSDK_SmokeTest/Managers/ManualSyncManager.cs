@@ -2,6 +2,7 @@
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
+using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Helpers;
 using CloudSDK_SmokeTest.Settings;
 using System;
@@ -63,73 +64,118 @@ namespace CloudSDK_SmokeTest.Managers
         /// <returns>
         ///     int uploadResponseCode -- Defines the type of response returned form the server.
         /// </returns>
-        public override int Create(Settings.InputParams paramSet, FileInfo fileInfo, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public override int Create(InputParams paramSet, SmokeTask smokeTask,  FileInfo fileInfo, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
-            this.ProcessingErrorHolder = ProcessingErrorHolder;
-            int uploadResponseCode = 0;
-            CLCredential creds; CLCredentialCreationStatus credsCreateStatus;
-            DateTime currentTime = DateTime.UtcNow;
- 
-            string fullPath = fileInfo.FullName;
-            if (!File.Exists(fullPath))
-                WriteFile(RootDirectory.FullName, fileInfo.Name);
+            Console.WriteLine("Create Task begins...");
+            Creation createTask = smokeTask as Creation;
+            if (createTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
 
+            this.ProcessingErrorHolder = ProcessingErrorHolder;
+            CLCredential creds; 
+            CLCredentialCreationStatus credsCreateStatus;
+            int createResponseCode = 0;
             InitalizeCredentials("ManualSyncManager.CreateFile", out creds, out credsCreateStatus);
             // If Status returns anything other than success notify the user and stop the process.
             if (credsCreateStatus != CLCredentialCreationStatus.Success)
             {
-                Console.WriteLine("There was an error Crteating Credentials In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
+                Console.WriteLine("There was an error Creating Credentials In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
                 Console.WriteLine("Exiting Process...");
-                uploadResponseCode = (int)FileManagerResponseCodes.InitializeCredsError;
-                return uploadResponseCode;
+                return (int)FileManagerResponseCodes.InitializeCredsError;
             }
-            FileChange fileChange = PrepareMD5FileChange(paramSet, creds, RootDirectory.FullName, fileName);
-            Console.WriteLine("Try Upload Entered...");
-            CloudApiPublic.JsonContracts.Event returnEvent;
-            CLSyncBox syncBox;
+
+            CLSyncBox syncBox; 
             CLSyncBoxCreationStatus boxCreateStatus;
-            CLHttpRestStatus restStatus = new CLHttpRestStatus();
-            string stripped = paramSet.ManualSync_Folder.Replace("\"", string.Empty);
             ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", ""));
-            long syncBoxId= SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
+            long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
             CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
-            CLError postFileError = syncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
+
+            if (createTask.IsFile)
+            {
+                CreateFileEventArgs eventArgs = new CreateFileEventArgs()
+                {
+                    boxCreationStatus = boxCreateStatus,
+                    CreateTaskFileInfo = fileInfo,
+                    Creds = creds,
+                    CredsStatus = credsCreateStatus,
+                    CurrentTask = createTask,
+                    ProcessingErrorHolder = ProcessingErrorHolder,
+                    SyncBox = syncBox,
+                    CreateCurrentTime = DateTime.UtcNow,
+                };
+                createResponseCode = CreateFile(eventArgs);
+            }
+            else
+            {
+                
+                createResponseCode = CreateDirectory(paramSet, smokeTask);
+            }
+
+            return createResponseCode;
+        }
+
+        public int CreateFile(CreateFileEventArgs createEventArgs)
+        {
+            int createReturnCode = 0;
+            string fullPath = createEventArgs.CreateTaskFileInfo.FullName;
+            if (!File.Exists(fullPath))
+                WriteFile(RootDirectory.FullName, createEventArgs.CreateTaskFileInfo.Name);
+
+            FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, RootDirectory.FullName, createEventArgs.CreateTaskFileInfo.Name);
+            CloudApiPublic.JsonContracts.Event returnEvent;
+            CLHttpRestStatus restStatus = new CLHttpRestStatus();
+
+            CLError postFileError = createEventArgs.SyncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
             if (postFileError != null || restStatus != CLHttpRestStatus.Success)
             {
-                FileHelper.HandleUnsuccessfulUpload(fileChange, returnEvent, restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref ProcessingErrorHolder);
+                GenericHolder<CLError> refProcessErrorHolder = createEventArgs.ProcessingErrorHolder;
+                FileHelper.HandleUnsuccessfulUpload(fileChange, returnEvent, restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref refProcessErrorHolder);
             }
             string response = returnEvent.Header.Status.ToLower();
-            switch (response)
+            CreateFileResponseEventArgs responseArgs = new CreateFileResponseEventArgs(createEventArgs, fileChange, response, restStatus, returnEvent);
+            createReturnCode = CreateFileResponseSwitch(responseArgs, fileChange);
+            return createReturnCode;
+        }
+
+        public int CreateDirectory(InputParams paramSet, SmokeTask smokeTask)
+        { 
+            //TODO: Find out if We will ever just be creating a folder without it being initiated by adding a file to a non existent folder. 
+            int createReturnCode = 0;
+            return createReturnCode;
+        }
+
+        private int CreateFileResponseSwitch(CreateFileResponseEventArgs responseArgs, FileChange currentFileChange)
+        {
+            GenericHolder<CLError> refHolder = ProcessingErrorHolder;
+            int responseCode = 0;
+            switch (responseArgs.ResponseText)
             {
                 case "upload":
                 case "uploading":
-                    uploadResponseCode = FileHelper.TryUpload(fullPath, fileInfo.Name, syncBox, fileChange, restStatus, returnEvent, ref ProcessingErrorHolder);
+                    responseCode = FileHelper.TryUpload(responseArgs.CreateTaskFileInfo, responseArgs.SyncBox, responseArgs.FileChange, responseArgs.RestStatus, responseArgs.ReturnEvent, ref refHolder);
                     break;
                 case "duplicate":
                 case "exists":
-                    //ThrowDuplicateException(ref ProcessingErrorHolder);
-                    uploadResponseCode = RenameAndTryUpload(paramSet, syncBox, creds, fileChange, fileInfo, fullPath, restStatus, returnEvent, ref ProcessingErrorHolder);
-                    break;
                 case "conflict":
-                    uploadResponseCode = RenameAndTryUpload(paramSet, syncBox, creds, fileChange, fileInfo, fullPath, restStatus, returnEvent, ref ProcessingErrorHolder);
+                    //ThrowDuplicateException(ref ProcessingErrorHolder);
+                    responseCode = RenameAndTryUpload(responseArgs, currentFileChange);
                     break;
+                //case "conflict":
+                //    responseCode = RenameAndTryUpload(InputParams, responseArgs.SyncBox, responseArgs.Creds, responseArgs.FileChange, responseArgs.CreateTaskFileInfo, responseArgs.RestStatus, responseArgs.ReturnEvent, ref refHolder);
+                //    break;
                 default:
-                    Console.Write(string.Format("The Server Response is {0}", returnEvent.Header.Status));
+                    responseCode = (int)FileManagerResponseCodes.InvalidResponseType;
+                    Console.Write(string.Format("The Server Response is {0}", responseArgs.ReturnEvent.Header.Status));
                     break;
 
             }
-            return uploadResponseCode;
+            return responseCode;
         }
 
-        public void AddFolder()
-        { 
-            //TODO: Find out if We will ever just be creating a folder without it being initiated by adding a file to a non existent folder. 
-        }
-
-        private int RenameAndTryUpload(InputParams paramSet,CLSyncBox syncBox, CLCredential creds, FileChange fileChange, FileInfo fileInfo, string filePath, CLHttpRestStatus restStatus, CloudApiPublic.JsonContracts.Event returnEvent, ref GenericHolder<CLError> ProcessingErrorHolder)
+        private int RenameAndTryUpload(CreateFileEventArgs responseArgs, FileChange currentFileChange)
         {
-            FileChange newFileChange = CreateFileChangeWithNewName(fileChange);
-            TryUpload(paramSet, creds, newFileChange.NewPath.ToString(), fileInfo, ref newFileChange);
+            FileChange newFileChange = CreateFileChangeWithNewName(currentFileChange);
+            TryUpload(responseArgs, newFileChange);
             return 0;
         }
 
@@ -273,57 +319,38 @@ namespace CloudSDK_SmokeTest.Managers
             return fileChange;
         }
         
-        private int TryUpload(InputParams paramSet, CLCredential creds,  string filePath, FileInfo fileInfo, ref FileChange fileChange)
+        private int TryUpload(CreateFileEventArgs createEventArgs, FileChange newFileChange)
         {
             Console.WriteLine("Try Upload Entered...");
+            CLHttpRestStatus restStatus;
             CloudApiPublic.JsonContracts.Event returnEvent;
-            CLSyncBox syncBox;
-            CLSyncBoxCreationStatus boxCreateStatus;
-            CLHttpRestStatus restStatus = new CLHttpRestStatus();
-            int uploadResponseCode = 0;
-
+            int createResponseCode = -1;
             GenericHolder<CLError> errorHolder;
             if(this.ProcessingErrorHolder != null)
                 errorHolder = this.ProcessingErrorHolder;
             else 
                 errorHolder = new GenericHolder<CLError>();
-     
-            ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", ""));
-            long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
-            CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
-            CLError postFileError = syncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
-            if (postFileError != null || restStatus != CLHttpRestStatus.Success)
-            {
-                FileHelper.HandleUnsuccessfulUpload(fileChange, returnEvent, restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref errorHolder);
-            }
-            string response = returnEvent.Header.Status.ToLower();
-            switch (response)
-            {
-                case "upload":
-                case "uploading":
-                    uploadResponseCode = FileHelper.TryUpload(filePath, fileInfo.Name, syncBox, fileChange, restStatus, returnEvent, ref errorHolder);
-                    break;
-                case "duplicate":
-                case "exists":
-                    //ThrowDuplicateException(ref ProcessingErrorHolder);
-                    uploadResponseCode = RenameAndTryUpload(paramSet, syncBox, creds, fileChange, fileInfo, filePath, restStatus, returnEvent, ref errorHolder);
-                    break;
-                case "conflict":
-                    uploadResponseCode = RenameAndTryUpload(paramSet, syncBox, creds, fileChange, fileInfo, filePath, restStatus, returnEvent, ref errorHolder);
-                    break;
-                default:
-                    Console.Write(string.Format("The Server Response is {0}", returnEvent.Header.Status));
-                    break;
 
-            }
-            Console.WriteLine("TryUpload Exited...");
-            lock (ProcessingErrorHolder)
+            try
             {
-                IEnumerable<Exception> exceptions = errorHolder.Value.GrabExceptions();
-                foreach (Exception exception in exceptions)
-                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
+                CLError postFileError = createEventArgs.SyncBox.HttpRestClient.PostFileChange(newFileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
+                if (postFileError != null || restStatus != CLHttpRestStatus.Success)
+                {
+                    FileHelper.HandleUnsuccessfulUpload(newFileChange, returnEvent, restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref errorHolder);
+                }
+                string response = returnEvent.Header.Status.ToLower();
+                CreateFileResponseEventArgs responseArgs = new CreateFileResponseEventArgs(createEventArgs, newFileChange, response, restStatus, returnEvent);
+                createResponseCode = CreateFileResponseSwitch(responseArgs, newFileChange);
+                Console.WriteLine("TryUpload Exited...");
             }
-            return uploadResponseCode;            
+            catch (Exception exception)
+            {
+                lock (ProcessingErrorHolder)
+                {
+                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
+                }
+            }
+            return createResponseCode;            
         }
         #endregion
 
@@ -386,7 +413,7 @@ namespace CloudSDK_SmokeTest.Managers
             return deleteResponseCode;
         }
 
-        public override int Undelte(Settings.InputParams paramSet)
+        public override int Undelte(Settings.InputParams paramSet, SmokeTask smokeTask)
         {
             int deleteResponseCode = 0;
             CLCredential creds;
@@ -481,14 +508,23 @@ namespace CloudSDK_SmokeTest.Managers
                 GenericHolder<CLError> refprocessingErrorHolder = ProcessingErrorHolder;
                 HandleFailure(postFileError, restStatus, "RenameFile", ref refprocessingErrorHolder);
             }
-            else if((smokeTask as FileRename).IsFolder)
+            else 
             {
-                //Rename Local Folder 
-            }
-            else
-            {
-                //Rename Local File
-            }
+                try
+                {
+                    if((smokeTask as FileRename).IsFolder)
+                        Directory.Move(fileChange.OldPath.ToString(), fileChange.NewPath.ToString());
+                    else
+                        File.Move(fileChange.OldPath.ToString(), fileChange.NewPath.ToString());
+                }
+                catch (Exception excetpion)
+                {
+                    lock (ProcessingErrorHolder)
+                    {
+                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + excetpion;
+                    }
+                }
+            }            
             return 0;
         }
 

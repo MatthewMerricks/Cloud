@@ -98,14 +98,14 @@ namespace CloudSDK_SmokeTest.Helpers
         #endregion 
 
         #region Modify 
-        public static int TryUpload(string filePath, string fileName, CLSyncBox syncBox, FileChange fileChange,
+        public static int TryUpload(FileInfo info, CLSyncBox syncBox, FileChange fileChange,
                                 CLHttpRestStatus restStatus, CloudApiPublic.JsonContracts.Event returnEvent, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             CLHttpRestStatus newStatus;
             int responseCode = 0;
             fileChange.Metadata.Revision = returnEvent.Metadata.Revision;
             fileChange.Metadata.StorageKey = returnEvent.Metadata.StorageKey;
-            Stream stream = new System.IO.FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            Stream stream = new System.IO.FileStream(info.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
             CLError updateFileError = syncBox.HttpRestClient.UploadFile(stream, fileChange, ManagerConstants.TimeOutMilliseconds, out newStatus);
             if (restStatus != CLHttpRestStatus.Success || updateFileError != null)
             {
@@ -114,7 +114,7 @@ namespace CloudSDK_SmokeTest.Helpers
             }
             else
             {
-                Console.Write("Successfully Uploaded File {0} to the Sync Box Server.", fileName);
+                Console.Write("Successfully Uploaded File {0} to the Sync Box Server.", info.Name);
             }
             return responseCode;
         }

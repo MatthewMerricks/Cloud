@@ -75,19 +75,19 @@ namespace CloudSDK_SmokeTest
                     Console.WriteLine("Xml Data Initialized From Schema...");
                     Console.WriteLine();
                     InputParams.PrintDefaultValues(smokeTestClass.InputParams);
-                    SmokeTask task = GetCreateSyncBoxTask(smokeTestClass);
-                    if (task != null)
-                    {
-                        SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, task, ProcessingErrorHolder);
-                    }
-                    else
-                    {
-                        Exception exception = new Exception("A Create SyncBox Task is Required in the Settings File, even if its CreateBox Boolean is Set to False");
-                        lock (ProcessingErrorHolder)
-                        {
-                            ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-                        }
-                    }
+                    //SmokeTask task = GetCreateSyncBoxTask(smokeTestClass);
+                    //if (task != null)
+                    //{
+                    //    SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, task, ProcessingErrorHolder);
+                    //}
+                    //else
+                    //{
+                    //    Exception exception = new Exception("A Create SyncBox Task is Required in the Settings File, even if its CreateBox Boolean is Set to False");
+                    //    lock (ProcessingErrorHolder)
+                    //    {
+                    //        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
+                    //    }
+                    //}
 
                     #region Parallel Op Code
                     // use this to run the task sets in parallel
