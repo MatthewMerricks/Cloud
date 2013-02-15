@@ -1,0 +1,52 @@
+How to add a new public API
+
+CloudApiPublic\JsonContracts
+create new JsonContracts for public APIs by copying one of the following:
+                If the object or an inner object has the json property "metadata" for a sync box (different than MDS metadata),
+                then copy from SyncBoxMetadata.cs (i.e. CreateSyncBox, SyncBoxMetadata, etc.)
+
+                If the object does not have a sync box metadata property,
+                then copy from SyncBoxUsage.cs
+
+Then alter the new JsonContract with appropriate copyright, xml comment and public properties.
+If you are translating a property such as from a string of a date/time to a C# DateTime see JsonContracts.Metadata.cs for how that works
+
+open JsonContractHelpers
+                copy a section for the property, backing field, and locker for a DataContractJsonSerializer and name the new ones based on the name of the method which will be created
+
+if the public API method requires SyncBoxId (obviously not list sync boxes or create sync box)
+then copy the Begin/End/method from CLHttpRest
+                to pick which to copy:
+                if the operation is illogical when simultaneously running Active sync, then copy from DeleteSyncBox
+                else if the operation is not illogical during Active sync, then copy from GetSyncBoxStatus
+
+                if the method can take SyncBox metadata (JsonContracts.MetadataDictionary or IDictionary<string, T>) then see the pattern in SyncBoxUpdateExtendedMetadata<T>
+
+                if method should be exposed, then create forwarding calls through relevant object (i.e. CLSyncBox)
+                                for anything with optional parameters, we do not wish to seperately define defaults in both places
+                                so create every possible combination overload seperately in wrapper class (i.e. CLSyncBox)...see GetFolderContents (required a special class to differentiate between bools)
+                                code overloads in sequence least to most complexity so most parameters are highest overload number
+
+if the public API method does not require SyncBoxId it's probably a platform Auth call (i.e. create sync box)
+then copy the Begin/End/method from CLCredential
+
+                if the method can take SyncBox metadata (JsonContracts.MetadataDictionary or IDictionary<string, T>) then see the pattern in AddSyncBoxOnServer<T>
+
+when copying the Begin/End async methods for a new call, need to create a new Result object in CloudApiPublic\REST\AsyncResults by copying an existing one, use the method name
+
+need new method route in CLDefinitions (create copy in the code that's disabled by precompilation symbols so there are two)
+
+if a new JsonContract was created for request or response, add it to its respective dictionary in Helpers (SerializableRequestTypes or SerializableResponseTypes)
+
+non-exposed methods in CLHttpRest can be tested by an external program via creating a CLSyncBox normally, then referencing hidden property HttpRestClient
+--the way I test these: in CloudSdkSyncSample\ViewModel\MainViewModel, on "// start syncing" comment out all the code in that block, create an obvious message box saying it's debug code,
+                and use the "syncBox" reference to make calls, it also has the CLCredential object ("Credentials") inside for its calls
+
+
+Deprecating an ond API
+  o 10 calls for updatequota
+  o 1/2 in CLSyncBox
+  o 1/2 in CLHttpRest
+  o 1 result object in CloudApiPublic\Rest\AsyncRequests.cs
+  o May/may not be in JsonContracts, or contract helps, or helpers dictionaries.
+  o See GetUsedBytes

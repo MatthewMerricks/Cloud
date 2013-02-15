@@ -1865,7 +1865,8 @@ namespace CloudApiPublic.Static
 
             #region platform management
             { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
-            { typeof(JsonContracts.ListSyncBoxes), JsonContractHelpers.ListSyncBoxesSerializer }
+            { typeof(JsonContracts.ListSyncBoxes), JsonContractHelpers.ListSyncBoxesSerializer },
+            { typeof(JsonContracts.ListPlans), JsonContractHelpers.ListPlansSerializer }
             #endregion
         };
         #endregion
