@@ -25,6 +25,9 @@ namespace CloudApiPublic.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseSyncBoxId, IsRequired = false)]
         public Nullable<long> Id { get; set; }
 
+        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxPlanId, IsRequired = false)]
+        public Nullable<long> PlanId { get; set; }
+
         [DataMember(Name = CLDefinitions.RESTResponseSyncBoxStorageQuota, IsRequired = false)]
         public Nullable<long> StorageQuota { get; set; }
 

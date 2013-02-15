@@ -102,6 +102,145 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>echo ************  START POST BUILD STEPS **********************
+REM ------Do this only for the Release build ----------------
+if /I $(ConfigurationName) == Debug goto BuildEventOk
+
+REM ------ Build the documentation ----------------
+REM ----------------------
+set ErrorTracker=1
+echo cd $(SolutionDir)
+cd $(SolutionDir)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=2
+if not exist html md html
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=3
+echo del /S /Q html\*.*
+del /S /Q html\*.*
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=4
+echo rd /S /Q html
+rd /S /Q html
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=5
+echo doxygen doxyfile
+doxygen doxyfile
+echo doxygen ErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=6
+echo cd html
+cd html
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=7
+echo 7z a -tzip CloudSdkSyncSampleDocs.zip ./
+7z a -tzip CloudSdkSyncSampleDocs.zip ./
+echo 7z BuildErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=8
+echo cd .. 
+cd .. 
+echo cd ErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ------ Zip the SDK sample source and VS project ----------------
+REM ----------------------
+set ErrorTracker=9
+echo cd CloudSdkSyncSample
+cd CloudSdkSyncSample
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=10
+echo del CloudSdkSyncSampleSource.zip
+del CloudSdkSyncSampleSource.zip
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=11
+echo 7z a -tzip CloudSdkSyncSampleSource.zip ./
+7z a -tzip CloudSdkSyncSampleSource.zip ./
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the obj\ directory in the zip file -----------------
+set ErrorTracker=12
+echo 7z d CloudSdkSyncSampleSource.zip obj/
+7z d CloudSdkSyncSampleSource.zip obj/
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Debug\CloudSdkSyncSample* files in the zip file -----------------
+set ErrorTracker=13
+echo 7z d CloudSdkSyncSampleSource.zip bin\Debug\CloudSdkSyncSample*.*
+7z d CloudSdkSyncSampleSource.zip bin\Debug\CloudSdkSyncSample*.*
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\CloudSdkSyncSample* files in the zip file -----------------
+set ErrorTracker=14
+echo 7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
+7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=15
+echo xcopy /Y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+xcopy /Y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=16
+echo xcopy /y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+xcopy /y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=17
+echo xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=18
+echo xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
+xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=15
+echo cd ..
+cd ..
+if errorlevel 1 goto BuildEventFailed
+
+REM ---- PLACE THIS CODE AT THE END
+REM Exit properly because the build will not fail
+REM unless the final step exits with an error code
+goto BuildEventOK
+:BuildEventFailed
+echo POSTBUILDSTEP for $(ProjectName) FAILED at step %25ErrorTracker%25
+set ErrorTracker=
+echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
+exit 1
+:BuildEventOK
+echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
+echo ************  POST BUILD STEP COMPLETED OK **********************</PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

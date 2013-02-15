@@ -1,8 +1,8 @@
 ﻿//
-// SyncBoxHolder.cs
+// ListPlans.cs
 // Cloud Windows
 //
-// Created By DavidBruck.
+// Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
 using CloudApiPublic.Model;
@@ -16,13 +16,10 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLCredential.AddSyncBoxOnServer"/>, <see cref="CloudApiPublic.CLSyncBox.SyncBoxUpdateExtendedMetadata"/>,
-    /// <see cref="CloudApiPublic.CLSyncBox.DeleteSyncBox"/>, and
-    /// <see cref="CloudApiPublic.CLSyncBox.GetSyncBoxStatus"/>
+    /// Result from <see cref="CloudApiPublic.CLCredential.ListPlans"/>
     /// </summary>
     [DataContract]
-    [ContainsMetadataDictionary] // within SyncBox SyncBox
-    public sealed class SyncBoxHolder
+    public sealed class ListPlans
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }
@@ -30,7 +27,7 @@ namespace CloudApiPublic.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
         public string Message { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBox, IsRequired = false)]
-        public SyncBox SyncBox { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponsePlans, IsRequired = false)]
+        public Plan[] Plans { get; set; }
     }
 }

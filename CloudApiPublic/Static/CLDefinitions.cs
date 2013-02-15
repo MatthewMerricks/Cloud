@@ -159,9 +159,10 @@ namespace CloudApiPublic.Static
         public const string MethodPathAuthCreateSyncBox = VersionPrefix + "/sync/syncbox/create";                       // POST
         public const string MethodPathAuthListSyncBoxes = VersionPrefix + "/sync/syncbox/list";                         // POST
         public const string MethodPathAuthSyncBoxExtendedMetadata = VersionPrefix + "/sync/syncbox/update_metadata";    // POST
-        public const string MethodPathAuthSyncBoxQuota = VersionPrefix + "/sync/syncbox/update_quota";                  // POST
+        public const string MethodPathAuthSyncBoxQuota = VersionPrefix + "/sync/syncbox/update_quota";                  // POST  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
         public const string MethodPathAuthDeleteSyncBox = VersionPrefix + "/sync/syncbox/delete";                       // POST
         public const string MethodPathAuthSyncBoxStatus = VersionPrefix + "/sync/syncbox/status";                       // POST
+        public const string MethodPathAuthListPlans = VersionPrefix + "/sync/plans";                                    // GET
         #endregion
 #else
         public const string MethodPathSyncFrom = "/1/sync/from_cloud";                                  // POST
@@ -222,9 +223,10 @@ namespace CloudApiPublic.Static
         public const string MethodPathAuthCreateSyncBox = "/1/sync/sync_box/create";                    // POST
         public const string MethodPathAuthListSyncBoxes = "/1/sync/sync_box/list";                      // POST
         public const string MethodPathAuthSyncBoxExtendedMetadata = "/1/sync/sync_box/update_metadata"; // POST
-        public const string MethodPathAuthSyncBoxQuota = "/1/sync/sync_box/update_quota";               // POST
+        public const string MethodPathAuthSyncBoxQuota = "/1/sync/sync_box/update_quota";               // POST  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
         public const string MethodPathAuthDeleteSyncBox = "/1/sync/sync_box/delete";                    // POST
         public const string MethodPathAuthSyncBoxStatus = "/1/sync/sync_box/status";                    // POST
+        public const string MethodPathAuthListPlans = "/1/sync/plans";                                  // GET
         #endregion
 #endif  // !URL_API
 #endif  // DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
@@ -311,6 +313,10 @@ namespace CloudApiPublic.Static
         public const string HeaderAppendCloudClient = "Windows SDK Client";
         public const string HeaderAppendStorageKey = "X-Ctx-Storage-Key";
         public const string HeaderAppendContentMD5 = "Content-MD5";
+        public const string HeaderSseEventStreamValue = "text/event-stream";
+        public const string HeaderAcceptLanguage = "Accept-Language";
+        public const string HeaderSseAcceptLanguageValue = "en-us,en;q=0.9";
+        public const string HeaderLastEventId = "Last-Event-ID";
 
         public static string WrapInDoubleQuotes(string toWrap)
         {
@@ -449,6 +455,9 @@ namespace CloudApiPublic.Static
         public const string CLMetadataIsDirectory = "is_folder";
         public const string CLMetadataFileIsLink = "is_link";
         public const string CLMetadataFileSize = "file_size";
+        /// <summary>
+        /// Be careful, this may be the wrong key name, you may need <see cref="CLDefinitions.CLMetadataIsStored"/>
+        /// </summary>
         public const string CLMetadataIsPending = "is_pending";
         public const string CLMetadataFromPath = "from_path";
         public const string CLMetadataToPath = "to_path";
@@ -465,6 +474,7 @@ namespace CloudApiPublic.Static
         public const string CLMetadataFile = "file";
         public const string CLMetadataServerId = "uid";
         public const string CLMetadataCount = "count";
+        public const string CLMetadataIsStored = "is_stored";
         public const string CLMetadataMoreItems = "more_items";
         public const string CLMetadataLocal = "local";
         public const string CLMetadataShared = "shared";
@@ -524,11 +534,23 @@ namespace CloudApiPublic.Static
         public const string RESTResponseSyncBox = "sync_box";
         public const string RESTResponseSyncBoxes = "sync_boxes";
         public const string RESTResponseSyncBoxId = "sync_box_id";
+        public const string RESTResponseSyncBoxPlanId = "plan_id";
         public const string RESTResponseSyncBoxStorageQuota = "storage_quota";
         public const string RESTResponseSyncBoxStorageQuotaUpdateOnly = "quota_size";
         public const string RESTResponseSyncBoxCreatedAt = "created_at";
         public const string RESTResponseSyncBoxFriendlyName = "friendly_name";
         public const string RESTResponseSyncBoxMetadata = "metadata";
+
+        // REST Response Plan
+        public const string RESTResponsePlan_Id = "id";
+        public const string RESTResponsePlan_ApplicationPlanTierId = "application_plan_tier_id";
+        public const string RESTResponsePlan_PlanName = "plan_name";
+        public const string RESTResponsePlan_MaxTransferBytes = "max_transfer_bytes";
+        public const string RESTResponsePlan_IsDefault = "is_default";
+        public const string RESTResponsePlan_CreatedAt = "created_at";
+        public const string RESTResponsePlan_UpdatedAt = "updated_at";
+        public const string RESTResponsePlan_ClientApplicationId = "client_application_id";
+        public const string RESTResponsePlans = "plans";
 
         //// Old definitions used by the full client.
         ////

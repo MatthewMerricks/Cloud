@@ -37,7 +37,7 @@ namespace CloudApiPublic.Support
             get { return _traceLocation; }
             set { _traceLocation = value; }
         }
-        private static string _traceLocation;
+        private static string _traceLocation = null;
 
         /// <summary>
         /// Specifies whether a separate file with only the traced errors will be created.

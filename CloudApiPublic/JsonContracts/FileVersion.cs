@@ -41,5 +41,8 @@ namespace CloudApiPublic.JsonContracts
 
         [DataMember(Name = CLDefinitions.CLMetadataVersion, IsRequired = false)]
         public Nullable<int> Version { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataIsStored, IsRequired = false)]
+        public Nullable<bool> IsPending { get; set; }
     }
 }
