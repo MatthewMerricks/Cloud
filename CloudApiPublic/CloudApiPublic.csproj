@@ -145,7 +145,10 @@
     <Compile Include="JsonContracts\Archives.cs" />
     <Compile Include="JsonContracts\Audios.cs" />
     <Compile Include="JsonContracts\ContainsMetadataDictionaryAttribute.cs" />
-    <Compile Include="JsonContracts\CreateSyncBox.cs" />
+    <Compile Include="JsonContracts\ListPlans.cs" />
+    <Compile Include="JsonContracts\Plan.cs" />
+    <Compile Include="JsonContracts\SyncBoxIdOnly.cs" />
+    <Compile Include="JsonContracts\SyncBoxHolder.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />
     <Compile Include="JsonContracts\FileCopy.cs" />
     <Compile Include="JsonContracts\FileOrFolderDelete.cs" />
@@ -162,6 +165,8 @@
     <Compile Include="JsonContracts\Pictures.cs" />
     <Compile Include="JsonContracts\Recents.cs" />
     <Compile Include="JsonContracts\SyncBox.cs" />
+    <Compile Include="JsonContracts\SyncBoxMetadata.cs" />
+    <Compile Include="JsonContracts\SyncBoxQuota.cs" />
     <Compile Include="JsonContracts\SyncBoxUsage.cs" />
     <Compile Include="JsonContracts\UsedBytes.cs" />
     <Compile Include="JsonContracts\Videos.cs" />
@@ -169,7 +174,11 @@
     <Compile Include="Model\IMessageSender.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
+    <Compile Include="PushNotification\CLNotificationManualPollingEngine.cs" />
     <Compile Include="REST\AsyncResults.cs" />
+    <Compile Include="PushNotification\CLNotificationSseEngine.cs" />
+    <Compile Include="PushNotification\ICLNotificationEngine.cs" />
+    <Compile Include="PushNotification\CLNotificationService.cs" />
     <Compile Include="REST\CLHttpRest.cs" />
     <Compile Include="REST\GenericAsyncResult.cs" />
     <Compile Include="REST\TransferProgress.cs" />

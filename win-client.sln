@@ -76,6 +76,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudSetupSdkSyncSampleSupport", "CloudSetupSdkSyncSampleSupport\CloudSetupSdkSyncSampleSupport.csproj", "{0FC84CE4-7AA4-4954-B766-14F0A230C592}"
 	ProjectSection(ProjectDependencies) = postProject
 		{84373324-5261-45D7-AA92-5C4A88C07233} = {84373324-5261-45D7-AA92-5C4A88C07233}
+		{40A9C587-10CD-4979-A289-2B06F550DB51} = {40A9C587-10CD-4979-A289-2B06F550DB51}
 	EndProjectSection
 EndProject
 Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "XMLDocumentation", "CloudApiPublic\XMLDocumentation.shfbproj", "{43274D82-D6C2-479D-B519-4C0A2D552E20}"

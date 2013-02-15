@@ -401,10 +401,9 @@ namespace CloudApiPublic.Static
             /// As this flag modifies other data-type flags, it cannot by used by itself.
             /// </summary>
             SHCNF_FLUSHNOWAIT = 0x2000
-        }
+        };
         #endregion // enum HChangeNotifyFlags
         #endregion
-;
         // Support for SQLIndexer
         #region find file
 

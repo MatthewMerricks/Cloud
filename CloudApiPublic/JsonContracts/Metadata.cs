@@ -17,7 +17,7 @@ namespace CloudApiPublic.JsonContracts
 {
     // removed "<see cref="PendingResponse"/>, " from the summary below because it's internal
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetMetadataAtPath"/>; also an inner object containing metadata properties for <see cref="Event"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="Pictures"/>, <see cref="Videos"/>, <see cref="Audios"/>, <see cref="Archives"/>, and <see cref="Recents"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetMetadata"/>; also an inner object containing metadata properties for <see cref="Event"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="Pictures"/>, <see cref="Videos"/>, <see cref="Audios"/>, <see cref="Archives"/>, and <see cref="Recents"/>
     /// </summary>
     [DataContract]
     public sealed class Metadata
@@ -94,6 +94,9 @@ namespace CloudApiPublic.JsonContracts
 
         [DataMember(Name = CLDefinitions.CLMetadataLastEventID, IsRequired = false)]
         public Nullable<long> LastEventId { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataIsStored, IsRequired = false)]
+        public Nullable<bool> IsPending { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataCloudPath, IsRequired = false)]
         public string RelativePath { get; set; }

@@ -18,6 +18,7 @@ namespace CloudApiPublic
     public enum CLSyncStartStatus : byte
     {
         ErrorNullSyncBox,
+        ErrorTraceEnabledWithoutDirectory,
         ErrorNullDeviceId,
         ErrorLongRootPath,
         ErrorBadRootPath,
@@ -29,6 +30,7 @@ namespace CloudApiPublic
         ErrorStartingInitialIndexing,
         ErrorExceptionStartingFileMonitor,
         ErrorGeneralSyncStartException,
+        ErrorInProcessOfModification,
         Success
     }
 }

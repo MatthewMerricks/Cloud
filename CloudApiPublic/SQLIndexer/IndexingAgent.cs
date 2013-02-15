@@ -1383,6 +1383,26 @@ namespace CloudApiPublic.SQLIndexer
                                         transaction: indexTransaction);
                                 }
 
+                                // need to check for any input syncedEventIds which do not correspond to any row which will be created/updated in the database and ensure they have a sync counter
+                                HashSet<long> idsToUpdatedObjects = new HashSet<long>(objectsToUpdate
+                                    .Concat(objectsToMoveToLastSync)
+                                    .Where(updatedObject => updatedObject.EventId != null)
+                                    .Select(updatedObject => ((long)updatedObject.EventId)));
+                                List<long> notFoundEventIds = new List<long>(syncedEventIds.Where(syncedEventId => !idsToUpdatedObjects.Contains(syncedEventId)));
+                                if (notFoundEventIds.Count > 0)
+                                {
+                                    objectsToMoveToLastSync.AddRange( // add not found, completed events to list which will update the database with sync counter moves
+                                        SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
+                                            "SELECT * FROM [FileSystemObjects] WHERE [FileSystemObjects].[EventId] IN (" +
+                                                string.Join(",", notFoundEventIds) +
+                                                ")")
+                                            .Select(((Func<FileSystemObject, FileSystemObject>)(needsLastCounter =>
+                                            {
+                                                needsLastCounter.SyncCounter = lastSyncCounter; // put non-pending event which won't get updated in the database under the last sync (probably a deleted change)
+                                                return needsLastCounter;
+                                            }))));
+                                }
+
                                 if (objectsToMoveToLastSync.Count > 0)
                                 {
                                     FileSystemObject[] needsMove = objectsToMoveToLastSync.Where(currentObjectToMove => lastSyncCounter == null

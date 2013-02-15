@@ -17,7 +17,7 @@ namespace CloudApiPublic.JsonContracts
     /// <summary>
     /// Dictionary type for serialization to server in the form string key to object value where values may be directly serializable or may themselves be inner dictionaries or arrays;
     /// Exposes all the properties as if it were an IDictionary&lt;string, object&gt; but does not implement any IEnumerable interface to prevent overriding serialization,
-    /// Implicitly castable as MetadataDictionaryEnumerable which implements IEnumerable&lt;KeyValuePair&lt;string, object&gt;&gt;
+    /// Implicitly castable as <see cref="MetadataDictionary.MetadataDictionaryEnumerable"/> which implements IEnumerable&lt;KeyValuePair&lt;string, object&gt;&gt;
     /// </summary>
     [Serializable]
     [KnownType(typeof(MetadataDictionary))]
@@ -284,7 +284,7 @@ namespace CloudApiPublic.JsonContracts
         //}
         //#endregion
 
-        private sealed class DictionaryWrapper<T> : IDictionary<string, object>
+        internal sealed class DictionaryWrapper<T> : IDictionary<string, object>
         {
             private readonly IDictionary<string, T> inner;
             public DictionaryWrapper(IDictionary<string, T> wrapped)

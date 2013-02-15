@@ -1240,7 +1240,7 @@ namespace CloudApiPublic.Sync
                     bool tempNeedsCleaning = false;
 
                     // null-coallesce the download temp path
-                    string TempDownloadsFolder = syncBox.CopiedSettings.TempDownloadFolderFullPath ?? DefaultTempDownloadsPath;
+                    string TempDownloadsFolder = String.IsNullOrWhiteSpace(syncBox.CopiedSettings.TempDownloadFolderFullPath) ? DefaultTempDownloadsPath : syncBox.CopiedSettings.TempDownloadFolderFullPath;
 
                     // Lock for reading/writing to whether startup occurred
                     lock (TempDownloadsCleanedLocker)
@@ -1551,9 +1551,14 @@ namespace CloudApiPublic.Sync
                         // create list to store changes which were asynchronously preprocessed (only file uploads/downloads)
                         List<FileChange> asynchronouslyPreprocessed = new List<FileChange>();
 
-                        Func<List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>, List<long>, IEnumerable<FileChange>, List<FileChange>, PossiblyStreamableFileChange, Nullable<long>, IEnumerable<FileChange>> onSynchronousCompletion =
-							(innerErrorsToQueue, innerSuccessfulEventIds, innerThingsThatWereDependenciesToQueue, innerSynchronouslyPreprocessed, innerTopLevelChange, innerSuccessfulEventId) =>
+                        Func<List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>, List<long>, IEnumerable<FileChange>, List<FileChange>, PossiblyStreamableFileChange, Nullable<long>, HashSet<long>, List<PossiblyStreamableFileChange>, IEnumerable<FileChange>> onSynchronousCompletion =
+                            (innerErrorsToQueue, innerSuccessfulEventIds, innerThingsThatWereDependenciesToQueue, innerSynchronouslyPreprocessed, innerTopLevelChange, innerSuccessfulEventId, innerPreprocessedEventIds, innerPreprocessedEvents) =>
                             {
+                                // add successful id in order to not preprocess the same event again
+                                innerPreprocessedEventIds.Add((long)innerSuccessfulEventId);
+                                // add event as preprocessed so it will be excluded from changes to communicate
+                                innerPreprocessedEvents.Add(innerTopLevelChange);
+
                                 // add change to synchronous list
                                 innerSynchronouslyPreprocessed.Add(innerTopLevelChange.FileChange);
 
@@ -1588,6 +1593,95 @@ namespace CloudApiPublic.Sync
                                 }
 
                                 return innerThingsThatWereDependenciesToQueue;
+                            };
+
+                        GenericHolder<HashSet<string>> pendingStorageKeys = new GenericHolder<HashSet<string>>(null);
+
+                        Func<GenericHolder<HashSet<string>>, HashSet<string>> getPendingStorageKeys =
+                            innerPendingStorageKeys =>
+                            {
+                                if (innerPendingStorageKeys.Value == null)
+                                {
+                                    CLHttpRestStatus getAllPendingsStatus;
+                                    JsonContracts.PendingResponse getAllPendingsResult;
+                                    CLError getAllPendingsError = httpRestClient.GetAllPending(
+                                        HttpTimeoutMilliseconds,
+                                        out getAllPendingsStatus,
+                                        out getAllPendingsResult);
+
+                                    if (getAllPendingsStatus != CLHttpRestStatus.Success)
+                                    {
+                                        const string pendingsErrorString = "Unable to query pending files for comparison with preexisting uploads";
+
+                                        Exception fireMessageException = null;
+
+                                        try
+                                        {
+                                            MessageEvents.FireNewEventMessage(this,
+                                                pendingsErrorString,
+                                                EventMessageLevel.Important,
+                                                /*IsError*/ true,
+                                                syncBox.SyncBoxId,
+                                                syncBox.CopiedSettings.DeviceId);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            fireMessageException = ex;
+                                        }
+
+                                        throw new AggregateException(pendingsErrorString,
+
+                                            (fireMessageException == null
+                                                ? getAllPendingsError.GrabExceptions()
+                                                : getAllPendingsError.GrabExceptions().Concat(new[] { fireMessageException })));
+                                    }
+                                    
+                                    innerPendingStorageKeys.Value = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+
+                                    if (getAllPendingsResult != null)
+                                    {
+                                        foreach (JsonContracts.Metadata pendingMetadata in (getAllPendingsResult.Files ?? Enumerable.Empty<JsonContracts.Metadata>()))
+                                        {
+                                            if (!string.IsNullOrEmpty(pendingMetadata.StorageKey))
+                                            {
+                                                innerPendingStorageKeys.Value.Add(pendingMetadata.StorageKey);
+                                            }
+                                        }
+                                    }
+                                }
+                                return innerPendingStorageKeys.Value;
+                            };
+
+                        Func<CLError, bool, bool, KeyValuePair<CLError, KeyValuePair<bool, bool>>> notifyOnConfirmMetadata =
+                            (innerToReturn, innerConfirmingMetadataForPreexistingUploadDownloads, innerUnhandledPreexistingUploadDownloadEventMessage) =>
+                            {
+                                if (!innerConfirmingMetadataForPreexistingUploadDownloads)
+                                {
+                                    try
+                                    {
+                                        innerConfirmingMetadataForPreexistingUploadDownloads = EventHandledLevel.IsHandled ==
+                                            MessageEvents.FireNewEventMessage(this,
+                                                "At least one preexisting upload or download was found on startup, confirming metadata before processing" +
+                                                    (innerUnhandledPreexistingUploadDownloadEventMessage
+                                                        ? "; Handle message event to prevent duplicate messages"
+                                                        : string.Empty),
+                                                EventMessageLevel.Regular,
+                                                SyncBoxId: syncBox.SyncBoxId,
+                                                DeviceId: syncBox.CopiedSettings.DeviceId);
+
+                                        innerUnhandledPreexistingUploadDownloadEventMessage = !innerConfirmingMetadataForPreexistingUploadDownloads;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        innerToReturn += ex;
+                                    }
+                                }
+
+                                return new KeyValuePair<CLError, KeyValuePair<bool, bool>>(
+                                    innerToReturn,
+                                    new KeyValuePair<bool, bool>(
+                                        innerConfirmingMetadataForPreexistingUploadDownloads,
+                                        innerUnhandledPreexistingUploadDownloadEventMessage));
                             };
 
                         bool confirmingMetadataForPreexistingUploadDownloads = false;
@@ -1627,7 +1721,6 @@ namespace CloudApiPublic.Sync
                                     && !string.IsNullOrEmpty(topLevelChange.FileChange.Metadata.StorageKey))
                                 {
                                     // compare metadata with disk first
-                                    // TODO: remove all references of System.IO in this engine, should be a callback to the event source (FileMonitor)
 
                                     byte[] existingFileMD5;
                                     CLError existingFileMD5Error = topLevelChange.FileChange.GetMD5Bytes(out existingFileMD5);
@@ -1636,163 +1729,221 @@ namespace CloudApiPublic.Sync
                                         toReturn += new AggregateException("Error retrieving MD5 from topLevelChange FileChange", existingFileMD5Error.GrabExceptions());
                                     }
                                     string existingFilePath = topLevelChange.FileChange.NewPath.ToString();
-                                    FileInfo existingFile = new FileInfo(existingFilePath);
-                                    bool matchingFileFound;
-                                    if (existingFileMD5Error == null
-                                        && existingFileMD5 != null
-                                        && existingFile.Exists
-                                        && (topLevelChange.FileChange.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                            || topLevelChange.FileChange.Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
-                                            || Helpers.DateTimesWithinOneSecond(topLevelChange.FileChange.Metadata.HashableProperties.CreationTime, existingFile.CreationTimeUtc))
-                                        && (topLevelChange.FileChange.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                            || topLevelChange.FileChange.Metadata.HashableProperties.LastTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
-                                            || Helpers.DateTimesWithinOneSecond(topLevelChange.FileChange.Metadata.HashableProperties.LastTime, existingFile.LastWriteTimeUtc))
-                                        && topLevelChange.FileChange.Metadata.HashableProperties.Size != null
-                                        && ((long)topLevelChange.FileChange.Metadata.HashableProperties.Size) == existingFile.Length)
+
+                                    switch (topLevelChange.FileChange.Direction)
                                     {
-                                        // create MD5 to calculate hash
-                                        MD5 md5Hasher = MD5.Create();
+                                        case SyncDirection.From:
+                                            // TODO: remove all references of System.IO in this engine, should be a callback to the event source (FileMonitor)
 
-                                        // define buffer for reading the file
-                                        byte[] fileBuffer = new byte[FileConstants.BufferSize];
-                                        // declare int for storying how many bytes were read on each buffer transfer
-                                        int fileReadBytes;
-
-                                        try
-                                        {
-                                            // open a file read stream for reading the hash at the existing temp file location
-                                            using (FileStream verifyTempDownloadStream = new FileStream(existingFilePath,
-                                                FileMode.Open,
-                                                FileAccess.Read,
-                                                FileShare.Read))
+                                            FileInfo existingFile = new FileInfo(existingFilePath);
+                                            bool matchingFileFound;
+                                            if (existingFileMD5Error == null
+                                                && existingFileMD5 != null
+                                                && existingFile.Exists
+                                                && (topLevelChange.FileChange.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || topLevelChange.FileChange.Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || Helpers.DateTimesWithinOneSecond(topLevelChange.FileChange.Metadata.HashableProperties.CreationTime, existingFile.CreationTimeUtc))
+                                                && (topLevelChange.FileChange.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || topLevelChange.FileChange.Metadata.HashableProperties.LastTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || Helpers.DateTimesWithinOneSecond(topLevelChange.FileChange.Metadata.HashableProperties.LastTime, existingFile.LastWriteTimeUtc))
+                                                && topLevelChange.FileChange.Metadata.HashableProperties.Size != null
+                                                && ((long)topLevelChange.FileChange.Metadata.HashableProperties.Size) == existingFile.Length)
                                             {
-                                                // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file
-                                                while ((fileReadBytes = verifyTempDownloadStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
+                                                // create MD5 to calculate hash
+                                                MD5 md5Hasher = MD5.Create();
+
+                                                // define buffer for reading the file
+                                                byte[] fileBuffer = new byte[FileConstants.BufferSize];
+                                                // declare int for storying how many bytes were read on each buffer transfer
+                                                int fileReadBytes;
+
+                                                try
                                                 {
-                                                    // add the buffer block to the hash calculation
-                                                    md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                                    // open a file read stream for reading the hash at the existing temp file location
+                                                    using (FileStream verifyTempDownloadStream = new FileStream(existingFilePath,
+                                                        FileMode.Open,
+                                                        FileAccess.Read,
+                                                        FileShare.Read))
+                                                    {
+                                                        // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file
+                                                        while ((fileReadBytes = verifyTempDownloadStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
+                                                        {
+                                                            // add the buffer block to the hash calculation
+                                                            md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                                        }
+
+                                                        // transform one final empty block to complete the hash calculation
+                                                        md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+
+                                                        // if the existing file has an identical hash, then use the existing file for the current download
+                                                        matchingFileFound = NativeMethods.memcmp(existingFileMD5, md5Hasher.Hash, new UIntPtr((uint)md5Hasher.Hash.Length)) == 0; // matching hash
+                                                    }
+                                                }
+                                                catch (Exception ex)
+                                                {
+                                                    toReturn += new Exception("Error comparing MD5 hashes from topLevelChange FileChange with the file at its path on disk", ex);
+                                                    matchingFileFound = false;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                matchingFileFound = false;
+                                            }
+
+                                            if (matchingFileFound)
+                                            {
+                                                thingsThatWereDependenciesToQueue = onSynchronousCompletion(
+                                                    errorsToQueue,
+                                                    successfulEventIds,
+                                                    thingsThatWereDependenciesToQueue,
+                                                    synchronouslyPreprocessed,
+                                                    topLevelChange,
+                                                    topLevelChange.FileChange.EventId,
+                                                    preprocessedEventIds,
+                                                    preprocessedEvents);
+                                            }
+                                            else
+                                            {
+                                                KeyValuePair<CLError, KeyValuePair<bool, bool>> notifyMetadataResultDown = notifyOnConfirmMetadata(toReturn, confirmingMetadataForPreexistingUploadDownloads, unhandledPreexistingUploadDownloadEventMessage);
+                                                toReturn = notifyMetadataResultDown.Key;
+                                                confirmingMetadataForPreexistingUploadDownloads = notifyMetadataResultDown.Value.Key;
+                                                unhandledPreexistingUploadDownloadEventMessage = notifyMetadataResultDown.Value.Value;
+
+                                                CLHttpRestStatus latestMetadataStatus;
+                                                JsonContracts.Metadata latestMetadataResult;
+                                                CLError latestMetadataError = httpRestClient.GetMetadata(
+                                                    topLevelChange.FileChange.NewPath,
+                                                    /* isFolder */ false,
+                                                    HttpTimeoutMilliseconds,
+                                                    out latestMetadataStatus,
+                                                    out latestMetadataResult);
+
+                                                if (latestMetadataStatus != CLHttpRestStatus.Success
+                                                    && latestMetadataStatus != CLHttpRestStatus.NoContent)
+                                                {
+                                                    const string fileMetadataErrorString = "Errors occurred finding latest metadata for a preexisting download";
+
+                                                    toReturn += new AggregateException(fileMetadataErrorString,
+                                                        latestMetadataError.GrabExceptions());
+
+                                                    try
+                                                    {
+                                                        MessageEvents.FireNewEventMessage(this,
+                                                            fileMetadataErrorString,
+                                                            EventMessageLevel.Regular,
+                                                            true,
+                                                            syncBox.SyncBoxId,
+                                                            syncBox.CopiedSettings.DeviceId);
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        toReturn += ex;
+                                                    }
                                                 }
 
-                                                // transform one final empty block to complete the hash calculation
-                                                md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+                                                bool markDownloadError = false;
 
-                                                // if the existing file has an identical hash, then use the existing file for the current download
-                                                matchingFileFound = NativeMethods.memcmp(existingFileMD5, md5Hasher.Hash, new UIntPtr((uint)md5Hasher.Hash.Length)) == 0; // matching hash
+                                                if (latestMetadataStatus == CLHttpRestStatus.Success
+                                                    && latestMetadataResult != null)
+                                                {
+                                                    CLHttpRestStatus fileVersionStatus;
+                                                    JsonContracts.FileVersion[] fileVersionResult;
+                                                    CLError fileVersionError = httpRestClient.GetFileVersions(
+                                                        latestMetadataResult.ServerId,
+                                                        HttpTimeoutMilliseconds,
+                                                        out fileVersionStatus,
+                                                        out fileVersionResult);
+
+                                                    if (fileVersionStatus != CLHttpRestStatus.Success
+                                                        && fileVersionStatus != CLHttpRestStatus.NoContent)
+                                                    {
+                                                        const string fileVersionsErrorString = "Errors occurred finding previous versions for a preexisting download";
+
+                                                        toReturn += new AggregateException(fileVersionsErrorString,
+                                                            fileVersionError.GrabExceptions());
+
+                                                        try
+                                                        {
+                                                            MessageEvents.FireNewEventMessage(this,
+                                                                fileVersionsErrorString,
+                                                                EventMessageLevel.Regular,
+                                                                true,
+                                                                syncBox.SyncBoxId,
+                                                                syncBox.CopiedSettings.DeviceId);
+                                                        }
+                                                        catch (Exception ex)
+                                                        {
+                                                            toReturn += ex;
+                                                        }
+                                                    }
+
+                                                    JsonContracts.FileVersion latestNonPendingVersion;
+                                                    byte[] latestNonPendingHash;
+                                                    if (fileVersionResult == null
+                                                        || (latestNonPendingVersion = fileVersionResult
+                                                            .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
+                                                            .FirstOrDefault(fileVersion =>
+                                                                fileVersion.IsPending != true
+                                                                    && fileVersion.IsDeleted != true)) == null
+                                                        || (latestNonPendingHash = Helpers.ParseHexadecimalStringToByteArray(latestNonPendingVersion.FileHash)) == null
+                                                        || existingFileMD5 == null
+                                                        || NativeMethods.memcmp(existingFileMD5, latestNonPendingHash, new UIntPtr((uint)existingFileMD5.Length)) != 0
+                                                        || topLevelChange.FileChange.Metadata.HashableProperties.Size != latestNonPendingVersion.FileSize)
+                                                    {
+                                                        markDownloadError = true;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    markDownloadError = true;
+                                                }
+
+                                                if (markDownloadError)
+                                                {
+                                                    syncFromInitialDownloadMetadataErrors.Add(topLevelChange.FileChange.EventId);
+
+                                                    initialMetadataFailuresAsInnerDependencies.Add(topLevelChange.FileChange);
+
+                                                    initialUploadDownloadMetadataError = true;
+                                                }
                                             }
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            toReturn += new Exception("Error comparing MD5 hashes from topLevelChange FileChange with the file at its path on disk", ex);
-                                            matchingFileFound = false;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        matchingFileFound = false;
-                                    }
+                                            break;
 
-                                    if (matchingFileFound)
-                                    {
-                                        thingsThatWereDependenciesToQueue = onSynchronousCompletion(
-                                            errorsToQueue,
-                                            successfulEventIds,
-                                            thingsThatWereDependenciesToQueue,
-                                            synchronouslyPreprocessed,
-                                            topLevelChange,
-                                            topLevelChange.FileChange.EventId);
-                                    }
-                                    else
-                                    {
+                                        case SyncDirection.To:
+                                            KeyValuePair<CLError, KeyValuePair<bool, bool>> notifyMetadataResultUp = notifyOnConfirmMetadata(toReturn, confirmingMetadataForPreexistingUploadDownloads, unhandledPreexistingUploadDownloadEventMessage);
+                                            toReturn = notifyMetadataResultUp.Key;
+                                            confirmingMetadataForPreexistingUploadDownloads = notifyMetadataResultUp.Value.Key;
+                                            unhandledPreexistingUploadDownloadEventMessage = notifyMetadataResultUp.Value.Value;
 
-                                        if (!confirmingMetadataForPreexistingUploadDownloads)
-                                        {
-                                            try
+                                            HashSet<string> pendings = getPendingStorageKeys(pendingStorageKeys);
+
+                                            if (!pendings.Contains(topLevelChange.FileChange.Metadata.StorageKey))
                                             {
-                                                confirmingMetadataForPreexistingUploadDownloads = EventHandledLevel.IsHandled ==
-                                                    MessageEvents.FireNewEventMessage(this,
-                                                        "At least one preexisting upload or download was found on startup, confirming metadata before processing" +
-                                                            (unhandledPreexistingUploadDownloadEventMessage
-                                                                ? "; Handle message event to prevent duplicate messages"
-                                                                : string.Empty),
-                                                        EventMessageLevel.Regular,
-                                                        SyncBoxId: syncBox.SyncBoxId,
-                                                        DeviceId: syncBox.CopiedSettings.DeviceId);
+                                                thingsThatWereDependenciesToQueue = onSynchronousCompletion(
+                                                    errorsToQueue,
+                                                    successfulEventIds,
+                                                    thingsThatWereDependenciesToQueue,
+                                                    synchronouslyPreprocessed,
+                                                    topLevelChange,
+                                                    topLevelChange.FileChange.EventId,
+                                                    preprocessedEventIds,
+                                                    preprocessedEvents);
 
-                                                unhandledPreexistingUploadDownloadEventMessage = !confirmingMetadataForPreexistingUploadDownloads;
+                                                if (topLevelChange.Stream != null)
+                                                {
+                                                    try
+                                                    {
+                                                        topLevelChange.Stream.Dispose();
+                                                    }
+                                                    catch
+                                                    {
+                                                    }
+                                                }
                                             }
-                                            catch (Exception ex)
-                                            {
-                                                toReturn += ex;
-                                            }
-                                        }
+                                            break;
 
-                                        CLHttpRestStatus resolveMetadataStatus;
-                                        JsonContracts.Metadata resolvedMetadata;
-                                        CLError resolveMetadataError = httpRestClient.GetMetadataAtPath(
-                                            topLevelChange.FileChange.NewPath,
-                                            false, // not a folder
-                                            HttpTimeoutMilliseconds,
-                                            out resolveMetadataStatus,
-                                            out resolvedMetadata);
-
-                                        if (resolveMetadataStatus != CLHttpRestStatus.Success
-                                            && resolveMetadataStatus != CLHttpRestStatus.NoContent)
-                                        {
-                                            string resolveMetadataErrorString = "Errors occurred confirming metadata for a preexisting " +
-                                                (topLevelChange.FileChange.Direction == SyncDirection.To
-                                                    ? "upload"
-                                                    : "download");
-
-                                            toReturn += new AggregateException(resolveMetadataErrorString,
-                                                resolveMetadataError.GrabExceptions());
-
-                                            try
-                                            {
-                                                MessageEvents.FireNewEventMessage(this,
-                                                    resolveMetadataErrorString,
-                                                    EventMessageLevel.Regular,
-                                                    true,
-                                                    syncBox.SyncBoxId,
-                                                    syncBox.CopiedSettings.DeviceId);
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                toReturn += ex;
-                                            }
-                                        }
-
-                                        byte[] topLevelChangeMD5;
-                                        CLError topLevelChangeMD5Error = topLevelChange.FileChange.GetMD5Bytes(out topLevelChangeMD5);
-                                        if (topLevelChangeMD5Error != null)
-                                        {
-                                            toReturn += new AggregateException("Error retrieving MD5 bytes for a preexisting " +
-                                                    (topLevelChange.FileChange.Direction == SyncDirection.To
-                                                        ? "upload"
-                                                        : "download"),
-                                                topLevelChangeMD5Error.GrabExceptions());
-                                        }
-                                        byte[] parsedResolvedMetadataHash;
-
-                                        if (topLevelChangeMD5Error != null
-                                            || resolvedMetadata == null
-                                            || resolvedMetadata.CreatedDate == null
-                                            || !Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadata.CreatedDate, topLevelChange.FileChange.Metadata.HashableProperties.CreationTime)
-                                            || resolvedMetadata.ModifiedDate == null
-                                            || !Helpers.DateTimesWithinOneSecond((DateTime)resolvedMetadata.ModifiedDate, topLevelChange.FileChange.Metadata.HashableProperties.LastTime)
-                                            || resolvedMetadata.Size != topLevelChange.FileChange.Metadata.HashableProperties.Size
-                                            || (parsedResolvedMetadataHash = Helpers.ParseHexadecimalStringToByteArray(resolvedMetadata.Hash)) == null
-                                            || (topLevelChangeMD5 != null // <-- normal case when loaded from database since we are currently not storing file hash
-                                                && NativeMethods.memcmp(topLevelChangeMD5, parsedResolvedMetadataHash, new UIntPtr((uint)topLevelChangeMD5.Length)) != 0))
-                                        {
-                                            if (topLevelChange.FileChange.Direction == SyncDirection.From)
-                                            {
-                                                syncFromInitialDownloadMetadataErrors.Add(topLevelChange.FileChange.EventId);
-                                            }
-
-                                            initialMetadataFailuresAsInnerDependencies.Add(topLevelChange.FileChange);
-
-                                            initialUploadDownloadMetadataError = true;
-                                        }
+                                        default:
+                                            throw new NotSupportedException("Unknown topLevelChange FileChange Direction: " + topLevelChange.FileChange.Direction.ToString());
                                     }
                                 }
 
@@ -1805,11 +1956,6 @@ namespace CloudApiPublic.Sync
                                             && topLevelChange.FileChange.Metadata != null // file uploads require metadata
                                             && !string.IsNullOrWhiteSpace(topLevelChange.FileChange.Metadata.StorageKey)))) // file uploads requires a storage key
                                 {
-                                    // add current change to list of those preprocessed
-                                    preprocessedEvents.Add(topLevelChange);
-                                    // add current change id to list of those preprocessed
-                                    preprocessedEventIds.Add(topLevelChange.FileChange.EventId);
-
                                     // declare storage for the event id if it processes succesfully
                                     Nullable<long> successfulEventId;
                                     // declare storage for an upload or download task if one will need to be started
@@ -1834,11 +1980,20 @@ namespace CloudApiPublic.Sync
                                             thingsThatWereDependenciesToQueue,
                                             synchronouslyPreprocessed,
                                             topLevelChange,
-                                            successfulEventId);
+                                            successfulEventId,
+                                            preprocessedEventIds,
+                                            preprocessedEvents);
                                     }
                                     // else if there was not a valid successful event id, then process for errors or async tasks
                                     else
                                     {
+                                        // the following two additions to preprocessed lists are only within this else statement because onSynchronousCompletion also adds to these lists above
+
+                                        // add current change to list of those preprocessed
+                                        preprocessedEvents.Add(topLevelChange);
+                                        // add current change id to list of those preprocessed
+                                        preprocessedEventIds.Add(topLevelChange.FileChange.EventId);
+
                                         // if there was an exception, aggregate into returned error
                                         if (completionException != null)
                                         {
@@ -3676,11 +3831,13 @@ namespace CloudApiPublic.Sync
 
                     // declare the status for performing a rest communication
                     CLHttpRestStatus uploadStatus;
+                    string uploadMessage;
                     // upload the file using the REST client, storing any error that occurs
                     CLError uploadError = castState.RestClient.UploadFile(castState.UploadStream, // stream for upload
                         castState.FileToUpload, // upload change
                         (int)castState.HttpTimeoutMilliseconds, // milliseconds before communication timeout (does not apply to the amount of time it takes to actually upload the file)
                         out uploadStatus, // output the status of communication
+                        out uploadMessage,
                         castState.ShutdownToken, // pass in the shutdown token for the optional parameter so it can be cancelled
                         castState.StatusUpdate,
                         castState.ThreadId);
@@ -5927,7 +6084,7 @@ namespace CloudApiPublic.Sync
                                                     // declare the response object of the actual metadata when returned
                                                     JsonContracts.Metadata newMetadata;
                                                     // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
-                                                    CLError getNewMetadataError = httpRestClient.GetMetadataAtPath(currentChange.NewPath, // path to query
+                                                    CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath, // path to query
                                                         currentChange.Metadata.HashableProperties.IsFolder, // whether path represents a folder (as opposed to a file or shortcut)
                                                         HttpTimeoutMilliseconds, // milliseconds before communication would expire on an operation
                                                         out getNewMetadataStatus, // output the status of communication
@@ -5940,9 +6097,44 @@ namespace CloudApiPublic.Sync
                                                     }
 
                                                     // if there was no content, then the metadata was not found at the given path so throw an error
-                                                    if (getNewMetadataStatus == CLHttpRestStatus.NoContent)
+                                                    if (getNewMetadataStatus == CLHttpRestStatus.NoContent
+                                                        || newMetadata.Deleted == true)
                                                     {
                                                         throw new Exception("Metadata not found for given path");
+                                                    }
+
+                                                    if (newMetadata.IsPending == true)
+                                                    {
+                                                        CLHttpRestStatus fileVersionsStatus;
+                                                        JsonContracts.FileVersion[] fileVersions;
+                                                        CLError fileVersionsError = httpRestClient.GetFileVersions(
+                                                            newMetadata.ServerId,
+                                                            HttpTimeoutMilliseconds,
+                                                            out fileVersionsStatus,
+                                                            out fileVersions);
+
+                                                        if (fileVersionsStatus != CLHttpRestStatus.Success
+                                                            && fileVersionsStatus != CLHttpRestStatus.NoContent)
+                                                        {
+                                                            throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.GrabExceptions());
+                                                        }
+
+                                                        JsonContracts.FileVersion lastNonPendingVersion = (fileVersions ?? Enumerable.Empty<JsonContracts.FileVersion>())
+                                                            .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
+                                                            .FirstOrDefault(fileVersion => fileVersion.IsDeleted != true
+                                                                && fileVersion.IsPending != true);
+
+                                                        if (lastNonPendingVersion != null)
+                                                        {
+                                                            throw new Exception("A previous non-pending file version was not found");
+                                                        }
+
+                                                        newMetadata.IsPending = false;
+
+                                                        // server does not version other metadata, so these are the only ones we can really use to update
+                                                        newMetadata.StorageKey = lastNonPendingVersion.StorageKey;
+                                                        newMetadata.Hash = lastNonPendingVersion.FileHash;
+                                                        newMetadata.Size = lastNonPendingVersion.FileSize;
                                                     }
 
                                                     // if the communication was not successful, then throw an error with the bad status
@@ -7145,7 +7337,7 @@ namespace CloudApiPublic.Sync
                                     // declare the response object of the actual metadata when returned
                                     JsonContracts.Metadata newMetadata;
                                     // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
-                                    CLError getNewMetadataError = httpRestClient.GetMetadataAtPath(currentChange.NewPath,
+                                    CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath,
                                         currentChange.Metadata.HashableProperties.IsFolder,
                                         HttpTimeoutMilliseconds,
                                         out getNewMetadataStatus,
@@ -7158,9 +7350,44 @@ namespace CloudApiPublic.Sync
                                     }
 
                                     // if there was no content, then the metadata was not found at the given path so throw an error
-                                    if (getNewMetadataStatus == CLHttpRestStatus.NoContent)
+                                    if (getNewMetadataStatus == CLHttpRestStatus.NoContent
+                                        || newMetadata.Deleted == true)
                                     {
                                         throw new Exception("Metadata not found for given path");
+                                    }
+
+                                    if (newMetadata.IsPending == true)
+                                    {
+                                        CLHttpRestStatus fileVersionsStatus;
+                                        JsonContracts.FileVersion[] fileVersions;
+                                        CLError fileVersionsError = httpRestClient.GetFileVersions(
+                                            newMetadata.ServerId,
+                                            HttpTimeoutMilliseconds,
+                                            out fileVersionsStatus,
+                                            out fileVersions);
+
+                                        if (fileVersionsStatus != CLHttpRestStatus.Success
+                                            && fileVersionsStatus != CLHttpRestStatus.NoContent)
+                                        {
+                                            throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.GrabExceptions());
+                                        }
+
+                                        JsonContracts.FileVersion lastNonPendingVersion = (fileVersions ?? Enumerable.Empty<JsonContracts.FileVersion>())
+                                            .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
+                                            .FirstOrDefault(fileVersion => fileVersion.IsDeleted != true
+                                                && fileVersion.IsPending != true);
+
+                                        if (lastNonPendingVersion != null)
+                                        {
+                                            throw new Exception("A previous non-pending file version was not found");
+                                        }
+
+                                        newMetadata.IsPending = false;
+
+                                        // server does not version other metadata, so these are the only ones we can really use to update
+                                        newMetadata.StorageKey = lastNonPendingVersion.StorageKey;
+                                        newMetadata.Hash = lastNonPendingVersion.FileHash;
+                                        newMetadata.Size = lastNonPendingVersion.FileSize;
                                     }
 
                                     // if the communication was not successful, then throw an error with the bad status
