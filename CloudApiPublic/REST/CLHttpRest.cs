@@ -632,12 +632,15 @@ namespace CloudApiPublic.REST
 
                         // declare the output status for communication
                         CLHttpRestStatus status;
+                        // declare the output message for upload
+                        string message;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = UploadFile(
                             castState.Item3,
                             castState.Item4,
                             castState.Item5,
                             out status,
+                            out message,
                             castState.Item6,
                             castState.Item2,
                             castState.Item1,
@@ -649,7 +652,8 @@ namespace CloudApiPublic.REST
                         if (castState.Item1 != null)
                         {
                             castState.Item1.Complete(new UploadFileResult(processError,
-                                status),
+                                status,
+                                message),
                                 sCompleted: false);
                         }
                     }
@@ -781,12 +785,14 @@ namespace CloudApiPublic.REST
         /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, Metadata.StorageKey, and MD5 hash to be set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
         /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="message">(output) upload response message</param>
         /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UploadFile(Stream uploadStream,
             FileChange changeToUpload,
             int timeoutMilliseconds,
             out CLHttpRestStatus status,
+            out string message,
             CancellationTokenSource shutdownToken = null)
         {
             return UploadFile(
@@ -794,6 +800,7 @@ namespace CloudApiPublic.REST
                 changeToUpload,
                 timeoutMilliseconds,
                 out status,
+                out message,
                 shutdownToken,
                 null,
                 null,
@@ -807,6 +814,7 @@ namespace CloudApiPublic.REST
             FileChange changeToUpload,
             int timeoutMilliseconds,
             out CLHttpRestStatus status,
+            out string message,
             CancellationTokenSource shutdownToken,
             FileTransferStatusUpdateDelegate statusUpdate,
             Guid statusUpdateId)
@@ -816,6 +824,7 @@ namespace CloudApiPublic.REST
                 changeToUpload,
                 timeoutMilliseconds,
                 out status,
+                out message,
                 shutdownToken,
                 null,
                 null,
@@ -829,6 +838,7 @@ namespace CloudApiPublic.REST
             FileChange changeToUpload,
             int timeoutMilliseconds,
             out CLHttpRestStatus status,
+            out string message,
             CancellationTokenSource shutdownToken,
             AsyncCallback aCallback,
             IAsyncResult aResult,
@@ -864,7 +874,7 @@ namespace CloudApiPublic.REST
                     });
 
                 // run the HTTP communication
-                Helpers.ProcessHttp(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
+                message = Helpers.ProcessHttp<string>(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
                     CLDefinitions.CLUploadDownloadServerURL,  // Server URL
                     serverMethodPath, // dynamic upload path to add device id
                     Helpers.requestMethod.put, // upload is a put
@@ -888,6 +898,7 @@ namespace CloudApiPublic.REST
             }
             catch (Exception ex)
             {
+                message = Helpers.DefaultForType<string>();
                 return ex;
             }
             return null;

@@ -91,11 +91,11 @@ namespace CloudApiPublic.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class UploadFileResult : BaseCLHttpRestResult
+    public sealed class UploadFileResult : BaseCLHttpRestResult<string>
     {
         // construct with all readonly properties
-        internal UploadFileResult(CLError Error, CLHttpRestStatus Status)
-            : base(Error, Status) { }
+        internal UploadFileResult(CLError Error, CLHttpRestStatus Status, string Result)
+            : base(Error, Status, Result) { }
     }
 
     /// <summary>

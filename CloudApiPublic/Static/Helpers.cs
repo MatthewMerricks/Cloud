@@ -2418,7 +2418,8 @@ namespace CloudApiPublic.Static
                         status = CLHttpRestStatus.NotFound;
                     }
                     // else if response status was not a not found and is a no content, then set the output status accordingly
-                    else if (httpResponse.StatusCode == HttpStatusCode.NoContent)
+                    else if (httpResponse.StatusCode == HttpStatusCode.NoContent
+                        || ((int)httpResponse.StatusCode) == 422) // alternative to no content, so the server can include an error message
                     {
                         status = CLHttpRestStatus.NoContent;
                     }
@@ -2487,6 +2488,22 @@ namespace CloudApiPublic.Static
                     {
                         // set body as successful value
                         responseBody = "---File upload complete---";
+
+                        try
+                        {
+                            // grab the stream from the response content
+                            responseStream = httpResponse.GetResponseStream();
+
+                            // create a reader for the response content
+                            using (TextReader uploadCompleteStream = new StreamReader(responseStream, Encoding.UTF8))
+                            {
+                                // set the body as successful value
+                                responseBody = ((object)uploadCompleteStream.ReadToEnd()).ToString();
+                            }
+                        }
+                        catch
+                        {
+                        }
 
                         // if we can use a string output for the return, then use it
                         if (typeof(T) == typeof(string)

@@ -1809,25 +1809,27 @@ namespace CloudApiPublic.Sync
                                                 confirmingMetadataForPreexistingUploadDownloads = notifyMetadataResultDown.Value.Key;
                                                 unhandledPreexistingUploadDownloadEventMessage = notifyMetadataResultDown.Value.Value;
 
-                                                CLHttpRestStatus fileVersionStatus;
-                                                JsonContracts.FileVersion[] fileVersionResult;
-                                                CLError fileVersionError = httpRestClient.GetFileVersions(
-                                                    HttpTimeoutMilliseconds,
+                                                CLHttpRestStatus latestMetadataStatus;
+                                                JsonContracts.Metadata latestMetadataResult;
+                                                CLError latestMetadataError = httpRestClient.GetMetadata(
                                                     topLevelChange.FileChange.NewPath,
-                                                    out fileVersionStatus,
-                                                    out fileVersionResult);
+                                                    /* isFolder */ false,
+                                                    HttpTimeoutMilliseconds,
+                                                    out latestMetadataStatus,
+                                                    out latestMetadataResult);
 
-                                                if (fileVersionStatus != CLHttpRestStatus.Success)
+                                                if (latestMetadataStatus != CLHttpRestStatus.Success
+                                                    && latestMetadataStatus != CLHttpRestStatus.NoContent)
                                                 {
-                                                    const string fileVersionsErrorString = "Errors occurred finding previous versions for a preexisting download";
+                                                    const string fileMetadataErrorString = "Errors occurred finding latest metadata for a preexisting download";
 
-                                                    toReturn += new AggregateException(fileVersionsErrorString,
-                                                        fileVersionError.GrabExceptions());
+                                                    toReturn += new AggregateException(fileMetadataErrorString,
+                                                        latestMetadataError.GrabExceptions());
 
                                                     try
                                                     {
                                                         MessageEvents.FireNewEventMessage(this,
-                                                            fileVersionsErrorString,
+                                                            fileMetadataErrorString,
                                                             EventMessageLevel.Regular,
                                                             true,
                                                             syncBox.SyncBoxId,
@@ -1839,18 +1841,64 @@ namespace CloudApiPublic.Sync
                                                     }
                                                 }
 
-                                                JsonContracts.FileVersion latestNonPendingVersion;
-                                                byte[] latestNonPendingHash;
-                                                if (fileVersionResult == null
-                                                    || (latestNonPendingVersion = fileVersionResult
-                                                        .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
-                                                        .FirstOrDefault(fileVersion => 
-                                                            fileVersion.IsPending != true
-                                                                && fileVersion.IsDeleted != true)) == null
-                                                    || (latestNonPendingHash = Helpers.ParseHexadecimalStringToByteArray(latestNonPendingVersion.FileHash)) == null
-                                                    || existingFileMD5 == null
-                                                    || NativeMethods.memcmp(existingFileMD5, latestNonPendingHash, new UIntPtr((uint)existingFileMD5.Length)) != 0
-                                                    || topLevelChange.FileChange.Metadata.HashableProperties.Size != latestNonPendingVersion.FileSize)
+                                                bool markDownloadError = false;
+
+                                                if (latestMetadataStatus == CLHttpRestStatus.Success
+                                                    && latestMetadataResult != null)
+                                                {
+                                                    CLHttpRestStatus fileVersionStatus;
+                                                    JsonContracts.FileVersion[] fileVersionResult;
+                                                    CLError fileVersionError = httpRestClient.GetFileVersions(
+                                                        latestMetadataResult.ServerId,
+                                                        HttpTimeoutMilliseconds,
+                                                        out fileVersionStatus,
+                                                        out fileVersionResult);
+
+                                                    if (fileVersionStatus != CLHttpRestStatus.Success
+                                                        && fileVersionStatus != CLHttpRestStatus.NoContent)
+                                                    {
+                                                        const string fileVersionsErrorString = "Errors occurred finding previous versions for a preexisting download";
+
+                                                        toReturn += new AggregateException(fileVersionsErrorString,
+                                                            fileVersionError.GrabExceptions());
+
+                                                        try
+                                                        {
+                                                            MessageEvents.FireNewEventMessage(this,
+                                                                fileVersionsErrorString,
+                                                                EventMessageLevel.Regular,
+                                                                true,
+                                                                syncBox.SyncBoxId,
+                                                                syncBox.CopiedSettings.DeviceId);
+                                                        }
+                                                        catch (Exception ex)
+                                                        {
+                                                            toReturn += ex;
+                                                        }
+                                                    }
+
+                                                    JsonContracts.FileVersion latestNonPendingVersion;
+                                                    byte[] latestNonPendingHash;
+                                                    if (fileVersionResult == null
+                                                        || (latestNonPendingVersion = fileVersionResult
+                                                            .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
+                                                            .FirstOrDefault(fileVersion =>
+                                                                fileVersion.IsPending != true
+                                                                    && fileVersion.IsDeleted != true)) == null
+                                                        || (latestNonPendingHash = Helpers.ParseHexadecimalStringToByteArray(latestNonPendingVersion.FileHash)) == null
+                                                        || existingFileMD5 == null
+                                                        || NativeMethods.memcmp(existingFileMD5, latestNonPendingHash, new UIntPtr((uint)existingFileMD5.Length)) != 0
+                                                        || topLevelChange.FileChange.Metadata.HashableProperties.Size != latestNonPendingVersion.FileSize)
+                                                    {
+                                                        markDownloadError = true;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    markDownloadError = true;
+                                                }
+
+                                                if (markDownloadError)
                                                 {
                                                     syncFromInitialDownloadMetadataErrors.Add(topLevelChange.FileChange.EventId);
 
@@ -3783,11 +3831,13 @@ namespace CloudApiPublic.Sync
 
                     // declare the status for performing a rest communication
                     CLHttpRestStatus uploadStatus;
+                    string uploadMessage;
                     // upload the file using the REST client, storing any error that occurs
                     CLError uploadError = castState.RestClient.UploadFile(castState.UploadStream, // stream for upload
                         castState.FileToUpload, // upload change
                         (int)castState.HttpTimeoutMilliseconds, // milliseconds before communication timeout (does not apply to the amount of time it takes to actually upload the file)
                         out uploadStatus, // output the status of communication
+                        out uploadMessage,
                         castState.ShutdownToken, // pass in the shutdown token for the optional parameter so it can be cancelled
                         castState.StatusUpdate,
                         castState.ThreadId);
@@ -6063,7 +6113,8 @@ namespace CloudApiPublic.Sync
                                                             out fileVersionsStatus,
                                                             out fileVersions);
 
-                                                        if (fileVersionsStatus != CLHttpRestStatus.Success)
+                                                        if (fileVersionsStatus != CLHttpRestStatus.Success
+                                                            && fileVersionsStatus != CLHttpRestStatus.NoContent)
                                                         {
                                                             throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.GrabExceptions());
                                                         }
@@ -7315,7 +7366,8 @@ namespace CloudApiPublic.Sync
                                             out fileVersionsStatus,
                                             out fileVersions);
 
-                                        if (fileVersionsStatus != CLHttpRestStatus.Success)
+                                        if (fileVersionsStatus != CLHttpRestStatus.Success
+                                            && fileVersionsStatus != CLHttpRestStatus.NoContent)
                                         {
                                             throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.GrabExceptions());
                                         }
