@@ -3384,7 +3384,8 @@ namespace CloudApiPublic.Sync
                                                 };
                                             
                                             // if there is a failed out change to add, then reset its failure counters recursively and add the change to the list of those failed out
-                                            if (errorToQueue.FileChange != null)
+                                            if (errorToQueue.FileChange != null
+                                                && errorToQueue.FileChange.NotFoundForStreamCounter < MaxNumberOfNotFounds)
                                             {
                                                 recurseResetCounters(errorToQueue.FileChange, recurseResetCounters);
 
