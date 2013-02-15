@@ -21,10 +21,12 @@ using CloudApiPublic.Interfaces;
 using CloudApiPublic.JsonContracts;
 using CloudApiPublic.REST;
 
+#if TRASH
 namespace CloudApiPublic.PushNotification
 {
     extern alias WebSocket4NetBase;
 
+#if TRASH
     /// <summary>
     /// Properties for a received notification message
     /// </summary>
@@ -74,6 +76,7 @@ namespace CloudApiPublic.PushNotification
             this._errorStillDisconnectedPing = ErrorStillDisconnectedPing;
         }
     }
+#endif // TRASH
     
     /// <summary>
     /// Used to establish a connection to server notifications and provides events for notifications\errors
@@ -173,7 +176,7 @@ namespace CloudApiPublic.PushNotification
             CLTrace.Instance.writeToLog(9, "CLNotification: CLNotification: Entry");
 
             // Initialize members, etc. here (at static initialization time).
-            ConnectPushNotificationServer();  //TODO: DEBUG ONLY.  REMOVE.
+            ConnectPushNotificationServer();
         }
 
         /// <summary>
@@ -759,3 +762,4 @@ namespace CloudApiPublic.PushNotification
         }
     }
 }
+#endif // TRASH

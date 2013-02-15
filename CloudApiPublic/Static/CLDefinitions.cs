@@ -311,6 +311,10 @@ namespace CloudApiPublic.Static
         public const string HeaderAppendCloudClient = "Windows SDK Client";
         public const string HeaderAppendStorageKey = "X-Ctx-Storage-Key";
         public const string HeaderAppendContentMD5 = "Content-MD5";
+        public const string HeaderSseEventStreamValue = "text/event-stream";
+        public const string HeaderAcceptLanguage = "Accept-Language";
+        public const string HeaderSseAcceptLanguageValue = "en-us,en;q=0.9";
+        public const string HeaderLastEventId = "Last-Event-ID";
 
         public static string WrapInDoubleQuotes(string toWrap)
         {
