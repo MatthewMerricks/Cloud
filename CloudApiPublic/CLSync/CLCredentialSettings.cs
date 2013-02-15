@@ -44,7 +44,7 @@ namespace CloudApiPublic
                 return _traceLocation;
             }
         }
-        private readonly string _traceLocation;
+        private readonly string _traceLocation = null;
 
         /// <summary>
         /// Set to true to exclude authorization information from the trace.

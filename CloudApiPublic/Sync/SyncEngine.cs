@@ -1240,7 +1240,7 @@ namespace CloudApiPublic.Sync
                     bool tempNeedsCleaning = false;
 
                     // null-coallesce the download temp path
-                    string TempDownloadsFolder = syncBox.CopiedSettings.TempDownloadFolderFullPath ?? DefaultTempDownloadsPath;
+                    string TempDownloadsFolder = String.IsNullOrWhiteSpace(syncBox.CopiedSettings.TempDownloadFolderFullPath) ? DefaultTempDownloadsPath : syncBox.CopiedSettings.TempDownloadFolderFullPath;
 
                     // Lock for reading/writing to whether startup occurred
                     lock (TempDownloadsCleanedLocker)
