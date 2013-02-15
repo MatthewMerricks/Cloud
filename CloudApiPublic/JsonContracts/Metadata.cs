@@ -95,6 +95,9 @@ namespace CloudApiPublic.JsonContracts
         [DataMember(Name = CLDefinitions.CLMetadataLastEventID, IsRequired = false)]
         public Nullable<long> LastEventId { get; set; }
 
+        [DataMember(Name = CLDefinitions.CLMetadataIsStored, IsRequired = false)]
+        public Nullable<bool> IsPending { get; set; }
+
         [DataMember(Name = CLDefinitions.CLMetadataCloudPath, IsRequired = false)]
         public string RelativePath { get; set; }
 

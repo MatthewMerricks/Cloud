@@ -15,10 +15,9 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.REST.CLHttpRest.GetAllPending"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetAllPending"/>
     /// </summary>
     [DataContract]
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class PendingResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataFiles, IsRequired = false)]

@@ -1400,19 +1400,19 @@ tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configurati
 
 REM ----------------------------------------------------------------
 set ErrorTracker=1
-echo copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll
 copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=2
-echo tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
+echo tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
 tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=3
-echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
+echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).pdb
 copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
 if errorlevel 1 goto BuildEventFailed
 
@@ -1424,7 +1424,7 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=5
-echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb
+echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb
 copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb
 if errorlevel 1 goto BuildEventFailed
 
