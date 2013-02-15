@@ -105,8 +105,9 @@ namespace CloudSDK_SmokeTest.Helpers
             int responseCode = 0;
             fileChange.Metadata.Revision = returnEvent.Metadata.Revision;
             fileChange.Metadata.StorageKey = returnEvent.Metadata.StorageKey;
+            string message = string.Empty;
             Stream stream = new System.IO.FileStream(info.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            CLError updateFileError = syncBox.HttpRestClient.UploadFile(stream, fileChange, ManagerConstants.TimeOutMilliseconds, out newStatus);
+            CLError updateFileError = syncBox.HttpRestClient.UploadFile(stream, fileChange, ManagerConstants.TimeOutMilliseconds, out newStatus, out message);
             if (restStatus != CLHttpRestStatus.Success || updateFileError != null)
             {
                 HandleUnsuccessfulUpload(fileChange, returnEvent, restStatus, updateFileError, ManagerConstants.RequestTypes.RestCreateFile, ref ProcessingErrorHolder);

@@ -31,10 +31,10 @@ namespace CloudSDK_SmokeTest.Helpers
                 case SmokeTaskType.DownloadAllSyncBoxContent:
                     RunDownloadAllSyncBoxContentTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
                     break;
-                case SmokeTaskType.FileDeletion:
+                case SmokeTaskType.Deletion:
                     RunFileDeletionTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
                     break;
-                case SmokeTaskType.FileRename:
+                case SmokeTaskType.Rename:
                     RunFileRenameTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
                     break;
 
@@ -125,7 +125,7 @@ namespace CloudSDK_SmokeTest.Helpers
             int deleteReturnCode = 0;
             try
             {
-                if (!(smokeTask is FileDeletion))
+                if (!(smokeTask is Deletion))
                     throw new Exception("Task Passed to File Deletion was not of type FileDeletion");
 
                 deleteReturnCode = manager.Delete(paramSet, smokeTask);
@@ -145,10 +145,10 @@ namespace CloudSDK_SmokeTest.Helpers
         {
             try
             {
-                if (!(smokeTask is FileRename))
+                if (!(smokeTask is Rename))
                     throw new Exception("Task Passed to Rename File is not of type FileRename.");
 
-                FileRename task = smokeTask as FileRename;
+                Rename task = smokeTask as Rename;
                 if (task == null)
                     throw new Exception("There was an error casting the FileRename SmokeTask to type FileRename");
 

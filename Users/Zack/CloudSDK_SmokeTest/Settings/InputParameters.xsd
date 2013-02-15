@@ -38,9 +38,9 @@
           <xs:restriction base ="xs:string" >
             <xs:enumeration value = "CreateSyncBox" />
             <xs:enumeration value = "Creation" />
-            <xs:enumeration value = "FileDeletion" />
+            <xs:enumeration value = "Deletion" />
             <xs:enumeration value = "DownloadAllSyncBoxContent" />
-            <xs:enumeration value = "FileRename" />
+            <xs:enumeration value = "Rename" />
             <xs:enumeration value = "FileUndelete" />
           </xs:restriction>
         </xs:simpleType>
@@ -62,38 +62,40 @@
     </xs:complexContent>
   </xs:complexType>
   
-  <xs:complexType name="FileDeletion">
+  <xs:complexType name="Deletion">
     <xs:complexContent >
       <xs:extension base="SmokeTask" >
         <xs:sequence>
           <xs:element name="FileName" type ="xs:string" />
           <xs:element name="FilePath" type ="xs:string" />
+          <xs:element name="IsFile" type="xs:boolean" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
 
 
-  <xs:complexType name="FileRename">
+  <xs:complexType name="Rename">
     <xs:complexContent >
       <xs:extension base="SmokeTask" >
         <xs:sequence>
           <xs:element name="OldName" type ="xs:string" />
           <xs:element name="NewName" type ="xs:string" />
           <xs:element name="RelativeDirectoryPath" type ="xs:string" />
-          <xs:element name="IsFolder" type ="xs:boolean" />
+          <xs:element name="IsFile" type ="xs:boolean" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
 
-  <xs:complexType name="FileUndelete">
+  <xs:complexType name="Undelete">
     <xs:complexContent >
       <xs:extension base="SmokeTask" >
         <xs:sequence>
           <xs:element name="FullPath" type ="xs:string" />
           <xs:element name="FileName" type ="xs:string" />
           <xs:element name="Version" type ="xs:string" />
+          <xs:element name="IsFile" type="xs:boolean" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

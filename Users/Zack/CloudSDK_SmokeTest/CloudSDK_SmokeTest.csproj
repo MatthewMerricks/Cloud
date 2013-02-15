@@ -84,6 +84,8 @@
     <Compile Include="Events\CLEventArgs\CLEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\CreateFileEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\CreateFileResponseEventArgs.cs" />
+    <Compile Include="Events\CLEventArgs\CreateFolderEventArgs.cs" />
+    <Compile Include="Events\CLEventArgs\CreateFolderResponseEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\TaskEventArgs.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\MD5_Helper.cs" />

@@ -29,14 +29,14 @@
       <IsFile>true</IsFile>
     </SmokeTask>-->
 
-    <SmokeTask xsi:type="Creation">
+    <!--<SmokeTask xsi:type="Creation">
       <type>Creation</type>
       <Group>0</Group>
       <Sequence>1</Sequence>
       <Name>ZacksFile.txt</Name>
       <Path>"C:\Users\t_zacharyw\Cloud\AddFolderTest"</Path>
       <IsFile>false</IsFile>
-    </SmokeTask>
+    </SmokeTask>-->
 
     <!--<SmokeTask xsi:type="DownloadAllSyncBoxContent">
       <type>DownloadAllSyncBoxContent</type>
@@ -54,7 +54,7 @@
       <FilePath></FilePath>
     </SmokeTask>-->
 
-    <!--<SmokeTask xsi:type="FileRename">
+    <SmokeTask xsi:type="FileRename">
       <type>FileRename</type>
       <Group>2</Group>
       <Sequence>1</Sequence>
@@ -62,7 +62,7 @@
       <NewName></NewName>
       <RelativeDirectoryPath></RelativeDirectoryPath>
       <IsFolder>false</IsFolder>
-    </SmokeTask>-->
+    </SmokeTask>
 
     <!--<SmokeTask xsi:type="FileUndelete">
       <type>FileUndelete</type>

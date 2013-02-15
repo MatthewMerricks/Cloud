@@ -85,9 +85,9 @@ namespace CloudSDK_SmokeTest.Settings {
     /// <remarks/>
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(CreateSyncBox))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(DownloadAllSyncBoxContent))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(FileUndelete))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(FileRename))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(FileDeletion))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(Undelete))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(Rename))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(Deletion))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(Creation))]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
     [System.SerializableAttribute()]
@@ -174,13 +174,13 @@ namespace CloudSDK_SmokeTest.Settings {
         Creation,
         
         /// <remarks/>
-        FileDeletion,
+        Deletion,
         
         /// <remarks/>
         DownloadAllSyncBoxContent,
         
         /// <remarks/>
-        FileRename,
+        Rename,
         
         /// <remarks/>
         FileUndelete,
@@ -246,13 +246,15 @@ namespace CloudSDK_SmokeTest.Settings {
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
-    public partial class FileUndelete : SmokeTask {
+    public partial class Undelete : SmokeTask {
         
         private string fullPathField;
         
         private string fileNameField;
         
         private string versionField;
+        
+        private bool isFileField;
         
         /// <remarks/>
         public string FullPath {
@@ -283,6 +285,16 @@ namespace CloudSDK_SmokeTest.Settings {
                 this.versionField = value;
             }
         }
+        
+        /// <remarks/>
+        public bool IsFile {
+            get {
+                return this.isFileField;
+            }
+            set {
+                this.isFileField = value;
+            }
+        }
     }
     
     /// <remarks/>
@@ -291,7 +303,7 @@ namespace CloudSDK_SmokeTest.Settings {
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
-    public partial class FileRename : SmokeTask {
+    public partial class Rename : SmokeTask {
         
         private string oldNameField;
         
@@ -299,7 +311,7 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private string relativeDirectoryPathField;
         
-        private bool isFolderField;
+        private bool isFileField;
         
         /// <remarks/>
         public string OldName {
@@ -332,12 +344,12 @@ namespace CloudSDK_SmokeTest.Settings {
         }
         
         /// <remarks/>
-        public bool IsFolder {
+        public bool IsFile {
             get {
-                return this.isFolderField;
+                return this.isFileField;
             }
             set {
-                this.isFolderField = value;
+                this.isFileField = value;
             }
         }
     }
@@ -348,11 +360,13 @@ namespace CloudSDK_SmokeTest.Settings {
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
-    public partial class FileDeletion : SmokeTask {
+    public partial class Deletion : SmokeTask {
         
         private string fileNameField;
         
         private string filePathField;
+        
+        private bool isFileField;
         
         /// <remarks/>
         public string FileName {
@@ -371,6 +385,16 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.filePathField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool IsFile {
+            get {
+                return this.isFileField;
+            }
+            set {
+                this.isFileField = value;
             }
         }
     }

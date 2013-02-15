@@ -107,8 +107,20 @@ namespace CloudSDK_SmokeTest.Managers
             }
             else
             {
+                string directoryPath = createTask.Path.Replace("\"", "");
                 
-                createResponseCode = CreateDirectory(paramSet, smokeTask);
+                CreateFolderEventArgs eventArgs = new CreateFolderEventArgs()
+                {
+                    boxCreationStatus = boxCreateStatus,
+                    CreateTaskDirectoryInfo = new DirectoryInfo(directoryPath),
+                    Creds = creds,
+                    CredsStatus = credsCreateStatus,
+                    CurrentTask = createTask,
+                    ProcessingErrorHolder = ProcessingErrorHolder,
+                    SyncBox = syncBox,
+                    CreationTime = DateTime.UtcNow,
+                };
+                createResponseCode = CreateDirectory(eventArgs);
             }
 
             return createResponseCode;
@@ -137,10 +149,24 @@ namespace CloudSDK_SmokeTest.Managers
             return createReturnCode;
         }
 
-        public int CreateDirectory(InputParams paramSet, SmokeTask smokeTask)
+        public int CreateDirectory(CreateFolderEventArgs createEventArgs)
         { 
             //TODO: Find out if We will ever just be creating a folder without it being initiated by adding a file to a non existent folder. 
             int createReturnCode = 0;
+            if (!Directory.Exists(createEventArgs.CreateTaskDirectoryInfo.FullName))
+                Directory.CreateDirectory(createEventArgs.CreateTaskDirectoryInfo.FullName);
+             CloudApiPublic.JsonContracts.Metadata metaData;
+            CLHttpRestStatus restStatus = new CLHttpRestStatus();
+            FileChange fileChange = GetFolderFileChange(createEventArgs.CreateTaskDirectoryInfo, null, FileChangeType.Created, string.Empty, createEventArgs.CreateTaskDirectoryInfo.FullName);
+            CloudApiPublic.JsonContracts.Event returnEvent;
+
+            CLError postFolderError = createEventArgs.SyncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
+            if (postFolderError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                GenericHolder<CLError> refHolder = ProcessingErrorHolder;
+                HandleFailure(postFolderError, restStatus, "CreateFolder", ref refHolder);
+            }
+
             return createReturnCode;
         }
 
@@ -366,6 +392,10 @@ namespace CloudSDK_SmokeTest.Managers
         /// </returns>
         public override int Delete(Settings.InputParams paramSet, SmokeTask smokeTask)
         {
+            Deletion deleteTask = smokeTask as Deletion;
+            if (deleteTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
             int deleteResponseCode = 0;
             CLCredential creds;
             CLCredentialCreationStatus credsCreateStatus;
@@ -406,7 +436,7 @@ namespace CloudSDK_SmokeTest.Managers
                 }
                 if (restStatus != CLHttpRestStatus.Success)
                 {
-                    FileInfo info = new FileInfo((smokeTask as FileDeletion).FilePath + (smokeTask as FileDeletion).FileName);
+                    FileInfo info = new FileInfo(deleteTask.FilePath + deleteTask.FileName);
                     Exception unsuccessfulDeleteError = new Exception(string.Format("The Returned Response for Attempt to Delete File {0} is {1}", info.Name, restStatus));
                 }                
             }
@@ -451,6 +481,10 @@ namespace CloudSDK_SmokeTest.Managers
         /// <returns></returns>
         public override int Rename(Settings.InputParams paramSet, SmokeTask smokeTask, string directoryRelativeToRoot, string oldFileName, string newFileName)
         {
+            Settings.Rename renameTask = smokeTask as Settings.Rename;
+            if (renameTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
             int renameResponseCode = 0;
             CLCredential creds;
             CLCredentialCreationStatus credsCreateStatus;
@@ -472,10 +506,10 @@ namespace CloudSDK_SmokeTest.Managers
             //string fullPath = directoryRelativeToRoot + oldFileName;
             CloudApiPublic.JsonContracts.FolderContents folderContents = null; 
             FileChange fileChange = null;
-            if ((smokeTask as FileRename).IsFolder)
+            if (!renameTask.IsFile)
             {
                 string rootFolder = paramSet.ManualSync_Folder.Replace("\"", "");
-                string directoryPath = rootFolder + (smokeTask as FileRename).RelativeDirectoryPath;
+                string directoryPath = rootFolder + renameTask.RelativeDirectoryPath;
                 DirectoryInfo dinfo = new DirectoryInfo(directoryPath);
                 CloudApiPublic.JsonContracts.Metadata metaData;
                 CLError getMetaDataError = syncBox.GetMetadata(directoryPath, true, ManagerConstants.TimeOutMilliseconds, out restStatus, out metaData);
@@ -489,7 +523,7 @@ namespace CloudSDK_SmokeTest.Managers
                 {
                     if(Directory.Exists(directoryPath))
                     {
-                        fileChange = GetFolderFileChange(dinfo, metaData, directoryPath, newPath);
+                        fileChange = GetFolderFileChange(dinfo, metaData, FileChangeType.Renamed, directoryPath, newPath);
                     }
                 }           
             }
@@ -512,7 +546,7 @@ namespace CloudSDK_SmokeTest.Managers
             {
                 try
                 {
-                    if((smokeTask as FileRename).IsFolder)
+                    if (!renameTask.IsFile)
                         Directory.Move(fileChange.OldPath.ToString(), fileChange.NewPath.ToString());
                     else
                         File.Move(fileChange.OldPath.ToString(), fileChange.NewPath.ToString());
@@ -528,22 +562,47 @@ namespace CloudSDK_SmokeTest.Managers
             return 0;
         }
 
-        private FileChange GetFolderFileChange(DirectoryInfo dInfo, CloudApiPublic.JsonContracts.Metadata metaData, string directoryPath, string newPath)
+        private FileChange GetFolderFileChange(DirectoryInfo dInfo, CloudApiPublic.JsonContracts.Metadata metaData, FileChangeType type, string directoryPath, string newPath)
         {
-            return new FileChange()
+            FileChange returnValue = new FileChange();
+            if (type == FileChangeType.Renamed)
             {
-                Direction = SyncDirection.To,
-                Metadata = new FileMetadata()
+                returnValue =  new FileChange()
                 {
-                    HashableProperties = new FileMetadataHashableProperties(true, null, dInfo.CreationTime, null),
-                    ServerId = metaData.ServerId,
-                    Revision = metaData.Version,
-                    StorageKey = metaData.StorageKey
-                },
-                OldPath = directoryPath,
-                NewPath = newPath,
-                Type = FileChangeType.Renamed,
-            };
+                    Direction = SyncDirection.To,
+                    Metadata = new FileMetadata()
+                    {
+                        HashableProperties = new FileMetadataHashableProperties(true, null, dInfo.CreationTime, null),
+                        ServerId = metaData.ServerId,
+                        Revision = metaData.Version,
+                        StorageKey = metaData.StorageKey
+                    },
+                    OldPath = directoryPath,
+                    NewPath = newPath,
+                    Type = type,
+
+                };
+            }
+            else if (type == FileChangeType.Created)
+            {
+                returnValue = new FileChange()
+                {
+                    Direction = SyncDirection.To,
+                    Metadata = new FileMetadata()
+                    {
+                        HashableProperties = new FileMetadataHashableProperties(true, null, dInfo.CreationTime, null),
+                        MimeType = null,
+                        LinkTargetPath = null,
+                        Revision = null,
+                        ServerId = null,
+                        StorageKey = null,
+                    },
+                    NewPath = newPath,
+                    Type = type
+                };
+            }
+
+            return returnValue;
         }
         #region Download All Content
 
@@ -798,8 +857,7 @@ namespace CloudSDK_SmokeTest.Managers
                     //RetryDownloadCallbackRecursive(exception2, fileChange, originalPath, destination, rootString);
                 }
             }
-        }       
-        
+        }               
 
         private void AddEntryToMappingFile(string originalName, string localName)
         {
@@ -917,7 +975,7 @@ namespace CloudSDK_SmokeTest.Managers
         { 
             bool exists = false;
             FileInfo returnValue = null;
-            string inputFilePath = (smokeTask as FileDeletion).FilePath;
+            string inputFilePath = (smokeTask as Deletion).FilePath;
             if (!string.IsNullOrEmpty(inputFilePath))
             {
                 if (File.Exists(inputFilePath))
@@ -927,7 +985,7 @@ namespace CloudSDK_SmokeTest.Managers
                 }
                 else
                 {
-                    inputFilePath += (smokeTask as FileDeletion).FileName;
+                    inputFilePath += (smokeTask as Deletion).FileName;
                     if (File.Exists(inputFilePath))
                         returnValue = new FileInfo(inputFilePath);
                 }
