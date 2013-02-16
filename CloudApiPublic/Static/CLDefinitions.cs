@@ -575,6 +575,7 @@ namespace CloudApiPublic.Static
         // REST Request Session
         public const string RESTRequestSession_TokenDuration = "token_duration";
         public const string RESTRequestSession_SyncBoxIds = "sync_box_ids";
+        public const string RESTRequestSession_SyncBoxIdsAll = "all";
 
 
         //// Old definitions used by the full client.

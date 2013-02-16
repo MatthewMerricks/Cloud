@@ -261,9 +261,9 @@ namespace CloudApiPublic
         /// <param name="aCallback">Callback method to fire when operation completes</param>
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <param name="friendlyName">(optional) friendly name of the Sync box</param>
         /// <param name="planId">(optional) The ID of the plan to use with this SyncBox</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         //
         //// The following metadata parameter was temporarily removed until the server checks for it for this call
         //
@@ -272,9 +272,9 @@ namespace CloudApiPublic
         public IAsyncResult BeginAddSyncBoxOnServer(AsyncCallback aCallback,
             object aState,
             int timeoutMilliseconds,
-            ICLCredentialSettings settings = null,
             string friendlyName = null,
-            Nullable<long> planId = null/*,  \/ last parameter temporarily removed since the server is not checking for it for this call; add back wherever commented out within this method when it works
+            Nullable<long> planId = null,
+            ICLCredentialSettings settings = null/*,  \/ last parameter temporarily removed since the server is not checking for it for this call; add back wherever commented out within this method when it works
             JsonContracts.MetadataDictionary metadata = null*/) 
         {
             // create the asynchronous result to return
@@ -283,21 +283,21 @@ namespace CloudApiPublic
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, Nullable<long>/*, JsonContracts.MetadataDictionary*/> asyncParams =
-                new Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, Nullable<long>/*, JsonContracts.MetadataDictionary*/>(
+            Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/> asyncParams =
+                new Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/>(
                     toReturn,
                     timeoutMilliseconds,
-                    settings,
                     friendlyName,
-                    planId/*,
+                    planId,
+                    settings/*,
                     metadata*/);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, Nullable<long>/*, JsonContracts.MetadataDictionary*/> castState = 
-                    state as Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, Nullable<long>/*, JsonContracts.MetadataDictionary*/>;
+                Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/> castState =
+                    state as Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -450,17 +450,18 @@ namespace CloudApiPublic
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <param name="friendlyName">(optional) friendly name of the Sync box</param>
         /// <param name="planId">(optional) the ID of the plan to use with this SyncBox</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         //
         //// The following metadata parameter was temporarily removed until the server checks for it for this call
         //
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddSyncBoxOnServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response, 
-                    ICLCredentialSettings settings = null, string friendlyName = null,
-                    Nullable<long> planId = null/*, JsonContracts.MetadataDictionary metadata = null*/)
+                    string friendlyName = null,
+                    Nullable<long> planId = null,
+                    ICLCredentialSettings settings = null/*, JsonContracts.MetadataDictionary metadata = null*/)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -905,30 +906,37 @@ namespace CloudApiPublic
         /// <param name="aCallback">Callback method to fire when operation completes</param>
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="syncBoxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
+        /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 36 hours.  Maximum: 120 hours.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginListSyncBoxes(AsyncCallback aCallback,
+        public IAsyncResult BeginSessionCreate(AsyncCallback aCallback,
             object aState,
             int timeoutMilliseconds,
+            HashSet<long> syncBoxIds = null,
+            Nullable<long> tokenDurationMinutes = null,
             ICLCredentialSettings settings = null)
         {
             // create the asynchronous result to return
-            GenericAsyncResult<ListSyncBoxesResult> toReturn = new GenericAsyncResult<ListSyncBoxesResult>(
+            GenericAsyncResult<SessionCreateResult> toReturn = new GenericAsyncResult<SessionCreateResult>(
                 aCallback,
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<ListSyncBoxesResult>, int, ICLCredentialSettings> asyncParams =
-                new Tuple<GenericAsyncResult<ListSyncBoxesResult>, int, ICLCredentialSettings>(
+            Tuple<GenericAsyncResult<SessionCreateResult>, int, HashSet<long>, Nullable<long>, ICLCredentialSettings> asyncParams =
+                new Tuple<GenericAsyncResult<SessionCreateResult>, int, HashSet<long>, Nullable<long>, ICLCredentialSettings>(
                     toReturn,
                     timeoutMilliseconds,
+                    syncBoxIds,
+                    tokenDurationMinutes,
                     settings);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<ListSyncBoxesResult>, int, ICLCredentialSettings> castState = state as Tuple<GenericAsyncResult<ListSyncBoxesResult>, int, ICLCredentialSettings>;
+                Tuple<GenericAsyncResult<SessionCreateResult>, int, HashSet<long>, Nullable<long>, ICLCredentialSettings> castState =
+                            state as Tuple<GenericAsyncResult<SessionCreateResult>, int, HashSet<long>, Nullable<long>, ICLCredentialSettings>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -943,19 +951,21 @@ namespace CloudApiPublic
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.ListSyncBoxes result;
+                        JsonContracts.SessionCreateResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = ListSyncBoxes(
+                        CLError processError = SessionCreate(
                             castState.Item2,
                             out status,
                             out result,
-                            castState.Item3);
+                            castState.Item3,
+                            castState.Item4,
+                            castState.Item5);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
                         if (castState.Item1 != null)
                         {
                             castState.Item1.Complete(
-                                new ListSyncBoxesResult(
+                                new SessionCreateResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
                                     result), // the specific type of result for this operation
@@ -980,22 +990,22 @@ namespace CloudApiPublic
         }
 
         /// <summary>
-        /// Finishes listing Sync boxes on the server for the current application if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes creating the session on the server for the current application if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting listing the sync boxes</param>
-        /// <param name="result">(output) The result from listing the sync boxes</param>
+        /// <param name="aResult">The asynchronous result provided upon starting the creation of the session</param>
+        /// <param name="result">(output) The result from creating the session</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndListSyncBoxes(IAsyncResult aResult, out ListSyncBoxesResult result)
+        public CLError EndSessionCreate(IAsyncResult aResult, out SessionCreateResult result)
         {
-            // declare the specific type of asynchronous result for sync boxes listing
-            GenericAsyncResult<ListSyncBoxesResult> castAResult;
+            // declare the specific type of asynchronous result for session creation
+            GenericAsyncResult<SessionCreateResult> castAResult;
 
-            // try/catch to try casting the asynchronous result as the type for sync boxes listing and pull the result (possibly incomplete), on catch default the output and return the error
+            // try/catch to try casting the asynchronous result as the type for session create result and pull the result (possibly incomplete), on catch default the output and return the error
             try
             {
-                // try cast the asynchronous result as the type for listing sync boxes
-                castAResult = aResult as GenericAsyncResult<ListSyncBoxesResult>;
+                // try cast the asynchronous result as the type for creating a session
+                castAResult = aResult as GenericAsyncResult<SessionCreateResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -1008,7 +1018,7 @@ namespace CloudApiPublic
             }
             catch (Exception ex)
             {
-                result = Helpers.DefaultForType<ListSyncBoxesResult>();
+                result = Helpers.DefaultForType<SessionCreateResult>();
                 return ex;
             }
 
@@ -1046,15 +1056,16 @@ namespace CloudApiPublic
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
-        /// <param name="syncBoxIds">IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <param name="syncBoxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 36 hours.  Maximum: 120 hours.</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError SessionCreate(int timeoutMilliseconds, out CLHttpRestStatus status, 
                     out JsonContracts.SessionCreateResponse response, 
-                    Nullable<HashSet<long>> syncBoxIds,
-                    Nullable<long> tokenDurationMinutes,
-                    ICLCredentialSettings settings = null)
+                    HashSet<long> syncBoxIds = null,
+                    Nullable<long> tokenDurationMinutes = null,
+                    ICLCredentialSettings settings = null
+            )
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -1073,8 +1084,30 @@ namespace CloudApiPublic
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
+                // Determine the request JSON contract to use.  If the syncBoxIds parameter is null, use the "all"
+                // contract.  Otherwise, build the contract that includes an array of SyncBoxIds.
+                object requestContract = null;
+                if (syncBoxIds == null)
+                {
+                    CloudApiPublic.JsonContracts.SessionCreateAllRequest sessionCreateAll = new JsonContracts.SessionCreateAllRequest()
+                    {
+                        SessionIds = CLDefinitions.RESTRequestSession_SyncBoxIdsAll,
+                        TokenDuration = tokenDurationMinutes
+                    };
+                    requestContract = sessionCreateAll;
+                }
+                else
+                {
+                    CloudApiPublic.JsonContracts.SessionCreateRequest sessionCreate = new JsonContracts.SessionCreateRequest()
+                    {
+                        SessionIds = syncBoxIds,
+                        TokenDuration = tokenDurationMinutes
+                    };
+                    requestContract = sessionCreate;
+                }
+
                 response = Helpers.ProcessHttp<JsonContracts.SessionCreateResponse>(
-                    null, // no request body for listing sync boxes
+                    requestContract, 
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthCreateSession,
                     Helpers.requestMethod.post,

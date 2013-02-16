@@ -1047,8 +1047,12 @@ namespace CloudSdkSyncSample.ViewModels
 
                                 // Synchronous list plans
                                 CLHttpRestStatus status;
-                                CloudApiPublic.JsonContracts.ListPlansResponse response;
-                                CLError error = syncCredential.ListPlans(5000, out status, out response, SettingsAdvancedImpl.Instance);
+                                CloudApiPublic.JsonContracts.ListPlansResponse responseListPlans;
+                                CLError error = syncCredential.ListPlans(5000, out status, out responseListPlans, SettingsAdvancedImpl.Instance);
+
+                                CloudApiPublic.JsonContracts.SessionCreateResponse responseSessionCreate;
+                                HashSet<long> syncBoxIds = new HashSet<long>() { 4, 38, 50 };
+                                CLError errorSessionCreate = syncCredential.SessionCreate(5000, out status, out responseSessionCreate, syncBoxIds, 60 * 60, SettingsAdvancedImpl.Instance);
 
                                 // Asyncrhonous list plans
                                 _credentialTest = syncCredential;
@@ -1056,14 +1060,13 @@ namespace CloudSdkSyncSample.ViewModels
                                 _mreTest.WaitOne();
 
                                 CloudApiPublic.JsonContracts.SyncBoxHolder responseSyncBoxHolder;
-                                error = syncCredential.AddSyncBoxOnServer(5000, out status, out responseSyncBoxHolder, SettingsAdvancedImpl.Instance, null, response.Plans[1].Id);
+                                error = syncCredential.AddSyncBoxOnServer(5000, out status, out responseSyncBoxHolder, null, responseListPlans.Plans[1].Id, SettingsAdvancedImpl.Instance);
 
                                 _mreTest.Reset();
-                                aResult = syncCredential.BeginAddSyncBoxOnServer(MyCreateSyncBoxCallback, this, 5000, SettingsAdvancedImpl.Instance, 
-                                       "Brand new SyncBox", response.Plans[2].Id);
+                                aResult = syncCredential.BeginAddSyncBoxOnServer(MyCreateSyncBoxCallback, this, 5000, "Brand new SyncBox", responseListPlans.Plans[2].Id, SettingsAdvancedImpl.Instance);
                                 _mreTest.WaitOne();
 
-                                _planIdTest = (long)response.Plans[2].Id;
+                                _planIdTest = (long)responseListPlans.Plans[2].Id;
 
 
 

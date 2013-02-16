@@ -22,7 +22,7 @@ namespace CloudApiPublic.JsonContracts
     public sealed class Session
     {
         [DataMember(Name = CLDefinitions.RESTResponseSession_SyncBoxIds, IsRequired = false)]
-        public Nullable<HashSet<long>> Id { get; set; }
+        public HashSet<long> SyncBoxIds { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseSession_Key, IsRequired = false)]
         public string Key { get; set; }

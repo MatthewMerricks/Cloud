@@ -293,6 +293,16 @@ namespace CloudApiPublic.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    public sealed class SessionCreateResult : BaseCLHttpRestResult<JsonContracts.SessionCreateResponse>
+    {
+        // construct with all readonly properties
+        internal SessionCreateResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionCreateResponse Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
     public sealed class SyncBoxUpdateExtendedMetadataResult : BaseCLHttpRestResult<JsonContracts.SyncBoxHolder>
     {
         // construct with all readonly properties

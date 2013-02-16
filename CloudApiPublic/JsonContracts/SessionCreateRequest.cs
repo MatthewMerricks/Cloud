@@ -25,6 +25,6 @@ namespace CloudApiPublic.JsonContracts
         public Nullable<long> TokenDuration { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTRequestSession_SyncBoxIds, IsRequired = false)]
-        public Nullable<HashSet<long>> SessionIds { get; set; }
+        public HashSet<long> SessionIds { get; set; }
     }
 }
