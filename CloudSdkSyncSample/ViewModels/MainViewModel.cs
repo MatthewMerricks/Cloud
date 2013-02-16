@@ -1102,11 +1102,19 @@ namespace CloudSdkSyncSample.ViewModels
                                     _syncboxTest = syncBox;
 
                                     CLHttpRestStatus myStatus;
+
+                                    CloudApiPublic.JsonContracts.SyncBoxHolder syncBoxHolderResponse;
+                                    CLError errorSyncBoxUpdate = _syncboxTest.SyncBoxUpdate("My New Friendly Name", 5000, out myStatus, out syncBoxHolderResponse);
+
+                                    _mreTest.Reset();
+                                    IAsyncResult arResult = _syncboxTest.BeginSyncBoxUpdate(MySyncBoxUpdateCallback, this, "My New Friendly Name 2", 5000);
+                                    _mreTest.WaitOne();
+
                                     CloudApiPublic.JsonContracts.SyncBoxUpdatePlanResponse myResponse;
                                     CLError errorSyncBoxUpdatePlan = _syncboxTest.SyncBoxUpdatePlan(_planIdTest, 5000, out myStatus, out myResponse);
 
                                     _mreTest.Reset();
-                                    IAsyncResult arResult = _syncboxTest.BeginSyncBoxUpdatePlan(MySyncBoxUpdatePlanCallback, this, _planIdTest, 5000);
+                                    arResult = _syncboxTest.BeginSyncBoxUpdatePlan(MySyncBoxUpdatePlanCallback, this, _planIdTest, 5000);
                                     _mreTest.WaitOne();
 
                                     //&&&&&&&&&&&&&&&&&&&&&& DEBUG ONLY.  REMOVE.
@@ -1227,6 +1235,19 @@ namespace CloudSdkSyncSample.ViewModels
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
+        }
+
+        //&&&&&&&&&& DEBUG ONLY.  DELETE.
+        private void MySyncBoxUpdateCallback(IAsyncResult ar)
+        {
+            MainViewModel castState = ar.AsyncState as MainViewModel;
+            if (castState == null)
+            {
+                _trace.writeToLog(1, "MainViewModel: MySyncBoxUpdateCallback: ERROR: Invalid state.");
+            }
+            CloudApiPublic.REST.SyncBoxUpdateResult result;
+            CLError error = castState._syncboxTest.EndSyncBoxUpdate(ar, out result);
+            castState._mreTest.Set();
         }
 
         //&&&&&&&&&& DEBUG ONLY.  DELETE.

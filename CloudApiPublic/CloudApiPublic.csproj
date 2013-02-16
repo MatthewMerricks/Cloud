@@ -145,6 +145,7 @@
     <Compile Include="JsonContracts\Archives.cs" />
     <Compile Include="JsonContracts\Audios.cs" />
     <Compile Include="JsonContracts\ContainsMetadataDictionaryAttribute.cs" />
+    <Compile Include="JsonContracts\SyncBoxUpdateRequest.cs" />
     <Compile Include="JsonContracts\SyncBoxUpdatePlanRequest.cs" />
     <Compile Include="JsonContracts\SyncBoxUpdatePlanResponse.cs" />
     <Compile Include="JsonContracts\ListPlansResponse.cs" />

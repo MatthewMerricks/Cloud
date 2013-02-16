@@ -1840,7 +1840,8 @@ namespace CloudApiPublic.Static
             { typeof(JsonContracts.SyncBoxMetadata), JsonContractHelpers.SyncBoxMetadataSerializer },
             { typeof(JsonContracts.SyncBoxQuota), JsonContractHelpers.SyncBoxQuotaSerializer },
             { typeof(JsonContracts.SyncBoxIdOnly), JsonContractHelpers.SyncBoxDeleteSerializer },
-            { typeof(JsonContracts.SyncBoxUpdatePlanRequest), JsonContractHelpers.SyncBoxUpdatePlanRequestSerializer }
+            { typeof(JsonContracts.SyncBoxUpdatePlanRequest), JsonContractHelpers.SyncBoxUpdatePlanRequestSerializer },
+            { typeof(JsonContracts.SyncBoxUpdateRequest), JsonContractHelpers.SyncBoxUpdateRequestSerializer }
             #endregion
         };
 

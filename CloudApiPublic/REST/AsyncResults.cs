@@ -300,7 +300,7 @@ namespace CloudApiPublic.REST
             : base(Error, Status, Result) { }
     }
 
-    #region SyncBoxUpdate (deprecated)
+    #region SyncBoxUpdateQuota (deprecated)
     ///// <summary>
     ///// Holds result properties
     ///// </summary>
@@ -310,6 +310,18 @@ namespace CloudApiPublic.REST
     //    internal SyncBoxUpdateQuotaResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncBoxHolder Result)
     //        : base(Error, Status, Result) { }
     //}
+    #endregion
+
+    #region SyncBoxUpdate
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncBoxUpdateResult : BaseCLHttpRestResult<JsonContracts.SyncBoxHolder>
+    {
+        // construct with all readonly properties
+        internal SyncBoxUpdateResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncBoxHolder Result)
+            : base(Error, Status, Result) { }
+    }
     #endregion
 
     /// <summary>

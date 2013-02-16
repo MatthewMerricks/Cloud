@@ -1710,6 +1710,49 @@ namespace CloudApiPublic
         }
         #endregion
 
+        #region SyncBoxUpdate
+        /// <summary>
+        /// Asynchronously updates the sync box properties.
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="friendlyName">The friendly name of the syncbox to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginSyncBoxUpdate(AsyncCallback aCallback,
+            object aState,
+            string friendlyName,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginSyncBoxUpdate(aCallback, aState, friendlyName, timeoutMilliseconds, ReservedForActiveSync);
+        }
+
+        /// <summary>
+        /// Finishes updating the properties of a sync box if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting updating the syncbox properties</param>
+        /// <param name="result">(output) The result from updating the properties of the syncbox</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndSyncBoxUpdate(IAsyncResult aResult, out SyncBoxUpdateResult result)
+        {
+            return _httpRestClient.EndSyncBoxUpdate(aResult, out result);
+        }
+
+        /// <summary>
+        /// Updates the properties of a sync box
+        /// </summary>
+        /// <param name="friendlyName">The friendly name of the syncbox to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError SyncBoxUpdate(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        {
+            return _httpRestClient.SyncBoxUpdate(friendlyName, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
+        }
+        #endregion
+
         #region DeleteSyncBox
         /// <summary>
         /// ¡¡ Do not use lightly !! Asynchronously deletes a sync box

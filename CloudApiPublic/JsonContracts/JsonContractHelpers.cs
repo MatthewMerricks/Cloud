@@ -404,6 +404,20 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _syncBoxUpdatePlanResponseSerializer = null;
         private static readonly object SyncBoxUpdatePlanResponseSerializerLocker = new object();
 
+        public static DataContractJsonSerializer SyncBoxUpdateResponseSerializer
+        {
+            get
+            {
+                lock (SyncBoxUpdateResponseSerializerLocker)
+                {
+                    return _syncBoxUpdateResponseSerializer
+                        ?? (_syncBoxUpdateResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxHolder)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncBoxUpdateResponseSerializer = null;
+        private static readonly object SyncBoxUpdateResponseSerializerLocker = new object();
+
         public static DataContractJsonSerializer SyncBoxUpdatePlanRequestSerializer
         {
             get
@@ -417,6 +431,20 @@ namespace CloudApiPublic.JsonContracts
         }
         private static DataContractJsonSerializer _syncBoxUpdatePlanRequestSerializer = null;
         private static readonly object SyncBoxUpdatePlanRequestSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncBoxUpdateRequestSerializer
+        {
+            get
+            {
+                lock (SyncBoxUpdateRequestSerializerLocker)
+                {
+                    return _syncBoxUpdateRequestSerializer
+                        ?? (_syncBoxUpdateRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxUpdateRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncBoxUpdateRequestSerializer = null;
+        private static readonly object SyncBoxUpdateRequestSerializerLocker = new object();
 
         public static DataContractJsonSerializer FoldersSerializer
         {
