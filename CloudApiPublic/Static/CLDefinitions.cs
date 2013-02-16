@@ -160,6 +160,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathAuthListSyncBoxes = VersionPrefix + "/sync/syncbox/list";                         // POST
         public const string MethodPathAuthSyncBoxExtendedMetadata = VersionPrefix + "/sync/syncbox/update_metadata";    // POST
         public const string MethodPathAuthSyncBoxQuota = VersionPrefix + "/sync/syncbox/update_quota";                  // POST  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
+        public const string MethodPathAuthSyncBoxUpdatePlan = VersionPrefix + "/sync/syncbox/update_plan";              // POST
         public const string MethodPathAuthDeleteSyncBox = VersionPrefix + "/sync/syncbox/delete";                       // POST
         public const string MethodPathAuthSyncBoxStatus = VersionPrefix + "/sync/syncbox/status";                       // POST
         public const string MethodPathAuthListPlans = VersionPrefix + "/sync/plans";                                    // GET
@@ -224,6 +225,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathAuthListSyncBoxes = "/1/sync/sync_box/list";                      // POST
         public const string MethodPathAuthSyncBoxExtendedMetadata = "/1/sync/sync_box/update_metadata"; // POST
         public const string MethodPathAuthSyncBoxQuota = "/1/sync/sync_box/update_quota";               // POST  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
+        public const string MethodPathAuthSyncBoxUpdatePlan = "/1/sync/sync_box/update_plan";           // POST
         public const string MethodPathAuthDeleteSyncBox = "/1/sync/sync_box/delete";                    // POST
         public const string MethodPathAuthSyncBoxStatus = "/1/sync/sync_box/status";                    // POST
         public const string MethodPathAuthListPlans = "/1/sync/plans";                                  // GET
@@ -541,7 +543,11 @@ namespace CloudApiPublic.Static
         public const string RESTResponseSyncBoxFriendlyName = "friendly_name";
         public const string RESTResponseSyncBoxMetadata = "metadata";
 
+        // REST Request SyncBox
+        public const string RESTRequestSyncBoxPlanId = "plan_id";
+
         // REST Response Plan
+        public const string RESTResponsePlan = "plan";
         public const string RESTResponsePlan_Id = "id";
         public const string RESTResponsePlan_ApplicationPlanTierId = "application_plan_tier_id";
         public const string RESTResponsePlan_PlanName = "plan_name";

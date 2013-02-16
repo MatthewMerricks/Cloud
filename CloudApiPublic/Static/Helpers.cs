@@ -1839,7 +1839,8 @@ namespace CloudApiPublic.Static
             { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
             { typeof(JsonContracts.SyncBoxMetadata), JsonContractHelpers.SyncBoxMetadataSerializer },
             { typeof(JsonContracts.SyncBoxQuota), JsonContractHelpers.SyncBoxQuotaSerializer },
-            { typeof(JsonContracts.SyncBoxIdOnly), JsonContractHelpers.SyncBoxDeleteSerializer }
+            { typeof(JsonContracts.SyncBoxIdOnly), JsonContractHelpers.SyncBoxDeleteSerializer },
+            { typeof(JsonContracts.SyncBoxUpdatePlanRequest), JsonContractHelpers.SyncBoxUpdatePlanRequestSerializer }
             #endregion
         };
 
@@ -1866,7 +1867,8 @@ namespace CloudApiPublic.Static
             #region platform management
             { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
             { typeof(JsonContracts.ListSyncBoxes), JsonContractHelpers.ListSyncBoxesSerializer },
-            { typeof(JsonContracts.ListPlans), JsonContractHelpers.ListPlansSerializer }
+            { typeof(JsonContracts.ListPlansResponse), JsonContractHelpers.ListPlansSerializer },
+            { typeof(JsonContracts.SyncBoxUpdatePlanResponse), JsonContractHelpers.SyncBoxUpdatePlanResponseSerializer }
             #endregion
         };
         #endregion

@@ -283,10 +283,10 @@ namespace CloudApiPublic.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class ListPlansResult : BaseCLHttpRestResult<JsonContracts.ListPlans>
+    public sealed class ListPlansResult : BaseCLHttpRestResult<JsonContracts.ListPlansResponse>
     {
         // construct with all readonly properties
-        internal ListPlansResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListPlans Result)
+        internal ListPlansResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListPlansResponse Result)
             : base(Error, Status, Result) { }
     }
 
@@ -311,6 +311,16 @@ namespace CloudApiPublic.REST
     //        : base(Error, Status, Result) { }
     //}
     #endregion
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncBoxUpdatePlanResult : BaseCLHttpRestResult<JsonContracts.SyncBoxUpdatePlanResponse>
+    {
+        // construct with all readonly properties
+        internal SyncBoxUpdatePlanResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncBoxUpdatePlanResponse Result)
+            : base(Error, Status, Result) { }
+    }
 
     /// <summary>
     /// Holds result properties

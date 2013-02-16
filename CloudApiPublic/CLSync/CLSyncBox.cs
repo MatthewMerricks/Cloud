@@ -1666,7 +1666,50 @@ namespace CloudApiPublic
         //    return _httpRestClient.SyncBoxUpdateQuota(quotaSize, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
         //}
         #endregion
-        
+
+        #region SyncBoxUpdatePlan
+        /// <summary>
+        /// Asynchronously updates the plan on a sync box
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="planId">The ID of the plan to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginSyncBoxUpdatePlan(AsyncCallback aCallback,
+            object aState,
+            long planId,
+            int timeoutMilliseconds)
+        {
+            return _httpRestClient.BeginSyncBoxUpdatePlan(aCallback, aState, planId, timeoutMilliseconds, ReservedForActiveSync);
+        }
+
+        /// <summary>
+        /// Finishes updating the storage plan on a sync box if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting updating the plan</param>
+        /// <param name="result">(output) The result from updating the plan</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndSyncBoxUpdatePlan(IAsyncResult aResult, out SyncBoxUpdatePlanResult result)
+        {
+            return _httpRestClient.EndSyncBoxUpdatePlan(aResult, out result);
+        }
+
+        /// <summary>
+        /// Updates the plan on a sync box
+        /// </summary>
+        /// <param name="planId">The ID of the plan to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError SyncBoxUpdatePlan(long planId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxUpdatePlanResponse response)
+        {
+            return _httpRestClient.SyncBoxUpdatePlan(planId, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
+        }
+        #endregion
+
         #region DeleteSyncBox
         /// <summary>
         /// ¡¡ Do not use lightly !! Asynchronously deletes a sync box

@@ -263,6 +263,7 @@ namespace CloudApiPublic
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <param name="friendlyName">(optional) friendly name of the Sync box</param>
+        /// <param name="planId">(optional) The ID of the plan to use with this SyncBox</param>
         //
         //// The following metadata parameter was temporarily removed until the server checks for it for this call
         //
@@ -272,7 +273,8 @@ namespace CloudApiPublic
             object aState,
             int timeoutMilliseconds,
             ICLCredentialSettings settings = null,
-            string friendlyName = null/*,  \/ last parameter temporarily removed since the server is not checking for it for this call; add back wherever commented out within this method when it works
+            string friendlyName = null,
+            Nullable<long> planId = null/*,  \/ last parameter temporarily removed since the server is not checking for it for this call; add back wherever commented out within this method when it works
             JsonContracts.MetadataDictionary metadata = null*/) 
         {
             // create the asynchronous result to return
@@ -281,19 +283,21 @@ namespace CloudApiPublic
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string/*, JsonContracts.MetadataDictionary*/> asyncParams =
-                new Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string/*, JsonContracts.MetadataDictionary*/>(
+            Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, Nullable<long>/*, JsonContracts.MetadataDictionary*/> asyncParams =
+                new Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, Nullable<long>/*, JsonContracts.MetadataDictionary*/>(
                     toReturn,
                     timeoutMilliseconds,
                     settings,
-                    friendlyName/*,
+                    friendlyName,
+                    planId/*,
                     metadata*/);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string/*, JsonContracts.MetadataDictionary*/> castState = state as Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string/*, JsonContracts.MetadataDictionary*/>;
+                Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, Nullable<long>/*, JsonContracts.MetadataDictionary*/> castState = 
+                    state as Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, Nullable<long>/*, JsonContracts.MetadataDictionary*/>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -315,8 +319,9 @@ namespace CloudApiPublic
                             out status,
                             out result,
                             castState.Item3,
-                            castState.Item4/*,
-                            castState.Item5*/);
+                            castState.Item4,
+                            castState.Item5/*,
+                            castState.Item6*/);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
                         if (castState.Item1 != null)
@@ -745,7 +750,7 @@ namespace CloudApiPublic
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.ListPlans result;
+                        JsonContracts.ListPlansResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = ListPlans(
                             castState.Item2,
@@ -850,7 +855,7 @@ namespace CloudApiPublic
         /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ListPlans(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.ListPlans response, ICLCredentialSettings settings = null)
+        public CLError ListPlans(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.ListPlansResponse response, ICLCredentialSettings settings = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -869,7 +874,7 @@ namespace CloudApiPublic
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                response = Helpers.ProcessHttp<JsonContracts.ListPlans>(
+                response = Helpers.ProcessHttp<JsonContracts.ListPlansResponse>(
                     null, // no request body for listing sync boxes
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthListPlans,
@@ -884,7 +889,7 @@ namespace CloudApiPublic
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.ListPlans>();
+                response = Helpers.DefaultForType<JsonContracts.ListPlansResponse>();
                 return ex;
             }
             return null;

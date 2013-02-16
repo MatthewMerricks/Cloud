@@ -390,6 +390,34 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _syncBoxUsageSerializer = null;
         private static readonly object SyncBoxUsageSerializerLocker = new object();
 
+        public static DataContractJsonSerializer SyncBoxUpdatePlanResponseSerializer
+        {
+            get
+            {
+                lock (SyncBoxUpdatePlanResponseSerializerLocker)
+                {
+                    return _syncBoxUpdatePlanResponseSerializer
+                        ?? (_syncBoxUpdatePlanResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxUpdatePlanResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncBoxUpdatePlanResponseSerializer = null;
+        private static readonly object SyncBoxUpdatePlanResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncBoxUpdatePlanRequestSerializer
+        {
+            get
+            {
+                lock (SyncBoxUpdatePlanRequestSerializerLocker)
+                {
+                    return _syncBoxUpdatePlanRequestSerializer
+                        ?? (_syncBoxUpdatePlanRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxUpdatePlanRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncBoxUpdatePlanRequestSerializer = null;
+        private static readonly object SyncBoxUpdatePlanRequestSerializerLocker = new object();
+
         public static DataContractJsonSerializer FoldersSerializer
         {
             get
@@ -454,7 +482,7 @@ namespace CloudApiPublic.JsonContracts
                 lock (ListPlansSerializerLocker)
                 {
                     return _listPlansSerializer
-                        ?? (_listPlansSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ListPlans)));
+                        ?? (_listPlansSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ListPlansResponse)));
                 }
             }
         }
