@@ -165,6 +165,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathAuthDeleteSyncBox = VersionPrefix + "/sync/syncbox/delete";                       // POST
         public const string MethodPathAuthSyncBoxStatus = VersionPrefix + "/sync/syncbox/status";                       // POST
         public const string MethodPathAuthListPlans = VersionPrefix + "/sync/plans";                                    // GET
+        public const string MethodPathAuthCreateSession = VersionPrefix + "/auth/session/create";                       // POST
         #endregion
 #else
         public const string MethodPathSyncFrom = "/1/sync/from_cloud";                                  // POST
@@ -231,6 +232,7 @@ namespace CloudApiPublic.Static
         public const string MethodPathAuthDeleteSyncBox = "/1/sync/sync_box/delete";                    // POST
         public const string MethodPathAuthSyncBoxStatus = "/1/sync/sync_box/status";                    // POST
         public const string MethodPathAuthListPlans = "/1/sync/plans";                                  // GET
+        public const string MethodPathAuthSessionCreate = "/1/auth/session/create";                     // POST
         #endregion
 #endif  // !URL_API
 #endif  // DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
@@ -560,6 +562,20 @@ namespace CloudApiPublic.Static
         public const string RESTResponsePlan_UpdatedAt = "updated_at";
         public const string RESTResponsePlan_ClientApplicationId = "client_application_id";
         public const string RESTResponsePlans = "plans";
+
+        // REST Response Session
+        public const string RESTResponseSession = "session";
+        public const string RESTResponseSession_ExpiresAt = "expires_at";
+        public const string RESTResponseSession_Key = "key";
+        public const string RESTResponseSession_Secret = "secret";
+        public const string RESTResponseSession_Token = "session_token";
+        public const string RESTResponseSession_SyncBoxIds = "sync_box_ids";
+        public const string RESTResponseSession_AllowAll = "allow_all";
+
+        // REST Request Session
+        public const string RESTRequestSession_TokenDuration = "token_duration";
+        public const string RESTRequestSession_SyncBoxIds = "sync_box_ids";
+
 
         //// Old definitions used by the full client.
         ////
