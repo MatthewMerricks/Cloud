@@ -293,10 +293,40 @@ namespace CloudApiPublic.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    public sealed class ListSessionsResult : BaseCLHttpRestResult<JsonContracts.ListSessionsResponse>
+    {
+        // construct with all readonly properties
+        internal ListSessionsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListSessionsResponse Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
     public sealed class SessionCreateResult : BaseCLHttpRestResult<JsonContracts.SessionCreateResponse>
     {
         // construct with all readonly properties
         internal SessionCreateResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionCreateResponse Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SessionShowResult : BaseCLHttpRestResult<JsonContracts.SessionShowResponse>
+    {
+        // construct with all readonly properties
+        internal SessionShowResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionShowResponse Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SessionDeleteResult : BaseCLHttpRestResult<JsonContracts.SessionDeleteResponse>
+    {
+        // construct with all readonly properties
+        internal SessionDeleteResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionDeleteResponse Result)
             : base(Error, Status, Result) { }
     }
 
@@ -310,14 +340,14 @@ namespace CloudApiPublic.REST
             : base(Error, Status, Result) { }
     }
 
-    #region SyncBoxUpdateQuota (deprecated)
+    #region UpdateSyncBoxQuota (deprecated)
     ///// <summary>
     ///// Holds result properties
     ///// </summary>
-    //public sealed class SyncBoxUpdateQuotaResult : BaseCLHttpRestResult<JsonContracts.SyncBoxHolder>
+    //public sealed class UpdateSyncBoxQuotaResult : BaseCLHttpRestResult<JsonContracts.SyncBoxHolder>
     //{
     //    // construct with all readonly properties
-    //    internal SyncBoxUpdateQuotaResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncBoxHolder Result)
+    //    internal UpdateSyncBoxQuotaResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncBoxHolder Result)
     //        : base(Error, Status, Result) { }
     //}
     #endregion

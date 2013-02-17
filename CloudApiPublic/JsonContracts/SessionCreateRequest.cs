@@ -16,7 +16,7 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.SyncBoxCreate"/>
+    /// Request to create a session.
     /// </summary>
     [DataContract]
     internal sealed class SessionCreateRequest
@@ -25,6 +25,6 @@ namespace CloudApiPublic.JsonContracts
         public Nullable<long> TokenDuration { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTRequestSession_SyncBoxIds, IsRequired = false)]
-        public HashSet<long> SessionIds { get; set; }
+        public long[] SessionIds { get; set; }
     }
 }

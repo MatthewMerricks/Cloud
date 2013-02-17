@@ -16,7 +16,7 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.SyncBoxUpdateQuota"/>
+    /// Result from <see cref="CloudApiPublic.CLSyncBox.UpdateSyncBoxQuota"/>
     /// </summary>
     [DataContract]
     internal sealed class SyncBoxQuota

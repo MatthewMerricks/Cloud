@@ -16,7 +16,7 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.SessionCreate"/>
+    /// Result from <see cref="CloudApiPublic.CLCredential.CreateSession"/>
     /// </summary>
     [DataContract]
     public sealed class SessionCreateResponse

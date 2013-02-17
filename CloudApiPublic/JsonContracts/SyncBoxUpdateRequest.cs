@@ -16,7 +16,7 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.SyncBoxUpdate"/>
+    /// Request to update the properties of a sync box.
     /// </summary>
     [DataContract]
     internal sealed class SyncBoxUpdateRequest
@@ -24,7 +24,7 @@ namespace CloudApiPublic.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseSyncBoxId, IsRequired = false)]
         public long SyncBoxId { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTRequestSyncBoxFriendlyName, IsRequired = false)]
-        public string FriendlyName { get; set; }
+        [DataMember(Name = CLDefinitions.RESTRequestSyncBox, IsRequired = false)]
+        public SyncBoxForUpdateRequest SyncBox { get; set; }
     }
 }

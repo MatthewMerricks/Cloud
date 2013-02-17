@@ -1552,7 +1552,7 @@ namespace CloudApiPublic
         }
         #endregion
 
-        #region SyncBoxUpdateExtendedMetadata
+        #region UpdateSyncBoxExtendedMetadata
         /// <summary>
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
@@ -1561,12 +1561,12 @@ namespace CloudApiPublic
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginSyncBoxUpdateExtendedMetadata<T>(AsyncCallback aCallback,
+        public IAsyncResult BeginUpdateSyncBoxExtendedMetadata<T>(AsyncCallback aCallback,
             object aState,
             IDictionary<string, T> metadata,
             int timeoutMilliseconds)
         {
-            return _httpRestClient.BeginSyncBoxUpdateExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
+            return _httpRestClient.BeginUpdateSyncBoxExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
         }
 
         /// <summary>
@@ -1577,12 +1577,12 @@ namespace CloudApiPublic
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginSyncBoxUpdateExtendedMetadata(AsyncCallback aCallback,
+        public IAsyncResult BeginUpdateSyncBoxExtendedMetadata(AsyncCallback aCallback,
             object aState,
             JsonContracts.MetadataDictionary metadata,
             int timeoutMilliseconds)
         {
-            return _httpRestClient.BeginSyncBoxUpdateExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
+            return _httpRestClient.BeginUpdateSyncBoxExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
         }
 
         /// <summary>
@@ -1592,9 +1592,9 @@ namespace CloudApiPublic
         /// <param name="aResult">The asynchronous result provided upon starting updating extended metadata</param>
         /// <param name="result">(output) The result from updating extended metadata</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndSyncBoxUpdateExtendedMetadata(IAsyncResult aResult, out SyncBoxUpdateExtendedMetadataResult result)
+        public CLError EndUpdateSyncBoxExtendedMetadata(IAsyncResult aResult, out SyncBoxUpdateExtendedMetadataResult result)
         {
-            return _httpRestClient.EndSyncBoxUpdateExtendedMetadata(aResult, out result);
+            return _httpRestClient.EndUpdateSyncBoxExtendedMetadata(aResult, out result);
         }
 
         /// <summary>
@@ -1605,9 +1605,9 @@ namespace CloudApiPublic
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError SyncBoxUpdateExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        public CLError UpdateSyncBoxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
         {
-            return _httpRestClient.SyncBoxUpdateExtendedMetadata(metadata, timeoutMilliseconds, out status, out response);
+            return _httpRestClient.UpdateSyncBoxExtendedMetadata(metadata, timeoutMilliseconds, out status, out response);
         }
 
         /// <summary>
@@ -1620,11 +1620,11 @@ namespace CloudApiPublic
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError SyncBoxUpdateExtendedMetadata(JsonContracts.MetadataDictionary metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
         {
-            return _httpRestClient.SyncBoxUpdateExtendedMetadata(metadata, timeoutMilliseconds, out status, out response);
+            return _httpRestClient.UpdateSyncBoxExtendedMetadata(metadata, timeoutMilliseconds, out status, out response);
         }
         #endregion
 
-        #region SyncBoxUpdateQuota (deprecated)
+        #region UpdateSyncBoxQuota (deprecated)
         ///// <summary>
         ///// Asynchronously updates the storage quota on a sync box
         ///// </summary>
@@ -1633,12 +1633,12 @@ namespace CloudApiPublic
         ///// <param name="quotaSize">How many bytes big to make the storage quota</param>
         ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        //public IAsyncResult BeginSyncBoxUpdateQuota(AsyncCallback aCallback,
+        //public IAsyncResult BeginUpdateSyncBoxQuota(AsyncCallback aCallback,
         //    object aState,
         //    long quotaSize,
         //    int timeoutMilliseconds)
         //{
-        //    return _httpRestClient.BeginSyncBoxUpdateQuota(aCallback, aState, quotaSize, timeoutMilliseconds, ReservedForActiveSync);
+        //    return _httpRestClient.BeginUpdateSyncBoxQuota(aCallback, aState, quotaSize, timeoutMilliseconds, ReservedForActiveSync);
         //}
 
         ///// <summary>
@@ -1648,9 +1648,9 @@ namespace CloudApiPublic
         ///// <param name="aResult">The asynchronous result provided upon starting updating storage quota</param>
         ///// <param name="result">(output) The result from updating storage quota</param>
         ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        //public CLError EndSyncBoxUpdateQuota(IAsyncResult aResult, out SyncBoxUpdateQuotaResult result)
+        //public CLError EndUpdateSyncBoxQuota(IAsyncResult aResult, out SyncBoxUpdateQuotaResult result)
         //{
-        //    return _httpRestClient.EndSyncBoxUpdateQuota(aResult, out result);
+        //    return _httpRestClient.EndUpdateSyncBoxQuota(aResult, out result);
         //}
 
         ///// <summary>
@@ -1661,13 +1661,13 @@ namespace CloudApiPublic
         ///// <param name="status">(output) success/failure status of communication</param>
         ///// <param name="response">(output) response object from communication</param>
         ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError SyncBoxUpdateQuota(long quotaSize, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        //public CLError UpdateSyncBoxQuota(long quotaSize, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
         //{
-        //    return _httpRestClient.SyncBoxUpdateQuota(quotaSize, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
+        //    return _httpRestClient.UpdateSyncBoxQuota(quotaSize, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
         //}
         #endregion
 
-        #region SyncBoxUpdatePlan
+        #region UpdateSyncBoxPlan
         /// <summary>
         /// Asynchronously updates the plan on a sync box
         /// </summary>
@@ -1676,12 +1676,12 @@ namespace CloudApiPublic
         /// <param name="planId">The ID of the plan to set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginSyncBoxUpdatePlan(AsyncCallback aCallback,
+        public IAsyncResult BeginUpdateSyncBoxPlan(AsyncCallback aCallback,
             object aState,
             long planId,
             int timeoutMilliseconds)
         {
-            return _httpRestClient.BeginSyncBoxUpdatePlan(aCallback, aState, planId, timeoutMilliseconds, ReservedForActiveSync);
+            return _httpRestClient.BeginUpdateSyncBoxPlan(aCallback, aState, planId, timeoutMilliseconds, ReservedForActiveSync);
         }
 
         /// <summary>
@@ -1691,9 +1691,9 @@ namespace CloudApiPublic
         /// <param name="aResult">The asynchronous result provided upon starting updating the plan</param>
         /// <param name="result">(output) The result from updating the plan</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndSyncBoxUpdatePlan(IAsyncResult aResult, out SyncBoxUpdatePlanResult result)
+        public CLError EndUpdateSyncBoxPlan(IAsyncResult aResult, out SyncBoxUpdatePlanResult result)
         {
-            return _httpRestClient.EndSyncBoxUpdatePlan(aResult, out result);
+            return _httpRestClient.EndUpdateSyncBoxPlan(aResult, out result);
         }
 
         /// <summary>
@@ -1704,13 +1704,13 @@ namespace CloudApiPublic
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError SyncBoxUpdatePlan(long planId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxUpdatePlanResponse response)
+        public CLError UpdateSyncBoxPlan(long planId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxUpdatePlanResponse response)
         {
-            return _httpRestClient.SyncBoxUpdatePlan(planId, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
+            return _httpRestClient.UpdateSyncBoxPlan(planId, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
         }
         #endregion
 
-        #region SyncBoxUpdate
+        #region UpdateSyncBox
         /// <summary>
         /// Asynchronously updates the sync box properties.
         /// </summary>
@@ -1719,12 +1719,12 @@ namespace CloudApiPublic
         /// <param name="friendlyName">The friendly name of the syncbox to set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginSyncBoxUpdate(AsyncCallback aCallback,
+        public IAsyncResult BeginUpdateSyncBox(AsyncCallback aCallback,
             object aState,
             string friendlyName,
             int timeoutMilliseconds)
         {
-            return _httpRestClient.BeginSyncBoxUpdate(aCallback, aState, friendlyName, timeoutMilliseconds, ReservedForActiveSync);
+            return _httpRestClient.BeginUpdateSyncBox(aCallback, aState, friendlyName, timeoutMilliseconds, ReservedForActiveSync);
         }
 
         /// <summary>
@@ -1734,9 +1734,9 @@ namespace CloudApiPublic
         /// <param name="aResult">The asynchronous result provided upon starting updating the syncbox properties</param>
         /// <param name="result">(output) The result from updating the properties of the syncbox</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndSyncBoxUpdate(IAsyncResult aResult, out SyncBoxUpdateResult result)
+        public CLError EndUpdateSyncBox(IAsyncResult aResult, out SyncBoxUpdateResult result)
         {
-            return _httpRestClient.EndSyncBoxUpdate(aResult, out result);
+            return _httpRestClient.EndUpdateSyncBox(aResult, out result);
         }
 
         /// <summary>
@@ -1747,9 +1747,9 @@ namespace CloudApiPublic
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError SyncBoxUpdate(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        public CLError UpdateSyncBox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
         {
-            return _httpRestClient.SyncBoxUpdate(friendlyName, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
+            return _httpRestClient.UpdateSyncBox(friendlyName, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
         }
         #endregion
 

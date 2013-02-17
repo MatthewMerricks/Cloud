@@ -166,6 +166,9 @@ namespace CloudApiPublic.Static
         public const string MethodPathAuthSyncBoxStatus = VersionPrefix + "/sync/syncbox/status";                       // POST
         public const string MethodPathAuthListPlans = VersionPrefix + "/sync/plans";                                    // GET
         public const string MethodPathAuthCreateSession = VersionPrefix + "/auth/session/create";                       // POST
+        public const string MethodPathAuthListSessions = VersionPrefix + "/auth/session/list";                          // POST
+        public const string MethodPathAuthShowSession = VersionPrefix + "/auth/session/show";                           // GET
+        public const string MethodPathAuthDeleteSession = VersionPrefix + "/auth/session/delete";                       // POST
         #endregion
 #else
         public const string MethodPathSyncFrom = "/1/sync/from_cloud";                                  // POST
@@ -232,7 +235,10 @@ namespace CloudApiPublic.Static
         public const string MethodPathAuthDeleteSyncBox = "/1/sync/sync_box/delete";                    // POST
         public const string MethodPathAuthSyncBoxStatus = "/1/sync/sync_box/status";                    // POST
         public const string MethodPathAuthListPlans = "/1/sync/plans";                                  // GET
-        public const string MethodPathAuthSessionCreate = "/1/auth/session/create";                     // POST
+        public const string MethodPathAuthCreateSession = "/1/auth/session/create";                     // POST
+        public const string MethodPathAuthListSessions = "/1/auth/session/list";                        // POST
+        public const string MethodPathAuthShowSession = "/1/auth/session/show";                         // GET
+        public const string MethodPathAuthDeleteSession = "/1/auth/session/delete";                     // POST
         #endregion
 #endif  // !URL_API
 #endif  // DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
@@ -548,6 +554,7 @@ namespace CloudApiPublic.Static
         public const string RESTResponseSyncBoxMetadata = "metadata";
 
         // REST Request SyncBox
+        public const string RESTRequestSyncBox = "sync_box";
         public const string RESTRequestSyncBoxPlanId = "plan_id";
         public const string RESTRequestSyncBoxFriendlyName = "friendly_name";
 
@@ -561,7 +568,7 @@ namespace CloudApiPublic.Static
         public const string RESTResponsePlan_CreatedAt = "created_at";
         public const string RESTResponsePlan_UpdatedAt = "updated_at";
         public const string RESTResponsePlan_ClientApplicationId = "client_application_id";
-        public const string RESTResponsePlans = "plans";
+        public const string RESTResponsePlan_Plans = "plans";
 
         // REST Response Session
         public const string RESTResponseSession = "session";
@@ -571,11 +578,14 @@ namespace CloudApiPublic.Static
         public const string RESTResponseSession_Token = "session_token";
         public const string RESTResponseSession_SyncBoxIds = "sync_box_ids";
         public const string RESTResponseSession_AllowAll = "allow_all";
+        public const string RESTResponseSession_Sessions = "sessions";
 
         // REST Request Session
         public const string RESTRequestSession_TokenDuration = "token_duration";
         public const string RESTRequestSession_SyncBoxIds = "sync_box_ids";
         public const string RESTRequestSession_SyncBoxIdsAll = "all";
+        public const string RESTRequestSession_KeyId = "key_id";
+        public const string RESTRequestSession_Key = "key";
 
 
         //// Old definitions used by the full client.

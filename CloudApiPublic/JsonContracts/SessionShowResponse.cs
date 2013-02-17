@@ -1,5 +1,5 @@
 ﻿//
-// SyncBoxUpdatePlanResponse.cs
+// SessionShowResponse.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -16,11 +16,10 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.UpdateSyncBoxPlan"/>
+    /// Result from <see cref="CloudApiPublic.CLCredential.ShowSession"/>
     /// </summary>
     [DataContract]
-    [ContainsMetadataDictionary] // within SyncBox SyncBox
-    public sealed class SyncBoxUpdatePlanResponse
+    public sealed class SessionShowResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }
@@ -28,10 +27,7 @@ namespace CloudApiPublic.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
         public string Message { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponsePlan, IsRequired = false)]
-        public Plan Plan { get; set; }
-
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBox, IsRequired = false)]
-        public SyncBox SyncBox { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponseSession, IsRequired = false)]
+        public Session Session { get; set; }
     }
 }

@@ -16,7 +16,7 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.SyncBoxUpdatePlan"/>
+    /// Request to update the plan used by a sync box.
     /// </summary>
     [DataContract]
     internal sealed class SyncBoxUpdatePlanRequest

@@ -27,7 +27,7 @@ namespace CloudApiPublic.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
         public string Message { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponsePlans, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponsePlan_Plans, IsRequired = false)]
         public Plan[] Plans { get; set; }
     }
 }

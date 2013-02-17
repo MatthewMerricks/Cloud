@@ -45,10 +45,6 @@ namespace CloudSdkSyncSample.ViewModels
         private bool _windowClosed = false;
         private CLSyncEngine _syncEngine = null;
         private SyncStatusView _winSyncStatus = null;
-        private ManualResetEvent _mreTest = new ManualResetEvent(false);   // &&&&&&&&&&&&&&&&&&&&&&&  DEBUG ONLY.  Remove
-        private CLCredential _credentialTest = null;            // &&&&&&&&&&&&&& DEBUG ONLY.  Remove.
-        private CLSyncBox _syncboxTest = null;              // &&&&&&&&&&&&&&&7 DEBUG ONLY.  Remove.
-        private long _planIdTest = 0;                   // &&&&&&&&&&&&&&&&&&7 DEBUG ONLY.  Remove.
 
         private static readonly object _locker = new object();
         private static readonly CLTrace _trace = CLTrace.Instance;
@@ -1041,38 +1037,6 @@ namespace CloudSdkSyncSample.ViewModels
                             }
                             else
                             {
-
-                                //&&&&&&&&&&&&&& DEBUG CODE.  REMOVE &&&&&&&&&&&&&&&&&&&
-                                MessageBox.Show("Debug Code.  Don't run.");
-
-                                // Synchronous list plans
-                                CLHttpRestStatus status;
-                                CloudApiPublic.JsonContracts.ListPlansResponse responseListPlans;
-                                CLError error = syncCredential.ListPlans(5000, out status, out responseListPlans, SettingsAdvancedImpl.Instance);
-
-                                CloudApiPublic.JsonContracts.SessionCreateResponse responseSessionCreate;
-                                HashSet<long> syncBoxIds = new HashSet<long>() { 4, 38, 50 };
-                                CLError errorSessionCreate = syncCredential.SessionCreate(5000, out status, out responseSessionCreate, syncBoxIds, 60 * 60, SettingsAdvancedImpl.Instance);
-
-                                // Asyncrhonous list plans
-                                _credentialTest = syncCredential;
-                                IAsyncResult aResult = syncCredential.BeginListPlans(MyTestListPlansCallback, this, 5000, SettingsAdvancedImpl.Instance);
-                                _mreTest.WaitOne();
-
-                                CloudApiPublic.JsonContracts.SyncBoxHolder responseSyncBoxHolder;
-                                error = syncCredential.AddSyncBoxOnServer(5000, out status, out responseSyncBoxHolder, null, responseListPlans.Plans[1].Id, SettingsAdvancedImpl.Instance);
-
-                                _mreTest.Reset();
-                                aResult = syncCredential.BeginAddSyncBoxOnServer(MyCreateSyncBoxCallback, this, 5000, "Brand new SyncBox", responseListPlans.Plans[2].Id, SettingsAdvancedImpl.Instance);
-                                _mreTest.WaitOne();
-
-                                _planIdTest = (long)responseListPlans.Plans[2].Id;
-
-
-
-
-                                //&&&&&&&&&&&&&& DEBUG CODE.  REMOVE &&&&&&&&&&&&&&&&&&&
-
                                 // create a SyncBox from an existing SyncBoxId
                                 CLSyncBoxCreationStatus syncBoxStatus;
                                 CLError errorCreateSyncBox = CLSyncBox.CreateAndInitialize(
@@ -1100,29 +1064,6 @@ namespace CloudSdkSyncSample.ViewModels
                                 }
                                 else
                                 {
-                                    //&&&&&&&&&&&&&&&&&&&&&& DEBUG ONLY.  REMOVE.
-
-                                    _syncboxTest = syncBox;
-
-                                    CLHttpRestStatus myStatus;
-
-                                    CloudApiPublic.JsonContracts.SyncBoxHolder syncBoxHolderResponse;
-                                    CLError errorSyncBoxUpdate = _syncboxTest.SyncBoxUpdate("My New Friendly Name", 5000, out myStatus, out syncBoxHolderResponse);
-
-                                    _mreTest.Reset();
-                                    IAsyncResult arResult = _syncboxTest.BeginSyncBoxUpdate(MySyncBoxUpdateCallback, this, "My New Friendly Name 2", 5000);
-                                    _mreTest.WaitOne();
-
-                                    CloudApiPublic.JsonContracts.SyncBoxUpdatePlanResponse myResponse;
-                                    CLError errorSyncBoxUpdatePlan = _syncboxTest.SyncBoxUpdatePlan(_planIdTest, 5000, out myStatus, out myResponse);
-
-                                    _mreTest.Reset();
-                                    arResult = _syncboxTest.BeginSyncBoxUpdatePlan(MySyncBoxUpdatePlanCallback, this, _planIdTest, 5000);
-                                    _mreTest.WaitOne();
-
-                                    //&&&&&&&&&&&&&&&&&&&&&& DEBUG ONLY.  REMOVE.
-
-
                                     _syncEngine = new CLSyncEngine();
                                     startSyncBox = true;
 
@@ -1238,58 +1179,6 @@ namespace CloudSdkSyncSample.ViewModels
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
-        }
-
-        //&&&&&&&&&& DEBUG ONLY.  DELETE.
-        private void MySyncBoxUpdateCallback(IAsyncResult ar)
-        {
-            MainViewModel castState = ar.AsyncState as MainViewModel;
-            if (castState == null)
-            {
-                _trace.writeToLog(1, "MainViewModel: MySyncBoxUpdateCallback: ERROR: Invalid state.");
-            }
-            CloudApiPublic.REST.SyncBoxUpdateResult result;
-            CLError error = castState._syncboxTest.EndSyncBoxUpdate(ar, out result);
-            castState._mreTest.Set();
-        }
-
-        //&&&&&&&&&& DEBUG ONLY.  DELETE.
-        private void MySyncBoxUpdatePlanCallback(IAsyncResult ar)
-        {
-            MainViewModel castState = ar.AsyncState as MainViewModel;
-            if (castState == null)
-            {
-                _trace.writeToLog(1, "MainViewModel: MySyncBoxUpdatePlanCallback: ERROR: Invalid state.");
-            }
-            CloudApiPublic.REST.SyncBoxUpdatePlanResult result;
-            CLError error = castState._syncboxTest.EndSyncBoxUpdatePlan(ar, out result);
-            castState._mreTest.Set();
-        }
-
-        //&&&&&&&&&& DEBUG ONLY.  DELETE.
-        private void MyCreateSyncBoxCallback(IAsyncResult ar)
-        {
-            MainViewModel castState = ar.AsyncState as MainViewModel;
-            if (castState == null)
-            {
-                _trace.writeToLog(1, "MainViewModel: MyCreateSyncBoxCallback: ERROR: Invalid state.");
-            }
-            CloudApiPublic.REST.AddSyncBoxOnServerResult result;
-            CLError error = castState._credentialTest.EndAddSyncBoxOnServer(ar, out result);
-            castState._mreTest.Set();
-        }
-
-        //&&&&&&&&&& DEBUG ONLY.  DELETE.
-        private void MyTestListPlansCallback(IAsyncResult ar)
-        {
-            MainViewModel castState = ar.AsyncState as MainViewModel;
-            if (castState == null)
-            {
-                _trace.writeToLog(1, "MainViewModel: MyTestListPlansCallback: ERROR: Invalid state.");
-            }
-            CloudApiPublic.REST.ListPlansResult result;
-            CLError error = castState._credentialTest.EndListPlans(ar, out result);
-            castState._mreTest.Set();
         }
 
         /// <summary>

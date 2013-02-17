@@ -16,7 +16,7 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.SyncBoxCreate"/>
+    /// Request to create a session and associate all of the application's sync boxes.
     /// </summary>
     [DataContract]
     internal sealed class SessionCreateAllRequest
