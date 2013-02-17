@@ -1839,7 +1839,12 @@ namespace CloudApiPublic.Static
             { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
             { typeof(JsonContracts.SyncBoxMetadata), JsonContractHelpers.SyncBoxMetadataSerializer },
             { typeof(JsonContracts.SyncBoxQuota), JsonContractHelpers.SyncBoxQuotaSerializer },
-            { typeof(JsonContracts.SyncBoxIdOnly), JsonContractHelpers.SyncBoxDeleteSerializer }
+            { typeof(JsonContracts.SyncBoxIdOnly), JsonContractHelpers.SyncBoxDeleteSerializer },
+            { typeof(JsonContracts.SyncBoxUpdatePlanRequest), JsonContractHelpers.SyncBoxUpdatePlanRequestSerializer },
+            { typeof(JsonContracts.SyncBoxUpdateRequest), JsonContractHelpers.SyncBoxUpdateRequestSerializer },
+            { typeof(JsonContracts.SessionCreateRequest), JsonContractHelpers.SessionCreateRequestSerializer },
+            { typeof(JsonContracts.SessionCreateAllRequest), JsonContractHelpers.SessionCreateAllRequestSerializer },
+            { typeof(JsonContracts.SessionDeleteRequest), JsonContractHelpers.SessionDeleteRequestSerializer }
             #endregion
         };
 
@@ -1866,7 +1871,12 @@ namespace CloudApiPublic.Static
             #region platform management
             { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
             { typeof(JsonContracts.ListSyncBoxes), JsonContractHelpers.ListSyncBoxesSerializer },
-            { typeof(JsonContracts.ListPlans), JsonContractHelpers.ListPlansSerializer }
+            { typeof(JsonContracts.ListPlansResponse), JsonContractHelpers.ListPlansSerializer },
+            { typeof(JsonContracts.SyncBoxUpdatePlanResponse), JsonContractHelpers.SyncBoxUpdatePlanResponseSerializer },
+            { typeof(JsonContracts.SessionCreateResponse), JsonContractHelpers.SessionCreateResponseSerializer },
+            { typeof(JsonContracts.ListSessionsResponse), JsonContractHelpers.ListSessionsSerializer },
+            { typeof(JsonContracts.SessionShowResponse), JsonContractHelpers.SessionShowSerializer },
+            { typeof(JsonContracts.SessionDeleteResponse), JsonContractHelpers.SessionDeleteSerializer },
             #endregion
         };
         #endregion
