@@ -1337,11 +1337,29 @@ namespace CloudApiPublic.Sync
                     // lock on timer for access to failure queue
                     lock (FailureTimer.TimerRunningLocker)
                     {
+                        bool nullErrorFound = false;
+
+                        List<FileChange> dequeueIncludingNulls = new List<FileChange>();
+                        int storeFailureCount = FailedChangesQueue.Count;
+                        for (int initialErrorIndex = 0; initialErrorIndex < storeFailureCount; initialErrorIndex++)
+                        {
+                            FileChange possiblyNullError = FailedChangesQueue.Dequeue();
+
+                            if (possiblyNullError == null)
+                            {
+                                nullErrorFound = true;
+                            }
+                            else
+                            {
+                                dequeueIncludingNulls.Add(possiblyNullError);
+                            }
+                        }
+
                         // store queued failures to array (typed as enumerable)
-                        IEnumerable<PossiblyPreexistingFileChangeInError> initialErrors = new PossiblyPreexistingFileChangeInError[FailedChangesQueue.Count];
+                        IEnumerable<PossiblyPreexistingFileChangeInError> initialErrors = new PossiblyPreexistingFileChangeInError[dequeueIncludingNulls.Count];
                         for (int initialErrorIndex = 0; initialErrorIndex < ((PossiblyPreexistingFileChangeInError[])initialErrors).Length; initialErrorIndex++)
                         {
-                            ((PossiblyPreexistingFileChangeInError[])initialErrors)[initialErrorIndex] = new PossiblyPreexistingFileChangeInError(true, FailedChangesQueue.Dequeue());
+                            ((PossiblyPreexistingFileChangeInError[])initialErrors)[initialErrorIndex] = new PossiblyPreexistingFileChangeInError(true, dequeueIncludingNulls[initialErrorIndex]);
                         }
 
                         // advanced trace, SyncRunInitialErrors
@@ -1379,7 +1397,7 @@ namespace CloudApiPublic.Sync
                             }
 
                             // if there was a null change, then communication should occur regardless of other changes since we cannot communicate a null change on a SyncTo (will cause a SyncFrom if no other changes)
-                            if (nullChangeFoundInFileSystemMonitor
+                            if ((nullChangeFoundInFileSystemMonitor || nullErrorFound)
                                 && !respondingToPushNotification)
                             {
                                 // marks for push notification which will always cause communication to occur even for no SyncTo changes (via SyncFrom)
@@ -2446,6 +2464,7 @@ namespace CloudApiPublic.Sync
 
                                 // Define a boolean to store whether an error was requeued, defaulting to false
                                 bool atLeastOneErrorAdded = false;
+                                GenericHolder<bool> nullErrorFound = new GenericHolder<bool>(false);
 
                                 // Try/finally to reassign dependencies (between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared)
                                 // On finally, if an error was requeued, start the failure queue timer
@@ -2465,6 +2484,17 @@ namespace CloudApiPublic.Sync
 
                                         CLError postCommunicationDependencyError;
 
+                                        Func<FileChange, GenericHolder<bool>, bool> checkForNullAndMark = (toCheck, nullFound) =>
+                                            {
+                                                if (toCheck == null)
+                                                {
+                                                    nullErrorFound.Value = true;
+                                                    return false;
+                                                }
+
+                                                return true;
+                                            };
+
                                         lock (FailedOutTimer.TimerRunningLocker)
                                         {
                                             bool previousFailedOutChange = FailedOutChanges.Count > 0;
@@ -2480,7 +2510,9 @@ namespace CloudApiPublic.Sync
                                                     .Concat(uploadFilesWithoutStreams),
 
                                                 // second pass the enumerable of errors from the changes which had an error during communication and the changes that were in the queue for reprocessing
-                                                dequeuedFailures.Concat((changesInError ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
+                                                dequeuedFailures
+                                                    .Where(dequeuedFailure => checkForNullAndMark(dequeuedFailure, nullErrorFound))
+                                                    .Concat((changesInError ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
                                                     .Select(currentChangeInError => currentChangeInError.FileChange)
                                                     .Where(currentChangeInError => currentChangeInError != null)),// FileChange could be null for errors if there was an exeption but no FileChange was built
 
@@ -2586,6 +2618,11 @@ namespace CloudApiPublic.Sync
                                     // No matter what, if even one change had been requeued to the failure queue, then start the failure queue timer
                                     if (atLeastOneErrorAdded)
                                     {
+                                        FailureTimer.StartTimerIfNotRunning();
+                                    }
+                                    else if (nullErrorFound.Value)
+                                    {
+                                        FailedChangesQueue.Enqueue(null);
                                         FailureTimer.StartTimerIfNotRunning();
                                     }
                                 }

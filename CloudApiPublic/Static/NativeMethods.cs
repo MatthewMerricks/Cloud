@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;                             
 using System.Text;
 
 namespace CloudApiPublic.Static
@@ -640,19 +640,19 @@ namespace CloudApiPublic.Static
 
         [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public extern static
-          Int32 WSALookupServiceBegin(WSAQUERYSET qsRestrictions,
-            Int32 dwControlFlags, ref Int32 lphLookup);
+            Int32 WSALookupServiceBegin(WSAQUERYSET qsRestrictions,
+                Int32 dwControlFlags, ref IntPtr lphLookup);
 
         [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public extern static
-          Int32 WSALookupServiceNext(Int32 hLookup,
-            Int32 dwControlFlags,
-            ref Int32 lpdwBufferLength,
-            IntPtr pqsResults);
+            Int32 WSALookupServiceNext(IntPtr hLookup,
+                Int32 dwControlFlags,
+                ref Int32 lpdwBufferLength,
+                IntPtr pqsResults);
 
         [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public extern static
-          Int32 WSALookupServiceEnd(Int32 hLookup);
+            Int32 WSALookupServiceEnd(IntPtr hLookup);
 
         [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public extern static Int32 WSAGetLastError();
@@ -857,14 +857,14 @@ namespace CloudApiPublic.Static
         #region network event
         [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public extern static Int32 WSANSPIoctl(
-          Int32 hLookup,
-          UInt32 dwControlCode,
-          IntPtr lpvInBuffer,
-          Int32 cbInBuffer,
-          IntPtr lpvOutBuffer,
-          Int32 cbOutBuffer,
-          ref Int32 lpcbBytesReturned,
-          IntPtr lpCompletion);
+            IntPtr hLookup,
+            UInt32 dwControlCode,
+            IntPtr lpvInBuffer,
+            Int32 cbInBuffer,
+            IntPtr lpvOutBuffer,
+            Int32 cbOutBuffer,
+            ref Int32 lpcbBytesReturned,
+            IntPtr lpCompletion);
         #endregion
         #endregion
     }
