@@ -5771,6 +5771,11 @@ namespace CloudApiPublic.Sync
                                 // grab the current event
                                 Event currentEvent = deserializedResponse.Events[currentEventIndex];
 
+                                if (currentEvent.Header == null)
+                                {
+                                    throw new NullReferenceException("Invalid HTTP response body in Sync To, an Event has a null Sync Header");
+                                }
+
                                 // if there is no status set (Sync From), then add current index to fromEvents
                                 if (string.IsNullOrEmpty(currentEvent.Header.Status))
                                 {
