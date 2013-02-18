@@ -6421,6 +6421,8 @@ namespace CloudApiPublic.Sync
                                                 case CLDefinitions.CLEventTypeDuplicate:
                                                 case CLDefinitions.CLEventTypeNotFound:
                                                 case CLDefinitions.CLEventTypeDownload:
+                                                case CLDefinitions.CLEventTypeAlreadyDeleted:
+                                                case CLDefinitions.CLEventTypeNoOperation:
                                                     // if the file system object was not found on the server and was not marked for deletion, then convert the operation to a creation at the new path so it can still be processed on a future sync
                                                     if (currentEvent.Header.Status == CLDefinitions.CLEventTypeNotFound
                                                         && currentChange.Type != FileChangeType.Deleted)
