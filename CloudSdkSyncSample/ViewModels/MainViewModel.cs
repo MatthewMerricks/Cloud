@@ -665,6 +665,31 @@ namespace CloudSdkSyncSample.ViewModels
                 return;
             }
 
+            // Validate that the SyncRoot is a good path.
+            CLError badPathError = CloudApiPublic.Static.Helpers.CheckForBadPath(SyncRoot);
+            if (badPathError != null)
+            {
+                MessageBox.Show("The SyncBox Folder path is invalid: " + badPathError.errorDescription);
+                this.IsSyncBoxIdFocused = true;
+                return;
+            }
+
+            // Validate that the SyncRoot matches case perfectly with disk.
+            bool syncPathMatches;
+            CLError checkCaseError = CloudApiPublic.Static.Helpers.DirectoryMatchesCaseWithDisk(SyncRoot, out syncPathMatches);
+            if (checkCaseError != null)
+            {
+                MessageBox.Show("There was an error checking whether the SyncBox Folder matches case with an existing directory on disk: " + checkCaseError.errorDescription);
+                this.IsSyncBoxIdFocused = true;
+                return;
+            }
+            if (!syncPathMatches)
+            {
+                MessageBox.Show("The SyncBox Folder does not match case perfectly with an existing folder on disk. Please check the case of the directory string.");
+                this.IsSyncBoxIdFocused = true;
+                return;
+            }
+
             // Validate the length of the SyncBox full path.
             int tooLongChars;
             CLError errorFromLengthCheck = CloudApiPublic.Static.Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
