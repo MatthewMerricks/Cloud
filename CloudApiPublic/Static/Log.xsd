@@ -104,9 +104,11 @@
                 <xs:enumeration value="GrabChangesQueuedChangesAddedToSQL" />
                 <xs:enumeration value="GrabChangesOutputChanges" />
                 <xs:enumeration value="GrabChangesOutputChangesInError" />
+                <xs:enumeration value="InitialRunFileTransfer" />
                 <xs:enumeration value="SyncRunPreprocessedEventsSynchronous" />
                 <xs:enumeration value="SyncRunPreprocessedEventsAsynchronous" />
                 <xs:enumeration value="SyncRunRequeuedFailuresBeforeCommunication" />
+                <xs:enumeration value="SyncRunErrorSyncFromForCommunication" />
                 <xs:enumeration value="SyncRunChangesForCommunication" />
                 <xs:enumeration value="CommunicationCompletedChanges" />
                 <xs:enumeration value="CommunicationIncompletedChanges" />
