@@ -447,6 +447,8 @@ namespace CloudApiPublic.Static
 
         // Cloud Sync Status
         public const string CLEventTypeAccepted = "ok";
+        public const string CLEventTypeAlreadyDeleted = "already_deleted";
+        public const string CLEventTypeNoOperation = "no_op";
         public const string CLEventTypeUpload = "upload";
         public const string CLEventTypeExists = "exists";
         public const string CLEventTypeDuplicate = "duplicate";
