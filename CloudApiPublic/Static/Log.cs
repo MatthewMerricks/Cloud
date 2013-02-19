@@ -633,6 +633,9 @@ namespace CloudApiPublic.Static
         GrabChangesOutputChangesInError,
 
         /// <remarks/>
+        InitialRunFileTransfer,
+
+        /// <remarks/>
         SyncRunPreprocessedEventsSynchronous,
 
         /// <remarks/>
@@ -640,6 +643,9 @@ namespace CloudApiPublic.Static
 
         /// <remarks/>
         SyncRunRequeuedFailuresBeforeCommunication,
+        
+        /// <remarks/>
+        SyncRunErrorSyncFromForCommunication,
 
         /// <remarks/>
         SyncRunChangesForCommunication,

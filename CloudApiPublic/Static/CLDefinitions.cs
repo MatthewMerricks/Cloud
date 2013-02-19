@@ -470,7 +470,7 @@ namespace CloudApiPublic.Static
         public const string CLMetadataFileIsLink = "is_link";
         public const string CLMetadataFileSize = "file_size";
         /// <summary>
-        /// Be careful, this may be the wrong key name, you may need <see cref="CLDefinitions.CLMetadataIsStored"/>
+        /// Be careful, this may be the wrong key name, you may need the inverse of <see cref="CLDefinitions.CLMetadataIsStored"/>
         /// </summary>
         public const string CLMetadataIsPending = "is_pending";
         public const string CLMetadataFromPath = "from_path";

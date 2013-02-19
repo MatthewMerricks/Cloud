@@ -2528,172 +2528,184 @@ namespace CloudApiPublic.Static
                         // set the response body to a value that will be displayed if the actual response fails to process
                         responseBody = "---Incomplete file download---";
 
-                        if (uploadDownload.StatusUpdate != null
-                            && uploadDownload.StatusUpdateId != null)
+                        try
                         {
-                            try
+                            if (uploadDownload.StatusUpdate != null
+                                && uploadDownload.StatusUpdateId != null)
                             {
-                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
-                                    uploadDownload.ChangeToTransfer.EventId,
-                                    uploadDownload.ChangeToTransfer.Direction,
-                                    uploadDownload.RelativePathForStatus,
-                                    0,
-                                    (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
-                                    false);
-                            }
-                            catch
-                            {
-                            }
-                        }
-
-                        // create a new unique id for the download
-                        Guid newTempFile = Guid.NewGuid();
-
-                        // if a callback was provided to fire before a download starts, then fire it
-                        if (((downloadParams)uploadDownload).BeforeDownloadCallback != null)
-                        {
-                            ((downloadParams)uploadDownload).BeforeDownloadCallback(newTempFile, ((downloadParams)uploadDownload).BeforeDownloadUserState);
-                        }
-
-                        // calculate location for downloading the file
-                        string newTempFileString = ((downloadParams)uploadDownload).TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
-
-                        if (uploadDownload.ProgressHolder != null)
-                        {
-                            lock (uploadDownload.ProgressHolder)
-                            {
-                                uploadDownload.ProgressHolder.Value = new TransferProgress(
-                                    0,
-                                    storeSizeForStatus);
-                            }
-                        }
-
-                        if (uploadDownload.ACallback != null)
-                        {
-                            uploadDownload.ACallback(uploadDownload.AResult);
-                        }
-
-                        // get the stream of the download
-                        using (Stream downloadResponseStream = httpResponse.GetResponseStream())
-                        {
-                            // create a stream by creating a non-shared writable file at the file path
-                            using (FileStream tempFileStream = new FileStream(newTempFileString, FileMode.Create, FileAccess.Write, FileShare.None))
-                            {
-                                // define a count for the total bytes downloaded
-                                long totalBytesDownloaded = 0;
-                                // create the buffer for transferring bytes from the download stream to the file stream
-                                byte[] data = new byte[CLDefinitions.SyncConstantsResponseBufferSize];
-                                // declare an int for the amount of bytes read in each buffer transfer
-                                int read;
-
-                                // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the download stream and store the read byte count
-                                while ((read = downloadResponseStream.Read(data, 0, data.Length)) > 0)
+                                try
                                 {
-                                    // write the current buffer to the file
-                                    tempFileStream.Write(data, 0, read);
-                                    // append the count of the read bytes on this buffer transfer to the total downloaded
-                                    totalBytesDownloaded += read;
+                                    uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                        uploadDownload.ChangeToTransfer.EventId,
+                                        uploadDownload.ChangeToTransfer.Direction,
+                                        uploadDownload.RelativePathForStatus,
+                                        0,
+                                        (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
+                                        false);
+                                }
+                                catch
+                                {
+                                }
+                            }
 
-                                    // check for sync shutdown
-                                    if (uploadDownload.ShutdownToken != null)
+                            // create a new unique id for the download
+                            Guid newTempFile = Guid.NewGuid();
+
+                            // if a callback was provided to fire before a download starts, then fire it
+                            if (((downloadParams)uploadDownload).BeforeDownloadCallback != null)
+                            {
+                                ((downloadParams)uploadDownload).BeforeDownloadCallback(newTempFile, ((downloadParams)uploadDownload).BeforeDownloadUserState);
+                            }
+
+                            // calculate location for downloading the file
+                            string newTempFileString = ((downloadParams)uploadDownload).TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
+
+                            if (uploadDownload.ProgressHolder != null)
+                            {
+                                lock (uploadDownload.ProgressHolder)
+                                {
+                                    uploadDownload.ProgressHolder.Value = new TransferProgress(
+                                        0,
+                                        storeSizeForStatus);
+                                }
+                            }
+
+                            if (uploadDownload.ACallback != null)
+                            {
+                                uploadDownload.ACallback(uploadDownload.AResult);
+                            }
+
+                            // get the stream of the download
+                            using (Stream downloadResponseStream = httpResponse.GetResponseStream())
+                            {
+                                // create a stream by creating a non-shared writable file at the file path
+                                using (FileStream tempFileStream = new FileStream(newTempFileString, FileMode.Create, FileAccess.Write, FileShare.None))
+                                {
+                                    // define a count for the total bytes downloaded
+                                    long totalBytesDownloaded = 0;
+                                    // create the buffer for transferring bytes from the download stream to the file stream
+                                    byte[] data = new byte[CLDefinitions.SyncConstantsResponseBufferSize];
+                                    // declare an int for the amount of bytes read in each buffer transfer
+                                    int read;
+
+                                    // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the download stream and store the read byte count
+                                    while ((read = downloadResponseStream.Read(data, 0, data.Length)) > 0)
                                     {
-                                        Monitor.Enter(uploadDownload.ShutdownToken);
-                                        try
+                                        // write the current buffer to the file
+                                        tempFileStream.Write(data, 0, read);
+                                        // append the count of the read bytes on this buffer transfer to the total downloaded
+                                        totalBytesDownloaded += read;
+
+                                        // check for sync shutdown
+                                        if (uploadDownload.ShutdownToken != null)
                                         {
-                                            if (uploadDownload.ShutdownToken.Token.IsCancellationRequested)
+                                            Monitor.Enter(uploadDownload.ShutdownToken);
+                                            try
                                             {
-                                                status = CLHttpRestStatus.Cancelled;
-                                                return null;
+                                                if (uploadDownload.ShutdownToken.Token.IsCancellationRequested)
+                                                {
+                                                    status = CLHttpRestStatus.Cancelled;
+
+                                                    responseBody = (responseBody ?? "---responseBody set to null---").TrimEnd('-') + ": cancelled---";
+
+                                                    return null;
+                                                }
+                                            }
+                                            finally
+                                            {
+                                                Monitor.Exit(uploadDownload.ShutdownToken);
                                             }
                                         }
-                                        finally
-                                        {
-                                            Monitor.Exit(uploadDownload.ShutdownToken);
-                                        }
-                                    }
 
-                                    if (uploadDownload.ProgressHolder != null)
-                                    {
-                                        lock (uploadDownload.ProgressHolder)
+                                        if (uploadDownload.ProgressHolder != null)
                                         {
-                                            uploadDownload.ProgressHolder.Value = new TransferProgress(
-                                                totalBytesDownloaded,
-                                                storeSizeForStatus);
+                                            lock (uploadDownload.ProgressHolder)
+                                            {
+                                                uploadDownload.ProgressHolder.Value = new TransferProgress(
+                                                    totalBytesDownloaded,
+                                                    storeSizeForStatus);
+                                            }
                                         }
-                                    }
 
-                                    if (uploadDownload.ACallback != null)
-                                    {
-                                        uploadDownload.ACallback(uploadDownload.AResult);
-                                    }
-
-                                    if (uploadDownload.StatusUpdate != null
-                                        && uploadDownload.StatusUpdateId != null)
-                                    {
-                                        try
+                                        if (uploadDownload.ACallback != null)
                                         {
-                                            uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
-                                                uploadDownload.ChangeToTransfer.EventId,
-                                                uploadDownload.ChangeToTransfer.Direction,
-                                                uploadDownload.RelativePathForStatus,
-                                                totalBytesDownloaded,
-                                                (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
-                                                false);
+                                            uploadDownload.ACallback(uploadDownload.AResult);
                                         }
-                                        catch
-                                        {
-                                        }
-                                    }
 
-                                    // fire event callbacks for status change on uploading
-                                    uploadDownload.StatusCallback(
-                                        new CLStatusFileTransferUpdateParameters(
-                                                transferStartTime, // start time for download
-                                                storeSizeForStatus, // total file size
-                                                uploadDownload.RelativePathForStatus, // relative path of file
-                                                totalBytesDownloaded), // current count of completed download bytes
-                                        uploadDownload.ChangeToTransfer, // the source of the event, the event itself
-                                        SyncBoxId, // pass in sync box id for filtering
-                                        CopiedSettings.DeviceId); // pass in device id for filtering
+                                        if (uploadDownload.StatusUpdate != null
+                                            && uploadDownload.StatusUpdateId != null)
+                                        {
+                                            try
+                                            {
+                                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                                    uploadDownload.ChangeToTransfer.EventId,
+                                                    uploadDownload.ChangeToTransfer.Direction,
+                                                    uploadDownload.RelativePathForStatus,
+                                                    totalBytesDownloaded,
+                                                    (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
+                                                    false);
+                                            }
+                                            catch
+                                            {
+                                            }
+                                        }
+
+                                        // fire event callbacks for status change on uploading
+                                        uploadDownload.StatusCallback(
+                                            new CLStatusFileTransferUpdateParameters(
+                                                    transferStartTime, // start time for download
+                                                    storeSizeForStatus, // total file size
+                                                    uploadDownload.RelativePathForStatus, // relative path of file
+                                                    totalBytesDownloaded), // current count of completed download bytes
+                                            uploadDownload.ChangeToTransfer, // the source of the event, the event itself
+                                            SyncBoxId, // pass in sync box id for filtering
+                                            CopiedSettings.DeviceId); // pass in device id for filtering
+                                    }
+                                    // flush file stream to finish the file
+                                    tempFileStream.Flush();
                                 }
-                                // flush file stream to finish the file
-                                tempFileStream.Flush();
+                            }
+
+                            // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
+                            // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
+                            // attributes to set: creation time, last modified time, and last access time
+
+                            Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
+                                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
+                                true);
+                            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
+                                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                                true);
+                            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
+                                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                                true);
+
+
+                            // fire callback to perform the actual move of the temp file to the final destination
+                            ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
+                                uploadDownload.ChangeToTransfer,
+                                ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
+                                ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
+                                newTempFile); // id for the downloaded file
+
+                            // if the after downloading callback set the response to null, then replace it saying it was null
+                            if (responseBody == null)
+                            {
+                                responseBody = "---responseBody set to null---";
+                            }
+
+                            // if a string can be output as the return type, then return the response (which is not the actual download, but a simple string status representation)
+                            if (typeof(T) == typeof(string)
+                                || typeof(T) == typeof(object))
+                            {
+                                toReturn = (T)((object)responseBody);
                             }
                         }
-
-                        // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
-                        // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
-                        // attributes to set: creation time, last modified time, and last access time
-
-                        Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
-                            new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
-                            true);
-                        Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
-                            new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
-                            true);
-                        Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
-                            new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
-                            true);
-
-
-                        // fire callback to perform the actual move of the temp file to the final destination
-                        ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
-                            uploadDownload.ChangeToTransfer,
-                            ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
-                            ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
-                            newTempFile); // id for the downloaded file
-
-                        // if the after downloading callback set the response to null, then replace it saying it was null
-                        if (responseBody == null)
+                        catch (Exception ex)
                         {
-                            responseBody = "---responseBody set to null---";
-                        }
+                            responseBody = (responseBody ?? "---responseBody set to null---").TrimEnd('-') + ": " + ex.Message + "---";
 
-                        // if a string can be output as the return type, then return the response (which is not the actual download, but a simple string status representation)
-                        if (typeof(T) == typeof(string)
-                            || typeof(T) == typeof(object))
-                        {
-                            toReturn = (T)((object)responseBody);
+                            throw ex;
                         }
                     }
                 }
