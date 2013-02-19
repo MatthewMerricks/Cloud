@@ -4596,7 +4596,7 @@ namespace CloudApiPublic.REST
         }
         #endregion
 
-        #region SyncBoxUpdateExtendedMetadata
+        #region UpdateSyncBoxExtendedMetadata
         /// <summary>
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
@@ -4605,7 +4605,7 @@ namespace CloudApiPublic.REST
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginSyncBoxUpdateExtendedMetadata<T>(AsyncCallback aCallback,
+        public IAsyncResult BeginUpdateSyncBoxExtendedMetadata<T>(AsyncCallback aCallback,
             object aState,
             IDictionary<string, T> metadata,
             int timeoutMilliseconds)
@@ -4643,7 +4643,7 @@ namespace CloudApiPublic.REST
                         // declare the specific type of result for this operation
                         JsonContracts.SyncBoxHolder result;
                         // purge pending files with the passed parameters, storing any error that occurs
-                        CLError processError = SyncBoxUpdateExtendedMetadata(
+                        CLError processError = UpdateSyncBoxExtendedMetadata(
                             castState.Item2,
                             castState.Item3,
                             out status,
@@ -4685,7 +4685,7 @@ namespace CloudApiPublic.REST
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginSyncBoxUpdateExtendedMetadata(AsyncCallback aCallback,
+        public IAsyncResult BeginUpdateSyncBoxExtendedMetadata(AsyncCallback aCallback,
             object aState,
             MetadataDictionary metadata,
             int timeoutMilliseconds)
@@ -4723,7 +4723,7 @@ namespace CloudApiPublic.REST
                         // declare the specific type of result for this operation
                         JsonContracts.SyncBoxHolder result;
                         // purge pending files with the passed parameters, storing any error that occurs
-                        CLError processError = SyncBoxUpdateExtendedMetadata(
+                        CLError processError = UpdateSyncBoxExtendedMetadata(
                             castState.Item2,
                             castState.Item3,
                             out status,
@@ -4764,7 +4764,7 @@ namespace CloudApiPublic.REST
         /// <param name="aResult">The asynchronous result provided upon starting updating extended metadata</param>
         /// <param name="result">(output) The result from updating extended metadata</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndSyncBoxUpdateExtendedMetadata(IAsyncResult aResult, out SyncBoxUpdateExtendedMetadataResult result)
+        public CLError EndUpdateSyncBoxExtendedMetadata(IAsyncResult aResult, out SyncBoxUpdateExtendedMetadataResult result)
         {
             // declare the specific type of asynchronous result for updating extended metadata
             GenericAsyncResult<SyncBoxUpdateExtendedMetadataResult> castAResult;
@@ -4826,11 +4826,11 @@ namespace CloudApiPublic.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError SyncBoxUpdateExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        public CLError UpdateSyncBoxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
         {
             try
             {
-                return SyncBoxUpdateExtendedMetadata((metadata == null
+                return UpdateSyncBoxExtendedMetadata((metadata == null
                         ? null
                         : new JsonContracts.MetadataDictionary(
                             ((metadata is IDictionary<string, object>)
@@ -4854,7 +4854,7 @@ namespace CloudApiPublic.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError SyncBoxUpdateExtendedMetadata(MetadataDictionary metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        public CLError UpdateSyncBoxExtendedMetadata(MetadataDictionary metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -4893,7 +4893,7 @@ namespace CloudApiPublic.REST
         }
         #endregion
 
-        #region SyncBoxUpdateQuota (deprecated)
+        #region UpdateSyncBoxQuota (deprecated)
         ///// <summary>
         ///// Asynchronously updates the storage quota on a sync box
         ///// </summary>
@@ -4902,12 +4902,12 @@ namespace CloudApiPublic.REST
         ///// <param name="quotaSize">How many bytes big to make the storage quota</param>
         ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        //public IAsyncResult BeginSyncBoxUpdateQuota(AsyncCallback aCallback,
+        //public IAsyncResult BeginUpdateSyncBoxQuota(AsyncCallback aCallback,
         //    object aState,
         //    long quotaSize,
         //    int timeoutMilliseconds)
         //{
-        //    return BeginSyncBoxUpdateQuota(aCallback, aState, quotaSize, timeoutMilliseconds, reservedForActiveSync: false);
+        //    return BeginUpdateSyncBoxQuota(aCallback, aState, quotaSize, timeoutMilliseconds, reservedForActiveSync: false);
         //}
         
         ///// <summary>
@@ -4918,14 +4918,14 @@ namespace CloudApiPublic.REST
         ///// <param name="quotaSize">How many bytes big to make the storage quota</param>
         ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        //internal IAsyncResult BeginSyncBoxUpdateQuota(AsyncCallback aCallback,
+        //internal IAsyncResult BeginUpdateSyncBoxQuota(AsyncCallback aCallback,
         //    object aState,
         //    long quotaSize,
         //    int timeoutMilliseconds,
         //    bool reservedForActiveSync)
         //{
         //    // create the asynchronous result to return
-        //    GenericAsyncResult<SyncBoxUpdateQuotaResult> toReturn = new GenericAsyncResult<SyncBoxUpdateQuotaResult>(
+        //    GenericAsyncResult<UpdateSyncBoxQuotaResult> toReturn = new GenericAsyncResult<SyncBoxUpdateQuotaResult>(
         //        aCallback,
         //        aState);
 
@@ -4934,8 +4934,8 @@ namespace CloudApiPublic.REST
         //        CLHttpRestStatus unusedStatus;
         //        JsonContracts.SyncBoxHolder unusedResult;
         //        toReturn.Complete(
-        //            new SyncBoxUpdateQuotaResult(
-        //                SyncBoxUpdateQuota(
+        //            new UpdateSyncBoxQuotaResult(
+        //                UpdateSyncBoxQuota(
         //                    quotaSize,
         //                    timeoutMilliseconds,
         //                    out unusedStatus,
@@ -4948,8 +4948,8 @@ namespace CloudApiPublic.REST
         //    else
         //    {
         //        // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-        //        Tuple<GenericAsyncResult<SyncBoxUpdateQuotaResult>, long, int> asyncParams =
-        //            new Tuple<GenericAsyncResult<SyncBoxUpdateQuotaResult>, long, int>(
+        //        Tuple<GenericAsyncResult<UpdateSyncBoxQuotaResult>, long, int> asyncParams =
+        //            new Tuple<GenericAsyncResult<UpdateSyncBoxQuotaResult>, long, int>(
         //                toReturn,
         //                quotaSize,
         //                timeoutMilliseconds);
@@ -4958,7 +4958,7 @@ namespace CloudApiPublic.REST
         //        (new Thread(new ParameterizedThreadStart(state =>
         //        {
         //            // try cast the state as the object with all the input parameters
-        //            Tuple<GenericAsyncResult<SyncBoxUpdateQuotaResult>, long, int> castState = state as Tuple<GenericAsyncResult<SyncBoxUpdateQuotaResult>, long, int>;
+        //            Tuple<GenericAsyncResult<UpdateSyncBoxQuotaResult>, long, int> castState = state as Tuple<GenericAsyncResult<UpdateSyncBoxQuotaResult>, long, int>;
         //            // if the try cast failed, then show a message box for this unrecoverable error
         //            if (castState == null)
         //            {
@@ -4975,7 +4975,7 @@ namespace CloudApiPublic.REST
         //                    // declare the specific type of result for this operation
         //                    JsonContracts.SyncBoxHolder result;
         //                    // purge pending files with the passed parameters, storing any error that occurs
-        //                    CLError processError = SyncBoxUpdateQuota(
+        //                    CLError processError = UpdateSyncBoxQuota(
         //                        castState.Item2,
         //                        castState.Item3,
         //                        out status,
@@ -4985,7 +4985,7 @@ namespace CloudApiPublic.REST
         //                    if (castState.Item1 != null)
         //                    {
         //                        castState.Item1.Complete(
-        //                            new SyncBoxUpdateQuotaResult(
+        //                            new UpdateSyncBoxQuotaResult(
         //                                processError, // any error that may have occurred during processing
         //                                status, // the output status of communication
         //                                result), // the specific type of result for this operation
@@ -5017,16 +5017,16 @@ namespace CloudApiPublic.REST
         ///// <param name="aResult">The asynchronous result provided upon starting updating storage quota</param>
         ///// <param name="result">(output) The result from updating storage quota</param>
         ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        //public CLError EndSyncBoxUpdateQuota(IAsyncResult aResult, out SyncBoxUpdateQuotaResult result)
+        //public CLError EndUpdateSyncBoxQuota(IAsyncResult aResult, out UpdateSyncBoxQuotaResult result)
         //{
         //    // declare the specific type of asynchronous result for updating storage quota
-        //    GenericAsyncResult<SyncBoxUpdateQuotaResult> castAResult;
+        //    GenericAsyncResult<UpdateSyncBoxQuotaResult> castAResult;
 
         //    // try/catch to try casting the asynchronous result as the type for updating storage quota and pull the result (possibly incomplete), on catch default the output and return the error
         //    try
         //    {
         //        // try cast the asynchronous result as the type for updating storage quota
-        //        castAResult = aResult as GenericAsyncResult<SyncBoxUpdateQuotaResult>;
+        //        castAResult = aResult as GenericAsyncResult<UpdateSyncBoxQuotaResult>;
 
         //        // if trying to cast the asynchronous result failed, then throw an error
         //        if (castAResult == null)
@@ -5039,7 +5039,7 @@ namespace CloudApiPublic.REST
         //    }
         //    catch (Exception ex)
         //    {
-        //        result = Helpers.DefaultForType<SyncBoxUpdateQuotaResult>();
+        //        result = Helpers.DefaultForType<UpdateSyncBoxQuotaResult>();
         //        return ex;
         //    }
 
@@ -5079,10 +5079,9 @@ namespace CloudApiPublic.REST
         ///// <param name="status">(output) success/failure status of communication</param>
         ///// <param name="response">(output) response object from communication</param>
         ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError SyncBoxUpdateQuota(long quotaSize, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        //public CLError UpdateSyncBoxQuota(long quotaSize, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
         //{
-        //    throw new NotSupportedException("SyncBoxUpdateQuota has been deprecated");
-        //    //return SyncBoxUpdateQuota(quotaSize, timeoutMilliseconds, out status, out response, reservedForActiveSync: false);
+        //    return UpdateSyncBoxQuota(quotaSize, timeoutMilliseconds, out status, out response, reservedForActiveSync: false);
         //}
 
         ///// <summary>
@@ -5093,7 +5092,7 @@ namespace CloudApiPublic.REST
         ///// <param name="status">(output) success/failure status of communication</param>
         ///// <param name="response">(output) response object from communication</param>
         ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //internal CLError SyncBoxUpdateQuota(long quotaSize, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response, bool reservedForActiveSync)
+        //internal CLError UpdateSyncBoxQuota(long quotaSize, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response, bool reservedForActiveSync)
         //{
         //    if (reservedForActiveSync)
         //    {
@@ -5149,6 +5148,523 @@ namespace CloudApiPublic.REST
         //    }
         //    return null;
         //}
+        #endregion
+
+        #region UpdateSyncBoxPlan
+        /// <summary>
+        /// Asynchronously updates the plan used by a sync box
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="planId">The ID of the plan to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginUpdateSyncBoxPlan(AsyncCallback aCallback,
+            object aState,
+            long planId,
+            int timeoutMilliseconds)
+        {
+            return BeginUpdateSyncBoxPlan(aCallback, aState, planId, timeoutMilliseconds, reservedForActiveSync: false);
+        }
+
+        /// <summary>
+        /// Internal helper (extra bool to fail immediately): Asynchronously updates the plan on a sync box
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="planId">The ID of the plan to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginUpdateSyncBoxPlan(AsyncCallback aCallback,
+            object aState,
+            long planId,
+            int timeoutMilliseconds,
+            bool reservedForActiveSync)
+        {
+            // create the asynchronous result to return
+            GenericAsyncResult<SyncBoxUpdatePlanResult> toReturn = new GenericAsyncResult<SyncBoxUpdatePlanResult>(
+                aCallback,
+                aState);
+
+            if (reservedForActiveSync)
+            {
+                CLHttpRestStatus unusedStatus;
+                JsonContracts.SyncBoxUpdatePlanResponse unusedResult;
+                toReturn.Complete(
+                    new SyncBoxUpdatePlanResult(
+                        UpdateSyncBoxPlan(
+                            planId,
+                            timeoutMilliseconds,
+                            out unusedStatus,
+                            out unusedResult,
+                            reservedForActiveSync),
+                        unusedStatus,
+                        unusedResult),
+                    sCompleted: true);
+            }
+            else
+            {
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                Tuple<GenericAsyncResult<SyncBoxUpdatePlanResult>, long, int> asyncParams =
+                    new Tuple<GenericAsyncResult<SyncBoxUpdatePlanResult>, long, int>(
+                        toReturn,
+                        planId,
+                        timeoutMilliseconds);
+
+                // create the thread from a void (object) parameterized start which wraps the synchronous method call
+                (new Thread(new ParameterizedThreadStart(state =>
+                {
+                    // try cast the state as the object with all the input parameters
+                    Tuple<GenericAsyncResult<SyncBoxUpdatePlanResult>, long, int> castState = state as Tuple<GenericAsyncResult<SyncBoxUpdatePlanResult>, long, int>;
+                    // if the try cast failed, then show a message box for this unrecoverable error
+                    if (castState == null)
+                    {
+                        MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+                    }
+                    // else if the try cast did not fail, then start processing with the input parameters
+                    else
+                    {
+                        // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                        try
+                        {
+                            // declare the output status for communication
+                            CLHttpRestStatus status;
+                            // declare the specific type of result for this operation
+                            JsonContracts.SyncBoxUpdatePlanResponse result;
+                            // purge pending files with the passed parameters, storing any error that occurs
+                            CLError processError = UpdateSyncBoxPlan(
+                                castState.Item2,
+                                castState.Item3,
+                                out status,
+                                out result);
+
+                            // if there was an asynchronous result in the parameters, then complete it with a new result object
+                            if (castState.Item1 != null)
+                            {
+                                castState.Item1.Complete(
+                                    new SyncBoxUpdatePlanResult(
+                                        processError, // any error that may have occurred during processing
+                                        status, // the output status of communication
+                                        result), // the specific type of result for this operation
+                                        sCompleted: false); // processing did not complete synchronously
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // if there was an asynchronous result in the parameters, then pass through the exception to it
+                            if (castState.Item1 != null)
+                            {
+                                castState.Item1.HandleException(
+                                    ex, // the exception which was not handled correctly by the CLError wrapping
+                                    sCompleted: false); // processing did not complete synchronously
+                            }
+                        }
+                    }
+                }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+            }
+
+            // return the asynchronous result
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Finishes updating the plan on a sync box if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting updating the plan</param>
+        /// <param name="result">(output) The result from updating the plan</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndUpdateSyncBoxPlan(IAsyncResult aResult, out SyncBoxUpdatePlanResult result)
+        {
+            // declare the specific type of asynchronous result for updating the plan
+            GenericAsyncResult<SyncBoxUpdatePlanResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the type for updating the plan and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type for updating the plan
+                castAResult = aResult as GenericAsyncResult<SyncBoxUpdatePlanResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncBoxUpdatePlanResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Updates the the plan on a sync box
+        /// </summary>
+        /// <param name="planId">The ID of the plan to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError UpdateSyncBoxPlan(long planId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxUpdatePlanResponse response)
+        {
+            return UpdateSyncBoxPlan(planId, timeoutMilliseconds, out status, out response, reservedForActiveSync: false);
+        }
+
+        /// <summary>
+        /// Internal helper (extra bool to fail immediately): Updates the plan on a sync box
+        /// </summary>
+        /// <param name="planId">The ID of the plan to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError UpdateSyncBoxPlan(long planId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxUpdatePlanResponse response, bool reservedForActiveSync)
+        {
+            if (reservedForActiveSync)
+            {
+                status = CLHttpRestStatus.ReservedForActiveSync;
+                response = Helpers.DefaultForType<JsonContracts.SyncBoxUpdatePlanResponse>();
+                return new Exception("Current SyncBox cannot be modified while in use in active syncing");
+            }
+
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+
+            IncrementModifyingSyncBoxViaPublicAPICalls();
+
+            // try/catch to process updating plan, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                if (planId == 0)
+                {
+                    throw new ArgumentException("planId must not be zero");
+                }
+
+                response = Helpers.ProcessHttp<JsonContracts.SyncBoxUpdatePlanResponse>(new JsonContracts.SyncBoxUpdatePlanRequest() // json contract object for sync box update plan request
+                {
+                    SyncBoxId = SyncBoxId,
+                    PlanId = planId
+                },
+                    CLDefinitions.CLPlatformAuthServerURL, // Platform server URL
+                    CLDefinitions.MethodPathAuthSyncBoxUpdatePlan, // sync box update plan path
+                    Helpers.requestMethod.post, // sync box update plan is a post operation
+                    timeoutMilliseconds, // set the timeout for the operation
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // sync box update plan should give OK or Accepted
+                    ref status, // reference to update output status
+                    _copiedSettings, // pass the copied settings
+                    _credential, // pass the key/secret
+                    _syncBoxId); // pass the unique id of the sync box on the server
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.SyncBoxUpdatePlanResponse>();
+                return ex;
+            }
+            finally
+            {
+                DecrementModifyingSyncBoxViaPublicAPICalls();
+            }
+            return null;
+        }
+        #endregion
+
+        #region UpdateSyncBox
+        /// <summary>
+        /// Asynchronously updates the properties of a sync box
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="friendlyName">The friendly name of the syncbox to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginUpdateSyncBox(AsyncCallback aCallback,
+            object aState,
+            string friendlyName,
+            int timeoutMilliseconds)
+        {
+            return BeginUpdateSyncBox(aCallback, aState, friendlyName, timeoutMilliseconds, reservedForActiveSync: false);
+        }
+
+        /// <summary>
+        /// Internal helper (extra bool to fail immediately): Asynchronously updates the properties of a sync box
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="friendlyName">The friendly name of the syncbox to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginUpdateSyncBox(AsyncCallback aCallback,
+            object aState,
+            string friendlyName,
+            int timeoutMilliseconds,
+            bool reservedForActiveSync)
+        {
+            // create the asynchronous result to return
+            GenericAsyncResult<SyncBoxUpdateResult> toReturn = new GenericAsyncResult<SyncBoxUpdateResult>(
+                aCallback,
+                aState);
+
+            if (reservedForActiveSync)
+            {
+                CLHttpRestStatus unusedStatus;
+                JsonContracts.SyncBoxHolder unusedResult;
+                toReturn.Complete(
+                    new SyncBoxUpdateResult(
+                        UpdateSyncBox(
+                            friendlyName,
+                            timeoutMilliseconds,
+                            out unusedStatus,
+                            out unusedResult,
+                            reservedForActiveSync),
+                        unusedStatus,
+                        unusedResult),
+                    sCompleted: true);
+            }
+            else
+            {
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                Tuple<GenericAsyncResult<SyncBoxUpdateResult>, string, int> asyncParams =
+                    new Tuple<GenericAsyncResult<SyncBoxUpdateResult>, string, int>(
+                        toReturn,
+                        friendlyName,
+                        timeoutMilliseconds);
+
+                // create the thread from a void (object) parameterized start which wraps the synchronous method call
+                (new Thread(new ParameterizedThreadStart(state =>
+                {
+                    // try cast the state as the object with all the input parameters
+                    Tuple<GenericAsyncResult<SyncBoxUpdateResult>, string, int> castState = state as Tuple<GenericAsyncResult<SyncBoxUpdateResult>, string, int>;
+                    // if the try cast failed, then show a message box for this unrecoverable error
+                    if (castState == null)
+                    {
+                        MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+                    }
+                    // else if the try cast did not fail, then start processing with the input parameters
+                    else
+                    {
+                        // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                        try
+                        {
+                            // declare the output status for communication
+                            CLHttpRestStatus status;
+                            // declare the specific type of result for this operation
+                            JsonContracts.SyncBoxHolder result;
+                            // purge pending files with the passed parameters, storing any error that occurs
+                            CLError processError = UpdateSyncBox(
+                                castState.Item2,
+                                castState.Item3,
+                                out status,
+                                out result);
+
+                            // if there was an asynchronous result in the parameters, then complete it with a new result object
+                            if (castState.Item1 != null)
+                            {
+                                castState.Item1.Complete(
+                                    new SyncBoxUpdateResult(
+                                        processError, // any error that may have occurred during processing
+                                        status, // the output status of communication
+                                        result), // the specific type of result for this operation
+                                        sCompleted: false); // processing did not complete synchronously
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // if there was an asynchronous result in the parameters, then pass through the exception to it
+                            if (castState.Item1 != null)
+                            {
+                                castState.Item1.HandleException(
+                                    ex, // the exception which was not handled correctly by the CLError wrapping
+                                    sCompleted: false); // processing did not complete synchronously
+                            }
+                        }
+                    }
+                }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+            }
+
+            // return the asynchronous result
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Finishes updating the properties of a sync box if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting updating the properties</param>
+        /// <param name="result">(output) The result from updating the properties</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndUpdateSyncBox(IAsyncResult aResult, out SyncBoxUpdateResult result)
+        {
+            // declare the specific type of asynchronous result for updating the properties
+            GenericAsyncResult<SyncBoxUpdateResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the type for updating the properties and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type for setting the properties of the syncbox
+                castAResult = aResult as GenericAsyncResult<SyncBoxUpdateResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncBoxUpdateResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Updates the the properties of a sync box
+        /// </summary>
+        /// <param name="friendlyName">The friendly name of the syncbox to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError UpdateSyncBox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response)
+        {
+            return UpdateSyncBox(friendlyName, timeoutMilliseconds, out status, out response, reservedForActiveSync: false);
+        }
+
+        /// <summary>
+        /// Internal helper (extra bool to fail immediately): Updates the properties of a sync box
+        /// </summary>
+        /// <param name="friendlyName">The friendly name of the syncbox to set</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError UpdateSyncBox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response, bool reservedForActiveSync)
+        {
+            if (reservedForActiveSync)
+            {
+                status = CLHttpRestStatus.ReservedForActiveSync;
+                response = Helpers.DefaultForType<JsonContracts.SyncBoxHolder>();
+                return new Exception("Current SyncBox cannot be modified while in use in active syncing");
+            }
+
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+
+            IncrementModifyingSyncBoxViaPublicAPICalls();
+
+            // try/catch to process updating the properties, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                if (String.IsNullOrWhiteSpace(friendlyName))
+                {
+                    throw new ArgumentException("friendlyName must be specified");
+                }
+
+                response = Helpers.ProcessHttp<JsonContracts.SyncBoxHolder>(new JsonContracts.SyncBoxUpdateRequest() // json contract object for sync box update request
+                {
+                    SyncBoxId = SyncBoxId,
+                    SyncBox = new JsonContracts.SyncBoxForUpdateRequest()
+                    {
+                        FriendlyName = friendlyName
+                    }
+                },
+                    CLDefinitions.CLPlatformAuthServerURL, // Platform server URL
+                    CLDefinitions.MethodPathAuthSyncBoxUpdate, // sync box update
+                    Helpers.requestMethod.post, // sync box update is a post operation
+                    timeoutMilliseconds, // set the timeout for the operation
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // sync box update should give OK or Accepted
+                    ref status, // reference to update output status
+                    _copiedSettings, // pass the copied settings
+                    _credential, // pass the key/secret
+                    _syncBoxId); // pass the unique id of the sync box on the server
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.SyncBoxHolder>();
+                return ex;
+            }
+            finally
+            {
+                DecrementModifyingSyncBoxViaPublicAPICalls();
+            }
+            return null;
+        }
         #endregion
 
         #region DeleteSyncBox
