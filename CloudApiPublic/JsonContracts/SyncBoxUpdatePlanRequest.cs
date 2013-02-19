@@ -1,8 +1,8 @@
 ﻿//
-// SyncBoxQuota.cs
+// SyncBoxUpdatePlanRequest.cs
 // Cloud Windows
 //
-// Created By DavidBruck.
+// Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
 using CloudApiPublic.Model;
@@ -16,15 +16,15 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.UpdateSyncBoxQuota"/>
+    /// Request to update the plan used by a sync box.
     /// </summary>
     [DataContract]
-    internal sealed class SyncBoxQuota
+    internal sealed class SyncBoxUpdatePlanRequest
     {
         [DataMember(Name = CLDefinitions.RESTResponseSyncBoxId, IsRequired = false)]
-        public Nullable<long> Id { get; set; }
+        public long SyncBoxId { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxStorageQuotaUpdateOnly, IsRequired = false)]
-        public Nullable<long> StorageQuota { get; set; }
+        [DataMember(Name = CLDefinitions.RESTRequestSyncBoxPlanId, IsRequired = false)]
+        public long PlanId { get; set; }
     }
 }

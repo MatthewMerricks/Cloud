@@ -1,5 +1,5 @@
 ﻿//
-// ListPlans.cs
+// SessionShowResponse.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -16,10 +16,10 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLCredential.ListPlans"/>
+    /// Result from <see cref="CloudApiPublic.CLCredential.ShowSession"/>
     /// </summary>
     [DataContract]
-    public sealed class ListPlans
+    public sealed class SessionShowResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }
@@ -27,7 +27,7 @@ namespace CloudApiPublic.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
         public string Message { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponsePlans, IsRequired = false)]
-        public Plan[] Plans { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponseSession, IsRequired = false)]
+        public Session Session { get; set; }
     }
 }

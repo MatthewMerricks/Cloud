@@ -123,10 +123,11 @@ namespace CloudApiPublic.Sync
         }
 
         #region WSAData
-        public delegate void NetworkChangedEventHandler(object sender,
-          NetworkChangedEventArgs e);
+        public delegate void NetworkChangedEventHandler(
+            object sender,
+            NetworkChangedEventArgs e);
 
-        private Int32 monitorLookup = 0;
+        private IntPtr monitorLookup = IntPtr.Zero;
 
         private readonly GenericHolder<bool> WSAStarted = new GenericHolder<bool>(false);
         private void StartWSAIfNotStarted()
@@ -163,15 +164,22 @@ namespace CloudApiPublic.Sync
 
             dwControlFlags = 0x0FF0; //LUP_RETURN_ALL;
 
-            int nResult = NativeMethods.WSALookupServiceBegin(qsRestrictions,
-                  dwControlFlags, ref monitorLookup);
+            int nResult = NativeMethods.WSALookupServiceBegin(
+                qsRestrictions,
+                dwControlFlags,
+                ref monitorLookup);
 
             Int32 dwBytesReturned = 0;
             UInt32 cCode = 0x88000019; //SIO_NSP_NOTIFY_CHANGE
-            nResult = NativeMethods.WSANSPIoctl(monitorLookup, cCode,
-                  new IntPtr(), 0, new IntPtr(), 0,
-                  ref dwBytesReturned,
-                  new IntPtr());
+            nResult = NativeMethods.WSANSPIoctl(
+                monitorLookup,
+                cCode,
+                new IntPtr(),
+                0,
+                new IntPtr(),
+                0,
+                ref dwBytesReturned,
+                new IntPtr());
 
             if (0 != nResult)
             {
@@ -179,7 +187,7 @@ namespace CloudApiPublic.Sync
             }
 
             nResult = NativeMethods.WSALookupServiceEnd(monitorLookup);
-            monitorLookup = 0;
+            monitorLookup = IntPtr.Zero;
         }
 
         public event NetworkChangedEventHandler NetworkChanged;
@@ -268,15 +276,17 @@ namespace CloudApiPublic.Sync
 
             NativeMethods.WSAQUERYSET qsRestrictions;
             Int32 dwControlFlags;
-            Int32 valHandle = 0;
+            IntPtr valHandle = IntPtr.Zero;
 
             qsRestrictions = new NativeMethods.WSAQUERYSET();
             qsRestrictions.dwSize = Marshal.SizeOf(typeof(NativeMethods.WSAQUERYSET));
             qsRestrictions.dwNameSpace = NativeMethods.NAMESPACE_PROVIDER_PTYPE.NS_NLA;
             dwControlFlags = 0x0FF0; //LUP_RETURN_ALL;
 
-            int result = NativeMethods.WSALookupServiceBegin(qsRestrictions,
-              dwControlFlags, ref valHandle);
+            int result = NativeMethods.WSALookupServiceBegin(
+                qsRestrictions,
+                dwControlFlags,
+                ref valHandle);
 
             if (result != 0)
             {
