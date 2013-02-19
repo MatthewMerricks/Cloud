@@ -6079,6 +6079,30 @@ namespace CloudApiPublic.Sync
                                 // define a bool for whether the current event is a rename but no metadata was found amongst current FileChanges nor in the last sync states in the database
                                 bool notFoundRename = false;
 
+                                // define an action to add the current FileChange to the list of incomplete changes, including any Stream and whether or not the FileChange requires updating the event source database
+                                Action<Dictionary<long, List<PossiblyStreamableAndPossiblyChangedFileChange>>, FileChangeWithDependencies, Stream, bool> AddToIncompleteChanges = (innerIncompleteChangesList, innerCurrentChange, innerCurrentStream, innerMetadataIsDifferent) =>
+                                {
+                                    // wrap the current change for adding to the incomplete changes list
+                                    PossiblyStreamableAndPossiblyChangedFileChange addChange = new PossiblyStreamableAndPossiblyChangedFileChange(innerMetadataIsDifferent,
+                                        innerCurrentChange,
+                                        innerCurrentStream);
+
+                                    // if the incomplete change's map already contains the current change's event id, then add the current change to the existing list
+                                    if (innerIncompleteChangesList.ContainsKey(innerCurrentChange.EventId))
+                                    {
+                                        innerIncompleteChangesList[innerCurrentChange.EventId].Add(addChange);
+                                    }
+                                    // else if the incomplete change's map does not already contain the current change's event id, then create a new list with only the current change and add it to the map for the current change's event id
+                                    else
+                                    {
+                                        innerIncompleteChangesList.Add(innerCurrentChange.EventId,
+                                            new List<PossiblyStreamableAndPossiblyChangedFileChange>(new[]
+                                                    {
+                                                        addChange
+                                                    }));
+                                    }
+                                };
+
                                 switch (currentChange.Type)
                                 {
                                     // if the current event is a rename, then try to find its metadata from existing changes, the database, or lastly if not found then mark it not found and try to query the server for metadata and process a new event
@@ -6328,6 +6352,208 @@ namespace CloudApiPublic.Sync
                                                                 });
                                                         }
 
+
+                                                        // a file may still exist at the old path on disk, so to make sure the server looks the same, we must duplicate the file on the server
+                                                        // TODO: all System.IO or disk access should be done through syncData ISyncDataObject interface object
+
+                                                        if (currentChange.OldPath != null)
+                                                        {
+                                                            FileStream uploadStreamForDuplication = null;
+                                                            try
+                                                            {
+                                                                string oldPathString = currentChange.OldPath.ToString();
+                                                                bool fileExists;
+                                                                try
+                                                                {
+                                                                    fileExists = File.Exists(oldPathString);
+
+                                                                    if (fileExists)
+                                                                    {
+                                                                        uploadStreamForDuplication = new FileStream(oldPathString, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+                                                                        long duplicateSize = 0;
+                                                                        byte[] duplicateHash;
+                                                                        MD5 duplicateHasher = MD5.Create();
+
+                                                                        try
+                                                                        {
+                                                                            byte[] fileBuffer = new byte[FileConstants.BufferSize];
+                                                                            int fileReadBytes;
+
+                                                                            while ((fileReadBytes = uploadStreamForDuplication.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
+                                                                            {
+                                                                                duplicateSize += fileReadBytes;
+                                                                                duplicateHasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                                                            }
+
+                                                                            duplicateHasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+                                                                            duplicateHash = duplicateHasher.Hash;
+                                                                        }
+                                                                        finally
+                                                                        {
+                                                                            try
+                                                                            {
+                                                                                if (uploadStreamForDuplication != null)
+                                                                                {
+                                                                                    uploadStreamForDuplication.Seek(0, SeekOrigin.Begin);
+                                                                                }
+                                                                            }
+                                                                            catch
+                                                                            {
+                                                                            }
+
+                                                                            duplicateHasher.Dispose();
+                                                                        }
+
+                                                                        FileChange duplicateChange =
+                                                                            new FileChange()
+                                                                            {
+                                                                                Direction = SyncDirection.To,
+                                                                                Metadata = new FileMetadata()
+                                                                                {
+                                                                                    HashableProperties = new FileMetadataHashableProperties(
+                                                                                        /*isFolder*/ false,
+                                                                                        File.GetLastAccessTimeUtc(oldPathString),
+                                                                                        File.GetLastWriteTimeUtc(oldPathString),
+                                                                                        duplicateSize)
+                                                                                },
+                                                                                NewPath = oldPathString,
+                                                                                Type = FileChangeType.Created
+                                                                            };
+                                                                        CLError setDuplicateHash = duplicateChange.SetMD5(duplicateHash);
+                                                                        if (setDuplicateHash != null)
+                                                                        {
+                                                                            throw new AggregateException("Error setting MD5 on duplicateChange: " + setDuplicateHash.errorDescription, setDuplicateHash.GrabExceptions());
+                                                                        }
+
+                                                                        CLHttpRestStatus postDuplicateChangeStatus;
+                                                                        JsonContracts.Event postDuplicateChangeResult;
+                                                                        CLError postDuplicateChange = httpRestClient.PostFileChange(
+                                                                            duplicateChange,
+                                                                            HttpTimeoutMilliseconds,
+                                                                            out postDuplicateChangeStatus,
+                                                                            out postDuplicateChangeResult);
+                                                                        if (postDuplicateChangeStatus != CLHttpRestStatus.Success)
+                                                                        {
+                                                                            throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChange.errorDescription, postDuplicateChange.GrabExceptions());
+                                                                        }
+
+                                                                        if (postDuplicateChangeResult == null)
+                                                                        {
+                                                                            throw new NullReferenceException("Null event response adding duplicate file");
+                                                                        }
+                                                                        if (postDuplicateChangeResult.Header == null)
+                                                                        {
+                                                                            throw new NullReferenceException("Null event response header adding duplicate file");
+                                                                        }
+                                                                        if (string.IsNullOrEmpty(postDuplicateChangeResult.Header.Status))
+                                                                        {
+                                                                            throw new NullReferenceException("Null event response header status adding duplicate file");
+                                                                        }
+                                                                        if (postDuplicateChangeResult.Metadata == null)
+                                                                        {
+                                                                            throw new NullReferenceException("Null event response metadata adding duplicate file");
+                                                                        }
+
+                                                                        duplicateChange.Metadata.Revision = postDuplicateChangeResult.Metadata.Revision;
+                                                                        duplicateChange.Metadata.StorageKey = postDuplicateChangeResult.Metadata.StorageKey;
+
+                                                                        if ((new[]
+                                                                            {
+                                                                                CLDefinitions.CLEventTypeAccepted,
+                                                                                CLDefinitions.CLEventTypeNoOperation,
+                                                                                CLDefinitions.CLEventTypeExists,
+                                                                                CLDefinitions.CLEventTypeDuplicate,
+                                                                                CLDefinitions.CLEventTypeUploading
+                                                                            }).Contains(postDuplicateChangeResult.Header.Status))
+                                                                        {
+                                                                            CLError mergeDuplicateChange = syncData.mergeToSql(new[] { new FileChangeMerge(duplicateChange) });
+                                                                            if (mergeDuplicateChange != null)
+                                                                            {
+                                                                                throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.errorDescription, mergeDuplicateChange.GrabExceptions());
+                                                                            }
+
+                                                                            CLError completeDuplicateChange = syncData.completeSingleEvent(duplicateChange.EventId);
+                                                                            if (completeDuplicateChange != null)
+                                                                            {
+                                                                                throw new AggregateException("Error marking duplicate file change complete in database: " + completeDuplicateChange.errorDescription, completeDuplicateChange.GrabExceptions());
+                                                                            }
+                                                                        }
+                                                                        else if ((new[]
+                                                                            {
+                                                                                CLDefinitions.CLEventTypeUpload,
+                                                                                CLDefinitions.CLEventTypeUploading
+                                                                            }).Contains(postDuplicateChangeResult.Header.Status))
+                                                                        {
+                                                                            FileChangeWithDependencies copyDuplicateChange;
+                                                                            CLError createCopyDuplicateChange = FileChangeWithDependencies.CreateAndInitialize(duplicateChange, /* initialDependencies */ null, out copyDuplicateChange);
+
+                                                                            if (createCopyDuplicateChange != null)
+                                                                            {
+                                                                                throw new AggregateException("Error copying duplicate file change for upload processing: " + createCopyDuplicateChange.errorDescription, createCopyDuplicateChange.GrabExceptions());
+                                                                            }
+
+                                                                            AddToIncompleteChanges(incompleteChangesList, copyDuplicateChange, uploadStreamForDuplication, /* different metadata since this is new */true);
+
+                                                                            uploadStreamForDuplication = null; // prevents disposal on finally since the Stream will now be sent off for async processing
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            throw new InvalidOperationException("Event response header status invalid for duplicating file: " + postDuplicateChangeResult.Header.Status);
+                                                                        }
+                                                                    }
+                                                                }
+                                                                catch (Exception ex)
+                                                                {
+                                                                    try
+                                                                    {
+                                                                        MessageEvents.FireNewEventMessage(
+                                                                            currentChange,
+                                                                            "Error occurred handling conflict for a file rename: " + ex.Message,
+                                                                            EventMessageLevel.Regular,
+                                                                            /*IsError*/ true,
+                                                                            syncBox.SyncBoxId,
+                                                                            syncBox.CopiedSettings.DeviceId);
+                                                                    }
+                                                                    catch
+                                                                    {
+                                                                    }
+
+                                                                    fileExists = false;
+                                                                }
+
+                                                                if (fileExists)
+                                                                {
+                                                                    try
+                                                                    {
+                                                                        MessageEvents.FireNewEventMessage(
+                                                                            currentChange,
+                                                                            "File rename conflict handled through duplication",
+                                                                            EventMessageLevel.Minor,
+                                                                            /*IsError*/ false,
+                                                                            syncBox.SyncBoxId,
+                                                                            syncBox.CopiedSettings.DeviceId);
+                                                                    }
+                                                                    catch
+                                                                    {
+                                                                    }
+                                                                }
+                                                            }
+                                                            finally
+                                                            {
+                                                                if (uploadStreamForDuplication != null)
+                                                                {
+                                                                    try
+                                                                    {
+                                                                        uploadStreamForDuplication.Dispose();
+                                                                    }
+                                                                    catch
+                                                                    {
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
                                                         // Existing metadata for a client event was not found for the current rename's previous path and revision
                                                         notFoundRename = true;
                                                     }
@@ -6493,29 +6719,6 @@ namespace CloudApiPublic.Sync
                                         }
                                     }
 
-                                    // define an action to add the current FileChange to the list of incomplete changes, including any Stream and whether or not the FileChange requires updating the event source database
-                                    Action<Dictionary<long, List<PossiblyStreamableAndPossiblyChangedFileChange>>, FileChangeWithDependencies, Stream, bool> AddToIncompleteChanges = (innerIncompleteChangesList, innerCurrentChange, innerCurrentStream, innerMetadataIsDifferent) =>
-                                    {
-                                        // wrap the current change for adding to the incomplete changes list
-                                        PossiblyStreamableAndPossiblyChangedFileChange addChange = new PossiblyStreamableAndPossiblyChangedFileChange(innerMetadataIsDifferent,
-                                            innerCurrentChange,
-                                            innerCurrentStream);
-
-                                        // if the incomplete change's map already contains the current change's event id, then add the current change to the existing list
-                                        if (innerIncompleteChangesList.ContainsKey(innerCurrentChange.EventId))
-                                        {
-                                            innerIncompleteChangesList[innerCurrentChange.EventId].Add(addChange);
-                                        }
-                                        // else if the incomplete change's map does not already contain the current change's event id, then create a new list with only the current change and add it to the map for the current change's event id
-                                        else
-                                        {
-                                            innerIncompleteChangesList.Add(innerCurrentChange.EventId,
-                                                new List<PossiblyStreamableAndPossiblyChangedFileChange>(new[]
-                                                    {
-                                                        addChange
-                                                    }));
-                                        }
-                                    };
                                     //ZW: this is where the Processing of the Event Header (Return ) Status is processed including conflict rename handling 
                                     //ZW: If Changes are triggered by muliple actions at the same time, async  processes may try to operate on the 
                                     //ZW: the same file before the previous change is complete. In this case there are dependencies, which arise for ordering the changes
@@ -7583,6 +7786,205 @@ namespace CloudApiPublic.Sync
                                                 newPathCreation, // the change itself
                                                 null, // no streams for Sync From changes
                                                 new Exception("Unable to find metadata for file. May have been a rename on a local file path that does not exist. Created new FileChange to download file"))); // message for the type of error that occurred
+
+                                            // a file may still exist at the old path on disk, so to make sure the server looks the same, we must duplicate the file on the server
+                                            // TODO: all System.IO or disk access should be done through syncData ISyncDataObject interface object
+
+                                            if (currentChange.OldPath != null)
+                                            {
+                                                FileStream uploadStreamForDuplication = null;
+                                                try
+                                                {
+                                                    string oldPathString = currentChange.OldPath.ToString();
+                                                    bool fileExists;
+                                                    try
+                                                    {
+                                                        fileExists = File.Exists(oldPathString);
+
+                                                        if (fileExists)
+                                                        {
+                                                            uploadStreamForDuplication = new FileStream(oldPathString, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+                                                            long duplicateSize = 0;
+                                                            byte[] duplicateHash;
+                                                            MD5 duplicateHasher = MD5.Create();
+
+                                                            try
+                                                            {
+                                                                byte[] fileBuffer = new byte[FileConstants.BufferSize];
+                                                                int fileReadBytes;
+
+                                                                while ((fileReadBytes = uploadStreamForDuplication.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
+                                                                {
+                                                                    duplicateSize += fileReadBytes;
+                                                                    duplicateHasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                                                }
+
+                                                                duplicateHasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+                                                                duplicateHash = duplicateHasher.Hash;
+                                                            }
+                                                            finally
+                                                            {
+                                                                try
+                                                                {
+                                                                    if (uploadStreamForDuplication != null)
+                                                                    {
+                                                                        uploadStreamForDuplication.Seek(0, SeekOrigin.Begin);
+                                                                    }
+                                                                }
+                                                                catch
+                                                                {
+                                                                }
+
+                                                                duplicateHasher.Dispose();
+                                                            }
+
+                                                            FileChange duplicateChange =
+                                                                new FileChange()
+                                                                {
+                                                                    Direction = SyncDirection.To,
+                                                                    Metadata = new FileMetadata()
+                                                                    {
+                                                                        HashableProperties = new FileMetadataHashableProperties(
+                                                                            /*isFolder*/ false,
+                                                                            File.GetLastAccessTimeUtc(oldPathString),
+                                                                            File.GetLastWriteTimeUtc(oldPathString),
+                                                                            duplicateSize)
+                                                                    },
+                                                                    NewPath = oldPathString,
+                                                                    Type = FileChangeType.Created
+                                                                };
+                                                            CLError setDuplicateHash = duplicateChange.SetMD5(duplicateHash);
+                                                            if (setDuplicateHash != null)
+                                                            {
+                                                                throw new AggregateException("Error setting MD5 on duplicateChange: " + setDuplicateHash.errorDescription, setDuplicateHash.GrabExceptions());
+                                                            }
+
+                                                            CLHttpRestStatus postDuplicateChangeStatus;
+                                                            JsonContracts.Event postDuplicateChangeResult;
+                                                            CLError postDuplicateChange = httpRestClient.PostFileChange(
+                                                                duplicateChange,
+                                                                HttpTimeoutMilliseconds,
+                                                                out postDuplicateChangeStatus,
+                                                                out postDuplicateChangeResult);
+                                                            if (postDuplicateChangeStatus != CLHttpRestStatus.Success)
+                                                            {
+                                                                throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChange.errorDescription, postDuplicateChange.GrabExceptions());
+                                                            }
+
+                                                            if (postDuplicateChangeResult == null)
+                                                            {
+                                                                throw new NullReferenceException("Null event response adding duplicate file");
+                                                            }
+                                                            if (postDuplicateChangeResult.Header == null)
+                                                            {
+                                                                throw new NullReferenceException("Null event response header adding duplicate file");
+                                                            }
+                                                            if (string.IsNullOrEmpty(postDuplicateChangeResult.Header.Status))
+                                                            {
+                                                                throw new NullReferenceException("Null event response header status adding duplicate file");
+                                                            }
+                                                            if (postDuplicateChangeResult.Metadata == null)
+                                                            {
+                                                                throw new NullReferenceException("Null event response metadata adding duplicate file");
+                                                            }
+
+                                                            duplicateChange.Metadata.Revision = postDuplicateChangeResult.Metadata.Revision;
+                                                            duplicateChange.Metadata.StorageKey = postDuplicateChangeResult.Metadata.StorageKey;
+
+                                                            if ((new[]
+                                                                {
+                                                                    CLDefinitions.CLEventTypeAccepted,
+                                                                    CLDefinitions.CLEventTypeNoOperation,
+                                                                    CLDefinitions.CLEventTypeExists,
+                                                                    CLDefinitions.CLEventTypeDuplicate,
+                                                                    CLDefinitions.CLEventTypeUploading
+                                                                }).Contains(postDuplicateChangeResult.Header.Status))
+                                                            {
+                                                                CLError mergeDuplicateChange = syncData.mergeToSql(new[] { new FileChangeMerge(duplicateChange) });
+                                                                if (mergeDuplicateChange != null)
+                                                                {
+                                                                    throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.errorDescription, mergeDuplicateChange.GrabExceptions());
+                                                                }
+
+                                                                CLError completeDuplicateChange = syncData.completeSingleEvent(duplicateChange.EventId);
+                                                                if (completeDuplicateChange != null)
+                                                                {
+                                                                    throw new AggregateException("Error marking duplicate file change complete in database: " + completeDuplicateChange.errorDescription, completeDuplicateChange.GrabExceptions());
+                                                                }
+                                                            }
+                                                            else if ((new[]
+                                                                {
+                                                                    CLDefinitions.CLEventTypeUpload,
+                                                                    CLDefinitions.CLEventTypeUploading
+                                                                }).Contains(postDuplicateChangeResult.Header.Status))
+                                                            {
+                                                                incompleteChanges = incompleteChanges.Concat(new[]
+                                                                    {
+                                                                        new PossiblyStreamableAndPossiblyChangedFileChange(
+                                                                            /*Changed*/ true,
+                                                                            duplicateChange,
+                                                                            uploadStreamForDuplication)
+                                                                    });
+
+                                                                uploadStreamForDuplication = null; // prevents disposal on finally since the Stream will now be sent off for async processing
+                                                            }
+                                                            else
+                                                            {
+                                                                throw new InvalidOperationException("Event response header status invalid for duplicating file: " + postDuplicateChangeResult.Header.Status);
+                                                            }
+                                                        }
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        try
+                                                        {
+                                                            MessageEvents.FireNewEventMessage(
+                                                                currentChange,
+                                                                "Error occurred handling conflict for a file rename: " + ex.Message,
+                                                                EventMessageLevel.Regular,
+                                                                /*IsError*/ true,
+                                                                syncBox.SyncBoxId,
+                                                                syncBox.CopiedSettings.DeviceId);
+                                                        }
+                                                        catch
+                                                        {
+                                                        }
+
+                                                        fileExists = false;
+                                                    }
+
+                                                    if (fileExists)
+                                                    {
+                                                        try
+                                                        {
+                                                            MessageEvents.FireNewEventMessage(
+                                                                currentChange,
+                                                                "File rename conflict handled through duplication",
+                                                                EventMessageLevel.Minor,
+                                                                /*IsError*/ false,
+                                                                syncBox.SyncBoxId,
+                                                                syncBox.CopiedSettings.DeviceId);
+                                                        }
+                                                        catch
+                                                        {
+                                                        }
+                                                    }
+                                                }
+                                                finally
+                                                {
+                                                    if (uploadStreamForDuplication != null)
+                                                    {
+                                                        try
+                                                        {
+                                                            uploadStreamForDuplication.Dispose();
+                                                        }
+                                                        catch
+                                                        {
+                                                        }
+                                                    }
+                                                }
+                                            }
 
                                             // find the original change that required the pseudo Sync From creation and add it to a list to exclude when returning incomplete changes (since now it is a change in error)
                                             renameNotFounds.Add(incompleteChanges.First(currentIncompleteChange => currentIncompleteChange.FileChange == currentChange));

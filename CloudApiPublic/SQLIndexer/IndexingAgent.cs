@@ -432,6 +432,8 @@ namespace CloudApiPublic.SQLIndexer
                     {
                         int pathCRC = StringCRC.Crc(path);
 
+                        // TODO: need to add back the null check on revision below when server fixes the issue with the 'revision' field on file renames
+
                         FileSystemObject foundSync = SqlAccessor<FileSystemObject>
                             .SelectResultSet(indexDB,
                                 "SELECT TOP 1 * " +
@@ -439,8 +441,9 @@ namespace CloudApiPublic.SQLIndexer
                                 "WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter.ToString() + " " +
                                 "AND [FileSystemObjects].[PathChecksum] = " + pathCRC.ToString() + " " +
                                 (revision == null
-                                    ? "AND [FileSystemObjects].[Revision] IS NULL "
-                                    : "AND [FileSystemObjects].[Revision] = '" + revision.Replace("'", "''").ToLowerInvariant() + "'"))
+                                    ? string.Empty//"AND [FileSystemObjects].[Revision] IS NULL " <--- temporarily removed since server stopped sending 'revision' in metadata on file renames
+                                    : "AND [FileSystemObjects].[Revision] = '" + revision.Replace("'", "''").ToLowerInvariant() + "'") +
+                                " ORDER BY [FileSystemObjects].[EventId] DESC")
                             .SingleOrDefault(parent => parent.Path == path); // run in memory since Path field is not indexable
 
                         if (foundSync != null)
