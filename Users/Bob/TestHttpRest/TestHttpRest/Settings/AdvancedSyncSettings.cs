@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudSDK_SmokeTest.Settings
+namespace TestHttpRest.Settings
 {
     internal sealed class AdvancedSyncSettings : ICLSyncSettingsAdvanced
     {

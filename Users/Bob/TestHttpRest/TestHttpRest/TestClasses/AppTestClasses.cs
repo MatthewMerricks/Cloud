@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudSDK_SmokeTest.TestClasses
+namespace TestHttpRest.TestClasses
 {
     public class AppTestClasses
     {
         public const string WriteDefaultValues = "WriteDefaultValues";
-        public CloudSDK_InputParams InputParams { get; set; }
+        public HttpTest_InputParams InputParams { get; set; }
 
         public AppTestClasses()
         {
@@ -29,11 +29,11 @@ namespace CloudSDK_SmokeTest.TestClasses
             Boolean.TryParse(inputValue, out useDefaults);
             if (useDefaults)
             {
-                InputParams = new CloudSDK_InputParams(true);
+                InputParams = new HttpTest_InputParams(true);
                 InputParams.WriteToConsole(WriteDefaultValues);
             }
             else
-                InputParams = new CloudSDK_InputParams(false);
+                InputParams = new HttpTest_InputParams(false);
 
         }
 

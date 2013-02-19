@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudSDK_SmokeTest
+namespace TestHttpRest
 {
-    public class CloudSDK_InputParams
+    public class HttpTest_InputParams
     {
         #region Constants
         public const string WriteDefaultValues = "WriteDefaultValues";
@@ -38,7 +38,7 @@ namespace CloudSDK_SmokeTest
         #endregion 
 
         #region Init
-        public CloudSDK_InputParams(bool useDefaults)
+        public HttpTest_InputParams(bool useDefaults)
         {
             if (useDefaults)
                 setDefaultValues();
