@@ -7541,27 +7541,27 @@ namespace CloudApiPublic.Sync
 
                                             // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
                                             FileChangeWithDependencies newPathCreation = CreateFileChangeFromBaseChangePlusHash(new FileChange()
-                                            {
-                                                Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
-                                                NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
-                                                Type = FileChangeType.Created, // a create to download a new file or process a new folder
-                                                Metadata = new FileMetadata()
                                                 {
-                                                    //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
+                                                    Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
+                                                    NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
+                                                    Type = FileChangeType.Created, // a create to download a new file or process a new folder
+                                                    Metadata = new FileMetadata()
+                                                    {
+                                                        //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
-                                                    ServerId = newMetadata.ServerId, // unique id on the server
-                                                    HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
-                                                        newMetadata.ModifiedDate, // last modified time for this file system object
-                                                        newMetadata.CreatedDate, // creation time for this file system object
-                                                        newMetadata.Size), // file size or null for folders
-                                                    Revision = newMetadata.Revision, // file revision or null for folders
-                                                    StorageKey = newMetadata.StorageKey, // file storage key or null for folders
-                                                    LinkTargetPath = (newMetadata.TargetPath == null
-                                                        ? null // if server metadata does not have a shortcut file target path, then use null
-                                                        : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
-                                                    MimeType = newMetadata.MimeType // never set on Windows
-                                                }
-                                            },
+                                                        ServerId = newMetadata.ServerId, // unique id on the server
+                                                        HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
+                                                            newMetadata.ModifiedDate, // last modified time for this file system object
+                                                            newMetadata.CreatedDate, // creation time for this file system object
+                                                            newMetadata.Size), // file size or null for folders
+                                                        Revision = newMetadata.Revision, // file revision or null for folders
+                                                        StorageKey = newMetadata.StorageKey, // file storage key or null for folders
+                                                        LinkTargetPath = (newMetadata.TargetPath == null
+                                                            ? null // if server metadata does not have a shortcut file target path, then use null
+                                                            : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                        MimeType = newMetadata.MimeType // never set on Windows
+                                                    }
+                                                },
                                                 newMetadata.Hash); // file MD5 hash or null for folder
 
                                             alreadyVisitedRenames[newPathCreation.NewPath.Copy()] = newPathCreation.Metadata;

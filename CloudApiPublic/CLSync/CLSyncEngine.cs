@@ -678,7 +678,7 @@ namespace CloudApiPublic
             {
                 if (_monitor != null)
                 {
-                    _trace.writeToLog(9, "CLSyncEngine: OnNotificationPerformManualSyncFrom: Send a Perform PushNotification to monitor.");
+                    _trace.writeToLog(9, "CLSyncEngine: OnNotificationReceived: Send a Perform PushNotification to monitor.");
                     _monitor.PushNotification(e.Message);
                 }
             }

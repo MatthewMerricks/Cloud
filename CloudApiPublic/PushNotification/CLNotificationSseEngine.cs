@@ -686,7 +686,7 @@ namespace CloudApiPublic.PushNotification
             // Create a new notification event
             CLNotificationEvent evt = new CLNotificationEvent();
             evt.Name = _eventName;
-            evt.Data = _sbData.ToString();
+            evt.Data = _sbData.ToString().Trim();
             evt.Origin = CLDefinitions.CLNotificationServerSseURL;
             evt.LastEventId = _lastEventId;
 
