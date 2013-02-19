@@ -4,15 +4,35 @@
     elementFormDefault="qualified"
     xmlns="http://www.cloud.com/InputParameters.xsd"
     xmlns:mstns="http://www.cloud.com/InputParameters.xsd"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema"
->
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" >
+  <xs:annotation>
+    <xs:appinfo>Cloud.com InputParameters XML Schema</xs:appinfo>
+    <xs:documentation xml:lang="en-us">
+      InputParameters.xsd and resulting generated code
+      Cloud
+
+      Created by BobS.
+
+      Copyright (c) Cloud.com. All rights reserved.
+
+      Manually copy this copyright declaration to the header of any generated code files created from this schema
+    </xs:documentation>
+  </xs:annotation>
 
   <xs:complexType name="Copyright">
-    <xs:all>
-      <xs:element name="ActiveSync_Folder" type="xs:string" minOccurs="1"/>
-    </xs:all>
+    <xs:sequence>
+      <xs:element name="FileName" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="Copyright" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Implementation of InputParameters.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved." />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Creator" minOccurs="1" maxOccurs="1" type="xs:string" />
+    </xs:sequence>
   </xs:complexType>
-  
+
   <xs:complexType name="InputParams">
     <xs:all>
       <xs:element name="API_Key" type="xs:string" minOccurs="1"/>
@@ -21,7 +41,7 @@
       <xs:element name="ActiveSync_Folder" type="xs:string" minOccurs="1"/>
       <xs:element name="ActiveSync_TraceFolder" type="xs:string" minOccurs="1"/>
       <xs:element name="ManualSyncBoxID" type="xs:int" minOccurs="1"/>
-      <xs:element name="ManualSync_Folder" type="xs:string" minOccurs="1"/>      
+      <xs:element name="ManualSync_Folder" type="xs:string" minOccurs="1"/>
       <xs:element name="ManualSync_TraceFolder" type="xs:string" minOccurs="1"/>
       <xs:element name="Token" type="xs:string" minOccurs="0"/>
       <xs:element name="TraceType" type="xs:int" minOccurs="1"/>
@@ -29,6 +49,23 @@
       <xs:element name ="SettingsPath" type="xs:string" minOccurs="1" />
       <xs:element name="FileNameMappingFile" type="xs:string" minOccurs="1" />
     </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="ModificationObject">
+    <xs:sequence>
+      <xs:element name="type" >
+        <xs:simpleType>
+          <xs:restriction base ="xs:string" >
+            <xs:enumeration value="File" />
+            <xs:enumeration value="Folder" />
+            <xs:enumeration value="SyncBox" />
+            <xs:enumeration value="Session" />
+            <xs:enumeration value="Plan" />
+            <xs:enumeration value="None" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>
   </xs:complexType>
 
   <xs:complexType name="SmokeTask">
@@ -42,38 +79,41 @@
             <xs:enumeration value = "DownloadAllSyncBoxContent" />
             <xs:enumeration value = "Rename" />
             <xs:enumeration value = "FileUndelete" />
+            <xs:enumeration value ="HttpTest" />
+            <xs:enumeration value ="ListItems" />
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
-      <xs:element name="Group" type="xs:int" minOccurs="0" maxOccurs="1" nillable="true"/>
-      <xs:element name="Sequence" type="xs:int" minOccurs="0" maxOccurs="1" nillable="true"/>
-    </xs:sequence>   
+      <xs:element name="InnerTask" minOccurs="0" type="SmokeTask" />
+      <xs:element name="ObjectType" type="ModificationObject" />
+    </xs:sequence>
   </xs:complexType>
+
+
 
   <xs:complexType name="Creation">
     <xs:complexContent >
       <xs:extension base="SmokeTask" >
         <xs:sequence>
           <xs:element name="Name" type ="xs:string" />
-          <xs:element name="Path" type ="xs:string" />
-          <xs:element name="IsFile" type="xs:boolean" />
-        </xs:sequence>
-      </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
-  
-  <xs:complexType name="Deletion">
-    <xs:complexContent >
-      <xs:extension base="SmokeTask" >
-        <xs:sequence>
-          <xs:element name="FileName" type ="xs:string" />
-          <xs:element name="FilePath" type ="xs:string" />
-          <xs:element name="IsFile" type="xs:boolean" />
+          <xs:element name="Path" type ="xs:string" />          
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:complexType name="Deletion">
+    <xs:complexContent >
+      <xs:extension base="SmokeTask" >
+        <xs:sequence>
+          <xs:element name="Name" type ="xs:string" />
+          <xs:element name="FullName" type ="xs:string" />
+          <xs:element name="RelativePath" type ="xs:string" />
+          <xs:element name="FullPath" type ="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
 
   <xs:complexType name="Rename">
     <xs:complexContent >
@@ -82,7 +122,6 @@
           <xs:element name="OldName" type ="xs:string" />
           <xs:element name="NewName" type ="xs:string" />
           <xs:element name="RelativeDirectoryPath" type ="xs:string" />
-          <xs:element name="IsFile" type ="xs:boolean" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -100,7 +139,7 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="DownloadAllSyncBoxContent">
     <xs:complexContent >
       <xs:extension base="SmokeTask" >
@@ -121,18 +160,45 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+
+  <xs:complexType name="HttpTest">
+    <xs:complexContent >
+      <xs:extension base="SmokeTask" >
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ListItems">
+    <xs:complexContent >
+      <xs:extension base="SmokeTask" >
+        <xs:sequence>
+          <xs:element name="ListType">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="Sessions" />
+                <xs:enumeration value="Plans" />
+                <xs:enumeration value="SyncBoxes" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="ExpectedCount" type="xs:int" minOccurs="0"></xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
   
   <xs:complexType name="ParallelTaskSet">
     <xs:choice >
       <xs:element minOccurs="0" maxOccurs="unbounded" name="SmokeTask" type="SmokeTask" />
-    </xs:choice>    
+    </xs:choice>
   </xs:complexType>
 
-  <!--<xs:complexType name="Scenario">
+  <xs:complexType name="Scenario">
     <xs:choice>
       <xs:element name="ScenarioTasks" type="ParallelTaskSet" minOccurs="0" maxOccurs="unbounded" />
     </xs:choice>
-  </xs:complexType>-->
+  </xs:complexType>
 
   <xs:complexType name="MockFile" >
     <xs:sequence>
@@ -166,7 +232,7 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  <xs:element name="SmokeTest">
+  <!--<xs:element name="SmokeTest">
     <xs:complexType>
       <xs:all>
         <xs:element name="Copyright" type="Copyright" />
@@ -174,14 +240,14 @@
         <xs:element name="ParallelTaskSet" type="ParallelTaskSet" />
       </xs:all>
     </xs:complexType>
-  </xs:element>
-  <!--<xs:element name="SmokeTest">
+  </xs:element>-->
+  <xs:element name="SmokeTest">
     <xs:complexType>
       <xs:all>
         <xs:element name="Copyright" type="Copyright" />
         <xs:element name="InputParams" type="InputParams" />
-        <xs:element name="Scenario" type="Scenario" />
+        <xs:element name="Scenario" type="Scenario"  />
       </xs:all>
     </xs:complexType>
-  </xs:element>-->
+  </xs:element>
 </xs:schema>

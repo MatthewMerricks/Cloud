@@ -13,7 +13,7 @@ namespace CloudSDK_SmokeTest.Managers
     public class SyncBoxManager
     {
 
-        public static long? StartCreateNewSyncBox(InputParams paramSet, ref GenericHolder<CLError> ProcessingExceptionHolder)
+        public static long? AddNewSyncBox(InputParams paramSet, ref GenericHolder<CLError> ProcessingExceptionHolder)
         {
             long? syncBoxId = null;
             CLCredential creds; CLCredentialCreationStatus credsStatus;

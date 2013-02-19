@@ -75,42 +75,24 @@ namespace CloudSDK_SmokeTest
                     Console.WriteLine("Xml Data Initialized From Schema...");
                     Console.WriteLine();
                     InputParams.PrintDefaultValues(smokeTestClass.InputParams);
-                    //SmokeTask task = GetCreateSyncBoxTask(smokeTestClass);
-                    //if (task != null)
-                    //{
-                    //    SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, task, ProcessingErrorHolder);
-                    //}
-                    //else
-                    //{
-                    //    Exception exception = new Exception("A Create SyncBox Task is Required in the Settings File, even if its CreateBox Boolean is Set to False");
-                    //    lock (ProcessingErrorHolder)
-                    //    {
-                    //        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-                    //    }
-                    //}
 
-                    #region Parallel Op Code
-                    // use this to run the task sets in parallel
-                    //System.Threading.Tasks.Parallel.ForEach(smokeTestClass.Scenario.Items, (scenarioItem) =>
-                    //{
-                    //    foreach (SmokeTask smokeTask in scenarioItem.Items)
-                    //    {
-                    //        if (smokeTask.type != SmokeTaskType.CreateSyncBox)
-                    //            SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, smokeTask, ProcessingErrorHolder);
-                    //    }
-                    //});
-                    #endregion 
-
-
-                    var groupped = smokeTestClass.ParallelTaskSet.Items.GroupBy(i => i.Group);
-                    //Runs the Steps In the order they explicitly define in their properties -- 
-                    //Groupped By Group Property and Ordered By Sequence Property 
-                    for (int x = 0; x < groupped.Count(); x++)
+                    foreach (ParallelTaskSet parallelSet in smokeTestClass.Scenario.Items)
                     {
-                        SmokeTask[] tasks = groupped.ElementAt(x).OrderBy(i => i.Sequence).ToArray();
-                        for (int x2 = 0; x2 < tasks.Count(); x2++)
+                        System.Threading.Tasks.Parallel.ForEach(
+                            parallelSet.Items,
+                            (currentTask =>
+                            {
+                                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
+                                RunInnerTasks(smokeTestClass, currentTask.InnerTask);                                   
+
+                            }));
+
+                        lock (ProcessingErrorHolder)
                         {
-                            SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, tasks[x2], ProcessingErrorHolder);
+                            if (ProcessingErrorHolder.Value != null)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -139,20 +121,20 @@ namespace CloudSDK_SmokeTest
             }
         }
 
-        private static SmokeTask GetCreateSyncBoxTask(SmokeTest smokeTestClass)
+        public static void RunInnerTasks(SmokeTest smokeTestClass, SmokeTask currentTask)
         {
-            SmokeTask task = null;
-            foreach (SmokeTask smokeTask in smokeTestClass.ParallelTaskSet.Items)
+            if (currentTask != null)
             {
-                if (smokeTask.type == SmokeTaskType.CreateSyncBox)
+                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
+                if (currentTask.InnerTask != null)
                 {
-                    task = smokeTask;
-                    break;
+                    SmokeTask thisTask = currentTask.InnerTask;
+                    SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, thisTask, ProcessingErrorHolder);
+                    if(ProcessingErrorHolder.Value == null)
+                        RunInnerTasks(smokeTestClass, thisTask.InnerTask);
                 }
             }
-            return task;
         }
-
         private static void WriteExceptionsToScreen(GenericHolder<CLError> ProcessingErrorHolder)
         {
             if (ProcessingErrorHolder.Value == null)

@@ -1,4 +1,5 @@
 ﻿using CloudApiPublic.Model;
+using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
 using System;
@@ -26,16 +27,29 @@ namespace CloudSDK_SmokeTest.Helpers
                     returnValue = RunCreateSyncBoxTask(paramSet, smokeTask, ref ProcessingErrorHolder );
                     break;
                 case SmokeTaskType.Creation:
-                    RunCreationTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                    if (smokeTask.ObjectType.type == ModificationObjectType.File || smokeTask.ObjectType.type == ModificationObjectType.Folder)
+                        returnValue = RunCreationTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                    else if (smokeTask.ObjectType.type == ModificationObjectType.Plan)
+                        returnValue = RunCreatePlan(paramSet, smokeTask, ref ProcessingErrorHolder);
+                    else if (smokeTask.ObjectType.type == ModificationObjectType.SyncBox)
+                        returnValue = RunCreateSyncBoxTask(paramSet, smokeTask, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.DownloadAllSyncBoxContent:
-                    RunDownloadAllSyncBoxContentTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                    returnValue = RunDownloadAllSyncBoxContentTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.Deletion:
-                    RunFileDeletionTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                    if (smokeTask.ObjectType.type == ModificationObjectType.File || smokeTask.ObjectType.type == ModificationObjectType.Folder)
+                        returnValue = RunFileDeletionTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.Rename:
-                    RunFileRenameTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                    if (smokeTask.ObjectType.type == ModificationObjectType.File || smokeTask.ObjectType.type == ModificationObjectType.Folder)
+                        returnValue = RunFileRenameTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                    break;
+                case SmokeTaskType.ListItems:
+                    returnValue = RunListItemsTask(paramSet, smokeTask, ref ProcessingErrorHolder);
+                    break;
+                case SmokeTaskType.HttpTest:
+                    RunHttpTestTask();
                     break;
 
             }
@@ -48,7 +62,7 @@ namespace CloudSDK_SmokeTest.Helpers
             CreateSyncBox createTask = smokeTask as CreateSyncBox;
             if (createTask != null && createTask.CreateNew == true)
             {
-                newBoxId = SyncBoxManager.StartCreateNewSyncBox(paramSet, ref ProcessingErrorHolder);
+                newBoxId = SyncBoxManager.AddNewSyncBox(paramSet, ref ProcessingErrorHolder);
                 if (newBoxId == (long)0)
                 {
                     Exception newSyncBoxException = new Exception("There was an error creating a new Sync Box.");
@@ -67,8 +81,16 @@ namespace CloudSDK_SmokeTest.Helpers
             return newBoxId.HasValue ? newBoxId.Value : 0;
         }
 
-        public static void RunCreationTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static long RunCreatePlan(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
+            long planId = 0;
+            throw new NotImplementedException("Implement Run Create Plan Method In Smoke Test helper Class.");
+            return planId;
+        }
+
+        public static int RunCreationTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            int responseCode = -1;
             string fullPath = string.Empty;
             FileInfo fi = null;
             Creation creation = smokeTask as Creation;
@@ -82,7 +104,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 }
                 if (fi != null)
                 {
-                    TryCreate(paramSet, smokeTask, fi, creation.Name, ref ProcessingErrorHolder, ref manager);
+                    responseCode = TryCreate(paramSet, smokeTask, fi, creation.Name, ref ProcessingErrorHolder, ref manager);
                 }
             }
             catch (Exception ex)
@@ -103,13 +125,16 @@ namespace CloudSDK_SmokeTest.Helpers
                     ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + outerException;
                 }
             }
+            return responseCode;
             
         }        
-        public static void RunDownloadAllSyncBoxContentTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+
+        public static int RunDownloadAllSyncBoxContentTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
+            int responseCode = -1;
             try
             {
-                manager.InitiateDownloadAll(smokeTask, ref ProcessingErrorHolder); 
+                responseCode = manager.InitiateDownloadAll(smokeTask, ref ProcessingErrorHolder); 
             }
             catch (Exception exception)
             {
@@ -118,9 +143,10 @@ namespace CloudSDK_SmokeTest.Helpers
                     ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
                 }
             }
+            return responseCode;
         }
 
-        public static void RunFileDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunFileDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             int deleteReturnCode = 0;
             try
@@ -139,10 +165,12 @@ namespace CloudSDK_SmokeTest.Helpers
                     ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
                 }
             }
+            return deleteReturnCode;
         }
 
-        public static void RunFileRenameTask(InputParams paramSet, SmokeTask smokeTask,  ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunFileRenameTask(InputParams paramSet, SmokeTask smokeTask,  ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
+            int responseCode = -1;
             try
             {
                 if (!(smokeTask is Rename))
@@ -152,7 +180,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 if (task == null)
                     throw new Exception("There was an error casting the FileRename SmokeTask to type FileRename");
 
-                manager.Rename(paramSet, task, task.RelativeDirectoryPath, task.OldName, task.NewName);
+                responseCode = manager.Rename(paramSet, task, task.RelativeDirectoryPath, task.OldName, task.NewName);
             }
             catch (Exception exception)
             {
@@ -161,9 +189,44 @@ namespace CloudSDK_SmokeTest.Helpers
                     ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
                 }
             }
+            return responseCode;
         }
 
-        
+        public static int RunListItemsTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            int responseCode = -1;
+            ListItems listTask = smokeTask as ListItems;
+            ItemsListManager manager = ItemsListManager.GetInstance();
+            if(listTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
+            ItemListHelperEventArgs eventArgs = new ItemListHelperEventArgs() 
+            {
+                 ProcessingErrorHolder = ProcessingErrorHolder,
+                 ParamSet = paramSet,
+                 ListItemsTask = listTask,
+            };
+            switch (listTask.ListType)
+            { 
+                case ListItemsListType.Plans:
+                    ItemsListHelper.RunListPlans(eventArgs);
+                    break;
+                case ListItemsListType.Sessions:
+                    ItemsListHelper.RunListSessions(eventArgs);
+                    break;
+                case ListItemsListType.SyncBoxes:
+                    ItemsListHelper.RunListSyncBoxes(eventArgs);
+                    break;
+            }
+            return responseCode;
+        }
+
+        public static int RunHttpTestTask()
+        {
+            int responseCode = -1;
+            throw new NotImplementedException("RunHttpTestTask in SmokeTestTaskHelper is Not Implemented");
+            return responseCode;
+        }
         #endregion         
 
         #region Private
@@ -196,11 +259,12 @@ namespace CloudSDK_SmokeTest.Helpers
             }
         }
 
-        private static void TryCreate(InputParams paramSet, SmokeTask smokeTask, FileInfo fi, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
+        private static int TryCreate(InputParams paramSet, SmokeTask smokeTask, FileInfo fi, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
         {
+            int responseCode = - 1;
             try
             {
-               int responseCode =  manager.Create(paramSet, smokeTask, fi, fileName, ref ProcessingErrorHolder);
+                 responseCode =  manager.Create(paramSet, smokeTask, fi, fileName, ref ProcessingErrorHolder);
             }
             catch (Exception ex)
             {
@@ -209,6 +273,7 @@ namespace CloudSDK_SmokeTest.Helpers
                     ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex ;
                 }
             }
+            return responseCode;
         }
 
         #endregion 

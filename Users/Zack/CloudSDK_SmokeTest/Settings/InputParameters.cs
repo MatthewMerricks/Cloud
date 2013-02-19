@@ -28,7 +28,7 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private InputParams inputParamsField;
         
-        private ParallelTaskSet parallelTaskSetField;
+        private Scenario scenarioField;
         
         /// <remarks/>
         public Copyright Copyright {
@@ -51,12 +51,12 @@ namespace CloudSDK_SmokeTest.Settings {
         }
         
         /// <remarks/>
-        public ParallelTaskSet ParallelTaskSet {
+        public Scenario Scenario {
             get {
-                return this.parallelTaskSetField;
+                return this.scenarioField;
             }
             set {
-                this.parallelTaskSetField = value;
+                this.scenarioField = value;
             }
         }
     }
@@ -69,20 +69,105 @@ namespace CloudSDK_SmokeTest.Settings {
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
     public partial class Copyright {
         
-        private string activeSync_FolderField;
+        private string fileNameField;
+        
+        private CopyrightCopyright copyright1Field;
+        
+        private string creatorField;
         
         /// <remarks/>
-        public string ActiveSync_Folder {
+        public string FileName {
             get {
-                return this.activeSync_FolderField;
+                return this.fileNameField;
             }
             set {
-                this.activeSync_FolderField = value;
+                this.fileNameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("Copyright")]
+        public CopyrightCopyright Copyright1 {
+            get {
+                return this.copyright1Field;
+            }
+            set {
+                this.copyright1Field = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string Creator {
+            get {
+                return this.creatorField;
+            }
+            set {
+                this.creatorField = value;
             }
         }
     }
     
     /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public enum CopyrightCopyright {
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("Implementation of InputParameters.xsd XML Schema. Cloud. Copyright (c) Cloud.com." +
+            " All rights reserved.")]
+        ImplementationofInputParametersxsdXMLSchemaCloudCopyrightcCloudcomAllrightsreserved,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class ModificationObject {
+        
+        private ModificationObjectType typeField;
+        
+        /// <remarks/>
+        public ModificationObjectType type {
+            get {
+                return this.typeField;
+            }
+            set {
+                this.typeField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public enum ModificationObjectType {
+        
+        /// <remarks/>
+        File,
+        
+        /// <remarks/>
+        Folder,
+        
+        /// <remarks/>
+        SyncBox,
+        
+        /// <remarks/>
+        Session,
+        
+        /// <remarks/>
+        Plan,
+        
+        /// <remarks/>
+        None,
+    }
+    
+    /// <remarks/>
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ListItems))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(HttpTest))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(CreateSyncBox))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(DownloadAllSyncBoxContent))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(Undelete))]
@@ -98,13 +183,9 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private SmokeTaskType typeField;
         
-        private System.Nullable<int> groupField;
+        private SmokeTask innerTaskField;
         
-        private bool groupFieldSpecified;
-        
-        private System.Nullable<int> sequenceField;
-        
-        private bool sequenceFieldSpecified;
+        private ModificationObject objectTypeField;
         
         /// <remarks/>
         public SmokeTaskType type {
@@ -117,46 +198,22 @@ namespace CloudSDK_SmokeTest.Settings {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
-        public System.Nullable<int> Group {
+        public SmokeTask InnerTask {
             get {
-                return this.groupField;
+                return this.innerTaskField;
             }
             set {
-                this.groupField = value;
+                this.innerTaskField = value;
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool GroupSpecified {
+        public ModificationObject ObjectType {
             get {
-                return this.groupFieldSpecified;
+                return this.objectTypeField;
             }
             set {
-                this.groupFieldSpecified = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(IsNullable=true)]
-        public System.Nullable<int> Sequence {
-            get {
-                return this.sequenceField;
-            }
-            set {
-                this.sequenceField = value;
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool SequenceSpecified {
-            get {
-                return this.sequenceFieldSpecified;
-            }
-            set {
-                this.sequenceFieldSpecified = value;
+                this.objectTypeField = value;
             }
         }
     }
@@ -184,6 +241,83 @@ namespace CloudSDK_SmokeTest.Settings {
         
         /// <remarks/>
         FileUndelete,
+        
+        /// <remarks/>
+        HttpTest,
+        
+        /// <remarks/>
+        ListItems,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class ListItems : SmokeTask {
+        
+        private ListItemsListType listTypeField;
+        
+        private int expectedCountField;
+        
+        private bool expectedCountFieldSpecified;
+        
+        /// <remarks/>
+        public ListItemsListType ListType {
+            get {
+                return this.listTypeField;
+            }
+            set {
+                this.listTypeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public int ExpectedCount {
+            get {
+                return this.expectedCountField;
+            }
+            set {
+                this.expectedCountField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool ExpectedCountSpecified {
+            get {
+                return this.expectedCountFieldSpecified;
+            }
+            set {
+                this.expectedCountFieldSpecified = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public enum ListItemsListType {
+        
+        /// <remarks/>
+        Sessions,
+        
+        /// <remarks/>
+        Plans,
+        
+        /// <remarks/>
+        SyncBoxes,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class HttpTest : SmokeTask {
     }
     
     /// <remarks/>
@@ -311,8 +445,6 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private string relativeDirectoryPathField;
         
-        private bool isFileField;
-        
         /// <remarks/>
         public string OldName {
             get {
@@ -342,16 +474,6 @@ namespace CloudSDK_SmokeTest.Settings {
                 this.relativeDirectoryPathField = value;
             }
         }
-        
-        /// <remarks/>
-        public bool IsFile {
-            get {
-                return this.isFileField;
-            }
-            set {
-                this.isFileField = value;
-            }
-        }
     }
     
     /// <remarks/>
@@ -362,39 +484,51 @@ namespace CloudSDK_SmokeTest.Settings {
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
     public partial class Deletion : SmokeTask {
         
-        private string fileNameField;
+        private string nameField;
         
-        private string filePathField;
+        private string fullNameField;
         
-        private bool isFileField;
+        private string relativePathField;
+        
+        private string fullPathField;
         
         /// <remarks/>
-        public string FileName {
+        public string Name {
             get {
-                return this.fileNameField;
+                return this.nameField;
             }
             set {
-                this.fileNameField = value;
+                this.nameField = value;
             }
         }
         
         /// <remarks/>
-        public string FilePath {
+        public string FullName {
             get {
-                return this.filePathField;
+                return this.fullNameField;
             }
             set {
-                this.filePathField = value;
+                this.fullNameField = value;
             }
         }
         
         /// <remarks/>
-        public bool IsFile {
+        public string RelativePath {
             get {
-                return this.isFileField;
+                return this.relativePathField;
             }
             set {
-                this.isFileField = value;
+                this.relativePathField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string FullPath {
+            get {
+                return this.fullPathField;
+            }
+            set {
+                this.fullPathField = value;
             }
         }
     }
@@ -410,8 +544,6 @@ namespace CloudSDK_SmokeTest.Settings {
         private string nameField;
         
         private string pathField;
-        
-        private bool isFileField;
         
         /// <remarks/>
         public string Name {
@@ -432,16 +564,6 @@ namespace CloudSDK_SmokeTest.Settings {
                 this.pathField = value;
             }
         }
-        
-        /// <remarks/>
-        public bool IsFile {
-            get {
-                return this.isFileField;
-            }
-            set {
-                this.isFileField = value;
-            }
-        }
     }
     
     /// <remarks/>
@@ -457,6 +579,28 @@ namespace CloudSDK_SmokeTest.Settings {
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute("SmokeTask")]
         public SmokeTask[] Items {
+            get {
+                return this.itemsField;
+            }
+            set {
+                this.itemsField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class Scenario {
+        
+        private ParallelTaskSet[] itemsField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("ScenarioTasks")]
+        public ParallelTaskSet[] Items {
             get {
                 return this.itemsField;
             }

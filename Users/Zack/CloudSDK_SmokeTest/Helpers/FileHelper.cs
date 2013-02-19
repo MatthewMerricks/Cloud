@@ -1,6 +1,7 @@
 ﻿using CloudApiPublic;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
+using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
 using CloudSDK_SmopkeTest.Settings;
@@ -17,6 +18,92 @@ namespace CloudSDK_SmokeTest.Helpers
     public class FileHelper
     {
         #region Create 
+        public static int CreateFile(Settings.InputParams InputParams, ManualSyncManager manager,  CreateFileEventArgs createEventArgs)
+        {
+            GenericHolder<CLError> refProcessErrorHolder = createEventArgs.ProcessingErrorHolder;
+            int createReturnCode = 0;
+            string fullPath = createEventArgs.CreateTaskFileInfo.FullName;
+            if (!File.Exists(fullPath))
+                WriteFile(createEventArgs.RootDirectory.FullName, createEventArgs.CreateTaskFileInfo.Name);
+
+            FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, createEventArgs.RootDirectory.FullName, createEventArgs.CreateTaskFileInfo.Name, ref refProcessErrorHolder);
+            CloudApiPublic.JsonContracts.Event returnEvent;
+            CLHttpRestStatus restStatus = new CLHttpRestStatus();
+
+            CLError postFileError = createEventArgs.SyncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
+            if (postFileError != null || restStatus != CLHttpRestStatus.Success)
+            {                
+                FileHelper.HandleUnsuccessfulUpload(fileChange, returnEvent, restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref refProcessErrorHolder);
+            }
+            string response = returnEvent.Header.Status.ToLower();
+            CreateFileResponseEventArgs responseArgs = new CreateFileResponseEventArgs(createEventArgs, fileChange, response, restStatus, returnEvent);
+            createReturnCode = FileHelper.CreateFileResponseSwitch(responseArgs, fileChange, manager, ref refProcessErrorHolder);
+            return createReturnCode;
+        }
+
+        private static int RenameAndTryUpload(CreateFileEventArgs responseArgs, FileChange currentFileChange, ManualSyncManager manager)
+        {
+            FileChange newFileChange = manager.CreateFileChangeWithNewName(currentFileChange);
+            manager.TryUpload(responseArgs, newFileChange);
+            return 0;
+        }
+
+        public static FileChange PrepareMD5FileChange(InputParams paramSet, CLCredential creds, string filePath, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            FileChange fileChange = new FileChange();
+            string fullPath = filePath + '\\' + fileName;
+            if (!File.Exists(filePath))
+                WriteFile(filePath, fileName);
+            byte[] md5Bytes = FileHelper.CreateFileChangeObject(fullPath, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
+            CLError hashError = fileChange.SetMD5(md5Bytes);
+            if (hashError != null)
+            {
+                Exception[] exceptions = hashError.GrabExceptions().ToArray();
+                lock (ProcessingErrorHolder)
+                {
+                    foreach (Exception ex in exceptions)
+                    {
+                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                    }
+                }
+            }
+            return fileChange;
+        }
+
+        public static bool WriteFile(string path, string fileName)
+        {
+            string fullPath = path + '\\' + fileName;
+            bool returnValue = true;
+            if (!System.IO.File.Exists(fullPath))
+            {
+                using (System.IO.FileStream fs = System.IO.File.Create(fullPath))
+                {
+                    Random rnd = new Random();
+                    int maxRandom = 1000000000;
+                    int maxforCount = 1000;
+                    int byteCount = rnd.Next(maxforCount);
+                    Console.WriteLine(string.Format("The total number of iterations will be {0}", byteCount.ToString()));
+                    for (int i = 0; i < byteCount; i++)
+                    {
+                        int currentRandom = rnd.Next(maxRandom);
+                        byte[] bytes = Encoding.ASCII.GetBytes(currentRandom.ToString());
+                        foreach (Byte b in bytes)
+                            fs.WriteByte(b);
+
+                        int rem = i % 100;
+                        if (rem == 0)
+                            Console.WriteLine(string.Format("{0} - Value: {1}", i, currentRandom));
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("File \"{0}\" already exists.", fileName);
+                returnValue = false;
+            }
+            return returnValue;
+        }
+
         public static string CreateNewFileName(string filePath, bool isCopy, bool isCaseSentitiveIssue, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             string returnValue = string.Empty;
@@ -169,6 +256,30 @@ namespace CloudSDK_SmokeTest.Helpers
         #endregion
 
         #region Responses
+        public static int CreateFileResponseSwitch(CreateFileResponseEventArgs responseArgs, FileChange currentFileChange, ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            GenericHolder<CLError> refHolder = ProcessingErrorHolder;
+            int responseCode = 0;
+            switch (responseArgs.ResponseText)
+            {
+                case "upload":
+                case "uploading":
+                    responseCode = FileHelper.TryUpload(responseArgs.CreateTaskFileInfo, responseArgs.SyncBox, responseArgs.FileChange, responseArgs.RestStatus, responseArgs.ReturnEvent, ref refHolder);
+                    break;
+                case "duplicate":
+                case "exists":
+                case "conflict":
+                    //ThrowDuplicateException(ref ProcessingErrorHolder);
+                    responseCode = FileHelper.RenameAndTryUpload(responseArgs, currentFileChange, manager);
+                    break;
+                default:
+                    responseCode = (int)FileManagerResponseCodes.InvalidResponseType;
+                    Console.Write(string.Format("The Server Response is {0}", responseArgs.ReturnEvent.Header.Status));
+                    break;
+
+            }
+            return responseCode;
+        }
 
         public static void HandleUnsuccessfulUpload(FileChange fileChange, CloudApiPublic.JsonContracts.Event returnEvent, CLHttpRestStatus restStatus, CLError updateError, string requestType, ref GenericHolder<CLError> ProcessingErrorHolder)
         {

@@ -10,5 +10,6 @@ namespace CloudSDK_SmokeTest.Events.CLEventArgs
     {
         public FileInfo CreateTaskFileInfo { get; set; }
         public DateTime CreateCurrentTime { get; set; }
+        public DirectoryInfo RootDirectory { get; set; }
     }
 }

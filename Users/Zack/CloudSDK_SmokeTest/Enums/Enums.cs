@@ -22,5 +22,6 @@ namespace CloudSDK_SmokeTest
         MD5HashingError = 8,
         InvalidTaskType = 16,
         InvalidResponseType = 32,
+        ExpectedItemMatchFailure = 64,
     }
 }

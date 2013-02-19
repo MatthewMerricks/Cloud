@@ -12,7 +12,7 @@ namespace CloudSDK_SmokeTest.Managers
     {
         public abstract int Create(Settings.InputParams paramSet,SmokeTask smokeTask, FileInfo fileInfo, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder);
         public abstract int Delete(Settings.InputParams paramSet, SmokeTask smokeTask);
-        public abstract int Undelte(Settings.InputParams paramSet, SmokeTask smokeTask);
+        public abstract int Undelete(Settings.InputParams paramSet, SmokeTask smokeTask);
         public abstract int Rename(Settings.InputParams paramSet, SmokeTask smokeTask, string directoryRelativetoRoot, string oldName, string newName);
     }
 }

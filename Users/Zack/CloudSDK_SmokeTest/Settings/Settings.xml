@@ -3,15 +3,18 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://www.cloud.com InputParameters.xsd">
   <Copyright>
-    <ActiveSync_Folder></ActiveSync_Folder>
+    <FileName>Settings.xml</FileName>
+    <Copyright>Implementation of InputParameters.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved.</Copyright>
+    <Creator>BobS</Creator>
   </Copyright>
+  
   <InputParams>
     <API_Key>af5c9411437af584cb31506e0d41b34cfd4b6085bf9b51a5ee480c424b5932ff</API_Key>
     <API_Secret>fc50fff51344faca5ed6cc38e4398e622963d055713db0895a144c8315c5204b</API_Secret>
     <ActiveSync_Folder>"C:\TestSyncBoxes\Auto_SyncBoxA"</ActiveSync_Folder>
     <ActiveSync_TraceFolder>"C:\TestSyncBoxes\Traces\AutoSyncTraces"</ActiveSync_TraceFolder>
-    <ActiveSyncBoxID>144</ActiveSyncBoxID>
-    <ManualSyncBoxID>144</ManualSyncBoxID>
+    <ActiveSyncBoxID>191</ActiveSyncBoxID>
+    <ManualSyncBoxID>191</ManualSyncBoxID>
     <ManualSync_Folder>"C:\Users\t_zacharyw\Cloud\"</ManualSync_Folder>
     <ManualSync_TraceFolder>"C:\TestSyncBoxes\Traces\ManualSyncTraces"</ManualSync_TraceFolder>
     <Token></Token>
@@ -19,51 +22,120 @@
     <TraceType>4</TraceType>
     <FileNameMappingFile>"C:\Users\t_zacharyw\Cloud\NamingConflicts.xml"</FileNameMappingFile>
   </InputParams>
-  <ParallelTaskSet>
-   <!--<SmokeTask xsi:type="Creation">
-      <type>Creation</type>
-      <Group>0</Group>
-      <Sequence>1</Sequence>
-      <Name>ZacksFile.txt</Name>
-      <Path>"C:\Users\t_zacharyw\Cloud\"</Path>
-      <IsFile>true</IsFile>
-    </SmokeTask>-->
-
+  <Scenario>
+    <ScenarioTasks>
+      <SmokeTask xsi:type="ListItems">
+        <type>ListItems</type>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <ListType>SyncBoxes</ListType>
+        <ExpectedCount>0</ExpectedCount>
+      </SmokeTask>
     <!--<SmokeTask xsi:type="Creation">
       <type>Creation</type>
-      <Group>0</Group>
-      <Sequence>1</Sequence>
-      <Name>ZacksFile.txt</Name>
-      <Path>"C:\Users\t_zacharyw\Cloud\AddFolderTest"</Path>
-      <IsFile>false</IsFile>
+      <ObjectType>
+        <type>File</type>
+      </ObjectType>
+      <Name>FileForRename3.txt</Name>
+      <Path>"C:\Users\t_zacharyw\Cloud\"</Path>
     </SmokeTask>-->
-
-    <!--<SmokeTask xsi:type="DownloadAllSyncBoxContent">
-      <type>DownloadAllSyncBoxContent</type>
-      <Group>1</Group>
-      <Sequence>1</Sequence>
-      <FolderPath>"C:\Users\t_zacharyw\Cloud\"</FolderPath>
-      <FilePath></FilePath>
+    <!--<SmokeTask xsi:type="Creation">
+      <type>Creation</type>
+      <InnerTask xsi:type="Rename">
+        <type>Rename</type>
+        <InnerTask xsi:type="Deletion">
+          <type>Deletion</type>
+          <ObjectType>
+            <type>Folder</type>
+          </ObjectType>
+          <Name>EigthRename</Name>
+          <FullName>"C:\Users\t_zacharyw\Cloud\EigthRename"</FullName>
+          <RelativePath>"\EigthRename"</RelativePath>
+          <FullPath>"C:\Users\t_zacharyw\Cloud\EigthRename"</FullPath>
+        </InnerTask>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <OldName>"C:\Users\t_zacharyw\Cloud\EigthFolder"</OldName>
+        <NewName>"C:\Users\t_zacharyw\Cloud\EigthRename"</NewName>
+        <RelativeDirectoryPath></RelativeDirectoryPath>
+      </InnerTask>
+      <ObjectType>
+        <type>Folder</type>
+      </ObjectType>
+      <Name>EigthFolder</Name>
+      <Path>"C:\Users\t_zacharyw\Cloud\"</Path>
     </SmokeTask>-->
+  </ScenarioTasks>
+   <!--<ScenarioTasks>
+      <SmokeTask xsi:type="DownloadAllSyncBoxContent">
+        <type>DownloadAllSyncBoxContent</type>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <FolderPath>"C:\Users\t_zacharyw\Cloud\"</FolderPath>
+        <FilePath></FilePath>
+      </SmokeTask>
+    </ScenarioTasks>
+    <ScenarioTasks> -->
+    <!--<ScenarioTasks>
+      <SmokeTask xsi:type="Deletion">
+        <type>Deletion</type>
+        <IsAutoRun>false</IsAutoRun>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <Name>FileForRename.txt</Name>
+        <FullName>"C:\Users\t_zachary\Cloud\FileForRename.txt"</FullName>
+        <RelativePath>"\"</RelativePath>
+        <FullPath>"C:\Users\t_zachary\Cloud\FileForRename.txt"</FullPath>        
+      </SmokeTask>
+    </ScenarioTasks>-->
+    <!--<ScenarioTasks>
+      <SmokeTask xsi:type="Deletion">
+        <type>Deletion</type>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <Name>SuccessfullyRenamed</Name>
+        <FullName>"C:\Users\t_zachary\Cloud\SuccessfullyRenamed"</FullName>
+        <RelativePath>"\SuccessfullyRenamed"</RelativePath>
+        <FullPath>"C:\Users\t_zachary\Cloud\SuccessfullyRenamed"</FullPath>
+      </SmokeTask>
+    </ScenarioTasks>-->
+    <!--<ScenarioTasks>
+      <SmokeTask xsi:type="Rename">
+        <type>Rename</type>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <OldName>"C:\Users\t_zacharyw\Cloud\SecondTestFolder"</OldName>
+        <NewName>"C:\Users\t_zacharyw\Cloud\SuccessfullyRenamed"</NewName>
+        <RelativeDirectoryPath></RelativeDirectoryPath>
+      </SmokeTask>
+  </ScenarioTasks>-->
 
-    <!--<SmokeTask xsi:type="FileDeletion">
-      <type>FileDeletion</type>
-      <Group>1</Group>
-      <Sequence>2</Sequence>
-      <FileName></FileName>
-      <FilePath></FilePath>
-    </SmokeTask>-->
-
-    <SmokeTask xsi:type="FileRename">
-      <type>FileRename</type>
-      <Group>2</Group>
-      <Sequence>1</Sequence>
-      <OldName></OldName>
-      <NewName></NewName>
+  <!--<ScenarioTasks>
+    <SmokeTask xsi:type="Rename">
+      <type>Rename</type>
+      <ObjectType>
+        <type>File</type>
+      </ObjectType>
+      <OldName>"FileForRename3.txt"</OldName>
+      <NewName>"RenameTestReplaced.txt"</NewName>
       <RelativeDirectoryPath></RelativeDirectoryPath>
-      <IsFolder>false</IsFolder>
     </SmokeTask>
-
+  </ScenarioTasks>-->
+  <!--<ScenarioTasks>
+      <SmokeTask xsi:type="CreateSyncBox">
+        <type>CreateSyncBox</type>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <CreateNew>false</CreateNew>
+      </SmokeTask>
+    </ScenarioTasks>-->
     <!--<SmokeTask xsi:type="FileUndelete">
       <type>FileUndelete</type>
       <Group>2</Group>
@@ -72,66 +144,5 @@
       <FileName></FileName>
       <Version></Version>
     </SmokeTask>-->
-
-    <SmokeTask xsi:type="CreateSyncBox">
-      <type>CreateSyncBox</type>
-      <Group>0</Group>
-      <Sequence>0</Sequence>
-      <CreateNew>false</CreateNew>
-    </SmokeTask>   
-  </ParallelTaskSet>
-  <!--<Scenario>
-    <ScenarioTasks>
-      <SmokeTask xsi:type="Creation">
-        <type>Creation</type>
-        <Group>0</Group>
-        <Sequence>1</Sequence>
-        <Name>ZacksFile.txt</Name>
-        <Path>"C:\Users\t_zacharyw\Cloud\"</Path>
-        <IsFile>true</IsFile>
-      </SmokeTask>
-      
-      <SmokeTask xsi:type="DownloadAllSyncBoxContent">
-        <type>DownloadAllSyncBoxContent</type>
-        <Group>1</Group>
-        <Sequence>1</Sequence>
-        <FolderPath>"C:\Users\t_zacharyw\Cloud\"</FolderPath>
-        <FilePath></FilePath>
-      </SmokeTask>
-      
-      <SmokeTask xsi:type="FileDeletion">
-        <type>FileDeletion</type>
-        <Group>1</Group>
-        <Sequence>2</Sequence>
-        <FileName></FileName>
-        <FilePath></FilePath>
-      </SmokeTask>
-
-      <SmokeTask xsi:type="FileRename">
-        <type>FileRename</type>
-        <Group>2</Group>
-        <Sequence>1</Sequence>
-        <OldName></OldName>
-        <NewName></NewName>
-        <RelativeDirectoryPath></RelativeDirectoryPath>
-        <IsFolder></IsFolder>
-      </SmokeTask>
-   
-      <SmokeTask xsi:type="FileUndelete">
-        <type>FileUndelete</type>
-        <Group>2</Group>
-        <Sequence>2</Sequence>
-        <FullPath></FullPath>
-        <FileName></FileName>
-        <Version></Version>
-      </SmokeTask>
-      
-      <SmokeTask xsi:type="CreateSyncBox">
-        <type>CreateSyncBox</type>
-        <Group>0</Group>
-        <Sequence>0</Sequence>
-        <CreateNew>false</CreateNew>
-      </SmokeTask>
-    </ScenarioTasks>
-  </Scenario>-->
+</Scenario>
 </SmokeTest>
