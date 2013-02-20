@@ -54,7 +54,7 @@
     <Reference Include="RateBar, Version=1.0.4762.20666, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.SqlServerCe, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.1, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="System.Management" />
