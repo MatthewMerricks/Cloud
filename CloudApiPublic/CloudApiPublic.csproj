@@ -63,7 +63,6 @@
   <ItemGroup>
     <Reference Include="BadgeCOMLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\EntityFramework.dll</HintPath>
@@ -519,83 +518,34 @@ copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkS
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-if /I $(ConfigurationName) == Release goto XMLDocumentationRelease
-if /I $(ConfigurationName) == ReleaseNOSSL goto XMLDocumentationReleaseNoSSL
-goto XMLDocumentationBadConfiguration
-
-:XMLDocumentationRelease
-
 set ErrorTracker=25
-echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(Configurationname)
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(ConfigurationName)
+echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
 set ErrorTracker=26
-echo copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
-
-set ErrorTracker=27
-echo copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-if errorlevel 1 goto BuildEventFailed
-
-goto AfterDocumentation
-
-:XMLDocumentationReleaseNoSSL
-
-set ErrorTracker=25
-echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentationNoSSL.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(Configurationname)
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentationNoSSL.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(ConfigurationName)
-if errorlevel 1 goto BuildEventFailed
-
-set ErrorTracker=26
-echo copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
-if errorlevel 1 goto BuildEventFailed
-
-set ErrorTracker=27
-echo copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(ProjectDir)Help\$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-if errorlevel 1 goto BuildEventFailed
-
-goto AfterDocumentation
-
-:XMLDocumentationBadConfiguration
-
-set ErrorTracker=25
-echo Bad configuration, do not run XMLDocumentation project
-
-set ErrorTracker=26
-echo copy $(ProjectDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(ProjectDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
-if errorlevel 1 goto BuildEventFailed
-
-set ErrorTracker=27
-echo copy $(ProjectDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(ProjectDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-if errorlevel 1 goto BuildEventFailed
-
-:AfterDocumentation
 
 REM ----------------------
-set ErrorTracker=28
+set ErrorTracker=27
 echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=29
+set ErrorTracker=28
 echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=30
+set ErrorTracker=29
 echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=31
+set ErrorTracker=30
 echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
@@ -614,10 +564,7 @@ echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
 exit 1
 :BuildEventOK
 echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
-echo ************  POST BUILD STEP COMPLETED OK **********************
-
-
-</PostBuildEvent>
+echo ************  POST BUILD STEP COMPLETED OK **********************</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
