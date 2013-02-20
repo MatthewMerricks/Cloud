@@ -534,12 +534,10 @@ namespace CloudApiPublic.PushNotification
             {
                 lock (this)
                 {
-                    if (_timerEngineWatcher == null)
+                    if (_timerEngineWatcher != null)
                     {
-                        throw new InvalidOperationException("CreateEngineTimer first");
+                        _timerEngineWatcher.Change(dueTime: Timeout.Infinite, period: Timeout.Infinite);
                     }
-
-                    _timerEngineWatcher.Change(dueTime: Timeout.Infinite, period: Timeout.Infinite);
                 }
             }
             catch (Exception ex)

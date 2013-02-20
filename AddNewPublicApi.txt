@@ -43,6 +43,11 @@ non-exposed methods in CLHttpRest can be tested by an external program via creat
                 and use the "syncBox" reference to make calls, it also has the CLCredential object ("Credentials") inside for its calls
 
 
+
+!!!! When testing, try to produce all http status codes for success\failure and make sure it comes through correctly as the correct CLHttpRestStatus enumeration output (i.e. might need to handle 201 instead of just 200 as sucess)
+!!!! change which HashSet<HttpStatusCode> is being passed into Helpers.ProcessHttp for input parameter validStatusCodes, right now we have Helpers.HttpStatusesOkCreatedNotModified (200, 201, 304) and Helpers.HttpStatusesOkAccepted (201, 202)
+
+
 Deprecating an ond API
   o 10 calls for updatequota
   o 1/2 in CLSyncBox

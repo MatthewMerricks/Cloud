@@ -22,6 +22,9 @@ namespace CloudApiPublic.JsonContracts
     [DataContract]
     public sealed class Metadata
     {
+        [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
+        public string ErrorMessage { get; set; }
+
         [DataMember(Name = CLDefinitions.CLMetadataServerId, IsRequired = false)]
         public string ServerId { get; set; }
 
@@ -96,7 +99,7 @@ namespace CloudApiPublic.JsonContracts
         public Nullable<long> LastEventId { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataIsStored, IsRequired = false)]
-        public Nullable<bool> IsPending { get; set; }
+        public Nullable<bool> IsNotPending { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataCloudPath, IsRequired = false)]
         public string RelativePath { get; set; }
