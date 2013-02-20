@@ -6182,11 +6182,11 @@ namespace CloudApiPublic.Sync
                                                         // if there was a hierarchy found at the old path for the rename, then apply a rename to the dictionary based on the current rename
                                                         if (renameHierarchy != null)
                                                         {
-                                                            alreadyVisitedRenames.Rename(currentChange.OldPath, findMetadata.NewPath.Copy());
+                                                            alreadyVisitedRenames.Rename(currentChange.OldPath, currentChange.NewPath.Copy());
                                                         }
 
                                                         // add the currently found metadata to the rename dictionary so it can be searched for subsequent renames
-                                                        alreadyVisitedRenames[findMetadata.NewPath.Copy()] = findMetadata.Metadata;
+                                                        alreadyVisitedRenames[currentChange.NewPath.Copy()] = findMetadata.Metadata;
                                                     }
 
                                                     // stop searching for a match
@@ -7610,9 +7610,9 @@ namespace CloudApiPublic.Sync
                                         // search the already visited Sync From rename events by the current event's previous path for when multiple rename events in a communication batch keep moving the metadata forward
                                         (alreadyVisitedRenames.TryGetValue(currentChange.OldPath, out foundOldPathMetadataOnly)
                                             ? new[] { new FileChange() // if a match is found, then include the found result
-                                        {
-                                            Metadata = foundOldPathMetadataOnly, // metadata to move forward
-                                        }}
+                                                {
+                                                    Metadata = foundOldPathMetadataOnly, // metadata to move forward
+                                                }}
                                             : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
                                         // search the current UpDownEvents for one matching the current event's previous path (comparing against the UpDownEvent's NewPath)
@@ -7646,11 +7646,11 @@ namespace CloudApiPublic.Sync
                                             // if there was a hierarchy found at the old path for the rename, then apply a rename to the dictionary based on the current rename
                                             if (renameHierarchy != null)
                                             {
-                                                alreadyVisitedRenames.Rename(currentChange.OldPath, findMetadata.NewPath.Copy());
+                                                alreadyVisitedRenames.Rename(currentChange.OldPath, currentChange.NewPath.Copy());
                                             }
 
                                             // add the currently found metadata to the rename dictionary so it can be searched for subsequent renames
-                                            alreadyVisitedRenames[findMetadata.NewPath.Copy()] = findMetadata.Metadata;
+                                            alreadyVisitedRenames[currentChange.NewPath.Copy()] = findMetadata.Metadata;
 
                                             // stop searching for a match
                                             break;
