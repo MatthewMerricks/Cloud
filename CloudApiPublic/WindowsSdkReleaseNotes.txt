@@ -1,5 +1,10 @@
                                                     WINDOWS SDK RELEASE NOTES
 
+02/20/2013 CloudSDK-v0.1.4A.zip
+  o Bug fix: CI000047: Duplicate file being created when moving a file even with sample app.
+  o Bug fix: CI000052 Extra folder is created in Windows 8 host while a folder is getting copied from sync box (exists in SampleApp).
+  o Bug fix: Eliminated a warning message when building the sample app.  Changed the SQL CE assembly version to 4.0.0.1 to match the requirement on the unmanaged SQL assemblies.
+
 02/18/2013 CloudSDK-v0.1.4.zip
   o Feature: Added support for plans.
   o Feature: Added support for Server-Sent-Events (SSE).  Removed WebSockets support.  The default is now SSE, with fall-back to manual polling.
