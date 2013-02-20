@@ -419,6 +419,7 @@ namespace CloudApiPublic.REST
                 null,
                 null,
                 null);
+        
         }
 
         // internal version with added action for status update
@@ -1175,7 +1176,7 @@ namespace CloudApiPublic.REST
                     {
                         (string.IsNullOrEmpty(serverId)
                             ? // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                                new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((_copiedSettings.SyncRoot ?? string.Empty), true) + "/"))
+                                new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((_copiedSettings.SyncRoot ?? string.Empty), true) + (isFolder ? "/" : string.Empty)))
 
                             : // query string parameter for the unique id to the file or folder on the server, escaped since it is a server opaque field of undefined format
                                 new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(serverId))),

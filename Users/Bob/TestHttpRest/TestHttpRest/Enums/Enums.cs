@@ -20,8 +20,5 @@ namespace CloudSDK_SmokeTest
         InitializeCredsError = 2,
         InitializeSynBoxError = 4,
         MD5HashingError = 8,
-        InvalidTaskType = 16,
-        InvalidResponseType = 32,
-        ExpectedItemMatchFailure = 64,
     }
 }

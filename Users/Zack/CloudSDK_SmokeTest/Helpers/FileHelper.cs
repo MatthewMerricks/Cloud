@@ -1,27 +1,126 @@
 ﻿using CloudApiPublic;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
+using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Managers;
+using CloudSDK_SmokeTest.Settings;
+using CloudSDK_SmopkeTest.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace CloudSDK_SmokeTest.Helpers
 {
     public class FileHelper
     {
-        public static string CreateNewFileName(string filePath, bool isCopy, ref GenericHolder<CLError> ProcessingErrorHolder)
+        #region Create 
+        public static int CreateFile(Settings.InputParams InputParams, ManualSyncManager manager,  CreateFileEventArgs createEventArgs)
+        {
+            GenericHolder<CLError> refProcessErrorHolder = createEventArgs.ProcessingErrorHolder;
+            int createReturnCode = 0;
+            string fullPath = createEventArgs.CreateTaskFileInfo.FullName;
+            if (!File.Exists(fullPath))
+                WriteFile(createEventArgs.RootDirectory.FullName, createEventArgs.CreateTaskFileInfo.Name);
+
+            FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, createEventArgs.RootDirectory.FullName, createEventArgs.CreateTaskFileInfo.Name, ref refProcessErrorHolder);
+            CloudApiPublic.JsonContracts.Event returnEvent;
+            CLHttpRestStatus restStatus = new CLHttpRestStatus();
+
+            CLError postFileError = createEventArgs.SyncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
+            if (postFileError != null || restStatus != CLHttpRestStatus.Success)
+            {                
+                FileHelper.HandleUnsuccessfulUpload(fileChange, returnEvent, restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref refProcessErrorHolder);
+            }
+            string response = returnEvent.Header.Status.ToLower();
+            CreateFileResponseEventArgs responseArgs = new CreateFileResponseEventArgs(createEventArgs, fileChange, response, restStatus, returnEvent);
+            createReturnCode = FileHelper.CreateFileResponseSwitch(responseArgs, fileChange, manager, ref refProcessErrorHolder);
+            return createReturnCode;
+        }
+
+        private static int RenameAndTryUpload(CreateFileEventArgs responseArgs, FileChange currentFileChange, ManualSyncManager manager)
+        {
+            FileChange newFileChange = manager.CreateFileChangeWithNewName(currentFileChange);
+            manager.TryUpload(responseArgs, newFileChange);
+            return 0;
+        }
+
+        public static FileChange PrepareMD5FileChange(InputParams paramSet, CLCredential creds, string filePath, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            FileChange fileChange = new FileChange();
+            string fullPath = filePath + '\\' + fileName;
+            if (!File.Exists(filePath))
+                WriteFile(filePath, fileName);
+            byte[] md5Bytes = FileHelper.CreateFileChangeObject(fullPath, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
+            CLError hashError = fileChange.SetMD5(md5Bytes);
+            if (hashError != null)
+            {
+                Exception[] exceptions = hashError.GrabExceptions().ToArray();
+                lock (ProcessingErrorHolder)
+                {
+                    foreach (Exception ex in exceptions)
+                    {
+                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                    }
+                }
+            }
+            return fileChange;
+        }
+
+        public static bool WriteFile(string path, string fileName)
+        {
+            string fullPath = path + '\\' + fileName;
+            bool returnValue = true;
+            if (!System.IO.File.Exists(fullPath))
+            {
+                using (System.IO.FileStream fs = System.IO.File.Create(fullPath))
+                {
+                    Random rnd = new Random();
+                    int maxRandom = 1000000000;
+                    int maxforCount = 1000;
+                    int byteCount = rnd.Next(maxforCount);
+                    Console.WriteLine(string.Format("The total number of iterations will be {0}", byteCount.ToString()));
+                    for (int i = 0; i < byteCount; i++)
+                    {
+                        int currentRandom = rnd.Next(maxRandom);
+                        byte[] bytes = Encoding.ASCII.GetBytes(currentRandom.ToString());
+                        foreach (Byte b in bytes)
+                            fs.WriteByte(b);
+
+                        int rem = i % 100;
+                        if (rem == 0)
+                            Console.WriteLine(string.Format("{0} - Value: {1}", i, currentRandom));
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("File \"{0}\" already exists.", fileName);
+                returnValue = false;
+            }
+            return returnValue;
+        }
+
+        public static string CreateNewFileName(string filePath, bool isCopy, bool isCaseSentitiveIssue, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             string returnValue = string.Empty;
             int pathEndsAt = filePath.LastIndexOf('\\');
+            int fileNameBeginsAt = pathEndsAt + 1;
             int extensionBeginsAt = filePath.LastIndexOf('.');
             string suffix = filePath.Substring(extensionBeginsAt, ((filePath.Count()) - extensionBeginsAt));
             StringBuilder builder = new StringBuilder(filePath.Substring(0, pathEndsAt) + '\\');
-            if (!isCopy)
+            if (!isCopy && !isCaseSentitiveIssue)
             {
                 builder.Append(filePath.Substring(pathEndsAt, (filePath.Count() - pathEndsAt)).Replace(suffix, "") + "_Copy" + suffix);
+                returnValue = builder.ToString();
+            }
+            else if (!isCopy && isCaseSentitiveIssue)
+            {
+                string fileName = filePath.Substring(fileNameBeginsAt, (filePath.Count() - fileNameBeginsAt)).Replace(suffix, "");
+                builder.Append("BADNAME_" + fileName + suffix);
                 returnValue = builder.ToString();
             }
             else
@@ -48,28 +147,7 @@ namespace CloudSDK_SmokeTest.Helpers
             return returnValue;
         }
 
-        public static int TryUpload(string filePath, string fileName, CLSyncBox syncBox, FileChange fileChange,
-                                CLHttpRestStatus restStatus, CloudApiPublic.JsonContracts.Event returnEvent, ref GenericHolder<CLError> ProcessingErrorHolder)
-        {
-            CLHttpRestStatus newStatus;
-            int responseCode = 0;
-            fileChange.Metadata.Revision = returnEvent.Metadata.Revision;
-            fileChange.Metadata.StorageKey = returnEvent.Metadata.StorageKey;
-            Stream stream = new System.IO.FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            CLError updateFileError = syncBox.HttpRestClient.UploadFile(stream, fileChange, ManagerConstants.TimeOutMilliseconds, out newStatus);
-            if (restStatus != CLHttpRestStatus.Success || updateFileError != null)
-            {
-                HandleUnsuccessfulUpload(fileChange, returnEvent, restStatus, updateFileError, ManagerConstants.RequestTypes.RestCreateFile, ref ProcessingErrorHolder);
-                responseCode = 1;
-            }
-            else
-            {
-                Console.Write("Successfully Uploaded File {0} to the Sync Box Server.", fileName);
-            }
-            return responseCode;
-        }
-        
-        public static byte[] CreateFileChangeObject(string filePath, FileChangeType type, bool getHash, long? inputFileSize, out FileChange fileChange)
+        public static byte[] CreateFileChangeObject(string filePath, FileChangeType type, bool getHash, long? size, string storageKey, string serverId, out FileChange fileChange)
         {
             byte[] md5Bytes = null;
             long fileSize = 0;
@@ -81,7 +159,12 @@ namespace CloudSDK_SmokeTest.Helpers
                                                         out fileSize);
             }
             else
-                fileSize = inputFileSize.HasValue ? inputFileSize.Value : 0;
+            {
+                if (size.HasValue)
+                {
+                    fileSize = size.HasValue ? size.Value : 0;
+                }
+            }
             fileChange = new CloudApiPublic.Model.FileChange()
             {
                 Direction = CloudApiPublic.Static.SyncDirection.To,
@@ -91,11 +174,111 @@ namespace CloudSDK_SmokeTest.Helpers
                     HashableProperties = new CloudApiPublic.Model.FileMetadataHashableProperties(false, currentTime, currentTime, fileSize),
                     //LinkTargetPath -- TTarget Pth of a Shortcut file 
                     //MimeType = null, //unsude by windows but could be calced by file extension 
+                    StorageKey = storageKey,
+                    ServerId = serverId
                 },
                 NewPath = filePath,//path to the file as it exists on disk 
                 Type = type,
             };
             return md5Bytes;
+        }
+        #endregion 
+
+        #region Modify 
+        public static int TryUpload(FileInfo info, CLSyncBox syncBox, FileChange fileChange,
+                                CLHttpRestStatus restStatus, CloudApiPublic.JsonContracts.Event returnEvent, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            CLHttpRestStatus newStatus;
+            int responseCode = 0;
+            fileChange.Metadata.Revision = returnEvent.Metadata.Revision;
+            fileChange.Metadata.StorageKey = returnEvent.Metadata.StorageKey;
+            string message = string.Empty;
+            Stream stream = new System.IO.FileStream(info.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            CLError updateFileError = syncBox.HttpRestClient.UploadFile(stream, fileChange, ManagerConstants.TimeOutMilliseconds, out newStatus, out message);
+            if (restStatus != CLHttpRestStatus.Success || updateFileError != null)
+            {
+                HandleUnsuccessfulUpload(fileChange, returnEvent, restStatus, updateFileError, ManagerConstants.RequestTypes.RestCreateFile, ref ProcessingErrorHolder);
+                responseCode = 1;
+            }
+            else
+            {
+                Console.Write("Successfully Uploaded File {0} to the Sync Box Server.", info.Name);
+            }
+            return responseCode;
+        }
+
+
+        #endregion 
+
+        #region Compare
+        public static bool ShouldUpdateFile(InputParams paramSet, CLSyncBox syncBox, string filePath, CloudApiPublic.JsonContracts.Metadata mdObject, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+
+            //AllMappings mappings = XMLHelper.GetMappingItems(paramSet.FileNameMappingFile, ref ProcessingErrorHolder);
+            //PathMappingElement mappingElement = mappings.MappingRecords.Items.Where(i => i.ID == mdObject.ServerId).FirstOrDefault();
+            return false;
+        }
+        #endregion 
+
+        #region Search
+        public static FileInfo FindFirstFileInDirectory(string directoryPath)
+        {
+            if (!Directory.Exists(directoryPath))
+                throw new Exception("The specified directory path does not exist.");
+
+            FileInfo returnValue = null;
+
+            DirectoryInfo dInfo = new DirectoryInfo(directoryPath);
+            returnValue = dInfo.EnumerateFiles().FirstOrDefault();
+            if (returnValue == null)
+            {
+                IEnumerable<DirectoryInfo> childFolders = dInfo.EnumerateDirectories();
+                foreach (DirectoryInfo directory in childFolders)
+                {
+                    FileInfo fInfo = directory.EnumerateFiles().FirstOrDefault();
+                    if (fInfo != null)
+                    {
+                        returnValue = fInfo;
+                    }
+                    else
+                    {
+                        //recursive call to nested folders.
+                        fInfo = FindFirstFileInDirectory(directory.FullName);
+                        if (fInfo != null)
+                            returnValue = fInfo;
+                    }
+                    if (fInfo != null)
+                        break;
+                }
+            }
+            return returnValue;
+        }
+        #endregion
+
+        #region Responses
+        public static int CreateFileResponseSwitch(CreateFileResponseEventArgs responseArgs, FileChange currentFileChange, ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            GenericHolder<CLError> refHolder = ProcessingErrorHolder;
+            int responseCode = 0;
+            switch (responseArgs.ResponseText)
+            {
+                case "upload":
+                case "uploading":
+                    responseCode = FileHelper.TryUpload(responseArgs.CreateTaskFileInfo, responseArgs.SyncBox, responseArgs.FileChange, responseArgs.RestStatus, responseArgs.ReturnEvent, ref refHolder);
+                    break;
+                case "duplicate":
+                case "exists":
+                case "conflict":
+                    //ThrowDuplicateException(ref ProcessingErrorHolder);
+                    responseCode = FileHelper.RenameAndTryUpload(responseArgs, currentFileChange, manager);
+                    break;
+                default:
+                    responseCode = (int)FileManagerResponseCodes.InvalidResponseType;
+                    Console.Write(string.Format("The Server Response is {0}", responseArgs.ReturnEvent.Header.Status));
+                    break;
+
+            }
+            return responseCode;
         }
 
         public static void HandleUnsuccessfulUpload(FileChange fileChange, CloudApiPublic.JsonContracts.Event returnEvent, CLHttpRestStatus restStatus, CLError updateError, string requestType, ref GenericHolder<CLError> ProcessingErrorHolder)
@@ -153,5 +336,7 @@ namespace CloudSDK_SmokeTest.Helpers
                     break;
             }
         }
+        
+        #endregion 
     }
 }

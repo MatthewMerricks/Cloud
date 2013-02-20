@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="InputParameters"
+    targetNamespace="http://www.cloud.com/InputParameters.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://www.cloud.com/InputParameters.xsd"
+    xmlns:mstns="http://www.cloud.com/InputParameters.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+
+  <xs:complexType name="Copyright">
+    <xs:all>
+      <xs:element name="ActiveSync_Folder" type="xs:string" minOccurs="1"/>
+    </xs:all>
+  </xs:complexType>
+  
+  <xs:complexType name="InputParams">
+    <xs:all>
+      <xs:element name="API_Key" type="xs:string" minOccurs="1"/>
+      <xs:element name="API_Secret" type="xs:string" minOccurs="1"/>
+      <xs:element name="ActiveSyncBoxID" type="xs:int" minOccurs="1"/>
+      <xs:element name="ActiveSync_Folder" type="xs:string" minOccurs="1"/>
+      <xs:element name="ActiveSync_TraceFolder" type="xs:string" minOccurs="1"/>
+      <xs:element name="Token" type="xs:string" minOccurs="0"/>
+      <xs:element name="TraceType" type="xs:int" minOccurs="1"/>
+      <xs:element name="TraceLevel" type="xs:int" minOccurs="1"/>
+    </xs:all>
+  </xs:complexType>
+
+    <xs:complexType name="ParallelTaskSet">
+        <xs:choice >
+            <xs:element minOccurs="0" maxOccurs="unbounded" name="SmokeTask" type="SmokeTask" />
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="Scenario">
+        <xs:choice>
+            <xs:element name="ScenarioTasks" type="ParallelTaskSet" minOccurs="0" maxOccurs="unbounded" />
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="SmokeTask">
+    <xs:sequence>
+      <xs:element name="type" >
+        <xs:simpleType>
+          <xs:restriction base ="xs:string" >
+            <xs:enumeration value ="HttpTest" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+    </xs:sequence>   
+  </xs:complexType>
+
+  <xs:complexType name="HttpTest">
+    <xs:complexContent >
+      <xs:extension base="SmokeTask" >
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:element name="SmokeTest">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="Copyright" type="Copyright" />
+        <xs:element name="InputParams" type="InputParams" />
+        <xs:element name="Scenario" type="Scenario" />
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

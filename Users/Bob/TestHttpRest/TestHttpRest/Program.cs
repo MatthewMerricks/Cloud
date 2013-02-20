@@ -2,6 +2,7 @@
 using CloudSDK_SmokeTest.Helpers;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
+using CloudSDK_SmokeTest.TestClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,15 +16,15 @@ namespace CloudSDK_SmokeTest
     public sealed class Program
     {
         #region Constants
-        //TODO: Pull this from the XSD
-        public const string SettingsPath = "C:\\Cloud\\windows-client\\Users\\Zack\\CloudSDK_SmokeTest\\Settings\\Settings.xml";
-        #endregion
+        public const string SettingsPath = "C:\\Source\\Projects\\win-client\\Users\\Bob\\TestHttpRest\\TestHttpRest\\Settings\\Settings.xml";
+        #endregion 
 
-        #region Properties
+        #region Properties 
         private static readonly GenericHolder<CLError> ProcessingErrorHolder = new GenericHolder<CLError>(null);
-        #endregion
+        #endregion 
 
-        #region Implementation
+
+        #region Implementation 
         [STAThread]
         static int Main(string[] args)
         {
@@ -39,25 +40,22 @@ namespace CloudSDK_SmokeTest
 
                 Monitor.Wait(waitForCompletion);
             }
-            bool isError = false;
+
             lock (ProcessingErrorHolder)
             {
                 if (ProcessingErrorHolder.Value != null)
                 {
                     Console.WriteLine("Error processing smoke test: " + ProcessingErrorHolder.Value.errorDescription);
-                    isError = true;                    
+                    return (int)MainResult.UnknownError;
                 }
             }
 
             WriteExceptionsToScreen(ProcessingErrorHolder);
-            if(isError)
-                return (int)MainResult.UnknownError;
-            else
-                return (int)MainResult.Success;
+            return (int)MainResult.Success;        
         }
-        #endregion
+        #endregion 
 
-        #region Private
+        #region Private 
         private static void SmokeTestProcessor(object state)
         {
             object waitForCompletion = null;
@@ -71,31 +69,18 @@ namespace CloudSDK_SmokeTest
                 using (XmlReader reader = XmlReader.Create(SettingsPath))
                 {
                     SmokeTest smokeTestClass = (SmokeTest)serializer.Deserialize(reader);
-                    //for each Scenario in the Smoke Test Class Run the Scenario. 
+                     //for each Scenario in the Smoke Test Class Run the Scenario. 
                     Console.WriteLine("Xml Data Initialized From Schema...");
                     Console.WriteLine();
-                    InputParams.PrintDefaultValues(smokeTestClass.InputParams);
-
-                    foreach (ParallelTaskSet parallelSet in smokeTestClass.Scenario.Items)
-                    {
-                        System.Threading.Tasks.Parallel.ForEach(
-                            parallelSet.Items,
-                            (currentTask =>
-                            {
-                                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
-                                RunInnerTasks(smokeTestClass, currentTask.InnerTask);                                   
-
-                            }));
-
-                        lock (ProcessingErrorHolder)
+                   InputParams.PrintDefaultValues(smokeTestClass.InputParams);
+                    System.Threading.Tasks.Parallel.ForEach(smokeTestClass.Scenario.Items, (scenarioItem) =>{
+                        foreach (SmokeTask smokeTask in scenarioItem.Items)
                         {
-                            if (ProcessingErrorHolder.Value != null)
-                            {
-                                break;
-                            }
+                            SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, smokeTask, ProcessingErrorHolder);
                         }
-                    }
-                }
+                    });
+                }               
+
                 lock (waitForCompletion)
                 {
                     Monitor.Pulse(waitForCompletion);
@@ -121,20 +106,6 @@ namespace CloudSDK_SmokeTest
             }
         }
 
-        public static void RunInnerTasks(SmokeTest smokeTestClass, SmokeTask currentTask)
-        {
-            if (currentTask != null)
-            {
-                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
-                if (currentTask.InnerTask != null)
-                {
-                    SmokeTask thisTask = currentTask.InnerTask;
-                    SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, thisTask, ProcessingErrorHolder);
-                    if(ProcessingErrorHolder.Value == null)
-                        RunInnerTasks(smokeTestClass, thisTask.InnerTask);
-                }
-            }
-        }
         private static void WriteExceptionsToScreen(GenericHolder<CLError> ProcessingErrorHolder)
         {
             if (ProcessingErrorHolder.Value == null)
@@ -155,6 +126,6 @@ namespace CloudSDK_SmokeTest
                 }
             }
         }
-        #endregion
+        #endregion 
     }
 }

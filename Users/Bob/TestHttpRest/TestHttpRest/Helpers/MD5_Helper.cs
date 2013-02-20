@@ -28,7 +28,6 @@ namespace CloudSDK_SmokeTest.Helpers
 
             md5Hasher.TransformFinalBlock(EmptyBuffer, 0, 0);
             fileSize = countFileSize;
-            inputStream.Close();
             return md5Hasher.Hash;            
         }
     }

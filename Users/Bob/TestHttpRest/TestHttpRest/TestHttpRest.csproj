@@ -7,8 +7,8 @@
     <ProjectGuid>{D7E6B572-97EF-4012-B95E-C1B53B553C5D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CloudSDK_SmokeTest</RootNamespace>
-    <AssemblyName>CloudSDK_SmokeTest</AssemblyName>
+    <RootNamespace>TestHttpRest</RootNamespace>
+    <AssemblyName>TestHttpRest</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -33,36 +33,39 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BadgeCOMLib">
-      <HintPath>..\..\..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\BadgeCOMLib.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="CloudApiPublic">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\CloudApiPublic\bin\Release\CloudApiPublic.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\CloudApiPublic.dll</HintPath>
     </Reference>
     <Reference Include="ErikEJ.SqlCe40">
-      <HintPath>..\..\..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\ErikEJ.SqlCe40.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Net.Http">
-      <HintPath>..\..\..\3rdParty\bin\Release\Microsoft.Net.Http.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\Microsoft.Net.Http.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Practices.ServiceLocation">
-      <HintPath>..\..\..\3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\Microsoft.Practices.ServiceLocation.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\3rdParty\bin\Release\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Salient.Data">
-      <HintPath>..\..\..\3rdParty\bin\Release\Salient.Data.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\Salient.Data.dll</HintPath>
     </Reference>
     <Reference Include="SimpleJson">
-      <HintPath>..\..\..\3rdParty\bin\Release\SimpleJson.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\SimpleJson.dll</HintPath>
+    </Reference>
+    <Reference Include="SuperSocket.ClientEngine.Common, Version=0.2.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Common.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Core">
-      <HintPath>..\..\..\3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Core.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Protocol">
-      <HintPath>..\..\..\3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Protocol.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -72,62 +75,36 @@
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="WebSocket4Net">
-      <HintPath>..\..\..\3rdParty\bin\Release\WebSocket4Net.dll</HintPath>
+      <HintPath>..\..\..\..\CloudSdkSyncSample\bin\Release\WebSocket4Net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enums\Enums.cs" />
-    <Compile Include="Events\CLEventArgs\CLEventArgs.cs" />
-    <Compile Include="Events\CLEventArgs\CreateFileEventArgs.cs" />
-    <Compile Include="Events\CLEventArgs\CreateFileResponseEventArgs.cs" />
-    <Compile Include="Events\CLEventArgs\CreateFolderEventArgs.cs" />
-    <Compile Include="Events\CLEventArgs\CreateFolderResponseEventArgs.cs" />
-    <Compile Include="Events\CLEventArgs\GetFileDeleteEventArgs.cs" />
-    <Compile Include="Events\CLEventArgs\GetFolderDeleteEventArgs.cs" />
-    <Compile Include="Events\CLEventArgs\ItemListHelperEventArgs.cs" />
-    <Compile Include="Events\CLEventArgs\ModifyPlanEventArgs.cs" />
-    <Compile Include="Events\CLEventArgs\TaskEventArgs.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
-    <Compile Include="Helpers\FolderHelper.cs" />
-    <Compile Include="Helpers\ItemsListHelper.cs" />
     <Compile Include="Helpers\MD5_Helper.cs" />
     <Compile Include="Helpers\SmokeTestTaskHelper.cs" />
-    <Compile Include="Helpers\XMLHelper.cs" />
-    <Compile Include="Managers\ExceptionManager.cs" />
     <Compile Include="Managers\FileMetadataManager.cs" />
-    <Compile Include="Managers\ItemsListManager.cs" />
     <Compile Include="Managers\ManagerConstants.cs" />
-    <Compile Include="Managers\PlanManager.cs" />
-    <Compile Include="Managers\RestStatusResponseManager.cs" />
     <Compile Include="Managers\ManualSyncManager.cs" />
+    <Compile Include="Managers\RestStatusResponseManager.cs" />
     <Compile Include="Managers\ManagerBase.cs" />
-    <Compile Include="Managers\ServerPathMappingManager.cs" />
-    <Compile Include="Helpers\SyncBoxMapper.cs" />
-    <Compile Include="Managers\SyncBoxManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\AdvancedSyncSettings.cs" />
     <Compile Include="Settings\CloudSDK_InputParams.cs" />
-    <Compile Include="Settings\FileMappings.cs">
-      <DependentUpon>FileMappings.xsd</DependentUpon>
-    </Compile>
     <Compile Include="Settings\InputParameters.cs">
       <DependentUpon>InputParameters.xsd</DependentUpon>
     </Compile>
     <Compile Include="Settings\InputParameters_Methods.cs" />
+    <Compile Include="TestClasses\AppTestClasses.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Settings\FileMappingsForIntelleSense.xml" />
     <Content Include="Settings\Settings.xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Settings\FileMappings.xsd">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Settings\InputParameters.xsd">
       <SubType>Designer</SubType>
     </None>

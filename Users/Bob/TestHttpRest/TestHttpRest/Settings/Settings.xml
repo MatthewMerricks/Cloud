@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<SmokeTest xmlns="http://www.cloud.com/InputParameters.xsd"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.cloud.com InputParameters.xsd">
+  <Copyright>
+    <ActiveSync_Folder></ActiveSync_Folder>
+  </Copyright>
+  <InputParams>
+    <API_Key>af5c9411437af584cb31506e0d41b34cfd4b6085bf9b51a5ee480c424b5932ff</API_Key>
+    <API_Secret>fc50fff51344faca5ed6cc38e4398e622963d055713db0895a144c8315c5204b</API_Secret>
+    <ActiveSync_Folder>"C:\\Users\\Robertste\\Cloud"</ActiveSync_Folder>
+    <ActiveSync_TraceFolder>"C:\\Users\Robertste\\Trace"</ActiveSync_TraceFolder>
+    <ActiveSyncBoxID>4</ActiveSyncBoxID>
+    <Token></Token>
+    <TraceLevel>9</TraceLevel>
+    <TraceType>5</TraceType>
+  </InputParams>
+    <Scenario>
+        <ScenarioTasks>
+            <SmokeTask xsi:type="HttpTest">
+                <type>HttpTest</type>
+            </SmokeTask>
+        </ScenarioTasks>
+    </Scenario>
+</SmokeTest>

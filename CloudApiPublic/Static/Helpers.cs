@@ -1959,6 +1959,21 @@ namespace CloudApiPublic.Static
             Nullable<long> SyncBoxId) // unique id for the sync box on the server
             where T : class // restrict T to an object type to allow default null return
         {
+            // check that the temp download folder exists, if not, create it
+            if (uploadDownload != null
+                && uploadDownload is downloadParams)
+            {
+                if (string.IsNullOrEmpty(((downloadParams)uploadDownload).TempDownloadFolderPath))
+                {
+                    throw new NullReferenceException("uploadDownload TempDownloadFolderPath cannot be null");
+                }
+
+                if (!Directory.Exists(((downloadParams)uploadDownload).TempDownloadFolderPath))
+                {
+                    Directory.CreateDirectory(((downloadParams)uploadDownload).TempDownloadFolderPath);
+                }
+            }
+
             // create the main request object for the provided uri location
             HttpWebRequest httpRequest = (HttpWebRequest)HttpWebRequest.Create(serverUrl + serverMethodPath);
 
@@ -1979,7 +1994,6 @@ namespace CloudApiPublic.Static
                 default:
                     throw new ArgumentException("Unknown method: " + method.ToString());
             }
-
 
             httpRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
