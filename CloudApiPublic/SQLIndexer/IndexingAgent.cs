@@ -277,6 +277,94 @@ namespace CloudApiPublic.SQLIndexer
         }
 
         #region public methods
+        public CLError QueryFileChangeByEventId(long eventId, out FileChange queryResult, out bool isPending, out FileChangeQueryStatus status)
+        {
+            try
+            {
+                using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
+                {
+                    FileSystemObject[] resultSet = SqlAccessor<FileSystemObject>.SelectResultSet(
+                        indexDB,
+                        "SELECT " +
+                            SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                            SqlAccessor<Event>.GetSelectColumns("Event") + " " +
+                            "FROM [FileSystemObjects] " +
+                            "INNER JOIN [Events] ON [FileSystemObjects].[EventId] = [Events].[EventId] " +
+                            "WHERE [Events].[EventId] = " + eventId.ToString() +
+                            "ORDER BY [FileSystemObjects].[FileSystemObjectId] DESC",
+                        includes: new[]
+                        {
+                            "Event"
+                        }).ToArray();
+
+                    if (resultSet.Length == 0)
+                    {
+                        status = FileChangeQueryStatus.ErrorNotFound;
+                        queryResult = null;
+                        isPending = false;
+                    }
+                    else
+                    {
+                        string previousSyncRoot;
+                        if (resultSet[0].SyncCounter == null)
+                        {
+                            previousSyncRoot = indexedPath;
+                        }
+                        else
+                        {
+                            previousSyncRoot = 
+                                SqlAccessor<SqlSync>.SelectResultSet(
+                                    indexDB,
+                                    "SELECT * FROM [Syncs] " +
+                                    "WHERE [Syncs].[SyncCounter] = " + ((long)resultSet[0].SyncCounter).ToString())
+                                    .SingleOrDefault().RootPath;
+                        }
+
+                        queryResult = new FileChange()
+                        {
+                            Direction = (resultSet[0].Event.SyncFrom ? SyncDirection.From : SyncDirection.To),
+                            EventId = eventId,
+                            Metadata = new FileMetadata()
+                            {
+                                // TODO: add server id
+                                HashableProperties = new FileMetadataHashableProperties(resultSet[0].IsFolder,
+                                    resultSet[0].LastTime,
+                                    resultSet[0].CreationTime,
+                                    resultSet[0].Size),
+                                LinkTargetPath = resultSet[0].TargetPath,
+                                Revision = resultSet[0].Revision,
+                                StorageKey = resultSet[0].StorageKey,
+                            },
+                            NewPath = indexedPath + ((FilePath)resultSet[0].Path).GetRelativePath(previousSyncRoot, false),
+                            OldPath = (string.IsNullOrEmpty(resultSet[0].Event.PreviousPath)
+                                ? null
+                                : indexedPath + ((FilePath)resultSet[0].Event.PreviousPath).GetRelativePath(previousSyncRoot, false)),
+                            Type = changeEnums[resultSet[0].Event.FileChangeTypeEnumId],
+                        };
+
+                        if (resultSet.Length == 1)
+                        {
+                            isPending = resultSet[0].SyncCounter == null;
+                            status = FileChangeQueryStatus.Success;
+                        }
+                        else
+                        {
+                            isPending = resultSet.Any(currentResult => currentResult.SyncCounter == null);
+                            status = FileChangeQueryStatus.ErrorMultipleResults;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                status = FileChangeQueryStatus.ErrorUnknown;
+                queryResult = Helpers.DefaultForType<FileChange>();
+                isPending = Helpers.DefaultForType<bool>();
+                return ex;
+            }
+            return null;
+        }
+
         /// <summary>
         /// Starts the indexing process on an indexing agent which will resolve the last events and changes to the file system since the last time
         /// the file monitor was running to produce the initial in-memory index and changes to process,
