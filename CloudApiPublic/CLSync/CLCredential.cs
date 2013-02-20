@@ -1304,7 +1304,7 @@ namespace CloudApiPublic
                     Helpers.requestMethod.post,
                     timeoutMilliseconds,
                     null, // not an upload nor download
-                    Helpers.HttpStatusesOkAccepted,
+                    Helpers.HttpStatusesOkCreatedNotModified,
                     ref status,
                     copiedSettings,
                     this,
@@ -1732,7 +1732,6 @@ namespace CloudApiPublic
             return null;
         }
         #endregion
-
         #endregion
     }
     /// <summary>
