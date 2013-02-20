@@ -15,21 +15,23 @@ namespace CloudSDK_SmokeTest.Helpers
 {
     public static class ItemsListHelper
     {
-        public static int RunListPlans(ItemListHelperEventArgs itemListHelperArgs)
+        public static int RunListSubscribedPlans(ItemListHelperEventArgs itemListHelperArgs)
         {
             GenericHolder<CLError> refHolder = itemListHelperArgs.ProcessingErrorHolder;
             int getListResponseCode = -1;
             CLHttpRestStatus restStatus;
-            ListPlans plansList;
+            ListPlansResponse plansList = null;
             CLCredentialCreationStatus credsCreateStatus;
             CLCredential creds;
-            ICLCredentialSettings settings;
+            ICLCredentialSettings settings = new AdvancedSyncSettings(itemListHelperArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
             CLError initializeCredsError;
-            bool success = InitializeCreds(ref itemListHelperArgs, out settings, out initializeCredsError);
+            bool success = CredentialHelper.InitializeCreds(ref itemListHelperArgs, out settings, out initializeCredsError);
             if (!success)
                 return (int)FileManagerResponseCodes.InitializeCredsError;
 
-            CLError getPlansError = itemListHelperArgs.Creds.ListPlans(ManagerConstants.TimeOutMilliseconds, out restStatus, out plansList, settings);
+            CLError getPlansError;
+            //ZW Parameters Change
+            getPlansError = itemListHelperArgs.Creds.ListPlans(ManagerConstants.TimeOutMilliseconds, out restStatus, out plansList, settings);
             if (getPlansError != null || restStatus != CLHttpRestStatus.Success)
             {
                 HandleFailure(getPlansError, restStatus, null, "RunListPlans.creds.ListPlans", ref refHolder);
@@ -50,14 +52,63 @@ namespace CloudSDK_SmokeTest.Helpers
             return getListResponseCode;
         }
 
-        public static int RunListSessions(ItemListHelperEventArgs itemListHelperArgs)
+        public static int RunListSessions(ItemListHelperEventArgs itemListHelperArgs, bool printValues, bool printSessionSyncBoxes)
         {
             int getListResponseCode = -1;
-            //var sessionsList = creds.L
+            GenericHolder<CLError> refHolder = itemListHelperArgs.ProcessingErrorHolder;
+            CLHttpRestStatus restStatus;
+            ListSessionsResponse sessionList = null;
+            CLCredentialCreationStatus credsCreateStatus;
+            CLCredential creds = null;
+            ICLCredentialSettings settings = new AdvancedSyncSettings(itemListHelperArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
+            CLError initializeCredsError;
+            bool success = CredentialHelper.InitializeCreds(ref itemListHelperArgs, out settings, out initializeCredsError);
+            if (!success)
+                return (int)FileManagerResponseCodes.InitializeCredsError;
+
+            CLError getSessisonsError = itemListHelperArgs.Creds.ListSessions(ManagerConstants.TimeOutMilliseconds, out restStatus, out sessionList, settings);
+            if (getSessisonsError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                HandleFailure(getSessisonsError, restStatus, null, "ItemsListHelper.RunSessionsList", ref refHolder);
+                return (int)FileManagerResponseCodes.UnknownError;
+            }
+
+            if ((itemListHelperArgs.ListItemsTask != null) && itemListHelperArgs.ListItemsTask.ExpectedCountSpecified && itemListHelperArgs.ListItemsTask.ExpectedCount > 0)
+            {
+                if (sessionList.Sessions.Count() != itemListHelperArgs.ListItemsTask.ExpectedCount)
+                    return (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
+            }
+
+            ItemsListManager listManager = ItemsListManager.GetInstance();
+            listManager.Sessions.Clear();
+            if (sessionList.Sessions.Count() == 0)
+            {
+                Console.WriteLine("Session Count: 0");
+            }
+            else
+            {
+                foreach (Session sesh in sessionList.Sessions)
+                {
+                    if (!listManager.Sessions.Contains(sesh))
+                        listManager.Sessions.Add(sesh);
+                    if (printValues)
+                    {
+                        Console.WriteLine(string.Format("The Session with token {0} expires at {1}  ", sesh.Token, sesh.ExpiresAt));
+                    }
+                    if (printSessionSyncBoxes)
+                    {
+                        Console.WriteLine("SyncBox IDs:");
+                        foreach (long l in sesh.SyncBoxIds)
+                            Console.Write(l.ToString() + ", ");
+                    }
+                    getListResponseCode = 0;
+                }
+            }
+
             return getListResponseCode;
         }
 
-        public static int RunListSyncBoxes(ItemListHelperEventArgs itemListHelperArgs)
+        public static int RunListSubscribtionSyncBoxes(ItemListHelperEventArgs itemListHelperArgs)
         {
             int getListResponseCode = -1;
             GenericHolder<CLError> refHolder = itemListHelperArgs.ProcessingErrorHolder;
@@ -65,9 +116,9 @@ namespace CloudSDK_SmokeTest.Helpers
             ListSyncBoxes syncBoxList;
             CLCredentialCreationStatus credsCreateStatus;
             CLCredential creds;
-            ICLCredentialSettings settings;
+            ICLCredentialSettings settings = new AdvancedSyncSettings(itemListHelperArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
             CLError initializeCredsError;
-            bool success = InitializeCreds(ref itemListHelperArgs, out settings, out initializeCredsError);
+            bool success = CredentialHelper.InitializeCreds(ref itemListHelperArgs, out settings, out initializeCredsError);
             if (!success)
                 return (int)FileManagerResponseCodes.InitializeCredsError;
 
@@ -77,6 +128,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 HandleFailure(getSyncBoxesError, restStatus, null, "ItemsListHelper.RunListSyncBoxes", ref refHolder);
                 return (int)FileManagerResponseCodes.UnknownError;
             }
+
             if (itemListHelperArgs.ListItemsTask.ExpectedCount > 0)
             { 
                 if(syncBoxList.SyncBoxes.Count() != itemListHelperArgs.ListItemsTask.ExpectedCount)
@@ -110,23 +162,6 @@ namespace CloudSDK_SmokeTest.Helpers
             else if (credsCreateStatus.HasValue && credsCreateStatus.Value != CLCredentialCreationStatus.Success)
                 errors.Add(ExceptionManager.ReturnException(opperationName, credsCreateStatus.ToString()));
         }
-
-        private static bool InitializeCreds(ref ItemListHelperEventArgs itemListHelperArgs, out ICLCredentialSettings settings, out CLError initializeCredsError)
-        {
-            bool canContinue = true;
-            CLCredential creds = itemListHelperArgs.Creds;
-            CLCredentialCreationStatus credsCreateStatus;
-            settings = new AdvancedSyncSettings(itemListHelperArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
-            GenericHolder<CLError> refHolder = itemListHelperArgs.ProcessingErrorHolder;
-
-            initializeCredsError = CLCredential.CreateAndInitialize(itemListHelperArgs.ParamSet.API_Key, itemListHelperArgs.ParamSet.API_Secret, out creds, out credsCreateStatus);
-            if (initializeCredsError != null || credsCreateStatus != CLCredentialCreationStatus.Success)
-            {
-                HandleFailure(initializeCredsError, null, credsCreateStatus, "CreateAndInitialize Credentials", ref refHolder);
-                canContinue = false;
-            }
-            itemListHelperArgs.Creds = creds;
-            return canContinue;
-        }
+ 
     }
 }

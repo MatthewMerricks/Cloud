@@ -86,11 +86,13 @@
     <Compile Include="Events\CLEventArgs\CreateFileResponseEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\CreateFolderEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\CreateFolderResponseEventArgs.cs" />
+    <Compile Include="Events\CLEventArgs\DeleteSessionEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\GetFileDeleteEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\GetFolderDeleteEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\ItemListHelperEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\ModifyPlanEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\TaskEventArgs.cs" />
+    <Compile Include="Helpers\CredentialHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\FolderHelper.cs" />
     <Compile Include="Helpers\ItemsListHelper.cs" />
@@ -98,6 +100,7 @@
     <Compile Include="Helpers\SmokeTestTaskHelper.cs" />
     <Compile Include="Helpers\XMLHelper.cs" />
     <Compile Include="Managers\ExceptionManager.cs" />
+    <Compile Include="Managers\FileManager.cs" />
     <Compile Include="Managers\FileMetadataManager.cs" />
     <Compile Include="Managers\ItemsListManager.cs" />
     <Compile Include="Managers\ManagerConstants.cs" />
@@ -107,6 +110,7 @@
     <Compile Include="Managers\ManagerBase.cs" />
     <Compile Include="Managers\ServerPathMappingManager.cs" />
     <Compile Include="Helpers\SyncBoxMapper.cs" />
+    <Compile Include="Managers\SessionManager.cs" />
     <Compile Include="Managers\SyncBoxManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

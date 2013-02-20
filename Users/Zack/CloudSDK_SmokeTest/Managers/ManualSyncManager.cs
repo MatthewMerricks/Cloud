@@ -66,7 +66,7 @@ namespace CloudSDK_SmokeTest.Managers
         /// </returns>
         public override int Create(InputParams paramSet, SmokeTask smokeTask,  FileInfo fileInfo, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
-            Console.WriteLine("Create Task begins...");
+            Console.WriteLine(string.Format("Create {0} begins...", smokeTask.type));
             Creation createTask = smokeTask as Creation;
             if (createTask == null)
                 return (int)FileManagerResponseCodes.InvalidTaskType;
@@ -75,7 +75,7 @@ namespace CloudSDK_SmokeTest.Managers
             CLCredential creds; 
             CLCredentialCreationStatus credsCreateStatus;
             int createResponseCode = 0;
-            InitalizeCredentials("ManualSyncManager.CreateFile", out creds, out credsCreateStatus);
+            InitalizeCredentials("ManualSyncManager.Create", out creds, out credsCreateStatus);
             // If Status returns anything other than success notify the user and stop the process.
             if (credsCreateStatus != CLCredentialCreationStatus.Success)
             {
@@ -91,7 +91,7 @@ namespace CloudSDK_SmokeTest.Managers
             CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
             if (boxCreateStatus != CLSyncBoxCreationStatus.Success)
             {
-                Console.WriteLine("There was an error Creating Credentials In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
+                Console.WriteLine("There was an error Initializing the SyncBox In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
                 Console.WriteLine("Exiting Process...");
                 return (int)FileManagerResponseCodes.InitializeSynBoxError;
             }
@@ -136,7 +136,7 @@ namespace CloudSDK_SmokeTest.Managers
             }
             else if (createTask.ObjectType.type == ModificationObjectType.SyncBox)
             {
-                throw new NotImplementedException("Create Task Type Sync Box Not Implemented");
+                throw new NotImplementedException("This Condition Should Never Be Met, Creating A SyncBox Shoudl Occur Through CreateSyncBox not Create.");
             }
             return createResponseCode;
         }      
@@ -487,6 +487,25 @@ namespace CloudSDK_SmokeTest.Managers
 
        
         #region Download All Content
+
+        public static int RunDownloadAllSyncBoxContentTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            int responseCode = -1;
+            try
+            {
+                Console.WriteLine("Initiating Download All Content...");
+                responseCode = manager.InitiateDownloadAll(smokeTask, ref ProcessingErrorHolder);
+                Console.WriteLine("End Download All Content...");
+            }
+            catch (Exception exception)
+            {
+                lock (ProcessingErrorHolder)
+                {
+                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
+                }
+            }
+            return responseCode;
+        }
 
         /// <summary>
         /// This method is called to overwrite the entire contents of the clients Machine Sync Path with the current SyncBox content

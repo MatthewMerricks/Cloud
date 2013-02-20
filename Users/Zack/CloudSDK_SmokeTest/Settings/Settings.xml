@@ -24,14 +24,88 @@
   </InputParams>
   <Scenario>
     <ScenarioTasks>
-      <SmokeTask xsi:type="ListItems">
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+          <InnerTask xsi:type="ListItems">
+            <type>ListItems</type>
+              <InnerTask xsi:type="Deletion">
+                <type>Deletion</type>
+                  <InnerTask xsi:type="ListItems">
+                    <type>ListItems</type>
+                    <ObjectType>
+                      <type>Session</type>
+                    </ObjectType>
+                    <ListType>Sessions</ListType>
+                    <ExpectedCount>0</ExpectedCount>
+                  </InnerTask>
+                <ObjectType>
+                  <type>Session</type>
+                </ObjectType>
+                <Name></Name>
+                <FullName></FullName>
+                <RelativePath></RelativePath>
+                <FullPath></FullPath>
+                <DeleteAll>false</DeleteAll>
+                <DeleteCount>1</DeleteCount>            
+              </InnerTask>
+            <ObjectType>
+              <type>Session</type>
+            </ObjectType>
+            <ListType>Sessions</ListType>
+            <ExpectedCount>0</ExpectedCount>
+          </InnerTask>
+        <ObjectType>
+          <type>Session</type>
+        </ObjectType>
+        <Name></Name>
+        <Path></Path>
+      </SmokeTask>
+      <!--<SmokeTask xsi:type="Deletion">
+        <type>Deletion</type>
+        <ObjectType>
+          <type>Session</type>
+        </ObjectType>
+        <Name></Name>
+        <FullName></FullName>
+        <RelativePath></RelativePath>
+        <FullPath></FullPath>
+        <DeleteAll>true</DeleteAll>
+        <DeleteCount>0</DeleteCount>
+        <ID>0</ID>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="Deletion">
+        <type>Deletion</type>
+        <ObjectType>
+          <type>Session</type>
+        </ObjectType>
+        <Name></Name>
+        <FullName></FullName>
+        <RelativePath></RelativePath>
+        <FullPath></FullPath>
+        <DeleteAll>false</DeleteAll>
+        <DeleteCount>1</DeleteCount>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="Deletion">
+        <type>Deletion</type>
+        <ObjectType>
+          <type>Session</type>
+        </ObjectType>
+        <Name></Name>
+        <FullName></FullName>
+        <RelativePath></RelativePath>
+        <FullPath></FullPath>
+        <DeleteAll>false</DeleteAll>
+        <DeleteCount>5</DeleteCount>
+        <ID>0</ID>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="ListItems">
         <type>ListItems</type>
         <ObjectType>
-          <type>SyncBox</type>
+          <type>Session</type>
         </ObjectType>
-        <ListType>SyncBoxes</ListType>
+        <ListType>Sessions</ListType>
         <ExpectedCount>0</ExpectedCount>
-      </SmokeTask>
+      </SmokeTask-->
     <!--<SmokeTask xsi:type="Creation">
       <type>Creation</type>
       <ObjectType>
@@ -68,81 +142,5 @@
       <Path>"C:\Users\t_zacharyw\Cloud\"</Path>
     </SmokeTask>-->
   </ScenarioTasks>
-   <!--<ScenarioTasks>
-      <SmokeTask xsi:type="DownloadAllSyncBoxContent">
-        <type>DownloadAllSyncBoxContent</type>
-        <ObjectType>
-          <type>None</type>
-        </ObjectType>
-        <FolderPath>"C:\Users\t_zacharyw\Cloud\"</FolderPath>
-        <FilePath></FilePath>
-      </SmokeTask>
-    </ScenarioTasks>
-    <ScenarioTasks> -->
-    <!--<ScenarioTasks>
-      <SmokeTask xsi:type="Deletion">
-        <type>Deletion</type>
-        <IsAutoRun>false</IsAutoRun>
-        <ObjectType>
-          <type>File</type>
-        </ObjectType>
-        <Name>FileForRename.txt</Name>
-        <FullName>"C:\Users\t_zachary\Cloud\FileForRename.txt"</FullName>
-        <RelativePath>"\"</RelativePath>
-        <FullPath>"C:\Users\t_zachary\Cloud\FileForRename.txt"</FullPath>        
-      </SmokeTask>
-    </ScenarioTasks>-->
-    <!--<ScenarioTasks>
-      <SmokeTask xsi:type="Deletion">
-        <type>Deletion</type>
-        <ObjectType>
-          <type>Folder</type>
-        </ObjectType>
-        <Name>SuccessfullyRenamed</Name>
-        <FullName>"C:\Users\t_zachary\Cloud\SuccessfullyRenamed"</FullName>
-        <RelativePath>"\SuccessfullyRenamed"</RelativePath>
-        <FullPath>"C:\Users\t_zachary\Cloud\SuccessfullyRenamed"</FullPath>
-      </SmokeTask>
-    </ScenarioTasks>-->
-    <!--<ScenarioTasks>
-      <SmokeTask xsi:type="Rename">
-        <type>Rename</type>
-        <ObjectType>
-          <type>Folder</type>
-        </ObjectType>
-        <OldName>"C:\Users\t_zacharyw\Cloud\SecondTestFolder"</OldName>
-        <NewName>"C:\Users\t_zacharyw\Cloud\SuccessfullyRenamed"</NewName>
-        <RelativeDirectoryPath></RelativeDirectoryPath>
-      </SmokeTask>
-  </ScenarioTasks>-->
-
-  <!--<ScenarioTasks>
-    <SmokeTask xsi:type="Rename">
-      <type>Rename</type>
-      <ObjectType>
-        <type>File</type>
-      </ObjectType>
-      <OldName>"FileForRename3.txt"</OldName>
-      <NewName>"RenameTestReplaced.txt"</NewName>
-      <RelativeDirectoryPath></RelativeDirectoryPath>
-    </SmokeTask>
-  </ScenarioTasks>-->
-  <!--<ScenarioTasks>
-      <SmokeTask xsi:type="CreateSyncBox">
-        <type>CreateSyncBox</type>
-        <ObjectType>
-          <type>None</type>
-        </ObjectType>
-        <CreateNew>false</CreateNew>
-      </SmokeTask>
-    </ScenarioTasks>-->
-    <!--<SmokeTask xsi:type="FileUndelete">
-      <type>FileUndelete</type>
-      <Group>2</Group>
-      <Sequence>2</Sequence>
-      <FullPath></FullPath>
-      <FileName></FileName>
-      <Version></Version>
-    </SmokeTask>-->
 </Scenario>
 </SmokeTest>

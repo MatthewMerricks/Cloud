@@ -182,6 +182,44 @@ namespace CloudSDK_SmokeTest.Helpers
             };
             return md5Bytes;
         }
+
+        public static void CreateFilePathString(Creation creation, out string fullPath)
+        {
+            string modPath = string.Empty;
+            string modName = string.Empty;
+            if (creation.Name != null && creation.Path != null)
+            {
+                modPath = creation.Path.Replace("\"", "");
+                modName = creation.Name.Replace("\"", "");
+                if (pathEndsWithSlash(modPath))
+                    modPath = modPath.Remove(modPath.Count() - 1, 1);
+
+                fullPath = modPath + "\\" + modName;
+            }
+            else
+            {
+                fullPath = string.Empty;
+                Console.WriteLine("Both FileName and FilePath are Required");
+            }
+        }
+
+        public static int TryCreate(InputParams paramSet, SmokeTask smokeTask, FileInfo fi, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
+        {
+            int responseCode = -1;
+            try
+            {
+                responseCode = manager.Create(paramSet, smokeTask, fi, fileName, ref ProcessingErrorHolder);
+            }
+            catch (Exception ex)
+            {
+                lock (ProcessingErrorHolder)
+                {
+                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                }
+            }
+            return responseCode;
+        }
+
         #endregion 
 
         #region Modify 
@@ -217,6 +255,14 @@ namespace CloudSDK_SmokeTest.Helpers
             //AllMappings mappings = XMLHelper.GetMappingItems(paramSet.FileNameMappingFile, ref ProcessingErrorHolder);
             //PathMappingElement mappingElement = mappings.MappingRecords.Items.Where(i => i.ID == mdObject.ServerId).FirstOrDefault();
             return false;
+        }
+
+        private static bool pathEndsWithSlash(string path)
+        {
+            if (path.LastIndexOf('\\') == (path.Count() - 1))
+                return true;
+            else
+                return false;
         }
         #endregion 
 

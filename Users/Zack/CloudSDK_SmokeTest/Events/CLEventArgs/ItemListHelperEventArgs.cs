@@ -8,10 +8,9 @@ using System.Text;
 
 namespace CloudSDK_SmokeTest.Events.CLEventArgs
 {
-    public sealed class ItemListHelperEventArgs : EventArgs
+    public sealed class ItemListHelperEventArgs : CLEventArgs
     {
         public InputParams ParamSet { get; set; }
-        public CLCredential Creds { get; set; }
         public ListItems ListItemsTask { get; set; }
         public GenericHolder<CLError> ProcessingErrorHolder { get; set; }
     }

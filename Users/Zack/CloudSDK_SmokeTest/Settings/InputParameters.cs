@@ -492,6 +492,18 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private string fullPathField;
         
+        private bool deleteAllField;
+        
+        private bool deleteAllFieldSpecified;
+        
+        private int deleteCountField;
+        
+        private bool deleteCountFieldSpecified;
+        
+        private long idField;
+        
+        private bool idFieldSpecified;
+        
         /// <remarks/>
         public string Name {
             get {
@@ -529,6 +541,69 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.fullPathField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool DeleteAll {
+            get {
+                return this.deleteAllField;
+            }
+            set {
+                this.deleteAllField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool DeleteAllSpecified {
+            get {
+                return this.deleteAllFieldSpecified;
+            }
+            set {
+                this.deleteAllFieldSpecified = value;
+            }
+        }
+        
+        /// <remarks/>
+        public int DeleteCount {
+            get {
+                return this.deleteCountField;
+            }
+            set {
+                this.deleteCountField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool DeleteCountSpecified {
+            get {
+                return this.deleteCountFieldSpecified;
+            }
+            set {
+                this.deleteCountFieldSpecified = value;
+            }
+        }
+        
+        /// <remarks/>
+        public long ID {
+            get {
+                return this.idField;
+            }
+            set {
+                this.idField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool IDSpecified {
+            get {
+                return this.idFieldSpecified;
+            }
+            set {
+                this.idFieldSpecified = value;
             }
         }
     }

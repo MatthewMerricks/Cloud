@@ -110,6 +110,9 @@
           <xs:element name="FullName" type ="xs:string" />
           <xs:element name="RelativePath" type ="xs:string" />
           <xs:element name="FullPath" type ="xs:string" />
+          <xs:element name="DeleteAll" type="xs:boolean" minOccurs="0" />
+          <xs:element name="DeleteCount" type="xs:int" minOccurs="0"/>
+          <xs:element name="ID" type="xs:long" minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
