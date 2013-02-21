@@ -96,7 +96,9 @@
       <xs:extension base="SmokeTask" >
         <xs:sequence>
           <xs:element name="Name" type ="xs:string" />
-          <xs:element name="Path" type ="xs:string" />          
+          <xs:element name="Path" type ="xs:string" />
+          <xs:element name="CreateNew" type="xs:boolean" />
+          <xs:element name="Count" type="xs:int" minOccurs="0" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -113,6 +115,7 @@
           <xs:element name="DeleteAll" type="xs:boolean" minOccurs="0" />
           <xs:element name="DeleteCount" type="xs:int" minOccurs="0"/>
           <xs:element name="ID" type="xs:long" minOccurs="0"/>
+          <xs:element name="ServerID" type="xs:string" minOccurs="0" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -125,6 +128,7 @@
           <xs:element name="OldName" type ="xs:string" />
           <xs:element name="NewName" type ="xs:string" />
           <xs:element name="RelativeDirectoryPath" type ="xs:string" />
+          <xs:element name="ServerID" type="xs:long" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -159,6 +163,7 @@
       <xs:extension base="SmokeTask" >
         <xs:sequence>
           <xs:element name="CreateNew" type="xs:boolean"/>
+          <xs:element name="Count" type="xs:int" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

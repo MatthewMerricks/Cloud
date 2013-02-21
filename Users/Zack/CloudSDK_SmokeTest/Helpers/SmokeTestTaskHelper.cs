@@ -52,6 +52,8 @@ namespace CloudSDK_SmokeTest.Helpers
                 case SmokeTaskType.Rename:
                     if (smokeTask.ObjectType.type == ModificationObjectType.File || smokeTask.ObjectType.type == ModificationObjectType.Folder)
                         returnValue = FileManager.RunFileRenameTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                    if (smokeTask.ObjectType.type == ModificationObjectType.SyncBox)
+                        returnValue = SyncBoxManager.RunSyncBoxRenameTask(paramSet, smokeTask, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.ListItems:
                     returnValue = ItemsListManager.RunListItemsTask(paramSet, smokeTask, ref ProcessingErrorHolder);

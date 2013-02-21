@@ -19,19 +19,31 @@ namespace CloudSDK_SmokeTest.Managers
         public static long RunCreateSessionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             string newSessionKey = string.Empty;
+            Creation createSessionTask = smokeTask as Creation;
+            if (createSessionTask == null)
+                return(long)FileManagerResponseCodes.InvalidTaskType;
 
+            int responseCode = 0;
             Console.WriteLine("Preparing to Create Session.");
             ItemListHelperEventArgs args = new ItemListHelperEventArgs() { ParamSet = paramSet, ProcessingErrorHolder = ProcessingErrorHolder };
             ItemsListHelper.RunListSessions(args, false, false);
             ItemsListManager mgr = ItemsListManager.GetInstance();
             int prior = mgr.Sessions.Count;
-
-            int responseCode = SessionManager.CreateSession(paramSet, smokeTask, out newSessionKey, ref ProcessingErrorHolder);
-            Console.WriteLine("Create Sesssion Results:");
-            if (string.IsNullOrEmpty(newSessionKey))
-                Console.WriteLine("Create Sesssion Failed: Returned Session ID is 0:");
-            else
-                Console.WriteLine(string.Format("Created Session with Key {0}", newSessionKey));
+            int iterations =1;
+            if (createSessionTask.Count > 1)
+                iterations = createSessionTask.Count;
+            for (int x = 0; x < iterations; x++)
+            {
+                if (responseCode == 0)
+                {
+                    responseCode = SessionManager.CreateSession(paramSet, smokeTask, out newSessionKey, ref ProcessingErrorHolder);
+                    Console.WriteLine("Create Sesssion Results:");
+                    if (string.IsNullOrEmpty(newSessionKey))
+                        Console.WriteLine("Create Sesssion Failed: Returned Session ID is 0:");
+                    else
+                        Console.WriteLine(string.Format("Created Session with Key {0}", newSessionKey));
+                }
+            }
 
             Console.WriteLine("Session Count Before Running: {0}", prior.ToString());
             Console.WriteLine("Session Count After Running: {0}", mgr.Sessions.Count.ToString());
@@ -60,7 +72,7 @@ namespace CloudSDK_SmokeTest.Managers
             sessionKey = string.Empty;
             ICLCredentialSettings settings;
             CLError initCredsError = new CLError();
-            ItemListHelperEventArgs args = new ItemListHelperEventArgs()
+            TaskEventArgs args = new TaskEventArgs()
             {
                  ParamSet = paramSet,
                  ProcessingErrorHolder = ProcessingErrorHolder,
@@ -92,11 +104,12 @@ namespace CloudSDK_SmokeTest.Managers
             int deleteSessionResponseCode = 0;
             ICLCredentialSettings settings;
             CLError initCredsError = new CLError();
-            ItemListHelperEventArgs args = new ItemListHelperEventArgs()
+            TaskEventArgs args = new TaskEventArgs()
             {
                 ParamSet = paramSet,
                 ProcessingErrorHolder = ProcessingErrorHolder,
             };
+
             bool success = CredentialHelper.InitializeCreds(ref args, out settings, out initCredsError);
             if (!success)
                 return (int)FileManagerResponseCodes.InitializeCredsError;
@@ -108,15 +121,15 @@ namespace CloudSDK_SmokeTest.Managers
                  ProcessingErrorHolder = ProcessingErrorHolder,
             };
 
-
-            int listItemsResponse = ItemsListHelper.RunListSessions(args, false, false);
+            ItemListHelperEventArgs itemListArgs = new ItemListHelperEventArgs(args);
+            int listItemsResponse = ItemsListHelper.RunListSessions(itemListArgs, false, false);
             if (listItemsResponse != 0)
             {
                 return (int)FileManagerResponseCodes.UnknownError;
             }
 
             ItemsListManager mgr = ItemsListManager.GetInstance();
-            List<Session> toDelete = AddSessionsToDeletionList(deleteTask, mgr, args);
+            List<Session> toDelete = AddSessionsToDeletionList(deleteTask, mgr, itemListArgs);
            
             foreach (Session session in toDelete)
             {

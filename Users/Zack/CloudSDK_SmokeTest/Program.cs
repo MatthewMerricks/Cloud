@@ -135,6 +135,7 @@ namespace CloudSDK_SmokeTest
                 }
             }
         }
+
         private static void WriteExceptionsToScreen(GenericHolder<CLError> ProcessingErrorHolder)
         {
             if (ProcessingErrorHolder.Value == null)

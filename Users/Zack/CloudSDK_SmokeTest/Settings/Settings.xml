@@ -13,8 +13,8 @@
     <API_Secret>fc50fff51344faca5ed6cc38e4398e622963d055713db0895a144c8315c5204b</API_Secret>
     <ActiveSync_Folder>"C:\TestSyncBoxes\Auto_SyncBoxA"</ActiveSync_Folder>
     <ActiveSync_TraceFolder>"C:\TestSyncBoxes\Traces\AutoSyncTraces"</ActiveSync_TraceFolder>
-    <ActiveSyncBoxID>191</ActiveSyncBoxID>
-    <ManualSyncBoxID>191</ManualSyncBoxID>
+    <ActiveSyncBoxID>232</ActiveSyncBoxID>
+    <ManualSyncBoxID>232</ManualSyncBoxID>
     <ManualSync_Folder>"C:\Users\t_zacharyw\Cloud\"</ManualSync_Folder>
     <ManualSync_TraceFolder>"C:\TestSyncBoxes\Traces\ManualSyncTraces"</ManualSync_TraceFolder>
     <Token></Token>
@@ -24,7 +24,72 @@
   </InputParams>
   <Scenario>
     <ScenarioTasks>
-      <SmokeTask xsi:type="Creation">
+      <SmokeTask xsi:type="Rename">
+        <type>Rename</type>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <OldName></OldName>
+        <NewName>RenamedSyncBox1</NewName>
+        <RelativeDirectoryPath></RelativeDirectoryPath>
+        <ServerID>232</ServerID>
+      </SmokeTask>
+      <!--<SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <Name>SubFolderInsert.txt</Name>
+        <Path>C:\Users\t_zacharyw\Cloud\CloudFolder1</Path>
+        <CreateNew>true</CreateNew>        
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="Deletion">
+        <type>Deletion</type>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <Name></Name>
+        <FullName></FullName>
+        <RelativePath></RelativePath>
+        <FullPath></FullPath>
+        <DeleteAll>true</DeleteAll>
+        <DeleteCount>0</DeleteCount>
+        <ID>0</ID>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <Name>tempFileOne.txt</Name>
+        <Path>C:\Users\t_zacharyw\Cloud\SecondTest</Path>
+        <CreateNew>true</CreateNew>
+        <Count>5</Count>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <ObjectType>
+          <type>Session</type>
+        </ObjectType>
+        <Name></Name>
+        <Path></Path>
+        <CreateNew>true</CreateNew>
+        <Count>4</Count>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="Deletion">
+        <type>Deletion</type>
+        <ObjectType>
+          <type>Session</type>
+        </ObjectType>
+        <Name></Name>
+        <FullName></FullName>
+        <RelativePath></RelativePath>
+        <FullPath></FullPath>
+        <DeleteAll>true</DeleteAll>
+        <DeleteCount>0</DeleteCount>
+        <ID>0</ID>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="Creation">
         <type>Creation</type>
           <InnerTask xsi:type="ListItems">
             <type>ListItems</type>
@@ -59,7 +124,7 @@
         </ObjectType>
         <Name></Name>
         <Path></Path>
-      </SmokeTask>
+      </SmokeTask>-->
       <!--<SmokeTask xsi:type="Deletion">
         <type>Deletion</type>
         <ObjectType>

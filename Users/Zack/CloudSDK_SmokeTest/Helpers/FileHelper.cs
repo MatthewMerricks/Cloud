@@ -23,10 +23,10 @@ namespace CloudSDK_SmokeTest.Helpers
             GenericHolder<CLError> refProcessErrorHolder = createEventArgs.ProcessingErrorHolder;
             int createReturnCode = 0;
             string fullPath = createEventArgs.CreateTaskFileInfo.FullName;
-            if (!File.Exists(fullPath))
-                WriteFile(createEventArgs.RootDirectory.FullName, createEventArgs.CreateTaskFileInfo.Name);
+            if (!File.Exists(createEventArgs.CreateTaskFileInfo.FullName))
+                WriteFile(createEventArgs.CreateTaskFileInfo);
 
-            FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, createEventArgs.RootDirectory.FullName, createEventArgs.CreateTaskFileInfo.Name, ref refProcessErrorHolder);
+            FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, createEventArgs.CreateTaskFileInfo, ref refProcessErrorHolder);
             CloudApiPublic.JsonContracts.Event returnEvent;
             CLHttpRestStatus restStatus = new CLHttpRestStatus();
 
@@ -48,13 +48,12 @@ namespace CloudSDK_SmokeTest.Helpers
             return 0;
         }
 
-        public static FileChange PrepareMD5FileChange(InputParams paramSet, CLCredential creds, string filePath, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static FileChange PrepareMD5FileChange(InputParams paramSet, CLCredential creds, FileInfo fi,  ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             FileChange fileChange = new FileChange();
-            string fullPath = filePath + '\\' + fileName;
-            if (!File.Exists(filePath))
-                WriteFile(filePath, fileName);
-            byte[] md5Bytes = FileHelper.CreateFileChangeObject(fullPath, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
+            if (!File.Exists(fi.FullName))
+                WriteFile(fi);
+            byte[] md5Bytes = FileHelper.CreateFileChangeObject(fi.FullName, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
             CLError hashError = fileChange.SetMD5(md5Bytes);
             if (hashError != null)
             {
@@ -103,7 +102,39 @@ namespace CloudSDK_SmokeTest.Helpers
             }
             return returnValue;
         }
+        public static bool WriteFile(FileInfo fileInfo)
+        {
+            string fullPath = fileInfo.FullName;
+            bool returnValue = true;
+            if (!System.IO.File.Exists(fullPath))
+            {
+                using (System.IO.FileStream fs = System.IO.File.Create(fullPath))
+                {
+                    Random rnd = new Random();
+                    int maxRandom = 1000000000;
+                    int maxforCount = 1000;
+                    int byteCount = rnd.Next(maxforCount);
+                    Console.WriteLine(string.Format("The total number of iterations will be {0}", byteCount.ToString()));
+                    for (int i = 0; i < byteCount; i++)
+                    {
+                        int currentRandom = rnd.Next(maxRandom);
+                        byte[] bytes = Encoding.ASCII.GetBytes(currentRandom.ToString());
+                        foreach (Byte b in bytes)
+                            fs.WriteByte(b);
 
+                        int rem = i % 100;
+                        if (rem == 0)
+                            Console.WriteLine(string.Format("{0} - Value: {1}", i, currentRandom));
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("File \"{0}\" already exists.", fileInfo.Name);
+                returnValue = false;
+            }
+            return returnValue;
+        }
         public static string CreateNewFileName(string filePath, bool isCopy, bool isCaseSentitiveIssue, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             string returnValue = string.Empty;
@@ -191,7 +222,7 @@ namespace CloudSDK_SmokeTest.Helpers
             {
                 modPath = creation.Path.Replace("\"", "");
                 modName = creation.Name.Replace("\"", "");
-                if (pathEndsWithSlash(modPath))
+                if (PathEndsWithSlash(modPath))
                     modPath = modPath.Remove(modPath.Count() - 1, 1);
 
                 fullPath = modPath + "\\" + modName;
@@ -257,7 +288,7 @@ namespace CloudSDK_SmokeTest.Helpers
             return false;
         }
 
-        private static bool pathEndsWithSlash(string path)
+        public static bool PathEndsWithSlash(string path)
         {
             if (path.LastIndexOf('\\') == (path.Count() - 1))
                 return true;

@@ -25,7 +25,8 @@ namespace CloudSDK_SmokeTest.Helpers
             CLCredential creds;
             ICLCredentialSettings settings = new AdvancedSyncSettings(itemListHelperArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
             CLError initializeCredsError;
-            bool success = CredentialHelper.InitializeCreds(ref itemListHelperArgs, out settings, out initializeCredsError);
+            TaskEventArgs taskArgs = itemListHelperArgs as TaskEventArgs;
+            bool success = CredentialHelper.InitializeCreds(ref taskArgs, out settings, out initializeCredsError);
             if (!success)
                 return (int)FileManagerResponseCodes.InitializeCredsError;
 
@@ -62,7 +63,8 @@ namespace CloudSDK_SmokeTest.Helpers
             CLCredential creds = null;
             ICLCredentialSettings settings = new AdvancedSyncSettings(itemListHelperArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
             CLError initializeCredsError;
-            bool success = CredentialHelper.InitializeCreds(ref itemListHelperArgs, out settings, out initializeCredsError);
+            TaskEventArgs taskArgs = itemListHelperArgs as TaskEventArgs;
+            bool success = CredentialHelper.InitializeCreds(ref taskArgs, out settings, out initializeCredsError);
             if (!success)
                 return (int)FileManagerResponseCodes.InitializeCredsError;
 
@@ -118,7 +120,8 @@ namespace CloudSDK_SmokeTest.Helpers
             CLCredential creds;
             ICLCredentialSettings settings = new AdvancedSyncSettings(itemListHelperArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
             CLError initializeCredsError;
-            bool success = CredentialHelper.InitializeCreds(ref itemListHelperArgs, out settings, out initializeCredsError);
+            TaskEventArgs args = itemListHelperArgs as TaskEventArgs;
+            bool success = CredentialHelper.InitializeCreds(ref args, out settings, out initializeCredsError);
             if (!success)
                 return (int)FileManagerResponseCodes.InitializeCredsError;
 
@@ -128,7 +131,6 @@ namespace CloudSDK_SmokeTest.Helpers
                 HandleFailure(getSyncBoxesError, restStatus, null, "ItemsListHelper.RunListSyncBoxes", ref refHolder);
                 return (int)FileManagerResponseCodes.UnknownError;
             }
-
             if (itemListHelperArgs.ListItemsTask.ExpectedCount > 0)
             { 
                 if(syncBoxList.SyncBoxes.Count() != itemListHelperArgs.ListItemsTask.ExpectedCount)
