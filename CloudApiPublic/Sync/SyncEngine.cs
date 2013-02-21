@@ -6069,6 +6069,11 @@ namespace CloudApiPublic.Sync
                                     StorageKey = findStorageKey, // set the storage key, or null for non-files
                                     MimeType = findMimeType // never set on Windows
                                 };
+                                if (matchedChange != null
+                                    && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision != findRevision)
+                                {
+                                    currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
+                                }
 
                                 // if a matched change was set, then use the Stream from the previous FileChange as the current Stream
                                 if (matchedChange != null)
@@ -7160,8 +7165,10 @@ namespace CloudApiPublic.Sync
                                                     }
                                                     catch (Exception ex)
                                                     {
+                                                        bool reversedRevision = currentChange.Metadata.Revision != previousRevisionOnConflictException;
                                                         // revert the revision to the value before communication so it will get a conflict the next iteration through Sync to attempt to handle it again
                                                         currentChange.Metadata.Revision = previousRevisionOnConflictException;
+                                                        currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
                                                         // update associated Metadatas with the change to the revision
                                                         currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
 
