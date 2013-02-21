@@ -48,6 +48,14 @@
     <AssemblyOriginatorKeyFile>
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNoSSL|AnyCPU'">
+    <OutputPath>bin\ReleaseNoSSL\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\ICSharpCode.SharpZipLib.dll</HintPath>
@@ -107,52 +115,102 @@
 REM ------Do this only for the Release build ----------------
 if /I $(ConfigurationName) == Debug goto BuildEventOk
 
+REM ----------------------
+if /I $(ConfigurationName) == Release goto XMLDocumentationRelease
+if /I $(ConfigurationName) == ReleaseNOSSL goto XMLDocumentationReleaseNoSSL
+goto XMLDocumentationBadConfiguration
+
+:XMLDocumentationRelease
+
+set ErrorTracker=1
+echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(Configurationname)
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(ConfigurationName)
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=2
+echo copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=3
+echo copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+goto AfterDocumentation
+
+:XMLDocumentationReleaseNoSSL
+
+set ErrorTracker=4
+echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentationNoSSL.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(Configurationname)
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentationNoSSL.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(ConfigurationName)
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=5
+echo copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=6
+echo copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+goto AfterDocumentation
+
+:XMLDocumentationBadConfiguration
+
+set ErrorTracker=7
+echo Bad configuration, do not run XMLDocumentation project
+
+:AfterDocumentation
+
 REM ------ Build the documentation ----------------
 REM ----------------------
-set ErrorTracker=1
+set ErrorTracker=8
 echo cd $(SolutionDir)
 cd $(SolutionDir)
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=2
+set ErrorTracker=9
 if not exist html md html
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=3
+set ErrorTracker=10
 echo del /S /Q html\*.*
 del /S /Q html\*.*
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=4
+set ErrorTracker=11
 echo rd /S /Q html
 rd /S /Q html
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=5
+set ErrorTracker=12
 echo doxygen doxyfile
 doxygen doxyfile
 echo doxygen ErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=6
+set ErrorTracker=13
 echo cd html
 cd html
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=7
+set ErrorTracker=14
 echo 7z a -tzip CloudSdkSyncSampleDocs.zip ./
 7z a -tzip CloudSdkSyncSampleDocs.zip ./
 echo 7z BuildErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=8
+set ErrorTracker=15
 echo cd .. 
 cd .. 
 echo cd ErrorLevel: %25errorlevel%25
@@ -160,70 +218,70 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ------ Zip the SDK sample source and VS project ----------------
 REM ----------------------
-set ErrorTracker=9
+set ErrorTracker=16
 echo cd CloudSdkSyncSample
 cd CloudSdkSyncSample
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=10
+set ErrorTracker=17
 echo del CloudSdkSyncSampleSource.zip
 del CloudSdkSyncSampleSource.zip
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=11
+set ErrorTracker=18
 echo 7z a -tzip CloudSdkSyncSampleSource.zip ./
 7z a -tzip CloudSdkSyncSampleSource.zip ./
 if errorlevel 1 goto BuildEventFailed
 
 REM ----- Delete the obj\ directory in the zip file -----------------
-set ErrorTracker=12
+set ErrorTracker=19
 echo 7z d CloudSdkSyncSampleSource.zip obj/
 7z d CloudSdkSyncSampleSource.zip obj/
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----- Delete the bin\Debug\CloudSdkSyncSample* files in the zip file -----------------
-set ErrorTracker=13
+set ErrorTracker=20
 echo 7z d CloudSdkSyncSampleSource.zip bin\Debug\CloudSdkSyncSample*.*
 7z d CloudSdkSyncSampleSource.zip bin\Debug\CloudSdkSyncSample*.*
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----- Delete the bin\Release\CloudSdkSyncSample* files in the zip file -----------------
-set ErrorTracker=14
+set ErrorTracker=21
 echo 7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
 7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=15
+set ErrorTracker=22
 echo xcopy /Y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
 xcopy /Y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=16
+set ErrorTracker=23
 echo xcopy /y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
 xcopy /y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=17
+set ErrorTracker=24
 echo xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
 xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=18
+set ErrorTracker=25
 echo xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
 xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=15
+set ErrorTracker=26
 echo cd ..
 cd ..
 if errorlevel 1 goto BuildEventFailed
