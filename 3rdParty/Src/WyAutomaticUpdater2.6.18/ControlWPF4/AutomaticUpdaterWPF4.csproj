@@ -28,19 +28,20 @@
     </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
     <OutputPath>..\..\..\bin\Release\</OutputPath>
     <DefineConstants>TRACE;WPF AUPDATE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\..\..\bin\Release\AutomaticUpdaterWPF.XML</DocumentationFile>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>au.signkey.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>cloud.ico</ApplicationIcon>
@@ -150,6 +151,7 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CloudPlatformCodeSigning.pfx" />
     <None Include="Resources\cross.png" />
   </ItemGroup>
   <ItemGroup>

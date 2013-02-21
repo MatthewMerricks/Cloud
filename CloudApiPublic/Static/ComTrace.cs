@@ -20,7 +20,8 @@ using CloudApiPublic.Model;
 
 namespace CloudApiPublic.Static
 {
-    internal static class ComTrace
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public static class ComTrace
     {
         #region public methods
         public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, Stream body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)

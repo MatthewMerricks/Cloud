@@ -1,0 +1,431 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>WspEventRouter</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.Router">
+            <summary>
+            Main class for the Event Router
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.Router.#ctor">
+            <summary>
+            Default constructor for the Router class
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.Router.OnStart(System.String[])">
+            <summary>
+            Implements the OnStart for the service
+            </summary>
+            <param name="args"></param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.Router.OnStop">
+            <summary>
+            Implements the OnStop for the service
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.Router.ConcatArrayList(System.Collections.ArrayList)">
+            <summary>
+            Concatenates an ArrayList of byte[] and returns one byte[]
+            </summary>
+            <param name="arrayIn">ArrayList of byte[]</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.ServiceThread">
+            <summary>
+            Abstract class for worker threads
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.ServiceThread.Start">
+            <summary>
+            The Start method is used to start the thread.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.Router.Configurator.ConfigEvent.#ctor">
+            <summary>
+            Base constructor to create a new config event
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.Router.Configurator.ConfigEvent.#ctor(System.Byte[])">
+            <summary>
+            Base constructor to create a new config event from a serialized event
+            </summary>
+            <param name="serializationData">Serialized event buffer</param>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Router.Configurator.ConfigEvent.Data">
+            <summary>
+            Contents of the config file
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.Router.SubscriptionEntry.#ctor(System.Guid,System.Guid,System.String,System.Boolean)">
+            <summary>
+            Used to create a SubscriptionEntry used by RouteMgr
+            </summary>
+            <param name="subscriptionId">ID of the subscription</param>
+            <param name="eventType">event being registered for the subscription</param>
+            <param name="routerName">routerName where subscription is made</param>
+            <param name="localOnly">Defines if subscription is for local machine only</param>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Router.SubscriptionEntry.SubscriptionId">
+            <summary>
+            ID for subscription
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Router.SubscriptionEntry.RouterName">
+            <summary>
+            RouterName where subscription is made
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Router.SubscriptionEntry.EventType">
+            <summary>
+            Event type registering for
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Router.SubscriptionEntry.LocalOnly">
+            <summary>
+            Defines if the subscription is only for the local machine
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Router.SubscriptionEntry.ExpirationTime">
+            <summary>
+            Expiration time for subscription
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Router.SubscriptionEntry.EventQueueElement">
+            <summary>
+            EventQueueElement for subscription
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.Router.SubscriptionMgr.ResendSubscriptions(System.String)">
+            <summary>
+            Resend all subscriptions. This is intended to be used after a connection is made.
+            </summary>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.ProjectInstaller">
+            <summary>
+            Class for installing the service.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.ProjectInstaller.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.ProjectInstaller.Uninstall(System.Collections.IDictionary)">
+            <summary>
+            Override 'Uninstall' method of Installer class.
+            </summary>
+            <param name="mySavedState"></param>
+        </member>
+        <member name="F:Microsoft.WebSolutionsPlatform.Event.ProjectInstaller.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.ProjectInstaller.Dispose(System.Boolean)">
+            <summary> 
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.ProjectInstaller.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PerformanceCounterSetup">
+            <summary>
+            This exposes the class to manually install and remove the performance counter categories which need to be 
+            done if the msi is not used to install the application
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PerformanceCounterSetup.Init(System.String)">
+            <summary>
+            Installs/Uninstalls the perforance counters used by the application
+            </summary>
+            <param name="arg">Argument should be "uninstall" to remove the performance counters</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.WorkerThreadType">
+            <summary>
+            Enum for different types of worker threads
+            </summary>
+        </member>
+        <member name="F:Microsoft.WebSolutionsPlatform.Event.WorkerThreadType.None">
+            <summary>
+            Not defined
+            </summary>
+        </member>
+        <member name="F:Microsoft.WebSolutionsPlatform.Event.WorkerThreadType.ListenerThread">
+            <summary>
+            This is the thread listening for new events to the queue
+            </summary>
+        </member>
+        <member name="F:Microsoft.WebSolutionsPlatform.Event.WorkerThreadType.CommunicatorThread">
+            <summary>
+            This is the thread that communicates with the parent and children machines in the mesh
+            </summary>
+        </member>
+        <member name="F:Microsoft.WebSolutionsPlatform.Event.WorkerThreadType.RePublisherThread">
+            <summary>
+            This is the thread that takes incoming events from a parent/child machine and 
+            publishes them to this machine.
+            </summary>
+        </member>
+        <member name="F:Microsoft.WebSolutionsPlatform.Event.WorkerThreadType.SubscriptionMgrThread">
+            <summary>
+            This is the thread that manages the subscription routing table
+            </summary>
+        </member>
+        <member name="F:Microsoft.WebSolutionsPlatform.Event.WorkerThreadType.PersisterThread">
+            <summary>
+            This is the thread that persists events to the file system
+            </summary>
+        </member>
+        <member name="F:Microsoft.WebSolutionsPlatform.Event.WorkerThreadType.ManagerThread">
+            <summary>
+            This is the thread that monitors the health of the other threads and restarts threads as 
+            needed
+            </summary>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.DoubleDictionary`2">
+            <summary>
+            Struct containing two dictionary entries
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.DoubleDictionary`2.Dictionary1">
+            <summary>
+            First dictionary of structure.
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.DoubleDictionary`2.Dictionary2">
+            <summary>
+            First dictionary of structure.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.Route.#ctor(System.String,System.Int32,System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Used to create a Route used by RouteMgr
+            </summary>
+            <param name="routerName">Name of the router</param>
+            <param name="numConnections">Number of socket connections to open to routerName</param>
+            <param name="port">TCP port used by the router</param>
+            <param name="bufferSize">Buffer size used for the TCP port for route</param>
+            <param name="timeout">Timeout used for TCP calls</param>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Route.RouterName">
+            <summary>
+            Name of the router
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Route.NumConnections">
+            <summary>
+            Number of connections to parent
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Route.Port">
+            <summary>
+            TCP port for route
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Route.BufferSize">
+            <summary>
+            Buffer size used for the TCP port for route
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Route.Timeout">
+            <summary>
+            Timeout used for TCP calls
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.Route.ExpirationTime">
+            <summary>
+            Expiration time for route
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.Program.Main(System.String[])">
+            <summary>
+            The main entry point for the application.
+            </summary>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1">
+            <summary>
+            A wrapper class of the Queue class to make the Queue class thread safe.
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.Enqueue(`0)">
+            <summary>
+            Adds an object to the end of the Generic Queue
+            </summary>
+            <param name="item">The object to add to the queue</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.Enqueue(`0,System.Int32)">
+            <summary>
+            Adds an object to the end of the Generic Queue
+            </summary>
+            <param name="item">The object to add to the queue</param>
+            <param name="timeoutIn">Timeout in milliseconds for call</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.Dequeue">
+            <summary>
+            Removes an object from the Generic Queue
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.Dequeue(System.Int32)">
+            <summary>
+            Removes an object from the Generic Queue
+            </summary>
+            <param name="timeoutIn">Timeout in milliseconds for call</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.#ctor">
+            <summary>
+            Default constructor
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.#ctor(System.Diagnostics.PerformanceCounter)">
+            <summary>
+            Default constructor
+            </summary>
+            <param name="performanceCounter">Performance counter showing size of queue.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.#ctor(System.Int32)">
+            <summary>
+            Default constructor
+            </summary>
+            <param name="capacity">The initial number of elements that the Generic Queue can contain</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.#ctor(System.Int32,System.Diagnostics.PerformanceCounter)">
+            <summary>
+            Default constructor
+            </summary>
+            <param name="capacity">The initial number of elements that the Generic Queue can contain</param>
+            <param name="performanceCounter">Performance counter showing size of queue.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.#ctor(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Default constructor
+            </summary>
+            <param name="collection">The collection whose elements are copied to the new Generic Queue</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.#ctor(System.Collections.Generic.IEnumerable{`0},System.Diagnostics.PerformanceCounter)">
+            <summary>
+            Default constructor
+            </summary>
+            <param name="collection">The collection whose elements are copied to the new Generic Queue</param>
+            <param name="performanceCounter">Performance counter showing size of queue.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.Dispose">
+            <summary>
+            Disposes of the object.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.Dispose(System.Boolean)">
+            <summary>
+            Disposes of the object.
+            </summary>
+            <param name="disposing">True if disposing.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.Finalize">
+            <summary>
+            Destructor
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.Timeout">
+            <summary>
+            Timeout for blocking calls, default is 10000
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.Size">
+            <summary>
+            Size in bytes of queue
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.InUse">
+            <summary>
+            Specifies if the queue object is or can be garbage collected
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.SynchronizationQueue`1.LastUsedTick">
+            <summary>
+            Specifies when the queue object quit being in use
+            </summary>
+        </member>
+        <member name="T:Router.WspEventRouter">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.BaseInstance">
+            <summary>
+              Looks up a localized string similar to BaseInstance.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.CategoryHelp">
+            <summary>
+              Looks up a localized string similar to WspEventRouter counters showing internal performance of the router..
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.CategoryName">
+            <summary>
+              Looks up a localized string similar to WspEventRouter.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.CommunicationCategoryHelp">
+            <summary>
+              Looks up a localized string similar to WspEventRouter counters showing communication queues to other machines.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.CommunicationCategoryName">
+            <summary>
+              Looks up a localized string similar to WspEventRouterCommunication.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.EventsProcessedBytesName">
+            <summary>
+              Looks up a localized string similar to EventsProcessedBytes.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.EventsProcessedName">
+            <summary>
+              Looks up a localized string similar to EventsProcessed.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.ForwarderQueueSizeName">
+            <summary>
+              Looks up a localized string similar to ForwarderQueueSize.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.PersisterQueueSizeName">
+            <summary>
+              Looks up a localized string similar to PersisterQueueSize.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.RePublisherQueueSizeName">
+            <summary>
+              Looks up a localized string similar to RePublisherQueueSize.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.SubscriptionEntriesName">
+            <summary>
+              Looks up a localized string similar to SubscriptionEntries.
+            </summary>
+        </member>
+        <member name="P:Router.WspEventRouter.SubscriptionQueueSizeName">
+            <summary>
+              Looks up a localized string similar to SubscriptionQueueSize.
+            </summary>
+        </member>
+    </members>
+</doc>

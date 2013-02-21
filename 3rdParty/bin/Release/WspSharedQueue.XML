@@ -1,0 +1,284 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>WspSharedQueue</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.WebSolutionsPlatform.Common.SharedQueueException">
+            <summary>
+            The exception that is thrown when there is an error returned by the underlying queue.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueException.#ctor">
+            <summary>
+            Base constructor to create a new SharedQueueException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new SharedQueueException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new SharedQueueException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new SharedQueueException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object data about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Common.SharedQueueInitializationException">
+            <summary>
+            The exception that is thrown when an error occured attempting to create the queue.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueInitializationException.#ctor">
+            <summary>
+            Base constructor to create a new SharedQueueInitializationException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueInitializationException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new SharedQueueInitializationException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueInitializationException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new SharedQueueInitializationException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueInitializationException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new SharedQueueInitializationException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object data about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Common.SharedQueueInsufficientMemoryException">
+            <summary>
+            The exception that is thrown when there is not enough memory allocate the underlying queue.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueInsufficientMemoryException.#ctor">
+            <summary>
+            Base constructor to create a new SharedQueueInsufficientMemoryException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueInsufficientMemoryException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new SharedQueueInsufficientMemoryException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueInsufficientMemoryException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new SharedQueueInsufficientMemoryException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueInsufficientMemoryException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new SharedQueueInsufficientMemoryException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object data about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Common.SharedQueueDoesNotExistException">
+            <summary>
+            The exception that is thrown when the underlying queue cannot be opened. Check 
+            to make sure the WspEventRouter service is running.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueDoesNotExistException.#ctor">
+            <summary>
+            Base constructor to create a new SharedQueueDoesNotExistException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueDoesNotExistException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new SharedQueueDoesNotExistException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueDoesNotExistException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new SharedQueueDoesNotExistException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueDoesNotExistException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new SharedQueueDoesNotExistException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object data about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Common.SharedQueueFullException">
+            <summary>
+            The exception that is thrown when the queue is full.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueFullException.#ctor">
+            <summary>
+            Base constructor to create a new SharedQueueFullException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueFullException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new SharedQueueFullException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueFullException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new SharedQueueFullException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueueFullException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new SharedQueueFullException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object data about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:WspSharedQueue.WspSharedQueue">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.EnqueueTimeout">
+            <summary>
+              Looks up a localized string similar to Enqueue timed out.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.InvalidArgumentValue">
+            <summary>
+              Looks up a localized string similar to Invalid argument value.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.MaxValue">
+            <summary>
+              Looks up a localized string similar to Maximum value is .
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.MinValue">
+            <summary>
+              Looks up a localized string similar to Minimum value is 1000.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.NameDoesNotExist">
+            <summary>
+              Looks up a localized string similar to Queue name does not exist.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.NotExceedQueueSize">
+            <summary>
+              Looks up a localized string similar to Value must not exceed the queue size.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.QueueFull">
+            <summary>
+              Looks up a localized string similar to Queue is full.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.WrappedDequeueFailed">
+            <summary>
+              Looks up a localized string similar to ) Dequeue failed.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.WrappedEnqueueFailed">
+            <summary>
+              Looks up a localized string similar to ) Enqueue failed.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.WrappedHresult">
+            <summary>
+              Looks up a localized string similar to (HRESULT:.
+            </summary>
+        </member>
+        <member name="P:WspSharedQueue.WspSharedQueue.WrappedInitFailure">
+            <summary>
+              Looks up a localized string similar to ) SharedQueue failed to initialize.
+            </summary>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Common.SharedQueue">
+            <summary>
+            This is the class that encapsulates the underlying shared memory queue.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueue.#ctor(System.String,System.UInt32,System.UInt32)">
+            <summary>
+            Base constructor to create a new SharedQueue.
+            </summary>
+            <param name="name">Name of the SharedQueue</param>
+            <param name="size">Size in bytes of the queue</param>
+            <param name="averageItemSize">Average expected size in bytes of items in queue</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueue.#ctor(System.String,System.UInt32)">
+            <summary>
+            Base constructor to join an existing SharedQueue.
+            </summary>
+            <param name="name">Name of the SharedQueue</param>
+            <param name="averageItemSize">Average expected size in bytes of items in queue</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueue.Dispose">
+            <summary>
+            Dispose the SharedQueue object to release the unmanaged resources.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueue.Dispose(System.Boolean)">
+            <summary>
+            Dispose the SharedQueue object to release the unmanaged resources.
+            </summary>
+            <param name="disposing"></param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueue.Finalize">
+            <summary>
+            Destructor for the class.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueue.Enqueue(System.Byte[]@,System.UInt32)">
+            <summary>
+            Add an element to the queue.
+            </summary>
+            <param name="item">Item being added to the queue</param>
+            <param name="timeout">Timeout for the operation</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Common.SharedQueue.Dequeue(System.UInt32)">
+            <summary>
+            Get an element from the queue.
+            </summary>
+            <param name="timeout">Timeout for the operation</param>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Common.SharedQueue.QueueSize">
+            <summary>
+            Size in bytes of the SharedQueue
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,414 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>WspPubSubMgr</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubConnectionFailedException">
+            <summary>
+            The exception that is thrown when the process cannot connect to the event system queue. Check 
+            to see that the event system service is running.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubConnectionFailedException.#ctor">
+            <summary>
+            Base constructor to create a new PubSubConnectionFailedException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubConnectionFailedException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new PubSubConnectionFailedException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubConnectionFailedException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new PubSubConnectionFailedException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubConnectionFailedException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new PubSubConnectionFailedException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object buffer about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubException">
+            <summary>
+            The exception that is thrown when an error occurs during publish/subscribe. See 
+            the inner exception.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubException.#ctor">
+            <summary>
+            Base constructor to create a new PubSubException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new PubSubException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new PubSubException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new PubSubException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object buffer about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubInitializationException">
+            <summary>
+            The exception that is thrown when an error occurs during publish/subscribe initialization. 
+            See the inner exception.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubInitializationException.#ctor">
+            <summary>
+            Base constructor to create a new PubSubInitializationException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubInitializationException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new PubSubInitializationException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubInitializationException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new PubSubInitializationException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubInitializationException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new PubSubInitializationException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object buffer about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubInsufficientMemoryException">
+            <summary>
+            The exception that is thrown when there is insufficient memory to instantiate the object.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubInsufficientMemoryException.#ctor">
+            <summary>
+            Base constructor to create a new PubSubInsufficientMemoryException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubInsufficientMemoryException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new PubSubInsufficientMemoryException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubInsufficientMemoryException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new PubSubInsufficientMemoryException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubInsufficientMemoryException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new PubSubInsufficientMemoryException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object buffer about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubQueueDoesNotExistException">
+            <summary>
+            The exception that is thrown when the event system service is not running.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubQueueDoesNotExistException.#ctor">
+            <summary>
+            Base constructor to create a new PubSubQueueDoesNotExistException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubQueueDoesNotExistException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new PubSubQueueDoesNotExistException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubQueueDoesNotExistException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new PubSubQueueDoesNotExistException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubQueueDoesNotExistException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new PubSubQueueDoesNotExistException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object buffer about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubQueueFullException">
+            <summary>
+            The exception that is thrown when the event system queue is full.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubQueueFullException.#ctor">
+            <summary>
+            Base constructor to create a new PubSubQueueFullException
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubQueueFullException.#ctor(System.String)">
+            <summary>
+            Base constructor to create a new PubSubQueueFullException
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubQueueFullException.#ctor(System.String,System.Exception)">
+            <summary>
+            Base constructor to create a new PubSubQueueFullException
+            </summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PubSubQueueFullException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Base constructor to create a new PubSubQueueFullException
+            </summary>
+            <param name="info">The SerializationInfo that holds the serialized object buffer about the exception being thrown.</param>
+            <param name="context">The StreamingContext that contains contextual information about the source or destination.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager">
+             <summary>
+             PublishManager is used by applcations to publish events.
+             <code>
+             class WorkerClass
+             {
+                 private static PublishManager pubMgr;
+            
+                 public WorkerClass()
+                 {
+                     pubMgr = new PublishManager(10000);
+                 }
+            
+                 public void DoWork()
+                 {
+                     ...
+            
+                     WebpageEvent localEvent = new WebpageEvent();
+                     localEvent.EventName = @"Test Event";
+            
+                     ...
+            
+                     pubMgr.Publish(localEvent.Serialize());
+            
+                     ...
+                 }
+             }
+             </code>
+             </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager.#ctor">
+            <summary>
+            Constructor
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager.#ctor(System.UInt32)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="timeout">Timeout for publishing an event</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager.Publish(System.Byte[])">
+            <summary>
+            Publishes an event to the event service
+            </summary>
+            <param name="serializedEvent">Serialized version of the event</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager.Dispose">
+            <summary>
+            Dispose the object
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager.Dispose(System.Boolean)">
+            <summary>
+            Dispose the object
+            </summary>
+            <param name="disposing">True if disposing</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager.Finalize">
+            <summary>
+            Destructor
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager.RetryAttempts">
+            <summary>
+            Number of times to retry a failed enqueue request before returning a fail to the application
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager.RetryPause">
+            <summary>
+            Number of milliseconds to wait before retrying an enqueue request
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager.Timeout">
+            <summary>
+            Timeout for publishing events
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.PubSubManager.PublishManager.QueueSize">
+            <summary>
+            Size in bytes of the SharedQueue
+            </summary>
+        </member>
+        <member name="T:PubSubMgr.PubSubMgr">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:PubSubMgr.PubSubMgr.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:PubSubMgr.PubSubMgr.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:PubSubMgr.PubSubMgr.ConnectionFailed">
+            <summary>
+              Looks up a localized string similar to Connection to the Event System failed.
+            </summary>
+        </member>
+        <member name="P:PubSubMgr.PubSubMgr.InvalidArgumentValue">
+            <summary>
+              Looks up a localized string similar to Invalid argument value.
+            </summary>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PubSubManager.ISubscriptionCallback">
+            <summary>
+            The ISubscriptionCallback interface is implemented by an event subscriber class. The
+            SubscriptionCallback method is then called to deliver events to the application.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.ISubscriptionCallback.SubscriptionCallback(System.Guid,System.Byte[])">
+            <summary>
+            This method is passed to the SubscriptionManager as the callback for delivering events.
+            </summary>
+            <param name="eventType">Event type for the event being passed.</param>
+            <param name="serializedEvent">The serialized version of the event.</param>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager">
+            <summary>
+            This class is used to subscribe to events.
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.#ctor(System.Object)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="subscriptionCallback">Handle to the SubscriptionCallback method</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.#ctor(System.UInt32,System.Object)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="timeout">Timeout for publishing an event</param>
+            <param name="subscriptionCallback">Handle to the SubscriptionCallback method</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.Dispose">
+            <summary>
+            Dispose for SubscriptionManager
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.Dispose(System.Boolean)">
+            <summary>
+            Dispose for SubscriptionManager
+            </summary>
+            <param name="disposing">True if disposing.</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.Finalize">
+            <summary>
+            Destructor
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.AddSubscription(System.Guid,System.Boolean)">
+            <summary>
+            Add a subscription for a specific event
+            </summary>
+            <param name="eventType">EventType being subscribed to</param>
+            <param name="localOnly">Specifies if subscription is only for local machine or global</param>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.RemoveSubscription(System.Guid)">
+            <summary>
+            Remove a subscription for a specific event
+            </summary>
+            <param name="eventType">EventType being unsubscribed to</param>
+            <returns>True if successful</returns>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.GetSubscriptions">
+            <summary>
+            Returns a list of EventTypes being subscribed to
+            </summary>
+            <returns>An array of EventTypes</returns>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.StartListening">
+            <summary>
+            Starts a thread to listen to events
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.StopListening">
+            <summary>
+            Stops the thread listening to events
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.Listen">
+            <summary>
+            Listening thread
+            </summary>
+        </member>
+        <member name="M:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.CallSubscriptionCallback(System.Object)">
+            <summary>
+            Call the SubscriptionCallback with event
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.ListenForEvents">
+            <summary>
+            Starts and stops listening for events
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.Timeout">
+            <summary>
+            Timeout for publishing events
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.CallbackMethod">
+            <summary>
+            Callback delegate
+            </summary>
+        </member>
+        <member name="P:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.QueueSize">
+            <summary>
+            Size in bytes of the SharedQueue
+            </summary>
+        </member>
+        <member name="T:Microsoft.WebSolutionsPlatform.Event.PubSubManager.SubscriptionManager.Callback">
+            <summary>
+            Defines the callback method for delivering events to an application.
+            </summary>
+            <param name="eventType">Event type for the event being passed.</param>
+            <param name="serializedEvent">The serialized version of the event.</param>
+        </member>
+    </members>
+</doc>
