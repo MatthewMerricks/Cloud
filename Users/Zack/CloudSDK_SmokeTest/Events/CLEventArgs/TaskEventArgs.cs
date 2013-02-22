@@ -11,5 +11,18 @@ namespace CloudSDK_SmokeTest.Events.CLEventArgs
     {
         public GenericHolder<CLError> ProcessingErrorHolder { get; set; }
         public SmokeTask CurrentTask { get; set; }
+
+
+        public TaskEventArgs() { }
+        public TaskEventArgs(TaskEventArgs input)
+        {
+            this.boxCreationStatus = input.boxCreationStatus;
+            this.Creds = input.Creds;
+            this.CredsStatus = input.CredsStatus;
+            this.CurrentTask = input.CurrentTask;
+            this.ParamSet = input.ParamSet;
+            this.ProcessingErrorHolder = input.ProcessingErrorHolder;
+            this.SyncBox = input.SyncBox;
+        }
     }
 }

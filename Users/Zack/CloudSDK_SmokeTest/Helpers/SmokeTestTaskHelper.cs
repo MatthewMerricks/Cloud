@@ -1,5 +1,7 @@
 ﻿using CloudApiPublic.Model;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
+using CloudSDK_SmokeTest.Events.ManagerEventArgs;
+using CloudSDK_SmokeTest.Interfaces;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
 using System;
@@ -65,6 +67,41 @@ namespace CloudSDK_SmokeTest.Helpers
             }
             return returnValue;
         }
+
+        public static long RouteToTask(SmokeTestManagerEventArgs e)
+        {
+            
+            long responseCode = 0;
+            ISmokeTaskManager manager = SmokeTaskManager.SelectManager(e.CurrentTask);
+            switch (e.CurrentTask.type)
+            { 
+                case SmokeTaskType.Creation:
+                    responseCode = manager.Create(e);
+                    break;
+                case SmokeTaskType.Deletion:
+                    responseCode = manager.Delete(e);
+                    break;
+                case SmokeTaskType.Rename:
+                    responseCode = manager.Rename(e);
+                    break;
+                case SmokeTaskType.DownloadAllSyncBoxContent:
+                    responseCode = manager.Download(e);
+                    break;
+                case SmokeTaskType.ListItems:
+                    responseCode = manager.ListItems(e);
+                    break;
+                case SmokeTaskType.CreateSyncBox:
+                    responseCode = manager.Create(e);
+                    break;
+                default:
+                    responseCode = (int)FileManagerResponseCodes.InvalidTaskType;
+                    break;
+
+            }
+            return responseCode;
+        }
+
+        
 
         public static int RunHttpTestTask()
         {

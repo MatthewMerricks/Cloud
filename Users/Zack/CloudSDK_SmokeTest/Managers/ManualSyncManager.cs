@@ -243,7 +243,7 @@ namespace CloudSDK_SmokeTest.Managers
                 CLError postFileError = createEventArgs.SyncBox.HttpRestClient.PostFileChange(newFileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
                 if (postFileError != null || restStatus != CLHttpRestStatus.Success)
                 {
-                    FileHelper.HandleUnsuccessfulUpload(newFileChange, returnEvent, restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref errorHolder);
+                    FileHelper.HandleUnsuccessfulUpload(restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref errorHolder);
                 }
                 string response = returnEvent.Header.Status.ToLower();
                 CreateFileResponseEventArgs responseArgs = new CreateFileResponseEventArgs(createEventArgs, newFileChange, response, restStatus, returnEvent);

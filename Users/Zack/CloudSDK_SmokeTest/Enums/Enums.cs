@@ -24,4 +24,12 @@ namespace CloudSDK_SmokeTest
         InvalidResponseType = 32,
         ExpectedItemMatchFailure = 64,
     }
+
+    public enum HttpPostReponseCodes
+    { 
+        None,
+        Upload,
+        Duplicate,
+        Conflict,
+    }
 }

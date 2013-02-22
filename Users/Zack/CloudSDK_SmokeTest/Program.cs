@@ -1,4 +1,5 @@
 ﻿using CloudApiPublic.Model;
+using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Helpers;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
@@ -82,8 +83,10 @@ namespace CloudSDK_SmokeTest
                             parallelSet.Items,
                             (currentTask =>
                             {
-                                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
-                                RunInnerTasks(smokeTestClass, currentTask.InnerTask);                                   
+                                SmokeTestManagerEventArgs e = new SmokeTestManagerEventArgs(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
+                                SmokeTestTaskHelper.RouteToTask(e);
+                                //SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
+                                //RunInnerTasks(smokeTestClass, currentTask.InnerTask);                                   
 
                             }));
 
