@@ -1794,6 +1794,13 @@ namespace CloudApiPublic.Static
             return null;
         }
 
+        internal static int NumberOfSetBits(int inOut)
+        {
+            inOut = inOut - ((inOut >> 1) & 0x55555555);
+            inOut = (inOut & 0x33333333) + ((inOut >> 2) & 0x33333333);
+            return (((inOut + (inOut >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+        }
+
         #region ProcessHttp
         #region readonly fields
         /// <summary>

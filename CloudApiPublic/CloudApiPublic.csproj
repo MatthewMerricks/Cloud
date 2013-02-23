@@ -138,6 +138,9 @@
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
     <Compile Include="CLSync\CLSyncStartStatus.cs" />
+    <Compile Include="FileMonitor\FileMonitorMemory.cs">
+      <DependentUpon>FileMonitorMemory.xsd</DependentUpon>
+    </Compile>
     <Compile Include="FileMonitor\MonitorAgent.cs" />
     <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
     <Compile Include="Interfaces\IEventMessageReceiver.cs" />
@@ -320,6 +323,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Docs\MainPage.dox" />
+    <None Include="FileMonitor\FileMonitorMemory.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
     <None Include="Static\Log.xsd">
       <SubType>Designer</SubType>

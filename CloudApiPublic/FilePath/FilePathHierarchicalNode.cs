@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,6 +26,8 @@ namespace CloudApiPublic.Model
         /// </summary>
         public IEnumerable<FilePathHierarchicalNode<T>> Children { get; set; }
 
+        internal FilePathHierarchicalNode() { }
+
         #region IFilePathHierarchicalNode<T> members
         /// <summary>
         /// True iff the current node has a value,
@@ -34,9 +37,26 @@ namespace CloudApiPublic.Model
         {
             get
             {
-                return this is FilePathHierarchicalNodeWithValue<T>;
+                Type thisType = this.GetType();
+
+                lock (hasValueLookup)
+                {
+                    bool toReturn;
+                    if (hasValueLookup.TryGetValue(thisType, out toReturn))
+                    {
+                        return toReturn;
+                    }
+
+                    hasValueLookup[thisType] = toReturn =
+                        thisType
+                            .GetProperty(
+                                ((MemberExpression)((Expression<Func<FilePathHierarchicalNode<T>, KeyValuePair<FilePath, T>>>)(member => member.Value)).Body).Member.Name)
+                            .DeclaringType != thisType;
+                    return toReturn;
+                }
             }
         }
+        private static readonly Dictionary<Type, bool> hasValueLookup = new Dictionary<Type, bool>();
 
         /// <summary>
         /// Value for the current node,
@@ -47,9 +67,11 @@ namespace CloudApiPublic.Model
         {
             get
             {
-                if (!this.HasValue)
+                // must override Value to not throw exception
+
+                //if (!this.HasValue)
                     throw new NullReferenceException("Not created with value");
-                return ((FilePathHierarchicalNodeWithValue<T>)this).Value;
+                //return ((FilePathHierarchicalNodeWithValue<T>)this).Value;
             }
         }
         #endregion
@@ -62,6 +84,9 @@ namespace CloudApiPublic.Model
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class FilePathHierarchicalNodeWithValue<T> : FilePathHierarchicalNode<T> where T : class
     {
+        /// <summary>
+        /// Value for the current node
+        /// </summary>
         public override KeyValuePair<FilePath, T> Value
         {
             get
@@ -69,12 +94,12 @@ namespace CloudApiPublic.Model
                 return _value;
             }
         }
-        private KeyValuePair<FilePath, T> _value;
+        private readonly KeyValuePair<FilePath, T> _value;
         /// <summary>
         /// Creates the FilePathHierarchical node so that it has a Value
         /// </summary>
         /// <param name="value"></param>
-        public FilePathHierarchicalNodeWithValue(KeyValuePair<FilePath, T> value)
+        internal FilePathHierarchicalNodeWithValue(KeyValuePair<FilePath, T> value)
         {
             this._value = value;
         }

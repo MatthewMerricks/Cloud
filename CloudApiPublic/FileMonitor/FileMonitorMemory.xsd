@@ -1,0 +1,106 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="FileMonitorMemory"
+    targetNamespace="http://www.cloud.com/FileMonitorMemory.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://www.cloud.com/FileMonitorMemory.xsd"
+    xmlns:mstns="http://www.cloud.com/FileMonitorMemory.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:appinfo>Cloud.com FileMonitor memory XML Schema</xs:appinfo>
+    <xs:documentation xml:lang="en-us">
+      FileMonitorMemory.xsd and resulting generated code
+      Cloud
+
+      Created by DavidBruck.
+
+      Copyright (c) Cloud.com. All rights reserved.
+
+      Manually copy this copyright declaration to the header of any generated code files created from this schema
+    </xs:documentation>
+  </xs:annotation>
+  <xs:complexType name="Copyright">
+    <xs:sequence>
+      <xs:element name="FileName" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="Copyright" minOccurs="1" maxOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Implementation of FileMonitorMemory.xsd XML Schema. Cloud. Copyright (c) Cloud.com. All rights reserved." />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="Creator" minOccurs="1" maxOccurs="1" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Entry">
+    <xs:sequence />
+  </xs:complexType>
+  <xs:complexType name="WatcherChangeTypes">
+    <xs:sequence>
+      <xs:element name="Type" type="WatcherChangeType" minOccurs="1" maxOccurs="4" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="WatcherChangeType">
+    <xs:sequence />
+  </xs:complexType>
+  <xs:complexType name="WatcherChangeCreated">
+    <xs:complexContent>
+      <xs:extension base="WatcherChangeType" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="WatcherChangeDeleted">
+    <xs:complexContent>
+      <xs:extension base="WatcherChangeType" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="WatcherChangeChanged">
+    <xs:complexContent>
+      <xs:extension base="WatcherChangeType" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="WatcherChangeRenamed">
+    <xs:complexContent>
+      <xs:extension base="WatcherChangeType" />
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="WatcherChangedEntry">
+    <xs:complexContent>
+      <xs:extension base="Entry">
+        <xs:sequence>
+          <xs:element name="OldPath" type="xs:string" minOccurs="0" />
+          <xs:element name="NewPath" type="xs:string" />
+          <xs:element name="Types" type="WatcherChangeTypes" />
+          <xs:element name="FolderOnly" type="xs:boolean" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="CheckMetadataEntry">
+    <xs:complexContent>
+      <xs:extension base="Entry">
+        <xs:sequence>
+          <xs:element name="OldChangeType" type="WatcherChangeType" />
+          <xs:element name="OldExists" type="xs:boolean" minOccurs="0" />
+          <xs:element name="NewExists" type="xs:boolean" />
+          <xs:element name="IsFolder" type="xs:boolean" />
+          <xs:element name="OldPath" type="xs:string" minOccurs="0" />
+          <xs:element name="NewPath" type="xs:string" />
+          <xs:element name="Size" type="xs:long" minOccurs="0" />
+          <xs:element name="LastTime" type="xs:dateTime" minOccurs="0" />
+          <xs:element name="CreationTime" type="xs:dateTime" minOccurs="0" />
+          <xs:element name="OldIndexed" type="xs:boolean" minOccurs="0" />
+          <xs:element name="NewIndexed" type="xs:boolean" minOccurs="0" />
+          <xs:element name="PossibleRename" type="xs:boolean" minOccurs="0" />
+          <xs:element name="NewChangeType" type="WatcherChangeType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="FileMonitorMemory">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Copyright" type="Copyright" />
+        <xs:element name="Entries" type="Entry" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
