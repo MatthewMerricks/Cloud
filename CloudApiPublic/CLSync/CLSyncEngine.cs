@@ -43,6 +43,9 @@ namespace CloudApiPublic
         // following flag should always be false except for when debugging FileMonitor memory
         private readonly GenericHolder<bool> debugFileMonitorMemory = new GenericHolder<bool>(false);
         #region hidden FileMonitor debug
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public bool FileMonitorMemoryDebug
         {
@@ -61,7 +64,9 @@ namespace CloudApiPublic
                 }
             }
         }
+        // \endcond
 
+        // \cond
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public string FileMonitorMemory
         {
@@ -78,7 +83,9 @@ namespace CloudApiPublic
                 return FileMonitor.MonitorAgent.memoryDebugger.Instance.serializeMemory();
             }
         }
+        // \endcond
 
+        // \cond
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public bool WipeFileMonitorDebugMemory
         {
@@ -100,6 +107,7 @@ namespace CloudApiPublic
                 }
             }
         }
+        // \endcond
         #endregion
 
         //// Not sure if we want to expose access to the contained SyncBox since it is set on Start and not on construction (it changes during usage)s
