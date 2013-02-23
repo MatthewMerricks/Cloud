@@ -749,10 +749,13 @@ EXCLUDE_SYMBOLS        = CloudApiPublic::Interfaces::ISyncDataObject \
                          CloudApiPublic::Static::FileChangeFlowEntryPositionInFlow \
                          CloudApiPublic::Static::CommunicationEntryDirection \
                          CloudApiPublic::Static::OSVersionInfo \
-						 CloudApiPublic::CLSyncBox::HttpRestClient \
-						 CloudApiPublic::REST::CLHttpRest \
-						 CloudApiPublic::JsonContracts::Event \
-						 CloudApiPublic::JsonContracts::Header
+                         CloudApiPublic::CLSyncBox::HttpRestClient \
+                         CloudApiPublic::REST::CLHttpRest \
+                         CloudApiPublic::JsonContracts::Event \
+                         CloudApiPublic::JsonContracts::Header \
+                         CloudApiPublic::CLSyncEngine.FileMonitorMemoryDebug \
+                         CloudApiPublic::CLSyncEngine.FileMonitorMemory \
+                         CloudApiPublic::CLSyncEngine.WipeFileMonitorDebugMemory
 						 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see
