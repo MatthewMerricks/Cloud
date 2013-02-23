@@ -8,8 +8,8 @@
 // Back end definitions
 // @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND 
-#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
-//#define STAGING_BACKEND       // cloudstaging.us
+//#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
+#define STAGING_BACKEND       // cloudstaging.us
 
 // URL definitions
 // @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
@@ -487,9 +487,8 @@ namespace CloudApiPublic.Static
         public const string CLMetadataFiles = "files";
         public const string CLMetadataFile = "file";
         public const string CLMetadataServerId = "uid";
-        public const string CLMetadataCount = "count";
+        public const string CLMetadataTotalCount = "total_count";
         public const string CLMetadataIsStored = "is_stored";
-        public const string CLMetadataMoreItems = "more_items";
         public const string CLMetadataLocal = "local";
         public const string CLMetadataShared = "shared";
         public const string CLMetadataFolders = "folders";
