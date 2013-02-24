@@ -40,6 +40,76 @@ namespace CloudApiPublic
         private object statusUpdatedUserState = null;
         private readonly object _locker = new object();
 
+        // following flag should always be false except for when debugging FileMonitor memory
+        private readonly GenericHolder<bool> debugFileMonitorMemory = new GenericHolder<bool>(false);
+        #region hidden FileMonitor debug
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool FileMonitorMemoryDebug
+        {
+            get
+            {
+                lock (debugFileMonitorMemory)
+                {
+                    return debugFileMonitorMemory.Value;
+                }
+            }
+            set
+            {
+                lock (debugFileMonitorMemory)
+                {
+                    debugFileMonitorMemory.Value = value;
+                }
+            }
+        }
+        // \endcond
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public string FileMonitorMemory
+        {
+            get
+            {
+                lock (debugFileMonitorMemory)
+                {
+                    if (!debugFileMonitorMemory.Value)
+                    {
+                        return null;
+                    }
+                }
+
+                return FileMonitor.MonitorAgent.memoryDebugger.Instance.serializeMemory();
+            }
+        }
+        // \endcond
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool WipeFileMonitorDebugMemory
+        {
+            set
+            {
+                if (value)
+                {
+                    bool needsWipe;
+
+                    lock (debugFileMonitorMemory)
+                    {
+                        needsWipe = debugFileMonitorMemory.Value;
+                    }
+
+                    if (needsWipe)
+                    {
+                        FileMonitor.MonitorAgent.memoryDebugger.Instance.wipeMemory();
+                    }
+                }
+            }
+        }
+        // \endcond
+        #endregion
+
         //// Not sure if we want to expose access to the contained SyncBox since it is set on Start and not on construction (it changes during usage)s
         //
         ///// <summary>
@@ -505,6 +575,12 @@ namespace CloudApiPublic
                 _notifier.NotificationStillDisconnectedPing += OnNotificationPerformManualSyncFrom;
                 _notifier.ConnectionError += OnNotificationConnectionError;
 
+                bool debugMemory;
+                lock (debugFileMonitorMemory)
+                {
+                    debugMemory = debugFileMonitorMemory.Value;
+                }
+
                 // Start the monitor
                 CLError fileMonitorCreationError;
                 lock (_locker)
@@ -515,7 +591,8 @@ namespace CloudApiPublic
                         statusUpdated,
                         statusUpdatedUserState,
                         out _monitor,
-                        out _syncEngine);
+                        out _syncEngine,
+                        debugMemory);
                 }
 
                 if (fileMonitorCreationError != null)
