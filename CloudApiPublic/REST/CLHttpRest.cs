@@ -3750,13 +3750,6 @@ namespace CloudApiPublic.REST
                     {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString()),
-
-                        // Add device ID
-                        (string.IsNullOrEmpty(_copiedSettings.DeviceId)
-                            ? new KeyValuePair<string, string>()
-                            :
-                                // query string parameter for the device id, needs to be escaped since it's client-defined
-                                new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId)))
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
