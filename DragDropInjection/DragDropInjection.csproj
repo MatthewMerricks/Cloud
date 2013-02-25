@@ -231,9 +231,9 @@
       <Name>CloudApiPublic</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\win-client.csproj">
+    <ProjectReference Include="..\Old-Win-Client.csproj">
       <Project>{d47ed1eb-2327-4d35-97d5-42fc6239b925}</Project>
-      <Name>win-client</Name>
+      <Name>Old-Win-Client</Name>
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
