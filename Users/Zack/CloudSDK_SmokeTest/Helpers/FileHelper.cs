@@ -334,7 +334,7 @@ namespace CloudSDK_SmokeTest.Helpers
             }
             else
             {
-                Console.Write("Successfully Uploaded File {0} to the Sync Box Server.", info.Name);
+                Console.WriteLine("Successfully Uploaded File {0} to the Sync Box {1}.", info.Name, syncBox.SyncBoxId);
             }
             return responseCode;
         }

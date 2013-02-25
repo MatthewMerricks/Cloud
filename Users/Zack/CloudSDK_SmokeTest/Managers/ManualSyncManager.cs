@@ -396,11 +396,14 @@ namespace CloudSDK_SmokeTest.Managers
             }
             if (deleteTask.DeleteAll == true)
             {
-                returnValues.AddRange(AddMetadataToList(folderContents.Objects, false, -1));
+                returnValues.AddRange(AddMetadataToList(folderContents.Objects, false, -1, string.Empty));
             }
             else if (deleteTask.DeleteCountSpecified && deleteTask.DeleteCount > 0)
             {
-                returnValues.AddRange(AddMetadataToList(folderContents.Objects, false, deleteTask.DeleteCount));
+                if (deleteTask.DeleteCount == 1)
+                    returnValues.AddRange(AddMetadataToList(folderContents.Objects, false, deleteTask.DeleteCount, deleteTask.RelativePath));
+                else
+                    returnValues.AddRange(AddMetadataToList(folderContents.Objects, false, deleteTask.DeleteCount, string.Empty));
             }
             else if (!string.IsNullOrEmpty(deleteTask.ServerID))
             {
@@ -431,11 +434,14 @@ namespace CloudSDK_SmokeTest.Managers
 
             if (deleteTask.DeleteAll == true)
             {
-                returnValues.AddRange(AddMetadataToList(folders.Metadata, true,  -1));
+                returnValues.AddRange(AddMetadataToList(folders.Metadata, true,  -1, string.Empty));
             }
             else if (deleteTask.DeleteCountSpecified && deleteTask.DeleteCount > 0)
             {
-                returnValues.AddRange(AddMetadataToList(folders.Metadata, true, deleteTask.DeleteCount));
+                if(deleteTask.DeleteCount ==1)
+                    returnValues.AddRange(AddMetadataToList(folders.Metadata, true, deleteTask.DeleteCount, deleteTask.RelativePath));
+                else
+                    returnValues.AddRange(AddMetadataToList(folders.Metadata, true, deleteTask.DeleteCount, string.Empty));
             }
             else if (!string.IsNullOrEmpty(deleteTask.ServerID))
             {
@@ -1059,7 +1065,7 @@ namespace CloudSDK_SmokeTest.Managers
                 errors.Add(ExceptionManager.ReturnException(opperationName, boxCreateStatus.ToString()));
         }
 
-        private List<Metadata> AddMetadataToList(IEnumerable<Metadata> folderOrContents, bool folderOperations, int count)
+        private List<Metadata> AddMetadataToList(IEnumerable<Metadata> folderOrContents, bool folderOperations, int count, string relativePath)
         {
             List<Metadata> returnValues = new List<Metadata>();
             foreach (Metadata contentItem in folderOrContents)
@@ -1072,17 +1078,38 @@ namespace CloudSDK_SmokeTest.Managers
                                 returnValues.Add(contentItem);
                         break;
                     case false:
-                        if (!contentItem.IsFolder.HasValue || !contentItem.IsFolder.Value)
+                        bool shouldDelete = ShouldDelete(contentItem, count, relativePath, ref returnValues);
+                        if (shouldDelete)
+                        {
                             returnValues.Add(contentItem);
+                        }
                         break;
-                }
-                
+                }                
                 if (count > 0 && returnValues.Count() == count)
                     break;
             }
             return returnValues;
         }
 
+        private bool ShouldDelete(Metadata contentItem, int count, string relativePath, ref List<Metadata> returnValues)
+        {
+            bool shouldDelete = false;
+            if (!contentItem.IsFolder.HasValue || !contentItem.IsFolder.Value)
+            {
+                if (count == 1 && !string.IsNullOrEmpty(relativePath))
+                {
+                    if (contentItem.RelativePath.Replace("/", "\\") == relativePath && returnValues.Count <1)
+                    {
+                        shouldDelete = true;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(relativePath))
+                { 
+                    
+                }
+            }
+            return shouldDelete;
+        }
         private IEnumerable<FileChange> GetFileChangesFromMetadata(CLSyncBox syncBox, IEnumerable<Metadata> metadataList)
         {
             CLHttpRestStatus restStatus;

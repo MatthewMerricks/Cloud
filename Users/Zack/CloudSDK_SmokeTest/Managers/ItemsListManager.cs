@@ -1,6 +1,7 @@
 ﻿using CloudApiPublic.Model;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Helpers;
+using CloudSDK_SmokeTest.Interfaces;
 using CloudSDK_SmokeTest.Settings;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Text;
 
 namespace CloudSDK_SmokeTest.Managers
 {
-    public sealed class ItemsListManager
+    public sealed class ItemsListManager : ISmokeTaskManager
     {
 
         public readonly List<CloudApiPublic.JsonContracts.Plan> Plans;
@@ -60,6 +61,66 @@ namespace CloudSDK_SmokeTest.Managers
             {
                 ProcessingErrorHolder = ProcessingErrorHolder,
                 ParamSet = paramSet,
+                ListItemsTask = listTask,
+            };
+            switch (listTask.ListType)
+            {
+                case ListItemsListType.Plans:
+                    Console.WriteLine("Entering List Plans");
+                    ItemsListHelper.RunListSubscribedPlans(eventArgs);
+                    Console.WriteLine("Exiting List Plans");
+                    break;
+                case ListItemsListType.Sessions:
+                    Console.WriteLine("Entering List Sessions");
+                    ItemsListHelper.RunListSessions(eventArgs, true, true);
+                    Console.WriteLine("Exiting List Sessions");
+                    break;
+                case ListItemsListType.SyncBoxes:
+                    Console.WriteLine("Entering List SyncBoxes");
+                    ItemsListHelper.RunListSubscribtionSyncBoxes(eventArgs);
+                    Console.WriteLine("Exiting List SyncBoxes");
+                    break;
+            }
+            return responseCode;
+        }
+
+        public int Create(Events.ManagerEventArgs.SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int Rename(Events.ManagerEventArgs.SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int Delete(Events.ManagerEventArgs.SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int UnDelete(Events.ManagerEventArgs.SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int Download(Events.ManagerEventArgs.SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int ListItems(Events.ManagerEventArgs.SmokeTestManagerEventArgs e)
+        {
+            int responseCode = -1;
+            ListItems listTask = e.CurrentTask as ListItems;
+            ItemsListManager manager = ItemsListManager.GetInstance();
+            if (listTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
+            ItemListHelperEventArgs eventArgs = new ItemListHelperEventArgs()
+            {
+                ProcessingErrorHolder = e.ProcessingErrorHolder,
+                ParamSet = e.ParamSet,
                 ListItemsTask = listTask,
             };
             switch (listTask.ListType)

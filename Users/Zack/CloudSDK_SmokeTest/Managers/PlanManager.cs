@@ -11,9 +11,9 @@ namespace CloudSDK_SmokeTest.Managers
 {
     public class PlanManager : ISmokeTaskManager
     {
-        public static long RunCreatePlan(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunCreatePlan(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
-            long planId = 0;
+            int planId = 0;
             throw new NotImplementedException("Implement Run Create Plan Method In Smoke Test helper Class.");
             return planId;
         }

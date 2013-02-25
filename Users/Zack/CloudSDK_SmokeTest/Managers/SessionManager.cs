@@ -18,12 +18,12 @@ namespace CloudSDK_SmokeTest.Managers
     public class SessionManager : ISmokeTaskManager 
     {
 
-        public static long RunCreateSessionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunCreateSessionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             string newSessionKey = string.Empty;
             Creation createSessionTask = smokeTask as Creation;
             if (createSessionTask == null)
-                return(long)FileManagerResponseCodes.InvalidTaskType;
+                return(int)FileManagerResponseCodes.InvalidTaskType;
 
             int responseCode = 0;
             Console.WriteLine("Preparing to Create Session.");

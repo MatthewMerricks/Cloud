@@ -187,6 +187,8 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private ModificationObject objectTypeField;
         
+        private long selectedSyncBoxIDField;
+        
         /// <remarks/>
         public SmokeTaskType type {
             get {
@@ -214,6 +216,16 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.objectTypeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public long SelectedSyncBoxID {
+            get {
+                return this.selectedSyncBoxIDField;
+            }
+            set {
+                this.selectedSyncBoxIDField = value;
             }
         }
     }

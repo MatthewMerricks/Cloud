@@ -81,11 +81,13 @@
             <xs:enumeration value = "FileUndelete" />
             <xs:enumeration value ="HttpTest" />
             <xs:enumeration value ="ListItems" />
+            <xs:enumeration value = "CompareFolders" />
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
       <xs:element name="InnerTask" minOccurs="0" type="SmokeTask" />
       <xs:element name="ObjectType" type="ModificationObject" />
+      <xs:element name="SelectedSyncBoxID" type="xs:long" />
     </xs:sequence>
   </xs:complexType>
 
@@ -194,7 +196,14 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  
+
+  <xs:complexType name="CompareFolders" >
+    <xs:complexContent>
+      <xs:extension base="SmokeTask">
+        
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   
   <xs:complexType name="ParallelTaskSet">
     <xs:choice >

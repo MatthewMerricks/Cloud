@@ -108,9 +108,9 @@
     <Compile Include="Helpers\SmokeTestTaskHelper.cs" />
     <Compile Include="Helpers\XMLHelper.cs" />
     <Compile Include="Interfaces\ISmokeTaskManager.cs" />
+    <Compile Include="Managers\DownloadManager.cs" />
     <Compile Include="Managers\ExceptionManager.cs" />
     <Compile Include="Managers\FileManager.cs" />
-    <Compile Include="Managers\FileMetadataManager.cs" />
     <Compile Include="Managers\ItemsListManager.cs" />
     <Compile Include="Managers\ManagerConstants.cs" />
     <Compile Include="Managers\PlanManager.cs" />
@@ -132,6 +132,7 @@
       <DependentUpon>InputParameters.xsd</DependentUpon>
     </Compile>
     <Compile Include="Settings\InputParameters_Methods.cs" />
+    <Compile Include="Settings\InputParameters_TaskExtensisons.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Settings\FileMappingsForIntelleSense.xml" />

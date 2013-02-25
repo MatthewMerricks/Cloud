@@ -19,6 +19,7 @@ namespace CloudSDK_SmokeTest.Managers
             switch (task.ObjectType.type)
             { 
                 case ModificationObjectType.SyncBox:
+                    manager = new SyncBoxManager();
                     break;
                 case ModificationObjectType.File:
                     manager = new FileManager();
@@ -27,11 +28,26 @@ namespace CloudSDK_SmokeTest.Managers
                     manager = new FileManager();
                     break;
                 case ModificationObjectType.Plan:
+                    manager = new PlanManager();
                     break;
                 case ModificationObjectType.Session:
+                    manager = new SessionManager();
                     break;
             }
             return manager;
+        }
+
+        public static long GetOpperationSyncBoxID(SmokeTestManagerEventArgs e)
+        {
+            long syncBoxID = 0;
+            if (e.CurrentTask.SelectedSyncBoxID > 0)
+                syncBoxID = e.CurrentTask.SelectedSyncBoxID;
+            //ZW Replace
+            //else if (e.CurrentTask.SyncBoxes.Count > 0)
+            //    syncBoxID = e.CurrentTask.SyncBoxes.Keys.FirstOrDefault();
+            else
+                syncBoxID = e.ParamSet.ManualSyncBoxID;
+            return syncBoxID;
         }
 
         public static void HandleFailure(ExceptionManagerEventArgs failArgs)

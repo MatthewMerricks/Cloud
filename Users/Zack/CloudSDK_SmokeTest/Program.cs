@@ -1,4 +1,5 @@
-﻿using CloudApiPublic.Model;
+﻿using CloudApiPublic;
+using CloudApiPublic.Model;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Helpers;
 using CloudSDK_SmokeTest.Managers;
@@ -83,10 +84,11 @@ namespace CloudSDK_SmokeTest
                             parallelSet.Items,
                             (currentTask =>
                             {
-                                SmokeTestManagerEventArgs e = new SmokeTestManagerEventArgs(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
-                                SmokeTestTaskHelper.RouteToTask(e);
-                                //SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
-                                //RunInnerTasks(smokeTestClass, currentTask.InnerTask);                                   
+                                //SmokeTestManagerEventArgs e = new SmokeTestManagerEventArgs(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
+                                //SmokeTestTaskHelper.RouteToTask(e);
+                                int response = SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
+                                //RunInnerTasks(smokeTestClass, currentTask.InnerTask, currentTask.SyncBoxes);
+                                RunInnerTasks(smokeTestClass, currentTask);   
 
                             }));
 
@@ -124,17 +126,30 @@ namespace CloudSDK_SmokeTest
             }
         }
 
+        //ZW Replace
+        //public static void RunInnerTasks(SmokeTest smokeTestClass, SmokeTask currentTask, Dictionary<long, CLSyncBox> syncBoxes)
         public static void RunInnerTasks(SmokeTest smokeTestClass, SmokeTask currentTask)
         {
-            if (currentTask != null)
+            SmokeTask innerTask = currentTask.InnerTask;
+            if (innerTask != null)
             {
-                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
-                if (currentTask.InnerTask != null)
+                if (innerTask.SelectedSyncBoxID <= 0)
+                    innerTask.SelectedSyncBoxID = currentTask.SelectedSyncBoxID;
+                //ZW Replace
+                //foreach (var box in syncBoxes)
+                //{
+                //    if (!currentTask.SyncBoxes.Keys.Contains(box.Key))
+                //        currentTask.SyncBoxes.Add(box.Key, box.Value);
+                //}
+                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, innerTask, ProcessingErrorHolder);
+                if (innerTask.InnerTask != null)
                 {
-                    SmokeTask thisTask = currentTask.InnerTask;
+                    SmokeTask thisTask = innerTask.InnerTask;
                     SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, thisTask, ProcessingErrorHolder);
                     if(ProcessingErrorHolder.Value == null)
-                        RunInnerTasks(smokeTestClass, thisTask.InnerTask);
+                        RunInnerTasks(smokeTestClass, thisTask);
+                        //ZW Replace 
+                        //RunInnerTasks(smokeTestClass, thisTask.InnerTask, thisTask.SyncBoxes);
                 }
             }
         }

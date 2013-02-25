@@ -17,8 +17,9 @@ namespace CloudSDK_SmokeTest.Managers
     public class SyncBoxManager : ISmokeTaskManager
     {
         #region Public
-        public static long RunCreateSyncBoxTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunCreateSyncBoxTask(InputParams paramSet, ref SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
+            int responseCode = 0;
             long? newBoxId =0;
             CreateSyncBox createTask = smokeTask as CreateSyncBox;
             if (createTask != null && createTask.CreateNew == true)
@@ -37,11 +38,13 @@ namespace CloudSDK_SmokeTest.Managers
                         {
                             ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + newSyncBoxException;
                         }
+                        responseCode = (int)FileManagerResponseCodes.InitializeSynBoxError;
                     }
                     else
                     {
                         Console.WriteLine(string.Format("Successfully Created SyncBox with ID: {0}", newBoxId));
                         SyncBoxMapper.SyncBoxes.Add(SyncBoxMapper.SyncBoxes.Count(), newBoxId.Value);
+                        createTask.SelectedSyncBoxID = newBoxId.Value;
                     }
                 }
             }
@@ -50,7 +53,7 @@ namespace CloudSDK_SmokeTest.Managers
                 SyncBoxMapper.SyncBoxes.Add(SyncBoxMapper.SyncBoxes.Count(), paramSet.ManualSyncBoxID);
                 newBoxId = paramSet.ManualSyncBoxID;
             }
-            return newBoxId.HasValue ? newBoxId.Value : 0;
+            return responseCode;//newBoxId.HasValue ? newBoxId.Value : 0;
         }
 
         public static int RunSyncBoxDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
@@ -217,8 +220,48 @@ namespace CloudSDK_SmokeTest.Managers
         #region Interface Implementation
         public int Create(SmokeTestManagerEventArgs e)
         {
+            int createResponseCode = 0;
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
-            return (int)RunCreateSyncBoxTask(e.ParamSet, e.CurrentTask,ref refHolder); 
+            long? newBoxId = 0;
+            CreateSyncBox createTask = e.CurrentTask as CreateSyncBox;
+            if (createTask != null && createTask.CreateNew == true)
+            {
+                Console.WriteLine("Preapring to create new SyncBoxs.");
+                int iterations = 1;
+                if (createTask.Count > 0)
+                    iterations = createTask.Count;
+                for (int x = 0; x < iterations; x++)
+                {
+                    newBoxId = SyncBoxManager.AddNewSyncBox(e.ParamSet, createTask, ref refHolder);
+                    if (newBoxId == (long)0)
+                    {
+                        createResponseCode = (int)FileManagerResponseCodes.InitializeSynBoxError;
+                        ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs()
+                        {
+                             OpperationName= "SyncBoxManager.CreateSyncBox",
+                              ProcessingErrorHolder = e.ProcessingErrorHolder,
+                               Error = new Exception("There was an error creating a new Sync Box."),
+
+                        };
+                        SmokeTaskManager.HandleFailure(failArgs);
+                        
+                    }
+                    else
+                    {
+                        Console.WriteLine(string.Format("Successfully Created SyncBox with ID: {0}", newBoxId));
+                        SyncBoxMapper.SyncBoxes.Add(SyncBoxMapper.SyncBoxes.Count(), newBoxId.Value);
+                    }
+                }
+            }
+            else
+            {
+                SyncBoxMapper.SyncBoxes.Add(SyncBoxMapper.SyncBoxes.Count(), e.ParamSet.ManualSyncBoxID);
+                newBoxId = e.ParamSet.ManualSyncBoxID;
+            }
+            //ZW Replace
+            //e.CurrentTask.SyncBoxes.Add(newBoxId.Value, null);
+            return createResponseCode;
+            //return (int)RunCreateSyncBoxTask(e.ParamSet, e.CurrentTask,ref refHolder); 
         }
 
         public int Rename(SmokeTestManagerEventArgs e)

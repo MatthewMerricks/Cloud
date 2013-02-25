@@ -19,14 +19,14 @@ namespace CloudSDK_SmokeTest.Helpers
         #endregion 
 
         #region Static
-        public static long RouteToTaskMethod(InputParams paramSet, SmokeTask smokeTask, GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RouteToTaskMethod(InputParams paramSet, SmokeTask smokeTask, GenericHolder<CLError> ProcessingErrorHolder)
         {
-            long returnValue = -1;
+            int returnValue = -1;
             ManualSyncManager manager = new ManualSyncManager(paramSet);
             switch (smokeTask.type)
             { 
                 case SmokeTaskType.CreateSyncBox:
-                    returnValue = SyncBoxManager.RunCreateSyncBoxTask(paramSet, smokeTask, ref ProcessingErrorHolder );
+                    returnValue = SyncBoxManager.RunCreateSyncBoxTask(paramSet, ref smokeTask, ref ProcessingErrorHolder );
                     break;
                 case SmokeTaskType.Creation:
                     if (smokeTask.ObjectType.type == ModificationObjectType.File || smokeTask.ObjectType.type == ModificationObjectType.Folder)
@@ -34,7 +34,7 @@ namespace CloudSDK_SmokeTest.Helpers
                     else if (smokeTask.ObjectType.type == ModificationObjectType.Plan)
                         returnValue = PlanManager.RunCreatePlan(paramSet, smokeTask, ref ProcessingErrorHolder);
                     else if (smokeTask.ObjectType.type == ModificationObjectType.SyncBox)
-                        returnValue = SyncBoxManager.RunCreateSyncBoxTask(paramSet, smokeTask, ref ProcessingErrorHolder);
+                        returnValue = SyncBoxManager.RunCreateSyncBoxTask(paramSet, ref smokeTask, ref ProcessingErrorHolder);
                     else if (smokeTask.ObjectType.type == ModificationObjectType.Session)
                         returnValue = SessionManager.RunCreateSessionTask(paramSet, smokeTask, ref ProcessingErrorHolder);
                     break;

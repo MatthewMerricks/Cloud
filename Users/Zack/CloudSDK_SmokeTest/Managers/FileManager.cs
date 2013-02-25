@@ -199,7 +199,7 @@ namespace CloudSDK_SmokeTest.Managers
             }
             else
             {
-                Console.Write("Successfully Uploaded File {0} to the Sync Box Server.", eventArgs.FileInfo.Name);
+                Console.WriteLine("Successfully Uploaded File {0} to the Sync Box {1}.", eventArgs.FileInfo.Name, eventArgs.SyncBox.SyncBoxId);
             }
             return responseCode;
         }
