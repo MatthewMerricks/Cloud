@@ -1,9 +1,20 @@
                                                     WINDOWS SDK RELEASE NOTES
 
-02/20/2013 CloudSDK-v0.1.4A.zip
-  o Bug fix: CI000047: Duplicate file being created when moving a file even with sample app.
+02/25/2013 CloudSDK-v0.1.5.zip
   o Bug fix: CI000052 Extra folder is created in Windows 8 host while a folder is getting copied from sync box (exists in SampleApp).
   o Bug fix: Eliminated a warning message when building the sample app.  Changed the SQL CE assembly version to 4.0.0.1 to match the requirement on the unmanaged SQL assemblies.
+  o Bug fix: Creating a new file, renaming it, and saving it would sometimes cause the file to be deleted on all devices.
+  o Bug fix: Changed all of the HTTP REST responses dealing with metadata.  The server implementation changed.
+    - Old properties:
+      . count
+      . more_items
+      . metadata[]
+    - New properties:
+      . total_count
+      . metadata[]
+  o Feature: The CLSyncBox.GetSyncBoxUsage method now returns the quota in the "limit" property.
+  o Feature: The X-Cld-Client-Version HTTP header sent on all requests now includes the OS version information of the SDK as well as any ClientVersion the application may have placed in settings.
+  o Feature: Added a new public API CLSyncEngine.QueryFileChangeByEventId which returns a FileChange given and event ID.  The event ID is included in the engine status with uploading and downloading file status.
 
 02/18/2013 CloudSDK-v0.1.4.zip
   o Feature: Added support for plans.
