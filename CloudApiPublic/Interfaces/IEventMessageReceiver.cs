@@ -21,49 +21,42 @@ namespace CloudApiPublic.Interfaces
         /// <summary>
         /// Fired when NewEventMessage event fires in CloudApiPublic.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
         /// </summary>
-        /// <param name="sender">Do not rely on sender being a specific type of object, subject to change without notice</param>
         /// <param name="e">Message parameters</param>
-        void MessageEvents_NewEventMessage(object sender, EventMessageArgs e);
+        void MessageEvents_NewEventMessage(EventMessageArgs e);
         /// <summary>
         /// Fired when NewEventMessage event fires in CloudApiPublic.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
         /// </summary>
-        /// <param name="sender">Do not rely on sender being a specific type of object, subject to change without notice</param>
         /// <param name="e">Message parameters</param>
-        void AddStatusMessage(object sender, EventMessageArgs e);
+        void AddStatusMessage(EventMessageArgs e);
         /// <summary>
         /// Fired when DownloadingCountSet event fires in CloudApiPublic.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
         /// </summary>
-        /// <param name="sender">Do not rely on sender being a specific type of object, subject to change without notice</param>
         /// <param name="e">Message parameters</param>
-        void SetDownloadingCount(object sender, SetCountArgs e);
+        void SetDownloadingCount(SetCountArgs e);
         /// <summary>
         /// Fired when DownloadingCountSet event fires in CloudApiPublic.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
         /// </summary>
-        /// <param name="sender">Do not rely on sender being a specific type of object, subject to change without notice</param>
         /// <param name="e">Message parameters</param>
-        void SetUploadingCount(object sender, SetCountArgs e);
+        void SetUploadingCount(SetCountArgs e);
         /// <summary>
         /// Fired when DownloadedCountIncremented event fires in CloudApiPublic.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
         /// </summary>
-        /// <param name="sender">Do not rely on sender being a specific type of object, subject to change without notice</param>
         /// <param name="e">Message parameters</param>
-        void IncrementDownloadedCount(object sender, IncrementCountArgs e);
+        void IncrementDownloadedCount(IncrementCountArgs e);
         /// <summary>
         /// Fired when UploadedCountIncremented event fires in CloudApiPublic.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
         /// </summary>
         /// <param name="e">Message parameters</param>
-        void IncrementUploadedCount(object sender, IncrementCountArgs e);
+        void IncrementUploadedCount(IncrementCountArgs e);
         /// <summary>
         /// Fired when FileUploadUpdated event fires in CloudApiPublic.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
         /// </summary>
-        /// <param name="sender">Do not rely on sender being a specific type of object, subject to change without notice</param>
         /// <param name="e">Message parameters</param>
-        void UpdateFileUpload(object sender, TransferUpdateArgs e);
+        void UpdateFileUpload(TransferUpdateArgs e);
         /// <summary>
         /// Fired when FileDownloadUpdated event fires in CloudApiPublic.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
         /// </summary>
-        /// <param name="sender">Do not rely on sender being a specific type of object, subject to change without notice</param>
         /// <param name="e">Message parameters</param>
-        void UpdateFileDownload(object sender, TransferUpdateArgs e);
+        void UpdateFileDownload(TransferUpdateArgs e);
     }
 }

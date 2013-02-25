@@ -60,6 +60,12 @@ namespace CloudApiPublic
             {
                 lock (debugFileMonitorMemory)
                 {
+                    if (debugFileMonitorMemory.Value
+                        && !value)
+                    {
+                        FileMonitor.MonitorAgent.memoryDebugger.Instance.wipeMemory();
+                    }
+
                     debugFileMonitorMemory.Value = value;
                 }
             }

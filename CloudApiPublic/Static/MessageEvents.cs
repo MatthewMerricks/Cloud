@@ -14,11 +14,17 @@ using System.Text;
 
 namespace CloudApiPublic.Static
 {
+    public delegate void EventMessageArgsHandler(EventMessageArgs e);
+    public delegate void SetCountArgsHandler(SetCountArgs e);
+    public delegate void IncrementCountArgsHandler(IncrementCountArgs e);
+    public delegate void TransferUpdateArgsHandler(TransferUpdateArgs e);
+
     /// <summary>
     /// Exposes events to receive status notifications from <see cref="CloudApiPublic.CLSyncEngine"/>
     /// </summary>
     public static class MessageEvents
     {
+        #region IEventMessageReceiver subscription
         public static CLError SubscribeMessageReceiver(long SyncBoxId, string DeviceId, IEventMessageReceiver receiver)
         {
             try
@@ -70,8 +76,10 @@ namespace CloudApiPublic.Static
         }
         // Holds subscribed EventMessageReceivers.
         private static readonly Dictionary<string, IEventMessageReceiver> InternalReceivers = new Dictionary<string, IEventMessageReceiver>(StringComparer.InvariantCulture);
+        #endregion
 
-        public static event EventHandler<EventMessageArgs> NewEventMessage
+        #region public events
+        public static event EventMessageArgsHandler NewEventMessage
         {
             add
             {
@@ -88,10 +96,9 @@ namespace CloudApiPublic.Static
                 }
             }
         }
-        private static event EventHandler<EventMessageArgs> _newEventMessage;
+        private static event EventMessageArgsHandler _newEventMessage;
         private static readonly object NewEventMessageLocker = new object();
         public static EventHandledLevel FireNewEventMessage(
-            object sender,
             string Message,
             EventMessageLevel Level = EventMessageLevel.Minor,
             bool IsError = false,
@@ -110,7 +117,7 @@ namespace CloudApiPublic.Static
                 }
                 else
                 {
-                    _newEventMessage(sender, newArgs);
+                    _newEventMessage(newArgs);
                     toReturn = (newArgs.Handled
                         ? EventHandledLevel.IsHandled
                         : EventHandledLevel.FiredButNotHandled);
@@ -126,8 +133,8 @@ namespace CloudApiPublic.Static
                     IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
-                        foundReceiver.MessageEvents_NewEventMessage(sender, newArgs); // informational or error message occurs
-                        foundReceiver.AddStatusMessage(sender, newArgs);
+                        foundReceiver.MessageEvents_NewEventMessage(newArgs); // informational or error message occurs
+                        foundReceiver.AddStatusMessage(newArgs);
 
                         toReturn = (newArgs.Handled
                             ? EventHandledLevel.IsHandled
@@ -139,7 +146,7 @@ namespace CloudApiPublic.Static
             return toReturn;
         }
 
-        public static event EventHandler<SetCountArgs> DownloadingCountSet
+        public static event SetCountArgsHandler DownloadingCountSet
         {
             add
             {
@@ -156,10 +163,9 @@ namespace CloudApiPublic.Static
                 }
             }
         }
-        private static event EventHandler<SetCountArgs> _downloadingCountSet;
+        private static event SetCountArgsHandler _downloadingCountSet;
         private static readonly object DownloadingCountSetLocker = new object();
         public static EventHandledLevel SetDownloadingCount(
-            object sender, 
             uint newCount,
             Nullable<long> SyncBoxId = null,
             string DeviceId = null)
@@ -176,7 +182,7 @@ namespace CloudApiPublic.Static
                 }
                 else
                 {
-                    _downloadingCountSet(sender, newArgs);
+                    _downloadingCountSet(newArgs);
                     toReturn = (newArgs.Handled
                         ? EventHandledLevel.IsHandled
                         : EventHandledLevel.FiredButNotHandled);
@@ -192,7 +198,7 @@ namespace CloudApiPublic.Static
                     IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
-                        foundReceiver.SetDownloadingCount(sender, newArgs);
+                        foundReceiver.SetDownloadingCount(newArgs);
 
                         toReturn = (newArgs.Handled
                             ? EventHandledLevel.IsHandled
@@ -204,7 +210,7 @@ namespace CloudApiPublic.Static
             return toReturn;
         }
 
-        public static event EventHandler<SetCountArgs> UploadingCountSet
+        public static event SetCountArgsHandler UploadingCountSet
         {
             add
             {
@@ -221,10 +227,9 @@ namespace CloudApiPublic.Static
                 }
             }
         }
-        private static event EventHandler<SetCountArgs> _uploadingCountSet;
+        private static event SetCountArgsHandler _uploadingCountSet;
         private static readonly object UploadingCountSetLocker = new object();
         public static EventHandledLevel SetUploadingCount(
-            object sender, 
             uint newCount,
             Nullable<long> SyncBoxId = null,
             string DeviceId = null)
@@ -241,7 +246,7 @@ namespace CloudApiPublic.Static
                 }
                 else
                 {
-                    _uploadingCountSet(sender, newArgs);
+                    _uploadingCountSet(newArgs);
                     toReturn = (newArgs.Handled
                         ? EventHandledLevel.IsHandled
                         : EventHandledLevel.FiredButNotHandled);
@@ -257,7 +262,7 @@ namespace CloudApiPublic.Static
                     IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
-                        foundReceiver.SetUploadingCount(sender, newArgs);
+                        foundReceiver.SetUploadingCount(newArgs);
 
                         toReturn = (newArgs.Handled
                             ? EventHandledLevel.IsHandled
@@ -269,7 +274,7 @@ namespace CloudApiPublic.Static
             return toReturn;
         }
 
-        public static event EventHandler<IncrementCountArgs> DownloadedCountIncremented
+        public static event IncrementCountArgsHandler DownloadedCountIncremented
         {
             add
             {
@@ -286,10 +291,9 @@ namespace CloudApiPublic.Static
                 }
             }
         }
-        private static event EventHandler<IncrementCountArgs> _downloadedCountIncremented;
+        private static event IncrementCountArgsHandler _downloadedCountIncremented;
         private static readonly object DownloadedCountIncrementedLocker = new object();
         public static EventHandledLevel IncrementDownloadedCount(
-            object sender, 
             uint incrementAmount = 1,
             Nullable<long> SyncBoxId = null,
             string DeviceId = null)
@@ -306,7 +310,7 @@ namespace CloudApiPublic.Static
                 }
                 else
                 {
-                    _downloadedCountIncremented(sender, newArgs);
+                    _downloadedCountIncremented(newArgs);
                     toReturn = (newArgs.Handled
                         ? EventHandledLevel.IsHandled
                         : EventHandledLevel.FiredButNotHandled);
@@ -322,7 +326,7 @@ namespace CloudApiPublic.Static
                     IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
-                        foundReceiver.IncrementDownloadedCount(sender, newArgs);
+                        foundReceiver.IncrementDownloadedCount(newArgs);
 
                         toReturn = (newArgs.Handled
                             ? EventHandledLevel.IsHandled
@@ -334,7 +338,7 @@ namespace CloudApiPublic.Static
             return toReturn;
         }
 
-        public static event EventHandler<IncrementCountArgs> UploadedCountIncremented
+        public static event IncrementCountArgsHandler UploadedCountIncremented
         {
             add
             {
@@ -351,10 +355,9 @@ namespace CloudApiPublic.Static
                 }
             }
         }
-        private static event EventHandler<IncrementCountArgs> _uploadedCountIncremented;
+        private static event IncrementCountArgsHandler _uploadedCountIncremented;
         private static readonly object UploadedCountIncrementedLocker = new object();
         public static EventHandledLevel IncrementUploadedCount(
-            object sender, 
             uint incrementAmount = 1,
             Nullable<long> SyncBoxId = null,
             string DeviceId = null)
@@ -371,7 +374,7 @@ namespace CloudApiPublic.Static
                 }
                 else
                 {
-                    _uploadedCountIncremented(sender, newArgs);
+                    _uploadedCountIncremented(newArgs);
                     toReturn = (newArgs.Handled
                         ? EventHandledLevel.IsHandled
                         : EventHandledLevel.FiredButNotHandled);
@@ -387,7 +390,7 @@ namespace CloudApiPublic.Static
                     IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
-                        foundReceiver.IncrementUploadedCount(sender, newArgs);
+                        foundReceiver.IncrementUploadedCount(newArgs);
 
                         toReturn = (newArgs.Handled
                             ? EventHandledLevel.IsHandled
@@ -399,7 +402,7 @@ namespace CloudApiPublic.Static
             return toReturn;
         }
 
-        public static event EventHandler<TransferUpdateArgs> FileUploadUpdated
+        public static event TransferUpdateArgsHandler FileUploadUpdated
         {
             add
             {
@@ -416,10 +419,9 @@ namespace CloudApiPublic.Static
                 }
             }
         }
-        private static event EventHandler<TransferUpdateArgs> _fileUploadUpdated;
+        private static event TransferUpdateArgsHandler _fileUploadUpdated;
         private static readonly object FileUploadUpdatedLocker = new object();
         public static EventHandledLevel UpdateFileUpload(
-            object sender, 
             long eventId, 
             CLStatusFileTransferUpdateParameters parameters,
             Nullable<long> SyncBoxId = null,
@@ -437,7 +439,7 @@ namespace CloudApiPublic.Static
                 }
                 else
                 {
-                    _fileUploadUpdated(sender, newArgs);
+                    _fileUploadUpdated(newArgs);
                     toReturn = (newArgs.Handled
                         ? EventHandledLevel.IsHandled
                         : EventHandledLevel.FiredButNotHandled);
@@ -453,7 +455,7 @@ namespace CloudApiPublic.Static
                     IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
-                        foundReceiver.UpdateFileUpload(sender, newArgs);
+                        foundReceiver.UpdateFileUpload(newArgs);
 
                         toReturn = (newArgs.Handled
                             ? EventHandledLevel.IsHandled
@@ -465,7 +467,7 @@ namespace CloudApiPublic.Static
             return toReturn;
         }
 
-        public static event EventHandler<TransferUpdateArgs> FileDownloadUpdated
+        public static event TransferUpdateArgsHandler FileDownloadUpdated
         {
             add
             {
@@ -482,10 +484,9 @@ namespace CloudApiPublic.Static
                 }
             }
         }
-        private static event EventHandler<TransferUpdateArgs> _fileDownloadUpdated;
+        private static event TransferUpdateArgsHandler _fileDownloadUpdated;
         private static readonly object FileDownloadUpdatedLocker = new object();
         public static EventHandledLevel UpdateFileDownload(
-            object sender, 
             long eventId, 
             CLStatusFileTransferUpdateParameters parameters,
             Nullable<long> SyncBoxId = null,
@@ -503,7 +504,7 @@ namespace CloudApiPublic.Static
                 }
                 else
                 {
-                    _fileDownloadUpdated(sender, newArgs);
+                    _fileDownloadUpdated(newArgs);
                     toReturn = (newArgs.Handled
                         ? EventHandledLevel.IsHandled
                         : EventHandledLevel.FiredButNotHandled);
@@ -519,7 +520,7 @@ namespace CloudApiPublic.Static
                     IEventMessageReceiver foundReceiver;
                     if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
                     {
-                        foundReceiver.UpdateFileDownload(sender, newArgs);
+                        foundReceiver.UpdateFileDownload(newArgs);
 
                         toReturn = (newArgs.Handled
                             ? EventHandledLevel.IsHandled
@@ -530,7 +531,9 @@ namespace CloudApiPublic.Static
 
             return toReturn;
         }
+        #endregion
 
+        #region internal events
         internal static event EventHandler<SetBadgeQueuedArgs> PathStateChanged
         {
             add
@@ -722,5 +725,6 @@ namespace CloudApiPublic.Static
                 }
             }
         }
+        #endregion
     }
 }

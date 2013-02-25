@@ -302,7 +302,7 @@ namespace CloudSdkSyncSample.EventMessageReceiver
  
         #region MessageEvents callbacks
         // informational or error message occurs, displayed only if high priority
-        void IEventMessageReceiver.MessageEvents_NewEventMessage(object sender, EventMessageArgs e)
+        void IEventMessageReceiver.MessageEvents_NewEventMessage(EventMessageArgs e)
         {
             // if the message represents an error, then check if the error is not minor in order to display
             if (e.IsError)
@@ -337,7 +337,7 @@ namespace CloudSdkSyncSample.EventMessageReceiver
         }
 
         // when the number of currently downloading files changes, create or update a message for the downloading count
-        void IEventMessageReceiver.SetDownloadingCount(object sender, SetCountArgs e)
+        void IEventMessageReceiver.SetDownloadingCount(SetCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -371,7 +371,7 @@ namespace CloudSdkSyncSample.EventMessageReceiver
         }
 
         // when a file completes downloading, create or update a message for the incrementing completed downloads
-        void IEventMessageReceiver.IncrementDownloadedCount(object sender, IncrementCountArgs e)
+        void IEventMessageReceiver.IncrementDownloadedCount(IncrementCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -406,7 +406,7 @@ namespace CloudSdkSyncSample.EventMessageReceiver
         }
 
         // when the number of currently uploading files changes, create or update a message for the uploading count
-        void IEventMessageReceiver.SetUploadingCount(object sender, SetCountArgs e)
+        void IEventMessageReceiver.SetUploadingCount(SetCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -440,7 +440,7 @@ namespace CloudSdkSyncSample.EventMessageReceiver
         }
 
         // when a file completes uploading, create or update a message for the incrementing uploaded downloads
-        void IEventMessageReceiver.IncrementUploadedCount(object sender, IncrementCountArgs e)
+        void IEventMessageReceiver.IncrementUploadedCount(IncrementCountArgs e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)

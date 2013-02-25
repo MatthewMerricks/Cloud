@@ -36,6 +36,26 @@ namespace CloudApiPublic.Static
         AlreadyStopped
     }
 
+    public enum EventMessageType : byte
+    {
+        Informational,
+        Error,
+        UploadProgress,
+        DownloadProgress,
+        SuccessfulUploadsIncremented,
+        SuccessfulDownloadsIncremented,
+        UploadingCountChanged,
+        DownloadingCountChanged
+    }
+
+    public enum ErrorMessageType : byte
+    {
+        General,
+        HaltSyncEngineOnConnectionFailure,
+        HaltSyncEngineOnAuthenticationFailure,
+        HaltAllOfCloudSDK
+    }
+
     [Flags]
     /// <summary>
     /// Flagged enumeration for CLSync's current running state

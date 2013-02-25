@@ -1904,7 +1904,6 @@ namespace CloudApiPublic.Static
             if (eventSource.Direction == SyncDirection.To)
             {
                 MessageEvents.UpdateFileUpload(
-                    sender: eventSource, // source of the event (the event itself)
                     eventId: eventSource.EventId, // the id for the event
                     parameters: status, // the event arguments describing the status change
                     SyncBoxId: syncBoxId,
@@ -1913,7 +1912,6 @@ namespace CloudApiPublic.Static
             else
             {
                 MessageEvents.UpdateFileDownload(
-                    sender: eventSource, // source of the event (the event itself)
                     eventId: eventSource.EventId, // the id for the event
                     parameters: status,  // the event arguments describing the status change
                     SyncBoxId: syncBoxId,
