@@ -92,6 +92,14 @@
     <Compile Include="Events\CLEventArgs\ItemListHelperEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\ModifyPlanEventArgs.cs" />
     <Compile Include="Events\CLEventArgs\TaskEventArgs.cs" />
+    <Compile Include="Events\ManagerEventArgs\ExceptionManagerEventArgs.cs" />
+    <Compile Include="Events\ManagerEventArgs\FileManagerEventArgs.cs" />
+    <Compile Include="Events\ManagerEventArgs\FileManagerReturnEventArgs.cs" />
+    <Compile Include="Events\ManagerEventArgs\SmokeTaskManagerCreateArgs.cs" />
+    <Compile Include="Events\ManagerEventArgs\SmokeTaskManagerDeleteArgs.cs" />
+    <Compile Include="Events\ManagerEventArgs\SmokeTaskManagerRenameArgs.cs" />
+    <Compile Include="Events\ManagerEventArgs\SmokeTaskManagerUnDeleteArgs.cs" />
+    <Compile Include="Events\ManagerEventArgs\SmokeTestManagerEventArgs.cs" />
     <Compile Include="Helpers\CredentialHelper.cs" />
     <Compile Include="Helpers\FileHelper.cs" />
     <Compile Include="Helpers\FolderHelper.cs" />
@@ -99,9 +107,10 @@
     <Compile Include="Helpers\MD5_Helper.cs" />
     <Compile Include="Helpers\SmokeTestTaskHelper.cs" />
     <Compile Include="Helpers\XMLHelper.cs" />
+    <Compile Include="Interfaces\ISmokeTaskManager.cs" />
+    <Compile Include="Managers\DownloadManager.cs" />
     <Compile Include="Managers\ExceptionManager.cs" />
     <Compile Include="Managers\FileManager.cs" />
-    <Compile Include="Managers\FileMetadataManager.cs" />
     <Compile Include="Managers\ItemsListManager.cs" />
     <Compile Include="Managers\ManagerConstants.cs" />
     <Compile Include="Managers\PlanManager.cs" />
@@ -111,11 +120,11 @@
     <Compile Include="Managers\ServerPathMappingManager.cs" />
     <Compile Include="Helpers\SyncBoxMapper.cs" />
     <Compile Include="Managers\SessionManager.cs" />
+    <Compile Include="Managers\SmokeTaskManager.cs" />
     <Compile Include="Managers\SyncBoxManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings\AdvancedSyncSettings.cs" />
-    <Compile Include="Settings\CloudSDK_InputParams.cs" />
     <Compile Include="Settings\FileMappings.cs">
       <DependentUpon>FileMappings.xsd</DependentUpon>
     </Compile>
@@ -123,10 +132,13 @@
       <DependentUpon>InputParameters.xsd</DependentUpon>
     </Compile>
     <Compile Include="Settings\InputParameters_Methods.cs" />
+    <Compile Include="Settings\InputParameters_TaskExtensisons.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Settings\FileMappingsForIntelleSense.xml" />
-    <Content Include="Settings\Settings.xml" />
+    <Content Include="Settings\Settings.xml">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <None Include="Settings\FileMappings.xsd">

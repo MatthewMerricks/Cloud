@@ -13,8 +13,8 @@
     <API_Secret>fc50fff51344faca5ed6cc38e4398e622963d055713db0895a144c8315c5204b</API_Secret>
     <ActiveSync_Folder>"C:\TestSyncBoxes\Auto_SyncBoxA"</ActiveSync_Folder>
     <ActiveSync_TraceFolder>"C:\TestSyncBoxes\Traces\AutoSyncTraces"</ActiveSync_TraceFolder>
-    <ActiveSyncBoxID>191</ActiveSyncBoxID>
-    <ManualSyncBoxID>191</ManualSyncBoxID>
+    <ActiveSyncBoxID>771</ActiveSyncBoxID>
+    <ManualSyncBoxID>771</ManualSyncBoxID>
     <ManualSync_Folder>"C:\Users\t_zacharyw\Cloud\"</ManualSync_Folder>
     <ManualSync_TraceFolder>"C:\TestSyncBoxes\Traces\ManualSyncTraces"</ManualSync_TraceFolder>
     <Token></Token>
@@ -24,123 +24,96 @@
   </InputParams>
   <Scenario>
     <ScenarioTasks>
-      <SmokeTask xsi:type="Creation">
-        <type>Creation</type>
-          <InnerTask xsi:type="ListItems">
-            <type>ListItems</type>
+      <SmokeTask xsi:type="CreateSyncBox">
+        <type>CreateSyncBox</type>
+        <InnerTask xsi:type="Creation">
+            <type>Creation</type>
+            <InnerTask xsi:type="Rename">
+              <type>Rename</type>
               <InnerTask xsi:type="Deletion">
                 <type>Deletion</type>
-                  <InnerTask xsi:type="ListItems">
-                    <type>ListItems</type>
-                    <ObjectType>
-                      <type>Session</type>
-                    </ObjectType>
-                    <ListType>Sessions</ListType>
-                    <ExpectedCount>0</ExpectedCount>
-                  </InnerTask>
                 <ObjectType>
-                  <type>Session</type>
+                  <type>File</type>
                 </ObjectType>
-                <Name></Name>
-                <FullName></FullName>
-                <RelativePath></RelativePath>
-                <FullPath></FullPath>
+                <SelectedSyncBoxID>0</SelectedSyncBoxID>
+                <Name>T4File12.txt</Name>
+                <FullName>C:\Users\t_zacharyw\Cloud</FullName>
+                <RelativePath>\T4File12.txt</RelativePath>
+                <FullPath>C:\Users\t_zacharyw\Cloud\T4File12.txt</FullPath>
                 <DeleteAll>false</DeleteAll>
-                <DeleteCount>1</DeleteCount>            
+                <DeleteCount>1</DeleteCount>
+                <ID>0</ID>
+                <ServerID>0</ServerID>
               </InnerTask>
+              <ObjectType>
+                <type>File</type>
+              </ObjectType>
+              <SelectedSyncBoxID>0</SelectedSyncBoxID>
+              <OldName>T4File.txt</OldName>
+              <NewName>T4File_Rename.txt</NewName>
+              <RelativeDirectoryPath>\</RelativeDirectoryPath>
+              <ServerID>0</ServerID>
+            </InnerTask>
+            <ObjectType>
+              <type>File</type>
+            </ObjectType>
+            <SelectedSyncBoxID>0</SelectedSyncBoxID>
+            <Name>T4File.txt</Name>
+            <Path>C:\Users\t_zacharyw\Cloud</Path>
+            <CreateNew>true</CreateNew>
+            <Count>5</Count>
+        </InnerTask>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <CreateNew>true</CreateNew>
+        <Count>1</Count>
+      </SmokeTask>
+      <SmokeTask xsi:type ="ListItems">
+        <type>ListItems</type>
+        <InnerTask xsi:type="Deletion">
+          <type>Deletion</type>
+          <InnerTask xsi:type="Creation">
+            <type>Creation</type>
+            <InnerTask xsi:type="ListItems">
+              <type>ListItems</type>
+              <ObjectType>
+                <type>Session</type>
+              </ObjectType>
+              <SelectedSyncBoxID>0</SelectedSyncBoxID>
+              <ListType>Sessions</ListType>
+              <ExpectedCount>3</ExpectedCount>
+            </InnerTask>
             <ObjectType>
               <type>Session</type>
             </ObjectType>
-            <ListType>Sessions</ListType>
-            <ExpectedCount>0</ExpectedCount>
+            <SelectedSyncBoxID>0</SelectedSyncBoxID>
+            <Name></Name>
+            <Path></Path>
+            <CreateNew>true</CreateNew>
+            <Count>3</Count>
           </InnerTask>
-        <ObjectType>
-          <type>Session</type>
-        </ObjectType>
-        <Name></Name>
-        <Path></Path>
-      </SmokeTask>
-      <!--<SmokeTask xsi:type="Deletion">
-        <type>Deletion</type>
-        <ObjectType>
-          <type>Session</type>
-        </ObjectType>
-        <Name></Name>
-        <FullName></FullName>
-        <RelativePath></RelativePath>
-        <FullPath></FullPath>
-        <DeleteAll>true</DeleteAll>
-        <DeleteCount>0</DeleteCount>
-        <ID>0</ID>
-      </SmokeTask>-->
-      <!--<SmokeTask xsi:type="Deletion">
-        <type>Deletion</type>
-        <ObjectType>
-          <type>Session</type>
-        </ObjectType>
-        <Name></Name>
-        <FullName></FullName>
-        <RelativePath></RelativePath>
-        <FullPath></FullPath>
-        <DeleteAll>false</DeleteAll>
-        <DeleteCount>1</DeleteCount>
-      </SmokeTask>-->
-      <!--<SmokeTask xsi:type="Deletion">
-        <type>Deletion</type>
-        <ObjectType>
-          <type>Session</type>
-        </ObjectType>
-        <Name></Name>
-        <FullName></FullName>
-        <RelativePath></RelativePath>
-        <FullPath></FullPath>
-        <DeleteAll>false</DeleteAll>
-        <DeleteCount>5</DeleteCount>
-        <ID>0</ID>
-      </SmokeTask>-->
-      <!--<SmokeTask xsi:type="ListItems">
-        <type>ListItems</type>
-        <ObjectType>
-          <type>Session</type>
-        </ObjectType>
-        <ListType>Sessions</ListType>
-        <ExpectedCount>0</ExpectedCount>
-      </SmokeTask-->
-    <!--<SmokeTask xsi:type="Creation">
-      <type>Creation</type>
-      <ObjectType>
-        <type>File</type>
-      </ObjectType>
-      <Name>FileForRename3.txt</Name>
-      <Path>"C:\Users\t_zacharyw\Cloud\"</Path>
-    </SmokeTask>-->
-    <!--<SmokeTask xsi:type="Creation">
-      <type>Creation</type>
-      <InnerTask xsi:type="Rename">
-        <type>Rename</type>
-        <InnerTask xsi:type="Deletion">
-          <type>Deletion</type>
           <ObjectType>
-            <type>Folder</type>
+            <type>Session</type>
           </ObjectType>
-          <Name>EigthRename</Name>
-          <FullName>"C:\Users\t_zacharyw\Cloud\EigthRename"</FullName>
-          <RelativePath>"\EigthRename"</RelativePath>
-          <FullPath>"C:\Users\t_zacharyw\Cloud\EigthRename"</FullPath>
+          <SelectedSyncBoxID>0</SelectedSyncBoxID>
+          <Name></Name>
+          <FullName></FullName>
+          <RelativePath></RelativePath>
+          <FullPath></FullPath>
+          <DeleteAll>true</DeleteAll>
+          <DeleteCount>0</DeleteCount>
+          <ID>0</ID>
+          <ServerID>0</ServerID>
         </InnerTask>
         <ObjectType>
-          <type>Folder</type>
+          <type>Session</type>
         </ObjectType>
-        <OldName>"C:\Users\t_zacharyw\Cloud\EigthFolder"</OldName>
-        <NewName>"C:\Users\t_zacharyw\Cloud\EigthRename"</NewName>
-        <RelativeDirectoryPath></RelativeDirectoryPath>
-      </InnerTask>
-      <ObjectType>
-        <type>Folder</type>
-      </ObjectType>
-      <Name>EigthFolder</Name>
-      <Path>"C:\Users\t_zacharyw\Cloud\"</Path>
-    </SmokeTask>-->
-  </ScenarioTasks>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <ListType>Sessions</ListType>
+        <ExpectedCount>0</ExpectedCount>
+      </SmokeTask>
+  </ScenarioTasks> 
 </Scenario>
 </SmokeTest>

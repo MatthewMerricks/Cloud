@@ -85,8 +85,10 @@ namespace CloudSDK_SmokeTest.Helpers
             if (!Directory.Exists(createEventArgs.CreateTaskDirectoryInfo.FullName))
                 Directory.CreateDirectory(createEventArgs.CreateTaskDirectoryInfo.FullName);
             CloudApiPublic.JsonContracts.Metadata metaData;
+            string newPath = createEventArgs.CreateTaskDirectoryInfo.FullName ;
             CLHttpRestStatus restStatus = new CLHttpRestStatus();
-            string newPath = createEventArgs.CreateTaskDirectoryInfo + "\\" + task.Name;
+            if(!task.Name.Contains(".") && !newPath.Contains(task.Name))
+                newPath = newPath + "\\" + task.Name;
             FileChange fileChange = FolderHelper.GetFolderFileChange(createEventArgs.CreateTaskDirectoryInfo, null, FileChangeType.Created, string.Empty, newPath);
             CloudApiPublic.JsonContracts.Event returnEvent;
 

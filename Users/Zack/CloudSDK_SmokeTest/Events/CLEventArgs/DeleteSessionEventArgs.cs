@@ -8,11 +8,9 @@ using System.Text;
 
 namespace CloudSDK_SmokeTest.Events.CLEventArgs
 {
-    public class DeleteSessionEventArgs : CLEventArgs
+    public class DeleteSessionEventArgs : TaskEventArgs
     {
-        public InputParams ParamSet { get; set; }
         public CloudApiPublic.JsonContracts.Session Session { get; set; }
-        public GenericHolder<CLError> ProcessingErrorHolder { get; set; }
 
 
 

@@ -2,6 +2,7 @@
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
+using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
 using CloudSDK_SmopkeTest.Settings;
@@ -23,17 +24,17 @@ namespace CloudSDK_SmokeTest.Helpers
             GenericHolder<CLError> refProcessErrorHolder = createEventArgs.ProcessingErrorHolder;
             int createReturnCode = 0;
             string fullPath = createEventArgs.CreateTaskFileInfo.FullName;
-            if (!File.Exists(fullPath))
-                WriteFile(createEventArgs.RootDirectory.FullName, createEventArgs.CreateTaskFileInfo.Name);
+            if (!File.Exists(createEventArgs.CreateTaskFileInfo.FullName))
+                WriteFile(createEventArgs.CreateTaskFileInfo);
 
-            FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, createEventArgs.RootDirectory.FullName, createEventArgs.CreateTaskFileInfo.Name, ref refProcessErrorHolder);
+            FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, createEventArgs.CreateTaskFileInfo, ref refProcessErrorHolder);
             CloudApiPublic.JsonContracts.Event returnEvent;
             CLHttpRestStatus restStatus = new CLHttpRestStatus();
 
             CLError postFileError = createEventArgs.SyncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
             if (postFileError != null || restStatus != CLHttpRestStatus.Success)
             {                
-                FileHelper.HandleUnsuccessfulUpload(fileChange, returnEvent, restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref refProcessErrorHolder);
+                FileHelper.HandleUnsuccessfulUpload(restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref refProcessErrorHolder);
             }
             string response = returnEvent.Header.Status.ToLower();
             CreateFileResponseEventArgs responseArgs = new CreateFileResponseEventArgs(createEventArgs, fileChange, response, restStatus, returnEvent);
@@ -48,13 +49,12 @@ namespace CloudSDK_SmokeTest.Helpers
             return 0;
         }
 
-        public static FileChange PrepareMD5FileChange(InputParams paramSet, CLCredential creds, string filePath, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static FileChange PrepareMD5FileChange(InputParams paramSet, CLCredential creds, FileInfo fi,  ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             FileChange fileChange = new FileChange();
-            string fullPath = filePath + '\\' + fileName;
-            if (!File.Exists(filePath))
-                WriteFile(filePath, fileName);
-            byte[] md5Bytes = FileHelper.CreateFileChangeObject(fullPath, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
+            if (!File.Exists(fi.FullName))
+                WriteFile(fi);
+            byte[] md5Bytes = FileHelper.CreateFileChangeObject(fi.FullName, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
             CLError hashError = fileChange.SetMD5(md5Bytes);
             if (hashError != null)
             {
@@ -70,6 +70,28 @@ namespace CloudSDK_SmokeTest.Helpers
             return fileChange;
         }
 
+         public static FileChange PrepareMD5FileChange(SmokeTestManagerEventArgs e)
+        {
+            FileChange fileChange = new FileChange();
+            if (!File.Exists(e.FileInfo.FullName))
+                WriteFile(e.FileInfo);
+            byte[] md5Bytes = FileHelper.CreateFileChangeObject(e.FileInfo.FullName, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
+            CLError hashError = fileChange.SetMD5(md5Bytes);
+            if (hashError != null)
+            {
+                Exception[] exceptions = hashError.GrabExceptions().ToArray();
+                lock (e.ProcessingErrorHolder)
+                {
+                    foreach (Exception ex in exceptions)
+                    {
+                        e.ProcessingErrorHolder.Value = e.ProcessingErrorHolder.Value + ex;
+                    }
+                }
+            }
+            return fileChange;
+        }
+
+        
         public static bool WriteFile(string path, string fileName)
         {
             string fullPath = path + '\\' + fileName;
@@ -99,6 +121,40 @@ namespace CloudSDK_SmokeTest.Helpers
             else
             {
                 Console.WriteLine("File \"{0}\" already exists.", fileName);
+                returnValue = false;
+            }
+            return returnValue;
+        }
+
+        public static bool WriteFile(FileInfo fileInfo)
+        {
+            string fullPath = fileInfo.FullName;
+            bool returnValue = true;
+            if (!System.IO.File.Exists(fullPath))
+            {
+                using (System.IO.FileStream fs = System.IO.File.Create(fullPath))
+                {
+                    Random rnd = new Random();
+                    int maxRandom = 1000000000;
+                    int maxforCount = 1000;
+                    int byteCount = rnd.Next(maxforCount);
+                    Console.WriteLine(string.Format("The total number of iterations will be {0}", byteCount.ToString()));
+                    for (int i = 0; i < byteCount; i++)
+                    {
+                        int currentRandom = rnd.Next(maxRandom);
+                        byte[] bytes = Encoding.ASCII.GetBytes(currentRandom.ToString());
+                        foreach (Byte b in bytes)
+                            fs.WriteByte(b);
+
+                        int rem = i % 100;
+                        if (rem == 0)
+                            Console.WriteLine(string.Format("{0} - Value: {1}", i, currentRandom));
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("File \"{0}\" already exists.", fileInfo.Name);
                 returnValue = false;
             }
             return returnValue;
@@ -140,6 +196,44 @@ namespace CloudSDK_SmokeTest.Helpers
                     lock (ProcessingErrorHolder)
                     {
                         ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                    }
+                }
+                returnValue = fileName.Substring(0, (endOfCopy + 1)) + nCopy + suffix;
+            }
+            return returnValue;
+        }
+
+        public static string CreateNewFileName(SmokeTestManagerEventArgs e, bool isCopy)
+        {
+            string returnValue = string.Empty;
+            string filePath = e.FileInfo.FullName;
+            int pathEndsAt = e.FileInfo.FullName.LastIndexOf('\\');
+            int fileNameBeginsAt = pathEndsAt + 1;
+            int extensionBeginsAt = filePath.LastIndexOf('.');
+            string suffix = filePath.Substring(extensionBeginsAt, ((filePath.Count()) - extensionBeginsAt));
+            StringBuilder builder = new StringBuilder(filePath.Substring(0, pathEndsAt) + '\\');
+            if (!isCopy)
+            {
+                builder.Append(filePath.Substring(pathEndsAt, (filePath.Count() - pathEndsAt)).Replace(suffix, "") + "_Copy" + suffix);
+                returnValue = builder.ToString();
+            }
+            else
+            {
+                builder = new StringBuilder(filePath.Substring(0, pathEndsAt) + '\\');
+                string fileName = filePath.Substring(pathEndsAt + 1, (filePath.Count() - (pathEndsAt + 1))).Replace(suffix, "");
+                int endOfCopy = fileName.LastIndexOf("_Copy") + 4;
+                int length = (fileName.Count() - 1) - endOfCopy;
+                string appendedToCopy = fileName.Substring(endOfCopy + 1, length);
+                int nCopy = 0;
+                Int32.TryParse(appendedToCopy, out nCopy);
+                if (nCopy >= 0)
+                    nCopy++;
+                else
+                {
+                    Exception ex = new Exception("RenameFileError: Error Incrementing File Name.");
+                    lock (e.ProcessingErrorHolder)
+                    {
+                        e.ProcessingErrorHolder.Value = e.ProcessingErrorHolder.Value + ex;
                     }
                 }
                 returnValue = fileName.Substring(0, (endOfCopy + 1)) + nCopy + suffix;
@@ -191,7 +285,7 @@ namespace CloudSDK_SmokeTest.Helpers
             {
                 modPath = creation.Path.Replace("\"", "");
                 modName = creation.Name.Replace("\"", "");
-                if (pathEndsWithSlash(modPath))
+                if (PathEndsWithSlash(modPath))
                     modPath = modPath.Remove(modPath.Count() - 1, 1);
 
                 fullPath = modPath + "\\" + modName;
@@ -235,12 +329,12 @@ namespace CloudSDK_SmokeTest.Helpers
             CLError updateFileError = syncBox.HttpRestClient.UploadFile(stream, fileChange, ManagerConstants.TimeOutMilliseconds, out newStatus, out message);
             if (restStatus != CLHttpRestStatus.Success || updateFileError != null)
             {
-                HandleUnsuccessfulUpload(fileChange, returnEvent, restStatus, updateFileError, ManagerConstants.RequestTypes.RestCreateFile, ref ProcessingErrorHolder);
+                HandleUnsuccessfulUpload(restStatus, updateFileError, ManagerConstants.RequestTypes.RestCreateFile, ref ProcessingErrorHolder);
                 responseCode = 1;
             }
             else
             {
-                Console.Write("Successfully Uploaded File {0} to the Sync Box Server.", info.Name);
+                Console.WriteLine("Successfully Uploaded File {0} to the Sync Box {1}.", info.Name, syncBox.SyncBoxId);
             }
             return responseCode;
         }
@@ -257,7 +351,7 @@ namespace CloudSDK_SmokeTest.Helpers
             return false;
         }
 
-        private static bool pathEndsWithSlash(string path)
+        public static bool PathEndsWithSlash(string path)
         {
             if (path.LastIndexOf('\\') == (path.Count() - 1))
                 return true;
@@ -327,7 +421,30 @@ namespace CloudSDK_SmokeTest.Helpers
             return responseCode;
         }
 
-        public static void HandleUnsuccessfulUpload(FileChange fileChange, CloudApiPublic.JsonContracts.Event returnEvent, CLHttpRestStatus restStatus, CLError updateError, string requestType, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static HttpPostReponseCodes TransformHttpPostResponse(string response) 
+        {
+            HttpPostReponseCodes responseCode = HttpPostReponseCodes.None;
+            switch (response)
+            {
+                case "upload":
+                case "uploading":
+                case "ok":
+                    responseCode = HttpPostReponseCodes.Upload;
+                    break;
+                case "duplicate":
+                case "exists":
+                case "conflict":
+                    responseCode = HttpPostReponseCodes.Duplicate;
+                    break;
+                default:
+                    Console.Write(string.Format("The Server Response is {0}", response));
+                    break;
+
+            }
+            return responseCode;
+        }
+
+        public static void HandleUnsuccessfulUpload(CLHttpRestStatus restStatus, CLError updateError, string requestType, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             if (restStatus == CLHttpRestStatus.Success)
                 HandleUploadError(updateError, ref ProcessingErrorHolder);

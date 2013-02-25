@@ -8,10 +8,22 @@ using System.Text;
 
 namespace CloudSDK_SmokeTest.Events.CLEventArgs
 {
-    public sealed class ItemListHelperEventArgs : CLEventArgs
+    public sealed class ItemListHelperEventArgs : TaskEventArgs
     {
-        public InputParams ParamSet { get; set; }
+
         public ListItems ListItemsTask { get; set; }
         public GenericHolder<CLError> ProcessingErrorHolder { get; set; }
+
+        public ItemListHelperEventArgs() { }
+
+        public ItemListHelperEventArgs(TaskEventArgs inputArgs)
+        {
+            this.boxCreationStatus = inputArgs.boxCreationStatus;
+            this.Creds = inputArgs.Creds;
+            this.CredsStatus = inputArgs.CredsStatus;
+            this.CurrentTask = inputArgs.CurrentTask;
+            this.ParamSet = inputArgs.ParamSet;
+            this.SyncBox = inputArgs.SyncBox;
+        }
     }
 }

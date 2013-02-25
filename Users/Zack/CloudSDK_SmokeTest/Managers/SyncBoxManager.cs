@@ -1,7 +1,11 @@
 ﻿using CloudApiPublic;
+using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
+using CloudSDK_SmokeTest.Events.CLEventArgs;
+using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Helpers;
+using CloudSDK_SmokeTest.Interfaces;
 using CloudSDK_SmokeTest.Settings;
 using System;
 using System.Collections.Generic;
@@ -10,35 +14,46 @@ using System.Text;
 
 namespace CloudSDK_SmokeTest.Managers
 {
-    public class SyncBoxManager
+    public class SyncBoxManager : ISmokeTaskManager
     {
         #region Public
-        public static long RunCreateSyncBoxTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunCreateSyncBoxTask(InputParams paramSet, ref SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
-            long? newBoxId;
+            int responseCode = 0;
+            long? newBoxId =0;
             CreateSyncBox createTask = smokeTask as CreateSyncBox;
             if (createTask != null && createTask.CreateNew == true)
             {
-                Console.WriteLine("Preapring to create new SyncBox.");
-                newBoxId = SyncBoxManager.AddNewSyncBox(paramSet, ref ProcessingErrorHolder);
-                if (newBoxId == (long)0)
+                Console.WriteLine("Preapring to create new SyncBoxs.");
+                int iterations = 1;
+                if (createTask.Count > 0)
+                    iterations = createTask.Count;
+                for (int x = 0; x < iterations; x++)
                 {
-                    Exception newSyncBoxException = new Exception("There was an error creating a new Sync Box.");
-                    lock (ProcessingErrorHolder)
+                    newBoxId = SyncBoxManager.AddNewSyncBox(paramSet, createTask, ref ProcessingErrorHolder);
+                    if (newBoxId == (long)0)
                     {
-                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + newSyncBoxException;
+                        Exception newSyncBoxException = new Exception("There was an error creating a new Sync Box.");
+                        lock (ProcessingErrorHolder)
+                        {
+                            ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + newSyncBoxException;
+                        }
+                        responseCode = (int)FileManagerResponseCodes.InitializeSynBoxError;
+                    }
+                    else
+                    {
+                        Console.WriteLine(string.Format("Successfully Created SyncBox with ID: {0}", newBoxId));
+                        SyncBoxMapper.SyncBoxes.Add(SyncBoxMapper.SyncBoxes.Count(), newBoxId.Value);
+                        createTask.SelectedSyncBoxID = newBoxId.Value;
                     }
                 }
-                else
-                    Console.WriteLine(string.Format("Successfully Created SyncBox with ID: {0}", newBoxId));
-
             }
             else
             {
                 SyncBoxMapper.SyncBoxes.Add(SyncBoxMapper.SyncBoxes.Count(), paramSet.ManualSyncBoxID);
                 newBoxId = paramSet.ManualSyncBoxID;
             }
-            return newBoxId.HasValue ? newBoxId.Value : 0;
+            return responseCode;//newBoxId.HasValue ? newBoxId.Value : 0;
         }
 
         public static int RunSyncBoxDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
@@ -60,7 +75,39 @@ namespace CloudSDK_SmokeTest.Managers
             return deleteTaskResponseCode;
         }
 
-        public static long? AddNewSyncBox(InputParams paramSet, ref GenericHolder<CLError> ProcessingExceptionHolder)
+        public static int RunSyncBoxRenameTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            int responseCode = 0;
+            Rename renameTask = smokeTask as Rename;
+            if (renameTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
+            
+            ICLCredentialSettings credSettings;
+            CLError initializeCredsError;
+            TaskEventArgs eventArgs = new TaskEventArgs()
+            {
+                CurrentTask = smokeTask,
+                ParamSet = paramSet,
+                ProcessingErrorHolder = ProcessingErrorHolder,
+
+            };
+            bool success = CredentialHelper.InitializeCreds(ref eventArgs, out credSettings, out initializeCredsError);
+            if (!success)
+                return (int)FileManagerResponseCodes.InitializeCredsError;
+
+            Console.WriteLine("Begin SyncBox Rename...");
+            responseCode = RenameSyncBox(eventArgs);
+            if (responseCode == 0)
+                Console.WriteLine("Successfully Exiting Rename SyncBox...");
+            else
+                Console.WriteLine("There was an error Renaming SyncBox: {0}", renameTask.ServerID);
+           
+
+            return responseCode;
+        }
+
+        public static long? AddNewSyncBox(InputParams paramSet, CreateSyncBox createBoxTask, ref GenericHolder<CLError> ProcessingExceptionHolder)
         {
             long? syncBoxId = null;
             CLCredential creds; CLCredentialCreationStatus credsStatus;
@@ -76,6 +123,50 @@ namespace CloudSDK_SmokeTest.Managers
 
             syncBoxId = CreateNewSyncBoxAndAddToDictionary(paramSet, creds, ref ProcessingExceptionHolder);
             return syncBoxId;
+        }
+
+        public static int InitilizeSyncBox(SmokeTestManagerEventArgs e,  out CLSyncBox syncBox)
+        {
+            int initResponse = 0;
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            CLSyncBoxCreationStatus boxCreateStatus;
+            ICLSyncSettings syncSettings = new AdvancedSyncSettings(e.ParamSet.ManualSync_Folder.Replace("\"", ""));
+            long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : e.ParamSet.ManualSyncBoxID;
+            CLError initSyncBoxError = CLSyncBox.CreateAndInitialize(e.Creds, syncBoxId, out syncBox, out boxCreateStatus, syncSettings);
+            if (initSyncBoxError != null || boxCreateStatus != CLSyncBoxCreationStatus.Success)
+            {
+                ManualSyncManager.HandleFailure(initSyncBoxError, null, boxCreateStatus, "SyncBoxManager.RunSyncboxRename - Init Box Failure", ref refHolder);
+                return (int)FileManagerResponseCodes.InitializeSynBoxError;
+            }
+            return initResponse;
+        }
+
+        private static int RenameSyncBox(TaskEventArgs eventArgs)
+        {
+            Rename renameTask = eventArgs.CurrentTask as Rename;
+            if (renameTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+            GenericHolder<CLError> refHolder = eventArgs.ProcessingErrorHolder;
+            CLSyncBox syncBox;
+            CLSyncBoxCreationStatus boxCreateStatus;
+            ICLSyncSettings syncSettings = new AdvancedSyncSettings(eventArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
+            CLError initSyncBoxError = CLSyncBox.CreateAndInitialize(eventArgs.Creds, renameTask.ServerID, out syncBox, out boxCreateStatus, syncSettings);
+            if (initSyncBoxError != null || boxCreateStatus != CLSyncBoxCreationStatus.Success)
+            {
+                ManualSyncManager.HandleFailure(initSyncBoxError, null, boxCreateStatus, "SyncBoxManager.RunSyncboxRename - Init Box Failure", ref refHolder);
+                return (int)FileManagerResponseCodes.InitializeSynBoxError;
+            }
+            eventArgs.boxCreationStatus = boxCreateStatus;
+            eventArgs.SyncBox = syncBox;
+            CLHttpRestStatus restStatus;
+            CloudApiPublic.JsonContracts.SyncBoxHolder responseHolder;
+            CLError updateBoxError = syncBox.UpdateSyncBox(renameTask.NewName, ManagerConstants.TimeOutMilliseconds, out restStatus, out responseHolder);
+            if (updateBoxError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                ManualSyncManager.HandleFailure(updateBoxError, restStatus, null, "SyncBoxManger.RunSyncBoxRename - Update Box Failure", ref refHolder);
+                return (int)FileManagerResponseCodes.UnknownError;
+            }
+            return 0;
         }
 
         public static bool DeleteSyncBox(InputParams paramSet, long syncBoxId, ref GenericHolder<CLError> ProcessingExceptionHolder)
@@ -126,8 +217,89 @@ namespace CloudSDK_SmokeTest.Managers
         }
         #endregion
 
+        #region Interface Implementation
+        public int Create(SmokeTestManagerEventArgs e)
+        {
+            int createResponseCode = 0;
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            long? newBoxId = 0;
+            CreateSyncBox createTask = e.CurrentTask as CreateSyncBox;
+            if (createTask != null && createTask.CreateNew == true)
+            {
+                Console.WriteLine("Preapring to create new SyncBoxs.");
+                int iterations = 1;
+                if (createTask.Count > 0)
+                    iterations = createTask.Count;
+                for (int x = 0; x < iterations; x++)
+                {
+                    newBoxId = SyncBoxManager.AddNewSyncBox(e.ParamSet, createTask, ref refHolder);
+                    if (newBoxId == (long)0)
+                    {
+                        createResponseCode = (int)FileManagerResponseCodes.InitializeSynBoxError;
+                        ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs()
+                        {
+                             OpperationName= "SyncBoxManager.CreateSyncBox",
+                              ProcessingErrorHolder = e.ProcessingErrorHolder,
+                               Error = new Exception("There was an error creating a new Sync Box."),
+
+                        };
+                        SmokeTaskManager.HandleFailure(failArgs);
+                        
+                    }
+                    else
+                    {
+                        Console.WriteLine(string.Format("Successfully Created SyncBox with ID: {0}", newBoxId));
+                        SyncBoxMapper.SyncBoxes.Add(SyncBoxMapper.SyncBoxes.Count(), newBoxId.Value);
+                    }
+                }
+            }
+            else
+            {
+                SyncBoxMapper.SyncBoxes.Add(SyncBoxMapper.SyncBoxes.Count(), e.ParamSet.ManualSyncBoxID);
+                newBoxId = e.ParamSet.ManualSyncBoxID;
+            }
+            //ZW Replace
+            //e.CurrentTask.SyncBoxes.Add(newBoxId.Value, null);
+            return createResponseCode;
+            //return (int)RunCreateSyncBoxTask(e.ParamSet, e.CurrentTask,ref refHolder); 
+        }
+
+        public int Rename(SmokeTestManagerEventArgs e)
+        {
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            return (int)RunSyncBoxRenameTask(e.ParamSet, e.CurrentTask, ref refHolder); 
+        }
+
+        public int Delete(SmokeTestManagerEventArgs e)
+        {
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            return (int)RunSyncBoxDeletionTask(e.ParamSet, e.CurrentTask, ref refHolder); 
+        }
+
+        public int UnDelete(SmokeTestManagerEventArgs e)
+        {
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            Exception ex = new NotImplementedException("Can Not UnDelete a SyncBox");
+            AddException(ex, ref refHolder);
+            return (int)FileManagerResponseCodes.InvalidTaskType;
+        }
+
+        public int Download(SmokeTestManagerEventArgs e)
+        {
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            Exception ex = new NotImplementedException("Can Not UnDelete a SyncBox");
+            AddException(ex, ref refHolder);
+            return (int)FileManagerResponseCodes.InvalidTaskType;
+        }
+
+        public int ListItems(SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException("Implement List Items Methodology for SyncBoxes");
+        }
+        #endregion 
+
         #region Private
-        private static void AddExceptions(CLCredentialCreationStatus? credsStatus, CLHttpRestStatus? restStatus, CLSyncBoxCreationStatus? boxCreateStatus , string opperationName, CLError error, ref GenericHolder<CLError> ProcessingErrorHolder)
+        private static void AddExceptions(CLCredentialCreationStatus? credsStatus, CLHttpRestStatus? restStatus, CLSyncBoxCreationStatus? boxCreateStatus, string opperationName, CLError error, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             Exception exception;
             if (credsStatus != null && credsStatus != CLCredentialCreationStatus.Success)
@@ -141,7 +313,7 @@ namespace CloudSDK_SmokeTest.Managers
                 ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
 
             }
-            if(boxCreateStatus != null && boxCreateStatus != CLSyncBoxCreationStatus.Success)
+            if (boxCreateStatus != null && boxCreateStatus != CLSyncBoxCreationStatus.Success)
             {
                 exception = new Exception(string.Format("There was an error initializing the SyncBox for {0} the Creation Status is {1}", opperationName, boxCreateStatus.Value.ToString()));
                 ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
@@ -189,6 +361,14 @@ namespace CloudSDK_SmokeTest.Managers
                 }
             }
             return returnValue;
+        }
+
+        private void AddException(Exception ex, ref GenericHolder<CLError> processingErrorHolder)
+        {
+            lock (processingErrorHolder)
+            {
+                processingErrorHolder.Value = processingErrorHolder.Value + ex;
+            }
         }
         #endregion
     }
