@@ -1,5 +1,5 @@
 ﻿//
-//  IMessageSender.cs
+//  GenericAppMessageSender.cs
 //  Cloud Windows
 //
 //  Created by DavidBruck.

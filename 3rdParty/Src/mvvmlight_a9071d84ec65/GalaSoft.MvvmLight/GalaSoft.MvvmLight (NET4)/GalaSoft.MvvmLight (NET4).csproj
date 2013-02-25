@@ -41,10 +41,10 @@
     <DocumentationFile>bin\Release\GalaSoft.MvvmLight.WPF4.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>GalaSoft.MvvmLight %28NET4%29.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -138,6 +138,7 @@
     <Compile Include="Properties\AssemblyInfo.Net4.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CloudPlatformCodeSigning.pfx" />
     <None Include="GalaSoft.MvvmLight %28NET4%29.snk" />
     <None Include="GalaSoft.MvvmLight.FxCop" />
     <None Include="Settings.StyleCop" />

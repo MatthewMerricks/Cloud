@@ -185,8 +185,6 @@
     <Compile Include="JsonContracts\SyncBoxUsage.cs" />
     <Compile Include="JsonContracts\UsedBytes.cs" />
     <Compile Include="JsonContracts\Videos.cs" />
-    <Compile Include="Model\ConstructedHolder.cs" />
-    <Compile Include="Model\IMessageSender.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
     <Compile Include="PushNotification\CLNotificationManualPollingEngine.cs" />
@@ -238,8 +236,6 @@
     <Compile Include="FilePath\FlattenedFilePathDictionaryKeys.cs" />
     <Compile Include="FilePath\FlattenedFilePathDictionaryPairs.cs" />
     <Compile Include="FilePath\FlattenedFilePathDictionaryValues.cs" />
-    <Compile Include="Model\CLAccount.cs" />
-    <Compile Include="Model\CLDevice.cs" />
     <Compile Include="Model\CLJsonResultWithError.cs" />
     <Compile Include="Model\GenericHolder.cs" />
     <Compile Include="Model\HandleableEventArgs.cs" />
@@ -277,7 +273,6 @@
     <Compile Include="SQLIndexer\SqlModel\Sync.cs" />
     <Compile Include="SQLIndexer\StringCRC.cs" />
     <Compile Include="SQLIndexer\SyncedObject.cs" />
-    <Compile Include="Static\CLDevices.cs" />
     <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\Helpers.cs" />
     <Compile Include="Static\MessageEvents.cs" />
