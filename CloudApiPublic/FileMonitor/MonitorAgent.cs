@@ -3092,7 +3092,7 @@ namespace CloudApiPublic.FileMonitor
                     // (presumes .lnk will be a shortcut in that case)
                     
                     // Shell interface needed to verify shortcut validity
-                    Shell32.Shell shell32 = new Shell32.Shell();
+                    Interop.Shell32.Shell shell32 = new Interop.Shell32.Shell();
                     if (shell32 == null)
                     {
                         throw new Exception("System does not support Shell32, file will be assumed to be a valid shortcut");
@@ -3105,7 +3105,7 @@ namespace CloudApiPublic.FileMonitor
                     // The following code will either succeed and process the boolean for a readable shortcut, or it will fail (not a valid shortcut)
                     var lnkDirectory = shell32.NameSpace(toCheck.DirectoryName);
                     var lnkItem = lnkDirectory.Items().Item(toCheck.Name);
-                    var lnk = (Shell32.ShellLinkObject)lnkItem.GetLink;
+                    var lnk = (Interop.Shell32.ShellLinkObject)lnkItem.GetLink;
                     return !string.IsNullOrEmpty(lnk.Target.Path);
                 }
             }
