@@ -87,7 +87,13 @@ namespace CloudApiPublic.Sync
         private static readonly object InternetConnectedLocker = new object();
         #endregion
 
-        private readonly GenericHolder<bool> CredentialErrorDetected = new GenericHolder<bool>();
+        private readonly GenericHolder<CredentialErrorType> CredentialErrorDetected = new GenericHolder<CredentialErrorType>(CredentialErrorType.NoError);
+        private enum CredentialErrorType : byte
+        {
+            NoError,
+            ExpiredCredentials,
+            OtherError
+        }
 
         /// <summary>
         /// Engine constructor
@@ -1146,9 +1152,19 @@ namespace CloudApiPublic.Sync
 
                 lock (CredentialErrorDetected)
                 {
-                    if (CredentialErrorDetected.Value)
+                    switch (CredentialErrorDetected.Value)
                     {
-                        return new ObjectDisposedException("SyncEngine already halted from authorization credentials error");
+                        case CredentialErrorType.ExpiredCredentials:
+                            return new ObjectDisposedException("SyncEngine already halted from an expired token");
+
+                        case CredentialErrorType.OtherError:
+                            return new ObjectDisposedException("SyncEngine already halted from authorization credentials error");
+
+                        case CredentialErrorType.NoError:
+                            break;
+
+                        default:
+                            return new InvalidOperationException("SyncEngine credential error value is of unknown type: " + CredentialErrorDetected.Value.ToString());
                     }
                 }
 
@@ -2324,7 +2340,7 @@ namespace CloudApiPublic.Sync
                         // Declare string for the newest sync id from the server
                         string newSyncId;
 
-                        bool credentialsError;
+                        CredentialErrorType credentialsError;
 
                         // Communicate with server with all the changes to process, storing any exception that occurs
                         Exception communicationException = CommunicateWithServer(
@@ -2336,17 +2352,34 @@ namespace CloudApiPublic.Sync
                             out newSyncId, // output newest sync id from server
                             out credentialsError);
 
-                        if (credentialsError)
+                        if (credentialsError != CredentialErrorType.NoError)
                         {
                             lock (CredentialErrorDetected)
                             {
-                                CredentialErrorDetected.Value = true;
+                                CredentialErrorDetected.Value = credentialsError;
                             }
 
                             try
                             {
+                                string errorMessage;
+                                switch (credentialsError)
+                                {
+                                    case CredentialErrorType.ExpiredCredentials:
+                                        errorMessage = "SyncEngine halted after credentials expired";
+                                        break;
+
+                                    case CredentialErrorType.OtherError:
+                                        errorMessage = "SyncEngine halted after failing to authenticate";
+                                        break;
+                                        
+                                    //case CredentialErrorType.NoError: // should not happen since we already checked for no error
+                                    default:
+                                        errorMessage = "SyncEngine halted after unknown credentials error: " + credentialsError.ToString();
+                                        break;
+                                }
+
                                 MessageEvents.FireNewEventMessage(
-                                    "SyncEngine halted after failing to authenticate",
+                                    errorMessage,
                                     EventMessageLevel.Important,
                                     true,
                                     syncBox.SyncBoxId,
@@ -3267,6 +3300,7 @@ namespace CloudApiPublic.Sync
                 }
 
                 bool halted;
+                bool expiredCredentials;
                 lock (HaltedOnServerConnectionFailure)
                 {
                     halted = HaltedOnServerConnectionFailure.Value;
@@ -3275,8 +3309,28 @@ namespace CloudApiPublic.Sync
                 {
                     lock (CredentialErrorDetected)
                     {
-                        halted = CredentialErrorDetected.Value;
+                        switch (CredentialErrorDetected.Value)
+                        {
+                            case CredentialErrorType.ExpiredCredentials:
+                                halted = true;
+                                expiredCredentials = true;
+                                break;
+
+                            case CredentialErrorType.NoError:
+                                expiredCredentials = false;
+                                break;
+
+                            //case CredentialErrorType.OtherError:
+                            default:
+                                halted = true;
+                                expiredCredentials = false;
+                                break;
+                        }
                     }
+                }
+                else
+                {
+                    expiredCredentials = false;
                 }
 
                 lock (StatusHolder)
@@ -3296,12 +3350,18 @@ namespace CloudApiPublic.Sync
                 {
                     if (status == null)
                     {
-                        status = new CLSyncCurrentStatus(CLSyncCurrentState.HaltedOnConnectionFailure, null);
+                        status = new CLSyncCurrentStatus(
+                            (expiredCredentials
+                                ? CLSyncCurrentState.HaltedOnExpiredCredentials
+                                : CLSyncCurrentState.HaltedOnConnectionFailure), null);
                     }
                     else
                     {
                         status = new CLSyncCurrentStatus(
-                            status.CurrentState | CLSyncCurrentState.HaltedOnConnectionFailure,
+                            status.CurrentState
+                                | (expiredCredentials
+                                    ? CLSyncCurrentState.HaltedOnExpiredCredentials
+                                    : CLSyncCurrentState.HaltedOnConnectionFailure),
                             status.DownloadingFiles.Concat(status.UploadingFiles));
                     }
                 }
@@ -5343,9 +5403,9 @@ namespace CloudApiPublic.Sync
             out IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange> incompleteChanges,
             out IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError> changesInError,
             out string newSyncId,
-            out bool credentialsError)
+            out CredentialErrorType credentialsError)
         {
-            credentialsError = false;
+            credentialsError = CredentialErrorType.NoError;
 
             // try/catch to perform all communication with the server (or no communication if not needed), on catch return the exception
             try
@@ -5467,7 +5527,11 @@ namespace CloudApiPublic.Sync
                     }
                     else if (purgeStatus == CLHttpRestStatus.NotAuthorized)
                     {
-                        credentialsError = true;
+                        credentialsError = CredentialErrorType.OtherError;
+                    }
+                    else if (purgeStatus == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
+                    {
+                        credentialsError = CredentialErrorType.ExpiredCredentials;
                     }
                     else
                     {
@@ -5731,7 +5795,11 @@ namespace CloudApiPublic.Sync
                         }
                         else if (syncToStatus == CLHttpRestStatus.NotAuthorized)
                         {
-                            credentialsError = true;
+                            credentialsError = CredentialErrorType.OtherError;
+                        }
+                        else if (syncToStatus == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
+                        {
+                            credentialsError = CredentialErrorType.ExpiredCredentials;
                         }
                         else
                         {
@@ -7480,7 +7548,11 @@ namespace CloudApiPublic.Sync
                         }
                         else if (syncFromStatus == CLHttpRestStatus.NotAuthorized)
                         {
-                            credentialsError = true;
+                            credentialsError = CredentialErrorType.OtherError;
+                        }
+                        else if (syncFromStatus == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
+                        {
+                            credentialsError = CredentialErrorType.ExpiredCredentials;
                         }
                         else
                         {

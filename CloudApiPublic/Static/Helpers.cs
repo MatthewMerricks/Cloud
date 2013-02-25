@@ -1874,6 +1874,7 @@ namespace CloudApiPublic.Static
             { typeof(JsonContracts.SyncBoxUsage), JsonContractHelpers.SyncBoxUsageSerializer },
             { typeof(JsonContracts.Folders), JsonContractHelpers.FoldersSerializer },
             { typeof(JsonContracts.FolderContents), JsonContractHelpers.FolderContentsSerializer },
+            { typeof(JsonContracts.AuthenticationErrorResponse), JsonContractHelpers.AuthenticationErrorResponseSerializer },
 
             #region platform management
             { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
@@ -2002,7 +2003,7 @@ namespace CloudApiPublic.Static
 
             httpRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-            httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = CopiedSettings.ClientVersion; // set client version
+            httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = OSVersionInfo.GetClientVersionHttpHeader(CopiedSettings.ClientVersion);
             httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
                                 CLDefinitions.HeaderAppendKey +
                                 Credential.Key + ", " +
@@ -2486,6 +2487,32 @@ namespace CloudApiPublic.Static
                             {
                                 // set the response text
                                 responseBody = downloadResponseStreamReader.ReadToEnd();
+
+                                if (!string.IsNullOrEmpty(responseBody)
+                                    && status == CLHttpRestStatus.NotAuthorized)
+                                {
+                                    using (MemoryStream notAuthorizedStream = new MemoryStream())
+                                    {
+                                        byte[] notAuthorizedMessageBytes = Encoding.Default.GetBytes(responseBody);
+
+                                        notAuthorizedStream.Write(notAuthorizedMessageBytes, 0, notAuthorizedMessageBytes.Length);
+                                        notAuthorizedStream.Flush();
+                                        notAuthorizedStream.Seek(0, SeekOrigin.Begin);
+
+                                        DataContractJsonSerializer notAuthorizedSerializer;
+                                        if (!SerializableResponseTypes.TryGetValue(typeof(JsonContracts.AuthenticationErrorResponse), out notAuthorizedSerializer))
+                                        {
+                                            throw new KeyNotFoundException("Unable to find serializer for JsonContracts.AuthenticationErrorResponse in SerializableResponseTypes");
+                                        }
+
+                                        JsonContracts.AuthenticationErrorResponse parsedErrorResponse = (JsonContracts.AuthenticationErrorResponse)notAuthorizedSerializer.ReadObject(notAuthorizedStream);
+
+                                        if (parsedErrorResponse.Message == CLDefinitions.MessageTextExpiredCredentials)
+                                        {
+                                            status = CLHttpRestStatus.NotAuthorizedExpiredCredentials;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

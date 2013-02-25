@@ -147,6 +147,7 @@
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
     <Compile Include="JsonContracts\Audios.cs" />
+    <Compile Include="JsonContracts\AuthenticationErrorResponse.cs" />
     <Compile Include="JsonContracts\ContainsMetadataDictionaryAttribute.cs" />
     <Compile Include="JsonContracts\SessionDeleteResponse.cs" />
     <Compile Include="JsonContracts\SessionDeleteRequest.cs" />
@@ -185,7 +186,6 @@
     <Compile Include="JsonContracts\SyncBoxUsage.cs" />
     <Compile Include="JsonContracts\UsedBytes.cs" />
     <Compile Include="JsonContracts\Videos.cs" />
-    <Compile Include="Model\ConstructedHolder.cs" />
     <Compile Include="Model\EventMessages\BaseMessage.cs" />
     <Compile Include="Model\EventMessages\DownloadingCountMessage.cs" />
     <Compile Include="Model\EventMessages\DownloadProgressMessage.cs" />
@@ -200,7 +200,6 @@
     <Compile Include="Model\EventMessages\SuccessfulUploadsIncrementedMessage.cs" />
     <Compile Include="Model\EventMessages\UploadingCountMessage.cs" />
     <Compile Include="Model\EventMessages\UploadProgressMessage.cs" />
-    <Compile Include="Model\IMessageSender.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\TransferUpdateArgs.cs" />
     <Compile Include="PushNotification\CLNotificationManualPollingEngine.cs" />
@@ -211,7 +210,6 @@
     <Compile Include="REST\CLHttpRest.cs" />
     <Compile Include="REST\GenericAsyncResult.cs" />
     <Compile Include="REST\TransferProgress.cs" />
-    <Compile Include="SQLIndexer\Static\Enums.cs" />
     <Compile Include="Static\ItemsControlHelper.cs" />
     <Compile Include="Support\CLCopyFiles.cs" />
     <Compile Include="CLSync\CLSyncEngine.cs" />
@@ -252,8 +250,6 @@
     <Compile Include="FilePath\FlattenedFilePathDictionaryKeys.cs" />
     <Compile Include="FilePath\FlattenedFilePathDictionaryPairs.cs" />
     <Compile Include="FilePath\FlattenedFilePathDictionaryValues.cs" />
-    <Compile Include="Model\CLAccount.cs" />
-    <Compile Include="Model\CLDevice.cs" />
     <Compile Include="Model\CLJsonResultWithError.cs" />
     <Compile Include="Model\GenericHolder.cs" />
     <Compile Include="Model\HandleableEventArgs.cs" />
@@ -291,7 +287,6 @@
     <Compile Include="SQLIndexer\SqlModel\Sync.cs" />
     <Compile Include="SQLIndexer\StringCRC.cs" />
     <Compile Include="SQLIndexer\SyncedObject.cs" />
-    <Compile Include="Static\CLDevices.cs" />
     <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\Helpers.cs" />
     <Compile Include="Static\MessageEvents.cs" />

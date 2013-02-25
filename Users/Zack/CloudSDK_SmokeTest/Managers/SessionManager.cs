@@ -4,7 +4,9 @@ using CloudApiPublic.JsonContracts;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
+using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Helpers;
+using CloudSDK_SmokeTest.Interfaces;
 using CloudSDK_SmokeTest.Settings;
 using System;
 using System.Collections.Generic;
@@ -13,25 +15,37 @@ using System.Text;
 
 namespace CloudSDK_SmokeTest.Managers
 {
-    public class SessionManager
+    public class SessionManager : ISmokeTaskManager 
     {
 
-        public static long RunCreateSessionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunCreateSessionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             string newSessionKey = string.Empty;
+            Creation createSessionTask = smokeTask as Creation;
+            if (createSessionTask == null)
+                return(int)FileManagerResponseCodes.InvalidTaskType;
 
+            int responseCode = 0;
             Console.WriteLine("Preparing to Create Session.");
             ItemListHelperEventArgs args = new ItemListHelperEventArgs() { ParamSet = paramSet, ProcessingErrorHolder = ProcessingErrorHolder };
             ItemsListHelper.RunListSessions(args, false, false);
             ItemsListManager mgr = ItemsListManager.GetInstance();
             int prior = mgr.Sessions.Count;
-
-            int responseCode = SessionManager.CreateSession(paramSet, smokeTask, out newSessionKey, ref ProcessingErrorHolder);
-            Console.WriteLine("Create Sesssion Results:");
-            if (string.IsNullOrEmpty(newSessionKey))
-                Console.WriteLine("Create Sesssion Failed: Returned Session ID is 0:");
-            else
-                Console.WriteLine(string.Format("Created Session with Key {0}", newSessionKey));
+            int iterations =1;
+            if (createSessionTask.Count > 1)
+                iterations = createSessionTask.Count;
+            for (int x = 0; x < iterations; x++)
+            {
+                if (responseCode == 0)
+                {
+                    responseCode = SessionManager.CreateSession(paramSet, smokeTask, out newSessionKey, ref ProcessingErrorHolder);
+                    Console.WriteLine("Create Sesssion Results:");
+                    if (string.IsNullOrEmpty(newSessionKey))
+                        Console.WriteLine("Create Sesssion Failed: Returned Session ID is 0:");
+                    else
+                        Console.WriteLine(string.Format("Created Session with Key {0}", newSessionKey));
+                }
+            }
 
             Console.WriteLine("Session Count Before Running: {0}", prior.ToString());
             Console.WriteLine("Session Count After Running: {0}", mgr.Sessions.Count.ToString());
@@ -60,7 +74,7 @@ namespace CloudSDK_SmokeTest.Managers
             sessionKey = string.Empty;
             ICLCredentialSettings settings;
             CLError initCredsError = new CLError();
-            ItemListHelperEventArgs args = new ItemListHelperEventArgs()
+            TaskEventArgs args = new TaskEventArgs()
             {
                  ParamSet = paramSet,
                  ProcessingErrorHolder = ProcessingErrorHolder,
@@ -74,7 +88,14 @@ namespace CloudSDK_SmokeTest.Managers
             CLError createSessionError = args.Creds.CreateSession(ManagerConstants.TimeOutMilliseconds, out restStatus, out sessionCreateResponse);
             if (createSessionError != null || restStatus != CLHttpRestStatus.Success)
             {
-                HandleFailure(null, restStatus, "Credential.Create Session ", createSessionError, ref ProcessingErrorHolder);
+                ExceptionManagerEventArgs exArgs = new ExceptionManagerEventArgs()
+                {
+                    RestStatus = restStatus,
+                    OpperationName = "Credential.Create Session ",
+                    Error = createSessionError,
+                    ProcessingErrorHolder = ProcessingErrorHolder,
+                };
+                SmokeTaskManager.HandleFailure(exArgs);
                 return (int)FileManagerResponseCodes.UnknownError;
             }
             sessionKey = sessionCreateResponse.Session.Key;
@@ -92,11 +113,12 @@ namespace CloudSDK_SmokeTest.Managers
             int deleteSessionResponseCode = 0;
             ICLCredentialSettings settings;
             CLError initCredsError = new CLError();
-            ItemListHelperEventArgs args = new ItemListHelperEventArgs()
+            TaskEventArgs args = new TaskEventArgs()
             {
                 ParamSet = paramSet,
                 ProcessingErrorHolder = ProcessingErrorHolder,
             };
+
             bool success = CredentialHelper.InitializeCreds(ref args, out settings, out initCredsError);
             if (!success)
                 return (int)FileManagerResponseCodes.InitializeCredsError;
@@ -108,15 +130,15 @@ namespace CloudSDK_SmokeTest.Managers
                  ProcessingErrorHolder = ProcessingErrorHolder,
             };
 
-
-            int listItemsResponse = ItemsListHelper.RunListSessions(args, false, false);
+            ItemListHelperEventArgs itemListArgs = new ItemListHelperEventArgs(args);
+            int listItemsResponse = ItemsListHelper.RunListSessions(itemListArgs, false, false);
             if (listItemsResponse != 0)
             {
                 return (int)FileManagerResponseCodes.UnknownError;
             }
 
             ItemsListManager mgr = ItemsListManager.GetInstance();
-            List<Session> toDelete = AddSessionsToDeletionList(deleteTask, mgr, args);
+            List<Session> toDelete = AddSessionsToDeletionList(deleteTask, mgr, itemListArgs);
            
             foreach (Session session in toDelete)
             {
@@ -148,7 +170,14 @@ namespace CloudSDK_SmokeTest.Managers
             }
             if (deleteSessionError != null || restStatus != CLHttpRestStatus.Success)
             {
-                HandleFailure(null, restStatus, "Session Manager.DeleteSession", deleteSessionError, ref refHolder);
+                ExceptionManagerEventArgs exArgs = new ExceptionManagerEventArgs()
+                {
+                    RestStatus = restStatus,
+                    OpperationName = "Credential.Delete Session ",
+                    Error = deleteSessionError,
+                    ProcessingErrorHolder = deleteEventArgs.ProcessingErrorHolder,
+                };
+                SmokeTaskManager.HandleFailure(exArgs);
                 return (int)FileManagerResponseCodes.UnknownError;
             }
 
@@ -200,7 +229,14 @@ namespace CloudSDK_SmokeTest.Managers
             CLError credsError = CLCredential.CreateAndInitialize(eventArgs.ParamSet.API_Key, eventArgs.ParamSet.API_Secret, out creds, out credsStatus);
             if (credsError != null || credsStatus != CLCredentialCreationStatus.Success)
             {
-                HandleFailure(credsStatus, null, "CreateSession Init Creds", credsError, ref refHolder);
+                ExceptionManagerEventArgs exArgs = new ExceptionManagerEventArgs()
+                {
+                    CredsCreateStatus = credsStatus,
+                    OpperationName = "SessionManager.RestunSessionAtIndex ",
+                    Error = credsError,
+                    ProcessingErrorHolder = eventArgs.ProcessingErrorHolder,
+                };
+                SmokeTaskManager.HandleFailure(exArgs);
             }
             CLHttpRestStatus restStatus;
             CloudApiPublic.JsonContracts.ListSessionsResponse response;
@@ -227,27 +263,81 @@ namespace CloudSDK_SmokeTest.Managers
            
         }
 
-        public static void HandleFailure(CLCredentialCreationStatus? credsStatus, CLHttpRestStatus? restStatus, string opperationName, CLError error, ref GenericHolder<CLError> ProcessingErrorHolder)
+        //public static void HandleFailure(CLCredentialCreationStatus? credsStatus, CLHttpRestStatus? restStatus, string opperationName, CLError error, ref GenericHolder<CLError> ProcessingErrorHolder)
+        //{
+        //    List<Exception> exceptionList = new List<Exception>();
+        //    if (credsStatus.HasValue && credsStatus != CLCredentialCreationStatus.Success)
+        //    {
+        //        Exception exception = ExceptionManager.ReturnException(opperationName, credsStatus.Value.ToString());
+        //        exceptionList.Add(exception);
+        //    }
+        //    if (restStatus.HasValue && restStatus.Value != CLHttpRestStatus.Success)
+        //    {
+        //        Exception exception = ExceptionManager.ReturnException(opperationName, restStatus.Value.ToString());
+        //        exceptionList.Add(exception);
+        //    }
+        //    exceptionList.AddRange(error.GrabExceptions());
+        //    lock(ProcessingErrorHolder)
+        //    {
+        //        foreach (Exception ex in exceptionList)
+        //            ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                
+        //    }
+
+        //}
+
+
+        #region Interface Implementation
+        public int Create(SmokeTestManagerEventArgs e)
         {
-            List<Exception> exceptionList = new List<Exception>();
-            if (credsStatus.HasValue && credsStatus != CLCredentialCreationStatus.Success)
-            {
-                Exception exception = ExceptionManager.ReturnException(opperationName, credsStatus.Value.ToString());
-                exceptionList.Add(exception);
-            }
-            if (restStatus.HasValue && restStatus.Value != CLHttpRestStatus.Success)
-            {
-                Exception exception = ExceptionManager.ReturnException(opperationName, restStatus.Value.ToString());
-                exceptionList.Add(exception);
-            }
-            exceptionList.AddRange(error.GrabExceptions());
-            lock(ProcessingErrorHolder)
-            {
-                foreach (Exception ex in exceptionList)
-                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
-                
-            }
-                
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            return (int)RunCreateSessionTask(e.ParamSet, e.CurrentTask, ref refHolder);
         }
+
+        public int Rename(SmokeTestManagerEventArgs e)
+        {
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            Exception ex =  new NotImplementedException("Can Not Rename a Session");
+            AddException(ex, ref refHolder);
+            return (int)FileManagerResponseCodes.InvalidTaskType;
+        }
+
+        public int Delete(SmokeTestManagerEventArgs e)
+        {
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            return (int)DeleteSession(e.ParamSet, (e.CurrentTask as Deletion), ref refHolder);
+        }
+
+        public int UnDelete(SmokeTestManagerEventArgs e)
+        {
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            Exception ex = new NotImplementedException("Can Not Undelete a Session");
+            AddException(ex, ref refHolder);
+            return (int)FileManagerResponseCodes.InvalidTaskType;
+        }
+
+        public int Download(SmokeTestManagerEventArgs e)
+        {
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            Exception ex = new NotImplementedException("Can Not Download a Session");
+            AddException(ex, ref refHolder);
+            return (int)FileManagerResponseCodes.InvalidTaskType;
+        }
+
+        public int ListItems(SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region Private
+        private void AddException(Exception ex, ref GenericHolder<CLError> processingErrorHolder)
+        {
+            lock (processingErrorHolder)
+            {
+                processingErrorHolder.Value = processingErrorHolder.Value + ex;
+            }
+        }
+        #endregion 
     }
 }

@@ -1,4 +1,4 @@
-﻿// From http://www.codeproject.com/Articles/73000/Getting-Operating-System-Version-Info-Even-for-Win
+﻿// From http://www.codeproject.com/Articles/73000/Getting-Operating-System-Version-Info-Even-for-Win with modifications.
 #region USINGS
 using System;
 using System.Collections.Generic;
@@ -983,5 +983,15 @@ namespace CloudApiPublic.Static
             return isWow64;
         }
         #endregion 64 BIT OS DETECTION
+
+        #region Modifications
+
+        public static string GetClientVersionHttpHeader(string clientVersion)
+        {
+            return OSVersionInfo.Name + "_" + OSVersionInfo.Edition + "_ " + OSVersionInfo.OSBits.ToString() + "_" + Resources.Resources.OsBits + "_" + 
+                        OSVersionInfo.VersionString + "&" + clientVersion;
+        }
+
+        #endregion
     }
 }

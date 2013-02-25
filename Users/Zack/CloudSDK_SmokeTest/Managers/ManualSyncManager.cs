@@ -1,5 +1,6 @@
 ﻿using CloudApiPublic;
 using CloudApiPublic.Interfaces;
+using CloudApiPublic.JsonContracts;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
@@ -19,6 +20,8 @@ namespace CloudSDK_SmokeTest.Managers
         public const string DuplicateFileErrorString = "A file with a different ServerID already exists at that path.";
 
         public const string CaseSensitiveFileNameString = "Cannot create a file when that file already exists.\r\n";
+
+        public static string[] defaultFolderNames = new string[] { "/Documents/", "/Videos/", "/Pictures/" };
         #endregion 
 
         #region Properties
@@ -53,7 +56,7 @@ namespace CloudSDK_SmokeTest.Managers
         }
         #endregion 
 
-        #region Create File
+        #region Create
         /// <summary>
         ///    This method is called to create a file in the Cloud Syncbox from a File on the Client Machine 
         /// </summary>
@@ -70,7 +73,7 @@ namespace CloudSDK_SmokeTest.Managers
             Creation createTask = smokeTask as Creation;
             if (createTask == null)
                 return (int)FileManagerResponseCodes.InvalidTaskType;
-
+            int iterations = 1;
             this.ProcessingErrorHolder = ProcessingErrorHolder;
             CLCredential creds; 
             CLCredentialCreationStatus credsCreateStatus;
@@ -109,7 +112,7 @@ namespace CloudSDK_SmokeTest.Managers
                     CreateCurrentTime = DateTime.UtcNow,
                     RootDirectory = RootDirectory,
                 };
-                createResponseCode = FileHelper.CreateFile(InputParams, this, eventArgs);
+               createResponseCode  =  CreateFiles(eventArgs);
             }
             else if (createTask.ObjectType.type == ModificationObjectType.Folder)
             {
@@ -126,9 +129,7 @@ namespace CloudSDK_SmokeTest.Managers
                     SyncBox = syncBox,
                     CreationTime = DateTime.UtcNow,
                 };
-                createResponseCode = FolderHelper.CreateDirectory(this, eventArgs);
-                if (createResponseCode == 0 && !Directory.Exists(directoryPath))
-                    Directory.CreateDirectory(directoryPath);
+                createResponseCode = CreateFolders(eventArgs);
             }
             else if (createTask.ObjectType.type == ModificationObjectType.Session)
             {
@@ -136,7 +137,7 @@ namespace CloudSDK_SmokeTest.Managers
             }
             else if (createTask.ObjectType.type == ModificationObjectType.SyncBox)
             {
-                throw new NotImplementedException("This Condition Should Never Be Met, Creating A SyncBox Shoudl Occur Through CreateSyncBox not Create.");
+                throw new NotImplementedException("This Condition Should Never Be Met, Creating A SyncBox Should Occur Through CreateSyncBox not Create.");
             }
             return createResponseCode;
         }      
@@ -242,10 +243,11 @@ namespace CloudSDK_SmokeTest.Managers
                 CLError postFileError = createEventArgs.SyncBox.HttpRestClient.PostFileChange(newFileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
                 if (postFileError != null || restStatus != CLHttpRestStatus.Success)
                 {
-                    FileHelper.HandleUnsuccessfulUpload(newFileChange, returnEvent, restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref errorHolder);
+                    FileHelper.HandleUnsuccessfulUpload(restStatus, postFileError, ManagerConstants.RequestTypes.PostFileChange, ref errorHolder);
                 }
                 string response = returnEvent.Header.Status.ToLower();
                 CreateFileResponseEventArgs responseArgs = new CreateFileResponseEventArgs(createEventArgs, newFileChange, response, restStatus, returnEvent);
+                responseArgs.CreateTaskFileInfo = new FileInfo(newFileChange.NewPath.ToString());
                 createResponseCode = FileHelper.CreateFileResponseSwitch(responseArgs, newFileChange, this, ref errorHolder);
                 Console.WriteLine("TryUpload Exited...");
             }
@@ -258,8 +260,60 @@ namespace CloudSDK_SmokeTest.Managers
             }
             return createResponseCode;            
         }
+
+        private int CreateFiles(CreateFileEventArgs eventArgs)
+        {
+            Creation createTask = eventArgs.CurrentTask as Creation;
+            int createResponseCode = 0;
+            int iterations = 1;
+            if (createTask.Count > 0)
+                iterations = createTask.Count;
+            FileInfo fileInfo = eventArgs.CreateTaskFileInfo;
+            for (int x = 0; x < iterations; x++)
+            {
+                if (x > 0)
+                {
+                    string newFullPath = fileInfo.Directory.FullName + "\\" + fileInfo.Name.Replace(fileInfo.Extension, "") + x.ToString() + fileInfo.Extension;
+                    fileInfo = new FileInfo(newFullPath);
+                    eventArgs.CreateTaskFileInfo = fileInfo;
+                }
+                if (createResponseCode == 0)
+                    createResponseCode = FileHelper.CreateFile(InputParams, this, eventArgs);
+            }
+            return createResponseCode;
+        }
+
+        private int CreateFolders(CreateFolderEventArgs eventArgs)
+        {
+            Creation createTask = eventArgs.CurrentTask as Creation;
+            int createResponseCode = 0;
+            int iterations = 1;
+            if (createTask.Count > 0)
+                iterations = createTask.Count;
+            DirectoryInfo folderInfo = eventArgs.CreateTaskDirectoryInfo;
+            for (int x = 0; x < iterations; x++)
+            {
+                if (x > 0)
+                {
+                    string fullPath = eventArgs.CreateTaskDirectoryInfo.FullName + x.ToString();
+                    folderInfo = new DirectoryInfo(fullPath);
+                    eventArgs.CreateTaskDirectoryInfo = folderInfo;
+                }
+                if (createResponseCode == 0)
+                {
+                    createResponseCode = FolderHelper.CreateDirectory(this, eventArgs);
+                    if (!Directory.Exists(eventArgs.CreateTaskDirectoryInfo.FullName))
+                        Directory.CreateDirectory(eventArgs.CreateTaskDirectoryInfo.FullName);
+                }
+
+
+            }
+            return createResponseCode;
+
+        }
         #endregion
 
+        #region Delete
         /// <summary>
         /// This methid is used to delete a specific file stored oin the SyncBox -- This operation only affects the server version of the file 
         /// this will not delete the client version of the file. 
@@ -284,14 +338,11 @@ namespace CloudSDK_SmokeTest.Managers
             CLHttpRestStatus restStatus = new CLHttpRestStatus();
             GenericHolder<CLError> refHolder = ProcessingErrorHolder;
 
-            InitalizeCredentials("ManualSyncManager.DeleteFile", out creds, out credsCreateStatus);
-            ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", ""));
+            InitalizeCredentials("ManualSyncManager.DeleteFile", out creds, out credsCreateStatus);            
             if (credsCreateStatus != CLCredentialCreationStatus.Success)
-            {
-                Console.WriteLine("There was an error Crteating Credentials In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
-                Console.WriteLine("Exiting Process...");
                 return (int)FileManagerResponseCodes.InitializeCredsError;
-            }
+
+            ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", ""));
             FileChange fileChange = null;
             CloudApiPublic.JsonContracts.Event returnEvent; 
             long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
@@ -308,13 +359,9 @@ namespace CloudSDK_SmokeTest.Managers
                 {
                      ParamSet = paramSet,
                      CurrentTask = smokeTask,
+                     SyncBox = syncBox,
                 };
-                FileInfo forDelete = GetFileForDelete(getDeleteEventArgs);
-                if (forDelete == null)
-                {
-                    return -1;//There are no files to be deleted. 
-                }
-                fileChange = PrepareFileChangeForModification(paramSet, FileChangeType.Deleted, syncBox, forDelete.FullName);
+                deleteResponseCode = DeleteFiles(getDeleteEventArgs);
             }
             if (deleteTask.ObjectType.type == ModificationObjectType.Folder)
             {
@@ -329,39 +376,146 @@ namespace CloudSDK_SmokeTest.Managers
                     SyncBox = syncBox,
                     SyncBoxRoot = new DirectoryInfo(paramSet.ManualSync_Folder.Replace("\"", "")),
                 };
-                CloudApiPublic.JsonContracts.Metadata metaData;
-                DirectoryInfo forDelete = FolderHelper.GetFolderForDelete(eventArgs);
-                CLError getMetaDataError = syncBox.GetMetadata(forDelete.FullName, true, ManagerConstants.TimeOutMilliseconds, out restStatus, out metaData);
-                if(getMetaDataError != null || restStatus != CLHttpRestStatus.Success)
-                {
-                    HandleFailure(getMetaDataError, restStatus, null, "DeleteFolder.GetMetadata", ref refHolder);
-                }
-                fileChange = FolderHelper.GetFolderFileChange(forDelete, metaData, FileChangeType.Deleted, forDelete.FullName, null);
-
-            }
-            CLError postFileError = syncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
-            if (postFileError != null || restStatus != CLHttpRestStatus.Success)
-            {
-                if (postFileError != null)
-                {
-                    Exception[] exceptions = postFileError.GrabExceptions().ToArray();
-                    lock (this.ProcessingErrorHolder)
-                    {
-                        foreach (Exception exception in exceptions)
-                        {
-                            this.ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-                        }                        
-                    }                    
-                }
-                if (restStatus != CLHttpRestStatus.Success)
-                {
-                    FileInfo info = new FileInfo(deleteTask.RelativePath + deleteTask.Name);
-                    Exception unsuccessfulDeleteError = new Exception(string.Format("The Returned Response for Attempt to Delete File {0} is {1}", info.Name, restStatus));
-                }                
+                deleteResponseCode = DeleteFolders(eventArgs);            
             }
             return deleteResponseCode;
         }
 
+        private IEnumerable<Metadata> GetFilesForDelete(GetFileDeleteEventArgs fileDeleteArgs, Deletion deleteTask)
+        {
+            List<Metadata> returnValues = new List<Metadata>();
+            GenericHolder<CLError> refHolder = fileDeleteArgs.ProcessingErrorHolder;
+            CLHttpRestStatus restStatus;
+            CloudApiPublic.JsonContracts.Folders folders;
+            FolderContents folderContents;
+            CLError getFilesError = fileDeleteArgs.SyncBox.GetFolderContents(ManagerConstants.TimeOutMilliseconds, out restStatus, out folderContents);
+            if (getFilesError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                HandleFailure(getFilesError, restStatus, null, "MaunalSyncManager.GetFilesForDelete", ref refHolder);
+                return new List<Metadata>();
+            }
+            if (deleteTask.DeleteAll == true)
+            {
+                returnValues.AddRange(AddMetadataToList(folderContents.Objects, false, -1, string.Empty));
+            }
+            else if (deleteTask.DeleteCountSpecified && deleteTask.DeleteCount > 0)
+            {
+                if (deleteTask.DeleteCount == 1)
+                    returnValues.AddRange(AddMetadataToList(folderContents.Objects, false, deleteTask.DeleteCount, deleteTask.RelativePath));
+                else
+                    returnValues.AddRange(AddMetadataToList(folderContents.Objects, false, deleteTask.DeleteCount, string.Empty));
+            }
+            else if (!string.IsNullOrEmpty(deleteTask.ServerID))
+            {
+                Metadata item = folderContents.Objects.Where(file => file.ServerId == deleteTask.ServerID).FirstOrDefault();
+                if (item != null)
+                    returnValues.Add(item);
+            }
+            else
+            {
+                throw new NotImplementedException("ManualSyncManager.GetFilesForDelete: There was no deletion type specified.");
+            }
+
+            return returnValues;
+        }
+
+        private IEnumerable<Metadata> GetFoldersForDelete(GetFolderDeleteEventArgs folderDeleteArgs, Deletion deleteTask)
+        {
+            List<Metadata> returnValues = new List<Metadata>();
+            GenericHolder<CLError> refHolder = folderDeleteArgs.ProcessingErrorHolder;
+            CLHttpRestStatus restStatus;
+            CloudApiPublic.JsonContracts.Folders folders;
+            CLError getFilesError = folderDeleteArgs.SyncBox.GetFolderHierarchy(ManagerConstants.TimeOutMilliseconds, out restStatus, out folders);
+            if (getFilesError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                HandleFailure(getFilesError, restStatus, null, "MaunalSyncManager.GetFilesForDelete", ref refHolder);
+                return new List<Metadata>();
+            }
+
+            if (deleteTask.DeleteAll == true)
+            {
+                returnValues.AddRange(AddMetadataToList(folders.Metadata, true,  -1, string.Empty));
+            }
+            else if (deleteTask.DeleteCountSpecified && deleteTask.DeleteCount > 0)
+            {
+                if(deleteTask.DeleteCount ==1)
+                    returnValues.AddRange(AddMetadataToList(folders.Metadata, true, deleteTask.DeleteCount, deleteTask.RelativePath));
+                else
+                    returnValues.AddRange(AddMetadataToList(folders.Metadata, true, deleteTask.DeleteCount, string.Empty));
+            }
+            else if (!string.IsNullOrEmpty(deleteTask.ServerID))
+            {
+                Metadata item = folders.Metadata.Where(file => file.ServerId == deleteTask.ServerID).FirstOrDefault();
+                if (item != null)
+                    returnValues.Add(item);
+            }
+            else
+            {
+                throw new NotImplementedException("ManualSyncManager.GetFilesForDelete: There was no deletion type specified.");
+            }
+            return returnValues;
+        }
+
+        private int DeleteFiles(GetFileDeleteEventArgs args)
+        {
+            int deleteResponseCode = 0;
+            GenericHolder<CLError> refHolder = args.ProcessingErrorHolder;
+            Deletion deleteTask = args.CurrentTask as Deletion;
+            if (deleteTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+            int iterations = 1;
+            CLHttpRestStatus restStatus;
+            List<Metadata> metadataList = GetFilesForDelete(args, deleteTask).ToList();
+            List<FileChange> changes = GetFileChangesFromMetadata(args.SyncBox, metadataList).ToList();
+            CloudApiPublic.JsonContracts.Event returnEvent;
+            foreach (FileChange fc in changes)
+            {
+                if (deleteResponseCode == 0)
+                {
+                    CLError postFileError = args.SyncBox.HttpRestClient.PostFileChange(fc, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
+                    if (postFileError != null || restStatus != CLHttpRestStatus.Success)
+                    {
+                        HandleFailure(postFileError, restStatus, null, "ManualSyncManager.DeleteFiles", ref refHolder);
+                        return (int)FileManagerResponseCodes.UnknownError;
+                    }
+                    else
+                        Console.WriteLine(string.Format("Successfully Deleted File: {0} with ID: {1}", fc.NewPath, fc.Metadata.ServerId));
+                }
+            }
+            return deleteResponseCode;
+        }
+
+        private int DeleteFolders(GetFolderDeleteEventArgs args)
+        {
+            int deleteResponseCode = 0;
+            GenericHolder<CLError> refHolder = args.ProcessingErrorHolder;
+            Deletion deleteTask = args.CurrentTask as Deletion;
+            if (deleteTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+            int iterations = 1;
+            CLHttpRestStatus restStatus;
+            List<Metadata> metadataList = GetFoldersForDelete(args, deleteTask).ToList();
+            List<FileChange> filechangeList = GetFileChangesFromMetadata(args.SyncBox, metadataList).ToList();
+            CloudApiPublic.JsonContracts.Event returnEvent;
+            foreach (FileChange fc in filechangeList)
+            {
+                if (deleteResponseCode == 0)
+                {
+                    CLError postFileError = args.SyncBox.HttpRestClient.PostFileChange(fc, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
+                    if (postFileError != null || restStatus != CLHttpRestStatus.Success)
+                    {
+                        HandleFailure(postFileError, restStatus, null, "ManualSyncManager.DeleteFolders", ref refHolder);
+                        return (int)FileManagerResponseCodes.UnknownError;
+                    }
+                    else
+                        Console.WriteLine(string.Format("Successfully Deleted Folder: {0} with ID: {1}", fc.NewPath, fc.Metadata.ServerId));
+                }
+            }
+            return deleteResponseCode;
+        }
+        #endregion
+
+        #region Undelete
         public override int Undelete(Settings.InputParams paramSet, SmokeTask smokeTask)
         {
             int deleteResponseCode = 0;
@@ -387,8 +541,9 @@ namespace CloudSDK_SmokeTest.Managers
             
             return 0;
         }
+        #endregion
 
-
+        #region Rename
         /// <summary>
         /// Currently this method will rename a specific file if specified but if not will rename the first file it arrives at by iterating through the Directory Structure 
         /// if 
@@ -484,8 +639,8 @@ namespace CloudSDK_SmokeTest.Managers
             }            
             return 0;
         }
+        #endregion
 
-       
         #region Download All Content
 
         public static int RunDownloadAllSyncBoxContentTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
@@ -803,7 +958,6 @@ namespace CloudSDK_SmokeTest.Managers
         #endregion 
 
         #region All
-
         private void InitalizeCredentials(string callerName, out CLCredential creds, out CLCredentialCreationStatus credsCreateStatus)
         {
             Console.WriteLine("Initializing Credentials for Active Sync Create Method... ");
@@ -871,27 +1025,6 @@ namespace CloudSDK_SmokeTest.Managers
             return fileChange;
         }
 
-        private FileInfo GetFileForDelete(GetFileDeleteEventArgs getDeleteArgs)
-        {
-            Deletion deleteTask = getDeleteArgs.CurrentTask as Deletion;
-            if (deleteTask == null)
-                return null;
-
-            FileInfo returnValue = null;
-
-            string rootFolder = getDeleteArgs.ParamSet.ManualSync_Folder.Replace("\"", "");
-
-            string fullPath = deleteTask.FullName.Replace("\"", "");
-            if (string.IsNullOrEmpty(fullPath))
-                fullPath = deleteTask.RelativePath + "\\" + deleteTask.Name; // string.Concat(rootFolder, string.Concat(relativePathToRoot, oldFileName.Replace("\"", "")));
-            if (File.Exists(fullPath))
-                returnValue = new FileInfo(fullPath);
-            else
-                returnValue = FileHelper.FindFirstFileInDirectory(rootFolder);
-
-            return returnValue;
-        }
-
         private FileInfo GetFileForRename(InputParams paramSet, string relativePathToRoot, string oldFileName)
         {
             FileInfo returnValue = null;
@@ -932,7 +1065,80 @@ namespace CloudSDK_SmokeTest.Managers
                 errors.Add(ExceptionManager.ReturnException(opperationName, boxCreateStatus.ToString()));
         }
 
-       
+        private List<Metadata> AddMetadataToList(IEnumerable<Metadata> folderOrContents, bool folderOperations, int count, string relativePath)
+        {
+            List<Metadata> returnValues = new List<Metadata>();
+            foreach (Metadata contentItem in folderOrContents)
+            {
+                switch (folderOperations)
+                { 
+                    case true:
+                        if (contentItem.IsFolder.HasValue && contentItem.IsFolder == true && contentItem.RelativePath.Count() > 1)
+                            if(!defaultFolderNames.Contains(contentItem.RelativePath))
+                                returnValues.Add(contentItem);
+                        break;
+                    case false:
+                        bool shouldDelete = ShouldDelete(contentItem, count, relativePath, ref returnValues);
+                        if (shouldDelete)
+                        {
+                            returnValues.Add(contentItem);
+                        }
+                        break;
+                }                
+                if (count > 0 && returnValues.Count() == count)
+                    break;
+            }
+            return returnValues;
+        }
+
+        private bool ShouldDelete(Metadata contentItem, int count, string relativePath, ref List<Metadata> returnValues)
+        {
+            bool shouldDelete = false;
+            if (!contentItem.IsFolder.HasValue || !contentItem.IsFolder.Value)
+            {
+                if (count == 1 && !string.IsNullOrEmpty(relativePath))
+                {
+                    if (contentItem.RelativePath.Replace("/", "\\") == relativePath && returnValues.Count <1)
+                    {
+                        shouldDelete = true;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(relativePath))
+                { 
+                    
+                }
+            }
+            return shouldDelete;
+        }
+        private IEnumerable<FileChange> GetFileChangesFromMetadata(CLSyncBox syncBox, IEnumerable<Metadata> metadataList)
+        {
+            CLHttpRestStatus restStatus;
+            Metadata response;
+            List<FileChange> fileChanges = new List<FileChange>();
+            foreach (Metadata item in metadataList)
+            {
+                CLError getFileMetadataError = syncBox.GetMetadata(false, item.ServerId, ManagerConstants.TimeOutMilliseconds, out restStatus, out response);
+                bool isFolder = item.IsFolder.HasValue == true ? item.IsFolder.Value : false;
+                fileChanges.Add(new FileChange()
+                {
+                    Direction = SyncDirection.To,
+                    Type = FileChangeType.Deleted,
+                    Metadata = GetFileMetadataFromMetadata(item, isFolder),
+                    NewPath = item.RelativePath,
+                });
+            }
+            return fileChanges;
+        }
+
+        private FileMetadata GetFileMetadataFromMetadata(CloudApiPublic.JsonContracts.Metadata item, bool isFolder)
+        { 
+            FileMetadata metadata = new FileMetadata();
+            metadata.HashableProperties = new FileMetadataHashableProperties(isFolder, item.ModifiedDate.Value, item.CreatedDate.Value, item.Size);
+            metadata.Revision = item.Revision;
+            metadata.ServerId = item.ServerId;
+            metadata.StorageKey = item.StorageKey;
+            return metadata;
+        }
         #endregion 
     }
 }

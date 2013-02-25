@@ -81,11 +81,13 @@
             <xs:enumeration value = "FileUndelete" />
             <xs:enumeration value ="HttpTest" />
             <xs:enumeration value ="ListItems" />
+            <xs:enumeration value = "CompareFolders" />
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
       <xs:element name="InnerTask" minOccurs="0" type="SmokeTask" />
       <xs:element name="ObjectType" type="ModificationObject" />
+      <xs:element name="SelectedSyncBoxID" type="xs:long" />
     </xs:sequence>
   </xs:complexType>
 
@@ -96,7 +98,9 @@
       <xs:extension base="SmokeTask" >
         <xs:sequence>
           <xs:element name="Name" type ="xs:string" />
-          <xs:element name="Path" type ="xs:string" />          
+          <xs:element name="Path" type ="xs:string" />
+          <xs:element name="CreateNew" type="xs:boolean" />
+          <xs:element name="Count" type="xs:int" minOccurs="0" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -113,6 +117,7 @@
           <xs:element name="DeleteAll" type="xs:boolean" minOccurs="0" />
           <xs:element name="DeleteCount" type="xs:int" minOccurs="0"/>
           <xs:element name="ID" type="xs:long" minOccurs="0"/>
+          <xs:element name="ServerID" type="xs:string" minOccurs="0" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -125,6 +130,7 @@
           <xs:element name="OldName" type ="xs:string" />
           <xs:element name="NewName" type ="xs:string" />
           <xs:element name="RelativeDirectoryPath" type ="xs:string" />
+          <xs:element name="ServerID" type="xs:long" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -159,6 +165,7 @@
       <xs:extension base="SmokeTask" >
         <xs:sequence>
           <xs:element name="CreateNew" type="xs:boolean"/>
+          <xs:element name="Count" type="xs:int" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -189,7 +196,14 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  
+
+  <xs:complexType name="CompareFolders" >
+    <xs:complexContent>
+      <xs:extension base="SmokeTask">
+        
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   
   <xs:complexType name="ParallelTaskSet">
     <xs:choice >

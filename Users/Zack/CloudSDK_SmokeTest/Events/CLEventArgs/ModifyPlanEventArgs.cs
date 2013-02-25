@@ -6,7 +6,7 @@ using System.Text;
 
 namespace CloudSDK_SmokeTest.Events.CLEventArgs
 {
-    public class ModifyPlanEventArgs : EventArgs
+    public class ModifyPlanEventArgs : TaskEventArgs
     {
         public CLCredential Creds { get; set; }
         public long PlanID { get; set; }

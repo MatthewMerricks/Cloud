@@ -187,6 +187,8 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private ModificationObject objectTypeField;
         
+        private long selectedSyncBoxIDField;
+        
         /// <remarks/>
         public SmokeTaskType type {
             get {
@@ -214,6 +216,16 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.objectTypeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public long SelectedSyncBoxID {
+            get {
+                return this.selectedSyncBoxIDField;
+            }
+            set {
+                this.selectedSyncBoxIDField = value;
             }
         }
     }
@@ -330,6 +342,8 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private bool createNewField;
         
+        private int countField;
+        
         /// <remarks/>
         public bool CreateNew {
             get {
@@ -337,6 +351,16 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.createNewField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public int Count {
+            get {
+                return this.countField;
+            }
+            set {
+                this.countField = value;
             }
         }
     }
@@ -445,6 +469,8 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private string relativeDirectoryPathField;
         
+        private long serverIDField;
+        
         /// <remarks/>
         public string OldName {
             get {
@@ -472,6 +498,16 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.relativeDirectoryPathField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public long ServerID {
+            get {
+                return this.serverIDField;
+            }
+            set {
+                this.serverIDField = value;
             }
         }
     }
@@ -503,6 +539,8 @@ namespace CloudSDK_SmokeTest.Settings {
         private long idField;
         
         private bool idFieldSpecified;
+        
+        private string serverIDField;
         
         /// <remarks/>
         public string Name {
@@ -606,6 +644,16 @@ namespace CloudSDK_SmokeTest.Settings {
                 this.idFieldSpecified = value;
             }
         }
+        
+        /// <remarks/>
+        public string ServerID {
+            get {
+                return this.serverIDField;
+            }
+            set {
+                this.serverIDField = value;
+            }
+        }
     }
     
     /// <remarks/>
@@ -619,6 +667,12 @@ namespace CloudSDK_SmokeTest.Settings {
         private string nameField;
         
         private string pathField;
+        
+        private bool createNewField;
+        
+        private int countField;
+        
+        private bool countFieldSpecified;
         
         /// <remarks/>
         public string Name {
@@ -637,6 +691,37 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.pathField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool CreateNew {
+            get {
+                return this.createNewField;
+            }
+            set {
+                this.createNewField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public int Count {
+            get {
+                return this.countField;
+            }
+            set {
+                this.countField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool CountSpecified {
+            get {
+                return this.countFieldSpecified;
+            }
+            set {
+                this.countFieldSpecified = value;
             }
         }
     }

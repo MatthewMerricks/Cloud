@@ -66,7 +66,20 @@ namespace CloudApiPublic.Static
         CommunicatingChanges = 1,
         UploadingFiles = 2,
         DownloadingFiles = 4,
-        HaltedOnConnectionFailure = 8
+        HaltedOnConnectionFailure = 8,
+        HaltedOnExpiredCredentials = 16
+    }
+
+    /// <summary>
+    /// Status of querying index by EventId
+    /// </summary>
+    public enum FileChangeQueryStatus
+    {
+        Success,
+        ErrorMultipleResults,
+        ErrorNotFound,
+        ErrorNoIndexer,
+        ErrorUnknown
     }
 
     /// <summary>
@@ -102,6 +115,10 @@ namespace CloudApiPublic.Static
         /// Method invoked an unauthorized (401) response from the server
         /// </summary>
         NotAuthorized,
+        /// <summary>
+        /// Method invoked an unauthorized (401) response from the server, specifically due to expired session credentials
+        /// </summary>
+        NotAuthorizedExpiredCredentials,
         /// <summary>
         /// Method invoked a storage quota exceeded (507) response from the server
         /// </summary>

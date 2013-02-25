@@ -8,6 +8,5 @@ namespace CloudSDK_SmokeTest.Events.CLEventArgs
 {
     public class GetFileDeleteEventArgs : TaskEventArgs
     {
-        public InputParams ParamSet { get; set; }
     }
 }

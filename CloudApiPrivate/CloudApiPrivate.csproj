@@ -72,6 +72,8 @@
     <Compile Include="Common\CLShortcuts.cs" />
     <Compile Include="Common\CLFolderIcon.cs" />
     <Compile Include="Common\CLIniWriter.cs" />
+    <Compile Include="Model\CLAccount.cs" />
+    <Compile Include="Model\CLDevice.cs" />
     <Compile Include="Model\ConstructedHolder.cs" />
     <Compile Include="Model\CLPrivateDefinitions.cs" />
     <Compile Include="Model\CLRegistration.cs" />
@@ -89,6 +91,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.fr.resx</DependentUpon>
     </Compile>
+    <Compile Include="Static\CLDevices.cs" />
     <Compile Include="Static\CLExtensionMethods.cs" />
     <Compile Include="Static\CLFriendlyEnumValues.cs" />
     <Compile Include="Static\CLPrivateHelpers.cs" />
