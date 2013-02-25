@@ -530,6 +530,20 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _folderContentsSerializer = null;
         private static readonly object FolderContentsSerializerLocker = new object();
 
+        public static DataContractJsonSerializer AuthenticationErrorResponseSerializer
+        {
+            get
+            {
+                lock (AuthenticationErrorResponseSerializerLocker)
+                {
+                    return _authenticationErrorResponse
+                        ?? (_authenticationErrorResponse = new DataContractJsonSerializer(typeof(JsonContracts.AuthenticationErrorResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _authenticationErrorResponse = null;
+        private static readonly object AuthenticationErrorResponseSerializerLocker = new object();
+
         #region platform management
         public static DataContractJsonSerializer CreateSyncBoxSerializer
         {

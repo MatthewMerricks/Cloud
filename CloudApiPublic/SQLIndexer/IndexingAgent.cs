@@ -277,6 +277,14 @@ namespace CloudApiPublic.SQLIndexer
         }
 
         #region public methods
+        /// <summary>
+        /// Queries database by eventId to return latest metadata and path as a FileChange and whether or not the event is still pending
+        /// </summary>
+        /// <param name="eventId">EventId key to lookup</param>
+        /// <param name="queryResult">(output) Result FileChange from EventId lookup</param>
+        /// <param name="isPending">(output) Result whether event is pending from EventId lookup</param>
+        /// <param name="status">(output) Status of quering the database</param>
+        /// <returns>Returns any error which occurred querying the database, if any</returns>
         public CLError QueryFileChangeByEventId(long eventId, out FileChange queryResult, out bool isPending, out FileChangeQueryStatus status)
         {
             try

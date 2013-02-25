@@ -11,7 +11,7 @@ using System.Resources;
 using CloudApiPublic.Resources;
 using CloudApiPublic.Static;
 
-namespace CloudApiPublic.Model
+namespace CloudApiPrivate.Model
 {
     public class CLDevice
     {
