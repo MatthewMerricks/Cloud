@@ -498,9 +498,12 @@ namespace CloudSdkSyncSample.EventMessageReceiver
             {
                 try
                 {
-                    MessageEvents.UnsubscribeMessageReceiver(
-                        SyncBoxId,
-                        DeviceId);
+                    if (!isDisposed)
+                    {
+                        MessageEvents.UnsubscribeMessageReceiver(
+                            SyncBoxId,
+                            DeviceId);
+                    }
                 }
                 catch
                 {
