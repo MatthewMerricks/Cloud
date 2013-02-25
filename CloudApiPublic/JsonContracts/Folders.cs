@@ -21,8 +21,8 @@ namespace CloudApiPublic.JsonContracts
     [DataContract]
     public sealed class Folders
     {
-        [DataMember(Name = CLDefinitions.CLMetadataCount, IsRequired = false)]
-        public Nullable<long> Count { get; set; }
+        [DataMember(Name = CLDefinitions.CLMetadataTotalCount, IsRequired = false)]
+        public Nullable<long> TotalCount { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataFolders, IsRequired = false)]
         public JsonContracts.Metadata[] Metadata { get; set; }

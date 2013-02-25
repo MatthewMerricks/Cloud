@@ -487,11 +487,11 @@ namespace CloudApiPublic.Static
         public const string CLMetadataFiles = "files";
         public const string CLMetadataFile = "file";
         public const string CLMetadataServerId = "uid";
-        public const string CLMetadataCount = "count";
+        public const string CLMetadataTotalCount = "total_count";
         public const string CLMetadataIsStored = "is_stored";
-        public const string CLMetadataMoreItems = "more_items";
         public const string CLMetadataLocal = "local";
         public const string CLMetadataShared = "shared";
+        public const string CLMetadataLimit = "limit";
         public const string CLMetadataFolders = "folders";
         public const string CLMetadataLinks = "links";
         public const string CLMetadataItemCount = "item_count";
@@ -589,6 +589,8 @@ namespace CloudApiPublic.Static
         public const string RESTRequestSession_KeyId = "key_id";
         public const string RESTRequestSession_Key = "key";
 
+        // Response message texts which should be replaced with actual code numbers when the server updates
+        public const string MessageTextExpiredCredentials = "Session credentials are expired";
 
         //// Old definitions used by the full client.
         ////

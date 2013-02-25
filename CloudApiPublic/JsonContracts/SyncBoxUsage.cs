@@ -26,5 +26,8 @@ namespace CloudApiPublic.JsonContracts
 
         [DataMember(Name = CLDefinitions.CLMetadataShared, IsRequired = false)]
         public Nullable<long> Shared { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataLimit, IsRequired = false)]
+        public Nullable<long> Limit { get; set; }
     }
 }

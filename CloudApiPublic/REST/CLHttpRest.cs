@@ -3749,7 +3749,7 @@ namespace CloudApiPublic.REST
                     Helpers.QueryStringBuilder(new[]
                     {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString()),
                     });
 
                 // run the HTTP communication and store the response object to the output parameter
