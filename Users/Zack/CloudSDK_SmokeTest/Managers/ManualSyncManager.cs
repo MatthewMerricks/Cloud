@@ -332,62 +332,63 @@ namespace CloudSDK_SmokeTest.Managers
         /// <returns>
         ///     int deleteFileResponse -- value returned depending on the completion status of the operation
         /// </returns>
-        public override int Delete(Settings.InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder)
-        {
-            Deletion deleteTask = smokeTask as Deletion;
-            if (deleteTask == null)
-                return (int)FileManagerResponseCodes.InvalidTaskType;
+        //public override int Delete(Settings.InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder)
+        //{
+        //    Deletion deleteTask = smokeTask as Deletion;
+        //    if (deleteTask == null)
+        //        return (int)FileManagerResponseCodes.InvalidTaskType;
 
-            int deleteResponseCode = 0;
-            CLCredential creds;
-            CLCredentialCreationStatus credsCreateStatus;
-            CLSyncBox syncBox;
-            CLSyncBoxCreationStatus boxCreateStatus;
-            CLHttpRestStatus restStatus = new CLHttpRestStatus();
-            GenericHolder<CLError> refHolder = ProcessingErrorHolder;
+        //    int deleteResponseCode = 0;
+        //    CLCredential creds;
+        //    CLCredentialCreationStatus credsCreateStatus;
+        //    CLSyncBox syncBox;
+        //    CLSyncBoxCreationStatus boxCreateStatus;
+        //    CLHttpRestStatus restStatus = new CLHttpRestStatus();
+        //    GenericHolder<CLError> refHolder = ProcessingErrorHolder;
 
-            InitalizeCredentials("ManualSyncManager.DeleteFile", ref reportBuilder, out creds, out credsCreateStatus);            
-            if (credsCreateStatus != CLCredentialCreationStatus.Success)
-                return (int)FileManagerResponseCodes.InitializeCredsError;
+        //    InitalizeCredentials("ManualSyncManager.DeleteFile", ref reportBuilder, out creds, out credsCreateStatus);            
+        //    if (credsCreateStatus != CLCredentialCreationStatus.Success)
+        //        return (int)FileManagerResponseCodes.InitializeCredsError;
 
-            ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", ""));
-            FileChange fileChange = null;
-            CloudApiPublic.JsonContracts.Event returnEvent; 
-            long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
-            CLError boxError = CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
-            if (boxError != null || boxCreateStatus != CLSyncBoxCreationStatus.Success)
-            {
-                HandleFailure(boxError, null, boxCreateStatus, "Create SyncBox For Delete", ref refHolder);
-                return (int)FileManagerResponseCodes.InitializeSynBoxError;
-            }
+        //    ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", ""));
+        //    FileChange fileChange = null;
+        //    CloudApiPublic.JsonContracts.Event returnEvent; 
+        //    long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
+        //    CLError boxError = CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
+        //    if (boxError != null || boxCreateStatus != CLSyncBoxCreationStatus.Success)
+        //    {
+        //        HandleFailure(boxError, null, boxCreateStatus, "Create SyncBox For Delete", ref refHolder);
+        //        return (int)FileManagerResponseCodes.InitializeSynBoxError;
+        //    }
 
-            if (deleteTask.ObjectType.type == ModificationObjectType.File)
-            {
-                GetFileDeleteEventArgs getDeleteEventArgs = new GetFileDeleteEventArgs() 
-                {
-                     ParamSet = paramSet,
-                     CurrentTask = smokeTask,
-                     SyncBox = syncBox,
-                };
-                deleteResponseCode = DeleteFiles(getDeleteEventArgs);
-            }
-            if (deleteTask.ObjectType.type == ModificationObjectType.Folder)
-            {
+        //    if (deleteTask.ObjectType.type == ModificationObjectType.File)
+        //    {
+        //        GetFileDeleteEventArgs getDeleteEventArgs = new GetFileDeleteEventArgs() 
+        //        {
+        //             ParamSet = paramSet,
+        //             CurrentTask = smokeTask,
+        //             SyncBox = syncBox,
+        //             ReportBuilder = reportBuilder,
+        //        };
+        //        deleteResponseCode = DeleteFiles(getDeleteEventArgs);
+        //    }
+        //    if (deleteTask.ObjectType.type == ModificationObjectType.Folder)
+        //    {
 
-                GetFolderDeleteEventArgs eventArgs = new GetFolderDeleteEventArgs() 
-                { 
-                    boxCreationStatus= boxCreateStatus, 
-                    CurrentTask = deleteTask, 
-                    Creds = creds,
-                    CredsStatus = credsCreateStatus, 
-                    ProcessingErrorHolder = ProcessingErrorHolder, 
-                    SyncBox = syncBox,
-                    SyncBoxRoot = new DirectoryInfo(paramSet.ManualSync_Folder.Replace("\"", "")),
-                };
-                deleteResponseCode = DeleteFolders(eventArgs);            
-            }
-            return deleteResponseCode;
-        }
+        //        GetFolderDeleteEventArgs eventArgs = new GetFolderDeleteEventArgs() 
+        //        { 
+        //            boxCreationStatus= boxCreateStatus, 
+        //            CurrentTask = deleteTask, 
+        //            Creds = creds,
+        //            CredsStatus = credsCreateStatus, 
+        //            ProcessingErrorHolder = ProcessingErrorHolder, 
+        //            SyncBox = syncBox,
+        //            SyncBoxRoot = new DirectoryInfo(paramSet.ManualSync_Folder.Replace("\"", "")),
+        //        };
+        //        deleteResponseCode = DeleteFolders(eventArgs);            
+        //    }
+        //    return deleteResponseCode;
+        //}
 
         private IEnumerable<Metadata> GetFilesForDelete(GetFileDeleteEventArgs fileDeleteArgs, Deletion deleteTask)
         {
@@ -476,6 +477,7 @@ namespace CloudSDK_SmokeTest.Managers
             List<Metadata> metadataList = GetFilesForDelete(args, deleteTask).ToList();
             List<FileChange> changes = GetFileChangesFromMetadata(args.SyncBox, metadataList).ToList();
             CloudApiPublic.JsonContracts.Event returnEvent;
+            StringBuilder report = args.ReportBuilder;
             foreach (FileChange fc in changes)
             {
                 if (deleteResponseCode == 0)
@@ -487,10 +489,36 @@ namespace CloudSDK_SmokeTest.Managers
                         return (int)FileManagerResponseCodes.UnknownError;
                     }
                     else
-                        Console.WriteLine(string.Format("Successfully Deleted File: {0} with ID: {1}", fc.NewPath, fc.Metadata.ServerId));
+                    {
+                        string rootFolder = args.ParamSet.ManualSync_Folder.Replace("\"", "");
+                        if (rootFolder.ElementAt(rootFolder.Count()-1) == '\\')
+                            rootFolder = rootFolder.Remove(rootFolder.Count()-1, 1);
+                        string fullPath = rootFolder  + fc.NewPath.ToString().Replace("/", "\\");
+                        report.AppendLine(string.Format("Successfully Deleted File: {0} ID: {1} From Syncbox: {2}", fc.NewPath, fc.Metadata.ServerId, args.SyncBox.SyncBoxId));
+                        TryDeleteLocal(fullPath, ref refHolder, ref report);
+                    }
                 }
             }
             return deleteResponseCode;
+        }
+
+        private int TryDeleteLocal(string path, ref GenericHolder<CLError> ProcessingErrorHolder, ref StringBuilder reportBuilder)
+        {
+            int responseCode = 0;
+            try
+            {
+                File.Delete(path);
+                reportBuilder.AppendLine(string.Format("Successfully Deleted Local File {0}", path));
+            }
+            catch (Exception ex)
+            {
+                responseCode = -1;
+                lock (ProcessingErrorHolder)
+                {
+                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+                }
+            }
+            return responseCode;
         }
 
         private int DeleteFolders(GetFolderDeleteEventArgs args)

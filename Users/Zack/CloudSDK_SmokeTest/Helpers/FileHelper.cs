@@ -247,6 +247,7 @@ namespace CloudSDK_SmokeTest.Helpers
             byte[] md5Bytes = null;
             long fileSize = 0;
             DateTime currentTime = DateTime.UtcNow;
+            FileInfo forTime = new FileInfo(filePath);
             if (getHash)
             {
                 md5Bytes = MD5_Helper.GetHashOfStream(
@@ -266,7 +267,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 Metadata = new CloudApiPublic.Model.FileMetadata()
                 {
                     //TODO: Get the filesize of the file being uploaded 
-                    HashableProperties = new CloudApiPublic.Model.FileMetadataHashableProperties(false, currentTime, currentTime, fileSize),
+                    HashableProperties = new CloudApiPublic.Model.FileMetadataHashableProperties(false, forTime.LastWriteTime, forTime.CreationTime, fileSize),
                     //LinkTargetPath -- TTarget Pth of a Shortcut file 
                     //MimeType = null, //unsude by windows but could be calced by file extension 
                     StorageKey = storageKey,
@@ -298,22 +299,22 @@ namespace CloudSDK_SmokeTest.Helpers
             }
         }
 
-        public static int TryCreate(InputParams paramSet, SmokeTask smokeTask, FileInfo fi, string fileName, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
-        {
-            int responseCode = -1;
-            try
-            {
-                responseCode = manager.Create(paramSet, smokeTask, fi, fileName, ref reportBuilder, ref ProcessingErrorHolder);
-            }
-            catch (Exception ex)
-            {
-                lock (ProcessingErrorHolder)
-                {
-                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
-                }
-            }
-            return responseCode;
-        }
+        //public static int TryCreate(InputParams paramSet, SmokeTask smokeTask, FileInfo fi, string fileName, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
+        //{
+        //    int responseCode = -1;
+        //    try
+        //    {
+        //        responseCode = manager.Create(paramSet, smokeTask, fi, fileName, ref reportBuilder, ref ProcessingErrorHolder);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        lock (ProcessingErrorHolder)
+        //        {
+        //            ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+        //        }
+        //    }
+        //    return responseCode;
+        //}
 
         #endregion 
 
