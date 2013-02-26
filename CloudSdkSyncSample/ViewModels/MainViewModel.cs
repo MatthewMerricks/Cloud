@@ -79,11 +79,14 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Initialize trace
             CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors);
+
+            // Bind to MessageEvents for special message handling cases
+            MessageEvents.NewEventMessage += MessageEvents_NewEventMessage;
         }
 
         public MainViewModel()
         {
-            throw new Exception("Default constructor not supported.");
+            throw new NotSupportedException("Default constructor not supported.");
         }
 
         #endregion
@@ -1456,6 +1459,218 @@ namespace CloudSdkSyncSample.ViewModels
         #endregion
 
         #region Event Callbacks
+
+        private void MessageEvents_NewEventMessage(EventMessageArgs e)
+        {
+            //// you can pull out a formatted message regardless of message type
+            //string messageText = e.Message.Message;
+
+            //// all messages have properties to identify the unique combination of SyncBoxId and DeviceId,
+            //// but some messages can be fired without a sync box and thus both will be null
+            //Nullable<long> syncBoxId = e.Message.SyncBoxId;
+            //string deviceId = e.Message.DeviceId;
+
+            // switch on the message type for the special cases we wish to handle here
+            switch (e.Message.Type)
+            {
+                case EventMessageType.Error: // error type
+                    //// cast as error
+                    CloudApiPublic.Model.EventMessages.ErrorMessage errMessage = (CloudApiPublic.Model.EventMessages.ErrorMessage)e.Message;
+
+                    //// enumerated rating of the presumed weight of message importance
+                    //errMessage.Importance
+                    
+                    // ErrorInfo has additional error information such as ErrorType and possibly even more information for certain types
+                    // switch on ErrorInfo ErrorType for the types we wish to handle
+                    switch (errMessage.ErrorInfo.ErrorType)
+                    {
+                        case ErrorMessageType.HaltAllOfCloudSDK: // entire SDK halted type (unrecoverable error requiring restarting the process running the Cloud SDK and possibly a call to [instance of CLSyncEngine].ResetSync)
+                            // cast as halt all info
+                            CloudApiPublic.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo haltAllInfo = (CloudApiPublic.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo)errMessage.ErrorInfo;
+
+                            if (NotifyException != null)
+                            {
+                                NotifyException(this,
+                                    new NotificationEventArgs<CLError>()
+                                    {
+                                        Data = new Exception(e.Message.Message),
+                                        Message = String.Format("Cloud SDK had an unrecoverable error. The application must be restarted. If you see this message again, then click Reset Sync." +
+                                            " Error message: {0}", e.Message.Message)
+                                    });
+                            }
+                            break;
+
+                        case ErrorMessageType.HaltSyncEngineOnAuthenticationFailure: // authentication failure type
+                            // cast as authentication info
+                            CloudApiPublic.Model.EventMessages.ErrorInfo.HaltSyncEngineOnAuthenticationFailureErrorInfo authInfo = (CloudApiPublic.Model.EventMessages.ErrorInfo.HaltSyncEngineOnAuthenticationFailureErrorInfo)errMessage.ErrorInfo;
+
+                            // authentication failure has additional data in its info
+                            // so switch on whether the authentication failure was due to an expired token
+                            if (authInfo.TokenExpired)
+                            {
+                                // token is expired, but otherwise credentials were fine
+
+                                if (NotifyException != null)
+                                {
+                                    NotifyException(this,
+                                        new NotificationEventArgs<CLError>()
+                                        {
+                                            Data = new Exception(e.Message.Message),
+                                            Message = String.Format("Temporary credentials expired for local SyncBox with id {0} and device id {1}. Restart sync with new credentials. Error message: {2}",
+                                                (e.Message.SyncBoxId == null
+                                                    ? "{null}"
+                                                    : ((long)e.Message.SyncBoxId).ToString()),
+                                                e.Message.DeviceId ?? "{null}",
+                                                e.Message.Message)
+                                        });
+                                }
+                            }
+                            else if (NotifyException != null)
+                            {
+                                // general problem with credentials (probably a bad key\secret or sync box id)
+
+                                NotifyException(this,
+                                    new NotificationEventArgs<CLError>()
+                                    {
+                                        Data = new Exception(e.Message.Message),
+                                        Message = String.Format("Incorrect credentials for local SyncBox with id {0} and device id {1}. Error message: {2}",
+                                            (e.Message.SyncBoxId == null
+                                                ? "{null}"
+                                                : ((long)e.Message.SyncBoxId).ToString()),
+                                            e.Message.DeviceId ?? "{null}",
+                                            e.Message.Message)
+                                    });
+                            }
+                            break;
+
+                        case ErrorMessageType.HaltSyncEngineOnConnectionFailure: // unable to establish route to server type
+                            // cast as connection failure info
+                            CloudApiPublic.Model.EventMessages.ErrorInfo.HaltSyncEngineOnConnectionFailureErrorInfo connInfo = (CloudApiPublic.Model.EventMessages.ErrorInfo.HaltSyncEngineOnConnectionFailureErrorInfo)errMessage.ErrorInfo;
+
+                            if (NotifyException != null)
+                            {
+                                NotifyException(this,
+                                    new NotificationEventArgs<CLError>()
+                                    {
+                                        Data = new Exception(e.Message.Message),
+                                        Message = String.Format("Unable to establish route to server. Error message: {0}", e.Message.Message)
+                                    });
+                            }
+                            break;
+
+                        case ErrorMessageType.General: // general error type
+                            // cast as general info
+                            CloudApiPublic.Model.EventMessages.ErrorInfo.GeneralErrorInfo genInfo = (CloudApiPublic.Model.EventMessages.ErrorInfo.GeneralErrorInfo)errMessage.ErrorInfo;
+
+                            // general errors occur as normal processing, they are logged in the Sync Status view
+                            // (no need to notify on exception)
+                            break;
+
+                        default: // unknown error type
+
+                            // SDK has been updated with new error message types which need to be added as new cases above;
+                            // for now, notify on exception
+
+                            if (NotifyException != null)
+                            {
+                                NotifyException(this,
+                                    new NotificationEventArgs<CLError>()
+                                    {
+                                        Data = new Exception(e.Message.Message),
+                                        Message = String.Format("Unhandled type of error. Type: {0}. SyncBox id: {1}. Device id: {2}. Error message: {3}.",
+                                            errMessage.ErrorInfo.ErrorType.ToString(),
+                                            (e.Message.SyncBoxId == null
+                                                ? "{null}"
+                                                : ((long)e.Message.SyncBoxId).ToString()),
+                                            e.Message.DeviceId ?? "{null}",
+                                            e.Message.Message)
+                                    });
+                            }
+                            break;
+                    }
+
+                    break;
+
+                case EventMessageType.Informational: // information type
+                    //// cast as information
+                    //CloudApiPublic.Model.EventMessages.InformationalMessage infoMessage = (CloudApiPublic.Model.EventMessages.InformationalMessage)e.Message;
+
+                    //// enumerated rating of the presumed weight of message importance
+                    //infoMessage.Importance
+
+                    // information messages occur as normal processing, they are logged in the Sync Status view
+                    // (no need to handle here)
+
+                    //break;
+
+                case EventMessageType.UploadingCountChanged: // uploading count type
+                    //// cast as uploading count
+                    //CloudApiPublic.Model.EventMessages.UploadingCountMessage uploadingCountMessage = (CloudApiPublic.Model.EventMessages.UploadingCountMessage)e.Message;
+
+                    //// the combined count of uploading files and files queued for upload
+                    //uploadingCountMessage.Count
+                    //break;
+
+                case EventMessageType.DownloadingCountChanged: // downloading count type
+                    //// cast as downloading count
+                    //CloudApiPublic.Model.EventMessages.DownloadingCountMessage downloadingCountMessage = (CloudApiPublic.Model.EventMessages.DownloadingCountMessage)e.Message;
+
+                    //// the combined count of downloading files and files queued for download
+                    //downloadingCountMessage.Count
+                    //break;
+
+                case EventMessageType.UploadProgress: // upload progress type
+                    //// cast as upload progress
+                    //CloudApiPublic.Model.EventMessages.UploadProgressMessage uploadProgressMessage = (CloudApiPublic.Model.EventMessages.UploadProgressMessage)e.Message;
+
+                    //// the unique id for the upload change on the client, can be used in method [CLSyncEngine instance].QueryFileChangeByEventId to lookup additional event details
+                    //uploadProgressMessage.EventId
+
+                    //// additional parameters to signify a file's transfer progress
+                    //uploadProgressMessage.Parameters
+                        //.TransferStartTime <-- UTC DateTime when transfer started
+                        //.RelativePath <-- relative path to the file starting at the SyncRoot
+                        //.ByteSize <-- total byte size of the file to transfer
+                        //.ByteProgress <-- number of bytes transferred so far, if it is equal to the ByteSize then the transfer is complete
+                    //break;
+
+                case EventMessageType.DownloadProgress: // download progress type
+                    //// cast as download progress
+                    //CloudApiPublic.Model.EventMessages.DownloadProgressMessage downloadProgressMessage = (CloudApiPublic.Model.EventMessages.DownloadProgressMessage)e.Message;
+
+                    //// the unique id for the upload change on the client, can be used in method [CLSyncEngine instance].QueryFileChangeByEventId to lookup additional event details
+                    //downloadProgressMessage.EventId
+
+                    //// additional parameters to signify a file's transfer progress
+                    //downloadProgressMessage.Parameters
+                        //.TransferStartTime <-- UTC DateTime when transfer started
+                        //.RelativePath <-- relative path to the file starting at the SyncRoot
+                        //.ByteSize <-- total byte size of the file to transfer
+                        //.ByteProgress <-- number of bytes transferred so far, if it is equal to the ByteSize then the transfer is complete
+                    //break;
+
+                case EventMessageType.SuccessfulUploadsIncremented: // uploads incremented type
+                    //// cast as uploads incremented
+                    //CloudApiPublic.Model.EventMessages.SuccessfulUploadsIncrementedMessage uploadsIncrementMessage = (CloudApiPublic.Model.EventMessages.SuccessfulUploadsIncrementedMessage)e.Message;
+
+                    //// the amount to increment (the number of finished transfers)
+                    //uploadsIncrementMessage.Count
+                    //break;
+
+                case EventMessageType.SuccessfulDownloadsIncremented: // downloads incremented type
+                    //// cast as downloads incremented
+                    //CloudApiPublic.Model.EventMessages.SuccessfulDownloadsIncrementedMessage downloadIncrementMessage = (CloudApiPublic.Model.EventMessages.SuccessfulDownloadsIncrementedMessage)e.Message;
+
+                    //// the amount to increment (the number of finished transfers)
+                    //downloadIncrementMessage.Count
+                    //break;
+
+                default: // unknown type of message, added in an update to the SDK
+                    break;
+            }
+            
+            e.MarkHandled();
+        }
 
         private void OnSetHistoricBandwidthSettings(double historicUploadBandwidthBitsPS, double historicDownloadBandwidthBitsPS)
         {

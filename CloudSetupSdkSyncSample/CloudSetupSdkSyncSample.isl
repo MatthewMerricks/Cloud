@@ -4826,7 +4826,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[INSTALLDIR]CloudSdkSyncSample.Primary output</td><td/></row>
 		<row><td>ProductCode</td><td>{8B476C3F-CD29-4B06-AD4C-22C14619E258}</td><td/></row>
 		<row><td>ProductName</td><td>CloudSdkSyncSample</td><td/></row>
-		<row><td>ProductVersion</td><td>0.01.0004.1</td><td/></row>
+		<row><td>ProductVersion</td><td>0.01.0005</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>

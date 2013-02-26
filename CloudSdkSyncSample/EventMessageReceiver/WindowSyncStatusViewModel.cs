@@ -51,7 +51,7 @@ namespace CloudSdkSyncSample.EventMessageReceiver
         // static message-receiving methods
         // -David
         #region message events callbacks
-        void IEventMessageReceiver.UpdateFileUpload(object sender, TransferUpdateArgs e)
+        void IEventMessageReceiver.UpdateFileUpload(ITransferUpdateMessage e)
         {
             lock (UploadEventIdToQueuedUpdateParameters)
             {
@@ -68,7 +68,7 @@ namespace CloudSdkSyncSample.EventMessageReceiver
             e.MarkHandled();
         }
 
-        void IEventMessageReceiver.UpdateFileDownload(object sender, TransferUpdateArgs e)
+        void IEventMessageReceiver.UpdateFileDownload(ITransferUpdateMessage e)
         {
             lock (DownloadEventIdToQueuedUpdateParameters)
             {
@@ -85,7 +85,7 @@ namespace CloudSdkSyncSample.EventMessageReceiver
             e.MarkHandled();
         }
 
-        void IEventMessageReceiver.AddStatusMessage(object sender, EventMessageArgs e)
+        void IEventMessageReceiver.AddStatusMessage(IBasicMessage e)
         {
             // forward to private helper
             AddStatusMessage(e.DeviceId,

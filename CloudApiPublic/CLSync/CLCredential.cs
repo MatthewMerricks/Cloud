@@ -1098,7 +1098,7 @@ namespace CloudApiPublic
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="syncBoxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
-        /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 36 hours.  Maximum: 120 hours.</param>
+        /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public IAsyncResult BeginCreateSession(AsyncCallback aCallback,
@@ -1248,15 +1248,14 @@ namespace CloudApiPublic
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="syncBoxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
-        /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 36 hours.  Maximum: 120 hours.</param>
+        /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError CreateSession(int timeoutMilliseconds, out CLHttpRestStatus status, 
                     out JsonContracts.SessionCreateResponse response, 
                     HashSet<long> syncBoxIds = null,
                     Nullable<long> tokenDurationMinutes = null,
-                    ICLCredentialSettings settings = null
-            )
+                    ICLCredentialSettings settings = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;

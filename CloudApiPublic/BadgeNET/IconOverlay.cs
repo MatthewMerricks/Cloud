@@ -225,10 +225,9 @@ namespace CloudApiPublic.BadgeNET
                             _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: threadInit exception: Msg: <{0}>.", ex.Message);
 
                             MessageEvents.FireNewEventMessage(
-                                sender: ex,
                                 Message: "Explorer icon badging has failed",
                                 Level: EventMessageLevel.Important,
-                                IsError: false,
+                                Error: null,
                                 SyncBoxId: syncBoxId,
                                 DeviceId: _syncSettings.DeviceId);
                         }
@@ -312,10 +311,9 @@ namespace CloudApiPublic.BadgeNET
                 _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>.", ex.Message);
 
                 MessageEvents.FireNewEventMessage(
-                    sender: ex,
                     Message: "Explorer icon badging has failed",
                     Level: EventMessageLevel.Important,
-                    IsError: false,
+                    Error: null,
                     SyncBoxId: syncBoxId,
                     DeviceId: _syncSettings.DeviceId);
                 return ex;

@@ -15,7 +15,7 @@ namespace CloudApiPublic.Model
     /// <summary>
     /// Base class for EventArgs which can be marked as handled when fired to EventHandlers
     /// </summary>
-    public abstract class HandleableEventArgs : EventArgs
+    public abstract class HandleableEventArgs : EventArgs, IHandleableArgs
     {
         /// <summary>
         /// Whether this EventArgs has been marked as handled
@@ -35,5 +35,16 @@ namespace CloudApiPublic.Model
         {
             _handled = true;
         }
+    }
+    public interface IHandleableArgs
+    {
+        /// <summary>
+        /// Whether this EventArgs has been marked as handled
+        /// </summary>
+        bool Handled { get; }
+        /// <summary>
+        /// Mark this EventArgs as handled
+        /// </summary>
+        void MarkHandled();
     }
 }

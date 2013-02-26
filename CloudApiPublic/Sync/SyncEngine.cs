@@ -23,6 +23,7 @@ using CloudApiPublic.Interfaces;
 using CloudApiPublic.JsonContracts;
 using CloudApiPublic.Sync.Model;
 using CloudApiPublic.REST;
+using CloudApiPublic.Model.EventMessages.ErrorInfo;
 
 namespace CloudApiPublic.Sync
 {
@@ -1198,7 +1199,7 @@ namespace CloudApiPublic.Sync
                             }
                         }
 
-                        MessageEvents.FireNewEventMessage(this,
+                        MessageEvents.FireNewEventMessage(
                             "No internet connection detected. Retrying Sync after a short delay.",
                             SyncBoxId: syncBox.SyncBoxId,
                             DeviceId: syncBox.CopiedSettings.DeviceId);
@@ -1231,9 +1232,8 @@ namespace CloudApiPublic.Sync
 
                     // status message
                     MessageEvents.FireNewEventMessage(
-                        sender: respondingToPushNotification,
                         Message: "Started checking for sync changes to process",
-                        IsError: false,
+                        Error: null,
                         SyncBoxId: syncBox.SyncBoxId,
                         DeviceId: syncBox.CopiedSettings.DeviceId);
 
@@ -1428,8 +1428,6 @@ namespace CloudApiPublic.Sync
                             // status message
                             // e.g. "5 changes to process, 1 change waiting to retry"
                             MessageEvents.FireNewEventMessage(
-                                respondingToPushNotification
-                                    || outputChangesCount != 0,
                                 "Found " +
                                     outputChangesCount.ToString() +
                                     " change" + (outputChangesCount == 1 ? string.Empty : "s") + " to process" +
@@ -1463,10 +1461,9 @@ namespace CloudApiPublic.Sync
 
                             // status message
                             MessageEvents.FireNewEventMessage(
-                                sender: ex,
                                 Message: "An error occurred checking for changes",
                                 Level: EventMessageLevel.Important,
-                                IsError: true,
+                                Error: new GeneralErrorInfo(),
                                 SyncBoxId: syncBox.SyncBoxId,
                                 DeviceId: syncBox.CopiedSettings.DeviceId);
                         }
@@ -1651,10 +1648,10 @@ namespace CloudApiPublic.Sync
 
                                         try
                                         {
-                                            MessageEvents.FireNewEventMessage(this,
+                                            MessageEvents.FireNewEventMessage(
                                                 pendingsErrorString,
                                                 EventMessageLevel.Important,
-                                                /*IsError*/ true,
+                                                /*Error*/ new GeneralErrorInfo(),
                                                 syncBox.SyncBoxId,
                                                 syncBox.CopiedSettings.DeviceId);
                                         }
@@ -1694,7 +1691,7 @@ namespace CloudApiPublic.Sync
                                     try
                                     {
                                         innerConfirmingMetadataForPreexistingUploadDownloads = EventHandledLevel.IsHandled ==
-                                            MessageEvents.FireNewEventMessage(this,
+                                            MessageEvents.FireNewEventMessage(
                                                 "At least one preexisting upload or download was found on startup, confirming metadata before processing" +
                                                     (innerUnhandledPreexistingUploadDownloadEventMessage
                                                         ? "; Handle message event to prevent duplicate messages"
@@ -1868,10 +1865,10 @@ namespace CloudApiPublic.Sync
 
                                                     try
                                                     {
-                                                        MessageEvents.FireNewEventMessage(this,
+                                                        MessageEvents.FireNewEventMessage(
                                                             fileMetadataErrorString,
                                                             EventMessageLevel.Regular,
-                                                            true,
+                                                            /*Error*/new GeneralErrorInfo(),
                                                             syncBox.SyncBoxId,
                                                             syncBox.CopiedSettings.DeviceId);
                                                     }
@@ -1904,10 +1901,10 @@ namespace CloudApiPublic.Sync
 
                                                         try
                                                         {
-                                                            MessageEvents.FireNewEventMessage(this,
+                                                            MessageEvents.FireNewEventMessage(
                                                                 fileVersionsErrorString,
                                                                 EventMessageLevel.Regular,
-                                                                true,
+                                                                /*Error*/new GeneralErrorInfo(),
                                                                 syncBox.SyncBoxId,
                                                                 syncBox.CopiedSettings.DeviceId);
                                                         }
@@ -2061,7 +2058,6 @@ namespace CloudApiPublic.Sync
                                                         if (eventCompletion.Result.EventId != 0)
                                                         {
                                                             MessageEvents.IncrementDownloadedCount(
-                                                                sender: eventCompletion,
                                                                 incrementAmount: 1,
                                                                 SyncBoxId: syncBox.SyncBoxId,
                                                                 DeviceId: syncBox.CopiedSettings.DeviceId);
@@ -2079,7 +2075,6 @@ namespace CloudApiPublic.Sync
                                                         if (eventCompletion.Result.EventId != 0)
                                                         {
                                                             MessageEvents.IncrementUploadedCount(
-                                                                sender: eventCompletion,
                                                                 incrementAmount: 1,
                                                                 SyncBoxId: syncBox.SyncBoxId,
                                                                 DeviceId: syncBox.CopiedSettings.DeviceId);
@@ -2188,7 +2183,6 @@ namespace CloudApiPublic.Sync
                             int syncFromCount = synchronouslyPreprocessed.Count - syncToCount;
 
                             MessageEvents.FireNewEventMessage(
-                                true,
                                 (syncToCount == 0
                                     ? string.Empty
                                     : syncToCount.ToString() +
@@ -2210,7 +2204,6 @@ namespace CloudApiPublic.Sync
                             int syncFromCount = asynchronouslyPreprocessed.Count - syncToCount;
 
                             MessageEvents.FireNewEventMessage(
-                                true,
                                 (syncToCount == 0
                                     ? string.Empty
                                     : syncToCount.ToString() +
@@ -2386,10 +2379,10 @@ namespace CloudApiPublic.Sync
                                         break;
                                 }
 
-                                MessageEvents.FireNewEventMessage(this,
+                                MessageEvents.FireNewEventMessage(
                                     errorMessage,
                                     EventMessageLevel.Important,
-                                    true,
+                                    /*Error*/new HaltSyncEngineOnAuthenticationFailureErrorInfo(credentialsError == CredentialErrorType.ExpiredCredentials),
                                     syncBox.SyncBoxId,
                                     syncBox.CopiedSettings.DeviceId);
                             }
@@ -2908,7 +2901,6 @@ namespace CloudApiPublic.Sync
                                                 if (eventCompletion.Result.EventId != 0)
                                                 {
                                                     MessageEvents.IncrementDownloadedCount(
-                                                        sender: eventCompletion,
                                                         incrementAmount: 1,
                                                         SyncBoxId: syncBox.SyncBoxId,
                                                         DeviceId: syncBox.CopiedSettings.DeviceId);
@@ -2924,7 +2916,6 @@ namespace CloudApiPublic.Sync
                                                 if (eventCompletion.Result.EventId != 0)
                                                 {
                                                     MessageEvents.IncrementUploadedCount(
-                                                        sender: eventCompletion,
                                                         incrementAmount: 1,
                                                         SyncBoxId: syncBox.SyncBoxId,
                                                         DeviceId: syncBox.CopiedSettings.DeviceId);
@@ -3013,7 +3004,6 @@ namespace CloudApiPublic.Sync
                                 int syncFromCount = postCommunicationSynchronousChanges.Count - syncToCount;
 
                                 MessageEvents.FireNewEventMessage(
-                                    true,
                                     (syncToCount == 0
                                         ? string.Empty
                                         : syncToCount.ToString() +
@@ -3035,7 +3025,6 @@ namespace CloudApiPublic.Sync
                                 int syncFromCount = postCommunicationAsynchronousChanges.Count - syncToCount;
 
                                 MessageEvents.FireNewEventMessage(
-                                    true,
                                     (syncToCount == 0
                                         ? string.Empty
                                         : syncToCount.ToString() +
@@ -3056,7 +3045,7 @@ namespace CloudApiPublic.Sync
                             // errorsToQueue had that change removed
 
                             // status message
-                            MessageEvents.FireNewEventMessage(true,
+                            MessageEvents.FireNewEventMessage(
                                 "Finished processing sync changes",
                                 EventMessageLevel.Minor,
                                 SyncBoxId: syncBox.SyncBoxId,
@@ -3260,10 +3249,10 @@ namespace CloudApiPublic.Sync
 
             if (needToNotifyOnInitialHalting)
             {
-                MessageEvents.FireNewEventMessage(this,
+                MessageEvents.FireNewEventMessage(
                     "SyncEngine halted after repeated failure to communicate over one of the Cloud server domains",
                     EventMessageLevel.Important,
-                    true,
+                    /*Error*/new HaltSyncEngineOnConnectionFailureErrorInfo(),
                     syncBox.SyncBoxId,
                     syncBox.CopiedSettings.DeviceId);
 
@@ -3769,10 +3758,10 @@ namespace CloudApiPublic.Sync
                         {
                             try
                             {
-                                MessageEvents.FireNewEventMessage(this,
+                                MessageEvents.FireNewEventMessage(
                                     "Error applying change locally: " + applyChangeError.errorDescription,
                                     EventMessageLevel.Regular,
-                                    true,
+                                    /*Error*/new GeneralErrorInfo(),
                                     syncBox.SyncBoxId,
                                     syncBox.CopiedSettings.DeviceId);
                             }
@@ -4042,7 +4031,7 @@ namespace CloudApiPublic.Sync
                     }
 
                     // status message
-                    MessageEvents.FireNewEventMessage(true,
+                    MessageEvents.FireNewEventMessage(
                         "File finished uploading from path " + castState.FileToUpload.NewPath.ToString(),
                         EventMessageLevel.Regular,
                         SyncBoxId: castState.SyncBox.SyncBoxId,
@@ -4268,10 +4257,10 @@ namespace CloudApiPublic.Sync
                 }
 
                 // fire the event handler for a failure message
-                MessageEvents.FireNewEventMessage(exceptionState.FileChange.FileChange, // source of the event (the event itself)
+                MessageEvents.FireNewEventMessage(
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
-                    IsError: true,
+                    Error: new GeneralErrorInfo(),
                     SyncBoxId: exceptionState.SyncBox.SyncBoxId,
                     DeviceId: exceptionState.SyncBox.CopiedSettings.DeviceId);
 
@@ -4585,7 +4574,7 @@ namespace CloudApiPublic.Sync
                 }
 
                 // status message
-                MessageEvents.FireNewEventMessage(true,
+                MessageEvents.FireNewEventMessage(
                     "File finished downloading to path " + castState.FileToDownload.NewPath.ToString(),
                     EventMessageLevel.Regular,
                     SyncBoxId: castState.SyncBox.SyncBoxId,
@@ -4631,7 +4620,6 @@ namespace CloudApiPublic.Sync
                     {
                         // fire the event callback for the final transfer status
                         MessageEvents.UpdateFileDownload(
-                            sender: castState.FileToDownload, // sender of the event (the event itself)
                             eventId: castState.FileToDownload.EventId, // event id to uniquely identify this transfer
                             parameters: new CLStatusFileTransferUpdateParameters(
                                 getStartTime(startTimeHolder), // retrieve the download start time
@@ -5019,10 +5007,10 @@ namespace CloudApiPublic.Sync
                 }
 
                 // fire the event handler for a failure message
-                MessageEvents.FireNewEventMessage(exceptionState.FileChange.FileChange, // source of the event (the event itself)
+                MessageEvents.FireNewEventMessage(
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
-                    IsError: true,
+                    Error: new GeneralErrorInfo(),
                     SyncBoxId: exceptionState.SyncBox.SyncBoxId,
                     DeviceId: exceptionState.SyncBox.CopiedSettings.DeviceId);
             }
@@ -5619,7 +5607,6 @@ namespace CloudApiPublic.Sync
 
                     // status message
                     MessageEvents.FireNewEventMessage(
-                        true,
                         "Communicating " +
                             communicationArray.Length.ToString() +
                             " change" + (communicationArray.Length == 1 ? string.Empty : "s") + " to server and checking for any new changes to sync from server",
@@ -6581,10 +6568,9 @@ namespace CloudApiPublic.Sync
                                                                     try
                                                                     {
                                                                         MessageEvents.FireNewEventMessage(
-                                                                            currentChange,
                                                                             "Error occurred handling conflict for a file rename: " + ex.Message,
                                                                             EventMessageLevel.Regular,
-                                                                            /*IsError*/ true,
+                                                                            /*Error*/ new GeneralErrorInfo(),
                                                                             syncBox.SyncBoxId,
                                                                             syncBox.CopiedSettings.DeviceId);
                                                                     }
@@ -6600,10 +6586,9 @@ namespace CloudApiPublic.Sync
                                                                     try
                                                                     {
                                                                         MessageEvents.FireNewEventMessage(
-                                                                            currentChange,
                                                                             "File rename conflict handled through duplication",
                                                                             EventMessageLevel.Minor,
-                                                                            /*IsError*/ false,
+                                                                            /*Error*/ null,
                                                                             syncBox.SyncBoxId,
                                                                             syncBox.CopiedSettings.DeviceId);
                                                                     }
@@ -7529,7 +7514,6 @@ namespace CloudApiPublic.Sync
 
                         // status message
                         MessageEvents.FireNewEventMessage(
-                            true,
                             "Checking for any new changes to sync from server",
                             EventMessageLevel.Regular,
                             SyncBoxId: syncBox.SyncBoxId,
@@ -8019,10 +8003,9 @@ namespace CloudApiPublic.Sync
                                                         try
                                                         {
                                                             MessageEvents.FireNewEventMessage(
-                                                                currentChange,
                                                                 "Error occurred handling conflict for a file rename: " + ex.Message,
                                                                 EventMessageLevel.Regular,
-                                                                /*IsError*/ true,
+                                                                /*Error*/ new GeneralErrorInfo(),
                                                                 syncBox.SyncBoxId,
                                                                 syncBox.CopiedSettings.DeviceId);
                                                         }
@@ -8038,10 +8021,9 @@ namespace CloudApiPublic.Sync
                                                         try
                                                         {
                                                             MessageEvents.FireNewEventMessage(
-                                                                currentChange,
                                                                 "File rename conflict handled through duplication",
                                                                 EventMessageLevel.Minor,
-                                                                /*IsError*/ false,
+                                                                /*Error*/ null,
                                                                 syncBox.SyncBoxId,
                                                                 syncBox.CopiedSettings.DeviceId);
                                                         }
@@ -8126,7 +8108,6 @@ namespace CloudApiPublic.Sync
                     {
                         // status message
                         MessageEvents.FireNewEventMessage(
-                            false,
                             "Nothing to communicate with server",
                             EventMessageLevel.Minor,
                             SyncBoxId: syncBox.SyncBoxId,
@@ -8148,7 +8129,6 @@ namespace CloudApiPublic.Sync
             {
                 // status message
                 MessageEvents.FireNewEventMessage(
-                    sender: ex,
                     Message: "Communication of changes with server had an error" +
                         (string.IsNullOrEmpty(ex.Message)
                             ? string.Empty  // if there is no exception message then do not append anything
@@ -8157,7 +8137,7 @@ namespace CloudApiPublic.Sync
                                     ? ex.Message // if there is no inner exception with message then just append the outer exception message
                                     : ex.InnerException.Message)), // else if there is an inner exception with message then append the inner exception message
                     Level: EventMessageLevel.Important,
-                    IsError: true,
+                    Error: new GeneralErrorInfo(),
                     SyncBoxId: syncBox.SyncBoxId,
                     DeviceId: syncBox.CopiedSettings.DeviceId);
 
