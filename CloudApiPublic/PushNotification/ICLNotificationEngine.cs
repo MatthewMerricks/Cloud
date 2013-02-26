@@ -4,13 +4,13 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model;
+using Cloud.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.PushNotification
+namespace Cloud.PushNotification
 {
     public enum NotificationEngines : uint
     {

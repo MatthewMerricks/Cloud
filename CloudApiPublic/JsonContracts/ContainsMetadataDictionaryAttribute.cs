@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.JsonContracts
+namespace Cloud.JsonContracts
 {
     /// <summary>
     /// Mark any class/struct/interface which contains a <see cref="MetadataDictionary"/> with this attribute and also mark any class/struct/interface with this attribute if it contains something with this attribute;

@@ -1,5 +1,5 @@
-﻿using CloudApiPublic.Interfaces;
-using CloudApiPublic.Static;
+﻿using Cloud.Interfaces;
+using Cloud.Static;
 using System;
 
 namespace CloudSdkSyncSample.Models

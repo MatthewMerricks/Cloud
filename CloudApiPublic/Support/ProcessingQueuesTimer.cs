@@ -11,10 +11,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 
-namespace CloudApiPublic.Support
+namespace Cloud.Support
 {
     /// <summary>
     /// Class to handle queueing up processing changes on a configurable timer,

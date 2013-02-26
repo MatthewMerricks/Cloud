@@ -1,7 +1,7 @@
-﻿using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
+﻿using Cloud.Interfaces;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.Support;
 using CloudSdkSyncSample.EventMessageReceiver.Status;
 using CloudSdkSyncSample.Model;
 using System;

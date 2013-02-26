@@ -11,10 +11,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using System.Threading;
-using CloudApiPublic.Static;
+using Cloud.Static;
 using System.Text.RegularExpressions;
 
-namespace CloudApiPublic.Support
+namespace Cloud.Support
 {
 #region "Trace Singleton"
 

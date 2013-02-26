@@ -1,4 +1,4 @@
-﻿using CloudApiPublic.Model;
+﻿using Cloud.Model;
 using RateBar;
 using System;
 using System.Collections.Generic;

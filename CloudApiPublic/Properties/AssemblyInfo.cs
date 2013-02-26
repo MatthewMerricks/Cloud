@@ -6,11 +6,11 @@ using System.Resources;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("CloudApiClassLibrary")]
+[assembly: AssemblyTitle("CloudSDK")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Cloud.com")]
-[assembly: AssemblyProduct("CloudApiClassLibrary")]
+[assembly: AssemblyProduct("CloudSDK")]
 [assembly: AssemblyCopyright("Copyright © Cloud.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

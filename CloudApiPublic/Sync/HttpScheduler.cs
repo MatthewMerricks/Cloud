@@ -13,11 +13,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.Interfaces;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.Interfaces;
 
-namespace CloudApiPublic.Sync
+namespace Cloud.Sync
 {
     /// <summary>
     /// Extended TaskScheduler for Sync upload and download tasks to limit concurrency and handle exceptions;

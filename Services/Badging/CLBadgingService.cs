@@ -10,9 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Support;
-using CloudApiPublic.BadgeNET;
-using CloudApiPublic.Model;
+using Cloud.Support;
+using Cloud.BadgeNET;
+using Cloud.Model;
 using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Services.Badging

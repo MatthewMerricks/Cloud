@@ -1,7 +1,7 @@
-﻿using CloudApiPublic;
+﻿using Cloud;
 using CloudSdkSyncSample.EventMessageReceiver;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
+using Cloud.Static;
+using Cloud.Support;
 using CloudSdkSyncSample.Static;
 using CloudSdkSyncSample.Support;
 using System;

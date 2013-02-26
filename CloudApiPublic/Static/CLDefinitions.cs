@@ -16,7 +16,7 @@
 //#define URL_OLD
 #define URL_API         // api.cloud.com
 
-namespace CloudApiPublic.Static
+namespace Cloud.Static
 {
     /// <summary>
     /// Contains constants used by Cloud

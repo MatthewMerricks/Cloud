@@ -1,4 +1,4 @@
-﻿using CloudApiPublic.Static;
+﻿using Cloud.Static;
 using System;
 
 namespace CloudSdkSyncSample.Models

@@ -5,8 +5,8 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-namespace CloudApiPublic.Sync
+namespace Cloud.Sync
 {
     internal sealed class NetworkMonitor : IDisposable
     {

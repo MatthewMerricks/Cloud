@@ -5,17 +5,17 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Static;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace CloudApiPublic.JsonContracts
+namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Notification from server contained in EventArgs: <see cref="CloudApiPublic.PushNotification.NotificationEventArgs"/> via events in <see cref="CloudApiPublic.PushNotification.CLNotification"/>
+    /// Notification from server contained in EventArgs: <see cref="Cloud.PushNotification.NotificationEventArgs"/> via events in <see cref="Cloud.PushNotification.CLNotification"/>
     /// </summary>
     [DataContract]
     public sealed class NotificationResponse

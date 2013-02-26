@@ -122,9 +122,9 @@ namespace CloudSdkSyncSample.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Communication, FileChangeFlow")]
-        public global::CloudApiPublic.Static.TraceType TraceType {
+        public global::Cloud.Static.TraceType TraceType {
             get {
-                return ((global::CloudApiPublic.Static.TraceType)(this["TraceType"]));
+                return ((global::Cloud.Static.TraceType)(this["TraceType"]));
             }
             set {
                 this["TraceType"] = value;

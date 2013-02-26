@@ -1,5 +1,5 @@
 ﻿using CloudSdkSyncSample.Support;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     /// <summary>
     /// Properties for how much a value was incremented, meaning is according to which event passes these args

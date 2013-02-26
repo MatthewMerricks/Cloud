@@ -12,8 +12,8 @@ using System.Text;
 using System.IO;
 using CloudApiPrivate.Model;
 using Interop.IWshRuntimeLibrary;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
+using Cloud.Support;
+using Cloud.Model;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Common;
 using System.Reflection;
@@ -21,7 +21,7 @@ using System.Threading;
 using System.Diagnostics;
 using Microsoft.Win32;
 using System.Windows;
-using CloudApiPublic.Static;
+using Cloud.Static;
 
 namespace CloudApiPrivate.Common
 {

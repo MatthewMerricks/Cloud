@@ -1,9 +1,9 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Model;
+﻿using Cloud;
+using Cloud.Model;
 using CloudSdkSyncSample.EventMessageReceiver;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
+using Cloud.Interfaces;
+using Cloud.Static;
+using Cloud.Support;
 using CloudSdkSyncSample.Models;
 using CloudSdkSyncSample.Support;
 using CloudSdkSyncSample.Views;
@@ -666,7 +666,7 @@ namespace CloudSdkSyncSample.ViewModels
             }
 
             // Validate that the SyncRoot is a good path.
-            CLError badPathError = CloudApiPublic.Static.Helpers.CheckForBadPath(SyncRoot);
+            CLError badPathError = Cloud.Static.Helpers.CheckForBadPath(SyncRoot);
             if (badPathError != null)
             {
                 MessageBox.Show("The SyncBox Folder path is invalid: " + badPathError.errorDescription);
@@ -676,7 +676,7 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Validate that the SyncRoot matches case perfectly with disk.
             bool syncPathMatches;
-            CLError checkCaseError = CloudApiPublic.Static.Helpers.DirectoryMatchesCaseWithDisk(SyncRoot, out syncPathMatches);
+            CLError checkCaseError = Cloud.Static.Helpers.DirectoryMatchesCaseWithDisk(SyncRoot, out syncPathMatches);
             if (checkCaseError != null)
             {
                 MessageBox.Show("There was an error checking whether the SyncBox Folder matches case with an existing directory on disk: " + checkCaseError.errorDescription);
@@ -692,7 +692,7 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Validate the length of the SyncBox full path.
             int tooLongChars;
-            CLError errorFromLengthCheck = CloudApiPublic.Static.Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
+            CLError errorFromLengthCheck = Cloud.Static.Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
             if (errorFromLengthCheck != null)
             {
                 MessageBox.Show(String.Format("The SyncBox Folder is too long by {0} characters.  Please shorten the path.", tooLongChars));
@@ -1254,7 +1254,7 @@ namespace CloudSdkSyncSample.ViewModels
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void OnPushNotificationError(object sender, CloudApiPublic.PushNotification.NotificationErrorEventArgs e)
+        void OnPushNotificationError(object sender, Cloud.PushNotification.NotificationErrorEventArgs e)
         {
             string errorMsg = "Push notification stopped.  Changes on other devices will no longer be automatically synced to this device.";
             CLError error = new Exception(errorMsg);

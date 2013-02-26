@@ -16,9 +16,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using CloudApiPublic.Model;
+using Cloud.Model;
 
-namespace CloudApiPublic.Static
+namespace Cloud.Static
 {
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public static class ComTrace

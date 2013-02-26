@@ -9,9 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Support;
-using CloudApiPublic.Sync;
-using CloudApiPublic.Model;
+using Cloud.Support;
+using Cloud.Sync;
+using Cloud.Model;
 using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Services.Badging
@@ -80,7 +80,7 @@ namespace win_client.Services.Badging
                 //// HttpScheduler was made internal, this call is now available statically in CLSync
                 //HttpScheduler.DisposeBothSchedulers();
 
-                CloudApiPublic.CLSync.ShutdownSchedulers();
+                Cloud.CLSync.ShutdownSchedulers();
             }
             catch (Exception ex)
             {

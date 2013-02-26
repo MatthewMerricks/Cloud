@@ -7,8 +7,8 @@
 
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Static;
+using Cloud.Interfaces;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;

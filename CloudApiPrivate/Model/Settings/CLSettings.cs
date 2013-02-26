@@ -14,14 +14,14 @@ using System.Collections.Generic;
 using System.Resources;
 using CloudApiPrivate;
 using CloudApiPrivate.Static;
-using CloudApiPublic.Static;
+using Cloud.Static;
 using CloudApiPrivate.Static.FriendlyEnumValues;
 using CloudApiPrivate.Resources;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using System.Windows;
 using System.Reflection;
 using CloudApiPrivate.Common;
-using CloudApiPublic.Support;
+using Cloud.Support;
 
 namespace CloudApiPrivate.Model.Settings
 {
@@ -724,7 +724,7 @@ namespace CloudApiPrivate.Model.Settings
             set
             {
                 if ((value & TraceType.AddAuthorization) == TraceType.AddAuthorization
-                    && (value & TraceType.CommunicationIncludeAuthorization) != CloudApiPublic.Static.TraceType.CommunicationIncludeAuthorization)
+                    && (value & TraceType.CommunicationIncludeAuthorization) != Cloud.Static.TraceType.CommunicationIncludeAuthorization)
                 {
                     throw new ArgumentException("A TraceType of AddAuthorization can only be used in conjunction with Communication");
                 }

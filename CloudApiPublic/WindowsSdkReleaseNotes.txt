@@ -58,14 +58,14 @@
   o Completed uploads/downloads now properly clear out of the sample app sync status window, and are properly counted.
   o Fixed a badging issue where parent folders were badged "syncing" when all of the contents were badged "synced".
   o The sample app SyncBox folder Browse button now starts the browse in the user's desktop directory.
-  o Reworked the CloudApiPublic  Intellisense XML file to remove internal references.
+  o Reworked the Cloud  Intellisense XML file to remove internal references.
   o Added more comments to CLSyncEngine.GetEngineCurrentStatus.
   o KillTimer is now disposed when it's calculated to not be needed anymore on processing of aggregating status for GetEngineCurrentStatus.
   o Added min height/width to AdvancedOptionsView in the sample app.
   o Fixed a bug on Win8 that disabled the Metro interface when the user clicked Finish on the installer with the Launch Application checkbox checked.
   o Added a WindowsSdkReleaseNotes.txt file in the installation directory, with a Start Menu shortcut to launch it.
   o Changed the installer to launch the SDK documentation rather than the sample app.
-  o Fixed an unhandled exception thrown from CLSyncEngine.Start() when the assembly containing CloudApiPublic was loaded from an unmanaged application.
+  o Fixed an unhandled exception thrown from CLSyncEngine.Start() when the assembly containing Cloud was loaded from an unmanaged application.
   o WebSocket support works properly now (no fall-back to polling).
   o Fixed a bug.  Push notification was unique only to the SyncBoxId.  It is now unique to the combination of SyncBoxId and DeviceId.
   o Re-tested across all operating systems supported (XpSp3X86, XpSp2X64, VistaX86, VistaX64, Win7X86, Win7X64, Win8X86, Win8X64) 

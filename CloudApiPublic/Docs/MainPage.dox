@@ -22,8 +22,8 @@
 /// See how easy it is:
 ///
 /// \code{.cs}
-/// using CloudApiPublic;
-/// using CloudApiPublic.Model;
+/// using Cloud;
+/// using Cloud.Model;
 ///
 ///         // Main program
 ///         static void Main(string[] args)
@@ -202,7 +202,7 @@
 /// See the example below:
 /// \image html SampleAppBadgingExample.jpg "Explorer Sync Badges"
 ///
-/// The badging support is provided by modules in CloudApiPublic.dll and in BadgeCom.dll.  Badging support will be activated if BadgeCom.dll is registered as a shell extension.  If not, syncing will occur normally.
+/// The badging support is provided by modules in Cloud.dll and in BadgeCom.dll.  Badging support will be activated if BadgeCom.dll is registered as a shell extension.  If not, syncing will occur normally.
 ///
 /// Because BadgeCom.dll is a shell extension, it requires special installation support.  When installing this DLL, you must perform the following steps:
 /// - Stop all Explorer processes
@@ -226,13 +226,13 @@
 /// - Create an instance of CLCredential with your credential information.
 /// - Create an instance of CLSyncBox with the path on disk to be synced, and with the instance of CLCredential.
 /// - Create an instance of CLSyncEngine.
-/// - Verify that the SyncBox folder or authorization information has not changed.  If it has, you should reset the sync database by calling \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.SyncReset SyncReset() \endlink or \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.WipeIndex WipeIndex() \endlink.
-/// - Call \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Start Start() \endlink to start syncing.  This function takes the sync settings and some additional optional parameters.
-/// - Inspect the out parameter (\link CloudApiPublic.CLSyncStartStatus startStatus \endlink) which is an output of \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Start Start() \endlink.  Handle an error if the output is not \link CloudApiPublic.CLSyncStartStatus CLSyncStartStatus \endlink.Success.
+/// - Verify that the SyncBox folder or authorization information has not changed.  If it has, you should reset the sync database by calling \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.SyncReset SyncReset() \endlink or \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.WipeIndex WipeIndex() \endlink.
+/// - Call \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink to start syncing.  This function takes the sync settings and some additional optional parameters.
+/// - Inspect the out parameter (\link Cloud.CLSyncStartStatus startStatus \endlink) which is an output of \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink.  Handle an error if the output is not \link Cloud.CLSyncStartStatus CLSyncStartStatus \endlink.Success.
 /// .
 /// \subsection sampleapp-settings-subsec The Settings Interfaces
 ///The 5th parameter to CreateAndInitialize() is ICLSyncSettings.  That is an interface that has only a single property; the path of the SyncBox on the disk.  There are actually multiple Settings definitions that are related:
-///             CloudApiPublic.Interfaces: public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLAddTraceSettings
+///             Cloud.Interfaces: public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLAddTraceSettings
 ///
 ///You can pass any interface that is derived from ICLSyncSettings as the 5th parameter.  The sample app passes an implementation of ICLSyncSettingsAdvanced because it is demonstrating how to use ALL of the settings (ICLSettingsAdvanced (which includes ICLAddTraceSettings and ICLSyncSettings).
 ///
@@ -296,7 +296,7 @@
 /// \subsection sampleapp-stoppingsync-subsec Stopping Sync
 /// Here are the steps to stop sync.  Refer to MainViewModel:StopSyncing() in the sample app code.
 /// - Close and dispose your sync status implementation.
-/// - Call \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Stop Stop() \endlink;
+/// - Call \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Stop Stop() \endlink;
 /// .
 /// \subsection sampleapp-clerror-subsec The CLError Class
 /// CLError is a class that represents an error, perhaps containing aggregated exceptions.  Most of the sync public methods return a CLError object.  If the returned object is null, no error occurred.  Otherwise you can
@@ -322,14 +322,14 @@
 /// \endcode
 /// .
 /// \subsection sampleapp-eventmessagereceiver-subsec The EventMessageReceiver Class
-/// \link CloudSdkSyncSample.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink is the sample app's implementation of \link CloudApiPublic.Interfaces.IEventMessageReceiver CloudApiPublic.Interfaces.IEventMessageReceiver \endlink to aggregate status information.
+/// \link CloudSdkSyncSample.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink is the sample app's implementation of \link Cloud.Interfaces.IEventMessageReceiver Cloud.Interfaces.IEventMessageReceiver \endlink to aggregate status information.
 /// It is used as one of the ViewModels for your sync status view.
 /// You can bind to any of the following ObservableCollections:
 /// - ListFilesDownloading
 /// - ListFilesUploading
 /// - ListMessages
 /// .\n
-/// An IEventMessageReceiver implementation requires subscribing in \link CloudApiPublic.Static.MessageEvents CloudApiPublic.Static.MessageEvents \endlink for each SyncBox\Device combination.
+/// An IEventMessageReceiver implementation requires subscribing in \link Cloud.Static.MessageEvents Cloud.Static.MessageEvents \endlink for each SyncBox\Device combination.
 /// Also, you may unsubscribe when you no longer which to receive event callbacks.
 ///
 /// The ListFilesDownloading and ListFilesUploading collections expose the following properties:
@@ -375,7 +375,7 @@
 /// Also, EventMessageReceiver has bindable properties for implementing Growl messages in Windows, but that UI functionality is not provided in the sample app.
 /// \subsection sampleapp-syncstatusView-subsec The SyncStatusView Class
 /// The Sync Status View window is the sample app's implementation of a class to view the status information.
-/// Status information is produced by the sample app's implementation of \link CloudApiPublic.Interfaces.IEventMessageReceiver CloudApiPublic.Interfaces.IEventMessageReceiver \endlink,
+/// Status information is produced by the sample app's implementation of \link Cloud.Interfaces.IEventMessageReceiver Cloud.Interfaces.IEventMessageReceiver \endlink,
 /// \link CloudSdkSyncSample.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink. Yours may be very different.
 ///
 /// The following information is produced by your message receiver for possible consumption by your sync status viewer:
@@ -389,21 +389,21 @@
 ///
 /// The SyncStatusView object uses two ViewModels (EventMessageReceiver for binding to the ObservableCollections of data, and SyncStatusViewModel to handle the UI ICommand button actions and aggregate additional summary information).
 ///
-/// This view is instantiated at \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Start Start() \endlink by the sample app, and it runs until \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Stop Stop() \endlink.  Buttons simply show and hide the window.
+/// This view is instantiated at \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink by the sample app, and it runs until \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Stop Stop() \endlink.  Buttons simply show and hide the window.
 /// Your view can instantiate and dispose your view (and the related EventMessageReceiver ViewModel) at any time, but the data collection will not begin until you instantiate the class.
 /// \subsection sampleapp-summarystatus-subsec Overall Summary Sync Status
-/// Two of the optional parameters on the \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.Start Start() \endlink function (StatusUpdated and StatusUpdatedUserState) can be used to receive a callback when overall sync summary status has changed.
+/// Two of the optional parameters on the \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink function (StatusUpdated and StatusUpdatedUserState) can be used to receive a callback when overall sync summary status has changed.
 /// 
 /// StatusUpdated represents your callback function that will be driven each time sync status changes.
 ///
 /// StatusUpdatedUserState is your own object representing user state information to be passed to the StatusUpdated callback function.
 ///
-/// When the StatusUpdated callback is called by the engine, you can call \link CloudApiPublic.CLSyncEngine _syncEngine\endlink.\link CloudApiPublic.CLSyncEngine.GetEngineCurrentStatus GetEngineCurrentStatus() \endlink to get the current sync summary status.
+/// When the StatusUpdated callback is called by the engine, you can call \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.GetEngineCurrentStatus GetEngineCurrentStatus() \endlink to get the current sync summary status.
 /// You need to aggregate this information for display.
 /// See \link CloudSdkSyncSample.SyncStatusViewModel.OnSyncStatusUpdated SyncStatusViewModel.OnSyncStatusUpdated() \endlink.
 /// \subsection sampleapp-syncchangeevents-subsec Sync Change Events
-/// Sync change events can be used to track real-time progress.  They are described in class \link CloudApiPublic.Static.MessageEvents CloudApiPublic.Static.MessageEvents \endlink.
-/// \link CloudApiPublic.Static.MessageEvents CloudApiPublic.Static.MessageEvents \endlink exposes the following events:
+/// Sync change events can be used to track real-time progress.  They are described in class \link Cloud.Static.MessageEvents Cloud.Static.MessageEvents \endlink.
+/// \link Cloud.Static.MessageEvents Cloud.Static.MessageEvents \endlink exposes the following events:
 /// - public static event EventHandler<EventMessageArgs> NewEventMessage:
 /// This event is fired every time a new EventMessage is received.  EventMessages are also placed in the EventMessageReceiver.ListMessages ObservableCollection.  The EventMessageArgs passed with each received message includes the message itself (string), 
 /// the event message level (importance) and a flag to indicate that the message is an error.
@@ -421,49 +421,49 @@
 /// This event is fired each time the transfer status changes for a file being uploaded.  The TransferUpdateArgs passed with each received message includes a unique ID if the file transfer, and the current real-time status of the transfer.
 /// .
 ///
-/// \namespace CloudApiPublic
+/// \namespace Cloud
 /// \brief Contains all public API functions of Cloud for Windows XP through Windows 8. See detailed description.
 ///
 /// Primary components:\n
-/// \link CloudApiPublic.CLCredential CLCredential \endlink stores authentication information for all communication and services.\n
-/// \link CloudApiPublic.CLSyncBox CLSyncBox \endlink represents a SyncBox in Cloud where everything is stored.\n
-/// \link CloudApiPublic.CLSyncEngine CLSyncEngine \endlink performs active sync of files and folders within a specified path to a syncbox in Cloud.\n
-/// \internal \link CloudApiPublic.PushNotification.CLNotification PushNotification.CLNotification \endlink allows manual subscription to push notifications and is used internally by \link CloudApiPublic.CLSync CLSync \endlink.\n \endinternal
-/// \internal \link CloudApiPublic.REST.CLHttpRest REST.CLHttpRest \endlink allows manual access to Cloud communication methods for file\folder queries, posting changes, and file transfer. It is used internally by \link CloudApiPublic.CLSync CLSync \endlink.\n \endinternal
-/// \link CloudApiPublic.Support.CLTrace Support.CLTrace \endlink writes a message to log from a required format string and any object parameter arguments. It is used conditionally by other public API classes when instantiated with advanced settings for trace.
+/// \link Cloud.CLCredential CLCredential \endlink stores authentication information for all communication and services.\n
+/// \link Cloud.CLSyncBox CLSyncBox \endlink represents a SyncBox in Cloud where everything is stored.\n
+/// \link Cloud.CLSyncEngine CLSyncEngine \endlink performs active sync of files and folders within a specified path to a syncbox in Cloud.\n
+/// \internal \link Cloud.PushNotification.CLNotification PushNotification.CLNotification \endlink allows manual subscription to push notifications and is used internally by \link Cloud.CLSync CLSync \endlink.\n \endinternal
+/// \internal \link Cloud.REST.CLHttpRest REST.CLHttpRest \endlink allows manual access to Cloud communication methods for file\folder queries, posting changes, and file transfer. It is used internally by \link Cloud.CLSync CLSync \endlink.\n \endinternal
+/// \link Cloud.Support.CLTrace Support.CLTrace \endlink writes a message to log from a required format string and any object parameter arguments. It is used conditionally by other public API classes when instantiated with advanced settings for trace.
 ///
-/// \namespace CloudApiPublic.EventMessageReceiver
-/// \brief Contains the \link CloudApiPublic.EventMessageReceiver.EventMessageReceiver EventMessageReceiver \endlink which acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes.
+/// \namespace Cloud.EventMessageReceiver
+/// \brief Contains the \link Cloud.EventMessageReceiver.EventMessageReceiver EventMessageReceiver \endlink which acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes.
 ///
-/// \namespace CloudApiPublic.Interfaces
+/// \namespace Cloud.Interfaces
 /// \brief Contains interfaces required as inputs for various public API functions.
 ///
 /// \internal
-/// \namespace CloudApiPublic.JsonContracts
+/// \namespace Cloud.JsonContracts
 /// \brief Contains deserialized request or response objects for HTTP REST communication to Cloud.
 /// \endinternal
 ///
-/// \namespace CloudApiPublic.Model
+/// \namespace Cloud.Model
 /// \brief Contains various objects exposed through public API functions.
 ///
-/// \namespace CloudApiPublic.PushNotification
-/// \brief Contains notification event arguments \internal and the \link CloudApiPublic.PushNotification.CLNotification CLNotification \endlink which allows manual subscription to push notifications. \endinternal
+/// \namespace Cloud.PushNotification
+/// \brief Contains notification event arguments \internal and the \link Cloud.PushNotification.CLNotification CLNotification \endlink which allows manual subscription to push notifications. \endinternal
 ///
 /// \internal
-/// \namespace CloudApiPublic.REST
-/// \brief Contains the \link CloudApiPublic.REST.CLHttpRest CLHttpRest \endlink which allows manual access to Cloud communication methods for file\folder queries, posting changes, and file transfer.
+/// \namespace Cloud.REST
+/// \brief Contains the \link Cloud.REST.CLHttpRest CLHttpRest \endlink which allows manual access to Cloud communication methods for file\folder queries, posting changes, and file transfer.
 /// \endinternal
 ///
-/// \namespace CloudApiPublic.Static
-/// \brief Contains various static helper classes such as \link CloudApiPublic.Static.Helpers Helpers \endlink
+/// \namespace Cloud.Static
+/// \brief Contains various static helper classes such as \link Cloud.Static.Helpers Helpers \endlink
 ///
-/// \namespace CloudApiPublic.Support
-/// \brief Contains the \link CloudApiPublic.Support.CLTrace CLTrace \endlink which writes a message to log from a required format string and any object parameter arguments.
+/// \namespace Cloud.Support
+/// \brief Contains the \link Cloud.Support.CLTrace CLTrace \endlink which writes a message to log from a required format string and any object parameter arguments.
 ///
-/// \namespace CloudApiPublicSamples
-/// \brief Contains sample code which implements \link CloudApiPublic CloudApiPublic \endlink library and uses it to allow single folder active sync; it also can display status changes.
+/// \namespace CloudSamples
+/// \brief Contains sample code which implements \link Cloud Cloud \endlink library and uses it to allow single folder active sync; it also can display status changes.
 ///
-/// \link CloudApiPublicSamples.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes. \link CloudApiPublic.CLSyncEngine  CloudApiPublic.CLSyncEngine \endlink fires event callbacks upon changes.\n
+/// \link CloudSamples.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes. \link Cloud.CLSyncEngine  Cloud.CLSyncEngine \endlink fires event callbacks upon changes.\n
 ///
 /// \section copyright_sec Copyright (C) Cloud.com.  All Rights Reserved.
 /// http://www.cloud.com

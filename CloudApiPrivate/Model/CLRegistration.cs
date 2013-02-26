@@ -11,18 +11,18 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Windows;
 using System.Linq;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Net.Http.Properties;
 using System.Text;
 using System.Collections.Generic;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
-using CloudApiPublic.Resources;
-using CloudApiPublic.Static;
+using Cloud.Resources;
+using Cloud.Static;
 using System.IO;
 using CloudApiPrivate.Static;
 
@@ -441,7 +441,7 @@ namespace CloudApiPrivate.Model
                 retVal = false;
                 error = new CLError();
                 //CloudAppBuild:((int)error.code).ToString() = 1400;
-                error.errorDescription = String.Format(/*CloudAppBuild:CloudApiPublic.Resources.Resources.ExceptionCreatingUserRegistrationWithCode*/"", 1400);
+                error.errorDescription = String.Format(/*CloudAppBuild:Cloud.Resources.Resources.ExceptionCreatingUserRegistrationWithCode*/"", 1400);
                 //CloudAppBuild:error.errorDomain = CLError.ErrorDomain_Application;
             }
 
@@ -833,7 +833,7 @@ namespace CloudApiPrivate.Model
                     Dictionary<string, object> deviceDictionary = new Dictionary<string, object>((Dictionary<string, object>)returnDictionary["device"]);
 
                     //¡¡ If the access token is ever not a root property of the server response with key CLDefinitions.CLRegistrationAccessTokenKey, !!
-                    //¡¡ then make sure to update CloudApiPublic.Static.Trace.LogCommunication private overload so that the property can be excluded when excludeAuthorization !!
+                    //¡¡ then make sure to update Cloud.Static.Trace.LogCommunication private overload so that the property can be excluded when excludeAuthorization !!
                     string apiKey = (string)returnDictionary[CLDefinitions.CLRegistrationAccessTokenKey];
                     string devicename = (string)deviceDictionary["friendly_name"];
                     string uuid = userInfoDictionary["id"].ToString();
@@ -854,7 +854,7 @@ namespace CloudApiPrivate.Model
                 retVal = false;
                 error = new CLError();
                 //CloudAppBuild:((int)error.code).ToString() = 1400;
-                error.errorDescription = String.Format(/*CloudAppBuild:CloudApiPublic.Resources.Resources.ExceptionLoggingInWithCode*/"", 1400);
+                error.errorDescription = String.Format(/*CloudAppBuild:Cloud.Resources.Resources.ExceptionLoggingInWithCode*/"", 1400);
                 //CloudAppBuild:error.errorDomain = CLError.ErrorDomain_Application;
             }
 

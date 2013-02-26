@@ -12,7 +12,7 @@ using Dialog.Implementors.Wpf.MVVM;
 using win_client.ViewModels;
 using win_client.Model;
 using System.Windows;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using System.ComponentModel;

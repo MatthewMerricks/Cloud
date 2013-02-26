@@ -5,12 +5,12 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.Model;
-using CloudApiPublic.REST;
-using CloudApiPublic.Support;
-using CloudApiPublic.Sync;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.Model;
+using Cloud.REST;
+using Cloud.Support;
+using Cloud.Sync;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -31,12 +31,12 @@ using System.Windows.Threading;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
 
-namespace CloudApiPublic.Static
+namespace Cloud.Static
 {
     extern alias SimpleJsonBase;
     using System.ComponentModel;
     using System.Runtime.InteropServices;
-    using CloudApiPublic.SQLIndexer.Model;
+    using Cloud.SQLIndexer.Model;
     /// <summary>
     /// Class containing commonly usable static helper methods
     /// </summary>
@@ -136,13 +136,13 @@ namespace CloudApiPublic.Static
         /*
          * The two System.Web.HttpUtility.JavaScriptStringEncode method overloads have been copied from the Mono project on August 3rd 2011
          * as the .NET 4.0 Client Profile does not include the System.Web.dll
-         * They have been put in a different namespace, CloudApiPublic.Static, in a different static class, Helpers
+         * They have been put in a different namespace, Cloud.Static, in a different static class, Helpers
          * Source: https://github.com/mono/mono/blob/master/mcs/class/System.Web/System.Web/HttpUtility.cs
          */
 
         //
         // Two System.Web.HttpUtility.JavaScriptStringEncode method overloads
-        // (Moved to a different namespace, CloudApiPublic.Static, in a different static class, Helpers)
+        // (Moved to a different namespace, Cloud.Static, in a different static class, Helpers)
         //
         // Authors:
         //   Patrik Torstensson (Patrik.Torstensson@labs2.com)
@@ -594,7 +594,7 @@ namespace CloudApiPublic.Static
         {
             try
             {
-                CloudApiPublic.Static.NativeMethods.POINT win32Point = new NativeMethods.POINT();
+                Cloud.Static.NativeMethods.POINT win32Point = new NativeMethods.POINT();
                 NativeMethods.GetCursorPos(win32Point);
                 return relativeTo.PointFromScreen(new Point(win32Point.x, win32Point.y));
             }

@@ -1,5 +1,5 @@
-﻿using CloudApiPublic.Support;
-using CloudApiPublic.Model;
+﻿using Cloud.Support;
+using Cloud.Model;
 using CloudSdkSyncSample.EventMessageReceiver;
 using CloudSdkSyncSample.ViewModels;
 using System;

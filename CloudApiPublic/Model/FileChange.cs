@@ -10,11 +10,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.Support;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     /// <summary>
     /// Class for storing information about a file system change to be passed to the sync service for processing,

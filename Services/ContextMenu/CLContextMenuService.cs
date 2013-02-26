@@ -9,9 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using ContextMenuNET;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using CloudApiPrivate.Model.Settings;
 
 namespace win_client.Services.ContextMenu

@@ -22,8 +22,8 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Security.Principal;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
+using Cloud.Support;
+using Cloud.Model;
 
 namespace CloudSdkSyncSample.Static
 {

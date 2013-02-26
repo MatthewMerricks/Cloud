@@ -88,7 +88,7 @@ namespace CloudSdkSyncSample.Views
             e.Completed(result == MessageBoxResult.Yes);
         }
 
-        private void OnNotifyException(object sender, Support.NotificationEventArgs<CloudApiPublic.Model.CLError> e)
+        private void OnNotifyException(object sender, Support.NotificationEventArgs<Cloud.Model.CLError> e)
         {
             MessageBox.Show(String.Format("{0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }

@@ -4,10 +4,10 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
+using Cloud.Interfaces;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.Support;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +16,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 
-namespace CloudApiPublic.PushNotification
+namespace Cloud.PushNotification
 {
     internal sealed class CLNotificationSseEngine : ICLNotificationEngine
     {

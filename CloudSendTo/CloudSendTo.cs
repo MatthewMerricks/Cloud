@@ -19,7 +19,7 @@ using System.Linq;
 using CloudApiPrivate.Common;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Model;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using System.IO.Pipes;
 using System.Security.Principal;
 using System.Windows.Forms;
@@ -32,7 +32,7 @@ using Microsoft.Win32.SafeHandles;
 using CloudSendTo.Static;
 using System.IO;
 using System.Drawing;
-using CloudApiPublic.Static;
+using Cloud.Static;
 
 
 namespace CloudSendTo

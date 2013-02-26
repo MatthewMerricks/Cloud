@@ -8,7 +8,7 @@
     <ProjectGuid>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CloudApiPublic</RootNamespace>
+    <RootNamespace>Cloud</RootNamespace>
     <AssemblyName>Cloud</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -348,7 +348,6 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="..\amd64\sqlceer40EN.dll">
       <Link>SQLIndexer\SqlCE\amd64\sqlceer40EN.dll</Link>

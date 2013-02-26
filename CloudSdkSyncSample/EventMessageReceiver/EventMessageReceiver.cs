@@ -7,11 +7,11 @@ using System.Windows;
 using System.Linq;
 using System.Windows.Threading;
 using System.Windows.Input;
-using CloudApiPublic.Static;
+using Cloud.Static;
 using System.Windows.Media;
-using CloudApiPublic.Model;
-using CloudApiPublic.Support;
-using CloudApiPublic.Interfaces;
+using Cloud.Model;
+using Cloud.Support;
+using Cloud.Interfaces;
 
 namespace CloudSdkSyncSample.EventMessageReceiver
 {

@@ -7,8 +7,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
+using Cloud.Static;
+using Cloud.Support;
 using System.Windows;
 
 namespace CloudSetupSdkSyncSampleSupport

@@ -6,7 +6,7 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 //
 
-using CloudApiPublic.Static;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;

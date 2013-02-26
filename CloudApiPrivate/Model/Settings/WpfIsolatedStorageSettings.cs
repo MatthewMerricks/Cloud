@@ -130,7 +130,7 @@ namespace CloudApiPrivate.Model.Settings
 
         private static Evidence CopiedAssemblyEvidence = System.Reflection.Assembly.GetAssembly(typeof(IsolatedStorageSettings)).Evidence;
 
-        private static CloudApiPublic.Model.GenericHolder<bool> CopiedAssemblyEvidenceModified = new CloudApiPublic.Model.GenericHolder<bool>(false);
+        private static Cloud.Model.GenericHolder<bool> CopiedAssemblyEvidenceModified = new Cloud.Model.GenericHolder<bool>(false);
 
         private static Evidence GetRebuiltAssemblyEvidence
         {

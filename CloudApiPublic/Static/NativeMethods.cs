@@ -5,7 +5,7 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.SQLIndexer.Model;
+using Cloud.SQLIndexer.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +13,7 @@ using System.Linq;
 using System.Runtime.InteropServices;                             
 using System.Text;
 
-namespace CloudApiPublic.Static
+namespace Cloud.Static
 {
     internal static class NativeMethods
     {

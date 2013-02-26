@@ -13,7 +13,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CloudApiPublic.EventMessageReceiver;
+using Cloud.EventMessageReceiver;
 
 namespace win_client.Growl
 {

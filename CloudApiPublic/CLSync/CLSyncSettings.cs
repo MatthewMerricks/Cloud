@@ -5,14 +5,14 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Static;
+using Cloud.Interfaces;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic
+namespace Cloud
 {
     /// <summary>
     /// Simple implementation of ICLSyncSettings

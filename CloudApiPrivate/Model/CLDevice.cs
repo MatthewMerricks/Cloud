@@ -6,10 +6,10 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 using System;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Resources;
-using CloudApiPublic.Resources;
-using CloudApiPublic.Static;
+using Cloud.Resources;
+using Cloud.Static;
 
 namespace CloudApiPrivate.Model
 {

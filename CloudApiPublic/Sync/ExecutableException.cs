@@ -12,7 +12,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Windows;
 
-namespace CloudApiPublic.Sync
+namespace Cloud.Sync
 {
     /// <summary>
     /// Generic-typed executable exception which can be handled via an action passed as a construction parameter (along with the typed userstate)
