@@ -28,13 +28,17 @@
 	</ItemGroup>
 	<Import Project="$(MSBuildExtensionsPath32)\InstallShield\2012SpringLimited\InstallShield.targets"/>
 	<ItemGroup>
-		<ProjectReference Include="..\CloudSdkSyncSample\CloudSdkSyncSample.csproj">
-			<Name>CloudSdkSyncSample1</Name>
-			<Project>{40A9C587-10CD-4979-A289-2B06F550DB51}</Project>
-		</ProjectReference>
 		<ProjectReference Include="..\CloudSetupSdkSyncSampleSupport\CloudSetupSdkSyncSampleSupport.csproj">
 			<Name>CloudSetupSdkSyncSampleSupport</Name>
 			<Project>{0FC84CE4-7AA4-4954-B766-14F0A230C592}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\CloudSdkSyncSample\Sample-Live-Sync.csproj">
+			<Name>Sample-Live-Sync</Name>
+			<Project>{40A9C587-10CD-4979-A289-2B06F550DB51}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
+			<Name>CloudApiPublic</Name>
+			<Project>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</Project>
 		</ProjectReference>
 	</ItemGroup>
 </Project>

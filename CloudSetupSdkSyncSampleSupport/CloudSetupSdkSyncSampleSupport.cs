@@ -59,7 +59,7 @@ namespace CloudSetupSdkSyncSampleSupport
         }
 
         /// <summary>
-        /// Unzip the documentation into the Docs folder
+        /// Unzip the documentation into the Documentation folder
         /// </summary>
         /// <returns></returns>
         private static int Install()
@@ -72,8 +72,8 @@ namespace CloudSetupSdkSyncSampleSupport
                 // Get the path containing this executabe
                 string pathExecutingProgram = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string pathInstall = Path.GetDirectoryName(pathExecutingProgram);
-                string archiveFile = pathInstall + "\\Docs\\CloudSdkSyncSampleDocs.zip";
-                string outFolder = pathInstall + "\\Docs";
+                string archiveFile = pathInstall + "\\Documentation\\CloudSdkSyncSampleDocs.zip";
+                string outFolder = pathInstall + "\\Documentation";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathExecutingProgram: {0}.", pathExecutingProgram);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathInstall: {0}.", pathInstall);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: archiveFile: {0}.", archiveFile);
@@ -84,35 +84,106 @@ namespace CloudSetupSdkSyncSampleSupport
 
                 // Copy this executing program file to a second file.  This is required because the limited edition
                 // of InstallShield only allows custom actions to run during uninstall after all of the installed
-                // files have been deleted.
-                string pathSupport = pathInstall + "\\Support\\CloudSetupSdkSyncSampleSupport.exe";
-                if (File.Exists(pathSupport))
+                // files have been deleted.  Also copy all of the required support files.
+                // Copy CloudSetupSdkSyncSampleSupport.exe.
+                string pathWork = pathInstall + "\\Support\\CloudSetupSdkSyncSampleSupport.exe";
+                if (File.Exists(pathWork))
                 {
                     _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support program file.");
-                    File.Delete(pathSupport);
+                    File.Delete(pathWork);
                 }
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support program file.");
-                File.Copy(pathExecutingProgram, pathSupport);
+                File.Copy(pathExecutingProgram, pathWork);
 
-                // Copy the .config file too.
-                pathSupport = pathInstall + "\\Support\\CloudSetupSdkSyncSampleSupport.exe.config";
-                if (File.Exists(pathSupport))
+                // Copy CloudSetupSdkSyncSampleSupport.exe.config.
+                pathWork = pathInstall + "\\Support\\CloudSetupSdkSyncSampleSupport.exe.config";
+                if (File.Exists(pathWork))
                 {
                     _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support program config file.");
-                    File.Delete(pathSupport);
+                    File.Delete(pathWork);
                 }
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support program config file.");
-                File.Copy(pathExecutingProgram + ".config", pathSupport);
+                File.Copy(pathExecutingProgram + ".config", pathWork);
 
-                // Also copy the CloudApiPublic DLL to the \Support directory.
-                pathSupport = pathInstall + "\\Support\\CloudApiPublic.dll";
-                if (File.Exists(pathSupport))
+                // Copy Cloud.dll.
+                pathWork = pathInstall + "\\Support\\Cloud.dll";
+                if (File.Exists(pathWork))
                 {
-                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support CloudApiPublic.dll file.");
-                    File.Delete(pathSupport);
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support Cloud.dll file.");
+                    File.Delete(pathWork);
                 }
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support CloudApiPublic.dll file.");
-                File.Copy(pathInstall + "\\CloudApiPublic.dll", pathSupport);
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support Cloud.dll file.");
+                File.Copy(pathInstall + "\\Cloud.dll", pathWork);
+
+                // Copy EntityFramework.dll.
+                pathWork = pathInstall + "\\Support\\EntityFramework.dll";
+                if (File.Exists(pathWork))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support EntityFramework.dll file.");
+                    File.Delete(pathWork);
+                }
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support Cloud.dll file.");
+                File.Copy(pathInstall + "\\EntityFramework.dll", pathWork);
+
+                // Copy EntityFramework.dll.
+                pathWork = pathInstall + "\\Support\\EntityFramework.dll";
+                if (File.Exists(pathWork))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support EntityFramework.dll file.");
+                    File.Delete(pathWork);
+                }
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support EntityFramework.dll file.");
+                File.Copy(pathInstall + "\\EntityFramework.dll", pathWork);
+
+                // Copy ICSharpCode.SharpZipLib.dll.
+                pathWork = pathInstall + "\\Support\\ICSharpCode.SharpZipLib.dll";
+                if (File.Exists(pathWork))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support ICSharpCode.SharpZipLib.dll file.");
+                    File.Delete(pathWork);
+                }
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support ICSharpCode.SharpZipLib.dll file.");
+                File.Copy(pathInstall + "\\ICSharpCode.SharpZipLib.dll", pathWork);
+
+                // Copy Interop.Shell32.dll.
+                pathWork = pathInstall + "\\Support\\Interop.Shell32.dll";
+                if (File.Exists(pathWork))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support Interop.Shell32.dll file.");
+                    File.Delete(pathWork);
+                }
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support Interop.Shell32.dll file.");
+                File.Copy(pathInstall + "\\Interop.Shell32.dll", pathWork);
+
+                // Copy System.Xaml.dll.
+                pathWork = pathInstall + "\\Support\\System.Xaml.dll";
+                if (File.Exists(pathWork))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support System.Xaml.dll file.");
+                    File.Delete(pathWork);
+                }
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support System.Xaml.dll file.");
+                File.Copy(pathInstall + "\\System.Xaml.dll", pathWork);
+
+                // Copy WebSocket4Net.dll.
+                pathWork = pathInstall + "\\Support\\WebSocket4Net.dll";
+                if (File.Exists(pathWork))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support WebSocket4Net.dll file.");
+                    File.Delete(pathWork);
+                }
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support WebSocket4Net.dll file.");
+                File.Copy(pathInstall + "\\WebSocket4Net.dll", pathWork);
+
+                // Copy SuperSocket.ClientEngine.Common.dll.
+                pathWork = pathInstall + "\\Support\\SuperSocket.ClientEngine.Common.dll";
+                if (File.Exists(pathWork))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support SuperSocket.ClientEngine.Common.dll file.");
+                    File.Delete(pathWork);
+                }
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support SuperSocket.ClientEngine.Common.dll file.");
+                File.Copy(pathInstall + "\\SuperSocket.ClientEngine.Common.dll", pathWork);
 
                 // Open the documentation zip file and decompress all of its files and folders
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Unzip the docs file.");
@@ -174,8 +245,8 @@ namespace CloudSetupSdkSyncSampleSupport
             {
                 string pathExecutingProgram = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string pathInstall = Path.GetDirectoryName(pathExecutingProgram);
-                string archiveFile = pathInstall + "\\SampleApp\\CloudSdkSyncSampleSource.zip";
-                string outFolder = pathInstall + "\\SampleApp";
+                string archiveFile = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\CloudSdkSyncSampleSource.zip";
+                string outFolder = pathInstall + "\\Sample Code\\Sync\\Live\\Project";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathExecutingProgram(2): {0}.", pathExecutingProgram);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathInstall(2): {0}.", pathInstall);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: archiveFile(2): {0}.", archiveFile);
@@ -232,6 +303,12 @@ namespace CloudSetupSdkSyncSampleSupport
                 }
             }
 
+            // Schedule cleanup of the files in the installation directory.
+            _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call ScheduleCleanup.");
+            rcToReturn = ScheduleCleanup("CloudSetupSdkSyncSampleInstallCleanup");
+            _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Innstall: Return from ScheduleCleanup. rc: {0}.", rcToReturn);
+
+
             _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Return {0}.", rcToReturn);
             return rcToReturn;
         }
@@ -248,8 +325,8 @@ namespace CloudSetupSdkSyncSampleSupport
                 // Get the path containing this executabe
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Entry.");
                 string pathInstall = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                string docsFolder = pathInstall + "\\Docs";
-                string sourceFolder = pathInstall + "\\SampleApp";
+                string docsFolder = pathInstall + "\\Documentation";
+                string sourceFolder = pathInstall + "\\Sample Code\\Sync\\Live\\Project";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: pathInstall: {0}.", pathInstall);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: docsFolder: {0}.", docsFolder);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: sourceFolder: {0}.", sourceFolder);
@@ -270,7 +347,7 @@ namespace CloudSetupSdkSyncSampleSupport
 
                 // Schedule cleanup of this executing .exe file and containing directories as possible.
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Call ScheduleCleanup.");
-                rcToReturn = ScheduleCleanup();
+                rcToReturn = ScheduleCleanup("CloudSetupSdkSyncSampleUninstallCleanup");
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Return from ScheduleCleanup. rc: {0}.", rcToReturn);
             }
             catch (Exception ex)
@@ -288,7 +365,8 @@ namespace CloudSetupSdkSyncSampleSupport
         /// process will delete this executing program and clean up the directories if it can.
         /// The .vbs file will delete itself after executing.
         /// </summary>
-        private static int ScheduleCleanup()
+        /// <param name="vbScriptFileToRun">The name of the VB script file to run.</param>
+        private static int ScheduleCleanup(string vbScriptFileToRun)
         {
             // Write the self-destructing script to the user's temp directory and launch it.
             int rcToReturn = 0;
@@ -312,7 +390,7 @@ namespace CloudSetupSdkSyncSampleSupport
 
                 // Stream the CloudSetupSdkSyncSampleCleanup.vbs file out to the temp directory
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: ScheduleCleanup: Call WriteResourceFileToFilesystemFile.");
-                int rc = Helpers.WriteResourceFileToFilesystemFile(storeAssembly, "CloudSetupSdkSyncSampleCleanup", vbsPath);
+                int rc = Helpers.WriteResourceFileToFilesystemFile(storeAssembly, vbScriptFileToRun, vbsPath);
                 if (rc != 0)
                 {
                     _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: ScheduleCleanup: Error {0} from WriteResourceFileToFilesystemFile.", rc);

@@ -48,6 +48,7 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Cloud" />
     <Reference Include="RateBar, Version=1.0.4762.20666, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -179,12 +180,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\Syncing.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
-      <Project>{cbfd5a87-0104-472c-8411-95da030cde6e}</Project>
-      <Name>CloudApiPublic</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

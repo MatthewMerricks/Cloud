@@ -6,7 +6,7 @@
         Title="Sync Sample App" Height="480" Width="640" MinHeight="480" MinWidth="640">
     <Grid x:Name="LayoutRoot">
         <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="/CloudSdkSyncSample;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
+            <ImageBrush Stretch="UniformToFill" ImageSource="/Sample-Live-Sync;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
         </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="10"/>
