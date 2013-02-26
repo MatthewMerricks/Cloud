@@ -19,49 +19,52 @@ namespace CloudSDK_SmokeTest.Helpers
         #endregion 
 
         #region Static
-        public static int RouteToTaskMethod(InputParams paramSet, SmokeTask smokeTask, GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RouteToTaskMethod(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder ReportBuilder, GenericHolder<CLError> ProcessingErrorHolder)
         {
             int returnValue = -1;
             ManualSyncManager manager = new ManualSyncManager(paramSet);
             switch (smokeTask.type)
             { 
                 case SmokeTaskType.CreateSyncBox:
-                    returnValue = SyncBoxManager.RunCreateSyncBoxTask(paramSet, ref smokeTask, ref ProcessingErrorHolder );
+                    returnValue = SyncBoxManager.RunCreateSyncBoxTask(paramSet, ref smokeTask, ref ReportBuilder,  ref ProcessingErrorHolder );
                     break;
                 case SmokeTaskType.Creation:
                     if (smokeTask.ObjectType.type == ModificationObjectType.File || smokeTask.ObjectType.type == ModificationObjectType.Folder)
-                        returnValue = FileManager.RunFileCreationTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                        returnValue = FileManager.RunFileCreationTask(paramSet, smokeTask, ref ReportBuilder, ref manager, ref ProcessingErrorHolder);
                     else if (smokeTask.ObjectType.type == ModificationObjectType.Plan)
                         returnValue = PlanManager.RunCreatePlan(paramSet, smokeTask, ref ProcessingErrorHolder);
                     else if (smokeTask.ObjectType.type == ModificationObjectType.SyncBox)
-                        returnValue = SyncBoxManager.RunCreateSyncBoxTask(paramSet, ref smokeTask, ref ProcessingErrorHolder);
+                        returnValue = SyncBoxManager.RunCreateSyncBoxTask(paramSet, ref smokeTask, ref ReportBuilder, ref ProcessingErrorHolder);
                     else if (smokeTask.ObjectType.type == ModificationObjectType.Session)
-                        returnValue = SessionManager.RunCreateSessionTask(paramSet, smokeTask, ref ProcessingErrorHolder);
+                        returnValue = SessionManager.RunCreateSessionTask(paramSet, smokeTask, ref ReportBuilder, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.DownloadAllSyncBoxContent:
-                    returnValue = ManualSyncManager.RunDownloadAllSyncBoxContentTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                    returnValue = ManualSyncManager.RunDownloadAllSyncBoxContentTask(paramSet, smokeTask, ref ReportBuilder, ref manager, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.Deletion:
                     if (smokeTask.ObjectType.type == ModificationObjectType.File || smokeTask.ObjectType.type == ModificationObjectType.Folder)
-                        returnValue = FileManager.RunFileDeletionTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                        returnValue = FileManager.RunFileDeletionTask(paramSet, smokeTask, ref ReportBuilder, ref manager, ref ProcessingErrorHolder);
                     else if (smokeTask.ObjectType.type == ModificationObjectType.SyncBox)
-                        returnValue = SyncBoxManager.RunSyncBoxDeletionTask(paramSet, smokeTask, ref ProcessingErrorHolder);
+                        returnValue = SyncBoxManager.RunSyncBoxDeletionTask(paramSet, smokeTask, ref ReportBuilder, ref ProcessingErrorHolder);
                     else if (smokeTask.ObjectType.type == ModificationObjectType.Session)
-                        returnValue = SessionManager.RunSessionDeletionTask(paramSet, smokeTask, ref ProcessingErrorHolder);
+                        returnValue = SessionManager.RunSessionDeletionTask(paramSet, smokeTask, ref ReportBuilder, ref ProcessingErrorHolder);
                     else if (smokeTask.ObjectType.type == ModificationObjectType.Plan)
                         returnValue = PlanManager.RunPlanDeletionTask(paramSet, smokeTask, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.Rename:
                     if (smokeTask.ObjectType.type == ModificationObjectType.File || smokeTask.ObjectType.type == ModificationObjectType.Folder)
-                        returnValue = FileManager.RunFileRenameTask(paramSet, smokeTask, ref manager, ref ProcessingErrorHolder);
+                        returnValue = FileManager.RunFileRenameTask(paramSet, smokeTask, ref ReportBuilder, ref manager, ref ProcessingErrorHolder);
                     if (smokeTask.ObjectType.type == ModificationObjectType.SyncBox)
-                        returnValue = SyncBoxManager.RunSyncBoxRenameTask(paramSet, smokeTask, ref ProcessingErrorHolder);
+                        returnValue = SyncBoxManager.RunSyncBoxRenameTask(paramSet, smokeTask, ref ReportBuilder, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.ListItems:
-                    returnValue = ItemsListManager.RunListItemsTask(paramSet, smokeTask, ref ProcessingErrorHolder);
+                    returnValue = ItemsListManager.RunListItemsTask(paramSet, smokeTask, ref ReportBuilder, ref ProcessingErrorHolder);
                     break;
                 case SmokeTaskType.HttpTest:
                     RunHttpTestTask();
+                    break;
+                case SmokeTaskType.Comparison:
+                    returnValue = SyncBoxManager.RunCompareSyncResults(paramSet, smokeTask, ref ReportBuilder, ref ProcessingErrorHolder);
                     break;
 
             }

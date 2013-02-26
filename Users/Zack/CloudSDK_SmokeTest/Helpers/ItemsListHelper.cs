@@ -85,26 +85,30 @@ namespace CloudSDK_SmokeTest.Helpers
             listManager.Sessions.Clear();
             if (sessionList.Sessions.Count() == 0)
             {
-                Console.WriteLine("Session Count: 0");
+                itemListHelperArgs.ReportBuilder.AppendLine("Session Count: 0");
             }
             else
             {
                 foreach (Session sesh in sessionList.Sessions)
                 {
+                    itemListHelperArgs.ReportBuilder.AppendLine();
                     if (!listManager.Sessions.Contains(sesh))
                         listManager.Sessions.Add(sesh);
                     if (printValues)
                     {
-                        Console.WriteLine(string.Format("The Session with token {0} expires at {1}  ", sesh.Token, sesh.ExpiresAt));
+                        itemListHelperArgs.ReportBuilder.AppendLine(string.Format("The Session with token {0} expires at {1}  ", sesh.Token, sesh.ExpiresAt));
                     }
                     if (printSessionSyncBoxes)
                     {
-                        Console.WriteLine("SyncBox IDs:");
+                        itemListHelperArgs.ReportBuilder.AppendLine("SyncBox IDs:");
                         foreach (long l in sesh.SyncBoxIds)
-                            Console.Write(l.ToString() + ", ");
+                            itemListHelperArgs.ReportBuilder.Append(l.ToString() + ", ");
+
+                        itemListHelperArgs.ReportBuilder.AppendLine();
                     }
                     getListResponseCode = 0;
                 }
+                itemListHelperArgs.ReportBuilder.AppendLine();
             }
 
             return getListResponseCode;

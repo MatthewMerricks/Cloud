@@ -166,6 +166,7 @@ namespace CloudSDK_SmokeTest.Settings {
     }
     
     /// <remarks/>
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(Comparison))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(ListItems))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(HttpTest))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(CreateSyncBox))]
@@ -183,6 +184,8 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private SmokeTaskType typeField;
         
+        private SmokeTaskSyncType syncTypeField;
+        
         private SmokeTask innerTaskField;
         
         private ModificationObject objectTypeField;
@@ -196,6 +199,16 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.typeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public SmokeTaskSyncType SyncType {
+            get {
+                return this.syncTypeField;
+            }
+            set {
+                this.syncTypeField = value;
             }
         }
         
@@ -259,6 +272,31 @@ namespace CloudSDK_SmokeTest.Settings {
         
         /// <remarks/>
         ListItems,
+        
+        /// <remarks/>
+        Comparison,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public enum SmokeTaskSyncType {
+        
+        /// <remarks/>
+        Active,
+        
+        /// <remarks/>
+        Manual,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class Comparison : SmokeTask {
     }
     
     /// <remarks/>

@@ -18,7 +18,7 @@ namespace CloudSDK_SmokeTest.Managers
     public class SessionManager : ISmokeTaskManager 
     {
 
-        public static int RunCreateSessionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunCreateSessionTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             string newSessionKey = string.Empty;
             Creation createSessionTask = smokeTask as Creation;
@@ -26,8 +26,8 @@ namespace CloudSDK_SmokeTest.Managers
                 return(int)FileManagerResponseCodes.InvalidTaskType;
 
             int responseCode = 0;
-            Console.WriteLine("Preparing to Create Session.");
-            ItemListHelperEventArgs args = new ItemListHelperEventArgs() { ParamSet = paramSet, ProcessingErrorHolder = ProcessingErrorHolder };
+            reportBuilder.AppendLine("Preparing to Create Session.");
+            ItemListHelperEventArgs args = new ItemListHelperEventArgs() { ParamSet = paramSet, ReportBuilder = reportBuilder, ProcessingErrorHolder = ProcessingErrorHolder };
             ItemsListHelper.RunListSessions(args, false, false);
             ItemsListManager mgr = ItemsListManager.GetInstance();
             int prior = mgr.Sessions.Count;
@@ -39,21 +39,21 @@ namespace CloudSDK_SmokeTest.Managers
                 if (responseCode == 0)
                 {
                     responseCode = SessionManager.CreateSession(paramSet, smokeTask, out newSessionKey, ref ProcessingErrorHolder);
-                    Console.WriteLine("Create Sesssion Results:");
+                    reportBuilder.AppendLine("Create Sesssion Results:");
                     if (string.IsNullOrEmpty(newSessionKey))
-                        Console.WriteLine("Create Sesssion Failed: Returned Session ID is 0:");
+                        reportBuilder.AppendLine("Create Sesssion Failed: Returned Session ID is 0:");
                     else
-                        Console.WriteLine(string.Format("Created Session with Key {0}", newSessionKey));
+                        reportBuilder.AppendLine(string.Format("Created Session with Key {0}", newSessionKey));
                 }
             }
 
-            Console.WriteLine("Session Count Before Running: {0}", prior.ToString());
-            Console.WriteLine("Session Count After Running: {0}", mgr.Sessions.Count.ToString());
+            reportBuilder.AppendLine(string.Format("Session Count Before Running: {0}", prior.ToString()));
+            reportBuilder.AppendLine(string.Format("Session Count After Running: {0}", mgr.Sessions.Count.ToString()));
             return responseCode;
 
         }
 
-        public static int RunSessionDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunSessionDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             List<CloudApiPublic.JsonContracts.Session> toDelete = new List<CloudApiPublic.JsonContracts.Session>();
             int deleteSessionResponseCode = 0;
@@ -62,13 +62,13 @@ namespace CloudSDK_SmokeTest.Managers
                 return (int)FileManagerResponseCodes.InvalidTaskType;
 
             GenericHolder<CLError> refHolder = ProcessingErrorHolder;
-            Console.WriteLine("Preparing Delete Session Task");
-            deleteSessionResponseCode = SessionManager.DeleteSession(paramSet, deleteTask, ref refHolder);
-            Console.WriteLine("Exiting Delete Session Task");
+            reportBuilder.AppendLine("Preparing Delete Session Task");
+            deleteSessionResponseCode = SessionManager.DeleteSession(paramSet, deleteTask, ref reportBuilder, ref refHolder);
+            reportBuilder.AppendLine("Exiting Delete Session Task");
             return deleteSessionResponseCode;
         }
         
-        public static int CreateSession(InputParams paramSet, SmokeTask smokeTask, out string sessionKey,  ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int CreateSession(InputParams paramSet, SmokeTask smokeTask, out string sessionKey, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             int createSessionResponseCode = 0;
             sessionKey = string.Empty;
@@ -104,10 +104,11 @@ namespace CloudSDK_SmokeTest.Managers
                 mgr.Sessions.Add(sessionCreateResponse.Session);
             if (!mgr.SessionsCreatedDynamically.Contains(sessionCreateResponse.Session.Token))
                 mgr.SessionsCreatedDynamically.Add(sessionCreateResponse.Session.Token);
+
             return createSessionResponseCode;
         }
 
-        public static int DeleteSession(InputParams paramSet, Deletion deleteTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int DeleteSession(InputParams paramSet, Deletion deleteTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             int index = 0;
             int deleteSessionResponseCode = 0;
@@ -116,6 +117,7 @@ namespace CloudSDK_SmokeTest.Managers
             TaskEventArgs args = new TaskEventArgs()
             {
                 ParamSet = paramSet,
+                ReportBuilder = reportBuilder,
                 ProcessingErrorHolder = ProcessingErrorHolder,
             };
 
@@ -128,6 +130,7 @@ namespace CloudSDK_SmokeTest.Managers
                  Creds = args.Creds,
                  ParamSet = paramSet,
                  ProcessingErrorHolder = ProcessingErrorHolder,
+                 ReportBuilder = reportBuilder,
             };
 
             ItemListHelperEventArgs itemListArgs = new ItemListHelperEventArgs(args);
@@ -290,8 +293,9 @@ namespace CloudSDK_SmokeTest.Managers
         #region Interface Implementation
         public int Create(SmokeTestManagerEventArgs e)
         {
+            StringBuilder sb = e.ReportBuilder;
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
-            return (int)RunCreateSessionTask(e.ParamSet, e.CurrentTask, ref refHolder);
+            return (int)RunCreateSessionTask(e.ParamSet, e.CurrentTask, ref sb, ref refHolder);
         }
 
         public int Rename(SmokeTestManagerEventArgs e)
@@ -305,7 +309,8 @@ namespace CloudSDK_SmokeTest.Managers
         public int Delete(SmokeTestManagerEventArgs e)
         {
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
-            return (int)DeleteSession(e.ParamSet, (e.CurrentTask as Deletion), ref refHolder);
+            StringBuilder refReportBuilder = e.ReportBuilder;
+            return (int)DeleteSession(e.ParamSet, (e.CurrentTask as Deletion), ref refReportBuilder, ref refHolder);
         }
 
         public int UnDelete(SmokeTestManagerEventArgs e)

@@ -49,7 +49,7 @@ namespace CloudSDK_SmokeTest.Managers
             // create the other direction
         }
 
-        public static int RunListItemsTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunListItemsTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             int responseCode = -1;
             ListItems listTask = smokeTask as ListItems;
@@ -62,23 +62,24 @@ namespace CloudSDK_SmokeTest.Managers
                 ProcessingErrorHolder = ProcessingErrorHolder,
                 ParamSet = paramSet,
                 ListItemsTask = listTask,
+                ReportBuilder = reportBuilder,
             };
             switch (listTask.ListType)
             {
                 case ListItemsListType.Plans:
-                    Console.WriteLine("Entering List Plans");
+                    reportBuilder.AppendLine("Entering List Plans");
                     ItemsListHelper.RunListSubscribedPlans(eventArgs);
-                    Console.WriteLine("Exiting List Plans");
+                    reportBuilder.AppendLine("Exiting List Plans");
                     break;
                 case ListItemsListType.Sessions:
-                    Console.WriteLine("Entering List Sessions");
+                    reportBuilder.AppendLine("Entering List Sessions");
                     ItemsListHelper.RunListSessions(eventArgs, true, true);
-                    Console.WriteLine("Exiting List Sessions");
+                    reportBuilder.AppendLine("Exiting List Sessions");
                     break;
                 case ListItemsListType.SyncBoxes:
-                    Console.WriteLine("Entering List SyncBoxes");
+                    reportBuilder.AppendLine("Entering List SyncBoxes");
                     ItemsListHelper.RunListSubscribtionSyncBoxes(eventArgs);
-                    Console.WriteLine("Exiting List SyncBoxes");
+                    reportBuilder.AppendLine("Exiting List SyncBoxes");
                     break;
             }
             return responseCode;
@@ -122,6 +123,7 @@ namespace CloudSDK_SmokeTest.Managers
                 ProcessingErrorHolder = e.ProcessingErrorHolder,
                 ParamSet = e.ParamSet,
                 ListItemsTask = listTask,
+                ReportBuilder = e.ReportBuilder,
             };
             switch (listTask.ListType)
             {

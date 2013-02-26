@@ -20,7 +20,7 @@ namespace CloudSDK_SmokeTest.Managers
     {
 
         #region Old Implementation
-        public static int RunFileCreationTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunFileCreationTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             Creation creation = smokeTask as Creation;
             if (creation == null)
@@ -31,9 +31,9 @@ namespace CloudSDK_SmokeTest.Managers
             FileHelper.CreateFilePathString(creation, out fullPath);
             try
             {
-                Console.WriteLine(string.Format("Entering Creation Task. Current Creation Type: {0}", smokeTask.ObjectType.type.ToString()));
-                responseCode = manager.Create(paramSet, smokeTask, new FileInfo(fullPath), creation.Name, ref ProcessingErrorHolder);
-                Console.WriteLine("Exiting Creation Task.");
+                reportBuilder.AppendLine(string.Format("Entering Creation Task. Current Creation Type: {0}", smokeTask.ObjectType.type.ToString()));
+                responseCode = manager.Create(paramSet, smokeTask, new FileInfo(fullPath), creation.Name, ref reportBuilder, ref ProcessingErrorHolder);
+                reportBuilder.AppendLine("Exiting Creation Task.");
             }
             catch (Exception ex)
             {
@@ -46,7 +46,7 @@ namespace CloudSDK_SmokeTest.Managers
 
         }
 
-        public static int RunFileDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunFileDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder,  ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             int deleteReturnCode = 0;
             try
@@ -55,7 +55,7 @@ namespace CloudSDK_SmokeTest.Managers
                     return (int)FileManagerResponseCodes.InvalidTaskType;
 
                 Console.WriteLine(string.Format("Entering Delete {0}", smokeTask.ObjectType.type.ToString()));
-                deleteReturnCode = manager.Delete(paramSet, smokeTask);
+                deleteReturnCode = manager.Delete(paramSet, smokeTask, ref reportBuilder);
                 Console.WriteLine(string.Format("Delete {0} Exiting", smokeTask.ObjectType.type.ToString()));
 
 
@@ -70,7 +70,7 @@ namespace CloudSDK_SmokeTest.Managers
             return deleteReturnCode;
         }
 
-        public static int RunFileRenameTask(InputParams paramSet, SmokeTask smokeTask, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunFileRenameTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             int responseCode = -1;
             try
@@ -79,9 +79,9 @@ namespace CloudSDK_SmokeTest.Managers
                 if (task == null)
                     return (int)FileManagerResponseCodes.InvalidTaskType;
 
-                Console.WriteLine(string.Format("Entering Rename {0}", smokeTask.ObjectType.type.ToString()));
-                responseCode = manager.Rename(paramSet, task, task.RelativeDirectoryPath, task.OldName, task.NewName);
-                Console.WriteLine(string.Format("Rename {0} Exiting", smokeTask.ObjectType.type.ToString()));
+                reportBuilder.AppendLine(string.Format("Entering Rename {0}", smokeTask.ObjectType.type.ToString()));
+                responseCode = manager.Rename(paramSet, task, task.RelativeDirectoryPath, task.OldName, task.NewName, ref reportBuilder, ref ProcessingErrorHolder);
+                reportBuilder.AppendLine(string.Format("Rename {0} Exiting", smokeTask.ObjectType.type.ToString()));
             }
             catch (Exception exception)
             {
@@ -199,7 +199,7 @@ namespace CloudSDK_SmokeTest.Managers
             }
             else
             {
-                Console.WriteLine("Successfully Uploaded File {0} to the Sync Box {1}.", eventArgs.FileInfo.Name, eventArgs.SyncBox.SyncBoxId);
+                eventArgs.ReportBuilder.Append(string.Format("Successfully Uploaded File {0} to the Sync Box {1}.", eventArgs.FileInfo.Name, eventArgs.SyncBox.SyncBoxId));
             }
             return responseCode;
         }

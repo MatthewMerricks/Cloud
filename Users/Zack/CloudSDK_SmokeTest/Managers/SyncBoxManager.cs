@@ -9,6 +9,7 @@ using CloudSDK_SmokeTest.Interfaces;
 using CloudSDK_SmokeTest.Settings;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -17,14 +18,14 @@ namespace CloudSDK_SmokeTest.Managers
     public class SyncBoxManager : ISmokeTaskManager
     {
         #region Public
-        public static int RunCreateSyncBoxTask(InputParams paramSet, ref SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunCreateSyncBoxTask(InputParams paramSet, ref SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             int responseCode = 0;
             long? newBoxId =0;
             CreateSyncBox createTask = smokeTask as CreateSyncBox;
             if (createTask != null && createTask.CreateNew == true)
             {
-                Console.WriteLine("Preapring to create new SyncBoxs.");
+                reportBuilder.AppendLine("Preapring to create new SyncBoxs.");
                 int iterations = 1;
                 if (createTask.Count > 0)
                     iterations = createTask.Count;
@@ -42,7 +43,7 @@ namespace CloudSDK_SmokeTest.Managers
                     }
                     else
                     {
-                        Console.WriteLine(string.Format("Successfully Created SyncBox with ID: {0}", newBoxId));
+                        reportBuilder.AppendLine(string.Format("Successfully Created SyncBox with ID: {0}", newBoxId));
                         SyncBoxMapper.SyncBoxes.Add(SyncBoxMapper.SyncBoxes.Count(), newBoxId.Value);
                         createTask.SelectedSyncBoxID = newBoxId.Value;
                     }
@@ -56,7 +57,7 @@ namespace CloudSDK_SmokeTest.Managers
             return responseCode;//newBoxId.HasValue ? newBoxId.Value : 0;
         }
 
-        public static int RunSyncBoxDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunSyncBoxDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             int deleteTaskResponseCode = 0;
             Deletion deleteTask = smokeTask as Deletion;
@@ -65,17 +66,20 @@ namespace CloudSDK_SmokeTest.Managers
             long syncBoxId = 0;
             if (deleteTask.ID > 0)
                 syncBoxId = deleteTask.ID;
-            Console.WriteLine(string.Format("Preparing to Delete SyncBox Task with ID: {0}", syncBoxId));
+            reportBuilder.AppendLine(string.Format("Preparing to Delete SyncBox Task with ID: {0}", syncBoxId));
             bool success = SyncBoxManager.DeleteSyncBox(paramSet, syncBoxId, ref ProcessingErrorHolder);
-            Console.WriteLine("Exiting Delete SyncBox Task");
             if (success)
-                Console.WriteLine("Successfully Deleted SyncBox.");
+                reportBuilder.AppendLine(string.Format("Successfully Deleted SyncBox {0}.", syncBoxId));
             if (!success)
+            {
+                reportBuilder.AppendLine(string.Format("There was an Issue Deleting SyncBox {0}.", syncBoxId));
                 deleteTaskResponseCode = -1;
+            }
+            reportBuilder.AppendLine("Exiting Delete SyncBox Task");
             return deleteTaskResponseCode;
         }
 
-        public static int RunSyncBoxRenameTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static int RunSyncBoxRenameTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             int responseCode = 0;
             Rename renameTask = smokeTask as Rename;
@@ -90,20 +94,49 @@ namespace CloudSDK_SmokeTest.Managers
                 CurrentTask = smokeTask,
                 ParamSet = paramSet,
                 ProcessingErrorHolder = ProcessingErrorHolder,
+                ReportBuilder = reportBuilder,
 
             };
             bool success = CredentialHelper.InitializeCreds(ref eventArgs, out credSettings, out initializeCredsError);
             if (!success)
                 return (int)FileManagerResponseCodes.InitializeCredsError;
 
-            Console.WriteLine("Begin SyncBox Rename...");
+            reportBuilder.AppendLine("Begin SyncBox Rename...");
             responseCode = RenameSyncBox(eventArgs);
             if (responseCode == 0)
-                Console.WriteLine("Successfully Exiting Rename SyncBox...");
+                reportBuilder.AppendLine("Successfully Exiting Rename SyncBox...");
             else
-                Console.WriteLine("There was an error Renaming SyncBox: {0}", renameTask.ServerID);
+                reportBuilder.AppendLine(string.Format("There was an error Renaming SyncBox: {0}", renameTask.ServerID));
            
 
+            return responseCode;
+        }
+
+        public static int RunCompareSyncResults(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
+        {
+            int responseCode = 0;
+            Comparison comparisonTask = smokeTask as Comparison;
+            if (comparisonTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
+
+            ICLCredentialSettings credSettings;
+            CLError initializeCredsError;
+            TaskEventArgs eventArgs = new TaskEventArgs()
+            {
+                CurrentTask = smokeTask,
+                ParamSet = paramSet,
+                ProcessingErrorHolder = ProcessingErrorHolder,
+                ReportBuilder = reportBuilder,
+            };
+            bool success = CredentialHelper.InitializeCreds(ref eventArgs, out credSettings, out initializeCredsError);
+            if (!success)
+                return (int)FileManagerResponseCodes.InitializeCredsError;
+
+            reportBuilder.AppendLine("Begin SyncBox Compare Sync Results Task...");
+            bool areIdentical = CompareSyncBoxFolders(eventArgs);
+            reportBuilder.AppendLine(string.Format("SyncBox content is identical: {0}", areIdentical.ToString()));
+            reportBuilder.AppendLine("Ending Compare SyncBoxFolders...");
             return responseCode;
         }
 
@@ -215,6 +248,47 @@ namespace CloudSDK_SmokeTest.Managers
             
             return success;
         }
+
+        public static bool CompareSyncBoxFolders(TaskEventArgs e)
+        {
+            bool areItemsItedntical = false;
+            string manualSyncFolderPath = e.ParamSet.ManualSync_Folder.Replace("\"", "");
+            string activeSyncFolderPath = e.ParamSet.ActiveSync_Folder.Replace("\"","");
+            DirectoryInfo activeFolder = new DirectoryInfo(activeSyncFolderPath);
+            DirectoryInfo manualFolder = new DirectoryInfo(manualSyncFolderPath);
+            FileSystemInfo[] activeFolderStructure = activeFolder.GetFileSystemInfos();
+            FileSystemInfo[] manualFolderStructure = manualFolder.GetFileSystemInfos();
+            foreach (FileSystemInfo fileOrFolder in activeFolderStructure)
+            { 
+                string comparePath = fileOrFolder.FullName.Replace(activeSyncFolderPath, manualSyncFolderPath);
+                IEnumerable<FileSystemInfo> compareTo = manualFolderStructure.Where(fso => fso.FullName.Contains(comparePath));
+                if (compareTo.Count() == 0 || compareTo.Count() > 1)
+                {
+                    e.ReportBuilder.Append(string.Format("The comparison for {0} failed due to an unexpected count of {1}", comparePath, compareTo.Count().ToString()));
+                    areItemsItedntical = false;
+                    break;
+                }
+                FileSystemInfo manualCompare = compareTo.ElementAt(0);
+                FileInfo manualFileItem = manualCompare as FileInfo;
+                // If its not a folder 
+                if (manualFileItem != null)
+                {
+                    areItemsItedntical = CompareFiles(manualFileItem, fileOrFolder);
+                }
+                else
+                { 
+                    DirectoryInfo manualFolderItem = manualCompare as DirectoryInfo;
+                    areItemsItedntical = CompareFolders(manualFolderItem, fileOrFolder);
+                }
+                //For folders do not Compare modified date 
+                //For All Others Compare:
+                //Creation Date 
+                //Last Modified Date
+                //FileSize 
+            }
+            return areItemsItedntical;
+        }
+
         #endregion
 
         #region Interface Implementation
@@ -267,13 +341,15 @@ namespace CloudSDK_SmokeTest.Managers
         public int Rename(SmokeTestManagerEventArgs e)
         {
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
-            return (int)RunSyncBoxRenameTask(e.ParamSet, e.CurrentTask, ref refHolder); 
+            StringBuilder refReportBuilder = e.ReportBuilder;
+            return (int)RunSyncBoxRenameTask(e.ParamSet, e.CurrentTask, ref refReportBuilder, ref refHolder); 
         }
 
         public int Delete(SmokeTestManagerEventArgs e)
         {
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
-            return (int)RunSyncBoxDeletionTask(e.ParamSet, e.CurrentTask, ref refHolder); 
+            StringBuilder sb = e.ReportBuilder;
+            return (int)RunSyncBoxDeletionTask(e.ParamSet, e.CurrentTask, ref sb, ref refHolder); 
         }
 
         public int UnDelete(SmokeTestManagerEventArgs e)
@@ -299,6 +375,36 @@ namespace CloudSDK_SmokeTest.Managers
         #endregion 
 
         #region Private
+        private static bool CompareFiles(FileInfo manualFile, FileSystemInfo fso)
+        {
+            bool areIdentical = true;
+            FileInfo fi = fso as FileInfo;
+            
+            if (fi == null)
+                return false;
+            if (manualFile.LastWriteTimeUtc != fi.LastWriteTimeUtc)
+                areIdentical = false;
+            else if (manualFile.CreationTimeUtc != fi.CreationTimeUtc)
+                areIdentical = false;
+            else if (fi.Length != manualFile.Length)
+                areIdentical = false;
+
+            return areIdentical;
+        }
+
+        private static bool CompareFolders(DirectoryInfo manualDirectory, FileSystemInfo fso)
+        {
+            bool areIdentical = true;
+
+            DirectoryInfo di = fso as DirectoryInfo;
+            if(di == null)
+                return false;
+            if (manualDirectory.CreationTimeUtc != di.CreationTimeUtc)
+                areIdentical = false;
+
+            return areIdentical;
+        }
+
         private static void AddExceptions(CLCredentialCreationStatus? credsStatus, CLHttpRestStatus? restStatus, CLSyncBoxCreationStatus? boxCreateStatus, string opperationName, CLError error, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             Exception exception;

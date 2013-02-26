@@ -33,12 +33,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BadgeCOMLib">
-      <HintPath>..\..\..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\Cloud.com\CloudSdkSyncSample\BadgeCOMLib.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="CloudApiPublic">
+    <Reference Include="CloudApiPublic, Version=0.1.4.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\CloudApiPublic\bin\Release\CloudApiPublic.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\Cloud.com\CloudSdkSyncSample\CloudApiPublic.dll</HintPath>
     </Reference>
     <Reference Include="ErikEJ.SqlCe40">
       <HintPath>..\..\..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</HintPath>

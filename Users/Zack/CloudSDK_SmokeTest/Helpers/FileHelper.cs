@@ -38,6 +38,7 @@ namespace CloudSDK_SmokeTest.Helpers
             }
             string response = returnEvent.Header.Status.ToLower();
             CreateFileResponseEventArgs responseArgs = new CreateFileResponseEventArgs(createEventArgs, fileChange, response, restStatus, returnEvent);
+            responseArgs.ReportBuilder = createEventArgs.ReportBuilder;
             createReturnCode = FileHelper.CreateFileResponseSwitch(responseArgs, fileChange, manager, ref refProcessErrorHolder);
             return createReturnCode;
         }
@@ -297,12 +298,12 @@ namespace CloudSDK_SmokeTest.Helpers
             }
         }
 
-        public static int TryCreate(InputParams paramSet, SmokeTask smokeTask, FileInfo fi, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
+        public static int TryCreate(InputParams paramSet, SmokeTask smokeTask, FileInfo fi, string fileName, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
         {
             int responseCode = -1;
             try
             {
-                responseCode = manager.Create(paramSet, smokeTask, fi, fileName, ref ProcessingErrorHolder);
+                responseCode = manager.Create(paramSet, smokeTask, fi, fileName, ref reportBuilder, ref ProcessingErrorHolder);
             }
             catch (Exception ex)
             {
@@ -339,7 +340,27 @@ namespace CloudSDK_SmokeTest.Helpers
             return responseCode;
         }
 
-
+        public static int TryUpload(CreateFileResponseEventArgs e)
+        {
+            CLHttpRestStatus newStatus;
+            int responseCode = 0;
+            e.FileChange.Metadata.Revision = e.ReturnEvent.Metadata.Revision;
+            e.FileChange.Metadata.StorageKey = e.ReturnEvent.Metadata.StorageKey;
+            string message = string.Empty;
+            Stream stream = new System.IO.FileStream(e.CreateTaskFileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            CLError updateFileError = e.SyncBox.HttpRestClient.UploadFile(stream, e.FileChange, ManagerConstants.TimeOutMilliseconds, out newStatus, out message);
+            if (e.RestStatus != CLHttpRestStatus.Success || updateFileError != null)
+            {
+                GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+                HandleUnsuccessfulUpload(e.RestStatus, updateFileError, ManagerConstants.RequestTypes.RestCreateFile, ref refHolder);
+                responseCode = 1;
+            }
+            else
+            {
+                Console.WriteLine("Successfully Uploaded File {0} to the Sync Box {1}.", e.CreateTaskFileInfo.Name, e.SyncBox.SyncBoxId);
+            }
+            return responseCode;
+        }
         #endregion 
 
         #region Compare
@@ -404,7 +425,8 @@ namespace CloudSDK_SmokeTest.Helpers
             {
                 case "upload":
                 case "uploading":
-                    responseCode = FileHelper.TryUpload(responseArgs.CreateTaskFileInfo, responseArgs.SyncBox, responseArgs.FileChange, responseArgs.RestStatus, responseArgs.ReturnEvent, ref refHolder);
+                    //responseCode = FileHelper.TryUpload(responseArgs.CreateTaskFileInfo, responseArgs.SyncBox, responseArgs.FileChange, responseArgs.RestStatus, responseArgs.ReturnEvent, ref refHolder);
+                    responseCode = FileHelper.TryUpload(responseArgs);
                     break;
                 case "duplicate":
                 case "exists":
@@ -414,7 +436,7 @@ namespace CloudSDK_SmokeTest.Helpers
                     break;
                 default:
                     responseCode = (int)FileManagerResponseCodes.InvalidResponseType;
-                    Console.Write(string.Format("The Server Response is {0}", responseArgs.ReturnEvent.Header.Status));
+                    responseArgs.ReportBuilder.Append(string.Format("The Server Response is {0}", responseArgs.ReturnEvent.Header.Status));
                     break;
 
             }
@@ -437,7 +459,9 @@ namespace CloudSDK_SmokeTest.Helpers
                     responseCode = HttpPostReponseCodes.Duplicate;
                     break;
                 default:
-                    Console.Write(string.Format("The Server Response is {0}", response));
+                    Console.WriteLine(string.Format("The Server Response is {0}", response));
+                    //reportBuilder.AppendFormat(string.Format("The Server Response is {0}", response));
+                    //reportBuilder.AppendLine();
                     break;
 
             }

@@ -79,9 +79,17 @@
             <xs:enumeration value = "DownloadAllSyncBoxContent" />
             <xs:enumeration value = "Rename" />
             <xs:enumeration value = "FileUndelete" />
-            <xs:enumeration value ="HttpTest" />
-            <xs:enumeration value ="ListItems" />
-            <xs:enumeration value = "CompareFolders" />
+            <xs:enumeration value = "HttpTest" />
+            <xs:enumeration value = "ListItems" />
+            <xs:enumeration value = "Comparison" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:element>
+      <xs:element name="SyncType" minOccurs="1">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Active"/>
+            <xs:enumeration value ="Manual" />
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
@@ -197,10 +205,9 @@
     </xs:complexContent>
   </xs:complexType>
 
-  <xs:complexType name="CompareFolders" >
+  <xs:complexType name="Comparison" >
     <xs:complexContent>
       <xs:extension base="SmokeTask">
-        
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

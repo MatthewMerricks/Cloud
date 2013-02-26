@@ -62,6 +62,7 @@ namespace CloudSDK_SmokeTest
         #region Private
         private static void SmokeTestProcessor(object state)
         {
+            StringBuilder ReportBuilder = new StringBuilder();
             object waitForCompletion = null;
             Console.WriteLine("Initialization Begining ... ");
             Console.WriteLine();
@@ -80,17 +81,29 @@ namespace CloudSDK_SmokeTest
 
                     foreach (ParallelTaskSet parallelSet in smokeTestClass.Scenario.Items)
                     {
-                        System.Threading.Tasks.Parallel.ForEach(
-                            parallelSet.Items,
-                            (currentTask =>
-                            {
-                                //SmokeTestManagerEventArgs e = new SmokeTestManagerEventArgs(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
-                                //SmokeTestTaskHelper.RouteToTask(e);
-                                int response = SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
-                                //RunInnerTasks(smokeTestClass, currentTask.InnerTask, currentTask.SyncBoxes);
-                                RunInnerTasks(smokeTestClass, currentTask);   
+                        StringBuilder _report = new StringBuilder();
+                        foreach (SmokeTask currentTask in parallelSet.Items)
+                        {
+                            //SmokeTestManagerEventArgs e = new SmokeTestManagerEventArgs(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
+                            //SmokeTestTaskHelper.RouteToTask(e);
+                            int response = SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ref _report, ProcessingErrorHolder);
+                            //RunInnerTasks(smokeTestClass, currentTask.InnerTask, currentTask.SyncBoxes);
+                            RunInnerTasks(smokeTestClass, currentTask, ref _report);
+                            Console.Write(_report.ToString());
 
-                            }));
+                        }
+                        //System.Threading.Tasks.Parallel.ForEach(
+                        //    parallelSet.Items,
+                        //    (currentTask =>
+                        //    {
+                        //        //SmokeTestManagerEventArgs e = new SmokeTestManagerEventArgs(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
+                        //        //SmokeTestTaskHelper.RouteToTask(e);
+                        //        int response = SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ref _report, ProcessingErrorHolder);
+                        //        //RunInnerTasks(smokeTestClass, currentTask.InnerTask, currentTask.SyncBoxes);
+                        //        RunInnerTasks(smokeTestClass, currentTask, ref _report);
+                        //        Console.Write(_report.ToString());
+
+                        //    }));
 
                         lock (ProcessingErrorHolder)
                         {
@@ -128,7 +141,7 @@ namespace CloudSDK_SmokeTest
 
         //ZW Replace
         //public static void RunInnerTasks(SmokeTest smokeTestClass, SmokeTask currentTask, Dictionary<long, CLSyncBox> syncBoxes)
-        public static void RunInnerTasks(SmokeTest smokeTestClass, SmokeTask currentTask)
+        public static void RunInnerTasks(SmokeTest smokeTestClass, SmokeTask currentTask, ref StringBuilder ReportBuilder)
         {
             SmokeTask innerTask = currentTask.InnerTask;
             if (innerTask != null)
@@ -141,13 +154,13 @@ namespace CloudSDK_SmokeTest
                 //    if (!currentTask.SyncBoxes.Keys.Contains(box.Key))
                 //        currentTask.SyncBoxes.Add(box.Key, box.Value);
                 //}
-                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, innerTask, ProcessingErrorHolder);
+                SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, innerTask, ref ReportBuilder, ProcessingErrorHolder);
                 if (innerTask.InnerTask != null)
                 {
                     SmokeTask thisTask = innerTask.InnerTask;
-                    SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, thisTask, ProcessingErrorHolder);
+                    SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, thisTask, ref ReportBuilder, ProcessingErrorHolder);
                     if(ProcessingErrorHolder.Value == null)
-                        RunInnerTasks(smokeTestClass, thisTask);
+                        RunInnerTasks(smokeTestClass, thisTask, ref ReportBuilder);
                         //ZW Replace 
                         //RunInnerTasks(smokeTestClass, thisTask.InnerTask, thisTask.SyncBoxes);
                 }
