@@ -199,7 +199,9 @@ namespace CloudSdkSyncSample.ViewModels
                 {
                     SyncStatus = SyncStates.Synced;
                 }
-                else if ((currentStatus.CurrentState & CLSyncCurrentState.HaltedOnConnectionFailure) == CLSyncCurrentState.HaltedOnConnectionFailure)
+                else if (
+                    ((currentStatus.CurrentState & CLSyncCurrentState.HaltedOnConnectionFailure) == CLSyncCurrentState.HaltedOnConnectionFailure)
+                        || ((currentStatus.CurrentState & CLSyncCurrentState.HaltedOnExpiredCredentials) == CLSyncCurrentState.HaltedOnExpiredCredentials))
                 {
                     SyncStatus = SyncStates.Error;
                 }
