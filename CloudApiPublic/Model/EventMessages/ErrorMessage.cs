@@ -5,6 +5,7 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPublic.Model.EventMessages.ErrorInfo;
 using CloudApiPublic.Static;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ using System.Text;
 
 namespace CloudApiPublic.Model.EventMessages
 {
-    public class ErrorMessage : BaseMessage
+    public sealed class ErrorMessage : BaseMessage
     {
         public override string Message
         {
@@ -33,21 +34,21 @@ namespace CloudApiPublic.Model.EventMessages
         }
         private readonly EventMessageLevel _importance;
 
-        public ErrorMessageType ErrorType
+        public BaseErrorInfo ErrorInfo
         {
             get
             {
-                return _errorType;
+                return _errorInfo;
             }
         }
-        private readonly ErrorMessageType _errorType;
+        private readonly BaseErrorInfo _errorInfo;
 
-        internal protected ErrorMessage(string Message, EventMessageLevel Importance, ErrorMessageType ErrorType)
-            : base(EventMessageType.Error)
+        internal ErrorMessage(string Message, EventMessageLevel Importance, BaseErrorInfo ErrorInfo, Nullable<long> SyncBoxId, string DeviceId)
+            : base(EventMessageType.Error, SyncBoxId, DeviceId)
         {
             this._message = Message;
             this._importance = Importance;
-            this._errorType = ErrorType;
+            this._errorInfo = ErrorInfo;
         }
     }
 }

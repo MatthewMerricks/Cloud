@@ -227,7 +227,7 @@ namespace CloudApiPublic.BadgeNET
                             MessageEvents.FireNewEventMessage(
                                 Message: "Explorer icon badging has failed",
                                 Level: EventMessageLevel.Important,
-                                IsError: false,
+                                Error: null,
                                 SyncBoxId: syncBoxId,
                                 DeviceId: _syncSettings.DeviceId);
                         }
@@ -313,7 +313,7 @@ namespace CloudApiPublic.BadgeNET
                 MessageEvents.FireNewEventMessage(
                     Message: "Explorer icon badging has failed",
                     Level: EventMessageLevel.Important,
-                    IsError: false,
+                    Error: null,
                     SyncBoxId: syncBoxId,
                     DeviceId: _syncSettings.DeviceId);
                 return ex;

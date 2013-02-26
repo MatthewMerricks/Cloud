@@ -26,9 +26,29 @@ namespace CloudApiPublic.Model.EventMessages
         }
         private readonly EventMessageType _type;
 
-        internal protected BaseMessage(EventMessageType Type)
+        public Nullable<long> SyncBoxId
+        {
+            get
+            {
+                return _syncBoxId;
+            }
+        }
+        private readonly Nullable<long> _syncBoxId;
+
+        public string DeviceId
+        {
+            get
+            {
+                return _deviceId;
+            }
+        }
+        private readonly string _deviceId;
+
+        internal protected BaseMessage(EventMessageType Type, Nullable<long> SyncBoxId, string DeviceId)
         {
             this._type = Type;
+            this._syncBoxId = SyncBoxId;
+            this._deviceId = DeviceId;
         }
     }
 }

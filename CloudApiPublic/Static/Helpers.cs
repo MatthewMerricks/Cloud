@@ -2507,7 +2507,7 @@ namespace CloudApiPublic.Static
 
                                         JsonContracts.AuthenticationErrorResponse parsedErrorResponse = (JsonContracts.AuthenticationErrorResponse)notAuthorizedSerializer.ReadObject(notAuthorizedStream);
 
-                                        if (parsedErrorResponse.Message == CLDefinitions.MessageTextExpiredCredentials)
+                                        if (parsedErrorResponse.Message.StartsWith(CLDefinitions.MessageTextExpiredCredentials, StringComparison.InvariantCultureIgnoreCase))
                                         {
                                             status = CLHttpRestStatus.NotAuthorizedExpiredCredentials;
                                         }

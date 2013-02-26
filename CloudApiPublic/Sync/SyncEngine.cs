@@ -23,6 +23,7 @@ using CloudApiPublic.Interfaces;
 using CloudApiPublic.JsonContracts;
 using CloudApiPublic.Sync.Model;
 using CloudApiPublic.REST;
+using CloudApiPublic.Model.EventMessages.ErrorInfo;
 
 namespace CloudApiPublic.Sync
 {
@@ -1232,7 +1233,7 @@ namespace CloudApiPublic.Sync
                     // status message
                     MessageEvents.FireNewEventMessage(
                         Message: "Started checking for sync changes to process",
-                        IsError: false,
+                        Error: null,
                         SyncBoxId: syncBox.SyncBoxId,
                         DeviceId: syncBox.CopiedSettings.DeviceId);
 
@@ -1462,7 +1463,7 @@ namespace CloudApiPublic.Sync
                             MessageEvents.FireNewEventMessage(
                                 Message: "An error occurred checking for changes",
                                 Level: EventMessageLevel.Important,
-                                IsError: true,
+                                Error: new GeneralErrorInfo(),
                                 SyncBoxId: syncBox.SyncBoxId,
                                 DeviceId: syncBox.CopiedSettings.DeviceId);
                         }
@@ -1650,7 +1651,7 @@ namespace CloudApiPublic.Sync
                                             MessageEvents.FireNewEventMessage(
                                                 pendingsErrorString,
                                                 EventMessageLevel.Important,
-                                                /*IsError*/ true,
+                                                /*Error*/ new GeneralErrorInfo(),
                                                 syncBox.SyncBoxId,
                                                 syncBox.CopiedSettings.DeviceId);
                                         }
@@ -1867,7 +1868,7 @@ namespace CloudApiPublic.Sync
                                                         MessageEvents.FireNewEventMessage(
                                                             fileMetadataErrorString,
                                                             EventMessageLevel.Regular,
-                                                            true,
+                                                            /*Error*/new GeneralErrorInfo(),
                                                             syncBox.SyncBoxId,
                                                             syncBox.CopiedSettings.DeviceId);
                                                     }
@@ -1903,7 +1904,7 @@ namespace CloudApiPublic.Sync
                                                             MessageEvents.FireNewEventMessage(
                                                                 fileVersionsErrorString,
                                                                 EventMessageLevel.Regular,
-                                                                true,
+                                                                /*Error*/new GeneralErrorInfo(),
                                                                 syncBox.SyncBoxId,
                                                                 syncBox.CopiedSettings.DeviceId);
                                                         }
@@ -2381,7 +2382,7 @@ namespace CloudApiPublic.Sync
                                 MessageEvents.FireNewEventMessage(
                                     errorMessage,
                                     EventMessageLevel.Important,
-                                    true,
+                                    /*Error*/new HaltSyncEngineOnAuthenticationFailureErrorInfo(credentialsError == CredentialErrorType.ExpiredCredentials),
                                     syncBox.SyncBoxId,
                                     syncBox.CopiedSettings.DeviceId);
                             }
@@ -3251,7 +3252,7 @@ namespace CloudApiPublic.Sync
                 MessageEvents.FireNewEventMessage(
                     "SyncEngine halted after repeated failure to communicate over one of the Cloud server domains",
                     EventMessageLevel.Important,
-                    true,
+                    /*Error*/new HaltSyncEngineOnConnectionFailureErrorInfo(),
                     syncBox.SyncBoxId,
                     syncBox.CopiedSettings.DeviceId);
 
@@ -3760,7 +3761,7 @@ namespace CloudApiPublic.Sync
                                 MessageEvents.FireNewEventMessage(
                                     "Error applying change locally: " + applyChangeError.errorDescription,
                                     EventMessageLevel.Regular,
-                                    true,
+                                    /*Error*/new GeneralErrorInfo(),
                                     syncBox.SyncBoxId,
                                     syncBox.CopiedSettings.DeviceId);
                             }
@@ -4259,7 +4260,7 @@ namespace CloudApiPublic.Sync
                 MessageEvents.FireNewEventMessage(
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
-                    IsError: true,
+                    Error: new GeneralErrorInfo(),
                     SyncBoxId: exceptionState.SyncBox.SyncBoxId,
                     DeviceId: exceptionState.SyncBox.CopiedSettings.DeviceId);
 
@@ -5009,7 +5010,7 @@ namespace CloudApiPublic.Sync
                 MessageEvents.FireNewEventMessage(
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
-                    IsError: true,
+                    Error: new GeneralErrorInfo(),
                     SyncBoxId: exceptionState.SyncBox.SyncBoxId,
                     DeviceId: exceptionState.SyncBox.CopiedSettings.DeviceId);
             }
@@ -6569,7 +6570,7 @@ namespace CloudApiPublic.Sync
                                                                         MessageEvents.FireNewEventMessage(
                                                                             "Error occurred handling conflict for a file rename: " + ex.Message,
                                                                             EventMessageLevel.Regular,
-                                                                            /*IsError*/ true,
+                                                                            /*Error*/ new GeneralErrorInfo(),
                                                                             syncBox.SyncBoxId,
                                                                             syncBox.CopiedSettings.DeviceId);
                                                                     }
@@ -6587,7 +6588,7 @@ namespace CloudApiPublic.Sync
                                                                         MessageEvents.FireNewEventMessage(
                                                                             "File rename conflict handled through duplication",
                                                                             EventMessageLevel.Minor,
-                                                                            /*IsError*/ false,
+                                                                            /*Error*/ null,
                                                                             syncBox.SyncBoxId,
                                                                             syncBox.CopiedSettings.DeviceId);
                                                                     }
@@ -8004,7 +8005,7 @@ namespace CloudApiPublic.Sync
                                                             MessageEvents.FireNewEventMessage(
                                                                 "Error occurred handling conflict for a file rename: " + ex.Message,
                                                                 EventMessageLevel.Regular,
-                                                                /*IsError*/ true,
+                                                                /*Error*/ new GeneralErrorInfo(),
                                                                 syncBox.SyncBoxId,
                                                                 syncBox.CopiedSettings.DeviceId);
                                                         }
@@ -8022,7 +8023,7 @@ namespace CloudApiPublic.Sync
                                                             MessageEvents.FireNewEventMessage(
                                                                 "File rename conflict handled through duplication",
                                                                 EventMessageLevel.Minor,
-                                                                /*IsError*/ false,
+                                                                /*Error*/ null,
                                                                 syncBox.SyncBoxId,
                                                                 syncBox.CopiedSettings.DeviceId);
                                                         }
@@ -8136,7 +8137,7 @@ namespace CloudApiPublic.Sync
                                     ? ex.Message // if there is no inner exception with message then just append the outer exception message
                                     : ex.InnerException.Message)), // else if there is an inner exception with message then append the inner exception message
                     Level: EventMessageLevel.Important,
-                    IsError: true,
+                    Error: new GeneralErrorInfo(),
                     SyncBoxId: syncBox.SyncBoxId,
                     DeviceId: syncBox.CopiedSettings.DeviceId);
 

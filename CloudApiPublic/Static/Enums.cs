@@ -50,10 +50,10 @@ namespace CloudApiPublic.Static
 
     public enum ErrorMessageType : byte
     {
-        General,
-        HaltSyncEngineOnConnectionFailure,
-        HaltSyncEngineOnAuthenticationFailure,
-        HaltAllOfCloudSDK
+        General = 1,
+        HaltSyncEngineOnConnectionFailure = 2,
+        HaltSyncEngineOnAuthenticationFailure = 3,
+        HaltAllOfCloudSDK = 4
     }
 
     [Flags]

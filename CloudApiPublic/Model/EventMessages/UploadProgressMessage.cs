@@ -43,24 +43,6 @@ namespace CloudApiPublic.Model.EventMessages
         }
         private readonly long _eventId;
 
-        public Nullable<long> SyncBoxId
-        {
-            get
-            {
-                return _syncBoxId;
-            }
-        }
-        private readonly Nullable<long> _syncBoxId;
-
-        public string DeviceId
-        {
-            get
-            {
-                return _deviceId;
-            }
-        }
-        private readonly string _deviceId;
-
         public CLStatusFileTransferUpdateParameters Parameters
         {
             get
@@ -71,11 +53,9 @@ namespace CloudApiPublic.Model.EventMessages
         private readonly CLStatusFileTransferUpdateParameters _parameters;
 
         internal UploadProgressMessage(CLStatusFileTransferUpdateParameters Parameters, long EventId, Nullable<long> SyncBoxId, string DeviceId)
-            : base(EventMessageType.UploadProgress)
+            : base(EventMessageType.UploadProgress, SyncBoxId, DeviceId)
         {
             this._eventId = EventId;
-            this._syncBoxId = SyncBoxId;
-            this._deviceId = DeviceId;
             this._parameters = Parameters;
         }
     }
