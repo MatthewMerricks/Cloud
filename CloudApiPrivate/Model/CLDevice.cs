@@ -35,7 +35,7 @@ namespace CloudApiPrivate.Model
 
         public string OSType()
         {
-            string osType = OSVersionInfo.Name + " " + OSVersionInfo.Edition + " " + OSVersionInfo.OSBits.ToString() + " " + Resources.Resources.OsBits;
+            string osType = OSVersionInfo.Name + " " + OSVersionInfo.Edition + " " + OSVersionInfo.OSBits.ToString() + " " /*CloudAppBuild:+ Resources.Resources.OsBits*/;
             return osType;
         }
 

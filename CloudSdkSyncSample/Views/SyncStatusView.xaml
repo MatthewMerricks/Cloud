@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:rate="clr-namespace:RateBar;assembly=RateBar"
-        xmlns:icHelper="clr-namespace:CloudApiPublic.Static;assembly=CloudApiPublic"
+        xmlns:icHelper="clr-namespace:CloudApiPublic.Static;assembly=Cloud"
         xmlns:vm="clr-namespace:CloudSdkSyncSample.ViewModels"
         xmlns:enums="clr-namespace:CloudSdkSyncSample.Static"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
