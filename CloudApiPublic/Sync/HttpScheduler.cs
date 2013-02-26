@@ -498,7 +498,6 @@ namespace CloudApiPublic.Sync
                         case SyncDirection.From:
                             // direction for downloads
                             MessageEvents.SetDownloadingCount(
-                                sender: this,
                                 newCount: (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1),
                                 SyncBoxId: castState.SyncBox.SyncBoxId,
                                 DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
@@ -507,7 +506,6 @@ namespace CloudApiPublic.Sync
                         case SyncDirection.To:
                             // direction for uploads
                             MessageEvents.SetUploadingCount(
-                                sender: this,
                                 newCount: (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1),
                                 SyncBoxId: castState.SyncBox.SyncBoxId,
                                 DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
@@ -580,7 +578,6 @@ namespace CloudApiPublic.Sync
                                 case SyncDirection.From:
                                     // direction for downloads
                                     MessageEvents.SetDownloadingCount(
-                                        sender: scheduler,
                                         newCount: taskCount,
                                         SyncBoxId: castTask.SyncBox.SyncBoxId,
                                         DeviceId: castTask.SyncBox.CopiedSettings.DeviceId);
@@ -589,7 +586,6 @@ namespace CloudApiPublic.Sync
                                 case SyncDirection.To:
                                     // direction for uploads
                                     MessageEvents.SetUploadingCount(
-                                        sender: scheduler,
                                         newCount: taskCount,
                                         SyncBoxId: castTask.SyncBox.SyncBoxId,
                                         DeviceId: castTask.SyncBox.CopiedSettings.DeviceId);
@@ -715,7 +711,6 @@ namespace CloudApiPublic.Sync
                         case SyncDirection.From:
                             // direction for downloads
                             MessageEvents.SetDownloadingCount(
-                                sender: scheduler,
                                 newCount: taskCount,
                                 SyncBoxId: castInlineTask.SyncBox.SyncBoxId,
                                 DeviceId: castInlineTask.SyncBox.CopiedSettings.DeviceId);
@@ -724,7 +719,6 @@ namespace CloudApiPublic.Sync
                         case SyncDirection.To:
                             // direction for uploads
                             MessageEvents.SetUploadingCount(
-                                sender: scheduler,
                                 newCount: taskCount,
                                 SyncBoxId: castInlineTask.SyncBox.SyncBoxId,
                                 DeviceId: castInlineTask.SyncBox.CopiedSettings.DeviceId);
