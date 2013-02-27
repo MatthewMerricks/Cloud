@@ -16,15 +16,15 @@ using System.Text;
 namespace CloudApiPublic.JsonContracts
 {
     /// <summary>
-    /// Result from any call which returns an unauthorized response
+    /// Message properties of a <see cref="AuthenticationErrorResponse"/>
     /// </summary>
     [DataContract]
-    internal sealed class AuthenticationErrorResponse
+    internal sealed class AuthenticationErrorMessage
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
-        public string[] SerializedMessages { get; set; }
+        public string Message { get; set; }
     }
 }

@@ -40,8 +40,37 @@ namespace CloudApiPublic
         private object statusUpdatedUserState = null;
         private readonly object _locker = new object();
 
+        // following flag should always be false except for when debugging dependencies
+        private readonly GenericHolder<bool> debugDependencies = new GenericHolder<bool>(false);
+
+        #region hidden Dependencies debug
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool DependenciesDebug
+        {
+            get
+            {
+                lock (debugDependencies)
+                {
+                    return debugDependencies.Value;
+                }
+            }
+            set
+            {
+                lock (debugDependencies)
+                {
+                    debugDependencies.Value = value;
+                }
+            }
+        }
+        // \endcond
+        #endregion
+
         // following flag should always be false except for when debugging FileMonitor memory
         private readonly GenericHolder<bool> debugFileMonitorMemory = new GenericHolder<bool>(false);
+
         #region hidden FileMonitor debug
         //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
 
@@ -623,6 +652,12 @@ namespace CloudApiPublic
                     debugMemory = debugFileMonitorMemory.Value;
                 }
 
+                bool DependencyDebugging;
+                lock (debugDependencies)
+                {
+                    DependencyDebugging = debugDependencies.Value;
+                }
+
                 // Start the monitor
                 CLError fileMonitorCreationError;
                 lock (_locker)
@@ -630,6 +665,7 @@ namespace CloudApiPublic
                     fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(this._syncBox,
                         _indexer,
                         this._syncBox.HttpRestClient,
+                        DependencyDebugging,
                         statusUpdated,
                         statusUpdatedUserState,
                         out _monitor,

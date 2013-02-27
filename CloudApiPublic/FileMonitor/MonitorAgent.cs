@@ -141,6 +141,8 @@ namespace CloudApiPublic.FileMonitor
         private static readonly FileMetadataHashableComparer QueuedChangesMetadataComparer = new FileMetadataHashableComparer();// Comparer has improved hashing by using only the fastest changing bits
         private Dictionary<FileMetadataHashableProperties, FileChange> QueuedChangesByMetadata = new Dictionary<FileMetadataHashableProperties, FileChange>(QueuedChangesMetadataComparer);// Use custom comparer for improved hashing
 
+        private readonly bool DependencyDebugging;
+
         // Queue of file monitor events that occur while initial index is processing
         private Queue<ChangesQueueHolder> ChangesQueueForInitialIndexing = new Queue<ChangesQueueHolder>();
         // Storage class for required parameters to the CheckMetadataAgainstFile method
@@ -374,6 +376,7 @@ namespace CloudApiPublic.FileMonitor
         public static CLError CreateNewAndInitialize(CLSyncBox syncBox,
             IndexingAgent indexer,
             CLHttpRest httpRestClient,
+            bool DependencyDebugging,
             System.Threading.WaitCallback StatusUpdated,
             object StatusUpdatedUserState,
             out MonitorAgent newAgent,
@@ -384,7 +387,7 @@ namespace CloudApiPublic.FileMonitor
         {
             try
             {
-                newAgent = new MonitorAgent(indexer, syncBox, debugMemory);
+                newAgent = new MonitorAgent(indexer, syncBox, debugMemory, DependencyDebugging);
             }
             catch (Exception ex)
             {
@@ -401,6 +404,7 @@ namespace CloudApiPublic.FileMonitor
                     syncBox,
                     httpRestClient,
                     out syncEngine,
+                    DependencyDebugging,
                     StatusUpdated,
                     StatusUpdatedUserState);
                 if (createSyncEngineError != null)
@@ -484,7 +488,7 @@ namespace CloudApiPublic.FileMonitor
             return null;
         }
 
-        private MonitorAgent(IndexingAgent Indexer, CLSyncBox syncBox, bool debugMemory)
+        private MonitorAgent(IndexingAgent Indexer, CLSyncBox syncBox, bool debugMemory, bool DependencyDebugging)
         {
             // check input parameters
 
@@ -505,6 +509,7 @@ namespace CloudApiPublic.FileMonitor
             this.Indexer = Indexer;
             this._syncData = new SyncData(this, Indexer);
             this.debugMemory = debugMemory;
+            this.DependencyDebugging = DependencyDebugging;
             this.initiazeMemoryDebug();
         }
         // Standard IDisposable implementation based on MSDN System.IDisposable
@@ -1148,6 +1153,10 @@ namespace CloudApiPublic.FileMonitor
                     if (LaterChange.NewPath.Contains(CurrentEarlierChange.NewPath))
                     {
                         CurrentEarlierChange.AddDependency(LaterChange);
+                        if (DependencyDebugging)
+                        {
+                            Helpers.CheckFileChangeDependenciesForDuplicates(CurrentEarlierChange);
+                        }
                         PulledChanges.Add(LaterChange);
                         break;
                     }
@@ -1202,6 +1211,10 @@ namespace CloudApiPublic.FileMonitor
                                         DependenciesAddedToLaterChange = true;
 
                                         CurrentInnerRename.AddDependency(LaterChange);
+                                        if (DependencyDebugging)
+                                        {
+                                            Helpers.CheckFileChangeDependenciesForDuplicates(CurrentInnerRename);
+                                        }
                                         PulledChanges.Add(LaterChange);
                                         break;
                                     }
@@ -1276,6 +1289,10 @@ namespace CloudApiPublic.FileMonitor
                                     if (!DependenciesAddedToLaterChange)
                                     {
                                         LaterChange.AddDependency(CurrentEarlierChange);
+                                        if (DependencyDebugging)
+                                        {
+                                            Helpers.CheckFileChangeDependenciesForDuplicates(LaterChange);
+                                        }
                                         PulledChanges.Add(CurrentEarlierChange);
                                         DependenciesAddedToLaterChange = true;
                                     }
@@ -1416,7 +1433,7 @@ namespace CloudApiPublic.FileMonitor
                         }
 
                         FileChangeWithDependencies outputChange;
-                        CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(inputChange.FileChange, null, out outputChange);
+                        CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(inputChange.FileChange, /* initialDependencies */ null, out outputChange);
                         if (conversionError != null)
                         {
                             throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
@@ -1529,6 +1546,12 @@ namespace CloudApiPublic.FileMonitor
                                 if (conversionError != null)
                                 {
                                     throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
+                                }
+                                else if (DependencyDebugging
+                                    && (toConvert.Value.Value is FileChangeWithDependencies)
+                                    && ((FileChangeWithDependencies)toConvert.Value.Value).DependenciesCount > 0)
+                                {
+                                    Helpers.CheckFileChangeDependenciesForDuplicates(converted);
                                 }
                                 if (converted.EventId == 0
                                     && toConvert.Key != FileChangeSource.QueuedChanges)
@@ -1818,7 +1841,7 @@ namespace CloudApiPublic.FileMonitor
                 ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
                     {
                         FileChangeWithDependencies selectedWithoutDependencies;
-                        FileChangeWithDependencies.CreateAndInitialize(removeDependencies, null, out selectedWithoutDependencies);
+                        FileChangeWithDependencies.CreateAndInitialize(removeDependencies, /* initialDependencies */ null, out selectedWithoutDependencies);
                         return selectedWithoutDependencies;
                     }))(currentQueuedChange.Key.MergeTo)));
                 ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
