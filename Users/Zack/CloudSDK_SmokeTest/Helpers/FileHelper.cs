@@ -5,7 +5,6 @@ using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
-using CloudSDK_SmopkeTest.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -131,8 +130,14 @@ namespace CloudSDK_SmokeTest.Helpers
         {
             string fullPath = fileInfo.FullName;
             bool returnValue = true;
+            if (System.IO.File.Exists(fullPath))
+            {
+                string newString = "_new" + fileInfo.Extension;
+                fullPath = fullPath.Replace(fileInfo.Extension, newString);
+            }
             if (!System.IO.File.Exists(fullPath))
             {
+                CreateParentDirectories(new FileInfo(fullPath));
                 using (System.IO.FileStream fs = System.IO.File.Create(fullPath))
                 {
                     Random rnd = new Random();
@@ -159,6 +164,26 @@ namespace CloudSDK_SmokeTest.Helpers
                 returnValue = false;
             }
             return returnValue;
+        }
+
+        public static void CreateParentDirectories(FileInfo fileInfo)
+        {
+            List<DirectoryInfo> parentList = new List<DirectoryInfo>();
+            DirectoryInfo dInfo = fileInfo.Directory;
+            parentList.Add(fileInfo.Directory);
+
+            while (dInfo.Parent != null)
+            {
+                parentList.Add(dInfo);
+                dInfo = new DirectoryInfo(dInfo.Parent.FullName);
+            }
+
+            var folders = parentList.OrderBy(pi => pi.Parent.FullName.Length);
+            foreach (DirectoryInfo di in folders)
+            {
+                if (!Directory.Exists(di.FullName))
+                    Directory.CreateDirectory(di.FullName);
+            }
         }
 
         public static string CreateNewFileName(string filePath, bool isCopy, bool isCaseSentitiveIssue, ref GenericHolder<CLError> ProcessingErrorHolder)
@@ -414,6 +439,15 @@ namespace CloudSDK_SmokeTest.Helpers
                 }
             }
             return returnValue;
+        }
+
+        public static DirectoryInfo FindFirstSubFolder(string directoryPath)
+        {
+            if (!Directory.Exists(directoryPath))
+                throw new Exception("The specified directory path does not exist.");
+
+            DirectoryInfo dInfo = new DirectoryInfo(directoryPath);
+            return dInfo.EnumerateDirectories().FirstOrDefault();
         }
         #endregion
 

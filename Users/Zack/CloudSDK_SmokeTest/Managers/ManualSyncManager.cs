@@ -14,7 +14,7 @@ using System.Text;
 
 namespace CloudSDK_SmokeTest.Managers
 {
-    public sealed class ManualSyncManager : ManagerBase
+    public sealed class ManualSyncManager 
     {
         #region Constants
         public const string DuplicateFileErrorString = "A file with a different ServerID already exists at that path.";
@@ -69,86 +69,86 @@ namespace CloudSDK_SmokeTest.Managers
         /// <returns>
         ///     int uploadResponseCode -- Defines the type of response returned form the server.
         /// </returns>
-        public override int Create(InputParams paramSet, SmokeTask smokeTask,  FileInfo fileInfo, string fileName, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
-        {
-            reportBuilder.Append(string.Format("Create {0} begins...", smokeTask.type));
-            Creation createTask = smokeTask as Creation;
-            if (createTask == null)
-                return (int)FileManagerResponseCodes.InvalidTaskType;
-            int iterations = 1;
-            this.ProcessingErrorHolder = ProcessingErrorHolder;
-            CLCredential creds; 
-            CLCredentialCreationStatus credsCreateStatus;
-            int createResponseCode = 0;
-            InitalizeCredentials("ManualSyncManager.Create", ref reportBuilder, out creds, out credsCreateStatus);
-            // If Status returns anything other than success notify the user and stop the process.
-            if (credsCreateStatus != CLCredentialCreationStatus.Success)
-            {
-                reportBuilder.AppendLine();
-                reportBuilder.AppendFormat("There was an error Creating Credentials In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
-                reportBuilder.AppendLine();
-                reportBuilder.AppendLine("Exiting Creation Task...");
-                return (int)FileManagerResponseCodes.InitializeCredsError;
-            }
+        //public override int Create(InputParams paramSet, SmokeTask smokeTask,  FileInfo fileInfo, string fileName, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
+        //{
+        //    reportBuilder.Append(string.Format("Create {0} begins...", smokeTask.type));
+        //    Creation createTask = smokeTask as Creation;
+        //    if (createTask == null)
+        //        return (int)FileManagerResponseCodes.InvalidTaskType;
+        //    int iterations = 1;
+        //    this.ProcessingErrorHolder = ProcessingErrorHolder;
+        //    CLCredential creds; 
+        //    CLCredentialCreationStatus credsCreateStatus;
+        //    int createResponseCode = 0;
+        //    InitalizeCredentials("ManualSyncManager.Create", ref reportBuilder, out creds, out credsCreateStatus);
+        //    // If Status returns anything other than success notify the user and stop the process.
+        //    if (credsCreateStatus != CLCredentialCreationStatus.Success)
+        //    {
+        //        reportBuilder.AppendLine();
+        //        reportBuilder.AppendFormat("There was an error Creating Credentials In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
+        //        reportBuilder.AppendLine();
+        //        reportBuilder.AppendLine("Exiting Creation Task...");
+        //        return (int)FileManagerResponseCodes.InitializeCredsError;
+        //    }
 
-            CLSyncBox syncBox; 
-            CLSyncBoxCreationStatus boxCreateStatus;
-            ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", ""));
-            long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
-            CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
-            if (boxCreateStatus != CLSyncBoxCreationStatus.Success)
-            {
-                reportBuilder.AppendLine();
-                reportBuilder.AppendFormat("There was an error Initializing the SyncBox In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
-                reportBuilder.AppendLine();
-                reportBuilder.AppendLine("Exiting Process...");
-                return (int)FileManagerResponseCodes.InitializeSynBoxError;
-            }
-            if (createTask.ObjectType.type == ModificationObjectType.File)
-            {
-                CreateFileEventArgs eventArgs = new CreateFileEventArgs()
-                {
-                    boxCreationStatus = boxCreateStatus,
-                    CreateTaskFileInfo = fileInfo,
-                    Creds = creds,
-                    CredsStatus = credsCreateStatus,
-                    CurrentTask = createTask,
-                    ProcessingErrorHolder = ProcessingErrorHolder,
-                    SyncBox = syncBox,
-                    CreateCurrentTime = DateTime.UtcNow,
-                    RootDirectory = RootDirectory,
-                    ReportBuilder = reportBuilder,
-                };
-               createResponseCode  =  CreateFiles(eventArgs);
-            }
-            else if (createTask.ObjectType.type == ModificationObjectType.Folder)
-            {
-                string directoryPath = createTask.Path.Replace("\"", "");
+        //    CLSyncBox syncBox; 
+        //    CLSyncBoxCreationStatus boxCreateStatus;
+        //    ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", ""));
+        //    long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
+        //    CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
+        //    if (boxCreateStatus != CLSyncBoxCreationStatus.Success)
+        //    {
+        //        reportBuilder.AppendLine();
+        //        reportBuilder.AppendFormat("There was an error Initializing the SyncBox In Create File Method. Credential Create Status: {0}", credsCreateStatus.ToString());
+        //        reportBuilder.AppendLine();
+        //        reportBuilder.AppendLine("Exiting Process...");
+        //        return (int)FileManagerResponseCodes.InitializeSynBoxError;
+        //    }
+        //    if (createTask.ObjectType.type == ModificationObjectType.File)
+        //    {
+        //        CreateFileEventArgs eventArgs = new CreateFileEventArgs()
+        //        {
+        //            boxCreationStatus = boxCreateStatus,
+        //            CreateTaskFileInfo = fileInfo,
+        //            Creds = creds,
+        //            CredsStatus = credsCreateStatus,
+        //            CurrentTask = createTask,
+        //            ProcessingErrorHolder = ProcessingErrorHolder,
+        //            SyncBox = syncBox,
+        //            CreateCurrentTime = DateTime.UtcNow,
+        //            RootDirectory = RootDirectory,
+        //            ReportBuilder = reportBuilder,
+        //        };
+        //       createResponseCode  =  CreateFiles(eventArgs);
+        //    }
+        //    else if (createTask.ObjectType.type == ModificationObjectType.Folder)
+        //    {
+        //        string directoryPath = createTask.Path.Replace("\"", "");
 
-                CreateFolderEventArgs eventArgs = new CreateFolderEventArgs()
-                {
-                    boxCreationStatus = boxCreateStatus,
-                    CreateTaskDirectoryInfo = new DirectoryInfo(directoryPath),
-                    Creds = creds,
-                    CredsStatus = credsCreateStatus,
-                    CurrentTask = createTask,
-                    ProcessingErrorHolder = ProcessingErrorHolder,
-                    SyncBox = syncBox,
-                    CreationTime = DateTime.UtcNow,
-                    ReportBuilder = reportBuilder,
-                };
-                createResponseCode = CreateFolders(eventArgs);
-            }
-            else if (createTask.ObjectType.type == ModificationObjectType.Session)
-            {
-                throw new NotImplementedException("Create Task Type Session Not Implemented");
-            }
-            else if (createTask.ObjectType.type == ModificationObjectType.SyncBox)
-            {
-                throw new NotImplementedException("This Condition Should Never Be Met, Creating A SyncBox Should Occur Through CreateSyncBox not Create.");
-            }
-            return createResponseCode;
-        }      
+        //        CreateFolderEventArgs eventArgs = new CreateFolderEventArgs()
+        //        {
+        //            boxCreationStatus = boxCreateStatus,
+        //            CreateTaskDirectoryInfo = new DirectoryInfo(directoryPath),
+        //            Creds = creds,
+        //            CredsStatus = credsCreateStatus,
+        //            CurrentTask = createTask,
+        //            ProcessingErrorHolder = ProcessingErrorHolder,
+        //            SyncBox = syncBox,
+        //            CreationTime = DateTime.UtcNow,
+        //            ReportBuilder = reportBuilder,
+        //        };
+        //        createResponseCode = CreateFolders(eventArgs);
+        //    }
+        //    else if (createTask.ObjectType.type == ModificationObjectType.Session)
+        //    {
+        //        throw new NotImplementedException("Create Task Type Session Not Implemented");
+        //    }
+        //    else if (createTask.ObjectType.type == ModificationObjectType.SyncBox)
+        //    {
+        //        throw new NotImplementedException("This Condition Should Never Be Met, Creating A SyncBox Should Occur Through CreateSyncBox not Create.");
+        //    }
+        //    return createResponseCode;
+        //}      
 
         public FileChange CreateFileChangeWithNewName(FileChange oldFileChange)
         {   
@@ -552,7 +552,7 @@ namespace CloudSDK_SmokeTest.Managers
         #endregion
 
         #region Undelete
-        public override int Undelete(Settings.InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder)
+        public int Undelete(Settings.InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder)
         {
             int deleteResponseCode = 0;
             CLCredential creds;
@@ -589,7 +589,7 @@ namespace CloudSDK_SmokeTest.Managers
         /// <param name="oldFileName"></param>
         /// <param name="newFileName"></param>
         /// <returns></returns>
-        public override int Rename(Settings.InputParams paramSet, SmokeTask smokeTask, string directoryRelativeToRoot, string oldFileName, string newFileName, ref StringBuilder reportBuilder, ref GenericHolder<CLError> inputProcessingErrorHolder)
+        public  int Rename(Settings.InputParams paramSet, SmokeTask smokeTask, string directoryRelativeToRoot, string oldFileName, string newFileName, ref StringBuilder reportBuilder, ref GenericHolder<CLError> inputProcessingErrorHolder)
         {
             Settings.Rename renameTask = smokeTask as Settings.Rename;
             if (renameTask == null)
@@ -611,7 +611,7 @@ namespace CloudSDK_SmokeTest.Managers
                 return (int)FileManagerResponseCodes.InitializeCredsError;
             }
             CloudApiPublic.JsonContracts.Event returnEvent;
-            long syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : paramSet.ManualSyncBoxID;
+            long syncBoxId = renameTask.SyncType == SmokeTaskSyncType.Active ? paramSet.ActiveSyncBoxID : paramSet.ManualSyncBoxID;
             CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
             CloudApiPublic.JsonContracts.FolderContents folderContents = null; 
             FileChange fileChange = null;
@@ -1150,6 +1150,7 @@ namespace CloudSDK_SmokeTest.Managers
             }
             return shouldDelete;
         }
+
         private IEnumerable<FileChange> GetFileChangesFromMetadata(CLSyncBox syncBox, IEnumerable<Metadata> metadataList)
         {
             CLHttpRestStatus restStatus;

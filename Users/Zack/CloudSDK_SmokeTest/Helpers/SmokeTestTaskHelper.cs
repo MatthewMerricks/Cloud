@@ -97,11 +97,7 @@ namespace CloudSDK_SmokeTest.Helpers
                     responseCode = manager.Create(e);
                     break;
                 case SmokeTaskType.Comparison:
-                    bool identical = SyncBoxManager.CompareSyncBoxFolders(e);
-                    if (identical)
-                        responseCode = 0;
-                    else
-                        responseCode = (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
+                    responseCode = SyncBoxManager.CompareSyncBoxFolders(e);
                     break;
                 default:
                     responseCode = (int)FileManagerResponseCodes.InvalidTaskType;

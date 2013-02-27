@@ -297,6 +297,34 @@ namespace CloudSDK_SmokeTest.Settings {
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
     public partial class Comparison : SmokeTask {
+        
+        private ComparisonComparisonType comparisonTypeField;
+        
+        /// <remarks/>
+        public ComparisonComparisonType ComparisonType {
+            get {
+                return this.comparisonTypeField;
+            }
+            set {
+                this.comparisonTypeField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public enum ComparisonComparisonType {
+        
+        /// <remarks/>
+        ManualToActive,
+        
+        /// <remarks/>
+        ActiveToServer,
+        
+        /// <remarks/>
+        ActiveToActive,
     }
     
     /// <remarks/>
@@ -824,6 +852,8 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private string activeSync_FolderField;
         
+        private string activeSync_Folder2Field;
+        
         private string activeSync_TraceFolderField;
         
         private int manualSyncBoxIDField;
@@ -879,6 +909,16 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.activeSync_FolderField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string ActiveSync_Folder2 {
+            get {
+                return this.activeSync_Folder2Field;
+            }
+            set {
+                this.activeSync_Folder2Field = value;
             }
         }
         

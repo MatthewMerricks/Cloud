@@ -18,210 +18,110 @@ namespace CloudSDK_SmokeTest.Managers
     public class SessionManager : ISmokeTaskManager 
     {
 
-        public static int RunCreateSessionTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
-        {
-            string newSessionKey = string.Empty;
-            Creation createSessionTask = smokeTask as Creation;
-            if (createSessionTask == null)
-                return(int)FileManagerResponseCodes.InvalidTaskType;
+        //public static int RunCreateSessionTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
+        //{
+        //    string newSessionKey = string.Empty;
+        //    Creation createSessionTask = smokeTask as Creation;
+        //    if (createSessionTask == null)
+        //        return(int)FileManagerResponseCodes.InvalidTaskType;
 
-            int responseCode = 0;
-            reportBuilder.AppendLine("Preparing to Create Session.");
-            ItemListHelperEventArgs args = new ItemListHelperEventArgs() { ParamSet = paramSet, ReportBuilder = reportBuilder, ProcessingErrorHolder = ProcessingErrorHolder };
-            ItemsListHelper.RunListSessions(args, false, false);
-            ItemsListManager mgr = ItemsListManager.GetInstance();
-            int prior = mgr.Sessions.Count;
-            int iterations =1;
-            if (createSessionTask.Count > 1)
-                iterations = createSessionTask.Count;
-            for (int x = 0; x < iterations; x++)
-            {
-                if (responseCode == 0)
-                {
-                    responseCode = SessionManager.CreateSession(paramSet, smokeTask, out newSessionKey, ref ProcessingErrorHolder);
-                    reportBuilder.AppendLine("Create Sesssion Results:");
-                    if (string.IsNullOrEmpty(newSessionKey))
-                        reportBuilder.AppendLine("Create Sesssion Failed: Returned Session ID is 0:");
-                    else
-                        reportBuilder.AppendLine(string.Format("Created Session with Key {0}", newSessionKey));
-                }
-            }
+        //    int responseCode = 0;
+        //    reportBuilder.AppendLine("Preparing to Create Session.");
+        //    ItemListHelperEventArgs args = new ItemListHelperEventArgs() { ParamSet = paramSet, ReportBuilder = reportBuilder, ProcessingErrorHolder = ProcessingErrorHolder };
+        //    ItemsListHelper.RunListSessions(args, false, false);
+        //    ItemsListManager mgr = ItemsListManager.GetInstance();
+        //    int prior = mgr.Sessions.Count;
+        //    int iterations =1;
+        //    if (createSessionTask.Count > 1)
+        //        iterations = createSessionTask.Count;
+        //    for (int x = 0; x < iterations; x++)
+        //    {
+        //        if (responseCode == 0)
+        //        {
+        //            responseCode = SessionManager.CreateSession(paramSet, smokeTask, out newSessionKey, ref ProcessingErrorHolder);
+        //            reportBuilder.AppendLine("Create Sesssion Results:");
+        //            if (string.IsNullOrEmpty(newSessionKey))
+        //                reportBuilder.AppendLine("Create Sesssion Failed: Returned Session ID is 0:");
+        //            else
+        //                reportBuilder.AppendLine(string.Format("Created Session with Key {0}", newSessionKey));
+        //        }
+        //    }
 
-            reportBuilder.AppendLine(string.Format("Session Count Before Running: {0}", prior.ToString()));
-            reportBuilder.AppendLine(string.Format("Session Count After Running: {0}", mgr.Sessions.Count.ToString()));
-            return responseCode;
+        //    reportBuilder.AppendLine(string.Format("Session Count Before Running: {0}", prior.ToString()));
+        //    reportBuilder.AppendLine(string.Format("Session Count After Running: {0}", mgr.Sessions.Count.ToString()));
+        //    return responseCode;
 
-        }
+        //}
 
-        public static int RunSessionDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
-        {
-            List<CloudApiPublic.JsonContracts.Session> toDelete = new List<CloudApiPublic.JsonContracts.Session>();
-            int deleteSessionResponseCode = 0;
-            Deletion deleteTask = smokeTask as Deletion;
-            if (deleteTask == null)
-                return (int)FileManagerResponseCodes.InvalidTaskType;
+        //public static int RunSessionDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
+        //{
+        //    List<CloudApiPublic.JsonContracts.Session> toDelete = new List<CloudApiPublic.JsonContracts.Session>();
+        //    int deleteSessionResponseCode = 0;
+        //    Deletion deleteTask = smokeTask as Deletion;
+        //    if (deleteTask == null)
+        //        return (int)FileManagerResponseCodes.InvalidTaskType;
 
-            GenericHolder<CLError> refHolder = ProcessingErrorHolder;
-            reportBuilder.AppendLine("Preparing Delete Session Task");
-            deleteSessionResponseCode = SessionManager.DeleteSession(paramSet, deleteTask, ref reportBuilder, ref refHolder);
-            reportBuilder.AppendLine("Exiting Delete Session Task");
-            return deleteSessionResponseCode;
-        }
+        //    GenericHolder<CLError> refHolder = ProcessingErrorHolder;
+        //    reportBuilder.AppendLine("Preparing Delete Session Task");
+        //    deleteSessionResponseCode = SessionManager.DeleteSession(paramSet, deleteTask, ref reportBuilder, ref refHolder);
+        //    reportBuilder.AppendLine("Exiting Delete Session Task");
+        //    return deleteSessionResponseCode;
+        //}
         
-        public static int CreateSession(InputParams paramSet, SmokeTask smokeTask, out string sessionKey, ref GenericHolder<CLError> ProcessingErrorHolder)
-        {
-            int createSessionResponseCode = 0;
-            sessionKey = string.Empty;
-            ICLCredentialSettings settings;
-            CLError initCredsError = new CLError();
-            TaskEventArgs args = new TaskEventArgs()
-            {
-                 ParamSet = paramSet,
-                 ProcessingErrorHolder = ProcessingErrorHolder,
-            };
-            bool success = CredentialHelper.InitializeCreds(ref args, out settings, out initCredsError);
-            if (!success)
-                return (int)FileManagerResponseCodes.InitializeCredsError;
+        
 
-            CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.SessionCreateResponse sessionCreateResponse;
-            CLError createSessionError = args.Creds.CreateSession(ManagerConstants.TimeOutMilliseconds, out restStatus, out sessionCreateResponse);
-            if (createSessionError != null || restStatus != CLHttpRestStatus.Success)
-            {
-                ExceptionManagerEventArgs exArgs = new ExceptionManagerEventArgs()
-                {
-                    RestStatus = restStatus,
-                    OpperationName = "Credential.Create Session ",
-                    Error = createSessionError,
-                    ProcessingErrorHolder = ProcessingErrorHolder,
-                };
-                SmokeTaskManager.HandleFailure(exArgs);
-                return (int)FileManagerResponseCodes.UnknownError;
-            }
-            sessionKey = sessionCreateResponse.Session.Key;
-            ItemsListManager mgr = ItemsListManager.GetInstance();
-            if (!mgr.Sessions.Contains(sessionCreateResponse.Session))
-                mgr.Sessions.Add(sessionCreateResponse.Session);
-            if (!mgr.SessionsCreatedDynamically.Contains(sessionCreateResponse.Session.Token))
-                mgr.SessionsCreatedDynamically.Add(sessionCreateResponse.Session.Token);
+        //public static int DeleteSession(InputParams paramSet, Deletion deleteTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
+        //{
+        //    int index = 0;
+        //    int deleteSessionResponseCode = 0;
+        //    ICLCredentialSettings settings;
+        //    CLError initCredsError = new CLError();
+        //    TaskEventArgs args = new TaskEventArgs()
+        //    {
+        //        ParamSet = paramSet,
+        //        ReportBuilder = reportBuilder,
+        //        ProcessingErrorHolder = ProcessingErrorHolder,
+        //    };
 
-            return createSessionResponseCode;
-        }
-
-        public static int DeleteSession(InputParams paramSet, Deletion deleteTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
-        {
-            int index = 0;
-            int deleteSessionResponseCode = 0;
-            ICLCredentialSettings settings;
-            CLError initCredsError = new CLError();
-            TaskEventArgs args = new TaskEventArgs()
-            {
-                ParamSet = paramSet,
-                ReportBuilder = reportBuilder,
-                ProcessingErrorHolder = ProcessingErrorHolder,
-            };
-
-            bool success = CredentialHelper.InitializeCreds(ref args, out settings, out initCredsError);
-            if (!success)
-                return (int)FileManagerResponseCodes.InitializeCredsError;
+        //    bool success = CredentialHelper.InitializeCreds(ref args, out settings, out initCredsError);
+        //    if (!success)
+        //        return (int)FileManagerResponseCodes.InitializeCredsError;
             
-            DeleteSessionEventArgs deleteEventArgs = new DeleteSessionEventArgs() 
-            {
-                 Creds = args.Creds,
-                 ParamSet = paramSet,
-                 ProcessingErrorHolder = ProcessingErrorHolder,
-                 ReportBuilder = reportBuilder,
-            };
+        //    DeleteSessionEventArgs deleteEventArgs = new DeleteSessionEventArgs() 
+        //    {
+        //         Creds = args.Creds,
+        //         ParamSet = paramSet,
+        //         ProcessingErrorHolder = ProcessingErrorHolder,
+        //         ReportBuilder = reportBuilder,
+        //    };
 
-            ItemListHelperEventArgs itemListArgs = new ItemListHelperEventArgs(args);
-            int listItemsResponse = ItemsListHelper.RunListSessions(itemListArgs, false, false);
-            if (listItemsResponse != 0)
-            {
-                return (int)FileManagerResponseCodes.UnknownError;
-            }
+        //    ItemListHelperEventArgs itemListArgs = new ItemListHelperEventArgs(args);
+        //    int listItemsResponse = ItemsListHelper.RunListSessions(itemListArgs, false, false);
+        //    if (listItemsResponse != 0)
+        //    {
+        //        return (int)FileManagerResponseCodes.UnknownError;
+        //    }
 
-            ItemsListManager mgr = ItemsListManager.GetInstance();
-            List<Session> toDelete = AddSessionsToDeletionList(deleteTask, mgr, itemListArgs);
+        //    ItemsListManager mgr = ItemsListManager.GetInstance();
+        //    List<Session> toDelete = AddSessionsToDeletionList(deleteTask, mgr, itemListArgs);
            
-            foreach (Session session in toDelete)
-            {
-                if (deleteSessionResponseCode == 0)
-                {
-                    deleteEventArgs.Session = session;
-                    deleteSessionResponseCode = ExecuteDeleteSession(deleteEventArgs);
-                }
-                else
-                    break;
-            }
+        //    foreach (Session session in toDelete)
+        //    {
+        //        if (deleteSessionResponseCode == 0)
+        //        {
+        //            deleteEventArgs.Session = session;
+        //            deleteSessionResponseCode = ExecuteDeleteSession(deleteEventArgs);
+        //        }
+        //        else
+        //            break;
+        //    }
             
-            return deleteSessionResponseCode;
-        }
+        //    return deleteSessionResponseCode;
+        //}
 
-        private static int ExecuteDeleteSession(DeleteSessionEventArgs deleteEventArgs)
-        {
-            int deleteSessionResponse = 0;
+        
 
-            GenericHolder<CLError> refHolder = deleteEventArgs.ProcessingErrorHolder;
-            CLHttpRestStatus restStatus = CLHttpRestStatus.BadRequest;
-            CloudApiPublic.JsonContracts.SessionDeleteResponse sessionDeleteResponse;
-            CLError deleteSessionError = null;
-            if (deleteEventArgs.Session != null && !string.IsNullOrEmpty(deleteEventArgs.Session.Key))
-            {
-                Console.WriteLine(string.Format("Entering Delete  Individual Session with Key: {0}", deleteEventArgs.Session.Key));
-                deleteSessionError = deleteEventArgs.Creds.DeleteSession(ManagerConstants.TimeOutMilliseconds, out restStatus, out sessionDeleteResponse, deleteEventArgs.Session.Key);
-                Console.WriteLine("Exiting Delete Individual Session ");
-            }
-            if (deleteSessionError != null || restStatus != CLHttpRestStatus.Success)
-            {
-                ExceptionManagerEventArgs exArgs = new ExceptionManagerEventArgs()
-                {
-                    RestStatus = restStatus,
-                    OpperationName = "Credential.Delete Session ",
-                    Error = deleteSessionError,
-                    ProcessingErrorHolder = deleteEventArgs.ProcessingErrorHolder,
-                };
-                SmokeTaskManager.HandleFailure(exArgs);
-                return (int)FileManagerResponseCodes.UnknownError;
-            }
-
-            return deleteSessionResponse;
-        }
-
-        private static List<Session> AddSessionsToDeletionList(Deletion deleteTask, ItemsListManager mgr, ItemListHelperEventArgs args)
-        {
-            List<Session> toDelete = new List<Session>();
-            if (deleteTask.DeleteAllSpecified && deleteTask.DeleteAll)
-            { 
-                foreach (CloudApiPublic.JsonContracts.Session session in mgr.Sessions)
-                    toDelete.Add(session);
-            }
-            else if (deleteTask.DeleteCountSpecified && deleteTask.DeleteCount > 0)
-            {
-                IEnumerable<Session> sessions = mgr.Sessions.Take(deleteTask.DeleteCount);
-                foreach (Session session in sessions)
-                    toDelete.Add(session);
-            }
-            else
-            {
-                if (deleteTask.IDSpecified && deleteTask.ID > 0)
-                    toDelete.Add(mgr.Sessions.Where(s => s.Key == deleteTask.ID.ToString()).FirstOrDefault());
-                else
-                {
-                    Session session = null;
-                    string key = mgr.SessionsCreatedDynamically.FirstOrDefault();
-                    if (!string.IsNullOrEmpty(key))
-                    {
-                        session = mgr.Sessions.Where(s => s.Key == key).FirstOrDefault();
-                    }
-                    else
-                    {
-                        session = ReturnSessionAtIndex(args, 0); 
-                    }
-                    toDelete.Add(session);
-                }
-            }
-            return toDelete;
-        }
+        
 
         public static CloudApiPublic.JsonContracts.Session ReturnSessionAtIndex(ItemListHelperEventArgs eventArgs, int index)
         {
@@ -291,13 +191,101 @@ namespace CloudSDK_SmokeTest.Managers
 
 
         #region Interface Implementation
+
+        #region Create 
         public int Create(SmokeTestManagerEventArgs e)
         {
-            StringBuilder sb = e.ReportBuilder;
+            Creation createSessionTask = e.CurrentTask as Creation;
+            if (createSessionTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
+            int initialCount;
+            int response = ItemsListHelper.GetSessionCount(e, out initialCount);
+            int responseCode = 0;
+            StringBuilder newBuilder = new StringBuilder();
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
-            return (int)RunCreateSessionTask(e.ParamSet, e.CurrentTask, ref sb, ref refHolder);
+            string newSessionKey = string.Empty;
+            newBuilder.AppendLine("Preparing to Create Session.");
+            ItemsListManager mgr = ItemsListManager.GetInstance();
+            int prior = mgr.Sessions.Count;
+            int iterations = 1;
+            if (createSessionTask.Count > 1)
+                iterations = createSessionTask.Count;
+            for (int x = 0; x < iterations; x++)
+            {
+                if (responseCode == 0)
+                {
+                    responseCode = CreateSession(e, out newSessionKey);
+                    newBuilder.AppendLine("Create Sesssion Results:");
+                    if (string.IsNullOrEmpty(newSessionKey))
+                        newBuilder.AppendLine("Create Sesssion Failed: Returned Session ID is 0:");
+                    else
+                        newBuilder.AppendLine(string.Format("Created Session with Key {0}", newSessionKey));
+                }
+            }
+            int currentCount;
+            response = ItemsListHelper.GetSessionCount(e, out currentCount);
+            int expectedCount = initialCount + iterations;
+            StringBuilder explanation = new StringBuilder(string.Format("Session Count Before Add {0}.", initialCount));
+            explanation.AppendLine("Results:");
+            explanation.AppendLine(string.Format("Expected Count: {0}", expectedCount.ToString()));
+            explanation.AppendLine(string.Format("Actual Count  : {0}", currentCount.ToString()));
+            if (currentCount == expectedCount)
+                explanation.AppendLine("Successfully Completed Create Session Task");
+            else
+            {
+                explanation.AppendLine("Create Sync Box Task was Expecting a different result.");
+                responseCode = (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
+            }
+            newBuilder.AppendLine(explanation.ToString());
+            e.StringBuilderList.Add(new StringBuilder(newBuilder.ToString()));
+            return responseCode;
         }
 
+        #region Private 
+        private int CreateSession(SmokeTestManagerEventArgs e,  out string sessionKey)
+        {
+            int createSessionResponseCode = 0;
+            sessionKey = string.Empty;
+            ICLCredentialSettings settings;
+            CLError initCredsError = new CLError();
+            TaskEventArgs args = new TaskEventArgs()
+            {
+                ParamSet = e.ParamSet,
+                ProcessingErrorHolder = e.ProcessingErrorHolder,
+            };
+            bool success = CredentialHelper.InitializeCreds(ref args, out settings, out initCredsError);
+            if (!success)
+                return (int)FileManagerResponseCodes.InitializeCredsError;
+
+            CLHttpRestStatus restStatus;
+            CloudApiPublic.JsonContracts.SessionCreateResponse sessionCreateResponse;
+            CLError createSessionError = args.Creds.CreateSession(ManagerConstants.TimeOutMilliseconds, out restStatus, out sessionCreateResponse);
+            if (createSessionError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                ExceptionManagerEventArgs exArgs = new ExceptionManagerEventArgs()
+                {
+                    RestStatus = restStatus,
+                    OpperationName = "Credential.Create Session ",
+                    Error = createSessionError,
+                    ProcessingErrorHolder = e.ProcessingErrorHolder,
+                };
+                SmokeTaskManager.HandleFailure(exArgs);
+                return (int)FileManagerResponseCodes.UnknownError;
+            }
+            sessionKey = sessionCreateResponse.Session.Key;
+            ItemsListManager mgr = ItemsListManager.GetInstance();
+            if (!mgr.Sessions.Contains(sessionCreateResponse.Session))
+                mgr.Sessions.Add(sessionCreateResponse.Session);
+            if (!mgr.SessionsCreatedDynamically.Contains(sessionCreateResponse.Session.Token))
+                mgr.SessionsCreatedDynamically.Add(sessionCreateResponse.Session.Token);
+
+            return createSessionResponseCode;
+        }
+        #endregion 
+        #endregion Create
+
+        #region Rename
         public int Rename(SmokeTestManagerEventArgs e)
         {
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
@@ -305,14 +293,157 @@ namespace CloudSDK_SmokeTest.Managers
             AddException(ex, ref refHolder);
             return (int)FileManagerResponseCodes.InvalidTaskType;
         }
+        #endregion Rename
 
+        #region Delete
         public int Delete(SmokeTestManagerEventArgs e)
         {
+            
+            int deleteSessionResponseCode = 0;
+            Deletion deleteTask = e.CurrentTask as Deletion;
+            if (deleteTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
+            
+            List<CloudApiPublic.JsonContracts.Session> toDelete = new List<CloudApiPublic.JsonContracts.Session>();
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
-            StringBuilder refReportBuilder = e.ReportBuilder;
-            return (int)DeleteSession(e.ParamSet, (e.CurrentTask as Deletion), ref refReportBuilder, ref refHolder);
+            
+            deleteSessionResponseCode = BeginDelete(e);
+            
+            return deleteSessionResponseCode;
         }
 
+        #region Private
+        private int BeginDelete(SmokeTestManagerEventArgs e)
+        {
+
+            StringBuilder newBuilder = new StringBuilder();
+            newBuilder.AppendLine("Entering Delete Session Task ...");
+            int deleteSessionResponseCode = 0;
+            ICLCredentialSettings settings;
+            CLError initCredsError = new CLError();
+            TaskEventArgs args = new TaskEventArgs()
+            {
+                ParamSet = e.ParamSet,
+                ProcessingErrorHolder = e.ProcessingErrorHolder,
+            };
+
+            bool success = CredentialHelper.InitializeCreds(ref args, out settings, out initCredsError);
+            if (!success)
+                return (int)FileManagerResponseCodes.InitializeCredsError;
+
+            int initialCount;
+            int response = ItemsListHelper.GetSessionCount(e, out initialCount);
+
+            DeleteSessionEventArgs deleteEventArgs = new DeleteSessionEventArgs()
+            {
+                Creds = args.Creds,
+                ParamSet = e.ParamSet,
+                ProcessingErrorHolder = e.ProcessingErrorHolder,
+            };
+
+            ListSessionsResponse sessionsList = GetSessionList(e);
+            if (sessionsList == null)
+                return (int)FileManagerResponseCodes.UnknownError;
+
+            List<Session> toDelete = AddSessionsToDeletionList(e.CurrentTask as Deletion, sessionsList);
+            ItemsListManager mgr = ItemsListManager.GetInstance();
+            foreach (Session session in toDelete)
+            {
+                if (deleteSessionResponseCode == 0)
+                {
+                    deleteEventArgs.Session = session;
+                    deleteSessionResponseCode = ExecuteDelete(deleteEventArgs, ref newBuilder);
+                    if (deleteSessionResponseCode == 0)
+                        mgr.RemoveSession(session);
+                }
+                else
+                    break;
+            }
+
+            int currentCount;
+            response = ItemsListHelper.GetSessionCount(e, out currentCount);
+            int expectedCount = initialCount - toDelete.Count;
+            if (expectedCount < 0)
+                expectedCount = 0;
+
+            StringBuilder explanation = new StringBuilder(string.Format("Session Count Before Delete {0}.", initialCount));
+            explanation.AppendLine("Results:");
+            explanation.AppendLine(string.Format("Expected Count: {0}", expectedCount.ToString()));
+            explanation.AppendLine(string.Format("Actual Count  : {0}", currentCount.ToString()));
+            if (currentCount == expectedCount)
+                explanation.AppendLine("Successfully Completed Delete Session Task");
+            else
+            {
+                explanation.AppendLine("Delete Session Task was Expecting a different result.");
+                deleteSessionResponseCode = (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
+            }
+            newBuilder.AppendLine(explanation.ToString());
+            newBuilder.AppendLine("Exiting Deletion Session Task...");
+            e.StringBuilderList.Add(new StringBuilder(newBuilder.ToString()));
+            return deleteSessionResponseCode;
+        }
+
+        private int ExecuteDelete(DeleteSessionEventArgs deleteEventArgs, ref StringBuilder builder)
+        {
+            int deleteSessionResponse = 0;
+
+            GenericHolder<CLError> refHolder = deleteEventArgs.ProcessingErrorHolder;
+            CLHttpRestStatus restStatus = CLHttpRestStatus.BadRequest;
+            CloudApiPublic.JsonContracts.SessionDeleteResponse sessionDeleteResponse;
+            CLError deleteSessionError = null;
+            if (deleteEventArgs.Session != null && !string.IsNullOrEmpty(deleteEventArgs.Session.Key))
+            {
+                builder.AppendLine(string.Format("Entering Delete  Individual Session with Key: {0}", deleteEventArgs.Session.Key));
+                deleteSessionError = deleteEventArgs.Creds.DeleteSession(ManagerConstants.TimeOutMilliseconds, out restStatus, out sessionDeleteResponse, deleteEventArgs.Session.Key);
+                
+            }
+            if (deleteSessionError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                ExceptionManagerEventArgs exArgs = new ExceptionManagerEventArgs()
+                {
+                    RestStatus = restStatus,
+                    OpperationName = "Credential.Delete Session ",
+                    Error = deleteSessionError,
+                    ProcessingErrorHolder = deleteEventArgs.ProcessingErrorHolder,
+                };
+                SmokeTaskManager.HandleFailure(exArgs);
+                return (int)FileManagerResponseCodes.UnknownError;
+            }
+            builder.AppendLine("Exiting Delete Individual Session ");
+            return deleteSessionResponse;
+        }
+
+        private List<Session> AddSessionsToDeletionList(Deletion deleteTask, ListSessionsResponse sessionList)
+        {
+            List<Session> toDelete = new List<Session>();
+            if (deleteTask.DeleteAllSpecified && deleteTask.DeleteAll)
+            {
+                foreach (CloudApiPublic.JsonContracts.Session session in sessionList.Sessions)
+                    toDelete.Add(session);
+            }
+            else if (deleteTask.DeleteCountSpecified && deleteTask.DeleteCount > 0)
+            {
+                IEnumerable<Session> sessions = sessionList.Sessions.Take(deleteTask.DeleteCount);
+                foreach (Session session in sessions)
+                    toDelete.Add(session);
+            }
+            else
+            {
+                if (deleteTask.IDSpecified && deleteTask.ID > 0)
+                    toDelete.Add(sessionList.Sessions.Where(s => s.Key == deleteTask.ID.ToString()).FirstOrDefault());
+                else
+                {
+                    Session session = sessionList.Sessions.FirstOrDefault();
+                    toDelete.Add(session);
+                }
+            }
+            return toDelete;
+        }
+        #endregion 
+        #endregion Delete        
+
+        #region Undelete
         public int UnDelete(SmokeTestManagerEventArgs e)
         {
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
@@ -320,7 +451,9 @@ namespace CloudSDK_SmokeTest.Managers
             AddException(ex, ref refHolder);
             return (int)FileManagerResponseCodes.InvalidTaskType;
         }
+        #endregion Undelete
 
+        #region Download
         public int Download(SmokeTestManagerEventArgs e)
         {
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
@@ -328,14 +461,115 @@ namespace CloudSDK_SmokeTest.Managers
             AddException(ex, ref refHolder);
             return (int)FileManagerResponseCodes.InvalidTaskType;
         }
+        #endregion Download
 
+        #region ListItems
         public int ListItems(SmokeTestManagerEventArgs e)
         {
-            throw new NotImplementedException();
+            ListItems listTask = e.CurrentTask as ListItems;
+            StringBuilder newBuilder = new StringBuilder();
+            if(listTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
+            int getListResponseCode = -1;
+            ICLCredentialSettings settings = new AdvancedSyncSettings(e.ParamSet.ManualSync_Folder.Replace("\"", ""));
+            CLError initializeCredsError;
+            TaskEventArgs taskArgs = e as TaskEventArgs;
+            bool success = CredentialHelper.InitializeCreds(ref taskArgs, out settings, out initializeCredsError);
+            if (!success)
+                return (int)FileManagerResponseCodes.InitializeCredsError;
+
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            CLHttpRestStatus restStatus;
+            ListSessionsResponse sessionList = null;
+
+            CLError getSessisonsError = e.Creds.ListSessions(ManagerConstants.TimeOutMilliseconds, out restStatus, out sessionList, settings);
+            if (getSessisonsError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                 ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs()
+                 {
+                     Error = getSessisonsError, 
+                     RestStatus  =restStatus, 
+                     ProcessingErrorHolder = e.ProcessingErrorHolder, 
+                     OpperationName = "SessionManager.ListItems"
+                 };
+                SmokeTaskManager.HandleFailure(failArgs);
+                return (int)FileManagerResponseCodes.UnknownError;
+            }
+
+            if (listTask.ExpectedCountSpecified && listTask.ExpectedCount > 0)
+            {
+                if (sessionList.Sessions.Count() != listTask.ExpectedCount)
+                    return (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
+            }
+
+            ItemsListManager listManager = ItemsListManager.GetInstance();
+            listManager.Sessions.Clear();
+            if (sessionList.Sessions.Count() == 0)
+            {
+                newBuilder.AppendLine("Session Count: 0");
+            }
+            else
+            {
+                AddSessionsToManager(sessionList, ref listManager, true, ref newBuilder);
+            }
+            e.StringBuilderList.Add(new StringBuilder(newBuilder.ToString()));
+            return getListResponseCode;
         }
-        #endregion
 
         #region Private
+        private String AddSessionsToManager(ListSessionsResponse sessionList, ref ItemsListManager mgr, bool printValues, ref StringBuilder builder)
+        {
+            if (printValues)
+            {
+                builder.AppendLine("Listing Sessions....");
+            }
+            int iterations = 0;
+            foreach (Session sesh in sessionList.Sessions)
+            {
+                iterations++;
+                builder.AppendLine();
+                if (!mgr.Sessions.Contains(sesh))
+                    mgr.Sessions.Add(sesh);
+                if (printValues)
+                {
+                    builder.AppendLine(string.Format("Session {0}:", iterations.ToString()));
+                    builder.AppendLine(string.Format("  Token   {0} ", sesh.Token));
+                    builder.AppendLine(string.Format("  Expires {0} ", sesh.ExpiresAt));
+                    builder.AppendLine();
+                }
+            }
+            return builder.ToString();
+        }
+
+        private ListSessionsResponse GetSessionList(SmokeTestManagerEventArgs e)
+        {
+            CLHttpRestStatus restStatus;
+            ListSessionsResponse sessionList;
+            ICLCredentialSettings settings = new AdvancedSyncSettings(e.ParamSet.ManualSync_Folder.Replace("\"", ""));
+            CLError getSessisonsError = e.Creds.ListSessions(ManagerConstants.TimeOutMilliseconds, out restStatus, out sessionList, settings);
+            if (getSessisonsError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs()
+                {
+                    Error = getSessisonsError,
+                    RestStatus = restStatus,
+                    ProcessingErrorHolder = e.ProcessingErrorHolder,
+                    OpperationName = "SessionManager.ListItems"
+                };
+                SmokeTaskManager.HandleFailure(failArgs);
+                return null;
+            }
+            return sessionList;
+        }
+        #endregion 
+
+        #endregion List Items
+
+        #endregion Interface Implementation
+
+        #region Private
+
         private void AddException(Exception ex, ref GenericHolder<CLError> processingErrorHolder)
         {
             lock (processingErrorHolder)

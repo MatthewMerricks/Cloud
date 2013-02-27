@@ -39,6 +39,7 @@
       <xs:element name="API_Secret" type="xs:string" minOccurs="1"/>
       <xs:element name="ActiveSyncBoxID" type="xs:int" minOccurs="1"/>
       <xs:element name="ActiveSync_Folder" type="xs:string" minOccurs="1"/>
+      <xs:element name="ActiveSync_Folder2" type="xs:string" minOccurs="0" />
       <xs:element name="ActiveSync_TraceFolder" type="xs:string" minOccurs="1"/>
       <xs:element name="ManualSyncBoxID" type="xs:int" minOccurs="1"/>
       <xs:element name="ManualSync_Folder" type="xs:string" minOccurs="1"/>
@@ -208,6 +209,17 @@
   <xs:complexType name="Comparison" >
     <xs:complexContent>
       <xs:extension base="SmokeTask">
+        <xs:sequence>
+          <xs:element name="ComparisonType">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="ManualToActive" />
+                <xs:enumeration value="ActiveToServer" />
+                <xs:enumeration value="ActiveToActive" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+        </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

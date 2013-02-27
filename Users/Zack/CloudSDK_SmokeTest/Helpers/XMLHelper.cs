@@ -1,5 +1,4 @@
 ﻿using CloudApiPublic.Model;
-using CloudSDK_SmopkeTest.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,28 +36,28 @@ namespace CloudSDK_SmokeTest.Helpers
         //    }
         //}    
 
-        public static AllMappings GetMappingItems(string mappingFilePath, ref GenericHolder<CLError> ProcessingErrorHolder)
-        {
-            //ZW No dup file name support, this method dshould not get called. 
-            throw new NotImplementedException("GetMappingItems Method of XML helper Should Not Get called.");
-            AllMappings mappings = null;
-            try
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(AllMappings));
-                using (XmlReader reader = XmlReader.Create(mappingFilePath))
-                {
-                    mappings = (AllMappings)serializer.Deserialize(reader);
-                }
-            }
-            catch (Exception exception)
-            {
-                lock (ProcessingErrorHolder)
-                {
-                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-                }
-            }
-            return mappings;
-        }
+        //public static AllMappings GetMappingItems(string mappingFilePath, ref GenericHolder<CLError> ProcessingErrorHolder)
+        //{
+        //    //ZW No dup file name support, this method dshould not get called. 
+        //    throw new NotImplementedException("GetMappingItems Method of XML helper Should Not Get called.");
+        //    AllMappings mappings = null;
+        //    try
+        //    {
+        //        XmlSerializer serializer = new XmlSerializer(typeof(AllMappings));
+        //        using (XmlReader reader = XmlReader.Create(mappingFilePath))
+        //        {
+        //            mappings = (AllMappings)serializer.Deserialize(reader);
+        //        }
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        lock (ProcessingErrorHolder)
+        //        {
+        //            ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
+        //        }
+        //    }
+        //    return mappings;
+        //}
 
         public static XmlNode ReturnNewMappingNode(string mappingFilePath, string id, string localPath, string serverPath, ref GenericHolder<CLError> ProcessingErrorHolder)
         {

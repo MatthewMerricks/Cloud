@@ -49,6 +49,13 @@ namespace CloudSDK_SmokeTest.Managers
             // create the other direction
         }
 
+        public void RemoveSession(CloudApiPublic.JsonContracts.Session session)
+        {
+            CloudApiPublic.JsonContracts.Session fromList = Sessions.Where(s => s.Key == session.Key && s.Token == session.Token).FirstOrDefault();
+            if (fromList != null)
+                Sessions.Remove(fromList);
+        }
+
         public static int RunListItemsTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             int responseCode = -1;
