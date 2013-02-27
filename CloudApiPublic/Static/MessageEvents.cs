@@ -104,6 +104,12 @@ namespace CloudApiPublic.Static
             Nullable<long> SyncBoxId = null,
             string DeviceId = null)
         {
+            if (Error != null
+                && Error.ErrorType == ErrorMessageType.HaltAllOfCloudSDK)
+            {
+                Helpers.HaltAllOnUnrecoverableError();
+            }
+
             EventHandledLevel toReturn;
             
             EventMessageArgs newArgs = new EventMessageArgs(
@@ -164,6 +170,36 @@ namespace CloudApiPublic.Static
                             ? EventHandledLevel.IsHandled
                             : EventHandledLevel.FiredButNotHandled);
                     }
+                }
+            }
+            else if (Error != null
+                && Error.ErrorType == ErrorMessageType.HaltAllOfCloudSDK)
+            {
+                bool internalReceiverFired = false;
+
+                lock (InternalReceivers)
+                {
+                    foreach (IEventMessageReceiver currentReceiver in InternalReceivers.Values)
+                    {
+                        try
+                        {
+                            BasicMessage newArgsMessage = new BasicMessage(newArgs); // severe halt all error message
+                            currentReceiver.MessageEvents_NewEventMessage(newArgsMessage);
+                            currentReceiver.AddStatusMessage(newArgsMessage);
+                        }
+                        catch
+                        {
+                        }
+
+                        internalReceiverFired = true;
+                    }
+                }
+
+                if (internalReceiverFired)
+                {
+                    toReturn = (newArgs.Handled
+                        ? EventHandledLevel.IsHandled
+                        : EventHandledLevel.FiredButNotHandled);
                 }
             }
 

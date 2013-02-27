@@ -7,6 +7,7 @@
 
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.Model;
+using CloudApiPublic.Model.EventMessages.ErrorInfo;
 using CloudApiPublic.REST;
 using CloudApiPublic.Static;
 using System;
@@ -14,7 +15,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Windows;
 
 namespace CloudApiPublic
 {
@@ -87,6 +87,11 @@ namespace CloudApiPublic
 
             try
             {
+                if (Helpers.AllHaltedOnUnrecoverableError)
+                {
+                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                }
+
                 credential = new CLCredential(
                     Key,
                     Secret,
@@ -206,7 +211,10 @@ namespace CloudApiPublic
         //        // if the try cast failed, then show a message box for this unrecoverable error
         //        if (castState == null)
         //        {
-        //            MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+        //            MessageEvents.FireNewEventMessage(
+        //                "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+        //                EventMessageLevel.Important,
+        //                new HaltAllOfCloudSDKErrorInfo());
         //        }
         //        // else if the try cast did not fail, then start processing with the input parameters
         //        else
@@ -301,7 +309,10 @@ namespace CloudApiPublic
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
-                    MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
                 // else if the try cast did not fail, then start processing with the input parameters
                 else
@@ -551,7 +562,10 @@ namespace CloudApiPublic
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
-                    MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
                 // else if the try cast did not fail, then start processing with the input parameters
                 else
@@ -742,7 +756,10 @@ namespace CloudApiPublic
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
-                    MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
                 // else if the try cast did not fail, then start processing with the input parameters
                 else
@@ -933,7 +950,10 @@ namespace CloudApiPublic
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
-                    MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
                 // else if the try cast did not fail, then start processing with the input parameters
                 else
@@ -1131,7 +1151,10 @@ namespace CloudApiPublic
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
-                    MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
                 // else if the try cast did not fail, then start processing with the input parameters
                 else
@@ -1356,7 +1379,10 @@ namespace CloudApiPublic
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
-                    MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
                 // else if the try cast did not fail, then start processing with the input parameters
                 else
@@ -1564,7 +1590,10 @@ namespace CloudApiPublic
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
-                    MessageBox.Show("Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState));
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
                 // else if the try cast did not fail, then start processing with the input parameters
                 else

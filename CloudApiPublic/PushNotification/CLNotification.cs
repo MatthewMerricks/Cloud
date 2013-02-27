@@ -5,7 +5,6 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 using System;
-using System.Windows;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -513,9 +512,10 @@ namespace CloudApiPublic.PushNotification
                 innerError.LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
                 _trace.writeToLog(1, "CLNotification: OnConnectionError: ERROR. Error while restarting WebSocket.  Msg: <{0}>, Code: {1}.", innerError.errorDescription, ((int)innerError.code).ToString());
 
-                global::System.Windows.MessageBox.Show("Cloud has stopped receiving sync events from other devices with errors:" + Environment.NewLine +
-                    e.Exception.Message + Environment.NewLine +
-                    "AND" + Environment.NewLine + ex.Message);
+                MessageEvents.FireNewEventMessage(
+                    "Cloud has stopped receiving sync events from other devices with errors:" + Environment.NewLine + e.Exception.Message + Environment.NewLine + "AND" + Environment.NewLine + ex.Message,
+                    EventMessageLevel.Important,
+                    new HaltAllOfCloudSDKErrorInfo());
             }
             CLError error = e.Exception;
             error.LogErrors(_syncBox.CopiedSettings.TraceLocation, forceErrors || _syncBox.CopiedSettings.LogErrors);
@@ -536,8 +536,10 @@ namespace CloudApiPublic.PushNotification
                 error.LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
                 _trace.writeToLog(1, "CLNotification: OnConnectionClosed: ERROR. Error while restarting WebSocket.  Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
 
-                global::System.Windows.MessageBox.Show("Cloud has stopped receiving sync events from other devices with error:" + Environment.NewLine +
-                    ex.Message);
+                MessageEvents.FireNewEventMessage(
+                    "Cloud has stopped receiving sync events from other devices with error:" + Environment.NewLine + ex.Message,
+                    EventMessageLevel.Important,
+                    new HaltAllOfCloudSDKErrorInfo());
             }
         }
 

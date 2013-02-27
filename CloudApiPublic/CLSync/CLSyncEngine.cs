@@ -176,6 +176,11 @@ namespace CloudApiPublic
         {
             try
             {
+                if (Helpers.AllHaltedOnUnrecoverableError)
+                {
+                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                }
+
                 lock (_locker)
                 {
                     if (_syncEngine == null)
@@ -209,6 +214,11 @@ namespace CloudApiPublic
         {
             try
             {
+                if (Helpers.AllHaltedOnUnrecoverableError)
+                {
+                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                }
+
                 lock (_locker)
                 {
                     if (_indexer == null)
@@ -249,6 +259,11 @@ namespace CloudApiPublic
                 {
                     try
                     {
+                        if (Helpers.AllHaltedOnUnrecoverableError)
+                        {
+                            throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                        }
+
                         return _monitor.SyncData.RecordCompletedSync(syncId, syncedEventIds, out syncCounter, _monitor.GetCurrentPath());
                     }
                     catch (Exception ex)
@@ -280,6 +295,11 @@ namespace CloudApiPublic
                 {
                     try
                     {
+                        if (Helpers.AllHaltedOnUnrecoverableError)
+                        {
+                            throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                        }
+
                         return _monitor.SyncData.WipeIndex(_monitor.GetCurrentPath());
                     }
                     catch (Exception ex)
@@ -305,6 +325,11 @@ namespace CloudApiPublic
         {
             try
             {
+                if (Helpers.AllHaltedOnUnrecoverableError)
+                {
+                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                }
+
                 if (syncBox == null)
                 {
                     throw new NullReferenceException("syncBox cannot be null");
@@ -431,6 +456,11 @@ namespace CloudApiPublic
             bool reservedSyncBox = false;
             try
             {
+                if (Helpers.AllHaltedOnUnrecoverableError)
+                {
+                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                }
+
                 if (SyncBox == null)
                 {
                     const string settingsError = "syncBox cannot be null";

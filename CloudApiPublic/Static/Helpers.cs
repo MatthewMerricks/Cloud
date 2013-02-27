@@ -24,7 +24,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -37,12 +36,46 @@ namespace CloudApiPublic.Static
     using System.ComponentModel;
     using System.Runtime.InteropServices;
     using CloudApiPublic.SQLIndexer.Model;
+    using System.Windows;
     /// <summary>
     /// Class containing commonly usable static helper methods
     /// </summary>
     public static class Helpers
     {
         private static CLTrace _trace = CLTrace.Instance;
+
+        // not using ReaderWriterLockSlim because this is a static context, and the Slim version is IDisposable
+        public static bool AllHaltedOnUnrecoverableError
+        {
+            get
+            {
+                allHaltedOnUnrecoverableErrorLocker.AcquireReaderLock(-1);
+
+                try
+                {
+                    return _allHaltedOnUnrecoverableError;
+                }
+                finally
+                {
+                    allHaltedOnUnrecoverableErrorLocker.ReleaseReaderLock();
+                }
+            }
+        }
+        private static bool _allHaltedOnUnrecoverableError = false;
+        private static readonly ReaderWriterLock allHaltedOnUnrecoverableErrorLocker = new ReaderWriterLock();
+        public static void HaltAllOnUnrecoverableError()
+        {
+            allHaltedOnUnrecoverableErrorLocker.AcquireWriterLock(-1);
+
+            try
+            {
+                _allHaltedOnUnrecoverableError = true;
+            }
+            finally
+            {
+                allHaltedOnUnrecoverableErrorLocker.ReleaseWriterLock();
+            }
+        }
 
         ///// <summary>
         ///// Get the friendly name of this computer.
@@ -1993,6 +2026,11 @@ namespace CloudApiPublic.Static
             Nullable<long> SyncBoxId) // unique id for the sync box on the server
             where T : class // restrict T to an object type to allow default null return
         {
+            if (AllHaltedOnUnrecoverableError)
+            {
+                throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+            }
+
             // check that the temp download folder exists, if not, create it
             if (uploadDownload != null
                 && uploadDownload is downloadParams)

@@ -5,12 +5,13 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using CloudApiPublic.Model.EventMessages.ErrorInfo;
+using CloudApiPublic.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Windows;
 
 namespace CloudApiPublic.Sync
 {
@@ -103,9 +104,10 @@ namespace CloudApiPublic.Sync
         {
             if (executionAction == null)
             {
-                // I use a MessageBox here so that this error is very obvious. There is no way to handle this situation with error handling so I cannot throw an exception!
-                // -David
-                MessageBox.Show("¡¡ExecutableException should NEVER be instantiated with a null executionAction!!");
+                MessageEvents.FireNewEventMessage(
+                    "¡¡ExecutableException should NEVER be instantiated with a null executionAction!!",
+                    EventMessageLevel.Important,
+                    new HaltAllOfCloudSDKErrorInfo());
             }
 
             this.ExecutionAction = executionAction;
