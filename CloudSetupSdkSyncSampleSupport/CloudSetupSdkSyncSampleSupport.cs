@@ -1,4 +1,11 @@
-﻿using ICSharpCode.SharpZipLib.Core;
+﻿//
+// CloudSetupSdkSyncSampleSupport.cs
+// Cloud Windows
+//
+// Created By BobS.
+// Copyright (c) Cloud.com. All rights reserved.
+
+using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using System;
 using System.Collections.Generic;

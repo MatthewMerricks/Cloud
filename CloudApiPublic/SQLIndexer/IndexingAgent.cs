@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 using System.Transactions;
 using System.Data.SqlServerCe;
 using System.Globalization;
-using System.Windows;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudApiPublic.SQLIndexer.SqlModel;
@@ -26,6 +25,7 @@ using CloudApiPublic.SQLIndexer.Model;
 using SqlSync = CloudApiPublic.SQLIndexer.SqlModel.Sync;
 using CloudApiPublic.Interfaces;
 using CloudApiPublic.Support;
+using CloudApiPublic.Model.EventMessages.ErrorInfo;
 
 namespace CloudApiPublic.SQLIndexer
 {
@@ -2542,7 +2542,11 @@ namespace CloudApiPublic.SQLIndexer
 
                 if (rootNotFound)
                 {
-                    MessageBox.Show("Unable to find Cloud directory at path: " + currentDirectoryFullPath, "Error Starting Cloud");
+                    // the following should NOT be a HaltAll: TODO: add appropriate event bubbling to halt engine
+                    MessageEvents.FireNewEventMessage(
+                        "Unable to find Cloud directory at path: " + currentDirectoryFullPath,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     // This is a really bad error.  It means the connection to the file system is broken, and if we just ignore this error,
                     // sync will determine that there are no files in the SyncBox folder, and it will actually delete all of the files on the server.
@@ -2685,7 +2689,10 @@ namespace CloudApiPublic.SQLIndexer
             {
                 if (outermostMethodCall)
                 {
-                    MessageBox.Show("Unable to scan files/folders in Cloud folder. Location not accessible:" + Environment.NewLine + ex.Message, "Error Starting Cloud");
+                    MessageEvents.FireNewEventMessage(
+                        "Unable to scan files/folders in Cloud folder. Location not accessible:" + Environment.NewLine + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
             }
             catch { }

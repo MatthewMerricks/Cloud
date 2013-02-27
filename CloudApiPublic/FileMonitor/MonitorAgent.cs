@@ -18,7 +18,6 @@ using System.Security.Cryptography;
 using System.Threading;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
 using System.Xml.Linq;
-using System.Windows;
 using System.Transactions;
 using CloudApiPublic.FileMonitor.SyncImplementation;
 using CloudApiPublic.Interfaces;
@@ -26,6 +25,7 @@ using CloudApiPublic.SQLIndexer;
 using JsonContracts = CloudApiPublic.JsonContracts;
 using CloudApiPublic.Sync;
 using CloudApiPublic.REST;
+using CloudApiPublic.Model.EventMessages.ErrorInfo;
 
 /// <summary>
 /// Monitor a local file system folder as a SyncBox.
@@ -2219,7 +2219,10 @@ namespace CloudApiPublic.FileMonitor
             Nullable<KeyValuePair<MonitorAgent, KeyValuePair<FileSystemEventArgs, bool>>> castSender = sender as Nullable<KeyValuePair<MonitorAgent, KeyValuePair<FileSystemEventArgs, bool>>>;
             if (castSender == null)
             {
-                MessageBox.Show("Error starting Cloud, ProcessWatcher_ChangedQueue sender is not of type KeyValuePair<MonitorAgent, KeyValuePair<FileSystemEventArgs, bool>>");
+                MessageEvents.FireNewEventMessage(
+                    "Error starting Cloud, ProcessWatcher_ChangedQueue sender is not of type KeyValuePair<MonitorAgent, KeyValuePair<FileSystemEventArgs, bool>>",
+                    EventMessageLevel.Important,
+                    new HaltAllOfCloudSDKErrorInfo());
             }
             else
             {
@@ -3586,11 +3589,15 @@ namespace CloudApiPublic.FileMonitor
                     {
                         // forces logging even if the setting is turned off in the severe case since a message box had to appear
                         mergeError.LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
-                        MessageBox.Show("An error occurred adding a file system event to the database:" + Environment.NewLine +
-                            string.Join(Environment.NewLine,
-                                mergeError.GrabExceptions().Select(currentError => (currentError is AggregateException
-                                    ? string.Join(Environment.NewLine, ((AggregateException)currentError).Flatten().InnerExceptions.Select(innerError => innerError.Message).ToArray())
-                                    : currentError.Message)).ToArray()));
+
+                        MessageEvents.FireNewEventMessage(
+                            "An error occurred adding a file system event to the database:" + Environment.NewLine +
+                                string.Join(Environment.NewLine,
+                                    mergeError.GrabExceptions().Select(currentError => (currentError is AggregateException
+                                        ? string.Join(Environment.NewLine, ((AggregateException)currentError).Flatten().InnerExceptions.Select(innerError => innerError.Message).ToArray())
+                                        : currentError.Message)).ToArray()),
+                            EventMessageLevel.Important,
+                            new HaltAllOfCloudSDKErrorInfo());
                     }
 
                     if ((_syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
@@ -3614,7 +3621,11 @@ namespace CloudApiPublic.FileMonitor
 
                             // forces logging even if the setting is turned off in the severe case since a message box had to appear
                             ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
-                            MessageBox.Show(noEventIdErrorMessage);
+
+                            MessageEvents.FireNewEventMessage(
+                                noEventIdErrorMessage,
+                                EventMessageLevel.Important,
+                                new HaltAllOfCloudSDKErrorInfo());
                         }
 
                         ProcessingChanges.AddLast(nextMerge);

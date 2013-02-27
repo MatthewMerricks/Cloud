@@ -405,7 +405,10 @@ namespace CloudApiPublic.Sync
             {
                 if (storeSettings == null)
                 {
-                    System.Windows.MessageBox.Show("Unable to LogErrors since storeSettings is null. Original error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "Unable to LogErrors since storeSettings is null. Original error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
                 else
                 {
@@ -517,7 +520,10 @@ namespace CloudApiPublic.Sync
             {
                 if (storeSettings == null)
                 {
-                    System.Windows.MessageBox.Show("Unable to LogErrors since storeSettings is null. Original error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "Unable to LogErrors since storeSettings is null. Original error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
                 else
                 {
@@ -805,7 +811,10 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("An error occurred in ProcessStatusAggregation: " + ex.Message);
+                MessageEvents.FireNewEventMessage(
+                    "An error occurred in ProcessStatusAggregation: " + ex.Message,
+                    EventMessageLevel.Important,
+                    new HaltAllOfCloudSDKErrorInfo());
             }
         }
         private static void ProcessKillTimer(object state)
@@ -855,7 +864,10 @@ namespace CloudApiPublic.Sync
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show("An error occurred in ProcessKillTimer: " + ex.Message);
+                MessageEvents.FireNewEventMessage(
+                    "An error occurred in ProcessKillTimer: " + ex.Message,
+                    EventMessageLevel.Important,
+                    new HaltAllOfCloudSDKErrorInfo());
             }
         }
         private readonly Dictionary<Guid, ThreadStatus> ThreadsToStatus = new Dictionary<Guid, ThreadStatus>();
@@ -1234,6 +1246,11 @@ namespace CloudApiPublic.Sync
                 // try/catch for primary sync logic, exception is aggregated to return
                 try
                 {
+                    if (Helpers.AllHaltedOnUnrecoverableError)
+                    {
+                        throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                    }
+
                     SyncStillRunning(runThreadId);
 
                     // status message
@@ -2515,7 +2532,10 @@ namespace CloudApiPublic.Sync
                             // because this may be at least partially unrecoverable, if there was an error, then show the message
                             if (communicatedChangesToSqlError != null)
                             {
-                                System.Windows.MessageBox.Show("syncData.mergeToSql returned an error after communicating changes: " + communicatedChangesToSqlError.errorDescription);
+                                MessageEvents.FireNewEventMessage(
+                                    "syncData.mergeToSql returned an error after communicating changes: " + communicatedChangesToSqlError.errorDescription,
+                                    EventMessageLevel.Important,
+                                    new HaltAllOfCloudSDKErrorInfo());
                             }
 
                             // if there were changes in error during communication, then loop through them to add their streams and exceptions to the return error
@@ -3861,6 +3881,11 @@ namespace CloudApiPublic.Sync
         // Code to run for an upload Task (object state should be a UploadTaskState)
         private static EventIdAndCompletionProcessor UploadForTask(object uploadState)
         {
+            if (Helpers.AllHaltedOnUnrecoverableError)
+            {
+                throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+            }
+
             // Define cast state, defaulting to null
             UploadTaskState castState = null;
 
@@ -4091,43 +4116,64 @@ namespace CloudApiPublic.Sync
 
                 if (castState == null)
                 {
-                    System.Windows.MessageBox.Show("Unable to cast uploadState as UploadTaskState and thus unable cleanup after upload error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "Unable to cast uploadState as UploadTaskState and thus unable cleanup after upload error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.FileToUpload == null)
                 {
-                    System.Windows.MessageBox.Show("uploadState must contain FileToUpload and thus unable cleanup after upload error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "uploadState must contain FileToUpload and thus unable cleanup after upload error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.SyncData == null)
                 {
-                    System.Windows.MessageBox.Show("uploadState must contain SyncData and thus unable cleanup after upload error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "uploadState must contain SyncData and thus unable cleanup after upload error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.SyncBox == null)
                 {
-                    System.Windows.MessageBox.Show("uploadState must contain SyncBox and thus unable cleanup after upload error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "uploadState must contain SyncBox and thus unable cleanup after upload error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.MaxNumberOfFailureRetries == null)
                 {
-                    System.Windows.MessageBox.Show("uploadState must contain MaxNumberOfFailureRetries and thus unable cleanup after upload error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "uploadState must contain MaxNumberOfFailureRetries and thus unable cleanup after upload error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.MaxNumberOfNotFounds == null)
                 {
-                    System.Windows.MessageBox.Show("uploadState must contain MaxNumberOfNotFounds and thus unable cleanup after upload error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "uploadState must contain MaxNumberOfNotFounds and thus unable cleanup after upload error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.FailedChangesQueue == null)
                 {
-                    System.Windows.MessageBox.Show("uploadState must contain FailedChangesQueue and thus unable cleanup after upload error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "uploadState must contain FailedChangesQueue and thus unable cleanup after upload error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
@@ -4290,6 +4336,11 @@ namespace CloudApiPublic.Sync
         // Code to run for a download Task (object state should be a DownloadTaskState)
         private static EventIdAndCompletionProcessor DownloadForTask(object downloadState)
         {
+            if (Helpers.AllHaltedOnUnrecoverableError)
+            {
+                throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+            }
+
             // Define cast state, defaulting to null
             DownloadTaskState castState = null;
             // Define a unique id which will be used as the temp download file name, defaulting to null
@@ -4668,43 +4719,64 @@ namespace CloudApiPublic.Sync
 
                 if (castState == null)
                 {
-                    System.Windows.MessageBox.Show("Unable to cast downloadState as DownloadTaskState and thus unable cleanup after download error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "Unable to cast downloadState as DownloadTaskState and thus unable cleanup after download error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.FileToDownload == null)
                 {
-                    System.Windows.MessageBox.Show("downloadState must contain FileToDownload and thus unable cleanup after download error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "downloadState must contain FileToDownload and thus unable cleanup after download error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.SyncData == null)
                 {
-                    System.Windows.MessageBox.Show("downloadState must contain SyncData and thus unable cleanup after download error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "downloadState must contain SyncData and thus unable cleanup after download error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.SyncBox == null)
                 {
-                    System.Windows.MessageBox.Show("downloadState must contain SyncBox and thus unable cleanup after download error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "downloadState must contain SyncBox and thus unable cleanup after download error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.MaxNumberOfFailureRetries == null)
                 {
-                    System.Windows.MessageBox.Show("downloadState must contain MaxNumberOfFailureRetries and thus unable cleanup after download error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "downloadState must contain MaxNumberOfFailureRetries and thus unable cleanup after download error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.MaxNumberOfNotFounds == null)
                 {
-                    System.Windows.MessageBox.Show("downloadState must contain MaxNumberOfNotFounds and thus unable cleanup after download error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "downloadState must contain MaxNumberOfNotFounds and thus unable cleanup after download error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
                 else if (castState.FailedChangesQueue == null)
                 {
-                    System.Windows.MessageBox.Show("uploadState must contain FailedChangesQueue and thus unable cleanup after upload error: " + ex.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "uploadState must contain FailedChangesQueue and thus unable cleanup after upload error: " + ex.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }

@@ -12,10 +12,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudApiPublic.Interfaces;
+using CloudApiPublic.Model.EventMessages.ErrorInfo;
 
 namespace CloudApiPublic.Sync
 {
@@ -427,11 +427,12 @@ namespace CloudApiPublic.Sync
                 // otherwise the invalid cast needs to be displayed (severe case) and logged (overrides Settings)
                 else
                 {
-                    // All exceptions should be wrapped as ExecutableExceptions. This message should make it obvious that an exception still needs to be wrapped.
-                    // -David
-                    MessageBox.Show("An error occurred while processing file " + (direction == SyncDirection.From ? "download" : "upload") + "." + Environment.NewLine +
-                        "All exceptions should be wrapped as type ExecutableException so this message does not appear!" + Environment.NewLine +
-                        "Exception message: " + currentError.Message);
+                    MessageEvents.FireNewEventMessage(
+                        "An error occurred while processing file " + (direction == SyncDirection.From ? "download" : "upload") + "." + Environment.NewLine +
+                            "All exceptions should be wrapped as type ExecutableException so this message does not appear!" + Environment.NewLine +
+                            "Exception message: " + currentError.Message,
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
 
                     overrideLoggingOnMessageBox = true;
                 }
@@ -542,9 +543,10 @@ namespace CloudApiPublic.Sync
             Nullable<KeyValuePair<HttpScheduler, KeyValuePair<Guid, Task>>> castState = state as Nullable<KeyValuePair<HttpScheduler, KeyValuePair<Guid, Task>>>;
             if (castState == null)
             {
-                // Must make this error very clear because we cannot recover from being unable to run tasks
-                // -David
-                MessageBox.Show("TaskProcessor requires a HttpScheduler user state to run");
+                MessageEvents.FireNewEventMessage(
+                    "TaskProcessor requires a HttpScheduler user state to run",
+                    EventMessageLevel.Important,
+                    new HaltAllOfCloudSDKErrorInfo());
             }
             else
             {

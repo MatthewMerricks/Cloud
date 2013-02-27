@@ -15,7 +15,6 @@ using System.Text;
 using System.ComponentModel;
 using System.IO.Pipes;
 using System.Threading;
-using System.Windows;
 using System.Windows.Threading;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
