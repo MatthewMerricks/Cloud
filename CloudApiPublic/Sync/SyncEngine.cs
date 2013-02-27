@@ -63,6 +63,8 @@ namespace CloudApiPublic.Sync
         private readonly GenericHolder<byte> MetadataConnectionFailures = new GenericHolder<byte>(0);
         // time to wait to take everything that has failed out and retry
         private readonly int FailedOutRetryMillisecondInterval;
+
+        private readonly bool DependencyDebugging;
         #endregion
 
         #region is internet connected
@@ -115,6 +117,7 @@ namespace CloudApiPublic.Sync
             CLSyncBox syncBox,
             CLHttpRest httpRestClient,
             out SyncEngine engine,
+            bool DependencyDebugging,
             System.Threading.WaitCallback statusUpdated = null,
             object statusUpdatedUserState = null,
             int HttpTimeoutMilliseconds = CLDefinitions.HttpTimeoutDefaultMilliseconds,
@@ -130,6 +133,7 @@ namespace CloudApiPublic.Sync
                     syncData,
                     syncBox,
                     httpRestClient,
+                    DependencyDebugging,
                     statusUpdated,
                     statusUpdatedUserState,
                     HttpTimeoutMilliseconds,
@@ -150,6 +154,7 @@ namespace CloudApiPublic.Sync
         public SyncEngine(ISyncDataObject syncData,
             CLSyncBox syncBox,
             CLHttpRest httpRestClient,
+            bool DependencyDebugging,
             System.Threading.WaitCallback statusUpdated,
             object statusUpdatedUserState,
             int HttpTimeoutMilliseconds,
@@ -210,6 +215,7 @@ namespace CloudApiPublic.Sync
             this.MaxNumberOfNotFounds = MaxNumberOfNotFounds;
             this.ErrorProcessingMillisecondInterval = ErrorProcessingMillisecondInterval;
             this.MaxNumberOfServerConnectionFailures = MaxNumberConnectionFailures;
+            this.DependencyDebugging = DependencyDebugging;
 
             // 12 is Default Connection Limit (6 up/6 down)
             ServicePointManager.DefaultConnectionLimit = CLDefinitions.MaxNumberOfConcurrentDownloads + CLDefinitions.MaxNumberOfConcurrentUploads;
@@ -2292,10 +2298,19 @@ namespace CloudApiPublic.Sync
                         // outputChanges is not used again,
                         // it is redefined after communication and after reassigning dependencies
 
-                        //// !! the following LINQ looks incredibly inefficient using an order N^2 search !!
+                        HashSet<FileChange> changesInCommunicationOrDequeuedDependencies = new HashSet<FileChange>();
+                        Array.ForEach(changesForCommunication,
+                            changeForCommunication => changesInCommunicationOrDequeuedDependencies.Add(changeForCommunication.FileChange));
+                        if (thingsThatWereDependenciesToQueue != null)
+                        {
+                            foreach (FileChange thingThatWasADependency in thingsThatWereDependenciesToQueue)
+                            {
+                                changesInCommunicationOrDequeuedDependencies.Add(thingThatWasADependency);
+                            }
+                        }
+
                         // store the current errors which will not be making it to the next step (communication) to an array
-                        PossiblyStreamableAndPossiblyPreexistingErrorFileChange[] errorsToRequeue = errorsToQueue.Where(currentErrorToQueue => !Enumerable.Range(0, changesForCommunication.Length)
-                                .Any(communicationIndex => changesForCommunication[communicationIndex].FileChange == currentErrorToQueue.FileChange))
+                        PossiblyStreamableAndPossiblyPreexistingErrorFileChange[] errorsToRequeue = errorsToQueue.Where(currentErrorToQueue => !changesInCommunicationOrDequeuedDependencies.Contains(currentErrorToQueue.FileChange))
                             .ToArray();
 
                         // declare the enumerable of failures for the log
@@ -2572,7 +2587,7 @@ namespace CloudApiPublic.Sync
                                         // Create a list of file upload changes which cannot be processed because they are missing streams
                                         List<PossiblyStreamableFileChange> uploadFilesWithoutStreams = new List<PossiblyStreamableFileChange>(
                                             (thingsThatWereDependenciesToQueue ?? Enumerable.Empty<FileChange>())
-                                            .Select(uploadFileWithoutStream => new PossiblyStreamableFileChange(uploadFileWithoutStream, null))); // reselected to appropriate format
+                                                .Select(uploadFileWithoutStream => new PossiblyStreamableFileChange(uploadFileWithoutStream, null))); // reselected to appropriate format
 
                                         CLError postCommunicationDependencyError;
 
@@ -6099,7 +6114,8 @@ namespace CloudApiPublic.Sync
                                         OldPath = findOldPath, // The previous path for rename events, or null for everything else
                                         Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action) // The FileChange type parsed from the event action
                                     },
-                                    findHash); // The MD5 hash, or null for non-files
+                                    findHash, // The MD5 hash, or null for non-files
+                                    DependencyDebugging);
 
                                 // set the previous FileChange which was matched to the current event, first from the previous FileChange calculated for no event metadata or null if no "client_reference" was returned or finally search it from the communicated events by event id
                                 Nullable<PossiblyStreamableFileChange> matchedChange = usePreviousFileChange // already found previous FileChange if the current event had no metadata
@@ -6365,7 +6381,8 @@ namespace CloudApiPublic.Sync
                                                                     MimeType = newMetadata.MimeType // never set on Windows
                                                                 }
                                                             },
-                                                            newMetadata.Hash); // file MD5 hash or null for folder
+                                                            newMetadata.Hash, // file MD5 hash or null for folder
+                                                            DependencyDebugging);
 
                                                         // make sure to add change to SQL
                                                         newPathCreation.DoNotAddToSQLIndex = false;
@@ -6746,6 +6763,10 @@ namespace CloudApiPublic.Sync
                                                     // copy current dependency
                                                     currentChange.AddDependency(matchedDependency);
                                                 }
+                                                if (DependencyDebugging)
+                                                {
+                                                    Helpers.CheckFileChangeDependenciesForDuplicates(currentChange);
+                                                }
                                             }
 
                                             // if at least one of the times matched within a second, then rewrite the metadata properties to keep the previous time(s)
@@ -6769,7 +6790,7 @@ namespace CloudApiPublic.Sync
                                         // else if the matched changed failed to be cast as one with dependencies, then create a new FileChange with dependencies from the matched changed and set it as the current change, rethrowing any errors that occur
                                         else
                                         {
-                                            CLError convertMatchedChangeError = FileChangeWithDependencies.CreateAndInitialize(((PossiblyStreamableFileChange)matchedChange).FileChange, null, out currentChange);
+                                            CLError convertMatchedChangeError = FileChangeWithDependencies.CreateAndInitialize(((PossiblyStreamableFileChange)matchedChange).FileChange, /* initialDependencies */ null, out currentChange);
                                             if (convertMatchedChangeError != null)
                                             {
                                                 throw new AggregateException("Error converting matchedChange to FileChangeWithDependencies", convertMatchedChangeError.GrabExceptions());
@@ -7111,6 +7132,10 @@ namespace CloudApiPublic.Sync
                                                             if (reparentCreateError != null)
                                                             {
                                                                 throw new AggregateException("Error creating reparentConflict", reparentCreateError.GrabExceptions());
+                                                            }
+                                                            else if (DependencyDebugging)
+                                                            {
+                                                                Helpers.CheckFileChangeDependenciesForDuplicates(reparentConflict);
                                                             }
 
                                                             // if the current change already exists in the database then it may have been in the initial changes to communicate,
@@ -7589,31 +7614,32 @@ namespace CloudApiPublic.Sync
                         // store all events from sync from as events which still need to be performed (set as the output parameter for incomplete changes)
                         incompleteChanges = deserializedResponse.Events.Select(currentEvent => new PossiblyStreamableAndPossiblyChangedFileChange(/* needs to update SQL */ true, // all Sync From events are new and should thus be added to the event source database
                             CreateFileChangeFromBaseChangePlusHash(new FileChange() // create a FileChange with dependencies and set the hash, start by creating a new FileChange input
-                            {
-                                Direction = SyncDirection.From, // current communcation direction is Sync From (only Sync From events, not mixed like Sync To events)
-                                NewPath = (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'), // new location of change
-                                OldPath = (currentEvent.Metadata.RelativeFromPath == null
-                                    ? null // if the current event is not a rename, then it has no previous path
-                                    : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')), // if the current event is a rename, grab the previous path
-                                Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action), // grab the type of change from the action string
-                                Metadata = new FileMetadata()
                                 {
-                                    //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
+                                    Direction = SyncDirection.From, // current communcation direction is Sync From (only Sync From events, not mixed like Sync To events)
+                                    NewPath = (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'), // new location of change
+                                    OldPath = (currentEvent.Metadata.RelativeFromPath == null
+                                        ? null // if the current event is not a rename, then it has no previous path
+                                        : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')), // if the current event is a rename, grab the previous path
+                                    Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action), // grab the type of change from the action string
+                                    Metadata = new FileMetadata()
+                                    {
+                                        //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
-                                    ServerId = currentEvent.Metadata.ServerId, // unique id on the server
-                                    HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
-                                        currentEvent.Metadata.ModifiedDate, // grab the last modified time
-                                        currentEvent.Metadata.CreatedDate, // grab the time of creation
-                                        currentEvent.Metadata.Size), // grab the file size, or null for non-files
-                                    Revision = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
-                                    StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
-                                    LinkTargetPath = (currentEvent.Metadata.TargetPath == null
-                                        ? null // if current event is a folder or a file which is not a shortcut, then there is no shortcut target path
-                                        : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else if the current event is a shortcut file, then grab the shortcut path
-                                    MimeType = currentEvent.Metadata.MimeType // never set on Windows
-                                }
-                            },
-                            currentEvent.Metadata.Hash), // grab the MD5 hash
+                                        ServerId = currentEvent.Metadata.ServerId, // unique id on the server
+                                        HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
+                                            currentEvent.Metadata.ModifiedDate, // grab the last modified time
+                                            currentEvent.Metadata.CreatedDate, // grab the time of creation
+                                            currentEvent.Metadata.Size), // grab the file size, or null for non-files
+                                        Revision = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
+                                        StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
+                                        LinkTargetPath = (currentEvent.Metadata.TargetPath == null
+                                            ? null // if current event is a folder or a file which is not a shortcut, then there is no shortcut target path
+                                            : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else if the current event is a shortcut file, then grab the shortcut path
+                                        MimeType = currentEvent.Metadata.MimeType // never set on Windows
+                                    }
+                                },
+                                currentEvent.Metadata.Hash, // grab the MD5 hash
+                                DependencyDebugging),
                             null)) // no streams for Sync From events
                             .ToArray(); // select into an array to prevent reiteration of select logic
 
@@ -7828,7 +7854,8 @@ namespace CloudApiPublic.Sync
                                                         MimeType = newMetadata.MimeType // never set on Windows
                                                     }
                                                 },
-                                                newMetadata.Hash); // file MD5 hash or null for folder
+                                                newMetadata.Hash, // file MD5 hash or null for folder
+                                                DependencyDebugging);
 
                                             alreadyVisitedRenames[newPathCreation.NewPath.Copy()] = newPathCreation.Metadata;
 
@@ -8177,7 +8204,7 @@ namespace CloudApiPublic.Sync
         }
 
         // helper method which takes a FileChange and a hash string and creates a new FileChange with dependencies and sets the hash as the MD5 bytes; also copies over dependencies if any
-        private static FileChangeWithDependencies CreateFileChangeFromBaseChangePlusHash(FileChange baseChange, string hashString)
+        private static FileChangeWithDependencies CreateFileChangeFromBaseChangePlusHash(FileChange baseChange, string hashString, bool DependencyDebugging)
         {
             // if baseChange was not set, then the wrapped change would also be null so just return that
             if (baseChange == null)
@@ -8208,6 +8235,12 @@ namespace CloudApiPublic.Sync
             if (changeConversionError != null)
             {
                 throw new AggregateException("Error converting baseChange to a FileChangeWithDependencies", changeConversionError.GrabExceptions());
+            }
+            else if (DependencyDebugging
+                && castBase != null
+                && castBase.DependenciesCount > 0)
+            {
+                Helpers.CheckFileChangeDependenciesForDuplicates(returnedChange);
             }
 
             // return the copied FileChange with dependencies

@@ -1794,11 +1794,38 @@ namespace CloudApiPublic.Static
             return null;
         }
 
-        internal static int NumberOfSetBits(int inOut)
+        /// <summary>
+        /// Hamming weight function for 32-bits
+        /// </summary>
+        /// <param name="toWeigh">32-bit integer to weigh</param>
+        /// <returns>Returns number of set bits in the input</returns>
+        internal static int NumberOfSetBits(int toWeigh)
         {
-            inOut = inOut - ((inOut >> 1) & 0x55555555);
-            inOut = (inOut & 0x33333333) + ((inOut >> 2) & 0x33333333);
-            return (((inOut + (inOut >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+            toWeigh = toWeigh - ((toWeigh >> 1) & 0x55555555);
+            toWeigh = (toWeigh & 0x33333333) + ((toWeigh >> 2) & 0x33333333);
+            return (((toWeigh + (toWeigh >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+        }
+
+        /// <summary>
+        /// Debug function to assert whether a tree of dependencies for a FileChange has a change with an equivalent dependency;
+        /// throws an InvalidOperationException of a duplicate is found as dependent to itself
+        /// </summary>
+        public static void CheckFileChangeDependenciesForDuplicates(FileChange toCheck)
+        {
+            FileChangeWithDependencies castToCheck = toCheck as FileChangeWithDependencies;
+            if (castToCheck != null
+                && castToCheck.DependenciesCount > 0)
+            {
+                Array.ForEach(castToCheck.Dependencies,
+                    innerDependency =>
+                    {
+                        if (innerDependency == toCheck)
+                        {
+                            throw new InvalidOperationException("Dependency of a FileChange is the same as the FileChange itself");
+                        }
+                        CheckFileChangeDependenciesForDuplicates(innerDependency);
+                    });
+            }
         }
 
         #region ProcessHttp
@@ -1875,6 +1902,7 @@ namespace CloudApiPublic.Static
             { typeof(JsonContracts.Folders), JsonContractHelpers.FoldersSerializer },
             { typeof(JsonContracts.FolderContents), JsonContractHelpers.FolderContentsSerializer },
             { typeof(JsonContracts.AuthenticationErrorResponse), JsonContractHelpers.AuthenticationErrorResponseSerializer },
+            { typeof(JsonContracts.AuthenticationErrorMessage), JsonContractHelpers.AuthenticationErrorMessageSerializer },
 
             #region platform management
             { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
@@ -2504,12 +2532,41 @@ namespace CloudApiPublic.Static
                                         {
                                             throw new KeyNotFoundException("Unable to find serializer for JsonContracts.AuthenticationErrorResponse in SerializableResponseTypes");
                                         }
+                                        DataContractJsonSerializer notAuthorizedMessageSerializer;
+                                        if (!SerializableResponseTypes.TryGetValue(typeof(JsonContracts.AuthenticationErrorMessage), out notAuthorizedMessageSerializer))
+                                        {
+                                            throw new KeyNotFoundException("Unable to find serializer for JsonContracts.AuthenticationErrorMessage in SerializableResponseTypes");
+                                        }
 
                                         JsonContracts.AuthenticationErrorResponse parsedErrorResponse = (JsonContracts.AuthenticationErrorResponse)notAuthorizedSerializer.ReadObject(notAuthorizedStream);
 
-                                        if (parsedErrorResponse.Message.StartsWith(CLDefinitions.MessageTextExpiredCredentials, StringComparison.InvariantCultureIgnoreCase))
+                                        if (parsedErrorResponse.SerializedMessages != null)
                                         {
-                                            status = CLHttpRestStatus.NotAuthorizedExpiredCredentials;
+                                            foreach (string serializedInnerMessage in parsedErrorResponse.SerializedMessages)
+                                            {
+                                                try
+                                                {
+                                                    using (MemoryStream notAuthorizedMessageStream = new MemoryStream())
+                                                    {
+                                                        byte[] notAuthorizedInnerMessageBytes = Encoding.Default.GetBytes(serializedInnerMessage);
+
+                                                        notAuthorizedMessageStream.Write(notAuthorizedInnerMessageBytes, 0, notAuthorizedInnerMessageBytes.Length);
+                                                        notAuthorizedMessageStream.Flush();
+                                                        notAuthorizedMessageStream.Seek(0, SeekOrigin.Begin);
+
+                                                        JsonContracts.AuthenticationErrorMessage parsedErrorMessage = (JsonContracts.AuthenticationErrorMessage)notAuthorizedMessageSerializer.ReadObject(notAuthorizedMessageStream);
+
+                                                        if (parsedErrorMessage.Message == CLDefinitions.MessageTextExpiredCredentials)
+                                                        {
+                                                            status = CLHttpRestStatus.NotAuthorizedExpiredCredentials;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                catch
+                                                {
+                                                }
+                                            }
                                         }
                                     }
                                 }

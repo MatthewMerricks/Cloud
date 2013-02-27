@@ -37,7 +37,7 @@ namespace CloudApiPublic.Support
         // boolean to ensure delay has been started before a call to reset the delay fires
         private bool startedDelay = false;
         // field where the synchronization locker is stored (locked when DelayCompleted boolean is read or written to)
-        private object DelayCompletedLocker;
+        private readonly object DelayCompletedLocker;
         // stores whether to throw errors when running the process-related methods
         // (set if the constructor is passed a locker parameter)
         private bool IsProcessable = false;
@@ -57,12 +57,14 @@ namespace CloudApiPublic.Support
         private int ResetCounter = 0;
         #endregion
 
+        protected DelayProcessable() : this(null) { }
+
         /// <summary>
         /// Abstract constructor to ensure required parameters are available for instance methods,
         /// DelayCompletedLocker to lock upon delay completion must be provided for syncing the DelayCompleted boolean
         /// </summary>
         /// <param name="DelayCompletedLocker">Object to lock on to synchronize setting DelayCompleted boolean</param>
-        protected DelayProcessable(object DelayCompletedLocker = null)
+        internal protected DelayProcessable(object DelayCompletedLocker = null)
         {
             // Ensure locker is passed in constructor
             if (DelayCompletedLocker != null)
@@ -281,16 +283,26 @@ namespace CloudApiPublic.Support
         // Standard IDisposable implementation based on MSDN System.IDisposable
         private void Dispose(bool disposing)
         {
-            // lock on current object for changing DelayCompleted so it cannot be stopped/started simultaneously
-            lock (this)
+            if (DelayCompletedLocker == null)
             {
-                if (!DelayCompleted)
+                ProcessDisposeCompletion();
+            }
+            else
+            {
+                lock (DelayCompletedLocker)
                 {
-                    // set delay completed so processing will not fire
-                    DelayCompleted = true;
-
-                    // Dispose local unmanaged resources last
+                    ProcessDisposeCompletion();
                 }
+            }
+        }
+        private void ProcessDisposeCompletion()
+        {
+            if (!DelayCompleted)
+            {
+                // set delay completed so processing will not fire
+                DelayCompleted = true;
+
+                // Dispose local unmanaged resources last
             }
         }
 
@@ -327,7 +339,6 @@ namespace CloudApiPublic.Support
 
                     while (currentToCheck != null)
                     {
-
                         if (latestTimeAllowed.CompareTo(currentToCheck.Value.Item1.StartedProcessingTime) < 0)
                         {
                             break;
@@ -344,38 +355,48 @@ namespace CloudApiPublic.Support
                     }
                 }
 
-                if (expiredTimers.Count == 0)
-                {
-                    Thread.Sleep(250);
-                }
-                else
+                bool atLeastOneExpiredTimerFired = false;
+
+                if (expiredTimers.Count > 0)
                 {
                     lock (ProcessingQueue)
                     {
                         foreach (Tuple<DelayProcessable<T>, Action<T, object, int>, object, int, Action<CLError, T, object, int>> currentExpiredTimer in expiredTimers)
                         {
-                            // Run any preprocessing actions queued in the synchronized context
-                            if (currentExpiredTimer.Item1.SynchronizedPreprocessingActions != null
-                                && currentExpiredTimer.Item1.SynchronizedPreprocessingActions.Count > 0)
+                            lock (currentExpiredTimer.Item1.DelayCompletedLocker)
                             {
-                                lock (currentExpiredTimer.Item1.DelayCompletedLocker)
+                                if (currentExpiredTimer.Item1.DelayCompleted)
                                 {
-                                    while (currentExpiredTimer.Item1.SynchronizedPreprocessingActions.Count > 0)
+                                    continue;
+                                }
+
+                                atLeastOneExpiredTimerFired = true;
+
+                                // Run any preprocessing actions queued in the synchronized context
+                                if (currentExpiredTimer.Item1.SynchronizedPreprocessingActions != null
+                                    && currentExpiredTimer.Item1.SynchronizedPreprocessingActions.Count > 0)
+                                {
+                                    lock (currentExpiredTimer.Item1.DelayCompletedLocker)
                                     {
-                                        KeyValuePair<Action<T>, Action<CLError, T>> dequeuedPreprocess = currentExpiredTimer.Item1.SynchronizedPreprocessingActions.Dequeue();
-                                        try
+                                        while (currentExpiredTimer.Item1.SynchronizedPreprocessingActions.Count > 0)
                                         {
-                                            dequeuedPreprocess.Key((T)currentExpiredTimer.Item1);
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            if (dequeuedPreprocess.Value != null)
+                                            KeyValuePair<Action<T>, Action<CLError, T>> dequeuedPreprocess = currentExpiredTimer.Item1.SynchronizedPreprocessingActions.Dequeue();
+                                            try
                                             {
-                                                dequeuedPreprocess.Value(ex, (T)currentExpiredTimer.Item1);
+                                                dequeuedPreprocess.Key((T)currentExpiredTimer.Item1);
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                if (dequeuedPreprocess.Value != null)
+                                                {
+                                                    dequeuedPreprocess.Value(ex, (T)currentExpiredTimer.Item1);
+                                                }
                                             }
                                         }
                                     }
                                 }
+
+                                currentExpiredTimer.Item1.DelayCompleted = true;
                             }
 
                             ProcessingQueue.Enqueue(new KeyValuePair<KeyValuePair<Action<T, object, int>, Action<CLError, T, object, int>>, KeyValuePair<T, object>>(
@@ -383,13 +404,19 @@ namespace CloudApiPublic.Support
                                 new KeyValuePair<T, object>((T)currentExpiredTimer.Item1, currentExpiredTimer.Item3)));
                         }
 
-                        if (!IsProcessThreadRunning)
+                        if (atLeastOneExpiredTimerFired
+                            && !IsProcessThreadRunning)
                         {
                             IsProcessThreadRunning = true;
 
                             ThreadPool.UnsafeQueueUserWorkItem(PostDelayProcessor, null);
                         }
                     }
+                }
+
+                if (!atLeastOneExpiredTimerFired)
+                {
+                    Thread.Sleep(250);
                 }
             }
         }
