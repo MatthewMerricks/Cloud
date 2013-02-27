@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Linq.Expressions;
 
-namespace CloudSdkSyncSample.EventMessageReceiver
+namespace SampleLiveSync.EventMessageReceiver
 {
     public sealed class CLStatusMessage : NotifiableObject<CLStatusMessage> 
     {

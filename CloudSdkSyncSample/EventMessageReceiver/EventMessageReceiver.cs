@@ -13,7 +13,7 @@ using Cloud.Model;
 using Cloud.Support;
 using Cloud.Interfaces;
 
-namespace CloudSdkSyncSample.EventMessageReceiver
+namespace SampleLiveSync.EventMessageReceiver
 {
     /// <summary>
     /// View model for views to display changes from status changes, such as growls and sync status; split into partial classes for view-specific portions (i.e. Sync Status window)

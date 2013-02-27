@@ -1,11 +1,11 @@
-﻿using CloudSdkSyncSample.ViewModels;
-using CloudSdkSyncSample.Static;
+﻿using SampleLiveSync.ViewModels;
+using SampleLiveSync.Static;
 using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace CloudSdkSyncSample.Views
+namespace SampleLiveSync.Views
 {
     /// <summary>
     /// Interaction logic for MainView.xaml

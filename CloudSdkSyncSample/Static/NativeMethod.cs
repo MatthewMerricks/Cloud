@@ -21,7 +21,7 @@ using Microsoft.Win32.SafeHandles;
 #endregion
 
 
-namespace CloudSdkSyncSample.Static
+namespace SampleLiveSync.Static
 {
     internal static class NativeMethod
     {

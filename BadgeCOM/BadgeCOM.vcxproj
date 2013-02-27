@@ -1422,12 +1422,6 @@ echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\releas
 copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
 if errorlevel 1 goto BuildEventFailed
 
-REM ----------------------------------------------------------------
-set ErrorTracker=5
-echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb
-copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb
-if errorlevel 1 goto BuildEventFailed
-
 REM ---- PLACE THIS CODE AT THE END
 REM Exit properly because the build will not fail
 REM unless the final step exits with an error code

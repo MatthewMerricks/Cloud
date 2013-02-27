@@ -14,7 +14,7 @@ using System.Text;
 namespace Cloud.Interfaces
 {
     /// <summary>
-    /// Interface for implementing a view model for sync status, see EventMessageReceiver in CloudSdkSyncSample code for sample implementation
+    /// Interface for implementing a view model for sync status, see EventMessageReceiver in SampleLiveSync code for sample implementation
     /// </summary>
     public interface IEventMessageReceiver
     {

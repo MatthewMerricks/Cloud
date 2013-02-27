@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Cloud.Static;
 
-namespace CloudSdkSyncSample.EventMessageReceiver
+namespace SampleLiveSync.EventMessageReceiver
 {
     /// <summary>
     /// <see cref="EventMessage"/> for an error.

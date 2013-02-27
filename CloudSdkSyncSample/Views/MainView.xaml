@@ -1,7 +1,7 @@
-﻿<Window x:Class="CloudSdkSyncSample.Views.MainView"
+﻿<Window x:Class="SampleLiveSync.Views.MainView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:ext="clr-namespace:CloudSdkSyncSample.Static"
+        xmlns:ext="clr-namespace:SampleLiveSync.Static"
         Left="50" Top="50"
         Title="Sync Sample App" Height="480" Width="640" MinHeight="480" MinWidth="640">
     <Grid x:Name="LayoutRoot">

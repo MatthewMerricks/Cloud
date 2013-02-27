@@ -36,8 +36,8 @@
 			<Name>Sample-Live-Sync</Name>
 			<Project>{40A9C587-10CD-4979-A289-2B06F550DB51}</Project>
 		</ProjectReference>
-		<ProjectReference Include="..\Cloud\Cloud.csproj">
-			<Name>Cloud</Name>
+		<ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
+			<Name>CloudApiPublic</Name>
 			<Project>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</Project>
 		</ProjectReference>
 	</ItemGroup>

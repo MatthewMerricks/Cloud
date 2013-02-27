@@ -1,16 +1,16 @@
 ﻿using Cloud;
-using CloudSdkSyncSample.EventMessageReceiver;
+using SampleLiveSync.EventMessageReceiver;
 using Cloud.Static;
 using Cloud.Support;
-using CloudSdkSyncSample.Static;
-using CloudSdkSyncSample.Support;
+using SampleLiveSync.Static;
+using SampleLiveSync.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
 
-namespace CloudSdkSyncSample.ViewModels
+namespace SampleLiveSync.ViewModels
 {
     public class SyncStatusViewModel : ViewModelBase
     {

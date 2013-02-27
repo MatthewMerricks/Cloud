@@ -1,7 +1,7 @@
-﻿<Window x:Class="CloudSdkSyncSample.Views.AdvancedOptionsView"
+﻿<Window x:Class="SampleLiveSync.Views.AdvancedOptionsView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:ext="clr-namespace:CloudSdkSyncSample.Static"
+        xmlns:ext="clr-namespace:SampleLiveSync.Static"
         Title="Advanced Options" Height="480" Width="640" MinHeight="480" MinWidth="640">
     <Grid>
         <Grid.Background>

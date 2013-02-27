@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 
-namespace CloudSdkSyncSample.Static
+namespace SampleLiveSync.Static
 {
    public static class FocusExtension
    {

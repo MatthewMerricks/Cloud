@@ -10,9 +10,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using WebSocket4Net;
-using WebSocket4Net.Command;
-using WebSocket4Net.Protocol;
+//using WebSocket4Net;
+//using WebSocket4Net.Command;
+//using WebSocket4Net.Protocol;
 using SuperSocket.ClientEngine;
 using Cloud.Support;
 using Cloud.Model;
@@ -23,7 +23,7 @@ using Cloud.REST;
 
 namespace Cloud.PushNotification
 {
-    extern alias WebSocket4NetBase;
+    //extern alias WebSocket4NetBase;
 
     /// <summary>
     /// Properties for a received notification message

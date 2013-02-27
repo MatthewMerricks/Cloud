@@ -21,6 +21,7 @@ namespace CloudSetupSdkSyncSampleSupport
         {
 
             int rcToReturn = 0;
+
             // Initialize trace
             string userTempDirectory = System.IO.Path.GetTempPath();
             CLTrace.Initialize(TraceLocation: userTempDirectory, TraceCategory: "CloudSetupSdkSyncSampleSupport", 
@@ -67,12 +68,16 @@ namespace CloudSetupSdkSyncSampleSupport
             _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Entry.");
             ZipFile zf = null;
             int rcToReturn = 0;
+
+            string pathExecutingProgram = null;
+            string pathInstall = null;
+
             try
             {
                 // Get the path containing this executabe
-                string pathExecutingProgram = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                string pathInstall = Path.GetDirectoryName(pathExecutingProgram);
-                string archiveFile = pathInstall + "\\Documentation\\CloudSdkSyncSampleDocs.zip";
+                pathExecutingProgram = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                pathInstall = Path.GetDirectoryName(pathExecutingProgram);
+                string archiveFile = pathInstall + "\\Documentation\\SampleLiveSyncDocs.zip";
                 string outFolder = pathInstall + "\\Documentation";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathExecutingProgram: {0}.", pathExecutingProgram);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathInstall: {0}.", pathInstall);
@@ -165,16 +170,6 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support System.Xaml.dll file.");
                 File.Copy(pathInstall + "\\System.Xaml.dll", pathWork);
 
-                // Copy WebSocket4Net.dll.
-                pathWork = pathInstall + "\\Support\\WebSocket4Net.dll";
-                if (File.Exists(pathWork))
-                {
-                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support WebSocket4Net.dll file.");
-                    File.Delete(pathWork);
-                }
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support WebSocket4Net.dll file.");
-                File.Copy(pathInstall + "\\WebSocket4Net.dll", pathWork);
-
                 // Copy SuperSocket.ClientEngine.Common.dll.
                 pathWork = pathInstall + "\\Support\\SuperSocket.ClientEngine.Common.dll";
                 if (File.Exists(pathWork))
@@ -184,6 +179,29 @@ namespace CloudSetupSdkSyncSampleSupport
                 }
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support SuperSocket.ClientEngine.Common.dll file.");
                 File.Copy(pathInstall + "\\SuperSocket.ClientEngine.Common.dll", pathWork);
+
+                // Determine the SQL CE installation program to run
+                string fileNameExt;
+                if (IntPtr.Size == 4)
+                {
+                    // 32-bit 
+                    fileNameExt = "SSCERuntime_x86-ENU.exe";
+                }
+                else
+                {
+                    // 64-bit 
+                    fileNameExt = "SSCERuntime_x64-ENU.exe";
+                }
+
+                // Copy the SQL CE installation program to the \Support directory.
+                pathWork = pathInstall + "\\Support\\SSCERuntime.exe";
+                if (File.Exists(pathWork))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support SSCERuntime.exe file.");
+                    File.Delete(pathWork);
+                }
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support SSCERuntime.exe file.");
+                File.Copy(pathInstall + "\\" + fileNameExt, pathWork);
 
                 // Open the documentation zip file and decompress all of its files and folders
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Unzip the docs file.");
@@ -240,18 +258,16 @@ namespace CloudSetupSdkSyncSampleSupport
                 }
             }
 
-            // Unzip the CloudSdkSyncSample source files and solution
+            // Unzip the SampleLiveSync source files and solution
             try
             {
-                string pathExecutingProgram = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                string pathInstall = Path.GetDirectoryName(pathExecutingProgram);
-                string archiveFile = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\CloudSdkSyncSampleSource.zip";
+                string archiveFile = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\SampleLiveSyncSource.zip";
                 string outFolder = pathInstall + "\\Sample Code\\Sync\\Live\\Project";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathExecutingProgram(2): {0}.", pathExecutingProgram);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: pathInstall(2): {0}.", pathInstall);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: archiveFile(2): {0}.", archiveFile);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: outFolder(2): {0}.", outFolder);
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Unzip the CloudSdkSyncSample source file.");
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Unzip the SampleLiveSync source file.");
 
                 FileStream fs = File.OpenRead(archiveFile);
                 zf = new ZipFile(fs);
@@ -283,7 +299,7 @@ namespace CloudSetupSdkSyncSampleSupport
                 zf.IsStreamOwner = true; // Makes close also shut the underlying stream
                 zf.Close(); // Ensure we release resources
                 zf = null;
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Done unzipping the CloudSdkSyncSample source file.");
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Done unzipping the SampleLiveSync source file.");
 
                 // Delete the .zip file
                 File.Delete(archiveFile);
@@ -303,6 +319,14 @@ namespace CloudSetupSdkSyncSampleSupport
                 }
             }
 
+            // Install all of the DLLs required for the sample in the gac.
+            InstallDllsToGac(pathInstall);
+
+            // Install SQL CE V4.0.
+            _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call InstallSqlCe.");
+            int rcFromInstallSqlCe = InstallSqlCe(pathInstall);
+            _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Back from InstallSqlCe.  Return code: {0}.", rcFromInstallSqlCe.ToString());
+
             // Schedule cleanup of the files in the installation directory.
             _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call ScheduleCleanup.");
             rcToReturn = ScheduleCleanup("CloudSetupSdkSyncSampleInstallCleanup");
@@ -314,17 +338,119 @@ namespace CloudSetupSdkSyncSampleSupport
         }
 
         /// <summary>
+        /// Install SQL CE.
+        /// </summary>
+        /// <param name="pathInstall">The installation path (program files\Cloud.com).</param>
+        /// <returns>(int): Return code from the SQL CE installer.</returns>
+        private static int InstallSqlCe(string pathInstall)
+        {
+            Process installProcess = null;
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.CreateNoWindow = false;
+            startInfo.UseShellExecute = true;
+            startInfo.FileName = pathInstall + "\\Support\\SSCERuntime.exe";
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.Arguments = "";
+            if (!Cloud.Static.Helpers.IsAdministrator())
+            {
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Run as administrator.");
+                startInfo.Verb = "runas";
+            }
+            _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Start process to install SQL CE. Program: {0}. Arguments: {1}.", startInfo.FileName, startInfo.Arguments);
+            installProcess = Process.Start(startInfo);
+
+            // Wait for the process to exit
+            installProcess.WaitForExit();
+
+            // Process has exited.  Get the return code.
+            int retCode = installProcess.ExitCode;
+            if (retCode != 0)
+            {
+                // Error return code
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallBadging: Error installing SQL CE. Code: {0}.", retCode);
+            }
+
+            return retCode;
+        }
+
+        /// <summary>
+        /// Install of the DLLs required by the sample app to the gac.  These DLLs must all be signed with:
+        ///   Version=x.x.x.x
+        ///   Culture=neutral
+        ///   PublicKeyToken=\<our SDK public key\>
+        ///   processorArchitecture=MSIL
+        /// </summary>
+        /// <param name="pathInstall">The installation path (program files\Cloud.com).</param>
+        private static void InstallDllsToGac(string pathInstall)
+        {
+            try 
+        	{	        
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Entry.");
+                string pathSdk = pathInstall + "\\CloudSDK";
+
+                System.EnterpriseServices.Internal.Publish p = new System.EnterpriseServices.Internal.Publish();
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy BadgeCOMLib.dll to the gac.");
+                p.GacInstall(pathSdk + "\\BadgeCOMLib.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Cloud.dll to the gac.");
+                p.GacInstall(pathSdk + "\\Cloud.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy ErikEJ.SqlCe40.dll to the gac.");
+                p.GacInstall(pathSdk + "\\ErikEJ.SqlCe40.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.CSharp.dll to the gac.");
+                p.GacInstall(pathSdk + "\\Microsoft.CSharp.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.Net.dll to the gac.");
+                p.GacInstall(pathSdk + "\\Microsoft.Net.Http.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.Practices.ServiceLocation.dll to the gac.");
+                p.GacInstall(pathSdk + "\\Microsoft.Practices.ServiceLocation.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Newtonsoft.Json.dll to the gac.");
+                p.GacInstall(pathSdk + "\\Newtonsoft.Json.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy RateBar.dll to the gac.");
+                p.GacInstall(pathSdk + "\\RateBar.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Salient.Data.dll to the gac.");
+                p.GacInstall(pathSdk + "\\Salient.Data.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy SimpleJson.dll to the gac.");
+                p.GacInstall(pathSdk + "\\SimpleJson.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy SuperSocket.ClientEngine.Core.dll to the gac.");
+                p.GacInstall(pathSdk + "\\SuperSocket.ClientEngine.Core.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy SuperSocket.ClientEngine.Protocol.dll to the gac.");
+                p.GacInstall(pathSdk + "\\SuperSocket.ClientEngine.Protocol.dll");
+
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy System.Dynamic.dll to the gac.");
+                p.GacInstall(pathSdk + "\\System.Dynamic.dll");
+    	    }
+	        catch (Exception ex)
+	        {
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: ERROR: Exception: Msg: {0}.", ex.Message);
+	        }
+        }
+
+        /// <summary>
         /// Delete the Docs directory
         /// </summary>
         /// <returns></returns>
         private static int Uninstall()
         {
+            string pathExecutingProgram = null;
+            string pathInstall = null;
             int rcToReturn = 0;
+
             try
             {
-                // Get the path containing this executabe
+                // Get the path containing this executable's DLLs.
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: Entry.");
-                string pathInstall = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                pathExecutingProgram = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                pathInstall = Path.GetDirectoryName(pathExecutingProgram);
                 string docsFolder = pathInstall + "\\Documentation";
                 string sourceFolder = pathInstall + "\\Sample Code\\Sync\\Live\\Project";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Uninstall: pathInstall: {0}.", pathInstall);

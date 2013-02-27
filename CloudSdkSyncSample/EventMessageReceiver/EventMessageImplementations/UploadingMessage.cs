@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Cloud.Static;
 
-namespace CloudSdkSyncSample.EventMessageReceiver
+namespace SampleLiveSync.EventMessageReceiver
 {
     /// <summary>
     /// <see cref="EventMessage"/> for current number of files in the process of uploading.

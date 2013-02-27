@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 
-namespace CloudSdkSyncSample.EventMessageReceiver.Status
+namespace SampleLiveSync.EventMessageReceiver.Status
 {
     internal sealed class CLStatusFileTransferBlank : CLStatusFileTransferBase<CLStatusFileTransferBlank>
     {

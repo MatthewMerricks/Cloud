@@ -1,14 +1,14 @@
 ﻿using Cloud.Support;
 using Cloud.Model;
-using CloudSdkSyncSample.EventMessageReceiver;
-using CloudSdkSyncSample.ViewModels;
+using SampleLiveSync.EventMessageReceiver;
+using SampleLiveSync.ViewModels;
 using System;
 using System.Windows;
 using System.Windows.Threading;
 using System.ComponentModel;
 using System.Windows.Media.Animation;
 
-namespace CloudSdkSyncSample.Views
+namespace SampleLiveSync.Views
 {
     public partial class SyncStatusView : Window
     {

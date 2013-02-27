@@ -1,13 +1,13 @@
 ﻿using Cloud;
 using Cloud.Model;
-using CloudSdkSyncSample.EventMessageReceiver;
+using SampleLiveSync.EventMessageReceiver;
 using Cloud.Interfaces;
 using Cloud.Static;
 using Cloud.Support;
-using CloudSdkSyncSample.Models;
-using CloudSdkSyncSample.Support;
-using CloudSdkSyncSample.Views;
-using CloudSdkSyncSample.Static;
+using SampleLiveSync.Models;
+using SampleLiveSync.Support;
+using SampleLiveSync.Views;
+using SampleLiveSync.Static;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +19,7 @@ using System.Windows.Threading;
 using System.Threading;
 using System.Management;
 
-namespace CloudSdkSyncSample.ViewModels
+namespace SampleLiveSync.ViewModels
 {
     public class MainViewModel : WorkspaceViewModel
     {
@@ -78,7 +78,7 @@ namespace CloudSdkSyncSample.ViewModels
             _settingsInitial.GetSavedSettings();
 
             // Initialize trace
-            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors);
+            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "SampleLiveSync", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors);
         }
 
         public MainViewModel()
@@ -784,7 +784,7 @@ namespace CloudSdkSyncSample.ViewModels
             _settingsInitial = new Settings(_settingsCurrent);          // Saved.  Initial is now current.
 
             // Reinitialize trace
-            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, 
+            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "SampleLiveSync", "log", _settingsInitial.TraceLevel, 
                                 _settingsInitial.LogErrors, willForceReset: true);
         }
 
@@ -840,7 +840,7 @@ namespace CloudSdkSyncSample.ViewModels
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
-                if (!CloudSdkSyncSample.Static.Helpers.IsAdministrator())
+                if (!SampleLiveSync.Static.Helpers.IsAdministrator())
                 {
                     _trace.writeToLog(1, "MainViewModel: InstallBadging: Run as administrator.");
                     startInfo.Verb = "runas";
@@ -928,7 +928,7 @@ namespace CloudSdkSyncSample.ViewModels
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
-                if (!CloudSdkSyncSample.Static.Helpers.IsAdministrator())
+                if (!SampleLiveSync.Static.Helpers.IsAdministrator())
                 {
                     _trace.writeToLog(1, "MainViewModel: UninstallBadging: Run as administrator.");
                     startInfo.Verb = "runas";
@@ -1522,7 +1522,7 @@ namespace CloudSdkSyncSample.ViewModels
                 if (System.Environment.OSVersion.Version.Major >= 6)
                 {
                     _trace.writeToLog(9, "MainViewModel: StartExplorer: Create medium integrity process. Explorer location: <{0}>.", explorerLocation);
-                    CloudSdkSyncSample.Static.Helpers.CreateMediumIntegrityProcess(explorerLocation, NativeMethod.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
+                    SampleLiveSync.Static.Helpers.CreateMediumIntegrityProcess(explorerLocation, NativeMethod.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
                 }
                 else
                 {

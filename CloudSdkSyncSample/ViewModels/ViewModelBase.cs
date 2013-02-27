@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace CloudSdkSyncSample.ViewModels
+namespace SampleLiveSync.ViewModels
 {
     /// <summary>
     /// Base class for all ViewModel classes in the application. It provides support for property change notifications 

@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Windows;
 
-namespace CloudSdkSyncSample.EventMessageReceiver.Status
+namespace SampleLiveSync.EventMessageReceiver.Status
 {
     internal abstract class CLStatusFileTransferBase<T> : NotifiableObject<T>, ICLStatusFileTransfer where T : CLStatusFileTransferBase<T>
     {

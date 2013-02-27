@@ -2,15 +2,15 @@
 using Cloud.Static;
 using Cloud.Support;
 using Cloud.Model;
-using CloudSdkSyncSample.Models;
-using CloudSdkSyncSample.Support;
+using SampleLiveSync.Models;
+using SampleLiveSync.Support;
 using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using System.Windows.Input;
 
-namespace CloudSdkSyncSample.ViewModels
+namespace SampleLiveSync.ViewModels
 {
     public sealed class AdvancedOptionsViewModel : WorkspaceViewModel
     {

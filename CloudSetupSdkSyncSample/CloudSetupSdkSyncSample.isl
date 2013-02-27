@@ -357,12 +357,10 @@
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{46A4698E-F6CF-40A1-A918-64C012C67F52}</td><td>X86</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT10</td><td>{8BD252F1-8A94-4616-8066-DB1F14BF3BEF}</td><td>PROJECT</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT11</td><td>{4B306E23-8DE6-44FB-8163-A0144A7CE7DE}</td><td>AMD641</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT12</td><td>{FFFA6848-E201-4728-B6E9-62034B4D1CB1}</td><td>MICROSOFT.VC90.CRT2</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT13</td><td>{A0BB4C34-4996-4A03-BC1E-FAFED8A72C77}</td><td>X861</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT14</td><td>{68DBA3CB-BCFC-4AEF-AB0B-F8A12DA54FA3}</td><td>SAMPLE_CODE</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT15</td><td>{46C061D0-8CE1-4802-899F-F461C2BCDAA7}</td><td>SYNC</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT16</td><td>{F7041E57-7BE7-4E8B-A2DC-185158AAA2A3}</td><td>LIVE</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ISX_DEFAULTCOMPONENT17</td><td>{63371DBE-D3BE-4199-8FEC-3F8C4BF5F994}</td><td>MICROSOFT.VC90.CRT3</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT2</td><td>{F41F27F2-A386-490A-B4F7-09D2CB8F16C0}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT3</td><td>{F4211657-EECC-480B-A57A-B4F9B05FF760}</td><td>MICROSOFT.VC90.CRT</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT4</td><td>{9A01B732-1336-4971-AEA0-42AA0145D846}</td><td>MICROSOFT.VC90.CRT1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -377,6 +375,8 @@
 		<row><td>Microsoft.Practices.ServiceLocation.dll2</td><td>{4367F5FC-C53B-45F4-8344-1B16D0D3FE1E}</td><td>CLOUDSDK1</td><td>2</td><td/><td>microsoft.practices.servicel2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Newtonsoft.Json.dll1</td><td>{EF8CD1A5-93DE-4E59-906E-E319F5F01BDC}</td><td>APP</td><td>2</td><td/><td>newtonsoft.json.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Newtonsoft.Json.dll2</td><td>{F513521F-1143-4AC0-AC12-FB114AFF72ED}</td><td>CLOUDSDK1</td><td>2</td><td/><td>newtonsoft.json.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>SSCERuntime_x64_ENU.exe</td><td>{A3AF0DC7-1E1C-46C9-9390-5B2ADAA8A167}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssceruntime_x64_enu.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>SSCERuntime_x86_ENU.exe</td><td>{E5D17D83-4A62-43E1-AC34-BC6E2B301C21}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssceruntime_x86_enu.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Salient.Data.dll1</td><td>{1787EFB1-9DDA-4451-BC3C-1D19332964F2}</td><td>APP</td><td>2</td><td/><td>salient.data.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Salient.Data.dll2</td><td>{D6F22330-0414-4591-A499-94A3726213C7}</td><td>CLOUDSDK1</td><td>2</td><td/><td>salient.data.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Sample_Live_Sync.Primary_output</td><td>{B7215F67-4203-4F3D-A8D9-BED466905AAD}</td><td>APP</td><td>2</td><td/><td>sample_live_sync.primary_out</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -390,32 +390,18 @@
 		<row><td>System.Data.SqlServerCe.dll2</td><td>{F7C48A95-1E57-4F53-9C7D-D8CB4845392D}</td><td>CLOUDSDK1</td><td>2</td><td/><td>system.data.sqlserverce.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>msvcr90.dll</td><td>{C2B525D2-CBA5-49C5-A78E-F1F27A5CE158}</td><td>MICROSOFT.VC90.CRT</td><td>2</td><td/><td>msvcr90.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>msvcr90.dll1</td><td>{873561D9-C148-4507-80BD-104B8E5CA892}</td><td>MICROSOFT.VC90.CRT1</td><td>2</td><td/><td>msvcr90.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>msvcr90.dll3</td><td>{B77D7F5E-634C-4840-A76C-D2E45D94F8B3}</td><td>MICROSOFT.VC90.CRT2</td><td>2</td><td/><td>msvcr90.dll3</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>msvcr90.dll4</td><td>{FE131576-C85B-4AA4-93F7-962933C1E5F9}</td><td>MICROSOFT.VC90.CRT3</td><td>2</td><td/><td>msvcr90.dll4</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceca40.dll</td><td>{8890D898-5D02-4B6F-A463-7268AE19C7B6}</td><td>AMD64</td><td>2</td><td/><td>sqlceca40.dll</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceca40.dll1</td><td>{26A4C4C6-DF19-4925-8CF9-976A143764FA}</td><td>X86</td><td>2</td><td/><td>sqlceca40.dll1</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceca40.dll3</td><td>{BB74DA12-7197-4023-B3F7-9B178C9046EA}</td><td>AMD641</td><td>2</td><td/><td>sqlceca40.dll3</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceca40.dll4</td><td>{BC8624B1-0889-4E7A-A794-076B918FD65E}</td><td>X861</td><td>2</td><td/><td>sqlceca40.dll4</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlcecompact40.dll</td><td>{AB5A16C2-C38F-401E-A3D7-8943D78ED50F}</td><td>AMD64</td><td>2</td><td/><td>sqlcecompact40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlcecompact40.dll1</td><td>{85D0F21B-9F52-440C-86C8-91EC5A0F90E8}</td><td>X86</td><td>2</td><td/><td>sqlcecompact40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlcecompact40.dll3</td><td>{2D2FAA70-1C42-4B1D-BF29-692C3136ADDD}</td><td>AMD641</td><td>2</td><td/><td>sqlcecompact40.dll3</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlcecompact40.dll4</td><td>{C39FEAC7-5C5B-4183-A411-8D89390764B8}</td><td>X861</td><td>2</td><td/><td>sqlcecompact40.dll4</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceer40EN.dll</td><td>{27ADDE42-CF42-4B8C-A545-4879EFA0D929}</td><td>AMD64</td><td>2</td><td/><td>sqlceer40en.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceer40EN.dll1</td><td>{D1B1E1A4-B703-4D55-B209-9C3767CB80EB}</td><td>X86</td><td>2</td><td/><td>sqlceer40en.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceer40EN.dll3</td><td>{884224C7-725A-410A-A93F-3BA6A97A6A79}</td><td>AMD641</td><td>2</td><td/><td>sqlceer40en.dll3</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceer40EN.dll4</td><td>{33EB42D8-C624-4511-A14E-C2AB98983621}</td><td>X861</td><td>2</td><td/><td>sqlceer40en.dll4</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceme40.dll</td><td>{9BEF6B58-86E9-4402-93AA-00E88E2CE80E}</td><td>AMD64</td><td>2</td><td/><td>sqlceme40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceme40.dll1</td><td>{DD23A8E4-2445-4387-A93E-0B7FC9ACA50E}</td><td>X86</td><td>2</td><td/><td>sqlceme40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceme40.dll3</td><td>{15ADADD4-522B-4424-84FC-54620B8FC6CE}</td><td>AMD641</td><td>2</td><td/><td>sqlceme40.dll3</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceme40.dll4</td><td>{87DA7B68-7D91-487C-A017-0FD2AF97ECFE}</td><td>X861</td><td>2</td><td/><td>sqlceme40.dll4</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceqp40.dll</td><td>{C9BAA3F2-05BE-4066-8A92-38312704B6EB}</td><td>AMD64</td><td>2</td><td/><td>sqlceqp40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlceqp40.dll1</td><td>{12B862A0-95CF-4C01-9E37-0849E190428C}</td><td>X86</td><td>2</td><td/><td>sqlceqp40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceqp40.dll3</td><td>{ADF30B75-D97E-4D92-B8FB-C5AB667583B0}</td><td>AMD641</td><td>2</td><td/><td>sqlceqp40.dll3</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceqp40.dll4</td><td>{A8058A67-A847-4A4C-92BD-8E02B8514F7C}</td><td>X861</td><td>2</td><td/><td>sqlceqp40.dll4</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlcese40.dll</td><td>{D8BEE8FA-845F-4AFE-8DC8-4705609FF65E}</td><td>AMD64</td><td>2</td><td/><td>sqlcese40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>sqlcese40.dll1</td><td>{6BA47ABA-EFF8-4FE5-BF02-C7E24870EFBB}</td><td>X86</td><td>2</td><td/><td>sqlcese40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlcese40.dll3</td><td>{8375FBB8-DC34-4839-BBB0-5FE58DDA4A0E}</td><td>AMD641</td><td>2</td><td/><td>sqlcese40.dll3</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlcese40.dll4</td><td>{F0106C6D-DE1D-41DC-9480-FE7E27697044}</td><td>X861</td><td>2</td><td/><td>sqlcese40.dll4</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
 
 	<table name="Condition">
@@ -1244,8 +1230,6 @@
 		<row><td>LocalAppDataFolder</td><td>TARGETDIR</td><td>.:LocalA~1|LocalAppData</td><td/><td>0</td><td/></row>
 		<row><td>MICROSOFT.VC90.CRT</td><td>AMD64</td><td>MICROS~1|Microsoft.VC90.CRT</td><td/><td>0</td><td/></row>
 		<row><td>MICROSOFT.VC90.CRT1</td><td>X86</td><td>MICROS~1|Microsoft.VC90.CRT</td><td/><td>0</td><td/></row>
-		<row><td>MICROSOFT.VC90.CRT2</td><td>AMD641</td><td>MICROS~1|Microsoft.VC90.CRT</td><td/><td>0</td><td/></row>
-		<row><td>MICROSOFT.VC90.CRT3</td><td>X861</td><td>MICROS~1|Microsoft.VC90.CRT</td><td/><td>0</td><td/></row>
 		<row><td>MY_PRODUCT_NAME</td><td>CLOUD.COM</td><td>MYPROD~1|My Product Name</td><td/><td>0</td><td/></row>
 		<row><td>MyPicturesFolder</td><td>TARGETDIR</td><td>.:MyPict~1|MyPictures</td><td/><td>0</td><td/></row>
 		<row><td>NEW_DIRECTORY1</td><td>TARGETDIR</td><td>NEW_DIRECTORY1</td><td/><td>0</td><td/></row>
@@ -1985,12 +1969,10 @@
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT10</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT11</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT12</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT13</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT14</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT15</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT16</td></row>
-		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT17</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT2</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT3</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT4</td></row>
@@ -2005,6 +1987,8 @@
 		<row><td>AlwaysInstall</td><td>Microsoft.Practices.ServiceLocation.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>Newtonsoft.Json.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>Newtonsoft.Json.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>SSCERuntime_x64_ENU.exe</td></row>
+		<row><td>AlwaysInstall</td><td>SSCERuntime_x86_ENU.exe</td></row>
 		<row><td>AlwaysInstall</td><td>Salient.Data.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>Salient.Data.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>Sample_Live_Sync.Primary_output</td></row>
@@ -2018,32 +2002,18 @@
 		<row><td>AlwaysInstall</td><td>System.Data.SqlServerCe.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>msvcr90.dll</td></row>
 		<row><td>AlwaysInstall</td><td>msvcr90.dll1</td></row>
-		<row><td>AlwaysInstall</td><td>msvcr90.dll3</td></row>
-		<row><td>AlwaysInstall</td><td>msvcr90.dll4</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceca40.dll</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceca40.dll1</td></row>
-		<row><td>AlwaysInstall</td><td>sqlceca40.dll3</td></row>
-		<row><td>AlwaysInstall</td><td>sqlceca40.dll4</td></row>
 		<row><td>AlwaysInstall</td><td>sqlcecompact40.dll</td></row>
 		<row><td>AlwaysInstall</td><td>sqlcecompact40.dll1</td></row>
-		<row><td>AlwaysInstall</td><td>sqlcecompact40.dll3</td></row>
-		<row><td>AlwaysInstall</td><td>sqlcecompact40.dll4</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceer40EN.dll</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceer40EN.dll1</td></row>
-		<row><td>AlwaysInstall</td><td>sqlceer40EN.dll3</td></row>
-		<row><td>AlwaysInstall</td><td>sqlceer40EN.dll4</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceme40.dll</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceme40.dll1</td></row>
-		<row><td>AlwaysInstall</td><td>sqlceme40.dll3</td></row>
-		<row><td>AlwaysInstall</td><td>sqlceme40.dll4</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceqp40.dll</td></row>
 		<row><td>AlwaysInstall</td><td>sqlceqp40.dll1</td></row>
-		<row><td>AlwaysInstall</td><td>sqlceqp40.dll3</td></row>
-		<row><td>AlwaysInstall</td><td>sqlceqp40.dll4</td></row>
 		<row><td>AlwaysInstall</td><td>sqlcese40.dll</td></row>
 		<row><td>AlwaysInstall</td><td>sqlcese40.dll1</td></row>
-		<row><td>AlwaysInstall</td><td>sqlcese40.dll3</td></row>
-		<row><td>AlwaysInstall</td><td>sqlcese40.dll4</td></row>
 	</table>
 
 	<table name="File">
@@ -2082,18 +2052,12 @@
 		<row><td>microsoft.practices.servicel2</td><td>Microsoft.Practices.ServiceLocation.dll2</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Practices.ServiceLocation.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest</td><td>ISX_DEFAULTCOMPONENT3</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest1</td><td>ISX_DEFAULTCOMPONENT4</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
-		<row><td>microsoft.vc90.crt.manifest3</td><td>ISX_DEFAULTCOMPONENT12</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
-		<row><td>microsoft.vc90.crt.manifest4</td><td>ISX_DEFAULTCOMPONENT17</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>msvcr90.dll</td><td>msvcr90.dll</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
 		<row><td>msvcr90.dll1</td><td>msvcr90.dll1</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
-		<row><td>msvcr90.dll3</td><td>msvcr90.dll3</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
-		<row><td>msvcr90.dll4</td><td>msvcr90.dll4</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
 		<row><td>newtonsoft.json.dll1</td><td>Newtonsoft.Json.dll1</td><td>NEWTON~1.DLL|Newtonsoft.Json.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Newtonsoft.Json.dll</td><td>1</td><td/></row>
 		<row><td>newtonsoft.json.dll2</td><td>Newtonsoft.Json.dll2</td><td>NEWTON~1.DLL|Newtonsoft.Json.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Newtonsoft.Json.dll</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt</td><td>ISX_DEFAULTCOMPONENT3</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt1</td><td>ISX_DEFAULTCOMPONENT4</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
-		<row><td>readme_enu.txt3</td><td>ISX_DEFAULTCOMPONENT12</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
-		<row><td>readme_enu.txt4</td><td>ISX_DEFAULTCOMPONENT17</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>salient.data.dll1</td><td>Salient.Data.dll1</td><td>SALIEN~1.DLL|Salient.Data.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Salient.Data.dll</td><td>1</td><td/></row>
 		<row><td>salient.data.dll2</td><td>Salient.Data.dll2</td><td>SALIEN~1.DLL|Salient.Data.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Salient.Data.dll</td><td>1</td><td/></row>
 		<row><td>sample_live_sync.primary_out</td><td>Sample_Live_Sync.Primary_output</td><td>Sample-Live-Sync.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Sample-Live-Sync&gt;|Built</td><td>3</td><td/></row>
@@ -2101,28 +2065,18 @@
 		<row><td>simplejson.dll2</td><td>SimpleJson.dll2</td><td>SIMPLE~1.DLL|SimpleJson.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SimpleJson.dll</td><td>1</td><td/></row>
 		<row><td>sqlceca40.dll</td><td>sqlceca40.dll</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceca40.dll</td><td>1</td><td/></row>
 		<row><td>sqlceca40.dll1</td><td>sqlceca40.dll1</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceca40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceca40.dll3</td><td>sqlceca40.dll3</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceca40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceca40.dll4</td><td>sqlceca40.dll4</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceca40.dll</td><td>1</td><td/></row>
 		<row><td>sqlcecompact40.dll</td><td>sqlcecompact40.dll</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlcecompact40.dll</td><td>1</td><td/></row>
 		<row><td>sqlcecompact40.dll1</td><td>sqlcecompact40.dll1</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlcecompact40.dll</td><td>1</td><td/></row>
-		<row><td>sqlcecompact40.dll3</td><td>sqlcecompact40.dll3</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlcecompact40.dll</td><td>1</td><td/></row>
-		<row><td>sqlcecompact40.dll4</td><td>sqlcecompact40.dll4</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlcecompact40.dll</td><td>1</td><td/></row>
 		<row><td>sqlceer40en.dll</td><td>sqlceer40EN.dll</td><td>SQLCEE~1.DLL|sqlceer40EN.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceer40EN.dll</td><td>1</td><td/></row>
 		<row><td>sqlceer40en.dll1</td><td>sqlceer40EN.dll1</td><td>SQLCEE~1.DLL|sqlceer40EN.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceer40EN.dll</td><td>1</td><td/></row>
-		<row><td>sqlceer40en.dll3</td><td>sqlceer40EN.dll3</td><td>SQLCEE~1.DLL|sqlceer40EN.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceer40EN.dll</td><td>1</td><td/></row>
-		<row><td>sqlceer40en.dll4</td><td>sqlceer40EN.dll4</td><td>SQLCEE~1.DLL|sqlceer40EN.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceer40EN.dll</td><td>1</td><td/></row>
 		<row><td>sqlceme40.dll</td><td>sqlceme40.dll</td><td>SQLCEM~1.DLL|sqlceme40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceme40.dll</td><td>1</td><td/></row>
 		<row><td>sqlceme40.dll1</td><td>sqlceme40.dll1</td><td>SQLCEM~1.DLL|sqlceme40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceme40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceme40.dll3</td><td>sqlceme40.dll3</td><td>SQLCEM~1.DLL|sqlceme40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceme40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceme40.dll4</td><td>sqlceme40.dll4</td><td>SQLCEM~1.DLL|sqlceme40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceme40.dll</td><td>1</td><td/></row>
 		<row><td>sqlceqp40.dll</td><td>sqlceqp40.dll</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceqp40.dll</td><td>1</td><td/></row>
 		<row><td>sqlceqp40.dll1</td><td>sqlceqp40.dll1</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceqp40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceqp40.dll3</td><td>sqlceqp40.dll3</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceqp40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceqp40.dll4</td><td>sqlceqp40.dll4</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceqp40.dll</td><td>1</td><td/></row>
 		<row><td>sqlcese40.dll</td><td>sqlcese40.dll</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlcese40.dll</td><td>1</td><td/></row>
 		<row><td>sqlcese40.dll1</td><td>sqlcese40.dll1</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlcese40.dll</td><td>1</td><td/></row>
-		<row><td>sqlcese40.dll3</td><td>sqlcese40.dll3</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlcese40.dll</td><td>1</td><td/></row>
-		<row><td>sqlcese40.dll4</td><td>sqlcese40.dll4</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlcese40.dll</td><td>1</td><td/></row>
+		<row><td>ssceruntime_x64_enu.exe</td><td>SSCERuntime_x64_ENU.exe</td><td>SSCERU~1.EXE|SSCERuntime_x64-ENU.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SSCERuntime_x64-ENU.exe</td><td>1</td><td/></row>
+		<row><td>ssceruntime_x86_enu.exe</td><td>SSCERuntime_x86_ENU.exe</td><td>SSCERU~1.EXE|SSCERuntime_x86-ENU.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SSCERuntime_x86-ENU.exe</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.cor1</td><td>SuperSocket.ClientEngine.Core.dll1</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Core.dll</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.cor2</td><td>SuperSocket.ClientEngine.Core.dll2</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Core.dll</td><td>1</td><td/></row>
 		<row><td>supersocket.clientengine.pro1</td><td>SuperSocket.ClientEngine.Protocol.dll1</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Protocol.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Protocol.dll</td><td>1</td><td/></row>
@@ -2402,12 +2356,10 @@
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_3C0733B3_E0BD_4F89_AC46_4E8D5AD2EB30_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT10</td><td/><td/><td>_0811E04F_C88E_4E65_BEA6_1D3544023863_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT11</td><td/><td/><td>_7720252B_9CDF_4EB7_B3CB_D882D63399ED_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT12</td><td/><td/><td>_AA2B4FBA_C31F_42F4_A649_3FE568BF0E36_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT13</td><td/><td/><td>_A493C90D_C329_4018_9B86_19C898091ECC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT14</td><td/><td/><td>_0C92D859_9C21_49FD_81E4_A07478DD3EAF_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT15</td><td/><td/><td>_B052E8AF_677D_46FE_82B9_B12FD2BED1B8_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT16</td><td/><td/><td>_97A0142D_6A8E_44EA_BD43_F1DC5679DA36_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ISX_DEFAULTCOMPONENT17</td><td/><td/><td>_61EB1D5C_E7B1_4A26_B370_D5C11FFCE441_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT2</td><td/><td/><td>_8AF1CDFE_40E7_4A42_8DBE_CAFA9B26302D_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT3</td><td/><td/><td>_95D3F3AB_7B09_49DD_A820_EE32C2FAF404_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT4</td><td/><td/><td>_38583AAF_5309_42FB_BB27_8150947EEC60_FILTER</td><td/><td/><td/><td/></row>
@@ -2422,6 +2374,8 @@
 		<row><td>Microsoft.Practices.ServiceLocation.dll2</td><td/><td/><td>_3691313D_E11D_4C29_828B_8D4E907F4138_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Newtonsoft.Json.dll1</td><td/><td/><td>_F4C88CDD_C4D3_4C69_909B_E3E764957C93_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Newtonsoft.Json.dll2</td><td/><td/><td>_5E8EF4E7_FCE4_4EFA_AC64_553B6E5FAA5C_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>SSCERuntime_x64_ENU.exe</td><td/><td/><td>_90699031_5D1C_4D41_B456_C5BCA0F2D294_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>SSCERuntime_x86_ENU.exe</td><td/><td/><td>_AC1C9F25_0BA8_4BA5_A18F_EF9F6B845D6D_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Salient.Data.dll1</td><td/><td/><td>_BD958A26_4D5B_43B2_A622_F7293D1D1D03_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Salient.Data.dll2</td><td/><td/><td>_0E2D334E_9D11_4923_BD3D_FB78929965B5_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Sample_Live_Sync.Primary_output</td><td/><td/><td>_FF5F6A1D_CCC6_4A2B_A446_C75E0D521515_FILTER</td><td/><td/><td/><td/></row>
@@ -2435,32 +2389,18 @@
 		<row><td>System.Data.SqlServerCe.dll2</td><td/><td/><td>_59B39F71_591E_4AA3_8B5D_0FCE24E0B505_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>msvcr90.dll</td><td/><td/><td>_B9128E43_32FC_4156_A935_139019751765_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>msvcr90.dll1</td><td/><td/><td>_1933FF2C_5402_475D_AE0F_8DDA9800598F_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>msvcr90.dll3</td><td/><td/><td>_B43D486E_79E0_49B0_9A6B_B98144DA3543_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>msvcr90.dll4</td><td/><td/><td>_51AC8DE3_D896_4F51_AF3C_990A014041DC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceca40.dll</td><td/><td/><td>_F227174B_95E9_48F7_A35D_9EAF2FEA2701_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceca40.dll1</td><td/><td/><td>_63837C83_45EE_4480_8D2F_9FBC2D180209_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlceca40.dll3</td><td/><td/><td>_9463F7F0_E554_4542_A2FA_FB235F9C24CC_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlceca40.dll4</td><td/><td/><td>_4DD27F8C_5744_4494_B6D4_3E3CD917A402_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlcecompact40.dll</td><td/><td/><td>_E8F767B3_6302_4D0D_A682_3F3F8ED73945_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlcecompact40.dll1</td><td/><td/><td>_05747A0E_5FFA_48F6_89E7_2D1A8EB467C6_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlcecompact40.dll3</td><td/><td/><td>_38F98CB8_7ED5_4E65_BD34_26F082FF38BB_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlcecompact40.dll4</td><td/><td/><td>_D9BDF3E8_E889_493D_9F7D_3B951DF06CB0_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceer40EN.dll</td><td/><td/><td>_03D6B249_7D39_45DC_B10D_5468D78006A3_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceer40EN.dll1</td><td/><td/><td>_6FD92FD8_13FA_46A3_AADC_01DDDC6D9169_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlceer40EN.dll3</td><td/><td/><td>_CA6A1912_04E7_4F51_BCA6_7DCDD4AE296D_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlceer40EN.dll4</td><td/><td/><td>_10991D61_D945_45EA_9BA6_036AF9FA11EE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceme40.dll</td><td/><td/><td>_2E97D9D3_EB44_4416_B618_F1EFC8B8DDF2_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceme40.dll1</td><td/><td/><td>_B92D3267_3C47_4D80_8AC3_7C5865AFC9A1_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlceme40.dll3</td><td/><td/><td>_D27CE571_3C4B_4AD3_9C74_3CD4D61F6A95_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlceme40.dll4</td><td/><td/><td>_9C3A263D_9871_413A_9102_BB23D1C0C76F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceqp40.dll</td><td/><td/><td>_E0D10A97_4CE0_401C_9C01_A1BB76A1FEBF_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlceqp40.dll1</td><td/><td/><td>_8CCD0D84_6B6A_4D2E_99CD_55AFCF50908C_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlceqp40.dll3</td><td/><td/><td>_4B7684F6_C4F9_4314_AF17_4270DA5248DB_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlceqp40.dll4</td><td/><td/><td>_8FA506B7_FA74_491B_A141_B105AB8213DD_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlcese40.dll</td><td/><td/><td>_935DEAF9_9B6E_4FD2_8DF3_DC6F39303E74_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>sqlcese40.dll1</td><td/><td/><td>_FD746EF8_09EF_41CE_879B_EEE71EB4E620_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlcese40.dll3</td><td/><td/><td>_66A4BE7B_ABCC_4787_990F_5B524192B48D_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>sqlcese40.dll4</td><td/><td/><td>_160E9D94_B1A1_4249_8225_1B49156B254B_FILTER</td><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="ISCustomActionReference">

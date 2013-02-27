@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudSdkSyncSample.Static
+namespace SampleLiveSync.Static
 {
     /// <summary>
     /// Simple viewed sync states.
