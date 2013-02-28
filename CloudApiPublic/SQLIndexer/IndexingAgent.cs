@@ -552,7 +552,7 @@ namespace CloudApiPublic.SQLIndexer
                                     foundSync.CreationTime,
                                     foundSync.Size),
                                 LinkTargetPath = foundSync.TargetPath,
-                                Revision = revision,
+                                Revision = foundSync.Revision,
                                 StorageKey = foundSync.StorageKey
                             };
                         }

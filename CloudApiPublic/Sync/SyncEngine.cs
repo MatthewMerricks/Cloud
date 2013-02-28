@@ -7168,6 +7168,66 @@ namespace CloudApiPublic.Sync
                                                         // try/catch to create a creation FileChange to process the conflict file to rename the file locally and add an event to upload it, on catch revert the modified event path and type
                                                         try
                                                         {
+                                                            FileChange oldPathDownload = null;
+
+                                                            try
+                                                            {
+                                                                FileMetadata oldPathMetadata;
+                                                                CLError oldPathMetadataError = syncData.getMetadataByPathAndRevision(
+                                                                    originalConflictPath.ToString(),
+                                                                    /* revision */ null,
+                                                                    out oldPathMetadata);
+
+                                                                if (oldPathMetadataError == null
+                                                                    && oldPathMetadata != null)
+                                                                {
+                                                                    if (string.IsNullOrEmpty(oldPathMetadata.Revision))
+                                                                    {
+                                                                        JsonContracts.Metadata oldPathMetadataRevision;
+                                                                        CLHttpRestStatus oldPathMetadataRevisionStatus;
+                                                                        CLError oldPathMetadataRevisionError = httpRestClient.GetMetadata(
+                                                                            originalConflictPath,
+                                                                            /* isFolder */ false,
+                                                                            HttpTimeoutMilliseconds,
+                                                                            out oldPathMetadataRevisionStatus,
+                                                                            out oldPathMetadataRevision);
+
+                                                                        if (oldPathMetadataRevisionStatus == CLHttpRestStatus.Success
+                                                                            && oldPathMetadataRevision != null
+                                                                            && oldPathMetadataRevision.Deleted != true)
+                                                                        {
+                                                                            oldPathMetadata.Revision = oldPathMetadataRevision.Revision;
+                                                                        }
+                                                                    }
+
+                                                                    if (!string.IsNullOrEmpty(oldPathMetadata.Revision))
+                                                                    {
+                                                                        FileChangeWithDependencies oldPathDownloadNoDependencies;
+                                                                        CLError oldPathDownloadNoDependenciesError = FileChangeWithDependencies.CreateAndInitialize(
+                                                                            new FileChange()
+                                                                            {
+                                                                                Direction = SyncDirection.From,
+                                                                                Metadata = oldPathMetadata,
+                                                                                NewPath = originalConflictPath.Copy(),
+                                                                                Type = FileChangeType.Created
+                                                                            }, /* initialDependencies */ null,
+                                                                            out oldPathDownloadNoDependencies);
+
+                                                                        if (oldPathDownloadNoDependenciesError == null)
+                                                                        {
+                                                                            CLError oldPathDownloadToSqlError = syncData.mergeToSql(new[] { new FileChangeMerge(oldPathDownloadNoDependencies) });
+                                                                            if (oldPathDownloadToSqlError == null)
+                                                                            {
+                                                                                oldPathDownload = oldPathDownloadNoDependencies;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                            catch
+                                                            {
+                                                            }
+
                                                             // change conflict event into a creation for a new upload
                                                             currentChange.Type = FileChangeType.Created;
                                                             // change conflict path to the new conflict path
@@ -7188,17 +7248,20 @@ namespace CloudApiPublic.Sync
                                                             FileChangeWithDependencies reparentConflict;
                                                             // initialize and set the rename change with a new FileChange for moving the conflict file to the new conflict path and include the conflict creation change as a dependency, storing any error that occurs
                                                             CLError reparentCreateError = FileChangeWithDependencies.CreateAndInitialize(new FileChange()
-                                                            {
-                                                                Direction = SyncDirection.From, // rename the file locally (Sync From)
-                                                                Metadata = new FileMetadata()
                                                                 {
-                                                                    HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
-                                                                    LinkTargetPath = currentChange.Metadata.LinkTargetPath // copy shortcut target path from the conflicted file
+                                                                    Direction = SyncDirection.From, // rename the file locally (Sync From)
+                                                                    Metadata = new FileMetadata()
+                                                                    {
+                                                                        HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
+                                                                        LinkTargetPath = currentChange.Metadata.LinkTargetPath // copy shortcut target path from the conflicted file
+                                                                    },
+                                                                    NewPath = currentChange.NewPath, // use the new conflict path as the rename destination
+                                                                    OldPath = originalConflictPath, // use the location of the current conflicted file as move from location
+                                                                    Type = FileChangeType.Renamed // this operation is a move
                                                                 },
-                                                                NewPath = currentChange.NewPath, // use the new conflict path as the rename destination
-                                                                OldPath = originalConflictPath, // use the location of the current conflicted file as move from location
-                                                                Type = FileChangeType.Renamed // this operation is a move
-                                                            }, new[] { currentChange }, // add the creation at the new location as a dependency to the rename
+                                                                (oldPathDownload == null
+                                                                    ? new[] { currentChange }  // add the creation at the new location as a dependency to the rename
+                                                                    : new[] { oldPathDownload, currentChange }), // in addition to the create at the new location in the line above, also download the original copy of the file to the old path
                                                                 out reparentConflict); // output the new rename change
                                                             // if an error occurred creating the FileChange for the rename operation, rethrow the error
                                                             if (reparentCreateError != null)
@@ -7228,7 +7291,8 @@ namespace CloudApiPublic.Sync
                                                                 }
 
                                                                 // wrap the current event so it can be added to the converted dependencies list
-                                                                PossiblyStreamableFileChange dependencyHidden = new PossiblyStreamableFileChange(currentChange, // current event
+                                                                PossiblyStreamableFileChange dependencyHidden = new PossiblyStreamableFileChange(
+                                                                    currentChange, // current event
                                                                     currentStream, // current stream, or null if it had not existed
                                                                     true); // this change will be added to errors anyways, so invalid nullability of the Stream is not important for reprocessing
 

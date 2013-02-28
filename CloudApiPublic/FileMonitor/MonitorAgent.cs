@@ -1024,9 +1024,8 @@ namespace CloudApiPublic.FileMonitor
             }
         }
 
-        private CLError AssignDependencies(KeyValuePair<FileChangeSource, FileChangeWithDependencies>[] dependencyChanges, Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>> OriginalFileChangeMappings, out HashSet<FileChangeWithDependencies> PulledChanges)
+        private CLError AssignDependencies(KeyValuePair<FileChangeSource, FileChangeWithDependencies>[] dependencyChanges, Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>> OriginalFileChangeMappings, out HashSet<FileChangeWithDependencies> PulledChanges, originalQueuedChangesIndexesByInMemoryIdsBase originalQueuedChangesIndexesByInMemoryIds)
         {
-
             CLError toReturn = null;
             try
             {
@@ -1094,7 +1093,7 @@ namespace CloudApiPublic.FileMonitor
                                             {
                                                 CurrentOriginalMapping.Key.Dispose();
                                                 if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges
-                                                    && RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key))
+                                                    && RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds))
                                                 {
                                                     removeFromSql.Add(CurrentDisposal);
                                                 }
@@ -1450,7 +1449,8 @@ namespace CloudApiPublic.FileMonitor
                     .ToArray();
                 toReturn = AssignDependencies(assignmentsWithDependencies,
                     null,
-                    out PulledChanges);
+                    out PulledChanges,
+                    originalQueuedChangesIndexesByInMemoryIds: null);
 
                 List<PossiblyStreamableFileChange> outputChangeList = new List<PossiblyStreamableFileChange>();
                 List<FileChange> outputFailureList = new List<FileChange>();
@@ -1572,15 +1572,24 @@ namespace CloudApiPublic.FileMonitor
                                 return true;
                             };
 
+                        Dictionary<long, FilePath> originalQueuedChangesIndexesByInMemoryIds = new Dictionary<long, FilePath>();
+                        originalQueuedChangesIndexesByInMemoryIdsBase originalQueuedChangesIndexesByInMemoryIdsWrapped = new originalQueuedChangesIndexesByInMemoryIdsFromDictionary(originalQueuedChangesIndexesByInMemoryIds);
+                        Func<KeyValuePair<FilePath, FileChange>, Dictionary<long, FilePath>, KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>> reselectQueuedChangeAndAddToMapping =
+                            (queuedChange, queuedMappings) =>
+                            {
+                                queuedMappings[queuedChange.Value.InMemoryId] = queuedChange.Key;
+                                return new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.QueuedChanges, new KeyValuePair<bool, FileChange>(false, queuedChange.Value));
+                            };
+
                         var AllFileChanges = (ProcessingChanges.DequeueAll()
                             .Where(currentProcessingChange => nullCheckAndMarkFound(currentProcessingChange, nullFound)) // added nullable FileChange so that syncing can be triggered by queueing a null
                             .Select(currentProcessingChange => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.ProcessingChanges, new KeyValuePair<bool, FileChange>(false, currentProcessingChange)))
                             .Concat(initialFailures.Select(currentInitialFailure => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailureQueue, new KeyValuePair<bool, FileChange>(currentInitialFailure.IsPreexisting, currentInitialFailure.FileChange)))))
                             .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailedOutList, new KeyValuePair<bool,FileChange>(false, currentFailedOut))))
                             .OrderBy(eventOrdering => eventOrdering.Value.Value.EventId)
-                            .Concat(QueuedChanges.Values
-                                .OrderBy(memoryIdOrdering => memoryIdOrdering.InMemoryId)
-                                .Select(currentQueuedChange => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.QueuedChanges, new KeyValuePair<bool, FileChange>(false, currentQueuedChange))))
+                            .Concat(QueuedChanges
+                                .OrderBy(memoryIdOrdering => memoryIdOrdering.Value.InMemoryId)
+                                .Select(queuedChange => reselectQueuedChangeAndAddToMapping(queuedChange, originalQueuedChangesIndexesByInMemoryIds)))
                             .Select(currentFileChange => new
                             {
                                 ExistingError = currentFileChange.Value.Key,
@@ -1603,7 +1612,8 @@ namespace CloudApiPublic.FileMonitor
                         HashSet<FileChangeWithDependencies> PulledChanges;
                         CLError assignmentError = AssignDependencies(AllFileChanges.Select(currentFileChange => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(currentFileChange.SourceType, currentFileChange.DependencyFileChange)).ToArray(),
                             OriginalFileChangeMappings,
-                            out PulledChanges);
+                            out PulledChanges,
+                            originalQueuedChangesIndexesByInMemoryIdsWrapped);
                         List<PossiblyStreamableFileChange> OutputChangesList = new List<PossiblyStreamableFileChange>();
                         List<PossiblyPreexistingFileChangeInError> OutputFailuresList = new List<PossiblyPreexistingFileChangeInError>();
 
@@ -1814,7 +1824,10 @@ namespace CloudApiPublic.FileMonitor
                                 else
                                 {
                                     mergedToSql.Value.Dispose();
-                                    RemoveFileChangeFromQueuedChanges(mergedToSql.Value);
+                                    if (!RemoveFileChangeFromQueuedChanges(mergedToSql.Value, originalQueuedChangesIndexesByInMemoryIdsWrapped))
+                                    {
+                                        throw new KeyNotFoundException("Unable to remove FileChange from QueuedChanges after merging to SQL");
+                                    }
                                 }
                             }
                             catch (Exception ex)
@@ -1841,7 +1854,11 @@ namespace CloudApiPublic.FileMonitor
                 ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
                     {
                         FileChangeWithDependencies selectedWithoutDependencies;
-                        FileChangeWithDependencies.CreateAndInitialize(removeDependencies, /* initialDependencies */ null, out selectedWithoutDependencies);
+                        CLError createSelectedError = FileChangeWithDependencies.CreateAndInitialize(removeDependencies, /* initialDependencies */ null, out selectedWithoutDependencies);
+                        if (createSelectedError != null)
+                        {
+                            throw new AggregateException("Creating selectedWithDependencies returned an error", createSelectedError.GrabExceptions());
+                        }
                         return selectedWithoutDependencies;
                     }))(currentQueuedChange.Key.MergeTo)));
                 ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
@@ -3327,6 +3344,14 @@ namespace CloudApiPublic.FileMonitor
                                             }
                                             QueuedChanges.Remove(previousChange.NewPath);
                                             previousChange.Dispose();
+
+                                            // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
+                                            // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
+
+                                            toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
+                                            toChange.Metadata.Revision = previousChange.Metadata.Revision;
+                                            toChange.Metadata.ServerId = previousChange.Metadata.ServerId;
+                                            toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
                                         }
                                         // For files with different metadata, process as a modify
                                         else
@@ -3539,7 +3564,7 @@ namespace CloudApiPublic.FileMonitor
         /// <param name="remainingOperations">Number of operations remaining across all FileChange (via DelayProcessable)</param>
         private void ProcessFileChange(FileChange sender, object state, int remainingOperations)
         {
-            RemoveFileChangeFromQueuedChanges(sender);
+            RemoveFileChangeFromQueuedChanges(sender, new originalQueuedChangesIndexesByInMemoryIdsOneValue(sender.InMemoryId, sender.NewPath));
 
             if (remainingOperations == 0) // flush remaining operations before starting processing timer
             {
@@ -3569,8 +3594,15 @@ namespace CloudApiPublic.FileMonitor
                         }
                     };
 
-                mergeBatch.Add(sender);
-                mergeAll.Add(sender);
+                if (sender == null
+                    || sender.Type != FileChangeType.Renamed
+                    || sender.NewPath == null
+                    || sender.OldPath == null
+                    || !FilePathComparer.Instance.Equals(sender.OldPath, sender.NewPath)) // check for same path rename, only other events should be processed
+                {
+                    mergeBatch.Add(sender);
+                    mergeAll.Add(sender);
+                }
 
                 do
                 {
@@ -3579,8 +3611,16 @@ namespace CloudApiPublic.FileMonitor
                         while (NeedsMergeToSql.Count > 0)
                         {
                             FileChange nextMerge = NeedsMergeToSql.Dequeue();
-                            mergeBatch.Add(nextMerge);
-                            mergeAll.Add(nextMerge);
+
+                            if (nextMerge == null
+                                || nextMerge.Type != FileChangeType.Renamed
+                                || nextMerge.NewPath == null
+                                || nextMerge.OldPath == null
+                                || !FilePathComparer.Instance.Equals(nextMerge.OldPath, nextMerge.NewPath)) // check for same path rename, only other events should be processed
+                            {
+                                mergeBatch.Add(nextMerge);
+                                mergeAll.Add(nextMerge);
+                            }
                         }
                     }
 
@@ -3609,35 +3649,38 @@ namespace CloudApiPublic.FileMonitor
                     mergeBatch.Clear();
                 }
                 while (operationsRemaining()); // flush remaining operations before starting processing timer
-                
-                lock (QueuesTimer.TimerRunningLocker)
+
+                if (mergeAll.Count > 0)
                 {
-                    foreach (FileChange nextMerge in mergeAll)
+                    lock (QueuesTimer.TimerRunningLocker)
                     {
-                        if (nextMerge.EventId == 0)
+                        foreach (FileChange nextMerge in mergeAll)
                         {
-                            string noEventIdErrorMessage = "EventId was zero on a FileChange to queue to ProcessingChanges: " +
-                                nextMerge.ToString() + " " + (nextMerge.NewPath == null ? "nullPath" : nextMerge.NewPath.ToString());
+                            if (nextMerge.EventId == 0)
+                            {
+                                string noEventIdErrorMessage = "EventId was zero on a FileChange to queue to ProcessingChanges: " +
+                                    nextMerge.ToString() + " " + (nextMerge.NewPath == null ? "nullPath" : nextMerge.NewPath.ToString());
 
-                            // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                            ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
+                                // forces logging even if the setting is turned off in the severe case since a message box had to appear
+                                ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
 
-                            MessageEvents.FireNewEventMessage(
-                                noEventIdErrorMessage,
-                                EventMessageLevel.Important,
-                                new HaltAllOfCloudSDKErrorInfo());
+                                MessageEvents.FireNewEventMessage(
+                                    noEventIdErrorMessage,
+                                    EventMessageLevel.Important,
+                                    new HaltAllOfCloudSDKErrorInfo());
+                            }
+
+                            ProcessingChanges.AddLast(nextMerge);
                         }
 
-                        ProcessingChanges.AddLast(nextMerge);
-                    }
-
-                    if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
-                    {
-                        QueuesTimer.TriggerTimerCompletionImmediately();
-                    }
-                    else
-                    {
-                        QueuesTimer.StartTimerIfNotRunning();
+                        if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
+                        {
+                            QueuesTimer.TriggerTimerCompletionImmediately();
+                        }
+                        else
+                        {
+                            QueuesTimer.StartTimerIfNotRunning();
+                        }
                     }
                 }
             }
@@ -3652,8 +3695,13 @@ namespace CloudApiPublic.FileMonitor
 
         // Finds the FileChange in QueuedChanges in the same Dictionary as well as any other associated dictionaries,
         // and removes it
-        private bool RemoveFileChangeFromQueuedChanges(FileChange toRemove)
+        private bool RemoveFileChangeFromQueuedChanges(FileChange toRemove, originalQueuedChangesIndexesByInMemoryIdsBase originalQueuedChangesIndexesByInMemoryIds)
         {
+            if (originalQueuedChangesIndexesByInMemoryIds == null)
+            {
+                throw new NullReferenceException("originalQueuedChangesIndexesByInMemoryIds cannot be null, perhaps AssignDependencies private helper was called through from the internal AssignDependencies");
+            }
+
             // If the change is a rename that is being removed, take off its old/new path pair
             if (toRemove.Type == FileChangeType.Renamed)
             {
@@ -3669,12 +3717,57 @@ namespace CloudApiPublic.FileMonitor
             {
                 QueuedChangesByMetadata.Remove(toRemove.Metadata.HashableProperties);
             }
-            if (QueuedChanges.ContainsKey(toRemove.NewPath)
-                && QueuedChanges[toRemove.NewPath] == toRemove)
+            FilePath originalNewPath;
+            if (!originalQueuedChangesIndexesByInMemoryIds.TryGetValue(toRemove.InMemoryId, out originalNewPath))
             {
-                return QueuedChanges.Remove(toRemove.NewPath);
+                return false;
+            }
+
+            if (QueuedChanges.ContainsKey(originalNewPath)
+                && QueuedChanges[originalNewPath] == toRemove)
+            {
+                return QueuedChanges.Remove(originalNewPath);
             }
             return false;
+        }
+        private abstract class originalQueuedChangesIndexesByInMemoryIdsBase
+        {
+            public abstract bool TryGetValue(long key, out FilePath value);
+        }
+        private sealed class originalQueuedChangesIndexesByInMemoryIdsOneValue : originalQueuedChangesIndexesByInMemoryIdsBase
+        {
+            public override bool TryGetValue(long key, out FilePath value)
+            {
+                if (key != oneKey)
+                {
+                    value = Helpers.DefaultForType<FilePath>();
+                    return false;
+                }
+
+                value = oneValue;
+                return true;
+            }
+            private readonly long oneKey;
+            private readonly FilePath oneValue;
+
+            public originalQueuedChangesIndexesByInMemoryIdsOneValue(long key, FilePath value)
+            {
+                this.oneKey = key;
+                this.oneValue = value;
+            }
+        }
+        private sealed class originalQueuedChangesIndexesByInMemoryIdsFromDictionary : originalQueuedChangesIndexesByInMemoryIdsBase
+        {
+            public override bool TryGetValue(long key, out FilePath value)
+            {
+                return dict.TryGetValue(key, out value);
+            }
+            private readonly Dictionary<long, FilePath> dict;
+
+            public originalQueuedChangesIndexesByInMemoryIdsFromDictionary(Dictionary<long, FilePath> dict)
+            {
+                this.dict = dict;
+            }
         }
 
         /// <summary>
