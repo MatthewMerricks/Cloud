@@ -19,6 +19,7 @@ namespace CloudSDK_SmokeTest.Events.ManagerEventArgs
         public CloudApiPublic.JsonContracts.Session Session { get; set; }
         public long PlanID { get; set; }
         public CLHttpRestStatus RestStatus { get; set; }
+        public List<StringBuilder> StringBuilderList { get; set; }
 
 
         public SmokeTestManagerEventArgs(){}
@@ -33,6 +34,7 @@ namespace CloudSDK_SmokeTest.Events.ManagerEventArgs
             this.SyncBox = inputArgs.SyncBox;
             this.Creds = inputArgs.Creds;
             this.ProcessingErrorHolder = inputArgs.ProcessingErrorHolder;
+            this.ReportBuilder = inputArgs.ReportBuilder;
         }
 
         public SmokeTestManagerEventArgs(InputParams paramSet, SmokeTask smokeTask, GenericHolder<CLError> ProcessingErrorHolder)
@@ -41,6 +43,7 @@ namespace CloudSDK_SmokeTest.Events.ManagerEventArgs
             this.CurrentTask = smokeTask;
             this.ProcessingErrorHolder = ProcessingErrorHolder;
             this.RootDirectory = new DirectoryInfo(paramSet.ManualSync_Folder.Replace("\"", ""));
+            this.StringBuilderList = new List<StringBuilder>();
         }
     }
 }

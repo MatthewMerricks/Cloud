@@ -24,6 +24,7 @@ namespace CloudSDK_SmokeTest.Events.CLEventArgs
             this.CurrentTask = inputArgs.CurrentTask;
             this.ParamSet = inputArgs.ParamSet;
             this.SyncBox = inputArgs.SyncBox;
+            this.ReportBuilder = inputArgs.ReportBuilder;
         }
     }
 }

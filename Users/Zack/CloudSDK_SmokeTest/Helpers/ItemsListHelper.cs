@@ -4,6 +4,7 @@ using CloudApiPublic.JsonContracts;
 using CloudApiPublic.Model;
 using CloudApiPublic.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
+using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
 using System;
@@ -85,26 +86,30 @@ namespace CloudSDK_SmokeTest.Helpers
             listManager.Sessions.Clear();
             if (sessionList.Sessions.Count() == 0)
             {
-                Console.WriteLine("Session Count: 0");
+                itemListHelperArgs.ReportBuilder.AppendLine("Session Count: 0");
             }
             else
             {
                 foreach (Session sesh in sessionList.Sessions)
                 {
+                    itemListHelperArgs.ReportBuilder.AppendLine();
                     if (!listManager.Sessions.Contains(sesh))
                         listManager.Sessions.Add(sesh);
                     if (printValues)
                     {
-                        Console.WriteLine(string.Format("The Session with token {0} expires at {1}  ", sesh.Token, sesh.ExpiresAt));
+                        itemListHelperArgs.ReportBuilder.AppendLine(string.Format("The Session with token {0} expires at {1}  ", sesh.Token, sesh.ExpiresAt));
                     }
                     if (printSessionSyncBoxes)
                     {
-                        Console.WriteLine("SyncBox IDs:");
+                        itemListHelperArgs.ReportBuilder.AppendLine("SyncBox IDs:");
                         foreach (long l in sesh.SyncBoxIds)
-                            Console.Write(l.ToString() + ", ");
+                            itemListHelperArgs.ReportBuilder.Append(l.ToString() + ", ");
+
+                        itemListHelperArgs.ReportBuilder.AppendLine();
                     }
                     getListResponseCode = 0;
                 }
+                itemListHelperArgs.ReportBuilder.AppendLine();
             }
 
             return getListResponseCode;
@@ -131,7 +136,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 HandleFailure(getSyncBoxesError, restStatus, null, "ItemsListHelper.RunListSyncBoxes", ref refHolder);
                 return (int)FileManagerResponseCodes.UnknownError;
             }
-            if (itemListHelperArgs.ListItemsTask.ExpectedCount > 0)
+            if (itemListHelperArgs.ListItemsTask != null && itemListHelperArgs.ListItemsTask.ExpectedCount > 0)
             { 
                 if(syncBoxList.SyncBoxes.Count() != itemListHelperArgs.ListItemsTask.ExpectedCount)
                     return (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
@@ -141,13 +146,76 @@ namespace CloudSDK_SmokeTest.Helpers
             foreach (CloudApiPublic.JsonContracts.SyncBox syncBox in syncBoxList.SyncBoxes)
             {
                 listManager.SyncBoxes.Add(syncBox);
-                Console.WriteLine(string.Format("The SyncBox Name:{0} with ID:{1} and PlanID:{2} was retrieved and added to ItemsListManager's List of SyncBoxes", syncBox.FriendlyName, syncBox.Id, syncBox.PlanId));
+                if (itemListHelperArgs.ListItemsTask != null)
+                    Console.WriteLine(string.Format("The SyncBox Name:{0} with ID:{1} and PlanID:{2} was retrieved and added to ItemsListManager's List of SyncBoxes", syncBox.FriendlyName, syncBox.Id, syncBox.PlanId));
                 getListResponseCode = 0;
             }
 
             return getListResponseCode;
         }
 
+        public static int GetSyncBoxCount(SmokeTestManagerEventArgs e, out int count)
+        {
+            CLHttpRestStatus restStatus;
+            ListSyncBoxes list;
+            count = -1;
+            if (e.Creds == null)
+            { 
+                TaskEventArgs ea = new TaskEventArgs(e);
+                ICLCredentialSettings settings;
+                CLError error;
+                CredentialHelper.InitializeCreds(ref ea, out settings, out error);
+                if (error == null && ea.CredsStatus == CLCredentialCreationStatus.Success)
+                    e.Creds = ea.Creds;
+                else
+                    return (int)FileManagerResponseCodes.InitializeCredsError;
+            }
+            e.Creds.ListSyncBoxes(ManagerConstants.TimeOutMilliseconds, out restStatus, out list);
+            count = list.SyncBoxes.Count();
+            return (int)FileManagerResponseCodes.Success;
+        }
+
+        public static int GetSessionCount(SmokeTestManagerEventArgs e, out int count)
+        {
+            CLHttpRestStatus restStatus;
+            ListSessionsResponse list;
+            count = -1;
+            if (e.Creds == null)
+            {
+                TaskEventArgs ea = new TaskEventArgs(e);
+                ICLCredentialSettings settings;
+                CLError error;
+                CredentialHelper.InitializeCreds(ref ea, out settings, out error);
+                if (error == null && ea.CredsStatus == CLCredentialCreationStatus.Success)
+                    e.Creds = ea.Creds;
+                else
+                    return (int)FileManagerResponseCodes.InitializeCredsError;
+            }
+            e.Creds.ListSessions(ManagerConstants.TimeOutMilliseconds, out restStatus, out list);
+            count = list.Sessions.Count();
+            return (int)FileManagerResponseCodes.Success;
+        }
+
+        public static int GetPlanCount(SmokeTestManagerEventArgs e, out int count)
+        {
+            CLHttpRestStatus restStatus;
+            ListPlansResponse list;
+            count = -1;
+            if (e.Creds == null)
+            {
+                TaskEventArgs ea = new TaskEventArgs(e);
+                ICLCredentialSettings settings;
+                CLError error;
+                CredentialHelper.InitializeCreds(ref ea, out settings, out error);
+                if (error == null && ea.CredsStatus == CLCredentialCreationStatus.Success)
+                    e.Creds = ea.Creds;
+                else
+                    return (int)FileManagerResponseCodes.InitializeCredsError;
+            }
+            e.Creds.ListPlans(ManagerConstants.TimeOutMilliseconds, out restStatus, out list);
+            count = list.Plans.Count();
+            return (int)FileManagerResponseCodes.Success;
+        }
         public static void HandleFailure(CLError error, CLHttpRestStatus? restStatus, CLCredentialCreationStatus? credsCreateStatus, string opperationName, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             List<Exception> errors = new List<Exception>();

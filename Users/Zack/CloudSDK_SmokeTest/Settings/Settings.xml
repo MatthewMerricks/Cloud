@@ -9,13 +9,14 @@
   </Copyright>
   
   <InputParams>
-    <API_Key>af5c9411437af584cb31506e0d41b34cfd4b6085bf9b51a5ee480c424b5932ff</API_Key>
-    <API_Secret>fc50fff51344faca5ed6cc38e4398e622963d055713db0895a144c8315c5204b</API_Secret>
-    <ActiveSync_Folder>"C:\TestSyncBoxes\Auto_SyncBoxA"</ActiveSync_Folder>
+    <API_Key>9a51759758e9a6f32d4e6ca74b8d2f8e5dd2a27033ac662c4d126a10471be50a</API_Key>
+    <API_Secret>861eaad0786353868423114c241346ba18f6be0a7797422975cbf98a970a619d</API_Secret>
+    <ActiveSync_Folder>"C:\Users\t_zacharyw\Cloud\"</ActiveSync_Folder>
+    <ActiveSync_Folder2>"C:\Users\t_zacharyw\CloudActive2\"</ActiveSync_Folder2>
     <ActiveSync_TraceFolder>"C:\TestSyncBoxes\Traces\AutoSyncTraces"</ActiveSync_TraceFolder>
-    <ActiveSyncBoxID>771</ActiveSyncBoxID>
-    <ManualSyncBoxID>771</ManualSyncBoxID>
-    <ManualSync_Folder>"C:\Users\t_zacharyw\Cloud\"</ManualSync_Folder>
+    <ActiveSyncBoxID>517</ActiveSyncBoxID>
+    <ManualSyncBoxID>517</ManualSyncBoxID>
+    <ManualSync_Folder>"C:\Users\t_zacharyw\Cloud2\"</ManualSync_Folder>
     <ManualSync_TraceFolder>"C:\TestSyncBoxes\Traces\ManualSyncTraces"</ManualSync_TraceFolder>
     <Token></Token>
     <TraceLevel>5</TraceLevel>
@@ -24,66 +25,113 @@
   </InputParams>
   <Scenario>
     <ScenarioTasks>
-      <SmokeTask xsi:type="CreateSyncBox">
-        <type>CreateSyncBox</type>
-        <InnerTask xsi:type="Creation">
+      <!--<SmokeTask xsi:type="Comparison">
+        <type>Comparison</type>
+        <SyncType>Manual</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>379</SelectedSyncBoxID>
+      </SmokeTask>-->
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <SyncType>Active</SyncType>
+        <InnerTask xsi:type="Rename">
+          <type>Rename</type>
+          <SyncType>Active</SyncType>
+          <InnerTask xsi:type="Comparison">
+            <type>Comparison</type>
+            <SyncType>Active</SyncType>
+            <ObjectType>
+              <type>None</type>
+            </ObjectType>
+            <SelectedSyncBoxID>0</SelectedSyncBoxID>
+            <ComparisonType>ActiveToActive</ComparisonType>
+          </InnerTask>
+          <ObjectType>
+            <type>File</type>
+          </ObjectType>
+          <SelectedSyncBoxID>0</SelectedSyncBoxID>
+          <OldName>Z9Dubz0.txt</OldName>
+          <NewName>RenameComplete9.txt</NewName>
+          <RelativeDirectoryPath>\Zack9SubDir\</RelativeDirectoryPath>
+          <ServerID>0</ServerID>
+        </InnerTask>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Name>Z9Dubz.txt</Name>
+        <Path>C:\Users\t_zacharyw\Cloud\Zack9SubDir</Path>
+        <CreateNew>true</CreateNew>
+        <Count>5</Count>
+      </SmokeTask>
+      <!--<SmokeTask xsi:type="Rename">
+        <type>Rename</type>
+        <SyncType>Active</SyncType>
+        <InnerTask xsi:type="Comparison">
+          <type>Comparison</type>
+          <SyncType>Active</SyncType>
+          <ObjectType>
+            <type>None</type>
+          </ObjectType>
+          <SelectedSyncBoxID>0</SelectedSyncBoxID>
+          <ComparisonType>ActiveToActive</ComparisonType>
+        </InnerTask>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <OldName>Rename5</OldName>
+        <NewName>Rename6</NewName>
+        <RelativeDirectoryPath>\</RelativeDirectoryPath>
+        <ServerID>0</ServerID>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Name>ZackFile1.txt</Name>
+        <Path>C:\Users\t_zacharyw\Cloud</Path>
+        <CreateNew>true</CreateNew>
+        <Count>3</Count>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="ListItems">
+        <type>ListItems</type>
+        <SyncType>Manual</SyncType>
+        <InnerTask xsi:type="Deletion">
+          <type>Deletion</type>
+          <SyncType>Manual</SyncType>
+          <InnerTask xsi:type="Creation">
             <type>Creation</type>
-            <InnerTask xsi:type="Rename">
-              <type>Rename</type>
+            <SyncType>Manual</SyncType>
+            <InnerTask xsi:type="ListItems">
+              <type>ListItems</type>
+              <SyncType>Manual</SyncType>
               <InnerTask xsi:type="Deletion">
                 <type>Deletion</type>
+                <SyncType>Manual</SyncType>
                 <ObjectType>
-                  <type>File</type>
+                  <type>Session</type>
                 </ObjectType>
                 <SelectedSyncBoxID>0</SelectedSyncBoxID>
-                <Name>T4File12.txt</Name>
-                <FullName>C:\Users\t_zacharyw\Cloud</FullName>
-                <RelativePath>\T4File12.txt</RelativePath>
-                <FullPath>C:\Users\t_zacharyw\Cloud\T4File12.txt</FullPath>
-                <DeleteAll>false</DeleteAll>
-                <DeleteCount>1</DeleteCount>
+                <Name></Name>
+                <FullName></FullName>
+                <RelativePath></RelativePath>
+                <FullPath></FullPath>
+                <DeleteCount>3</DeleteCount>
                 <ID>0</ID>
                 <ServerID>0</ServerID>
               </InnerTask>
-              <ObjectType>
-                <type>File</type>
-              </ObjectType>
-              <SelectedSyncBoxID>0</SelectedSyncBoxID>
-              <OldName>T4File.txt</OldName>
-              <NewName>T4File_Rename.txt</NewName>
-              <RelativeDirectoryPath>\</RelativeDirectoryPath>
-              <ServerID>0</ServerID>
-            </InnerTask>
-            <ObjectType>
-              <type>File</type>
-            </ObjectType>
-            <SelectedSyncBoxID>0</SelectedSyncBoxID>
-            <Name>T4File.txt</Name>
-            <Path>C:\Users\t_zacharyw\Cloud</Path>
-            <CreateNew>true</CreateNew>
-            <Count>5</Count>
-        </InnerTask>
-        <ObjectType>
-          <type>SyncBox</type>
-        </ObjectType>
-        <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <CreateNew>true</CreateNew>
-        <Count>1</Count>
-      </SmokeTask>
-      <SmokeTask xsi:type ="ListItems">
-        <type>ListItems</type>
-        <InnerTask xsi:type="Deletion">
-          <type>Deletion</type>
-          <InnerTask xsi:type="Creation">
-            <type>Creation</type>
-            <InnerTask xsi:type="ListItems">
-              <type>ListItems</type>
               <ObjectType>
                 <type>Session</type>
               </ObjectType>
               <SelectedSyncBoxID>0</SelectedSyncBoxID>
               <ListType>Sessions</ListType>
-              <ExpectedCount>3</ExpectedCount>
+              <ExpectedCount>5</ExpectedCount>
             </InnerTask>
             <ObjectType>
               <type>Session</type>
@@ -92,7 +140,7 @@
             <Name></Name>
             <Path></Path>
             <CreateNew>true</CreateNew>
-            <Count>3</Count>
+            <Count>5</Count>
           </InnerTask>
           <ObjectType>
             <type>Session</type>
@@ -113,7 +161,123 @@
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
         <ListType>Sessions</ListType>
         <ExpectedCount>0</ExpectedCount>
-      </SmokeTask>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="CreateSyncBox">
+        <type>CreateSyncBox</type>
+        <SyncType>Manual</SyncType>
+        <InnerTask xsi:type="Creation">
+          <type>Creation</type>
+          <SyncType>Manual</SyncType>
+          <InnerTask xsi:type="Rename">
+            <type>Rename</type>
+            <SyncType>Manual</SyncType>
+            <InnerTask xsi:type="Deletion">
+              <type>Deletion</type>
+              <SyncType>Manual</SyncType>
+              <InnerTask xsi:type="Comparison">
+                <type>Comparison</type>
+                <SyncType>Manual</SyncType>
+                <ObjectType>
+                  <type>None</type>
+                </ObjectType>
+                <SelectedSyncBoxID>371</SelectedSyncBoxID>
+              </InnerTask>
+              <ObjectType>
+                <type>File</type>
+              </ObjectType>
+              <SelectedSyncBoxID>0</SelectedSyncBoxID>
+              <Name>T1File12.txt</Name>
+              <FullName>C:\Users\t_zacharyw\Cloud2</FullName>
+              <RelativePath>\T1File12.txt</RelativePath>
+              <FullPath>C:\Users\t_zacharyw\Cloud2\T1File12.txt</FullPath>
+              <DeleteAll>false</DeleteAll>
+              <DeleteCount>1</DeleteCount>
+              <ID>0</ID>
+              <ServerID>0</ServerID>
+            </InnerTask>
+            <ObjectType>
+              <type>File</type>
+            </ObjectType>
+            <SelectedSyncBoxID>0</SelectedSyncBoxID>
+            <OldName>T1File.txt</OldName>
+            <NewName>T1File_Rename.txt</NewName>
+            <RelativeDirectoryPath>\</RelativeDirectoryPath>
+            <ServerID>0</ServerID>
+          </InnerTask>
+          <ObjectType>
+            <type>File</type>
+          </ObjectType>
+          <SelectedSyncBoxID>0</SelectedSyncBoxID>
+          <Name>T1File.txt</Name>
+          <Path>C:\Users\t_zacharyw\Cloud2</Path>
+          <CreateNew>true</CreateNew>
+          <Count>5</Count>
+        </InnerTask>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <CreateNew>true</CreateNew>
+        <Count>1</Count>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type ="ListItems">
+        <type>ListItems</type>
+        <SyncType>Manual</SyncType>
+        <InnerTask xsi:type="Deletion">
+          <type>Deletion</type>
+          <SyncType>Manual</SyncType>
+          <InnerTask xsi:type="Creation">
+            <type>Creation</type>
+            <SyncType>Manual</SyncType>
+            <InnerTask xsi:type="ListItems">
+              <type>ListItems</type>
+              <SyncType>Manual</SyncType>
+              <ObjectType>
+                <type>SyncBox</type>
+              </ObjectType>
+              <SelectedSyncBoxID>0</SelectedSyncBoxID>
+              <ListType>SyncBoxes</ListType>
+              <ExpectedCount>0</ExpectedCount>
+            </InnerTask>
+            <ObjectType>
+              <type>SyncBox</type>
+            </ObjectType>
+            <SelectedSyncBoxID>6</SelectedSyncBoxID>
+            <Name></Name>
+            <Path></Path>
+            <CreateNew>true</CreateNew>
+            <Count>3</Count>
+          </InnerTask>
+          <ObjectType>
+            <type>SyncBox</type>
+          </ObjectType>
+          <SelectedSyncBoxID>0</SelectedSyncBoxID>
+          <Name></Name>
+          <FullName></FullName>
+          <RelativePath></RelativePath>
+          <FullPath></FullPath>
+          <DeleteAll>true</DeleteAll>
+          <DeleteCount>5</DeleteCount>
+          <ID>0</ID>
+          <ServerID>0</ServerID>
+        </InnerTask>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <ListType>SyncBoxes</ListType>
+        <ExpectedCount>0</ExpectedCount>
+      </SmokeTask>-->
+      <!--<SmokeTask xsi:type="DownloadAllSyncBoxContent">
+        <type>DownloadAllSyncBoxContent</type>
+        <SyncType>Manual</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>372</SelectedSyncBoxID>
+        <FolderPath>C:\Users\t_Zacharyw\Cloud2</FolderPath>
+        <FilePath></FilePath>
+      </SmokeTask>-->
   </ScenarioTasks> 
 </Scenario>
 </SmokeTest>

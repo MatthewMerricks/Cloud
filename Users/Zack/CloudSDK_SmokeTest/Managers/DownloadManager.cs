@@ -41,33 +41,25 @@ namespace CloudSDK_SmokeTest.Managers
             CLHttpRestStatus restStatus = CLHttpRestStatus.BadRequest;
 
             long syncBoxId = SmokeTaskManager.GetOpperationSyncBoxID(e);
-            //ZW Replace
-            //if(e.CurrentTask.SyncBoxes.ContainsKey(syncBoxId) && syncBoxId != 0)
-            //    syncBox = e.CurrentTask.SyncBoxes[syncBoxId];
-            //else
-            //{
-                CloudApiPublic.CLSyncBox.CreateAndInitialize(e.Creds,
-                                                                syncBoxId,
-                                                                out syncBox,
-                                                                out boxCreateStatus,
-                                                                settings as ICLSyncSettings);
+            CloudApiPublic.CLSyncBox.CreateAndInitialize(e.Creds,
+                                                            syncBoxId,
+                                                            out syncBox,
+                                                            out boxCreateStatus,
+                                                            settings as ICLSyncSettings);
 
-                if (restStatus != CLHttpRestStatus.Success)
+            if (restStatus != CLHttpRestStatus.Success)
+            {
+                ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs()
                 {
-                    ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs()
-                    {
-                        RestStatus = restStatus,
-                        OpperationName = "DownloadManager.InitiateDownloadAll",
-                        Error = new CLError(),
-                    };
-                    SmokeTaskManager.HandleFailure(failArgs);
-                    return (int)FileManagerResponseCodes.InitializeSynBoxError;
-                }
-                else
-                {
-                    //e.CurrentTask.SyncBoxes[syncBoxId] = syncBox;
-                }
-           // }
+                    RestStatus = restStatus,
+                    OpperationName = "DownloadManager.InitiateDownloadAll",
+                    Error = new CLError(),
+                };
+                SmokeTaskManager.HandleFailure(failArgs);
+                return (int)FileManagerResponseCodes.InitializeSynBoxError;
+            }
+
+
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
             dloadAllResponseCode = BeginGetAllContent(e, CurrentTask, ref syncBox);
             return dloadAllResponseCode;

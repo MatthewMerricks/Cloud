@@ -19,6 +19,7 @@ namespace CloudSDK_SmokeTest.Events.ManagerEventArgs
             this.PlanID = e.PlanID;
             this.RestStatus = e.RestStatus;
             this.Session = e.Session;
+            this.ReportBuilder = e.ReportBuilder;
         }
     }
 }

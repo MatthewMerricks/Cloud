@@ -166,6 +166,7 @@ namespace CloudSDK_SmokeTest.Settings {
     }
     
     /// <remarks/>
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(Comparison))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(ListItems))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(HttpTest))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(CreateSyncBox))]
@@ -183,6 +184,8 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private SmokeTaskType typeField;
         
+        private SmokeTaskSyncType syncTypeField;
+        
         private SmokeTask innerTaskField;
         
         private ModificationObject objectTypeField;
@@ -196,6 +199,16 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.typeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public SmokeTaskSyncType SyncType {
+            get {
+                return this.syncTypeField;
+            }
+            set {
+                this.syncTypeField = value;
             }
         }
         
@@ -259,6 +272,59 @@ namespace CloudSDK_SmokeTest.Settings {
         
         /// <remarks/>
         ListItems,
+        
+        /// <remarks/>
+        Comparison,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public enum SmokeTaskSyncType {
+        
+        /// <remarks/>
+        Active,
+        
+        /// <remarks/>
+        Manual,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class Comparison : SmokeTask {
+        
+        private ComparisonComparisonType comparisonTypeField;
+        
+        /// <remarks/>
+        public ComparisonComparisonType ComparisonType {
+            get {
+                return this.comparisonTypeField;
+            }
+            set {
+                this.comparisonTypeField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public enum ComparisonComparisonType {
+        
+        /// <remarks/>
+        ManualToActive,
+        
+        /// <remarks/>
+        ActiveToServer,
+        
+        /// <remarks/>
+        ActiveToActive,
     }
     
     /// <remarks/>
@@ -786,6 +852,8 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private string activeSync_FolderField;
         
+        private string activeSync_Folder2Field;
+        
         private string activeSync_TraceFolderField;
         
         private int manualSyncBoxIDField;
@@ -841,6 +909,16 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.activeSync_FolderField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string ActiveSync_Folder2 {
+            get {
+                return this.activeSync_Folder2Field;
+            }
+            set {
+                this.activeSync_Folder2Field = value;
             }
         }
         

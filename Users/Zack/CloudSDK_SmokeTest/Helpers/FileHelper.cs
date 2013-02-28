@@ -5,7 +5,6 @@ using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
-using CloudSDK_SmopkeTest.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,6 +37,7 @@ namespace CloudSDK_SmokeTest.Helpers
             }
             string response = returnEvent.Header.Status.ToLower();
             CreateFileResponseEventArgs responseArgs = new CreateFileResponseEventArgs(createEventArgs, fileChange, response, restStatus, returnEvent);
+            responseArgs.ReportBuilder = createEventArgs.ReportBuilder;
             createReturnCode = FileHelper.CreateFileResponseSwitch(responseArgs, fileChange, manager, ref refProcessErrorHolder);
             return createReturnCode;
         }
@@ -130,8 +130,14 @@ namespace CloudSDK_SmokeTest.Helpers
         {
             string fullPath = fileInfo.FullName;
             bool returnValue = true;
+            if (System.IO.File.Exists(fullPath))
+            {
+                string newString = "_new" + fileInfo.Extension;
+                fullPath = fullPath.Replace(fileInfo.Extension, newString);
+            }
             if (!System.IO.File.Exists(fullPath))
             {
+                CreateParentDirectories(new FileInfo(fullPath));
                 using (System.IO.FileStream fs = System.IO.File.Create(fullPath))
                 {
                     Random rnd = new Random();
@@ -158,6 +164,26 @@ namespace CloudSDK_SmokeTest.Helpers
                 returnValue = false;
             }
             return returnValue;
+        }
+
+        public static void CreateParentDirectories(FileInfo fileInfo)
+        {
+            List<DirectoryInfo> parentList = new List<DirectoryInfo>();
+            DirectoryInfo dInfo = fileInfo.Directory;
+            parentList.Add(fileInfo.Directory);
+
+            while (dInfo.Parent != null)
+            {
+                parentList.Add(dInfo);
+                dInfo = new DirectoryInfo(dInfo.Parent.FullName);
+            }
+
+            var folders = parentList.OrderBy(pi => pi.Parent.FullName.Length);
+            foreach (DirectoryInfo di in folders)
+            {
+                if (!Directory.Exists(di.FullName))
+                    Directory.CreateDirectory(di.FullName);
+            }
         }
 
         public static string CreateNewFileName(string filePath, bool isCopy, bool isCaseSentitiveIssue, ref GenericHolder<CLError> ProcessingErrorHolder)
@@ -246,6 +272,7 @@ namespace CloudSDK_SmokeTest.Helpers
             byte[] md5Bytes = null;
             long fileSize = 0;
             DateTime currentTime = DateTime.UtcNow;
+            FileInfo forTime = new FileInfo(filePath);
             if (getHash)
             {
                 md5Bytes = MD5_Helper.GetHashOfStream(
@@ -265,7 +292,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 Metadata = new CloudApiPublic.Model.FileMetadata()
                 {
                     //TODO: Get the filesize of the file being uploaded 
-                    HashableProperties = new CloudApiPublic.Model.FileMetadataHashableProperties(false, currentTime, currentTime, fileSize),
+                    HashableProperties = new CloudApiPublic.Model.FileMetadataHashableProperties(false, forTime.LastWriteTime, forTime.CreationTime, fileSize),
                     //LinkTargetPath -- TTarget Pth of a Shortcut file 
                     //MimeType = null, //unsude by windows but could be calced by file extension 
                     StorageKey = storageKey,
@@ -297,22 +324,22 @@ namespace CloudSDK_SmokeTest.Helpers
             }
         }
 
-        public static int TryCreate(InputParams paramSet, SmokeTask smokeTask, FileInfo fi, string fileName, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
-        {
-            int responseCode = -1;
-            try
-            {
-                responseCode = manager.Create(paramSet, smokeTask, fi, fileName, ref ProcessingErrorHolder);
-            }
-            catch (Exception ex)
-            {
-                lock (ProcessingErrorHolder)
-                {
-                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
-                }
-            }
-            return responseCode;
-        }
+        //public static int TryCreate(InputParams paramSet, SmokeTask smokeTask, FileInfo fi, string fileName, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder, ref ManualSyncManager manager)
+        //{
+        //    int responseCode = -1;
+        //    try
+        //    {
+        //        responseCode = manager.Create(paramSet, smokeTask, fi, fileName, ref reportBuilder, ref ProcessingErrorHolder);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        lock (ProcessingErrorHolder)
+        //        {
+        //            ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+        //        }
+        //    }
+        //    return responseCode;
+        //}
 
         #endregion 
 
@@ -339,7 +366,27 @@ namespace CloudSDK_SmokeTest.Helpers
             return responseCode;
         }
 
-
+        public static int TryUpload(CreateFileResponseEventArgs e)
+        {
+            CLHttpRestStatus newStatus;
+            int responseCode = 0;
+            e.FileChange.Metadata.Revision = e.ReturnEvent.Metadata.Revision;
+            e.FileChange.Metadata.StorageKey = e.ReturnEvent.Metadata.StorageKey;
+            string message = string.Empty;
+            Stream stream = new System.IO.FileStream(e.CreateTaskFileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            CLError updateFileError = e.SyncBox.HttpRestClient.UploadFile(stream, e.FileChange, ManagerConstants.TimeOutMilliseconds, out newStatus, out message);
+            if (e.RestStatus != CLHttpRestStatus.Success || updateFileError != null)
+            {
+                GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+                HandleUnsuccessfulUpload(e.RestStatus, updateFileError, ManagerConstants.RequestTypes.RestCreateFile, ref refHolder);
+                responseCode = 1;
+            }
+            else
+            {
+                Console.WriteLine("Successfully Uploaded File {0} to the Sync Box {1}.", e.CreateTaskFileInfo.Name, e.SyncBox.SyncBoxId);
+            }
+            return responseCode;
+        }
         #endregion 
 
         #region Compare
@@ -393,6 +440,15 @@ namespace CloudSDK_SmokeTest.Helpers
             }
             return returnValue;
         }
+
+        public static DirectoryInfo FindFirstSubFolder(string directoryPath)
+        {
+            if (!Directory.Exists(directoryPath))
+                throw new Exception("The specified directory path does not exist.");
+
+            DirectoryInfo dInfo = new DirectoryInfo(directoryPath);
+            return dInfo.EnumerateDirectories().FirstOrDefault();
+        }
         #endregion
 
         #region Responses
@@ -404,7 +460,8 @@ namespace CloudSDK_SmokeTest.Helpers
             {
                 case "upload":
                 case "uploading":
-                    responseCode = FileHelper.TryUpload(responseArgs.CreateTaskFileInfo, responseArgs.SyncBox, responseArgs.FileChange, responseArgs.RestStatus, responseArgs.ReturnEvent, ref refHolder);
+                    //responseCode = FileHelper.TryUpload(responseArgs.CreateTaskFileInfo, responseArgs.SyncBox, responseArgs.FileChange, responseArgs.RestStatus, responseArgs.ReturnEvent, ref refHolder);
+                    responseCode = FileHelper.TryUpload(responseArgs);
                     break;
                 case "duplicate":
                 case "exists":
@@ -414,7 +471,7 @@ namespace CloudSDK_SmokeTest.Helpers
                     break;
                 default:
                     responseCode = (int)FileManagerResponseCodes.InvalidResponseType;
-                    Console.Write(string.Format("The Server Response is {0}", responseArgs.ReturnEvent.Header.Status));
+                    responseArgs.ReportBuilder.Append(string.Format("The Server Response is {0}", responseArgs.ReturnEvent.Header.Status));
                     break;
 
             }
@@ -437,7 +494,9 @@ namespace CloudSDK_SmokeTest.Helpers
                     responseCode = HttpPostReponseCodes.Duplicate;
                     break;
                 default:
-                    Console.Write(string.Format("The Server Response is {0}", response));
+                    Console.WriteLine(string.Format("The Server Response is {0}", response));
+                    //reportBuilder.AppendFormat(string.Format("The Server Response is {0}", response));
+                    //reportBuilder.AppendLine();
                     break;
 
             }
