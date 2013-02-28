@@ -24,6 +24,8 @@ namespace CloudSDK_SmokeTest
 
         #region Properties
         private static readonly GenericHolder<CLError> ProcessingErrorHolder = new GenericHolder<CLError>(null);
+
+
         #endregion
 
         #region Implementation
@@ -88,15 +90,11 @@ namespace CloudSDK_SmokeTest
                             SmokeTestManagerEventArgs e = new SmokeTestManagerEventArgs(smokeTestClass.InputParams, currentTask, ProcessingErrorHolder);
                             e.ReportBuilder = new StringBuilder();
                             SmokeTestTaskHelper.RouteToTask(e);
-                            
-                            //int response = SmokeTestTaskHelper.RouteToTaskMethod(smokeTestClass.InputParams, currentTask, ref _report, ProcessingErrorHolder);
-                            //RunInnerTasks(smokeTestClass, currentTask.InnerTask, currentTask.SyncBoxes);
                             RunInnerTasks(smokeTestClass, currentTask, e);
                             for (int x = 0; x < e.StringBuilderList.Count; x++)
                             {
                                 Console.WriteLine(e.StringBuilderList[x].ToString());
                             }
-                            //Console.Write(_report.ToString());
 
                         }
                         //System.Threading.Tasks.Parallel.ForEach(
@@ -157,7 +155,7 @@ namespace CloudSDK_SmokeTest
                 StringBuilder _report = e.ReportBuilder;
                 if (innerTask.SelectedSyncBoxID <= 0)
                     innerTask.SelectedSyncBoxID = currentTask.SelectedSyncBoxID;
-
+                
                 if (innerTask != null)
                 {
                     SmokeTask thisTask = innerTask;

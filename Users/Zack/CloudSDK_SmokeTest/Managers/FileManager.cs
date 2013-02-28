@@ -282,7 +282,8 @@ namespace CloudSDK_SmokeTest.Managers
             CLError error = null;
             TaskEventArgs refArgs = (e as TaskEventArgs);
             CredentialHelper.InitializeCreds(ref refArgs, out settings, out error);
-            int response = SyncBoxManager.InitilizeSyncBox(e, null, out syncBox);
+            long id = SmokeTaskManager.GetOpperationSyncBoxID(e);
+            int response = SyncBoxManager.InitilizeSyncBox(e, id, out syncBox);
             if (response == 0)
             {
                 e.SyncBox = syncBox;
@@ -318,6 +319,10 @@ namespace CloudSDK_SmokeTest.Managers
             FileChange fileChange = null;
             CloudApiPublic.JsonContracts.Metadata metaData = new CloudApiPublic.JsonContracts.Metadata();
             bool isFile = renameTask.ObjectType.type == ModificationObjectType.File;
+            if ((isFile && e.FileInfo == null) || (!isFile && e.DirectoryInfo == null))
+            {
+                SetInfo(isFile, e);
+            }
             bool success = GetMetadata(e, isFile, out metaData);
             if (!success)
                 return (int)FileManagerResponseCodes.UnknownError;
@@ -395,19 +400,25 @@ namespace CloudSDK_SmokeTest.Managers
 
         private int BeginAutoRename(SmokeTestManagerEventArgs e, Rename renameTask)
         {
+            int responseCode = 0;
+            StringBuilder reportBuilder = new StringBuilder();
+            reportBuilder.AppendLine("Begining Auto Rename ... ");
+            string oldPath = string.Empty;
+            string newPath = string.Empty;
             try
             {
                 bool isFile = renameTask.ObjectType.type == ModificationObjectType.File;
                 if (isFile)
                 {
                     FileInfo toRename = GetFileForRename(e);
-                    string pathWithNewName = toRename.FullName.ToString().Replace(toRename.Name, renameTask.NewName) + toRename.Extension;
-                    toRename.MoveTo(pathWithNewName);
-                }
+                    oldPath = toRename.FullName;
+                    newPath = toRename.FullName.ToString().Replace(toRename.Name, renameTask.NewName) + toRename.Extension;
+                    string backup = toRename.FullName.ToString().Replace(toRename.Name, renameTask.NewName) + "_bak" + toRename.Extension;
+                    File.Move(oldPath, newPath);                }
                 else
                 {
                     DirectoryInfo directoryInfo = GetFolderForRename(e);
-                    string newPath = string.Empty;
+                    oldPath = directoryInfo.FullName;
                     if (directoryInfo.FullName.Contains(renameTask.OldName))
                         newPath = directoryInfo.FullName.Replace(renameTask.OldName, renameTask.NewName);
                     else
@@ -415,8 +426,14 @@ namespace CloudSDK_SmokeTest.Managers
                         string newName = directoryInfo.Name + "_new";
                         newPath = directoryInfo.FullName.Replace(directoryInfo.Name, newName);
                     }
-                    directoryInfo.MoveTo(newPath);
+                    Directory.Move(oldPath, newPath);
+                    reportBuilder.AppendLine();
+                    reportBuilder.AppendLine("Successfully Renamed Item:");
+                    reportBuilder.AppendLine(string.Format("    From: {0}", oldPath));
+                    reportBuilder.AppendLine(string.Format("      To: {0}", newPath));
+                    reportBuilder.AppendLine();
                 }
+
             }
             catch (Exception ex)
             {
@@ -424,9 +441,15 @@ namespace CloudSDK_SmokeTest.Managers
                 {
                     e.ProcessingErrorHolder.Value = e.ProcessingErrorHolder.Value + ex;
                 }
-                return (int)FileManagerResponseCodes.UnknownError;
+                responseCode =  (int)FileManagerResponseCodes.UnknownError;
+                reportBuilder.AppendLine();
+                reportBuilder.AppendLine("There was an error Renaming Item:");
+                reportBuilder.AppendLine(string.Format("    From: {0}", oldPath));
+                reportBuilder.AppendLine(string.Format("      To: {0}", newPath));
+                reportBuilder.AppendLine();
             }
-            return 0;
+            e.StringBuilderList.Add(new StringBuilder(reportBuilder.ToString()));
+            return responseCode;
         }
 
         private string GetOriginalDirectoryPath(SmokeTestManagerEventArgs e, Rename renameTask)
@@ -519,6 +542,22 @@ namespace CloudSDK_SmokeTest.Managers
             }
             else
                 return path;
+        }
+
+        private void SetInfo(bool isFile, SmokeTestManagerEventArgs e)
+        {
+            string root = string.Empty;
+            if (e.CurrentTask.SyncType == SmokeTaskSyncType.Active)
+                root = TrimTrailingSlash(e.ParamSet.ActiveSync_Folder.Replace("\"", ""));
+            else
+                root = TrimTrailingSlash(e.ParamSet.ManualSync_Folder.Replace("\"", ""));
+
+            string relativePath = TrimTrailingSlash((e.CurrentTask as Rename).RelativeDirectoryPath);
+            string fullPath = root + relativePath + "\\" + (e.CurrentTask as Rename).OldName;
+            if (isFile)
+                e.FileInfo = new FileInfo(fullPath);
+            else
+                e.DirectoryInfo = new DirectoryInfo(fullPath);
         }
         #endregion 
 

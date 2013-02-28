@@ -25,4 +25,17 @@ namespace CloudSDK_SmokeTest.Settings
             Console.WriteLine();
         }
     }
+
+
+    public partial class SmokeTask
+    {
+        public bool IsComparison()
+        {
+            if (this.GetType() == typeof(Comparison))
+            {
+                return true;
+            }
+            return false;
+        }
+    }
 }

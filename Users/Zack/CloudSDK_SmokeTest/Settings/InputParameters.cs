@@ -192,6 +192,10 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private long selectedSyncBoxIDField;
         
+        private int atIndexField;
+        
+        private bool atIndexFieldSpecified;
+        
         /// <remarks/>
         public SmokeTaskType type {
             get {
@@ -239,6 +243,27 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.selectedSyncBoxIDField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public int AtIndex {
+            get {
+                return this.atIndexField;
+            }
+            set {
+                this.atIndexField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool AtIndexSpecified {
+            get {
+                return this.atIndexFieldSpecified;
+            }
+            set {
+                this.atIndexFieldSpecified = value;
             }
         }
     }
@@ -300,6 +325,8 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private ComparisonComparisonType comparisonTypeField;
         
+        private bool useDynamicSyncBoxField;
+        
         /// <remarks/>
         public ComparisonComparisonType ComparisonType {
             get {
@@ -307,6 +334,16 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.comparisonTypeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool UseDynamicSyncBox {
+            get {
+                return this.useDynamicSyncBoxField;
+            }
+            set {
+                this.useDynamicSyncBoxField = value;
             }
         }
     }
@@ -537,6 +574,8 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private long serverIDField;
         
+        private bool serverIDFieldSpecified;
+        
         /// <remarks/>
         public string OldName {
             get {
@@ -574,6 +613,17 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.serverIDField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool ServerIDSpecified {
+            get {
+                return this.serverIDFieldSpecified;
+            }
+            set {
+                this.serverIDFieldSpecified = value;
             }
         }
     }

@@ -1,5 +1,11 @@
 ﻿using CloudApiPublic;
+using CloudApiPublic.Interfaces;
+using CloudApiPublic.JsonContracts;
 using CloudApiPublic.Model;
+using CloudApiPublic.Static;
+using CloudSDK_SmokeTest.Events.CLEventArgs;
+using CloudSDK_SmokeTest.Events.ManagerEventArgs;
+using CloudSDK_SmokeTest.Helpers;
 using CloudSDK_SmokeTest.Interfaces;
 using CloudSDK_SmokeTest.Settings;
 using System;
@@ -82,7 +88,58 @@ namespace CloudSDK_SmokeTest.Managers
 
         public int ListItems(Events.ManagerEventArgs.SmokeTestManagerEventArgs e)
         {
-            throw new NotImplementedException("Implement Exisiting Code for List Plans");
+            ListItems listTask = e.CurrentTask as ListItems;
+            if (listTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
+            StringBuilder newBuilder = new StringBuilder();
+            ICLCredentialSettings settings = new AdvancedSyncSettings(e.ParamSet.ManualSync_Folder.Replace("\"", ""));
+            CLError initializeCredsError;
+            TaskEventArgs taskArgs = e as TaskEventArgs;
+            bool success = CredentialHelper.InitializeCreds(ref taskArgs, out settings, out initializeCredsError);
+            if (!success)
+                return (int)FileManagerResponseCodes.InitializeCredsError;
+
+            GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
+            int getListResponseCode = -1;
+            CLHttpRestStatus restStatus;
+            ListPlansResponse plansList = null; ;
+            CLError getPlansError;
+
+            getPlansError = e.Creds.ListPlans(ManagerConstants.TimeOutMilliseconds, out restStatus, out plansList, settings);
+            if (getPlansError != null || restStatus != CLHttpRestStatus.Success)
+            {
+                ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs() 
+                {
+                    Error = getPlansError, 
+                    OpperationName = "PlanManager.ListItems", 
+                    RestStatus = restStatus, 
+                    ProcessingErrorHolder = e.ProcessingErrorHolder 
+                };
+                SmokeTaskManager.HandleFailure(failArgs);                
+                return (int)FileManagerResponseCodes.UnknownError;
+            }
+            
+
+            if (listTask.ExpectedCount > 0)
+            {
+                if (plansList != null && plansList.Plans.Count() != listTask.ExpectedCount)
+                    return (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
+            }
+            ItemsListManager listManager = ItemsListManager.GetInstance();
+            if (plansList == null || plansList.Plans.Count() == 0)
+                newBuilder.AppendLine("There are no Plans to be listed.");
+            else
+            {
+                foreach (CloudApiPublic.JsonContracts.Plan plan in plansList.Plans)
+                {
+                    listManager.Plans.Add(plan);
+                    newBuilder.AppendLine(string.Format("The Plan Name:{0} ID:{1} was retrieved and added to ItemsListManager's List of Plans", plan.FriendlyPlanName, plan.Id));
+                    getListResponseCode = 0;
+                }
+            }
+            e.StringBuilderList.Add(new StringBuilder(newBuilder.ToString()));
+            return getListResponseCode;
         }
         #endregion 
 

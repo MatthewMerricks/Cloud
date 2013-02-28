@@ -38,16 +38,26 @@ namespace CloudSDK_SmokeTest.Managers
         }
 
         public static long GetOpperationSyncBoxID(SmokeTestManagerEventArgs e)
-        {
+        {            
             long syncBoxID = 0;
+
             if (e.CurrentTask.SelectedSyncBoxID > 0)
                 syncBoxID = e.CurrentTask.SelectedSyncBoxID;
-            //ZW Replace
-            //else if (e.CurrentTask.SyncBoxes.Count > 0)
-            //    syncBoxID = e.CurrentTask.SyncBoxes.Keys.FirstOrDefault();
+            else if (ComparisonManager.GetInstance().LastSyncBoxID > 0)
+                syncBoxID = ComparisonManager.GetInstance().LastSyncBoxID;
             else
                 syncBoxID = e.ParamSet.ManualSyncBoxID;
+
             return syncBoxID;
+        }
+
+        public static void BuildResults(out StringBuilder explanation, String title, int initialCount, int expectedCount, int currentCount)
+        {
+            explanation = new StringBuilder(string.Format("{0} Count Before Add {1}.", title, initialCount));
+            explanation.AppendLine();
+            explanation.AppendLine("Results:");
+            explanation.AppendLine(string.Format("Expected Count: {0}", expectedCount.ToString()));
+            explanation.AppendLine(string.Format("Actual Count  : {0}", currentCount.ToString()));
         }
 
         public static void HandleFailure(ExceptionManagerEventArgs failArgs)

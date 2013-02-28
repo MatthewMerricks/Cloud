@@ -68,6 +68,7 @@ namespace CloudSDK_SmokeTest.Managers
             Comparison compareTask = e.CurrentTask as Comparison;
             if(compareTask == null)
                 return (int)FileManagerResponseCodes.InvalidTaskType;
+
             bool areItemsItdentical = false;
             StringBuilder report = new StringBuilder();
             string manualSyncFolderPath = e.ParamSet.ManualSync_Folder.Replace("\"", "");
@@ -75,20 +76,31 @@ namespace CloudSDK_SmokeTest.Managers
             
             DirectoryInfo activeFolder = new DirectoryInfo(activeSyncFolderPath);
             DirectoryInfo manualFolder = new DirectoryInfo(manualSyncFolderPath);
-            
+
+            ComparisonManager cMgr = ComparisonManager.GetInstance();
+            if(!cMgr.MoveOn)
+            {
+                if (compareTask.UseDynamicSyncBox)
+                    SetUserInput(cMgr);
+            }
 
             if (!activeFolder.Exists || !manualFolder.Exists)
                 return (int)FileManagerResponseCodes.UnknownError;
             if (compareTask.SyncType == SmokeTaskSyncType.Manual)
+            {
+                System.Threading.Thread.Sleep(ManagerConstants.WaitMillisecondsBeforeCompare);
                 areItemsItdentical = SyncBoxManager.CompareLocalFileStructure(activeFolder, manualFolder, ref report);
+                WriteComparisonDetails(activeFolder.FullName, manualFolder.FullName, ref report);
+            }
             else if (compareTask.SyncType == SmokeTaskSyncType.Active && compareTask.ComparisonType == ComparisonComparisonType.ActiveToServer)
             {
                 System.Threading.Thread.Sleep(ManagerConstants.WaitMillisecondsBeforeCompare);
                 if (e.SyncBox == null)
                     e.SyncBox = SyncBoxManager.InitializeCredentialsAndSyncBox(e);
                 if (e.SyncBox == null)
-                    return (int)FileManagerResponseCodes.InitializeSynBoxError;                   
+                    return (int)FileManagerResponseCodes.InitializeSynBoxError;
                 areItemsItdentical = SyncBoxManager.CompareLocalDirectoryToServerHierarchy(e.SyncBox, activeFolder);
+                WriteComparisonDetails(activeFolder.FullName, "Server Metadata", ref report);
             }
             else if (compareTask.SyncType == SmokeTaskSyncType.Active && compareTask.ComparisonType == ComparisonComparisonType.ActiveToActive)
             {
@@ -96,7 +108,14 @@ namespace CloudSDK_SmokeTest.Managers
                 string secondActiveSyncFolderPath = e.ParamSet.ActiveSync_Folder2.Replace("\"", "");
                 DirectoryInfo secondActiveFolder = new DirectoryInfo(secondActiveSyncFolderPath);
                 areItemsItdentical = SyncBoxManager.CompareLocalFileStructure(activeFolder, secondActiveFolder, ref report);
+                WriteComparisonDetails(activeFolder.FullName, secondActiveFolder.FullName, ref report);
             }
+            if (areItemsItdentical)
+                report.AppendLine("Folders 1 and 2 are Identical.");
+            else
+                report.AppendLine("Comparison Failed");
+  
+            e.StringBuilderList.Add(new StringBuilder(report.ToString()));
             return areItemsItdentical == true ? 0 : (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
         }
 
@@ -138,6 +157,8 @@ namespace CloudSDK_SmokeTest.Managers
                         FileSystemInfo[] initialInfoHolder = manualFolderItem.GetFileSystemInfos();
                         foreach (FileSystemInfo fsi in initialInfoHolder)
                         {
+                            if (areItemsIdentical == false)
+                                break;
                             FileInfo secondInitialCompare = fsi as FileInfo;
                             if (secondInitialCompare == null)
                             {
@@ -253,6 +274,8 @@ namespace CloudSDK_SmokeTest.Managers
         #endregion
 
         #region Interface Implementation
+        
+        #region Create
         public int Create(SmokeTestManagerEventArgs e)
         {
             StringBuilder newBuilder = new StringBuilder(); 
@@ -315,6 +338,7 @@ namespace CloudSDK_SmokeTest.Managers
             response = ItemsListHelper.GetSyncBoxCount(e, out currentCount);
             int expectedCount = initialCount + createTask.Count;
             StringBuilder explanation = new StringBuilder(string.Format("SyncBox Count Before Add {0}.", initialCount));
+            explanation.AppendLine();
             explanation.AppendLine("Results:");
             explanation.AppendLine(string.Format("Expected Count: {0}", expectedCount.ToString()));
             explanation.AppendLine(string.Format("Actual Count  : {0}", currentCount.ToString()));
@@ -330,7 +354,8 @@ namespace CloudSDK_SmokeTest.Managers
             e.StringBuilderList.Add(new StringBuilder(newBuilder.ToString()));
             return createResponseCode;
         }
-
+        #endregion 
+        
         #region Rename
         public int Rename(SmokeTestManagerEventArgs e)
         {
@@ -355,8 +380,10 @@ namespace CloudSDK_SmokeTest.Managers
             if (!success)
                 return (int)FileManagerResponseCodes.InitializeCredsError;
 
+            e.Creds = eventArgs.Creds;
+
             reportBuilder.AppendLine("Begin SyncBox Rename...");
-            responseCode = RenameSyncBox(eventArgs);
+            responseCode = RenameSyncBox(e);
             if (responseCode == 0)
                 reportBuilder.AppendLine("Successfully Exiting Rename SyncBox...");
             else
@@ -367,7 +394,7 @@ namespace CloudSDK_SmokeTest.Managers
         }
 
         #region Private Rename
-        private static int RenameSyncBox(TaskEventArgs eventArgs)
+        private static int RenameSyncBox(SmokeTestManagerEventArgs eventArgs)
         {
             Rename renameTask = eventArgs.CurrentTask as Rename;
             if (renameTask == null)
@@ -376,7 +403,8 @@ namespace CloudSDK_SmokeTest.Managers
             CLSyncBox syncBox;
             CLSyncBoxCreationStatus boxCreateStatus;
             ICLSyncSettings syncSettings = new AdvancedSyncSettings(eventArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
-            CLError initSyncBoxError = CLSyncBox.CreateAndInitialize(eventArgs.Creds, renameTask.ServerID, out syncBox, out boxCreateStatus, syncSettings);
+            long serverId = GetRenameServerId(eventArgs, renameTask);
+            CLError initSyncBoxError = CLSyncBox.CreateAndInitialize(eventArgs.Creds, serverId, out syncBox, out boxCreateStatus, syncSettings);
             if (initSyncBoxError != null || boxCreateStatus != CLSyncBoxCreationStatus.Success)
             {
                 ManualSyncManager.HandleFailure(initSyncBoxError, null, boxCreateStatus, "SyncBoxManager.RunSyncboxRename - Init Box Failure", ref refHolder);
@@ -393,6 +421,28 @@ namespace CloudSDK_SmokeTest.Managers
                 return (int)FileManagerResponseCodes.UnknownError;
             }
             return 0;
+        }
+
+        private static long GetRenameServerId(SmokeTestManagerEventArgs e, Rename renameTask)
+        {
+            long id = 0;
+            if (renameTask.AtIndexSpecified)
+            {
+                SyncBox box = ItemsListManager.GetInstance().SyncBoxes.ElementAtOrDefault(renameTask.AtIndex);
+                if (box != null)
+                    id = box.Id.Value;
+            }
+            if (id == 0)
+            {
+                if (renameTask.SelectedSyncBoxID > 0)
+                    id = renameTask.SelectedSyncBoxID;
+                else if (renameTask.ServerID > 0)
+                    id = renameTask.ServerID;
+                else
+                    id = SmokeTaskManager.GetOpperationSyncBoxID(e);
+            }
+
+            return id;
         }
         #endregion 
         #endregion 
@@ -453,9 +503,16 @@ namespace CloudSDK_SmokeTest.Managers
             };
 
             ItemsListHelper.RunListSubscribtionSyncBoxes(eventArgs);
+            Deletion deleteTask = e.CurrentTask as Deletion;
             List<SyncBox> toDelete;
             if(count == -1 )
                 toDelete = new List<SyncBox>(mgr.SyncBoxes);
+            else if (deleteTask.AtIndexSpecified)
+            {
+                var item = mgr.SyncBoxes.ElementAtOrDefault(deleteTask.AtIndex);
+                toDelete = new List<SyncBox>();
+                toDelete.Add(item);
+            }
             else
                 toDelete = new List<SyncBox>(mgr.SyncBoxes.Take(count));
             
@@ -631,69 +688,37 @@ namespace CloudSDK_SmokeTest.Managers
             
             if (fi == null)
                 return false;
-            if (manualFile.LastWriteTime.Date != fi.LastWriteTime.Date)
+            if(manualFile == null)
             {
-                areIdentical = false;
-                reportBuilder.AppendLine("File Last Written Date Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Date {1}", manualFile.FullName, manualFile.LastWriteTime.Date));
-                reportBuilder.AppendLine(string.Format("     {0} Date {1}", fi.FullName, fi.LastWriteTime.Date));
-            }
-            if (manualFile.LastWriteTime.Hour != fi.LastWriteTime.Hour)
-            {
-                areIdentical = false;
-                reportBuilder.AppendLine("File Last Written Time Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Hour {1}", manualFile.FullName, manualFile.LastWriteTime.Hour));
-                reportBuilder.AppendLine(string.Format("     {0} Hour {1}", fi.FullName, fi.LastWriteTime.Hour));
-            }
-            if(manualFile.LastWriteTime.Minute != fi.LastWriteTime.Minute)
-            {
-                areIdentical = false;
-                reportBuilder.AppendLine("File Last Written Time Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Minute {1}", manualFile.FullName, manualFile.LastWriteTime.Minute));
-                reportBuilder.AppendLine(string.Format("     {0} Minute {1}", fi.FullName, fi.LastWriteTime.Minute));
-            }
-            if(manualFile.LastWriteTime.Second != fi.LastWriteTime.Second)
-            {
-                areIdentical = false;
-                reportBuilder.AppendLine("File Last Written Time Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0}  Second {1}", manualFile.FullName, manualFile.LastWriteTime.Minute));
-                reportBuilder.AppendLine(string.Format("     {0}  Second {1}", fi.FullName, fi.LastWriteTime.Minute));
+                Console.WriteLine(string.Format("One File is null the path for compare: {0}", fso.FullName));
+                return false;
             }
 
-            if (manualFile.CreationTime.Date != fi.CreationTime.Date)
-            { 
+            TimeSpan span = manualFile.CreationTimeUtc.Subtract(fi.CreationTimeUtc);
+            TimeSpan compare = new TimeSpan(0, 0, 3);
+            if (span > compare)
                 areIdentical = false;
-                reportBuilder.AppendLine("File Creation Date Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Date {1}", manualFile.FullName, manualFile.CreationTime.Date));
-                reportBuilder.AppendLine(string.Format("     {0} Date {1}", fi.FullName, fi.CreationTime.Date));
-            }
-            if (manualFile.CreationTime.Hour != fi.CreationTime.Hour)
-            { 
-                areIdentical = false;
-                reportBuilder.AppendLine("File Creation Time Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Hour {1}", manualFile.FullName, manualFile.CreationTime.Hour));
-                reportBuilder.AppendLine(string.Format("     {0} Hour {1}", fi.FullName, fi.CreationTime.Hour));
-            }
-            if (manualFile.CreationTime.Minute != fi.CreationTime.Minute)
-            {                
-                areIdentical = false;
-                reportBuilder.AppendLine("File Creation Time Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Minute {1}", manualFile.FullName, manualFile.CreationTime.Minute));
-                reportBuilder.AppendLine(string.Format("     {0} Minute {1}", fi.FullName, fi.CreationTime.Minute));
-            }
-            if(manualFile.CreationTime.Second != fi.CreationTime.Second)
+            if (!areIdentical)
             {
-                areIdentical = false;
-                reportBuilder.AppendLine("File Creation Time Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Second {1}", manualFile.FullName, manualFile.CreationTime.Second));
-                reportBuilder.AppendLine(string.Format("     {0} Second {1}", fi.FullName, fi.CreationTime.Second));
+                reportBuilder.AppendLine("File Created DateTime Mismatch:");
+                reportBuilder.AppendLine(string.Format("     {0} Created {1}", manualFile.FullName, manualFile.CreationTime.ToString()));
+                reportBuilder.AppendLine(string.Format("     {0} Created {1}", fi.FullName, fi.CreationTime.ToString()));
             }
-            if (fi.Length != manualFile.Length)
+            if(areIdentical)
             {
-                areIdentical = false;
-                reportBuilder.AppendLine("File Size Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Size {1}", manualFile.FullName, manualFile.Length));
-                reportBuilder.AppendLine(string.Format("     {0} Size {1}", fi.FullName, fi.Length));
+                span = manualFile.LastWriteTimeUtc.Subtract(fi.LastWriteTimeUtc);
+                if(span > compare)
+                {
+                    areIdentical = false;
+                    reportBuilder.AppendLine("File Last Write DateTime Mismatch:");
+                    reportBuilder.AppendLine(string.Format("     {0} Last Write {1}", manualFile.FullName, manualFile.CreationTime.ToString()));
+                    reportBuilder.AppendLine(string.Format("     {0} Last Write {1}", fi.FullName, fi.CreationTime.ToString()));
+                }
+            }
+            if (areIdentical)
+            {
+                if (manualFile.Length != fi.Length)
+                    areIdentical = false;
             }
             return areIdentical;
         }
@@ -706,35 +731,16 @@ namespace CloudSDK_SmokeTest.Managers
             if(di == null)
                 return false;
 
-            if (manualDirectory.CreationTime.Date != di.CreationTime.Date)
-            {
+            TimeSpan span = manualDirectory.CreationTime.Subtract(di.CreationTime);
+            TimeSpan compare = new TimeSpan(0, 0, 3);
+            if (span > compare)
                 areIdentical = false;
-                reportBuilder.AppendLine("File Creation Date Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Date {1}", manualDirectory.FullName, manualDirectory.CreationTime.Date));
-                reportBuilder.AppendLine(string.Format("     {0} Date {1}", di.FullName, di.CreationTime.Date));
-            }
-            if (manualDirectory.CreationTime.Hour != di.CreationTime.Hour)
+            if (areIdentical == false)
             {
-                areIdentical = false;
-                reportBuilder.AppendLine("File Creation Time Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Hour {1}", manualDirectory.FullName, manualDirectory.CreationTime.Hour));
-                reportBuilder.AppendLine(string.Format("     {0} Hour {1}", di.FullName, di.CreationTime.Hour));
+                reportBuilder.AppendLine("Folder Creation DateTime Mismatch:");
+                reportBuilder.AppendLine(string.Format("     {0} Created {1}", manualDirectory.FullName, manualDirectory.CreationTime.ToString()));
+                reportBuilder.AppendLine(string.Format("     {0} Created {1}", di.FullName, di.CreationTime.ToString()));
             }
-            if (manualDirectory.CreationTime.Minute != di.CreationTime.Minute)
-            {
-                areIdentical = false;
-                reportBuilder.AppendLine("File Creation Time Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Minute {1}", manualDirectory.FullName, manualDirectory.CreationTime.Minute));
-                reportBuilder.AppendLine(string.Format("     {0} Minute {1}", di.FullName, di.CreationTime.Minute));
-            }
-            if (manualDirectory.CreationTime.Second != di.CreationTime.Second)
-            {
-                areIdentical = false;
-                reportBuilder.AppendLine("File Creation Time Mismatch:");
-                reportBuilder.AppendLine(string.Format("     {0} Second {1}", manualDirectory.FullName, manualDirectory.CreationTime.Second));
-                reportBuilder.AppendLine(string.Format("     {0} Second {1}", di.FullName, di.CreationTime.Second));
-            }
-
             return areIdentical;
         }
 
@@ -788,16 +794,17 @@ namespace CloudSDK_SmokeTest.Managers
             {
                 returnValue = syncBox.SyncBox.Id;
             }
-            //int key = SyncBoxMapper.SyncBoxes.Count();
             if (returnValue > 0)
             {
-                //SyncBoxMapper.SyncBoxes.Add(key, (long)returnValue);
                 ItemsListManager mgr = ItemsListManager.GetInstance();
                 if (!mgr.SyncBoxes.Contains(syncBox.SyncBox))
                 {
                     mgr.SyncBoxes.Add(syncBox.SyncBox);
                     mgr.SyncBoxesCreatedDynamically.Add(returnValue.Value);
                 }
+
+                ComparisonManager cMgr = ComparisonManager.GetInstance();
+                cMgr.LastSyncBoxID = returnValue.Value;
             }
             return returnValue;
         }
@@ -828,6 +835,24 @@ namespace CloudSDK_SmokeTest.Managers
             }
             return null;
 
+        }
+
+        private static void  SetUserInput(ComparisonManager cMgr)
+        {
+                Console.WriteLine("Preparing for Comparison....");
+                Console.WriteLine(string.Format("Use SyncBox ID: {0}", cMgr.LastSyncBoxID));
+                Console.WriteLine("Hit Enter To Continue....");
+                string input = Console.ReadLine();
+                cMgr.MoveOn = true;
+        }
+
+        private static void WriteComparisonDetails(string folder1, string folder2, ref StringBuilder report)
+        {
+            report.AppendLine("Results:");
+            report.AppendLine("     Folders:");
+            report.AppendLine(string.Format("         Folder 1: {0}", folder1));
+            report.AppendLine(string.Format("         Folder 2: {0}", folder2));
+            report.AppendLine();
         }
         #endregion
     }

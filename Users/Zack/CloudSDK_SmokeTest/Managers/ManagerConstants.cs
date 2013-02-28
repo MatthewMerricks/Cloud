@@ -11,7 +11,7 @@ namespace CloudSDK_SmokeTest.Managers
 
         public static string[] DefaultFolderNames = new string[] { "/Documents/", "/Videos/", "/Pictures/" };
 
-        public const int WaitMillisecondsBeforeCompare = 10000; 
+        public const int WaitMillisecondsBeforeCompare = 30000; 
 
         public static  class RequestTypes
         {
