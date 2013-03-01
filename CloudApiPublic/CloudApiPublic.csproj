@@ -71,7 +71,7 @@
     <Reference Include="ErikEJ.SqlCe40, Version=2.1.6.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</HintPath>
     </Reference>
-    <Reference Include="Interop.Shell32">
+    <Reference Include="Interop.Shell32, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
