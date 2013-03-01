@@ -544,19 +544,21 @@ namespace CloudApiPublic.JsonContracts
         private static DataContractJsonSerializer _authenticationErrorResponseSerializer = null;
         private static readonly object AuthenticationErrorResponseSerializerLocker = new object();
 
-        public static DataContractJsonSerializer AuthenticationErrorMessageSerializer
-        {
-            get
-            {
-                lock (AuthenticationErrorMessageSerializerLocker)
-                {
-                    return _authenticationErrorMessageSerializer
-                        ?? (_authenticationErrorMessageSerializer = new DataContractJsonSerializer(typeof(JsonContracts.AuthenticationErrorMessage)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _authenticationErrorMessageSerializer = null;
-        private static readonly object AuthenticationErrorMessageSerializerLocker = new object();
+        //// deprecated
+        //
+        ////public static DataContractJsonSerializer AuthenticationErrorMessageSerializer
+        ////{
+        ////    get
+        ////    {
+        ////        lock (AuthenticationErrorMessageSerializerLocker)
+        ////        {
+        ////            return _authenticationErrorMessageSerializer
+        ////                ?? (_authenticationErrorMessageSerializer = new DataContractJsonSerializer(typeof(JsonContracts.AuthenticationErrorMessage)));
+        ////        }
+        ////    }
+        ////}
+        ////private static DataContractJsonSerializer _authenticationErrorMessageSerializer = null;
+        ////private static readonly object AuthenticationErrorMessageSerializerLocker = new object();
 
         #region platform management
         public static DataContractJsonSerializer CreateSyncBoxSerializer

@@ -1939,7 +1939,7 @@ namespace CloudApiPublic.Static
             { typeof(JsonContracts.Folders), JsonContractHelpers.FoldersSerializer },
             { typeof(JsonContracts.FolderContents), JsonContractHelpers.FolderContentsSerializer },
             { typeof(JsonContracts.AuthenticationErrorResponse), JsonContractHelpers.AuthenticationErrorResponseSerializer },
-            { typeof(JsonContracts.AuthenticationErrorMessage), JsonContractHelpers.AuthenticationErrorMessageSerializer },
+            //{ typeof(JsonContracts.AuthenticationErrorMessage), JsonContractHelpers.AuthenticationErrorMessageSerializer }, // deprecated
 
             #region platform management
             { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
@@ -2497,11 +2497,12 @@ namespace CloudApiPublic.Static
                     {
                         if (ex.Response == null)
                         {
-                            throw new NullReferenceException(String.Format("httpResponse GetResponse at URL {0}, MethodPath {1}",
+                            throw new NullReferenceException(
+                                String.Format("httpResponse GetResponse at URL {0}, MethodPath {1}",
                                         (serverUrl ?? "{missing serverUrl}"),
                                         (serverMethodPath ?? "{missing serverMethodPath}"))
-                                        + " threw a WebException without a WebResponse",
-                                        ex);
+                                    + " threw a WebException without a WebResponse",
+                                ex);
                         }
 
                         httpResponse = (HttpWebResponse)ex.Response;
@@ -2535,7 +2536,7 @@ namespace CloudApiPublic.Static
                         int statusCodeInt = (int)httpResponse.StatusCode;
 
                         // if storage quota exceeded then use that status
-                        if (statusCodeInt == 507 /* Storage quota exceeded code, not in the HttpStatusCode enumeration */)
+                        if (statusCodeInt == CLDefinitions.CustomQuotaExceededCode /* Storage quota exceeded code, not in the HttpStatusCode enumeration */)
                         {
                             status = CLHttpRestStatus.QuotaExceeded;
                         }
@@ -2574,41 +2575,52 @@ namespace CloudApiPublic.Static
                                         {
                                             throw new KeyNotFoundException("Unable to find serializer for JsonContracts.AuthenticationErrorResponse in SerializableResponseTypes");
                                         }
-                                        DataContractJsonSerializer notAuthorizedMessageSerializer;
-                                        if (!SerializableResponseTypes.TryGetValue(typeof(JsonContracts.AuthenticationErrorMessage), out notAuthorizedMessageSerializer))
-                                        {
-                                            throw new KeyNotFoundException("Unable to find serializer for JsonContracts.AuthenticationErrorMessage in SerializableResponseTypes");
-                                        }
+
+                                        #region AuthenticationErrorMessage deprecated, replaced by AuthenticationError below
+                                        //DataContractJsonSerializer notAuthorizedMessageSerializer;
+                                        //if (!SerializableResponseTypes.TryGetValue(typeof(JsonContracts.AuthenticationErrorMessage), out notAuthorizedMessageSerializer))
+                                        //{
+                                        //    throw new KeyNotFoundException("Unable to find serializer for JsonContracts.AuthenticationErrorMessage in SerializableResponseTypes");
+                                        //}
+
+                                        //JsonContracts.AuthenticationErrorResponse parsedErrorResponse = (JsonContracts.AuthenticationErrorResponse)notAuthorizedSerializer.ReadObject(notAuthorizedStream);
+
+                                        //if (parsedErrorResponse.SerializedMessages != null)
+                                        //{
+                                        //    foreach (string serializedInnerMessage in parsedErrorResponse.SerializedMessages)
+                                        //    {
+                                        //        try
+                                        //        {
+                                        //            using (MemoryStream notAuthorizedMessageStream = new MemoryStream())
+                                        //            {
+                                        //                byte[] notAuthorizedInnerMessageBytes = Encoding.Default.GetBytes(serializedInnerMessage);
+
+                                        //                notAuthorizedMessageStream.Write(notAuthorizedInnerMessageBytes, 0, notAuthorizedInnerMessageBytes.Length);
+                                        //                notAuthorizedMessageStream.Flush();
+                                        //                notAuthorizedMessageStream.Seek(0, SeekOrigin.Begin);
+
+                                        //                JsonContracts.AuthenticationErrorMessage parsedErrorMessage = (JsonContracts.AuthenticationErrorMessage)notAuthorizedMessageSerializer.ReadObject(notAuthorizedMessageStream);
+
+                                        //                if (parsedErrorMessage.Message == CLDefinitions.MessageTextExpiredCredentials)
+                                        //                {
+                                        //                    status = CLHttpRestStatus.NotAuthorizedExpiredCredentials;
+                                        //                    break;
+                                        //                }
+                                        //            }
+                                        //        }
+                                        //        catch
+                                        //        {
+                                        //        }
+                                        //    }
+                                        //}
+                                        #endregion
 
                                         JsonContracts.AuthenticationErrorResponse parsedErrorResponse = (JsonContracts.AuthenticationErrorResponse)notAuthorizedSerializer.ReadObject(notAuthorizedStream);
 
-                                        if (parsedErrorResponse.SerializedMessages != null)
+                                        if (parsedErrorResponse.AuthenticationErrors != null
+                                            && parsedErrorResponse.AuthenticationErrors.Any(authenticationError => authenticationError.CodeAsEnum == AuthenticationErrorType.SessionExpired))
                                         {
-                                            foreach (string serializedInnerMessage in parsedErrorResponse.SerializedMessages)
-                                            {
-                                                try
-                                                {
-                                                    using (MemoryStream notAuthorizedMessageStream = new MemoryStream())
-                                                    {
-                                                        byte[] notAuthorizedInnerMessageBytes = Encoding.Default.GetBytes(serializedInnerMessage);
-
-                                                        notAuthorizedMessageStream.Write(notAuthorizedInnerMessageBytes, 0, notAuthorizedInnerMessageBytes.Length);
-                                                        notAuthorizedMessageStream.Flush();
-                                                        notAuthorizedMessageStream.Seek(0, SeekOrigin.Begin);
-
-                                                        JsonContracts.AuthenticationErrorMessage parsedErrorMessage = (JsonContracts.AuthenticationErrorMessage)notAuthorizedMessageSerializer.ReadObject(notAuthorizedMessageStream);
-
-                                                        if (parsedErrorMessage.Message == CLDefinitions.MessageTextExpiredCredentials)
-                                                        {
-                                                            status = CLHttpRestStatus.NotAuthorizedExpiredCredentials;
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-                                                catch
-                                                {
-                                                }
-                                            }
+                                            status = CLHttpRestStatus.NotAuthorizedExpiredCredentials;
                                         }
                                     }
                                 }

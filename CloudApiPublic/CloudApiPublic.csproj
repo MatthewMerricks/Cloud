@@ -147,6 +147,7 @@
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
     <Compile Include="JsonContracts\Audios.cs" />
+    <Compile Include="JsonContracts\AuthenticationError.cs" />
     <Compile Include="JsonContracts\AuthenticationErrorMessage.cs" />
     <Compile Include="JsonContracts\AuthenticationErrorResponse.cs" />
     <Compile Include="JsonContracts\ContainsMetadataDictionaryAttribute.cs" />

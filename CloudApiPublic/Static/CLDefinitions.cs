@@ -244,6 +244,7 @@ namespace CloudApiPublic.Static
 #endif  // DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 
         public const int CustomNoContentCode = 422;
+        public const int CustomQuotaExceededCode = 507;
 
         public const string AuthorizationFormatType = "CWS0";
 
@@ -545,6 +546,7 @@ namespace CloudApiPublic.Static
         public const string RESTResponseStatusFailed = "error";
 
         public const string RESTResponseMessage = "message";
+        public const string RESTResponseErrors = "errors";
 
         // REST Response SyncBox
         public const string RESTResponseSyncBox = "sync_box";

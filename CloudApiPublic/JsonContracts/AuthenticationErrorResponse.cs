@@ -25,6 +25,9 @@ namespace CloudApiPublic.JsonContracts
         public string Status { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
-        public string[] SerializedMessages { get; set; }
+        public string Message { get; set; }
+
+        [DataMember(Name = CLDefinitions.RESTResponseErrors, IsRequired = false)]
+        public AuthenticationError[] AuthenticationErrors { get; set; }
     }
 }
