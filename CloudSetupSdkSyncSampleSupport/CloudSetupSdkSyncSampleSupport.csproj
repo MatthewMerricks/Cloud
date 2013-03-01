@@ -135,8 +135,8 @@ copy $(ProjectDir)Help\Cloud.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
 set ErrorTracker=3
-echo copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+echo copy $(ProjectDir)Help\Cloud.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(ProjectDir)Help\Cloud.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 goto AfterDocumentation
@@ -300,6 +300,7 @@ exit 1
 :BuildEventOK
 echo PREBUILDSTEP for $(ProjectName) COMPLETED OK
 echo ************  PRE BUILD STEP COMPLETED OK **********************
+
 
 
 
