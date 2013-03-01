@@ -206,8 +206,8 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
 set ErrorTracker=14
-echo 7z a -tzip CloudSdkSyncSampleDocs.zip ./
-7z a -tzip CloudSdkSyncSampleDocs.zip ./
+echo 7z a -tzip SampleLiveSyncDocs.zip ./
+7z a -tzip SampleLiveSyncDocs.zip ./
 echo 7z BuildErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
@@ -300,6 +300,7 @@ exit 1
 :BuildEventOK
 echo PREBUILDSTEP for $(ProjectName) COMPLETED OK
 echo ************  PRE BUILD STEP COMPLETED OK **********************
+
 
 
 </PreBuildEvent>
