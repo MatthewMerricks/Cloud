@@ -1400,8 +1400,8 @@ tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)\3rdParty\bin\$(Configurati
 
 REM ----------------------------------------------------------------
 set ErrorTracker=1
-echo copy $(OutDir)$(TargetName).dll $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll
-copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).dll
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)3rdParty\bin\$(Configuration)\
+copy $(OutDir)$(TargetName).dll $(SolutionDir)\3rdParty\bin\$(Configuration)\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
@@ -1412,20 +1412,20 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=3
-echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).pdb
-copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\$(TargetName).pdb
+echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)3rdParty\bin\$(Configuration)\
+copy $(OutDir)$(TargetName).pdb $(SolutionDir)\3rdParty\bin\$(Configuration)\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=4
-echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
-copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)\
+copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=5
-echo copy $(OutDir)$(TargetName).pdb $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb
-copy $(OutDir)$(TargetName).pdb $(SolutionDir)\CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).pdb
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName)\
+copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName)\
 if errorlevel 1 goto BuildEventFailed
 
 REM ---- PLACE THIS CODE AT THE END
@@ -1439,9 +1439,7 @@ echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
 exit 1
 :BuildEventOK
 echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
-echo ************  POST BUILD STEP COMPLETED OK **********************
-
-</Command>
+echo ************  POST BUILD STEP COMPLETED OK **********************</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug64|ARM'">

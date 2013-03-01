@@ -243,6 +243,8 @@ namespace CloudApiPublic.Static
 #endif  // !URL_API
 #endif  // DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 
+        public const int CustomNoContentCode = 422;
+
         public const string AuthorizationFormatType = "CWS0";
 
         // Common Json field names

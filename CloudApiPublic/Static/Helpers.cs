@@ -1866,11 +1866,15 @@ namespace CloudApiPublic.Static
         /// <summary>
         /// hash set for http communication methods which are good when the status is ok, created, or not modified
         /// </summary>
-        internal static readonly HashSet<HttpStatusCode> HttpStatusesOkCreatedNotModified = new HashSet<HttpStatusCode>(new[]
+        internal static readonly HashSet<HttpStatusCode> HttpStatusesOkCreatedNotModifiedNoContent = new HashSet<HttpStatusCode>(new[]
             {
                 HttpStatusCode.OK,
                 HttpStatusCode.Created,
                 HttpStatusCode.NotModified,
+
+                // the following two are both considered no content on our servers
+                HttpStatusCode.NoContent,
+                ((HttpStatusCode)CLDefinitions.CustomNoContentCode)
             });
 
         /// <summary>
@@ -2515,7 +2519,7 @@ namespace CloudApiPublic.Static
                     }
                     // else if response status was not a not found and is a no content, then set the output status accordingly
                     else if (httpResponse.StatusCode == HttpStatusCode.NoContent
-                        || ((int)httpResponse.StatusCode) == 422) // alternative to no content, so the server can include an error message
+                        || ((int)httpResponse.StatusCode) == CLDefinitions.CustomNoContentCode) // alternative to no content, so the server can include an error message
                     {
                         status = CLHttpRestStatus.NoContent;
                     }

@@ -1326,7 +1326,7 @@ namespace CloudApiPublic
                     Helpers.requestMethod.post,
                     timeoutMilliseconds,
                     null, // not an upload nor download
-                    Helpers.HttpStatusesOkCreatedNotModified,
+                    Helpers.HttpStatusesOkCreatedNotModifiedNoContent,
                     ref status,
                     copiedSettings,
                     this,

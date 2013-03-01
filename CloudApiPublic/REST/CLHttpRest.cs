@@ -897,7 +897,7 @@ namespace CloudApiPublic.REST
                         progress, // holder for progress data which can be queried by user if called via async wrapper
                         statusUpdate, // callback to user to notify when a CLSyncEngine status has changed
                         statusUpdateId), // userstate to pass to the statusUpdate callback
-                    Helpers.HttpStatusesOkCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
+                    Helpers.HttpStatusesOkCreatedNotModifiedNoContent, // use the hashset for ok/created/not modified as successful HttpStatusCodes
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
