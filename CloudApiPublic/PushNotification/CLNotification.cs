@@ -9,19 +9,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using WebSocket4Net;
-using WebSocket4Net.Command;
-using WebSocket4Net.Protocol;
-using SuperSocket.ClientEngine;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.REST;
+//using WebSocket4Net;
+//using WebSocket4Net.Command;
+//using WebSocket4Net.Protocol;
+//using SuperSocket.ClientEngine;
+using Cloud.Support;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.REST;
 
 #if TRASH
-namespace CloudApiPublic.PushNotification
+namespace Cloud.PushNotification
 {
     extern alias WebSocket4NetBase;
 

@@ -42,11 +42,10 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNoSSL|AnyCPU'">
     <OutputPath>bin\ReleaseNoSSL\</OutputPath>
@@ -62,6 +61,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.EnterpriseServices" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -85,11 +85,13 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <None Include="app.manifest" />
+    <None Include="CloudPlatformCodeSigning.pfx" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <EmbeddedResource Include="Resources\CloudSetupSdkSyncSampleInstallCleanup" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -101,7 +103,7 @@
     <Resource Include="cloud.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\CloudSetupSdkSyncSampleCleanup" />
+    <EmbeddedResource Include="Resources\CloudSetupSdkSyncSampleUninstallCleanup" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
@@ -111,7 +113,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>echo ************  START POST BUILD STEPS **********************
+    <PreBuildEvent>echo ************  START PRE BUILD STEPS **********************
 REM ------Do this only for the Release build ----------------
 if /I $(ConfigurationName) == Debug goto BuildEventOk
 
@@ -123,13 +125,13 @@ goto XMLDocumentationBadConfiguration
 :XMLDocumentationRelease
 
 set ErrorTracker=1
-echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(Configurationname)
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(ConfigurationName)
+echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\CloudSDK-Windows\CloudSDK.sln"\ /verbosity:quiet /property:Configuration=$(Configurationname)
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentation.shfbproj /property:SolutionDir="C:\Cloud\CloudSDK-Windows\CloudSDK.sln"\ /verbosity:quiet /property:Configuration=$(ConfigurationName)
 if errorlevel 1 goto BuildEventFailed
 
 set ErrorTracker=2
-echo copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+echo copy $(ProjectDir)Help\Cloud.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(ProjectDir)Help\Cloud.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
 set ErrorTracker=3
@@ -142,8 +144,8 @@ goto AfterDocumentation
 :XMLDocumentationReleaseNoSSL
 
 set ErrorTracker=4
-echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentationNoSSL.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(Configurationname)
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentationNoSSL.shfbproj /property:SolutionDir="C:\Cloud\windows-client\win-client.sln"\ /verbosity:quiet /property:Configuration=$(ConfigurationName)
+echo C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe $(ProjectDir)XMLDocumentationNoSSL.shfbproj /property:SolutionDir="C:\Cloud\CloudSDK-Windows\CloudSDK.sln"\ /verbosity:quiet /property:Configuration=$(Configurationname)
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocumentationNoSSL.shfbproj /property:SolutionDir="C:\Cloud\CloudSDK-Windows\CloudSDK.sln"\ /verbosity:quiet /property:Configuration=$(ConfigurationName)
 if errorlevel 1 goto BuildEventFailed
 
 set ErrorTracker=5
@@ -204,8 +206,8 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
 set ErrorTracker=14
-echo 7z a -tzip CloudSdkSyncSampleDocs.zip ./
-7z a -tzip CloudSdkSyncSampleDocs.zip ./
+echo 7z a -tzip SampleLiveSyncDocs.zip ./
+7z a -tzip SampleLiveSyncDocs.zip ./
 echo 7z BuildErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
@@ -291,13 +293,17 @@ REM Exit properly because the build will not fail
 REM unless the final step exits with an error code
 goto BuildEventOK
 :BuildEventFailed
-echo POSTBUILDSTEP for $(ProjectName) FAILED at step %25ErrorTracker%25
+echo PREBUILDSTEP for $(ProjectName) FAILED at step %25ErrorTracker%25
 set ErrorTracker=
-echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
+echo ************  PRE BUILD STEP COMPLETED WITH ERROR **********************
 exit 1
 :BuildEventOK
-echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
-echo ************  POST BUILD STEP COMPLETED OK **********************</PreBuildEvent>
+echo PREBUILDSTEP for $(ProjectName) COMPLETED OK
+echo ************  PRE BUILD STEP COMPLETED OK **********************
+
+
+
+</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

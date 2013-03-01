@@ -5,14 +5,14 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model;
+using Cloud.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace CloudApiPublic.Support
+namespace Cloud.Support
 {
     /// <summary>
     /// Implement this abstract class on a data class that requires delayed processing,

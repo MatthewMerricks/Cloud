@@ -11,12 +11,12 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using BadgeCOMLib;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Sync;
+using Cloud.Support;
+using Cloud.Model;
+using Cloud.Interfaces;
+using Cloud.Sync;
 
-namespace CloudApiPublic.BadgeNET
+namespace Cloud.BadgeNET
 {
     /// <summary>
     /// Class to watch for initialization events from BadgeCom (Explorer shell extension).

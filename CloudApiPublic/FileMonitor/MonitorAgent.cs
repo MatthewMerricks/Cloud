@@ -10,27 +10,27 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.Support;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Threading;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
 using System.Xml.Linq;
 using System.Transactions;
-using CloudApiPublic.FileMonitor.SyncImplementation;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.SQLIndexer;
-using JsonContracts = CloudApiPublic.JsonContracts;
-using CloudApiPublic.Sync;
-using CloudApiPublic.REST;
+using Cloud.FileMonitor.SyncImplementation;
+using Cloud.Interfaces;
+using Cloud.SQLIndexer;
+using JsonContracts = Cloud.JsonContracts;
+using Cloud.Sync;
+using Cloud.REST;
 using CloudApiPublic.Model.EventMessages.ErrorInfo;
 
 /// <summary>
 /// Monitor a local file system folder as a SyncBox.
 /// </summary>
-namespace CloudApiPublic.FileMonitor
+namespace Cloud.FileMonitor
 {
     /// <summary>
     /// Class to cover file monitoring; created with delegates to connect to the SQL indexer and to start Sync communication for new events

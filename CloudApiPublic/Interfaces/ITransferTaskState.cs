@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Interfaces
+namespace Cloud.Interfaces
 {
     // interface to allow HttpScheduler to access the SyncBox which started a Task for upload/download in order to fire filterable MessageEvents
     internal interface ITransferTaskState

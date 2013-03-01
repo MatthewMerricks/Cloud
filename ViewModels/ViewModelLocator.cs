@@ -27,7 +27,7 @@ using GalaSoft.MvvmLight.Messaging;
 using Dialog.Abstractions.Wpf.Intefaces;
 using Dialog.Implementors.Wpf.MVVM.Services;
 using System.Windows;
-using CloudApiPublic.Model;
+using Cloud.Model;
 
 
 namespace win_client.ViewModels

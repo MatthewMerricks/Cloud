@@ -1,11 +1,11 @@
-﻿<Window x:Class="CloudSdkSyncSample.Views.AdvancedOptionsView"
+﻿<Window x:Class="SampleLiveSync.Views.AdvancedOptionsView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:ext="clr-namespace:CloudSdkSyncSample.Static"
+        xmlns:ext="clr-namespace:SampleLiveSync.Static"
         Title="Advanced Options" Height="480" Width="640" MinHeight="480" MinWidth="640">
     <Grid>
         <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="/CloudSdkSyncSample;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
+            <ImageBrush Stretch="UniformToFill" ImageSource="/Sample-Live-Sync;component/Artwork/WinClient_CloudSetup_bg_650x485.png"/>
         </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="10"/>

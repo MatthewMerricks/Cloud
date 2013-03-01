@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Navigation;
-using CloudApiPublic.Model;
+using Cloud.Model;
 
 namespace win_client.Model
 {

@@ -5,13 +5,13 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Static;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic
+namespace Cloud
 {
     /// <summary>
     /// Type for both a transferring upload (Direction is To) as well as a transferring download (Direction is From); contains status properties

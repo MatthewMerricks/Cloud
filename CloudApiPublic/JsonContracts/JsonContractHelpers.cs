@@ -12,7 +12,7 @@ using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 
-namespace CloudApiPublic.JsonContracts
+namespace Cloud.JsonContracts
 {
     internal static class JsonContractHelpers
     {

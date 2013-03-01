@@ -9,9 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Static;
+using Cloud.Static;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     internal struct DeleteBadgePath
     {

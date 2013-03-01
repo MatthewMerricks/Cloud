@@ -10,7 +10,7 @@ using System.Data.SqlServerCe;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.SQLIndexer.Migrations
+namespace Cloud.SQLIndexer.Migrations
 {
     internal static class MigrationList
     {

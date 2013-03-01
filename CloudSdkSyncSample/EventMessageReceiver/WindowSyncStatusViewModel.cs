@@ -1,9 +1,9 @@
-﻿using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
-using CloudSdkSyncSample.EventMessageReceiver.Status;
-using CloudSdkSyncSample.Model;
+﻿using Cloud.Interfaces;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.Support;
+using SampleLiveSync.EventMessageReceiver.Status;
+using SampleLiveSync.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,7 +16,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace CloudSdkSyncSample.EventMessageReceiver
+namespace SampleLiveSync.EventMessageReceiver
 {
     // class WindowSyncStatusViewModel <-- this message receiver acts as view models for multiple wpf controls, i.e. sync status window and growls
     // see other partial class for base summary

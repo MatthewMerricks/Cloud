@@ -5,18 +5,18 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model;
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
-using CloudApiPublic.REST;
-using CloudApiPublic.Static;
+using Cloud.Interfaces;
+using Cloud.Model;
+using Cloud.REST;
+using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace CloudApiPublic
+namespace Cloud
 {
     /// <summary>
     /// Contains authentication information required for all communication and services
@@ -1302,7 +1302,7 @@ namespace CloudApiPublic
                 object requestContract = null;
                 if (syncBoxIds == null)
                 {
-                    CloudApiPublic.JsonContracts.SessionCreateAllRequest sessionCreateAll = new JsonContracts.SessionCreateAllRequest()
+                    Cloud.JsonContracts.SessionCreateAllRequest sessionCreateAll = new JsonContracts.SessionCreateAllRequest()
                     {
                         SessionIds = CLDefinitions.RESTRequestSession_SyncBoxIdsAll,
                         TokenDuration = tokenDurationMinutes
@@ -1311,7 +1311,7 @@ namespace CloudApiPublic
                 }
                 else
                 {
-                    CloudApiPublic.JsonContracts.SessionCreateRequest sessionCreate = new JsonContracts.SessionCreateRequest()
+                    Cloud.JsonContracts.SessionCreateRequest sessionCreate = new JsonContracts.SessionCreateRequest()
                     {
                         SessionIds = syncBoxIds.ToArray<long>(),
                         TokenDuration = tokenDurationMinutes
@@ -1734,7 +1734,7 @@ namespace CloudApiPublic
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                CloudApiPublic.JsonContracts.SessionDeleteRequest sessionDeleteRequest = new JsonContracts.SessionDeleteRequest()
+                Cloud.JsonContracts.SessionDeleteRequest sessionDeleteRequest = new JsonContracts.SessionDeleteRequest()
                 {
                     Key = key
                 };

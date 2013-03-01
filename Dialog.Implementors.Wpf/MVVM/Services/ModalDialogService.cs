@@ -6,7 +6,7 @@ using Xceed.Wpf.Toolkit;
 using System.Windows;
 using System.Windows.Threading;
 using CloudApiPrivate.Static;
-using CloudApiPublic.Static;
+using Cloud.Static;
 
 namespace Dialog.Implementors.Wpf.MVVM.Services
 {

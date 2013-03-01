@@ -5,16 +5,16 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model;
-using CloudApiPublic.FileMonitor;
-using CloudApiPublic.SQLIndexer;
+using Cloud.Interfaces;
+using Cloud.Model;
+using Cloud.FileMonitor;
+using Cloud.SQLIndexer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.FileMonitor.SyncImplementation
+namespace Cloud.FileMonitor.SyncImplementation
 {
     /// <Summary>
     /// The FileMonitor implementation of the ISyncDataObject interface.

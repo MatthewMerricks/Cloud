@@ -9,19 +9,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.FileMonitor;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model;
-using CloudApiPublic.Support;
-using CloudApiPublic.SQLIndexer;
-using CloudApiPublic.PushNotification;
-using CloudApiPublic.Static;
-using CloudApiPublic.Sync;
-using CloudApiPublic.BadgeNET;
-using CloudApiPublic.REST;
+using Cloud.FileMonitor;
+using Cloud.Interfaces;
+using Cloud.Model;
+using Cloud.Support;
+using Cloud.SQLIndexer;
+using Cloud.PushNotification;
+using Cloud.Static;
+using Cloud.Sync;
+using Cloud.BadgeNET;
+using Cloud.REST;
 using System.Collections;
 
-namespace CloudApiPublic
+namespace Cloud
 {
     /// <summary>
     /// A class used to create a SyncBox to synchronize the contents of a local disk directory.

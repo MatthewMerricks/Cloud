@@ -4,7 +4,7 @@
 //  Created by David Bruck.
 //  Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Static;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -12,7 +12,7 @@ using System.Data.SqlServerCe;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.SQLIndexer.Migrations
+namespace Cloud.SQLIndexer.Migrations
 {
     internal class Migration2 : IMigration
     {

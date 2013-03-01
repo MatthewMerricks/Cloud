@@ -1,13 +1,13 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Model;
-using CloudSdkSyncSample.EventMessageReceiver;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
-using CloudSdkSyncSample.Models;
-using CloudSdkSyncSample.Support;
-using CloudSdkSyncSample.Views;
-using CloudSdkSyncSample.Static;
+﻿using Cloud;
+using Cloud.Model;
+using SampleLiveSync.EventMessageReceiver;
+using Cloud.Interfaces;
+using Cloud.Static;
+using Cloud.Support;
+using SampleLiveSync.Models;
+using SampleLiveSync.Support;
+using SampleLiveSync.Views;
+using SampleLiveSync.Static;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +19,7 @@ using System.Windows.Threading;
 using System.Threading;
 using System.Management;
 
-namespace CloudSdkSyncSample.ViewModels
+namespace SampleLiveSync.ViewModels
 {
     public class MainViewModel : WorkspaceViewModel
     {
@@ -78,7 +78,7 @@ namespace CloudSdkSyncSample.ViewModels
             _settingsInitial.GetSavedSettings();
 
             // Initialize trace
-            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors);
+            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "SampleLiveSync", "log", _settingsInitial.TraceLevel, _settingsInitial.LogErrors);
 
             // Bind to MessageEvents for special message handling cases
             MessageEvents.NewEventMessage += MessageEvents_NewEventMessage;
@@ -669,7 +669,7 @@ namespace CloudSdkSyncSample.ViewModels
             }
 
             // Validate that the SyncRoot is a good path.
-            CLError badPathError = CloudApiPublic.Static.Helpers.CheckForBadPath(SyncRoot);
+            CLError badPathError = Cloud.Static.Helpers.CheckForBadPath(SyncRoot);
             if (badPathError != null)
             {
                 MessageBox.Show("The SyncBox Folder path is invalid: " + badPathError.errorDescription);
@@ -679,7 +679,7 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Validate that the SyncRoot matches case perfectly with disk.
             bool syncPathMatches;
-            CLError checkCaseError = CloudApiPublic.Static.Helpers.DirectoryMatchesCaseWithDisk(SyncRoot, out syncPathMatches);
+            CLError checkCaseError = Cloud.Static.Helpers.DirectoryMatchesCaseWithDisk(SyncRoot, out syncPathMatches);
             if (checkCaseError != null)
             {
                 MessageBox.Show("There was an error checking whether the SyncBox Folder matches case with an existing directory on disk: " + checkCaseError.errorDescription);
@@ -695,7 +695,7 @@ namespace CloudSdkSyncSample.ViewModels
 
             // Validate the length of the SyncBox full path.
             int tooLongChars;
-            CLError errorFromLengthCheck = CloudApiPublic.Static.Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
+            CLError errorFromLengthCheck = Cloud.Static.Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
             if (errorFromLengthCheck != null)
             {
                 MessageBox.Show(String.Format("The SyncBox Folder is too long by {0} characters.  Please shorten the path.", tooLongChars));
@@ -787,7 +787,7 @@ namespace CloudSdkSyncSample.ViewModels
             _settingsInitial = new Settings(_settingsCurrent);          // Saved.  Initial is now current.
 
             // Reinitialize trace
-            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "CloudSdkSyncSample", "log", _settingsInitial.TraceLevel, 
+            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "SampleLiveSync", "log", _settingsInitial.TraceLevel, 
                                 _settingsInitial.LogErrors, willForceReset: true);
         }
 
@@ -843,7 +843,7 @@ namespace CloudSdkSyncSample.ViewModels
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
-                if (!CloudSdkSyncSample.Static.Helpers.IsAdministrator())
+                if (!SampleLiveSync.Static.Helpers.IsAdministrator())
                 {
                     _trace.writeToLog(1, "MainViewModel: InstallBadging: Run as administrator.");
                     startInfo.Verb = "runas";
@@ -931,7 +931,7 @@ namespace CloudSdkSyncSample.ViewModels
                 startInfo.FileName = commandProgram;
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.Arguments = commandArguments;
-                if (!CloudSdkSyncSample.Static.Helpers.IsAdministrator())
+                if (!SampleLiveSync.Static.Helpers.IsAdministrator())
                 {
                     _trace.writeToLog(1, "MainViewModel: UninstallBadging: Run as administrator.");
                     startInfo.Verb = "runas";
@@ -1257,7 +1257,7 @@ namespace CloudSdkSyncSample.ViewModels
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void OnPushNotificationError(object sender, CloudApiPublic.PushNotification.NotificationErrorEventArgs e)
+        void OnPushNotificationError(object sender, Cloud.PushNotification.NotificationErrorEventArgs e)
         {
             string errorMsg = "Push notification stopped.  Changes on other devices will no longer be automatically synced to this device.";
             CLError error = new Exception(errorMsg);
@@ -1737,7 +1737,7 @@ namespace CloudSdkSyncSample.ViewModels
                 if (System.Environment.OSVersion.Version.Major >= 6)
                 {
                     _trace.writeToLog(9, "MainViewModel: StartExplorer: Create medium integrity process. Explorer location: <{0}>.", explorerLocation);
-                    CloudSdkSyncSample.Static.Helpers.CreateMediumIntegrityProcess(explorerLocation, NativeMethod.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
+                    SampleLiveSync.Static.Helpers.CreateMediumIntegrityProcess(explorerLocation, NativeMethod.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
                 }
                 else
                 {

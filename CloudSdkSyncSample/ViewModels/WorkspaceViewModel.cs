@@ -1,12 +1,12 @@
-﻿using CloudSdkSyncSample.Support;
-using CloudApiPublic.Support;
+﻿using SampleLiveSync.Support;
+using Cloud.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
 
-namespace CloudSdkSyncSample.ViewModels
+namespace SampleLiveSync.ViewModels
 {
     /// <summary>
     /// This ViewModelBase subclass requests to be removed 

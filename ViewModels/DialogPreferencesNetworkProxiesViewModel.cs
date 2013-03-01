@@ -17,7 +17,7 @@ using win_client.Common;
 using CloudApiPrivate.Static;
 using System.Windows.Controls;
 using CloudApiPrivate.Common;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using System.ComponentModel;

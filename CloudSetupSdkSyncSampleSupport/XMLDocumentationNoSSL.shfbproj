@@ -39,8 +39,8 @@
       </ComponentConfig>
     </ComponentConfigurations>
     <DocumentationSources>
-      <DocumentationSource sourceFile="bin\ReleaseNoSSL\CloudApiPublic.dll" xmlns="" />
-      <DocumentationSource sourceFile="bin\ReleaseNoSSL\CloudApiPublic.xml" xmlns="" />
+      <DocumentationSource sourceFile="bin\ReleaseNoSSL\Cloud.dll" xmlns="" />
+      <DocumentationSource sourceFile="bin\ReleaseNoSSL\Cloud.xml" xmlns="" />
     </DocumentationSources>
     <MissingTags>Summary, Parameter, Returns, AutoDocumentCtors, TypeParameter, AutoDocumentDispose</MissingTags>
   </PropertyGroup>

@@ -8,8 +8,8 @@
     <ProjectGuid>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CloudApiPublic</RootNamespace>
-    <AssemblyName>CloudApiPublic</AssemblyName>
+    <RootNamespace>Cloud</RootNamespace>
+    <AssemblyName>Cloud</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
@@ -34,7 +34,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
-    <DocumentationFile>bin\Release\CloudApiPublic.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Cloud.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugNoSSL|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -46,11 +46,10 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNoSSL|AnyCPU'">
     <OutputPath>bin\ReleaseNoSSL\</OutputPath>
@@ -62,9 +61,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BadgeCOMLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+    <Reference Include="BadgeCOMLib, Version=0.1.6.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="EntityFramework, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\EntityFramework.dll</HintPath>
@@ -72,7 +71,7 @@
     <Reference Include="ErikEJ.SqlCe40, Version=2.1.6.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</HintPath>
     </Reference>
-    <Reference Include="Interop.Shell32">
+    <Reference Include="Interop.Shell32, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
@@ -95,15 +94,6 @@
       <HintPath>..\3rdParty\bin\Release\SimpleJson.dll</HintPath>
       <Aliases>global,SimpleJsonBase</Aliases>
     </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Common, Version=0.2.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-      <HintPath>..\3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Core, Version=0.2.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-      <HintPath>..\3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="SuperSocket.ClientEngine.Protocol, Version=0.2.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-      <HintPath>..\3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -122,10 +112,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="WebSocket4Net, Version=0.7.0.0, Culture=neutral, PublicKeyToken=eb4e154b696bf72a, processorArchitecture=MSIL">
-      <HintPath>..\3rdParty\bin\Release\WebSocket4Net.dll</HintPath>
-      <Aliases>global,WebSocket4NetBase</Aliases>
-    </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -333,6 +319,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="CloudPlatformCodeSigning.pfx" />
     <None Include="Docs\MainPage.dox" />
     <None Include="FileMonitor\FileMonitorMemory.xsd">
       <SubType>Designer</SubType>
@@ -364,7 +351,6 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="..\amd64\sqlceer40EN.dll">
       <Link>SQLIndexer\SqlCE\amd64\sqlceer40EN.dll</Link>
@@ -456,115 +442,60 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
 set ErrorTracker=11
-echo copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
-if errorlevel 1 goto BuildEventFailed
-
-set ErrorTracker=12
-echo copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Common.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-if errorlevel 1 goto BuildEventFailed
-
-REM ----------------------
-set ErrorTracker=13
-echo copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
-if errorlevel 1 goto BuildEventFailed
-
-set ErrorTracker=14
-echo copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-if errorlevel 1 goto BuildEventFailed
-
-REM ----------------------
-set ErrorTracker=15
-echo copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
-if errorlevel 1 goto BuildEventFailed
-
-set ErrorTracker=16
-echo copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(SolutionDir)3rdParty\bin\Release\SuperSocket.ClientEngine.Protocol.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-if errorlevel 1 goto BuildEventFailed
-
-REM ----------------------
-set ErrorTracker=17
 echo copy $(SolutionDir)3rdParty\bin\Release\System.Data.SqlServerCe.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\System.Data.SqlServerCe.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=18
+set ErrorTracker=12
 echo copy $(SolutionDir)3rdParty\bin\Release\System.Data.SqlServerCe.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\System.Data.SqlServerCe.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-if errorlevel 1 goto BuildEventFailed
-
-REM ----------------------
-set ErrorTracker=19
-echo copy $(SolutionDir)3rdParty\bin\Release\WebSocket4Net.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(SolutionDir)3rdParty\bin\Release\WebSocket4Net.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
-if errorlevel 1 goto BuildEventFailed
-
-set ErrorTracker=20
-echo copy $(SolutionDir)3rdParty\bin\Release\WebSocket4Net.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(SolutionDir)3rdParty\bin\Release\WebSocket4Net.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----- Copy the CloudApiPublic binaries only for the Release build  -----------------
 if /I $(ConfigurationName) == Debug goto DoneWithCloudApiPublic
 
 REM ----------------------
-set ErrorTracker=21
+set ErrorTracker=13
 echo copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetFileName)
 copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetFileName)
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=22
+set ErrorTracker=14
 echo copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetFileName)
 copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetFileName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=23
+set ErrorTracker=15
 echo copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=24
+set ErrorTracker=16
 echo copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=25
+set ErrorTracker=17
 echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=26
+set ErrorTracker=18
 echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=27
+set ErrorTracker=19
 echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=28
+set ErrorTracker=20
 echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-if errorlevel 1 goto BuildEventFailed
-
-REM ----------------------
-set ErrorTracker=29
-echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
-if errorlevel 1 goto BuildEventFailed
-
-set ErrorTracker=30
-echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 :DoneWithCloudApiPublic

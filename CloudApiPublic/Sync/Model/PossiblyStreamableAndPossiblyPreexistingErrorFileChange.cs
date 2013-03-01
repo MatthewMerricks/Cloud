@@ -5,14 +5,14 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model;
+using Cloud.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Sync.Model
+namespace Cloud.Sync.Model
 {
     internal struct PossiblyStreamableAndPossiblyPreexistingErrorFileChange
     {

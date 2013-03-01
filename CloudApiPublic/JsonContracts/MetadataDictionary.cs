@@ -12,7 +12,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace CloudApiPublic.JsonContracts
+namespace Cloud.JsonContracts
 {
     /// <summary>
     /// Dictionary type for serialization to server in the form string key to object value where values may be directly serializable or may themselves be inner dictionaries or arrays;

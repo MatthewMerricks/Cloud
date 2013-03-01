@@ -5,21 +5,21 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model;
-using CloudApiPublic.Model.EventMessages;
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
+using Cloud.Interfaces;
+using Cloud.Model;
+using Cloud.Model.EventMessages;
+using Cloud.Model.EventMessages.ErrorInfo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Static
+namespace Cloud.Static
 {
     public delegate void EventMessageArgsHandler(EventMessageArgs e);
 
     /// <summary>
-    /// Exposes events to receive status notifications from <see cref="CloudApiPublic.CLSyncEngine"/>
+    /// Exposes events to receive status notifications from <see cref="Cloud.CLSyncEngine"/>
     /// </summary>
     public static class MessageEvents
     {

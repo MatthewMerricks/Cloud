@@ -30,8 +30,8 @@ using win_client.Static;
 using GalaSoft.MvvmLight.Messaging;
 using CleanShutdown.Messaging;
 using CloudApiPrivate.Model.Settings;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
+using Cloud.Support;
+using Cloud.Model;
 
 namespace win_client
 {

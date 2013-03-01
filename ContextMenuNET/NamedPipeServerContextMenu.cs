@@ -6,8 +6,8 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 using CloudApiPrivate.Common;
-using CloudApiPublic.Model;
-using CloudApiPublic.Support;
+using Cloud.Model;
+using Cloud.Support;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

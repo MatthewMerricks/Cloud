@@ -1,5 +1,5 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="CloudSdkSyncSample.Properties" GeneratedClassName="Settings">
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SampleLiveSync.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
     <Setting Name="SyncBoxFullPath" Type="System.String" Scope="User">
@@ -26,7 +26,7 @@
     <Setting Name="LogErrors" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="TraceType" Type="CloudApiPublic.Static.TraceType" Scope="User">
+    <Setting Name="TraceType" Type="Cloud.Static.TraceType" Scope="User">
       <Value Profile="(Default)">Communication, FileChangeFlow</Value>
     </Setting>
     <Setting Name="TraceFolderFullPath" Type="System.String" Scope="User">

@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     /// <summary>
     /// Parameters for a file transfer progress update. If constructed via the default, parameterless constructor then all properties getters will throw an exception.
