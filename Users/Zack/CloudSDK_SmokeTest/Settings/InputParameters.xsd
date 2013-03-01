@@ -111,6 +111,7 @@
           <xs:element name="Path" type ="xs:string" />
           <xs:element name="CreateNew" type="xs:boolean" />
           <xs:element name="Count" type="xs:int" minOccurs="0" />
+          <xs:element name="ActInTwoFolders" type="xs:boolean" minOccurs="0" maxOccurs="1" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -141,6 +142,7 @@
           <xs:element name="NewName" type ="xs:string" minOccurs="0" maxOccurs="1"/>
           <xs:element name="RelativeDirectoryPath" type ="xs:string" minOccurs="0" maxOccurs="1"/>
           <xs:element name="ServerID" type="xs:long" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="ActInTwoFolders" type="xs:boolean" minOccurs="0" maxOccurs="1" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -221,6 +223,7 @@
             </xs:simpleType>
           </xs:element>
           <xs:element name="UseDynamicSyncBox" type="xs:boolean" />
+          <xs:element name="ShouldWait" type="xs:boolean" minOccurs="0" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

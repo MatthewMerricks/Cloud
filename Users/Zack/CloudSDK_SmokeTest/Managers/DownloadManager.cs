@@ -35,7 +35,7 @@ namespace CloudSDK_SmokeTest.Managers
             CLError credsError;
             TaskEventArgs taskArgs = e as TaskEventArgs;
             CredentialHelper.InitializeCreds(ref taskArgs, out settings, out credsError);  
-            CloudApiPublic.JsonContracts.Event returnEvent;
+
             CLSyncBox syncBox;
             CLSyncBoxCreationStatus boxCreateStatus;
             CLHttpRestStatus restStatus = CLHttpRestStatus.BadRequest;
@@ -146,7 +146,6 @@ namespace CloudSDK_SmokeTest.Managers
             
             string rootString = RootDirectory.ToString().Replace(RootDirectory.Name + '\\', RootDirectory.Name);
             string destination = rootString + fileChange.NewPath.GetRelativePath(RootDirectory, false);
-            bool continueMove = true;
             if (File.Exists(destination))
             {
                 ReturnException("There is already a File at the File Path returned from download response");

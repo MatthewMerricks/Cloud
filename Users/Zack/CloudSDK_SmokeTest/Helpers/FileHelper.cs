@@ -22,9 +22,10 @@ namespace CloudSDK_SmokeTest.Helpers
         {
             GenericHolder<CLError> refProcessErrorHolder = createEventArgs.ProcessingErrorHolder;
             int createReturnCode = 0;
+            List<FileChange> folderChanges = new List<FileChange>();
             string fullPath = createEventArgs.CreateTaskFileInfo.FullName;
             if (!File.Exists(createEventArgs.CreateTaskFileInfo.FullName))
-                WriteFile(createEventArgs.CreateTaskFileInfo);
+                WriteFile(createEventArgs.CreateTaskFileInfo, ref folderChanges);
 
             FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, createEventArgs.CreateTaskFileInfo, ref refProcessErrorHolder);
             CloudApiPublic.JsonContracts.Event returnEvent;
@@ -52,8 +53,9 @@ namespace CloudSDK_SmokeTest.Helpers
         public static FileChange PrepareMD5FileChange(InputParams paramSet, CLCredential creds, FileInfo fi,  ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             FileChange fileChange = new FileChange();
+            List<FileChange> folderChanges = new List<FileChange>();
             if (!File.Exists(fi.FullName))
-                WriteFile(fi);
+                WriteFile(fi, ref folderChanges);
             byte[] md5Bytes = FileHelper.CreateFileChangeObject(fi.FullName, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
             CLError hashError = fileChange.SetMD5(md5Bytes);
             if (hashError != null)
@@ -73,8 +75,9 @@ namespace CloudSDK_SmokeTest.Helpers
          public static FileChange PrepareMD5FileChange(SmokeTestManagerEventArgs e)
         {
             FileChange fileChange = new FileChange();
+            List<FileChange> folderChanges = new List<FileChange>();
             if (!File.Exists(e.FileInfo.FullName))
-                WriteFile(e.FileInfo);
+                WriteFile(e.FileInfo, ref folderChanges);
             byte[] md5Bytes = FileHelper.CreateFileChangeObject(e.FileInfo.FullName, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
             CLError hashError = fileChange.SetMD5(md5Bytes);
             if (hashError != null)
@@ -126,7 +129,7 @@ namespace CloudSDK_SmokeTest.Helpers
             return returnValue;
         }
 
-        public static bool WriteFile(FileInfo fileInfo)
+        public static bool WriteFile(FileInfo fileInfo, ref List<FileChange> folderChanges)
         {
             string fullPath = fileInfo.FullName;
             bool returnValue = true;
@@ -137,7 +140,7 @@ namespace CloudSDK_SmokeTest.Helpers
             }
             if (!System.IO.File.Exists(fullPath))
             {
-                CreateParentDirectories(new FileInfo(fullPath));
+                CreateParentDirectories(new FileInfo(fullPath), ref folderChanges);
                 using (System.IO.FileStream fs = System.IO.File.Create(fullPath))
                 {
                     Random rnd = new Random();
@@ -156,6 +159,13 @@ namespace CloudSDK_SmokeTest.Helpers
                         if (rem == 0)
                             Console.WriteLine(string.Format("{0} - Value: {1}", i, currentRandom));
                     }
+                    //string thisString = "Some Text To Be Written";
+                    //byte[] bytes = Encoding.ASCII.GetBytes(thisString);
+                    //for (int x = 0; x < 23; x++)
+                    //{ 
+                    //    foreach(Byte b in bytes)
+                    //        fs.WriteByte(b);
+                    //}
                 }
             }
             else
@@ -166,7 +176,7 @@ namespace CloudSDK_SmokeTest.Helpers
             return returnValue;
         }
 
-        public static void CreateParentDirectories(FileInfo fileInfo)
+        public static void CreateParentDirectories(FileInfo fileInfo, ref List<FileChange> folderChange)
         {
             List<DirectoryInfo> parentList = new List<DirectoryInfo>();
             DirectoryInfo dInfo = fileInfo.Directory;
@@ -183,6 +193,9 @@ namespace CloudSDK_SmokeTest.Helpers
             {
                 if (!Directory.Exists(di.FullName))
                     Directory.CreateDirectory(di.FullName);
+                CloudApiPublic.JsonContracts.Metadata meta = new CloudApiPublic.JsonContracts.Metadata(){ CreatedDate = di.CreationTimeUtc};
+                FileChange folderFileChangeObject = FolderHelper.GetFolderFileChange(di, meta, FileChangeType.Created, di.FullName, string.Empty);
+                folderChange.Add(folderFileChangeObject);
             }
         }
 
@@ -465,8 +478,10 @@ namespace CloudSDK_SmokeTest.Helpers
                     break;
                 case "duplicate":
                 case "exists":
+                    break;
+                case "ok":                    
+                    break;
                 case "conflict":
-                    //ThrowDuplicateException(ref ProcessingErrorHolder);
                     responseCode = FileHelper.RenameAndTryUpload(responseArgs, currentFileChange, manager);
                     break;
                 default:
@@ -485,13 +500,17 @@ namespace CloudSDK_SmokeTest.Helpers
             {
                 case "upload":
                 case "uploading":
-                case "ok":
                     responseCode = HttpPostReponseCodes.Upload;
                     break;
                 case "duplicate":
                 case "exists":
-                case "conflict":
                     responseCode = HttpPostReponseCodes.Duplicate;
+                    break;
+                case "ok":
+                    responseCode = HttpPostReponseCodes.OK;
+                    break;
+                case "conflict":
+                    responseCode = HttpPostReponseCodes.Conflict;
                     break;
                 default:
                     Console.WriteLine(string.Format("The Server Response is {0}", response));

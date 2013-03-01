@@ -35,8 +35,7 @@ namespace CloudSDK_SmokeTest.Managers
                 };
                 SmokeTaskManager.HandleFailure(exArgs);
             }
-            CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.ListSessionsResponse response;
+
             eventArgs.Creds = creds;
 
             int responseCode = ItemsListHelper.RunListSessions(eventArgs, false, false);

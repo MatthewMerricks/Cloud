@@ -327,6 +327,10 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private bool useDynamicSyncBoxField;
         
+        private bool shouldWaitField;
+        
+        private bool shouldWaitFieldSpecified;
+        
         /// <remarks/>
         public ComparisonComparisonType ComparisonType {
             get {
@@ -344,6 +348,27 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.useDynamicSyncBoxField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool ShouldWait {
+            get {
+                return this.shouldWaitField;
+            }
+            set {
+                this.shouldWaitField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool ShouldWaitSpecified {
+            get {
+                return this.shouldWaitFieldSpecified;
+            }
+            set {
+                this.shouldWaitFieldSpecified = value;
             }
         }
     }
@@ -576,6 +601,10 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private bool serverIDFieldSpecified;
         
+        private bool actInTwoFoldersField;
+        
+        private bool actInTwoFoldersFieldSpecified;
+        
         /// <remarks/>
         public string OldName {
             get {
@@ -624,6 +653,27 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.serverIDFieldSpecified = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool ActInTwoFolders {
+            get {
+                return this.actInTwoFoldersField;
+            }
+            set {
+                this.actInTwoFoldersField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool ActInTwoFoldersSpecified {
+            get {
+                return this.actInTwoFoldersFieldSpecified;
+            }
+            set {
+                this.actInTwoFoldersFieldSpecified = value;
             }
         }
     }
@@ -790,6 +840,10 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private bool countFieldSpecified;
         
+        private bool actInTwoFoldersField;
+        
+        private bool actInTwoFoldersFieldSpecified;
+        
         /// <remarks/>
         public string Name {
             get {
@@ -838,6 +892,27 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.countFieldSpecified = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool ActInTwoFolders {
+            get {
+                return this.actInTwoFoldersField;
+            }
+            set {
+                this.actInTwoFoldersField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool ActInTwoFoldersSpecified {
+            get {
+                return this.actInTwoFoldersFieldSpecified;
+            }
+            set {
+                this.actInTwoFoldersFieldSpecified = value;
             }
         }
     }

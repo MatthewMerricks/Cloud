@@ -31,5 +31,14 @@ namespace CloudSDK_SmokeTest
         Upload,
         Duplicate,
         Conflict,
+        OK,
+    }
+
+    public enum FolderToUse
+    { 
+        None,
+        Manual, 
+        Active, 
+        Active2,
     }
 }

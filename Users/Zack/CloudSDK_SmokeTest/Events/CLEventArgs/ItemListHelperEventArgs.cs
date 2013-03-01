@@ -12,7 +12,6 @@ namespace CloudSDK_SmokeTest.Events.CLEventArgs
     {
 
         public ListItems ListItemsTask { get; set; }
-        public GenericHolder<CLError> ProcessingErrorHolder { get; set; }
 
         public ItemListHelperEventArgs() { }
 

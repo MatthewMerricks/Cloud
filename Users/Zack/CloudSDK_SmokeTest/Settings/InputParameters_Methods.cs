@@ -38,4 +38,15 @@ namespace CloudSDK_SmokeTest.Settings
             return false;
         }
     }
+
+
+    public partial class Creation
+    {
+        public FolderToUse SpecifiedFolder { get; set; }
+    }
+
+    public partial class Rename
+    { 
+        public FolderToUse SpecifiedFolder { get; set; }
+    }
 }

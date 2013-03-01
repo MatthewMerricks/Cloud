@@ -111,9 +111,9 @@ namespace CloudSDK_SmokeTest.Helpers
 
         public static int RunHttpTestTask()
         {
-            int responseCode = -1;
+            //int responseCode = -1;
             throw new NotImplementedException("RunHttpTestTask in SmokeTestTaskHelper is Not Implemented");
-            return responseCode;
+            //return responseCode;
         }
         #endregion         
     }

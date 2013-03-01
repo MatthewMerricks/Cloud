@@ -19,16 +19,16 @@ namespace CloudSDK_SmokeTest.Managers
     {
         public static int RunCreatePlan(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
-            int planId = 0;
+            //int planId = 0;
             throw new NotImplementedException("Implement Run Create Plan Method In Smoke Test helper Class.");
-            return planId;
+            //return planId;
         }
 
         public static int RunPlanDeletionTask(InputParams paramSet, SmokeTask smokeTask, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
-            int returnValue = 0;
+            //int returnValue = 0;
             throw new NotImplementedException("RunPlanDeletion Method is not implemented.");
-            return returnValue;
+            //return returnValue;
         }
 
         public static bool AddNewPlan(CLCredential creds)

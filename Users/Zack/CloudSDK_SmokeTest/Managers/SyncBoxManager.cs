@@ -46,13 +46,16 @@ namespace CloudSDK_SmokeTest.Managers
 
             //If the Id passed in is null or Zero Check the task object for the selected Id
             if (syncBoxId.HasValue == false || syncBoxId.Value == 0)
-                syncBoxId = e.CurrentTask.SelectedSyncBoxID;
+                syncBoxId = SmokeTaskManager.GetOpperationSyncBoxID(e);
             
             //If the SyncBoxId was not assigned in the event arguments, determine a syncboxId using last resort
             if (syncBoxId.HasValue == false || syncBoxId.Value == 0)
                 syncBoxId = e.ParamSet.ManualSyncBoxID;
                 //syncBoxId = SyncBoxMapper.SyncBoxes.Count > 0 ? SyncBoxMapper.SyncBoxes[0] : e.ParamSet.ManualSyncBoxID;
+
             
+
+
             CLError initSyncBoxError = CLSyncBox.CreateAndInitialize(e.Creds, syncBoxId.Value, out syncBox, out boxCreateStatus, syncSettings);
             e.boxCreationStatus = boxCreateStatus;
             if (initSyncBoxError != null || boxCreateStatus != CLSyncBoxCreationStatus.Success)
@@ -63,60 +66,31 @@ namespace CloudSDK_SmokeTest.Managers
             return initResponse;
         }
 
-        public static int CompareSyncBoxFolders(SmokeTestManagerEventArgs e)
+        
+
+        public static bool CompareActiveToActive(SmokeTestManagerEventArgs e, DirectoryInfo activeFolder, ref StringBuilder report)
         {
-            Comparison compareTask = e.CurrentTask as Comparison;
-            if(compareTask == null)
-                return (int)FileManagerResponseCodes.InvalidTaskType;
+            SmokeTaskManager.TryWaiting(e);
+            string secondActiveSyncFolderPath = e.ParamSet.ActiveSync_Folder2.Replace("\"", "");
+            DirectoryInfo secondActiveFolder = new DirectoryInfo(secondActiveSyncFolderPath);
+            bool areItemsItdentical = SyncBoxManager.CompareLocalFileStructure(activeFolder, secondActiveFolder, ref report);
+            WriteComparisonDetails(activeFolder.FullName, secondActiveFolder.FullName, ref report);
+            return areItemsItdentical;
+        }
 
-            bool areItemsItdentical = false;
-            StringBuilder report = new StringBuilder();
-            string manualSyncFolderPath = e.ParamSet.ManualSync_Folder.Replace("\"", "");
-            string activeSyncFolderPath = e.ParamSet.ActiveSync_Folder.Replace("\"","");
-            
-            DirectoryInfo activeFolder = new DirectoryInfo(activeSyncFolderPath);
-            DirectoryInfo manualFolder = new DirectoryInfo(manualSyncFolderPath);
-
-            ComparisonManager cMgr = ComparisonManager.GetInstance();
-            if(!cMgr.MoveOn)
+        public static int CompareActiveToServer(SmokeTestManagerEventArgs e, DirectoryInfo activeFolder, out bool areIdentical, ref StringBuilder report)
+        {
+            SmokeTaskManager.TryWaiting(e);
+            if (e.SyncBox == null)
+                e.SyncBox = SyncBoxManager.InitializeCredentialsAndSyncBox(e);
+            if (e.SyncBox == null)
             {
-                if (compareTask.UseDynamicSyncBox)
-                    SetUserInput(cMgr);
+                areIdentical = false;
+                return (int)FileManagerResponseCodes.InitializeSynBoxError;
             }
-
-            if (!activeFolder.Exists || !manualFolder.Exists)
-                return (int)FileManagerResponseCodes.UnknownError;
-            if (compareTask.SyncType == SmokeTaskSyncType.Manual)
-            {
-                System.Threading.Thread.Sleep(ManagerConstants.WaitMillisecondsBeforeCompare);
-                areItemsItdentical = SyncBoxManager.CompareLocalFileStructure(activeFolder, manualFolder, ref report);
-                WriteComparisonDetails(activeFolder.FullName, manualFolder.FullName, ref report);
-            }
-            else if (compareTask.SyncType == SmokeTaskSyncType.Active && compareTask.ComparisonType == ComparisonComparisonType.ActiveToServer)
-            {
-                System.Threading.Thread.Sleep(ManagerConstants.WaitMillisecondsBeforeCompare);
-                if (e.SyncBox == null)
-                    e.SyncBox = SyncBoxManager.InitializeCredentialsAndSyncBox(e);
-                if (e.SyncBox == null)
-                    return (int)FileManagerResponseCodes.InitializeSynBoxError;
-                areItemsItdentical = SyncBoxManager.CompareLocalDirectoryToServerHierarchy(e.SyncBox, activeFolder);
-                WriteComparisonDetails(activeFolder.FullName, "Server Metadata", ref report);
-            }
-            else if (compareTask.SyncType == SmokeTaskSyncType.Active && compareTask.ComparisonType == ComparisonComparisonType.ActiveToActive)
-            {
-                System.Threading.Thread.Sleep(ManagerConstants.WaitMillisecondsBeforeCompare);
-                string secondActiveSyncFolderPath = e.ParamSet.ActiveSync_Folder2.Replace("\"", "");
-                DirectoryInfo secondActiveFolder = new DirectoryInfo(secondActiveSyncFolderPath);
-                areItemsItdentical = SyncBoxManager.CompareLocalFileStructure(activeFolder, secondActiveFolder, ref report);
-                WriteComparisonDetails(activeFolder.FullName, secondActiveFolder.FullName, ref report);
-            }
-            if (areItemsItdentical)
-                report.AppendLine("Folders 1 and 2 are Identical.");
-            else
-                report.AppendLine("Comparison Failed");
-  
-            e.StringBuilderList.Add(new StringBuilder(report.ToString()));
-            return areItemsItdentical == true ? 0 : (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
+            areIdentical = SyncBoxManager.CompareLocalDirectoryToServerHierarchy(e, e.SyncBox, activeFolder);
+            WriteComparisonDetails(activeFolder.FullName, "Server Metadata", ref report);
+            return 0;
         }
 
         public static bool CompareLocalFileStructure(DirectoryInfo initalDirectory, DirectoryInfo comparisonDirectory, ref StringBuilder report)
@@ -178,10 +152,13 @@ namespace CloudSDK_SmokeTest.Managers
             return areItemsIdentical;
         }
 
-        public static bool CompareLocalDirectoryToServerHierarchy(CLSyncBox syncBox, DirectoryInfo localDirectory)
+        public static bool CompareLocalDirectoryToServerHierarchy(SmokeTestManagerEventArgs e, CLSyncBox syncBox, DirectoryInfo localDirectory)
         {
             bool areStructuresIdentical = true;
-            CloudApiPublic.JsonContracts.FolderContents serverContents = GetServerHierarchy(syncBox);
+
+            CloudApiPublic.JsonContracts.FolderContents serverContents;
+            serverContents = GetServerHierarchy(e, syncBox); 
+            
             FileSystemInfo[] localContents = localDirectory.GetFileSystemInfos();
             foreach (Metadata serverItem in serverContents.Objects)
             { 
@@ -192,18 +169,13 @@ namespace CloudSDK_SmokeTest.Managers
                 if(FileHelper.PathEndsWithSlash(localDirectory.FullName.ToString()))
                 {
                     root = localDirectory.FullName.ToString().Remove(localDirectory.FullName.ToString().Count() - 1, 1);
-                    localPath = root + serverItem.RelativePath.Replace("/", "\\");
+                    localPath = root + FileManager.TrimTrailingSlash(serverItem.RelativePath.Replace("/", "\\"));
                 }
                 FileSystemInfo fso = localContents.Where(lci => lci.FullName == localPath).FirstOrDefault();
                 if (fso != null)
                 {
                     areStructuresIdentical = CompareFileSystemInfoToMetadata(fso, serverItem);
                 }
-                else
-                {
-                    break;
-                }
-                
             }
             return areStructuresIdentical;
         }
@@ -212,36 +184,50 @@ namespace CloudSDK_SmokeTest.Managers
         {
             bool areItemsIdentical = true;
             FileInfo fileInfo = fileSystemItem as FileInfo;
+            TimeSpan span = new TimeSpan(0, 0, 3);
             if (fileInfo == null)
             {
                 DirectoryInfo folderInfo = fileSystemItem as DirectoryInfo;
-                if (folderInfo.CreationTime != metadata.CreatedDate)
+                //if (folderInfo.CreationTimeUtc.Subtract(metadata.CreatedDate.Value) > span || metadata.CreatedDate.Value.Subtract(folderInfo.CreationTimeUtc) > span)
+                //    areItemsIdentical = false;
+                if (folderInfo.Exists == false)
                     areItemsIdentical = false;
             }
             else
             {
-                if (fileInfo.CreationTime != metadata.CreatedDate)
+                if (fileInfo.CreationTimeUtc.Subtract(metadata.CreatedDate.Value) > span
+                    || metadata.CreatedDate.Value.Subtract(fileInfo.CreationTimeUtc) > span)
+                {
                     areItemsIdentical = false;
-                if (fileInfo.LastWriteTime != metadata.ModifiedDate)
+                }
+                if (fileInfo.LastWriteTimeUtc.Subtract(metadata.ModifiedDate.Value) > span
+                    || metadata.ModifiedDate.Value.Subtract(fileInfo.LastWriteTimeUtc) > span)
+                {
                     areItemsIdentical = false;
+                }
                 if (fileInfo.Length != metadata.Size)
                     areItemsIdentical = false;
             }
             return areItemsIdentical;
         }
 
-        public static FolderContents GetServerHierarchy(CLSyncBox syncBox)
+        public static FolderContents GetServerHierarchy(SmokeTestManagerEventArgs e, CLSyncBox syncBox)
         {
             CLHttpRestStatus restStatus;
             CloudApiPublic.JsonContracts.FolderContents folderContents = new CloudApiPublic.JsonContracts.FolderContents();
-            CLError getAllContentError = syncBox.GetFolderContents(ManagerConstants.TimeOutMilliseconds, out restStatus, out folderContents, includeCount: false, contentsRoot: null, depthLimit: 9, includeDeleted: false);
+            CLError getAllContentError;
+           
+            getAllContentError = syncBox.GetFolderContents(ManagerConstants.TimeOutMilliseconds, out restStatus, out folderContents, includeCount: false, contentsRoot: null, depthLimit: 9, includeDeleted: false);
+           
+            
             if (restStatus != CLHttpRestStatus.Success || getAllContentError != null)
             {
                 ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs()
                 {
                     Error = getAllContentError,
                     RestStatus = restStatus,
-                    OpperationName = "DownloadManager.BeginGetAllContent(syncBox.GetFolderContents())",
+                    OpperationName = "SyncBoxManager.GetServerHierarchy(syncBox.GetFolderContents())",
+                    ProcessingErrorHolder = e.ProcessingErrorHolder,
                 };
                 SmokeTaskManager.HandleFailure(failArgs);
                 return null;
@@ -254,7 +240,7 @@ namespace CloudSDK_SmokeTest.Managers
         {
             ICLCredentialSettings settings;
             CLError credsError;
-            TaskEventArgs taskArgs = new TaskEventArgs() { Creds = e.Creds, ProcessingErrorHolder = e.ProcessingErrorHolder };
+            TaskEventArgs taskArgs = new TaskEventArgs() {ParamSet = e.ParamSet, Creds = e.Creds, ProcessingErrorHolder = e.ProcessingErrorHolder };
             CredentialHelper.InitializeCreds(ref taskArgs, out settings, out credsError);
             if (credsError != null || taskArgs.CredsStatus != CLCredentialCreationStatus.Success)
                 return null;
@@ -678,7 +664,55 @@ namespace CloudSDK_SmokeTest.Managers
             return getListResponseCode;
         }
         #endregion 
-        #endregion 
+
+        #region Compare 
+        public static int CompareSyncBoxFolders(SmokeTestManagerEventArgs e)
+        {
+            Comparison compareTask = e.CurrentTask as Comparison;
+            if (compareTask == null)
+                return (int)FileManagerResponseCodes.InvalidTaskType;
+
+            bool areItemsIdentical = false;
+            StringBuilder report = new StringBuilder();
+            string manualSyncFolderPath = e.ParamSet.ManualSync_Folder.Replace("\"", "");
+            string activeSyncFolderPath = e.ParamSet.ActiveSync_Folder.Replace("\"", "");
+
+            DirectoryInfo activeFolder = new DirectoryInfo(activeSyncFolderPath);
+            DirectoryInfo manualFolder = new DirectoryInfo(manualSyncFolderPath);
+
+            ComparisonManager cMgr = ComparisonManager.GetInstance();
+            if (!cMgr.MoveOn)
+            {
+                if (compareTask.UseDynamicSyncBox)
+                    SetUserInput(cMgr);
+            }
+
+            if (!activeFolder.Exists || !manualFolder.Exists)
+                return (int)FileManagerResponseCodes.UnknownError;
+            if (compareTask.SyncType == SmokeTaskSyncType.Manual)
+            {
+                SmokeTaskManager.TryWaiting(e);
+                areItemsIdentical = SyncBoxManager.CompareLocalFileStructure(activeFolder, manualFolder, ref report);
+                WriteComparisonDetails(activeFolder.FullName, manualFolder.FullName, ref report);
+            }
+            else if (compareTask.SyncType == SmokeTaskSyncType.Active && compareTask.ComparisonType == ComparisonComparisonType.ActiveToServer)
+            {
+                CompareActiveToServer(e, activeFolder, out areItemsIdentical, ref report);
+            }
+            else if (compareTask.SyncType == SmokeTaskSyncType.Active && compareTask.ComparisonType == ComparisonComparisonType.ActiveToActive)
+            {
+                areItemsIdentical = CompareActiveToActive(e, activeFolder, ref report);
+            }
+            if (areItemsIdentical)
+                report.AppendLine("Folders 1 and 2 are Identical.");
+            else
+                report.AppendLine("Comparison Failed");
+
+            e.StringBuilderList.Add(new StringBuilder(report.ToString()));
+            return areItemsIdentical == true ? 0 : (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
+        }
+        #endregion Compare
+        #endregion
 
         #region Private
         private static bool CompareLocalFiles(FileInfo manualFile, FileSystemInfo fso, ref StringBuilder reportBuilder)

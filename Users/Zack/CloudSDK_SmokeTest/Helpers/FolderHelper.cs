@@ -84,7 +84,7 @@ namespace CloudSDK_SmokeTest.Helpers
             int createReturnCode = 0;
             if (!Directory.Exists(createEventArgs.CreateTaskDirectoryInfo.FullName))
                 Directory.CreateDirectory(createEventArgs.CreateTaskDirectoryInfo.FullName);
-            CloudApiPublic.JsonContracts.Metadata metaData;
+
             string newPath = createEventArgs.CreateTaskDirectoryInfo.FullName ;
             CLHttpRestStatus restStatus = new CLHttpRestStatus();
             if(!task.Name.Contains(".") && !newPath.Contains(task.Name))

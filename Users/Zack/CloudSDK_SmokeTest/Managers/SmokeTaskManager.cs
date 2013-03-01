@@ -51,6 +51,17 @@ namespace CloudSDK_SmokeTest.Managers
             return syncBoxID;
         }
 
+        public static void TryWaiting(SmokeTestManagerEventArgs e)
+        {
+            if(e.CurrentTask.type == SmokeTaskType.Comparison)
+            {
+                if ((e.CurrentTask as Comparison).ShouldWaitSpecified && (e.CurrentTask as Comparison).ShouldWait)
+                {
+                    System.Threading.Thread.Sleep(ManagerConstants.WaitMillisecondsBeforeCompare);
+                }
+            }            
+        }
+
         public static void BuildResults(out StringBuilder explanation, String title, int initialCount, int expectedCount, int currentCount)
         {
             explanation = new StringBuilder(string.Format("{0} Count Before Add {1}.", title, initialCount));

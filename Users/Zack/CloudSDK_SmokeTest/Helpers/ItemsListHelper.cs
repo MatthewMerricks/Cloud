@@ -22,8 +22,6 @@ namespace CloudSDK_SmokeTest.Helpers
             int getListResponseCode = -1;
             CLHttpRestStatus restStatus;
             ListPlansResponse plansList = null;
-            CLCredentialCreationStatus credsCreateStatus;
-            CLCredential creds;
             ICLCredentialSettings settings = new AdvancedSyncSettings(itemListHelperArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
             CLError initializeCredsError;
             TaskEventArgs taskArgs = itemListHelperArgs as TaskEventArgs;
@@ -60,8 +58,6 @@ namespace CloudSDK_SmokeTest.Helpers
             GenericHolder<CLError> refHolder = itemListHelperArgs.ProcessingErrorHolder;
             CLHttpRestStatus restStatus;
             ListSessionsResponse sessionList = null;
-            CLCredentialCreationStatus credsCreateStatus;
-            CLCredential creds = null;
             ICLCredentialSettings settings = new AdvancedSyncSettings(itemListHelperArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
             CLError initializeCredsError;
             TaskEventArgs taskArgs = itemListHelperArgs as TaskEventArgs;
@@ -121,8 +117,6 @@ namespace CloudSDK_SmokeTest.Helpers
             GenericHolder<CLError> refHolder = itemListHelperArgs.ProcessingErrorHolder;
             CLHttpRestStatus restStatus;
             ListSyncBoxes syncBoxList;
-            CLCredentialCreationStatus credsCreateStatus;
-            CLCredential creds;
             ICLCredentialSettings settings = new AdvancedSyncSettings(itemListHelperArgs.ParamSet.ManualSync_Folder.Replace("\"", ""));
             CLError initializeCredsError;
             TaskEventArgs args = itemListHelperArgs as TaskEventArgs;

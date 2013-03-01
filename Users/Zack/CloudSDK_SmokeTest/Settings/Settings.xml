@@ -9,8 +9,8 @@
   </Copyright>
   
   <InputParams>
-    <API_Key>9a51759758e9a6f32d4e6ca74b8d2f8e5dd2a27033ac662c4d126a10471be50a</API_Key>
-    <API_Secret>861eaad0786353868423114c241346ba18f6be0a7797422975cbf98a970a619d</API_Secret>
+    <API_Key>5d6563e245ffee808065ff97fe7303f2df8ffcd925c0843402433f2a8dd45167</API_Key>
+    <API_Secret>3811e827db8fa611e09eab2a60d10b82957718589f02f1479a085de85f5c9ade</API_Secret>
     <ActiveSync_Folder>"C:\Users\t_zacharyw\Cloud\"</ActiveSync_Folder>
     <ActiveSync_Folder2>"C:\Users\t_zacharyw\CloudActive2\"</ActiveSync_Folder2>
     <ActiveSync_TraceFolder>"C:\TestSyncBoxes\Traces\AutoSyncTraces"</ActiveSync_TraceFolder>
@@ -22,8 +22,47 @@
     <TraceLevel>5</TraceLevel>
     <TraceType>4</TraceType>
     <FileNameMappingFile>"C:\Users\t_zacharyw\Cloud\NamingConflicts.xml"</FileNameMappingFile>
+    <SettingsPath></SettingsPath>
   </InputParams>
   <Scenario>
+    <!--<ScenarioTasks>
+      <SmokeTask xsi:type="CreateSyncBox">
+        <type>CreateSyncBox</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <CreateNew>true</CreateNew>
+        <Count>1</Count>
+      </SmokeTask>
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Name>ANewAttempt.txt</Name>
+        <Path>C:\Users\t_zacharyw\Cloud2</Path>
+        <CreateNew>true</CreateNew>
+        <Count>1</Count>
+        <ActInTwoFolders>true</ActInTwoFolders>
+      </SmokeTask>
+      <SmokeTask xsi:type="Rename">
+        <type>Rename</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <OldName>RenameMe.txt</OldName>
+        <NewName>SecondRename</NewName>
+        <RelativeDirectoryPath>\</RelativeDirectoryPath>
+        <ServerID>0</ServerID>
+        <ActInTwoFolders>false</ActInTwoFolders>
+      </SmokeTask>
+    </ScenarioTasks>-->
     <ScenarioTasks>
       <SmokeTask xsi:type="Deletion">
         <type>Deletion</type>
@@ -172,8 +211,8 @@
                 <type>File</type>
               </ObjectType>
               <SelectedSyncBoxID>0</SelectedSyncBoxID>
-              <Name>ZacksTerribleFile.txt</Name>
-              <Path>C:\Users\t_zacharyw\Cloud2\TerribleFolder\</Path>
+              <Name>MyFileIsCool.txt</Name>
+              <Path>C:\Users\t_zacharyw\Cloud2\TerriblyAwesome\</Path>
               <CreateNew>true</CreateNew>
               <Count>5</Count>
             </InnerTask>
@@ -181,8 +220,8 @@
               <type>File</type>
             </ObjectType>
             <SelectedSyncBoxID>0</SelectedSyncBoxID>
-            <Name>ZacksCoolFile.txt</Name>
-            <Path>C:\Users\t_zacharyw\Cloud2\CoolFolder\</Path>
+            <Name>TheseFilesAreAwesome.txt</Name>
+            <Path>C:\Users\t_zacharyw\Cloud2\NotSoCool\</Path>
             <CreateNew>true</CreateNew>
             <Count>5</Count>
           </InnerTask>
@@ -190,7 +229,7 @@
             <type>File</type>
           </ObjectType>
           <SelectedSyncBoxID>0</SelectedSyncBoxID>
-          <Name>ZacksAwesomeFile.txt</Name>
+          <Name>CouldThisBeCool.txt</Name>
           <Path>C:\Users\t_zacharyw\Cloud2</Path>
           <CreateNew>true</CreateNew>
           <Count>3</Count>
@@ -219,7 +258,7 @@
           <type>None</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <ComparisonType>ActiveToActive</ComparisonType>
+        <ComparisonType>ActiveToServer</ComparisonType>
         <UseDynamicSyncBox>true</UseDynamicSyncBox>
       </SmokeTask>
       <SmokeTask xsi:type ="Rename">
@@ -229,8 +268,8 @@
           <type>Folder</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <OldName>CoolFolder</OldName>
-        <NewName>TheCoolestFolder</NewName>
+        <OldName>TerriblyAwesome</OldName>
+        <NewName>NothingTerrible</NewName>
         <RelativeDirectoryPath>\</RelativeDirectoryPath>
         <ServerID>0</ServerID>
       </SmokeTask>
@@ -241,9 +280,9 @@
           <type>File</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <OldName>ZacksTerribleFile.txt</OldName>
-        <NewName>ThisFileIsAwesome.txt</NewName>
-        <RelativeDirectoryPath>\TerribleFolder\</RelativeDirectoryPath>
+        <OldName>CouldThisBeCool.txt</OldName>
+        <NewName>AwesomeRename</NewName>
+        <RelativeDirectoryPath>\NothingTerrible\</RelativeDirectoryPath>
         <ServerID>0</ServerID>
       </SmokeTask>
       <SmokeTask xsi:type="Comparison">
@@ -255,6 +294,7 @@
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
         <ComparisonType>ManualToActive</ComparisonType>
         <UseDynamicSyncBox>true</UseDynamicSyncBox>
+        <ShouldWait>true</ShouldWait>
       </SmokeTask>
       <SmokeTask xsi:type="Comparison">
         <type>Comparison</type>
@@ -263,9 +303,21 @@
           <type>None</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <ComparisonType>ActiveToServer</ComparisonType>
+        <UseDynamicSyncBox>true</UseDynamicSyncBox>
+        <ShouldWait>false</ShouldWait>
+      </SmokeTask>
+      <!--<SmokeTask xsi:type="Comparison">
+        <type>Comparison</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
         <ComparisonType>ActiveToActive</ComparisonType>
         <UseDynamicSyncBox>true</UseDynamicSyncBox>
-      </SmokeTask>
+        <ShouldWait>false</ShouldWait>
+      </SmokeTask>-->
       <SmokeTask xsi:type ="Rename">
         <type>Rename</type>
         <SyncType>Active</SyncType>
@@ -273,8 +325,8 @@
           <type>Folder</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <OldName>TerribleFolder</OldName>
-        <NewName>TheMostTerrible</NewName>
+        <OldName>NotSoCool</OldName>
+        <NewName>ReallyReallyCool</NewName>
         <RelativeDirectoryPath>\</RelativeDirectoryPath>
         <ServerID>0</ServerID>
       </SmokeTask>
@@ -285,9 +337,9 @@
           <type>File</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <OldName>ZacksTerribleFile1.txt</OldName>
-        <NewName>ThisFileIsMostAwesome.txt</NewName>
-        <RelativeDirectoryPath>\TheMostTerrible\</RelativeDirectoryPath>
+        <OldName>TheseFilesAreAwesome.txt</OldName>
+        <NewName>AwesomeRename</NewName>
+        <RelativeDirectoryPath>\ReallyReallyCool\</RelativeDirectoryPath>
         <ServerID>0</ServerID>
       </SmokeTask>
       <SmokeTask xsi:type="Comparison">
@@ -297,8 +349,9 @@
           <type>None</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <ComparisonType>ActiveToActive</ComparisonType>
+        <ComparisonType>ManualToActive</ComparisonType>
         <UseDynamicSyncBox>true</UseDynamicSyncBox>
+        <ShouldWait>true</ShouldWait>
       </SmokeTask>
     </ScenarioTasks> 
   </Scenario>

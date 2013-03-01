@@ -395,7 +395,6 @@ namespace CloudSDK_SmokeTest.Managers
             List<Metadata> returnValues = new List<Metadata>();
             GenericHolder<CLError> refHolder = fileDeleteArgs.ProcessingErrorHolder;
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.Folders folders;
             FolderContents folderContents;
             CLError getFilesError = fileDeleteArgs.SyncBox.GetFolderContents(ManagerConstants.TimeOutMilliseconds, out restStatus, out folderContents);
             if (getFilesError != null || restStatus != CLHttpRestStatus.Success)
@@ -472,7 +471,7 @@ namespace CloudSDK_SmokeTest.Managers
             Deletion deleteTask = args.CurrentTask as Deletion;
             if (deleteTask == null)
                 return (int)FileManagerResponseCodes.InvalidTaskType;
-            int iterations = 1;
+
             CLHttpRestStatus restStatus;
             List<Metadata> metadataList = GetFilesForDelete(args, deleteTask).ToList();
             List<FileChange> changes = GetFileChangesFromMetadata(args.SyncBox, metadataList).ToList();
@@ -528,7 +527,7 @@ namespace CloudSDK_SmokeTest.Managers
             Deletion deleteTask = args.CurrentTask as Deletion;
             if (deleteTask == null)
                 return (int)FileManagerResponseCodes.InvalidTaskType;
-            int iterations = 1;
+
             CLHttpRestStatus restStatus;
             List<Metadata> metadataList = GetFoldersForDelete(args, deleteTask).ToList();
             List<FileChange> filechangeList = GetFileChangesFromMetadata(args.SyncBox, metadataList).ToList();
@@ -554,12 +553,12 @@ namespace CloudSDK_SmokeTest.Managers
         #region Undelete
         public int Undelete(Settings.InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder)
         {
-            int deleteResponseCode = 0;
+            //int deleteResponseCode = 0;
             CLCredential creds;
             CLCredentialCreationStatus credsCreateStatus;
-            CLSyncBox syncBox;
-            CLSyncBoxCreationStatus boxCreateStatus;
-            CLHttpRestStatus restStatus = new CLHttpRestStatus();
+            //CLSyncBox syncBox;
+            //CLSyncBoxCreationStatus boxCreateStatus;
+            //CLHttpRestStatus restStatus = new CLHttpRestStatus();
 
             InitalizeCredentials("ManualSyncManager.CreateFile", ref reportBuilder, out creds, out credsCreateStatus);
             ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", ""));
@@ -613,7 +612,6 @@ namespace CloudSDK_SmokeTest.Managers
             CloudApiPublic.JsonContracts.Event returnEvent;
             long syncBoxId = renameTask.SyncType == SmokeTaskSyncType.Active ? paramSet.ActiveSyncBoxID : paramSet.ManualSyncBoxID;
             CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
-            CloudApiPublic.JsonContracts.FolderContents folderContents = null; 
             FileChange fileChange = null;
             if (renameTask.ObjectType.type == ModificationObjectType.Folder)
             {
@@ -631,6 +629,7 @@ namespace CloudSDK_SmokeTest.Managers
                 {
                     GenericHolder<CLError> refHolder = inputProcessingErrorHolder;
                     HandleFailure(getMetaDataError, restStatus, null, "FolderRename", ref refHolder);
+                    renameResponseCode = (int)FileManagerResponseCodes.UnknownError;
                 }
                 else
                 {
@@ -649,32 +648,36 @@ namespace CloudSDK_SmokeTest.Managers
                 fileChange.NewPath = forRename.DirectoryName + '\\' + newFileName.Replace("\"", "");
                 fileChange.OldPath = forRename.FullName;
             }
-            CLError postFileError = syncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
+            if (renameResponseCode == 0)
+            {
+                CLError postFileError = syncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
 
-            if (postFileError != null || restStatus != CLHttpRestStatus.Success)
-            {
-                GenericHolder<CLError> refprocessingErrorHolder = ProcessingErrorHolder;
-                HandleFailure(postFileError, restStatus, null, "RenameFile", ref refprocessingErrorHolder);
-            }
-            else 
-            {
-                try
+                if (postFileError != null || restStatus != CLHttpRestStatus.Success)
                 {
-                    if (renameTask.ObjectType.type == ModificationObjectType.Folder)
-                        Directory.Move(fileChange.OldPath.ToString(), fileChange.NewPath.ToString());
-                    else if (renameTask.ObjectType.type == ModificationObjectType.File)
-                        File.Move(fileChange.OldPath.ToString(), fileChange.NewPath.ToString());
+                    GenericHolder<CLError> refprocessingErrorHolder = ProcessingErrorHolder;
+                    HandleFailure(postFileError, restStatus, null, "RenameFile", ref refprocessingErrorHolder);
                 }
-                catch (Exception excetpion)
+                else
                 {
-                    GenericHolder<CLError> refprocessingErrorHolder = inputProcessingErrorHolder;
-                    lock (refprocessingErrorHolder)
+                    try
                     {
-                        refprocessingErrorHolder.Value = refprocessingErrorHolder.Value + excetpion;
+                        if (renameTask.ObjectType.type == ModificationObjectType.Folder)
+                            Directory.Move(fileChange.OldPath.ToString(), fileChange.NewPath.ToString());
+                        else if (renameTask.ObjectType.type == ModificationObjectType.File)
+                            File.Move(fileChange.OldPath.ToString(), fileChange.NewPath.ToString());
+                    }
+                    catch (Exception excetpion)
+                    {
+                        GenericHolder<CLError> refprocessingErrorHolder = inputProcessingErrorHolder;
+                        lock (refprocessingErrorHolder)
+                        {
+                            refprocessingErrorHolder.Value = refprocessingErrorHolder.Value + excetpion;
+                        }
+                        renameResponseCode = (int)FileManagerResponseCodes.UnknownError;
                     }
                 }
-            }            
-            return 0;
+            }
+            return renameResponseCode;
         }
         #endregion
 
@@ -729,7 +732,7 @@ namespace CloudSDK_SmokeTest.Managers
                 return dloadAllResponseCode;
             }
 
-            CloudApiPublic.JsonContracts.Event returnEvent;
+
             CLSyncBox syncBox;
             CLSyncBoxCreationStatus boxCreateStatus;
             CLHttpRestStatus restStatus = new CLHttpRestStatus();

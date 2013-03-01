@@ -81,7 +81,7 @@ namespace CloudSDK_SmokeTest
                     Console.WriteLine("Xml Data Initialized From Schema...");
                     Console.WriteLine();
                     InputParams.PrintDefaultValues(smokeTestClass.InputParams);
-                    int opperationId =0;
+
                     foreach (ParallelTaskSet parallelSet in smokeTestClass.Scenario.Items)
                     {
                         StringBuilder _report = new StringBuilder();
