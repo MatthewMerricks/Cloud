@@ -13,7 +13,7 @@ using System.Threading;
 //using WebSocket4Net;
 //using WebSocket4Net.Command;
 //using WebSocket4Net.Protocol;
-using SuperSocket.ClientEngine;
+//using SuperSocket.ClientEngine;
 using Cloud.Support;
 using Cloud.Model;
 using Cloud.Static;
