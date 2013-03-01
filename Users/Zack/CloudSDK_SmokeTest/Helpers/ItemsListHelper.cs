@@ -171,7 +171,10 @@ namespace CloudSDK_SmokeTest.Helpers
                     return (int)FileManagerResponseCodes.InitializeCredsError;
             }
             e.Creds.ListSyncBoxes(ManagerConstants.TimeOutMilliseconds, out restStatus, out list);
-            count = list.SyncBoxes.Count();
+            if (list != null && list.SyncBoxes != null)
+                count = list.SyncBoxes.Count();
+            else
+                count = 0;
             return (int)FileManagerResponseCodes.Success;
         }
 
@@ -179,7 +182,7 @@ namespace CloudSDK_SmokeTest.Helpers
         {
             CLHttpRestStatus restStatus;
             ListSessionsResponse list;
-            count = -1;
+            count = 0;
             if (e.Creds == null)
             {
                 TaskEventArgs ea = new TaskEventArgs(e);
@@ -192,7 +195,8 @@ namespace CloudSDK_SmokeTest.Helpers
                     return (int)FileManagerResponseCodes.InitializeCredsError;
             }
             e.Creds.ListSessions(ManagerConstants.TimeOutMilliseconds, out restStatus, out list);
-            count = list.Sessions.Count();
+            if(list != null && list.Sessions!= null)
+                count = list.Sessions.Count();
             return (int)FileManagerResponseCodes.Success;
         }
 

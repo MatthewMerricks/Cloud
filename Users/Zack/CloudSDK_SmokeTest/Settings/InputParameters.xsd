@@ -97,6 +97,7 @@
       <xs:element name="InnerTask" minOccurs="0" type="SmokeTask" />
       <xs:element name="ObjectType" type="ModificationObject" />
       <xs:element name="SelectedSyncBoxID" type="xs:long" />
+      <xs:element name="AtIndex" type="xs:int" minOccurs="0" />
     </xs:sequence>
   </xs:complexType>
 
@@ -119,10 +120,10 @@
     <xs:complexContent >
       <xs:extension base="SmokeTask" >
         <xs:sequence>
-          <xs:element name="Name" type ="xs:string" />
-          <xs:element name="FullName" type ="xs:string" />
-          <xs:element name="RelativePath" type ="xs:string" />
-          <xs:element name="FullPath" type ="xs:string" />
+          <xs:element name="Name" type ="xs:string" minOccurs="0" />
+          <xs:element name="FullName" type ="xs:string" minOccurs="0" />
+          <xs:element name="RelativePath" type ="xs:string" minOccurs="0" />
+          <xs:element name="FullPath" type ="xs:string" minOccurs="0" />
           <xs:element name="DeleteAll" type="xs:boolean" minOccurs="0" />
           <xs:element name="DeleteCount" type="xs:int" minOccurs="0"/>
           <xs:element name="ID" type="xs:long" minOccurs="0"/>
@@ -136,10 +137,10 @@
     <xs:complexContent >
       <xs:extension base="SmokeTask" >
         <xs:sequence>
-          <xs:element name="OldName" type ="xs:string" />
-          <xs:element name="NewName" type ="xs:string" />
-          <xs:element name="RelativeDirectoryPath" type ="xs:string" />
-          <xs:element name="ServerID" type="xs:long" />
+          <xs:element name="OldName" type ="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="NewName" type ="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="RelativeDirectoryPath" type ="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="ServerID" type="xs:long" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -219,6 +220,7 @@
               </xs:restriction>
             </xs:simpleType>
           </xs:element>
+          <xs:element name="UseDynamicSyncBox" type="xs:boolean" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

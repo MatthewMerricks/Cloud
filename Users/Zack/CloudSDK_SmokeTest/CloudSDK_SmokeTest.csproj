@@ -33,12 +33,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BadgeCOMLib">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Cloud.com\CloudSdkSyncSample\BadgeCOMLib.dll</HintPath>
+      <HintPath>..\..\..\CloudApiPublic\bin\Release\BadgeCOMLib.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="CloudApiPublic, Version=0.1.4.1, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="CloudApiPublic, Version=0.1.5.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Program Files (x86)\Cloud.com\CloudSdkSyncSample\CloudApiPublic.dll</HintPath>
+      <HintPath>..\..\..\CloudApiPublic\bin\Release\CloudApiPublic.dll</HintPath>
     </Reference>
     <Reference Include="ErikEJ.SqlCe40">
       <HintPath>..\..\..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</HintPath>
@@ -108,6 +108,7 @@
     <Compile Include="Helpers\SmokeTestTaskHelper.cs" />
     <Compile Include="Helpers\XMLHelper.cs" />
     <Compile Include="Interfaces\ISmokeTaskManager.cs" />
+    <Compile Include="Managers\ComparisonManager.cs" />
     <Compile Include="Managers\DownloadManager.cs" />
     <Compile Include="Managers\ExceptionManager.cs" />
     <Compile Include="Managers\FileManager.cs" />
