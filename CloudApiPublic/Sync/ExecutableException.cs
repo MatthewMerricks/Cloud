@@ -5,8 +5,8 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
-using CloudApiPublic.Static;
+using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -25,7 +25,7 @@ using Cloud.SQLIndexer;
 using JsonContracts = Cloud.JsonContracts;
 using Cloud.Sync;
 using Cloud.REST;
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
+using Cloud.Model.EventMessages.ErrorInfo;
 
 /// <summary>
 /// Monitor a local file system folder as a SyncBox.

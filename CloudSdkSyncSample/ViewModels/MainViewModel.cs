@@ -1475,7 +1475,7 @@ namespace SampleLiveSync.ViewModels
             {
                 case EventMessageType.Error: // error type
                     //// cast as error
-                    CloudApiPublic.Model.EventMessages.ErrorMessage errMessage = (CloudApiPublic.Model.EventMessages.ErrorMessage)e.Message;
+                    Cloud.Model.EventMessages.ErrorMessage errMessage = (Cloud.Model.EventMessages.ErrorMessage)e.Message;
 
                     //// enumerated rating of the presumed weight of message importance
                     //errMessage.Importance
@@ -1486,7 +1486,7 @@ namespace SampleLiveSync.ViewModels
                     {
                         case ErrorMessageType.HaltAllOfCloudSDK: // entire SDK halted type (unrecoverable error requiring restarting the process running the Cloud SDK and possibly a call to [instance of CLSyncEngine].ResetSync)
                             // cast as halt all info
-                            CloudApiPublic.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo haltAllInfo = (CloudApiPublic.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo)errMessage.ErrorInfo;
+                            Cloud.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo haltAllInfo = (Cloud.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo)errMessage.ErrorInfo;
 
                             if (NotifyException != null)
                             {
@@ -1502,7 +1502,7 @@ namespace SampleLiveSync.ViewModels
 
                         case ErrorMessageType.HaltSyncEngineOnAuthenticationFailure: // authentication failure type
                             // cast as authentication info
-                            CloudApiPublic.Model.EventMessages.ErrorInfo.HaltSyncEngineOnAuthenticationFailureErrorInfo authInfo = (CloudApiPublic.Model.EventMessages.ErrorInfo.HaltSyncEngineOnAuthenticationFailureErrorInfo)errMessage.ErrorInfo;
+                            Cloud.Model.EventMessages.ErrorInfo.HaltSyncEngineOnAuthenticationFailureErrorInfo authInfo = (Cloud.Model.EventMessages.ErrorInfo.HaltSyncEngineOnAuthenticationFailureErrorInfo)errMessage.ErrorInfo;
 
                             // authentication failure has additional data in its info
                             // so switch on whether the authentication failure was due to an expired token
@@ -1545,7 +1545,7 @@ namespace SampleLiveSync.ViewModels
 
                         case ErrorMessageType.HaltSyncEngineOnConnectionFailure: // unable to establish route to server type
                             // cast as connection failure info
-                            CloudApiPublic.Model.EventMessages.ErrorInfo.HaltSyncEngineOnConnectionFailureErrorInfo connInfo = (CloudApiPublic.Model.EventMessages.ErrorInfo.HaltSyncEngineOnConnectionFailureErrorInfo)errMessage.ErrorInfo;
+                            Cloud.Model.EventMessages.ErrorInfo.HaltSyncEngineOnConnectionFailureErrorInfo connInfo = (Cloud.Model.EventMessages.ErrorInfo.HaltSyncEngineOnConnectionFailureErrorInfo)errMessage.ErrorInfo;
 
                             if (NotifyException != null)
                             {
@@ -1560,7 +1560,7 @@ namespace SampleLiveSync.ViewModels
 
                         case ErrorMessageType.General: // general error type
                             // cast as general info
-                            CloudApiPublic.Model.EventMessages.ErrorInfo.GeneralErrorInfo genInfo = (CloudApiPublic.Model.EventMessages.ErrorInfo.GeneralErrorInfo)errMessage.ErrorInfo;
+                            Cloud.Model.EventMessages.ErrorInfo.GeneralErrorInfo genInfo = (Cloud.Model.EventMessages.ErrorInfo.GeneralErrorInfo)errMessage.ErrorInfo;
 
                             // general errors occur as normal processing, they are logged in the Sync Status view
                             // (no need to notify on exception)
@@ -1593,7 +1593,7 @@ namespace SampleLiveSync.ViewModels
 
                 case EventMessageType.Informational: // information type
                     //// cast as information
-                    //CloudApiPublic.Model.EventMessages.InformationalMessage infoMessage = (CloudApiPublic.Model.EventMessages.InformationalMessage)e.Message;
+                    //Cloud.Model.EventMessages.InformationalMessage infoMessage = (Cloud.Model.EventMessages.InformationalMessage)e.Message;
 
                     //// enumerated rating of the presumed weight of message importance
                     //infoMessage.Importance
@@ -1605,7 +1605,7 @@ namespace SampleLiveSync.ViewModels
 
                 case EventMessageType.UploadingCountChanged: // uploading count type
                     //// cast as uploading count
-                    //CloudApiPublic.Model.EventMessages.UploadingCountMessage uploadingCountMessage = (CloudApiPublic.Model.EventMessages.UploadingCountMessage)e.Message;
+                    //Cloud.Model.EventMessages.UploadingCountMessage uploadingCountMessage = (Cloud.Model.EventMessages.UploadingCountMessage)e.Message;
 
                     //// the combined count of uploading files and files queued for upload
                     //uploadingCountMessage.Count
@@ -1613,7 +1613,7 @@ namespace SampleLiveSync.ViewModels
 
                 case EventMessageType.DownloadingCountChanged: // downloading count type
                     //// cast as downloading count
-                    //CloudApiPublic.Model.EventMessages.DownloadingCountMessage downloadingCountMessage = (CloudApiPublic.Model.EventMessages.DownloadingCountMessage)e.Message;
+                    //Cloud.Model.EventMessages.DownloadingCountMessage downloadingCountMessage = (Cloud.Model.EventMessages.DownloadingCountMessage)e.Message;
 
                     //// the combined count of downloading files and files queued for download
                     //downloadingCountMessage.Count
@@ -1621,7 +1621,7 @@ namespace SampleLiveSync.ViewModels
 
                 case EventMessageType.UploadProgress: // upload progress type
                     //// cast as upload progress
-                    //CloudApiPublic.Model.EventMessages.UploadProgressMessage uploadProgressMessage = (CloudApiPublic.Model.EventMessages.UploadProgressMessage)e.Message;
+                    //Cloud.Model.EventMessages.UploadProgressMessage uploadProgressMessage = (Cloud.Model.EventMessages.UploadProgressMessage)e.Message;
 
                     //// the unique id for the upload change on the client, can be used in method [CLSyncEngine instance].QueryFileChangeByEventId to lookup additional event details
                     //uploadProgressMessage.EventId
@@ -1636,7 +1636,7 @@ namespace SampleLiveSync.ViewModels
 
                 case EventMessageType.DownloadProgress: // download progress type
                     //// cast as download progress
-                    //CloudApiPublic.Model.EventMessages.DownloadProgressMessage downloadProgressMessage = (CloudApiPublic.Model.EventMessages.DownloadProgressMessage)e.Message;
+                    //Cloud.Model.EventMessages.DownloadProgressMessage downloadProgressMessage = (Cloud.Model.EventMessages.DownloadProgressMessage)e.Message;
 
                     //// the unique id for the upload change on the client, can be used in method [CLSyncEngine instance].QueryFileChangeByEventId to lookup additional event details
                     //downloadProgressMessage.EventId
@@ -1651,7 +1651,7 @@ namespace SampleLiveSync.ViewModels
 
                 case EventMessageType.SuccessfulUploadsIncremented: // uploads incremented type
                     //// cast as uploads incremented
-                    //CloudApiPublic.Model.EventMessages.SuccessfulUploadsIncrementedMessage uploadsIncrementMessage = (CloudApiPublic.Model.EventMessages.SuccessfulUploadsIncrementedMessage)e.Message;
+                    //Cloud.Model.EventMessages.SuccessfulUploadsIncrementedMessage uploadsIncrementMessage = (Cloud.Model.EventMessages.SuccessfulUploadsIncrementedMessage)e.Message;
 
                     //// the amount to increment (the number of finished transfers)
                     //uploadsIncrementMessage.Count
@@ -1659,7 +1659,7 @@ namespace SampleLiveSync.ViewModels
 
                 case EventMessageType.SuccessfulDownloadsIncremented: // downloads incremented type
                     //// cast as downloads incremented
-                    //CloudApiPublic.Model.EventMessages.SuccessfulDownloadsIncrementedMessage downloadIncrementMessage = (CloudApiPublic.Model.EventMessages.SuccessfulDownloadsIncrementedMessage)e.Message;
+                    //Cloud.Model.EventMessages.SuccessfulDownloadsIncrementedMessage downloadIncrementMessage = (Cloud.Model.EventMessages.SuccessfulDownloadsIncrementedMessage)e.Message;
 
                     //// the amount to increment (the number of finished transfers)
                     //downloadIncrementMessage.Count

@@ -25,7 +25,7 @@ using Cloud.SQLIndexer.Model;
 using SqlSync = Cloud.SQLIndexer.SqlModel.Sync;
 using Cloud.Interfaces;
 using Cloud.Support;
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
+using Cloud.Model.EventMessages.ErrorInfo;
 
 namespace Cloud.SQLIndexer
 {

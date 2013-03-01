@@ -382,10 +382,6 @@
 		<row><td>Sample_Live_Sync.Primary_output</td><td>{B7215F67-4203-4F3D-A8D9-BED466905AAD}</td><td>APP</td><td>2</td><td/><td>sample_live_sync.primary_out</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SimpleJson.dll1</td><td>{E13CE6F8-214A-45CE-830D-8EF5A550A5E9}</td><td>APP</td><td>2</td><td/><td>simplejson.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SimpleJson.dll2</td><td>{BCC34777-3DF6-45AD-8DDC-6530D4364295}</td><td>CLOUDSDK1</td><td>2</td><td/><td>simplejson.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SuperSocket.ClientEngine.Core.dll1</td><td>{6B0A19C7-3048-4BA7-BC59-67198D116A99}</td><td>APP</td><td>2</td><td/><td>supersocket.clientengine.cor1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SuperSocket.ClientEngine.Core.dll2</td><td>{AC5B29AD-AD49-41DF-95E6-F650C47FB613}</td><td>CLOUDSDK1</td><td>2</td><td/><td>supersocket.clientengine.cor2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SuperSocket.ClientEngine.Protocol.dll1</td><td>{32D4A734-94E1-47EF-9B76-FAE4B659C413}</td><td>APP</td><td>2</td><td/><td>supersocket.clientengine.pro1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SuperSocket.ClientEngine.Protocol.dll2</td><td>{F9CD0EC8-B238-49BE-9CF2-D4E5E9DBB7D2}</td><td>CLOUDSDK1</td><td>2</td><td/><td>supersocket.clientengine.pro2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>System.Data.SqlServerCe.dll1</td><td>{E02EE84C-BF82-44C9-9C98-0FFA03B3FE02}</td><td>APP</td><td>2</td><td/><td>system.data.sqlserverce.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>System.Data.SqlServerCe.dll2</td><td>{F7C48A95-1E57-4F53-9C7D-D8CB4845392D}</td><td>CLOUDSDK1</td><td>2</td><td/><td>system.data.sqlserverce.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>msvcr90.dll</td><td>{C2B525D2-CBA5-49C5-A78E-F1F27A5CE158}</td><td>MICROSOFT.VC90.CRT</td><td>2</td><td/><td>msvcr90.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1994,10 +1990,6 @@
 		<row><td>AlwaysInstall</td><td>Sample_Live_Sync.Primary_output</td></row>
 		<row><td>AlwaysInstall</td><td>SimpleJson.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>SimpleJson.dll2</td></row>
-		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Core.dll1</td></row>
-		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Core.dll2</td></row>
-		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Protocol.dll1</td></row>
-		<row><td>AlwaysInstall</td><td>SuperSocket.ClientEngine.Protocol.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>System.Data.SqlServerCe.dll1</td></row>
 		<row><td>AlwaysInstall</td><td>System.Data.SqlServerCe.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>msvcr90.dll</td></row>
@@ -2077,10 +2069,6 @@
 		<row><td>sqlcese40.dll1</td><td>sqlcese40.dll1</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlcese40.dll</td><td>1</td><td/></row>
 		<row><td>ssceruntime_x64_enu.exe</td><td>SSCERuntime_x64_ENU.exe</td><td>SSCERU~1.EXE|SSCERuntime_x64-ENU.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SSCERuntime_x64-ENU.exe</td><td>1</td><td/></row>
 		<row><td>ssceruntime_x86_enu.exe</td><td>SSCERuntime_x86_ENU.exe</td><td>SSCERU~1.EXE|SSCERuntime_x86-ENU.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SSCERuntime_x86-ENU.exe</td><td>1</td><td/></row>
-		<row><td>supersocket.clientengine.cor1</td><td>SuperSocket.ClientEngine.Core.dll1</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Core.dll</td><td>1</td><td/></row>
-		<row><td>supersocket.clientengine.cor2</td><td>SuperSocket.ClientEngine.Core.dll2</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Core.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Core.dll</td><td>1</td><td/></row>
-		<row><td>supersocket.clientengine.pro1</td><td>SuperSocket.ClientEngine.Protocol.dll1</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Protocol.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Protocol.dll</td><td>1</td><td/></row>
-		<row><td>supersocket.clientengine.pro2</td><td>SuperSocket.ClientEngine.Protocol.dll2</td><td>SUPERS~1.DLL|SuperSocket.ClientEngine.Protocol.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SuperSocket.ClientEngine.Protocol.dll</td><td>1</td><td/></row>
 		<row><td>system.data.sqlserverce.dll1</td><td>System.Data.SqlServerCe.dll1</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\System.Data.SqlServerCe.dll</td><td>1</td><td/></row>
 		<row><td>system.data.sqlserverce.dll2</td><td>System.Data.SqlServerCe.dll2</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\System.Data.SqlServerCe.dll</td><td>1</td><td/></row>
 		<row><td>windowssdkreleasenotes.txt2</td><td>ISX_DEFAULTCOMPONENT7</td><td>WINDOW~1.TXT|WindowsSdkReleaseNotes.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudApiPublic\WindowsSdkReleaseNotes.txt</td><td>1</td><td/></row>
@@ -2381,10 +2369,6 @@
 		<row><td>Sample_Live_Sync.Primary_output</td><td/><td/><td>_FF5F6A1D_CCC6_4A2B_A446_C75E0D521515_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SimpleJson.dll1</td><td/><td/><td>_FA66C7A6_A81C_40F5_BBB0_2D5DDBD3C028_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SimpleJson.dll2</td><td/><td/><td>_3CB1BB6F_0AB6_4178_97FE_28969C43731B_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>SuperSocket.ClientEngine.Core.dll1</td><td/><td/><td>_D96921BA_F3A1_4E67_9344_DFB898F0F994_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>SuperSocket.ClientEngine.Core.dll2</td><td/><td/><td>_E15A39B7_3FAB_475B_A39C_06EB5430892F_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>SuperSocket.ClientEngine.Protocol.dll1</td><td/><td/><td>_E54890CD_A9A2_4A64_BD36_2B58D4EB592F_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>SuperSocket.ClientEngine.Protocol.dll2</td><td/><td/><td>_C8075CFE_13C2_4BFA_8E40_7663ADB3F42F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Data.SqlServerCe.dll1</td><td/><td/><td>_E26C0375_3B71_4E65_81DA_E70E015C0F6A_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Data.SqlServerCe.dll2</td><td/><td/><td>_59B39F71_591E_4AA3_8B5D_0FCE24E0B505_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>msvcr90.dll</td><td/><td/><td>_B9128E43_32FC_4156_A935_139019751765_FILTER</td><td/><td/><td/><td/></row>

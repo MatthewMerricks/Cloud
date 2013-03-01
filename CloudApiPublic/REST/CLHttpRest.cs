@@ -21,7 +21,7 @@ using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
 using Cloud.Support;
 using System.Linq.Expressions;
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
+using Cloud.Model.EventMessages.ErrorInfo;
 
 namespace Cloud.REST
 {
