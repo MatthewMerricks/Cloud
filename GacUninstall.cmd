@@ -2,7 +2,7 @@ echo gacutil /u BadgeCOMLib,Version=0.1.6.0,Culture=neutral,PublicKeyToken=840eb
 gacutil /u BadgeCOMLib,Version=0.1.6.0,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
 
 echo gacutil /u Cloud,Version=0.1.5.0,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
-gacutil /u Cloud,Version=0.1.6.0,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
+gacutil /u Cloud,Version=0.1.5.0,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
 
 echo gacutil /u ErikEJ.SqlCe40,Version=2.1.6.0,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
 gacutil /u ErikEJ.SqlCe40,Version=2.1.6.0,Culture=neutral,PublicKeyToken=840eb90fa4503c3c

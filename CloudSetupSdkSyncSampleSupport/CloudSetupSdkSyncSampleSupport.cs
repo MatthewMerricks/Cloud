@@ -177,15 +177,6 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support System.Xaml.dll file.");
                 File.Copy(pathInstall + "\\System.Xaml.dll", pathWork);
 
-                // Copy SuperSocket.ClientEngine.Common.dll.
-                pathWork = pathInstall + "\\Support\\SuperSocket.ClientEngine.Common.dll";
-                if (File.Exists(pathWork))
-                {
-                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support SuperSocket.ClientEngine.Common.dll file.");
-                    File.Delete(pathWork);
-                }
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support SuperSocket.ClientEngine.Common.dll file.");
-                File.Copy(pathInstall + "\\SuperSocket.ClientEngine.Common.dll", pathWork);
 
                 // Determine the SQL CE installation program to run
                 string fileNameExt;
@@ -201,13 +192,13 @@ namespace CloudSetupSdkSyncSampleSupport
                 }
 
                 // Copy the SQL CE installation program to the \Support directory.
-                pathWork = pathInstall + "\\Support\\SSCERuntime.exe";
+                pathWork = pathInstall + "\\Support\\" + fileNameExt;
                 if (File.Exists(pathWork))
                 {
-                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support SSCERuntime.exe file.");
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support file {0}.", pathWork);
                     File.Delete(pathWork);
                 }
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support SSCERuntime.exe file.");
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support SSCERuntime*.exe file.");
                 File.Copy(pathInstall + "\\" + fileNameExt, pathWork);
 
                 // Open the documentation zip file and decompress all of its files and folders
@@ -326,19 +317,36 @@ namespace CloudSetupSdkSyncSampleSupport
                 }
             }
 
-            // Install all of the DLLs required for the sample in the gac.
-            InstallDllsToGac(pathInstall);
+            try
+            {
+                // Copy RateBar.dll from the App directory to the Project bin folders
+                string source = pathInstall + "\\Sample Code\\Sync\\Live\\App\\RateBar.dll";
+                string target = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\bin\\Release\\RateBar.dll";
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy RateBar.dll. Src: <{0}>. Target: <{1}>.", source, target);
+                File.Copy(source, target);
+                target = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\bin\\Debug\\RateBar.dll";
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy RateBar.dll. Src: <{0}>. Target: <{1}>.", source, target);
+                File.Copy(source, target);
 
-            // Install SQL CE V4.0.
-            _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call InstallSqlCe.");
-            int rcFromInstallSqlCe = InstallSqlCe(pathInstall);
-            _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Back from InstallSqlCe.  Return code: {0}.", rcFromInstallSqlCe.ToString());
+                // Install all of the DLLs required for the sample in the gac.
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call InstallDllsToGac.");
+                InstallDllsToGac(pathInstall);
 
-            // Schedule cleanup of the files in the installation directory.
-            _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call ScheduleCleanup.");
-            rcToReturn = ScheduleCleanup("CloudSetupSdkSyncSampleInstallCleanup");
-            _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Innstall: Return from ScheduleCleanup. rc: {0}.", rcToReturn);
+                // Install SQL CE V4.0.
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call InstallSqlCe.");
+                int rcFromInstallSqlCe = InstallSqlCe(pathInstall);
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Back from InstallSqlCe.  Return code: {0}.", rcFromInstallSqlCe.ToString());
 
+                // Schedule cleanup of the files in the installation directory.
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call ScheduleCleanup.");
+                rcToReturn = ScheduleCleanup("CloudSetupSdkSyncSampleInstallCleanup");
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Innstall: Return from ScheduleCleanup. rc: {0}.", rcToReturn);
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: Install: ERROR: Exception(3). Msg: {0}.", ex.Message);
+                rcToReturn = -201;
+            }
 
             _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Return {0}.", rcToReturn);
             return rcToReturn;
@@ -351,11 +359,29 @@ namespace CloudSetupSdkSyncSampleSupport
         /// <returns>(int): Return code from the SQL CE installer.</returns>
         private static int InstallSqlCe(string pathInstall)
         {
+            // Determine whether an installation is required.
+            if (IsSqlCeV40Installed())
+            {
+                return 0;
+            }
+
             Process installProcess = null;
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.CreateNoWindow = false;
             startInfo.UseShellExecute = true;
-            startInfo.FileName = pathInstall + "\\Support\\SSCERuntime.exe";
+            string fileNameExt;
+            if (IntPtr.Size == 4)
+            {
+                // 32-bit 
+                fileNameExt = "SSCERuntime_x86-ENU.exe";
+            }
+            else
+            {
+                // 64-bit 
+                fileNameExt = "SSCERuntime_x64-ENU.exe";
+            }
+            startInfo.FileName = pathInstall + "\\Support\\" + fileNameExt;
+
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.Arguments = "";
             if (!Cloud.Static.Helpers.IsAdministrator())
@@ -378,6 +404,37 @@ namespace CloudSetupSdkSyncSampleSupport
             }
 
             return retCode;
+        }
+
+        /// <summary>
+        /// Determine whether SQL CE V4.0 is installed.
+        /// From ErikEJ: http://stackoverflow.com/questions/10534158/how-to-detect-if-sql-server-ce-4-0-is-installed
+        /// </summary>
+        /// <returns>bool: True: It is installed.</returns>
+        public static bool IsSqlCeV40Installed()
+        {
+            try
+            {
+                System.Reflection.Assembly.Load("System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91");
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                return false;
+            }
+            try
+            {
+                var factory = System.Data.Common.DbProviderFactories.GetFactory("System.Data.SqlServerCe.4.0");
+            }
+            catch (System.Configuration.ConfigurationException)
+            {
+                return false;
+            }
+            catch (System.ArgumentException)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -418,20 +475,11 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Newtonsoft.Json.dll to the gac.");
                 p.GacInstall(pathSdk + "\\Newtonsoft.Json.dll");
 
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy RateBar.dll to the gac.");
-                p.GacInstall(pathSdk + "\\RateBar.dll");
-
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Salient.Data.dll to the gac.");
                 p.GacInstall(pathSdk + "\\Salient.Data.dll");
 
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy SimpleJson.dll to the gac.");
                 p.GacInstall(pathSdk + "\\SimpleJson.dll");
-
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy SuperSocket.ClientEngine.Core.dll to the gac.");
-                p.GacInstall(pathSdk + "\\SuperSocket.ClientEngine.Core.dll");
-
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy SuperSocket.ClientEngine.Protocol.dll to the gac.");
-                p.GacInstall(pathSdk + "\\SuperSocket.ClientEngine.Protocol.dll");
 
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy System.Dynamic.dll to the gac.");
                 p.GacInstall(pathSdk + "\\System.Dynamic.dll");

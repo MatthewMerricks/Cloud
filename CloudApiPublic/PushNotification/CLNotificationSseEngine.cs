@@ -163,11 +163,11 @@ namespace Cloud.PushNotification
                     // Start the engine.
                     StartEngineThread();
                     _isStarted = true;
-
-                    // Wait here for the thread to finish.
-                    _startComplete.WaitOne();
-                    fToReturnIsSuccess = _isConnectionSuccesful;
                 }
+
+                // Wait here for the thread to finish.
+                _startComplete.WaitOne();
+                fToReturnIsSuccess = _isConnectionSuccesful;
             }
             catch (Exception ex)
             {

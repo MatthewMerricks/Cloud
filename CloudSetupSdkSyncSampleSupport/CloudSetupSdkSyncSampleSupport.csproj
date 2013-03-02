@@ -149,13 +149,13 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe  $(ProjectDir)XMLDocum
 if errorlevel 1 goto BuildEventFailed
 
 set ErrorTracker=5
-echo copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
-copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+echo copy $(ProjectDir)Help\Cloud.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(ProjectDir)Help\Cloud.xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
 set ErrorTracker=6
-echo copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
-copy $(ProjectDir)Help\CloudApiPublic.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+echo copy $(ProjectDir)Help\Cloud.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(ProjectDir)Help\Cloud.xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 goto AfterDocumentation
@@ -218,72 +218,222 @@ cd ..
 echo cd ErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
-REM ------ Zip the SDK sample source and VS project ----------------
+REM ------- Copy BadgeCom.dll to the sample VS project
 REM ----------------------
 set ErrorTracker=16
+xcopy /Y /S /v $(SolutionDir)3rdParty\bin\release\BadgeCom.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=17
+xcopy /Y /S /v $(SolutionDir)3rdParty\bin\release\BadgeCom.dll $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=18
+xcopy /Y /S /v $(SolutionDir)3rdParty\bin\release64\BadgeCom.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=19
+xcopy /Y /S /v $(SolutionDir)3rdParty\bin\release64\BadgeCom.dll $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+if errorlevel 1 goto BuildEventFailed
+
+REM ------ Zip the SDK sample source and VS project ----------------
+REM ----------------------
+set ErrorTracker=20
 echo cd CloudSdkSyncSample
 cd CloudSdkSyncSample
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=17
-echo del CloudSdkSyncSampleSource.zip
-del CloudSdkSyncSampleSource.zip
+set ErrorTracker=21
+echo del SampleLiveSyncSource.zip
+del SampleLiveSyncSource.zip
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=18
-echo 7z a -tzip CloudSdkSyncSampleSource.zip ./
-7z a -tzip CloudSdkSyncSampleSource.zip ./
+set ErrorTracker=22
+echo 7z a -tzip SampleLiveSyncSource.zip ./
+7z a -tzip SampleLiveSyncSource.zip ./
 if errorlevel 1 goto BuildEventFailed
 
 REM ----- Delete the obj\ directory in the zip file -----------------
-set ErrorTracker=19
-echo 7z d CloudSdkSyncSampleSource.zip obj/
-7z d CloudSdkSyncSampleSource.zip obj/
+set ErrorTracker=23
+echo 7z d SampleLiveSyncSource.zip obj/
+7z d SampleLiveSyncSource.zip obj/
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
-REM ----- Delete the bin\Debug\CloudSdkSyncSample* files in the zip file -----------------
-set ErrorTracker=20
-echo 7z d CloudSdkSyncSampleSource.zip bin\Debug\CloudSdkSyncSample*.*
-7z d CloudSdkSyncSampleSource.zip bin\Debug\CloudSdkSyncSample*.*
+REM ----- Delete the bin\Debug\Sample-Live-Sync* files in the zip file -----------------
+set ErrorTracker=24
+echo 7z d SampleLiveSyncSource.zip bin\Debug\Sample-Live-Sync*.*
+7z d SampleLiveSyncSource.zip bin\Debug\Sample-Live-Sync*.*
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
-REM ----- Delete the bin\Release\CloudSdkSyncSample* files in the zip file -----------------
-set ErrorTracker=21
-echo 7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
-7z d CloudSdkSyncSampleSource.zip bin\Release\CloudSdkSyncSample*.*
+REM ----- Delete the bin\Release\Sample-Live-Sync* files in the zip file -----------------
+set ErrorTracker=25
+echo 7z d SampleLiveSyncSource.zip bin\Release\Sample-Live-Sync*.*
+7z d SampleLiveSyncSource.zip bin\Release\Sample-Live-Sync*.*
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Debug\*.dll files in the zip file -----------------
+set ErrorTracker=26
+echo 7z d SampleLiveSyncSource.zip bin\Debug\*.dll
+7z d SampleLiveSyncSource.zip bin\Debug\*.dll
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\*.dll files in the zip file -----------------
+set ErrorTracker=27
+echo 7z d SampleLiveSyncSource.zip bin\Release\*.dll
+7z d SampleLiveSyncSource.zip bin\Release\*.dll
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Debug\*.pdb files in the zip file -----------------
+set ErrorTracker=28
+echo 7z d SampleLiveSyncSource.zip bin\Debug\*.pdb
+7z d SampleLiveSyncSource.zip bin\Debug\*.pdb
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\*.pdb files in the zip file -----------------
+set ErrorTracker=29
+echo 7z d SampleLiveSyncSource.zip bin\Release\*.pdb
+7z d SampleLiveSyncSource.zip bin\Release\*.pdb
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=22
+set ErrorTracker=30
 echo xcopy /Y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
 xcopy /Y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\x86
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=23
+set ErrorTracker=31
 echo xcopy /y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
 xcopy /y /S /v $(SolutionDir)x86\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=24
+set ErrorTracker=32
 echo xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
 xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=25
+set ErrorTracker=33
 echo xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
 xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
 if errorlevel 1 goto BuildEventFailed
 
+REM ***** Delete extra files in the amd64 directory
+REM ----- Delete the bin\Debug\amd64\sql*.dll in the zip file -----------------
+set ErrorTracker=34
+echo 7z d CloudSdkSyncSampleSource.zip bin\Debug\amd64\sql*.dll
+7z d SampleLiveSyncSource.zip bin\Debug\amd64\sql*.dll
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\amd64\sql*.dll files in the zip file -----------------
+set ErrorTracker=35
+echo 7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
+7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Debug\amd64\*.pdb in the zip file -----------------
+set ErrorTracker=36
+echo 7z d SampleLiveSyncSource.zip bin\Debug\amd64\*.pdb
+7z d SampleLiveSyncSource.zip bin\Debug\amd64\*.pdb
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\amd64\sql*.dll files in the zip file -----------------
+set ErrorTracker=37
+echo 7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
+7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Debug\amd64\Microsoft* directory in the zip file -----------------
+set ErrorTracker=38
+echo 7z d SampleLiveSyncSource.zip bin\Debug\amd64\Microsoft.VC90.CRT\
+7z d SampleLiveSyncSource.zip bin\Debug\amd64\Microsoft.VC90.CRT\
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\amd64\Microsoft* directory in the zip file -----------------
+set ErrorTracker=39
+echo 7z d SampleLiveSyncSource.zip bin\Release\amd64\Microsoft.VC90.CRT\
+7z d SampleLiveSyncSource.zip bin\Release\amd64\Microsoft.VC90.CRT\
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ***** Delete extra files in the x86 directory
+REM ----- Delete the bin\Debug\x86\sql*.dll in the zip file -----------------
+set ErrorTracker=40
+echo 7z d SampleLiveSyncSource.zip bin\Debug\x86\sql*.dll
+7z d SampleLiveSyncSource.zip bin\Debug\x86\sql*.dll
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\x86\sql*.dll files in the zip file -----------------
+set ErrorTracker=41
+echo 7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
+7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Debug\x86\*.pdb in the zip file -----------------
+set ErrorTracker=42
+echo 7z d SampleLiveSyncSource.zip bin\Debug\x86\*.pdb
+7z d SampleLiveSyncSource.zip bin\Debug\x86\*.pdb
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\x86\sql*.dll files in the zip file -----------------
+set ErrorTracker=43
+echo 7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
+7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Debug\x86\Microsoft* directory in the zip file -----------------
+set ErrorTracker=44
+echo 7z d SampleLiveSyncSource.zip bin\Debug\x86\Microsoft.VC90.CRT\
+7z d SampleLiveSyncSource.zip bin\Debug\x86\Microsoft.VC90.CRT\
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\x86\Microsoft* directory in the zip file -----------------
+set ErrorTracker=45
+echo 7z d SampleLiveSyncSource.zip bin\Release\x86\Microsoft.VC90.CRT\
+7z d SampleLiveSyncSource.zip bin\Release\x86\Microsoft.VC90.CRT\
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM *****************  Delete the sample app .exe files in bin\release and bin\debug
+REM ----- Delete the bin\Debug\Sample-Live-Sync*.* in the zip file -----------------
+set ErrorTracker=46
+echo 7z d SampleLiveSyncSource.zip bin\Debug\Sample-Live-Sync*.*
+7z d SampleLiveSyncSource.zip bin\Debug\Sample-Live-Sync*.*
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Delete the bin\Release\Sample-Live-Sync*.* in the zip file -----------------
+set ErrorTracker=47
+echo 7z d SampleLiveSyncSource.zip bin\Release\Sample-Live-Sync*.*
+7z d SampleLiveSyncSource.zip bin\Release\Sample-Live-Sync*.*
+echo 7z DeleteErrorLevel: %25errorlevel%25
+if errorlevel 1 goto BuildEventFailed
+
 REM ----------------------
-set ErrorTracker=26
+set ErrorTracker=48
 echo cd ..
 cd ..
 if errorlevel 1 goto BuildEventFailed
@@ -300,6 +450,7 @@ exit 1
 :BuildEventOK
 echo PREBUILDSTEP for $(ProjectName) COMPLETED OK
 echo ************  PRE BUILD STEP COMPLETED OK **********************
+
 
 
 
