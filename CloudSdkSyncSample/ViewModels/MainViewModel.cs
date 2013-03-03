@@ -18,6 +18,8 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using System.Threading;
 using System.Management;
+using System.Reflection;  //&&&&& remove
+using System.Text;   //&&&&& remove
 
 namespace SampleLiveSync.ViewModels
 {
@@ -610,10 +612,20 @@ namespace SampleLiveSync.ViewModels
         /// </summary>
         private void BrowseSyncBoxFolder()
         {
-            // Notify the view to put up the folder selector.
-            if (NotifyBrowseSyncBoxFolder != null)
+            try
             {
-                NotifyBrowseSyncBoxFolder(this, new NotificationEventArgs());
+                // Notify the view to put up the folder selector.
+                if (NotifyBrowseSyncBoxFolder != null)
+                {
+                    NotifyBrowseSyncBoxFolder(this, new NotificationEventArgs());
+                }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: BrowseSyncBoxFolder: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
         }
 
@@ -622,35 +634,45 @@ namespace SampleLiveSync.ViewModels
         /// </summary>
         private void ShowAdvancedOptions()
         {
-            // Show the advanced options as a modal dialog.
-            AdvancedOptionsView viewWindow = new AdvancedOptionsView();
-            viewWindow.Owner = _mainWindow;
-            viewWindow.ShowInTaskbar = false;
-            viewWindow.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner;
-            viewWindow.ResizeMode = ResizeMode.NoResize;
-
-            // Create the ViewModel to which the view binds.
-            var viewModel = new AdvancedOptionsViewModel(_settingsCurrent);
-
-            // When the ViewModel asks to be closed, close the window.
-            EventHandler handler = null;
-            handler = delegate
+            try
             {
-                viewModel.RequestClose -= handler;
-                viewWindow.Close();
-            };
-            viewModel.RequestClose += handler;
+                // Show the advanced options as a modal dialog.
+                AdvancedOptionsView viewWindow = new AdvancedOptionsView();
+                viewWindow.Owner = _mainWindow;
+                viewWindow.ShowInTaskbar = false;
+                viewWindow.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner;
+                viewWindow.ResizeMode = ResizeMode.NoResize;
 
-            // Allow all controls in the window to bind to the ViewModel by setting the 
-            // DataContext, which propagates down the element tree.
-            viewWindow.DataContext = viewModel;
+                // Create the ViewModel to which the view binds.
+                var viewModel = new AdvancedOptionsViewModel(_settingsCurrent);
 
-            // Show the dialog.
-            Dispatcher dispatcher = Application.Current.Dispatcher;
-            dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                // When the ViewModel asks to be closed, close the window.
+                EventHandler handler = null;
+                handler = delegate
+                {
+                    viewModel.RequestClose -= handler;
+                    viewWindow.Close();
+                };
+                viewModel.RequestClose += handler;
+
+                // Allow all controls in the window to bind to the ViewModel by setting the 
+                // DataContext, which propagates down the element tree.
+                viewWindow.DataContext = viewModel;
+
+                // Show the dialog.
+                Dispatcher dispatcher = Application.Current.Dispatcher;
+                dispatcher.DelayedInvoke(TimeSpan.FromMilliseconds(20), () =>
+                {
+                    ((Window)viewWindow).ShowDialog();
+                });
+            }
+            catch (Exception ex)
             {
-                ((Window)viewWindow).ShowDialog();
-            });
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: ShowAdvancedOptions: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
+            }
         }
 
         /// <summary>
@@ -658,137 +680,147 @@ namespace SampleLiveSync.ViewModels
         /// </summary>
         private void SaveSettings()
         {
-            // Validate the SyncBox full path.
-            SyncRoot = SyncRoot.Trim();
-            if (String.IsNullOrEmpty(SyncRoot) ||
-                !Directory.Exists(SyncRoot))
+            try
             {
-                MessageBox.Show("The SyncBox Folder must be the full path of a valid directory.  Please create the directory first.");
-                this.IsSyncBoxPathFocused = true;
-                return;
-            }
+                // Validate the SyncBox full path.
+                SyncRoot = SyncRoot.Trim();
+                if (String.IsNullOrEmpty(SyncRoot) ||
+                    !Directory.Exists(SyncRoot))
+                {
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The SyncBox Folder must be the full path of a valid directory.  Please create the directory first." });
+                    this.IsSyncBoxPathFocused = true;
+                    return;
+                }
 
-            // Validate that the SyncRoot is a good path.
-            CLError badPathError = Cloud.Static.Helpers.CheckForBadPath(SyncRoot);
-            if (badPathError != null)
+                // Validate that the SyncRoot is a good path.
+                CLError badPathError = Cloud.Static.Helpers.CheckForBadPath(SyncRoot);
+                if (badPathError != null)
+                {
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The SyncBox Folder path is invalid: " + badPathError.errorDescription });
+                    this.IsSyncBoxIdFocused = true;
+                    return;
+                }
+
+                // Validate that the SyncRoot matches case perfectly with disk.
+                bool syncPathMatches;
+                CLError checkCaseError = Cloud.Static.Helpers.DirectoryMatchesCaseWithDisk(SyncRoot, out syncPathMatches);
+                if (checkCaseError != null)
+                {
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "There was an error checking whether the SyncBox Folder matches case with an existing directory on disk: " + checkCaseError.errorDescription });
+                    this.IsSyncBoxIdFocused = true;
+                    return;
+                }
+                if (!syncPathMatches)
+                {
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The SyncBox Folder does not match case perfectly with an existing folder on disk. Please check the case of the directory string."});
+                    this.IsSyncBoxIdFocused = true;
+                    return;
+                }
+
+                // Validate the length of the SyncBox full path.
+                int tooLongChars;
+                CLError errorFromLengthCheck = Cloud.Static.Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
+                if (errorFromLengthCheck != null)
+                {
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = String.Format("The SyncBox Folder is too long by {0} characters.  Please shorten the path.", tooLongChars) });
+                    this.IsSyncBoxPathFocused = true;
+                    return;
+                }
+
+                // Validate the Key.
+                Key = Key.Trim();
+                if (String.IsNullOrEmpty(Key) ||
+                    !OnlyHexInString(Key) ||
+                     Key.Length != 64)
+                {
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Key must be a 64 character long string with only hexadecimal characters." });
+                    this.IsKeyFocused = true;
+                    return;
+                }
+
+                // Validate the Secret.
+                // NOTE: This private key should not be handled this way.  It should be retrieved dynamically from a remote server, or protected in some other way.
+                Secret = Secret.Trim();
+                if (String.IsNullOrEmpty(Secret) ||
+                    !OnlyHexInString(Secret) ||
+                     Secret.Length != 64)
+                {
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Secret must be a 64 character long string with only hexadecimal characters." });
+                    this.IsSecretFocused = true;
+                    return;
+                }
+
+                // Validate the Token.
+                // NOTE: The token should not be handled this way.  It should be retrieved dynamically from a remote server, or protected in some other way.
+                Token = Token.Trim();
+                if (!String.IsNullOrEmpty(Token) &&
+                    (!OnlyHexInString(Token) ||
+                     Token.Length != 64))
+                {
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "If the token is specified, it must be a 64 character long string with only hexadecimal characters." });
+                    this.IsTokenFocused = true;
+                    return;
+                }
+
+                // Validate the SyncBox ID.
+                SyncBoxId = SyncBoxId.Trim();
+                if (String.IsNullOrEmpty(SyncBoxId))
+                {
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The SyncBox ID must be specified." });
+                    this.IsSyncBoxIdFocused = true;
+                    return;
+                }
+
+                // Validate the Device ID.
+                DeviceId = DeviceId.Trim();
+                if (!String.IsNullOrEmpty(DeviceId) && 
+                    Path.GetInvalidPathChars().Any(x => DeviceId.Contains(x)))
+                {
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Device ID must be specified, and it must be valid as a portion of a folder name." });
+                    this.IsDeviceIdFocused = true;
+                    return;
+                }
+
+                // The settings are valid.  Any of this information may have changed, and
+                // we don't want to get the sync databases mixed up.  On changes, set a persistent
+                // request to delete the sync database when the SyncBox is started.  The sync
+                // database will be recreated with the current state of the SyncBox folder.
+                if (ShouldWeRequestSyncDatabaseDeletion())
+                {
+                    Properties.Settings.Default.ShouldResetSync = true;
+                }
+
+                // Save the values to Settings
+                Properties.Settings.Default.SyncBoxFullPath = SyncRoot;
+                Properties.Settings.Default.Key = Key;
+                Properties.Settings.Default.Secret = Secret;
+                Properties.Settings.Default.Token = Token;
+                Properties.Settings.Default.SyncBoxId = SyncBoxId;
+                Properties.Settings.Default.UniqueDeviceId = DeviceId;
+                Properties.Settings.Default.BadgingEnabled = BadgingEnabled;
+                Properties.Settings.Default.TempDownloadFolderFullPath = _settingsCurrent.TempDownloadFolderFullPath;
+                Properties.Settings.Default.DatabaseFolderFullPath = _settingsCurrent.DatabaseFolderFullPath;
+                Properties.Settings.Default.BadgingEnabled = _settingsCurrent.BadgingEnabled;
+                Properties.Settings.Default.LogErrors = _settingsCurrent.LogErrors;
+                Properties.Settings.Default.TraceType = _settingsCurrent.TraceType;
+                Properties.Settings.Default.TraceFolderFullPath = _settingsCurrent.TraceFolderFullPath;
+                Properties.Settings.Default.TraceExcludeAuthorization = _settingsCurrent.TraceExcludeAuthorization;
+                Properties.Settings.Default.TraceLevel = _settingsCurrent.TraceLevel;
+                Properties.Settings.Default.Save();
+
+                _settingsInitial = new Settings(_settingsCurrent);          // Saved.  Initial is now current.
+
+                // Reinitialize trace
+                CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "SampleLiveSync", "log", _settingsInitial.TraceLevel, 
+                                    _settingsInitial.LogErrors, willForceReset: true);
+            }
+            catch (Exception ex)
             {
-                MessageBox.Show("The SyncBox Folder path is invalid: " + badPathError.errorDescription);
-                this.IsSyncBoxIdFocused = true;
-                return;
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: SaveSettings: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
-
-            // Validate that the SyncRoot matches case perfectly with disk.
-            bool syncPathMatches;
-            CLError checkCaseError = Cloud.Static.Helpers.DirectoryMatchesCaseWithDisk(SyncRoot, out syncPathMatches);
-            if (checkCaseError != null)
-            {
-                MessageBox.Show("There was an error checking whether the SyncBox Folder matches case with an existing directory on disk: " + checkCaseError.errorDescription);
-                this.IsSyncBoxIdFocused = true;
-                return;
-            }
-            if (!syncPathMatches)
-            {
-                MessageBox.Show("The SyncBox Folder does not match case perfectly with an existing folder on disk. Please check the case of the directory string.");
-                this.IsSyncBoxIdFocused = true;
-                return;
-            }
-
-            // Validate the length of the SyncBox full path.
-            int tooLongChars;
-            CLError errorFromLengthCheck = Cloud.Static.Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
-            if (errorFromLengthCheck != null)
-            {
-                MessageBox.Show(String.Format("The SyncBox Folder is too long by {0} characters.  Please shorten the path.", tooLongChars));
-                this.IsSyncBoxPathFocused = true;
-                return;
-            }
-
-            // Validate the Key.
-            Key = Key.Trim();
-            if (String.IsNullOrEmpty(Key) ||
-                !OnlyHexInString(Key) ||
-                 Key.Length != 64)
-            {
-                MessageBox.Show("The Key must be a 64 character long string with only hexadecimal characters.");
-                this.IsKeyFocused = true;
-                return;
-            }
-
-            // Validate the Secret.
-            // NOTE: This private key should not be handled this way.  It should be retrieved dynamically from a remote server, or protected in some other way.
-            Secret = Secret.Trim();
-            if (String.IsNullOrEmpty(Secret) ||
-                !OnlyHexInString(Secret) ||
-                 Secret.Length != 64)
-            {
-                MessageBox.Show("The Secret must be a 64 character long string with only hexadecimal characters.");
-                this.IsSecretFocused = true;
-                return;
-            }
-
-            // Validate the Token.
-            // NOTE: The token should not be handled this way.  It should be retrieved dynamically from a remote server, or protected in some other way.
-            Token = Token.Trim();
-            if (!String.IsNullOrEmpty(Token) &&
-                (!OnlyHexInString(Token) ||
-                 Token.Length != 64))
-            {
-                MessageBox.Show("If the token is specified, it must be a 64 character long string with only hexadecimal characters.");
-                this.IsTokenFocused = true;
-                return;
-            }
-
-            // Validate the SyncBox ID.
-            SyncBoxId = SyncBoxId.Trim();
-            if (String.IsNullOrEmpty(SyncBoxId))
-            {
-                MessageBox.Show("The SyncBox ID must be specified.");
-                this.IsSyncBoxIdFocused = true;
-                return;
-            }
-
-            // Validate the Device ID.
-            DeviceId = DeviceId.Trim();
-            if (!String.IsNullOrEmpty(DeviceId) && 
-                Path.GetInvalidPathChars().Any(x => DeviceId.Contains(x)))
-            {
-                MessageBox.Show("The Device ID must be specified, and it must be valid as a portion of a folder name.");
-                this.IsDeviceIdFocused = true;
-                return;
-            }
-
-            // The settings are valid.  Any of this information may have changed, and
-            // we don't want to get the sync databases mixed up.  On changes, set a persistent
-            // request to delete the sync database when the SyncBox is started.  The sync
-            // database will be recreated with the current state of the SyncBox folder.
-            if (ShouldWeRequestSyncDatabaseDeletion())
-            {
-                Properties.Settings.Default.ShouldResetSync = true;
-            }
-
-            // Save the values to Settings
-            Properties.Settings.Default.SyncBoxFullPath = SyncRoot;
-            Properties.Settings.Default.Key = Key;
-            Properties.Settings.Default.Secret = Secret;
-            Properties.Settings.Default.Token = Token;
-            Properties.Settings.Default.SyncBoxId = SyncBoxId;
-            Properties.Settings.Default.UniqueDeviceId = DeviceId;
-            Properties.Settings.Default.BadgingEnabled = BadgingEnabled;
-            Properties.Settings.Default.TempDownloadFolderFullPath = _settingsCurrent.TempDownloadFolderFullPath;
-            Properties.Settings.Default.DatabaseFolderFullPath = _settingsCurrent.DatabaseFolderFullPath;
-            Properties.Settings.Default.BadgingEnabled = _settingsCurrent.BadgingEnabled;
-            Properties.Settings.Default.LogErrors = _settingsCurrent.LogErrors;
-            Properties.Settings.Default.TraceType = _settingsCurrent.TraceType;
-            Properties.Settings.Default.TraceFolderFullPath = _settingsCurrent.TraceFolderFullPath;
-            Properties.Settings.Default.TraceExcludeAuthorization = _settingsCurrent.TraceExcludeAuthorization;
-            Properties.Settings.Default.TraceLevel = _settingsCurrent.TraceLevel;
-            Properties.Settings.Default.Save();
-
-            _settingsInitial = new Settings(_settingsCurrent);          // Saved.  Initial is now current.
-
-            // Reinitialize trace
-            CLTrace.Initialize(_settingsInitial.TraceFolderFullPath, "SampleLiveSync", "log", _settingsInitial.TraceLevel, 
-                                _settingsInitial.LogErrors, willForceReset: true);
         }
 
         /// <summary>
@@ -1206,6 +1238,7 @@ namespace SampleLiveSync.ViewModels
                 CLError error = ex;
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
         }
 
@@ -1235,6 +1268,7 @@ namespace SampleLiveSync.ViewModels
                 CLError error = ex;
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: ResetSync: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
         }
 
@@ -1263,7 +1297,7 @@ namespace SampleLiveSync.ViewModels
             CLError error = new Exception(errorMsg);
             error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
             _trace.writeToLog(1, "MainViewModel: OnPushNotificationError: ERROR: Exception: Msg: <{0}>.", error.errorDescription);
-            MessageBox.Show(errorMsg, "Error", MessageBoxButton.OK);
+            NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", error.errorDescription) });
         }
 
         /// <summary>
@@ -1271,35 +1305,45 @@ namespace SampleLiveSync.ViewModels
         /// </summary>
         public void StopSyncing()
         {
-            lock (_locker)
+            try
             {
-                if (_winSyncStatus != null)
+                lock (_locker)
                 {
-                    EventMessageReceiver.EventMessageReceiver vm = _winSyncStatus.DataContext as EventMessageReceiver.EventMessageReceiver;
-                    if (vm != null)
+                    if (_winSyncStatus != null)
                     {
-                        try
+                        EventMessageReceiver.EventMessageReceiver vm = _winSyncStatus.DataContext as EventMessageReceiver.EventMessageReceiver;
+                        if (vm != null)
                         {
-                            vm.Dispose();
+                            try
+                            {
+                                vm.Dispose();
+                            }
+                            catch
+                            {
+                            }
+                            _winSyncStatus.DataContext = null;
                         }
-                        catch
-                        {
-                        }
-                        _winSyncStatus.DataContext = null;
+
+                        _winSyncStatus.AllowClose = true;
+                        _winSyncStatus.Close();
+                        _winSyncStatus = null;
                     }
 
-                    _winSyncStatus.AllowClose = true;
-                    _winSyncStatus.Close();
-                    _winSyncStatus = null;
+                    if (_syncEngine != null)
+                    {
+                        SetSyncBoxStartedState(isStartedStateToSet: false);
+                        _syncStarted = false;
+                        _syncEngine.Stop();
+                        _syncEngine = null;
+                    }
                 }
-
-                if (_syncEngine != null)
-                {
-                    SetSyncBoxStartedState(isStartedStateToSet: false);
-                    _syncStarted = false;
-                    _syncEngine.Stop();
-                    _syncEngine = null;
-                }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: StopSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
         }
 
@@ -1308,23 +1352,32 @@ namespace SampleLiveSync.ViewModels
         /// </summary>
         public void Exit()
         {
-            if (!_settingsInitial.Equals(_settingsCurrent))
+            try
             {
-                // Notify the view to put up a MessageBox saying that the settings have changed.  Does the user want to exit anyway?
-                if (NotifySettingsChanged != null)
+                if (!_settingsInitial.Equals(_settingsCurrent))
                 {
-                    NotifySettingsChanged(this, new NotificationEventArgs<string, bool> { Completed = UserWantsToExit });
+                    // Notify the view to put up a MessageBox saying that the settings have changed.  Does the user want to exit anyway?
+                    if (NotifySettingsChanged != null)
+                    {
+                        NotifySettingsChanged(this, new NotificationEventArgs<string, bool> { Completed = UserWantsToExit });
+                    }
+                }
+                else
+                {
+                    // Stop syncing if it has been started.
+                    StopSyncing();
+                    CLSyncEngine.Shutdown(); // kills constant scheduling threads which run forever and prevent application shutdown
+
+                    // Close the window
+                    _windowClosed = true;
+                    CloseCommand.Execute(null);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                // Stop syncing if it has been started.
-                StopSyncing();
-                CLSyncEngine.Shutdown(); // kills constant scheduling threads which run forever and prevent application shutdown
-
-                // Close the window
-                _windowClosed = true;
-                CloseCommand.Execute(null);
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: Exit: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 

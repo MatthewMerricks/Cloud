@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Newtonsoft.Json</RootNamespace>
-    <AssemblyName>Newtonsoft.Json</AssemblyName>
+    <AssemblyName>Newtonsoft.Json.CSDK</AssemblyName>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
     <SccProjectName>
@@ -51,7 +51,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\Net40\Newtonsoft.Json.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\Net40\Newtonsoft.Json.CSDK.xml</DocumentationFile>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <CodeAnalysisRules>
     </CodeAnalysisRules>
@@ -64,7 +64,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Net40\Newtonsoft.Json.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\Net40\Newtonsoft.Json.CSDK.xml</DocumentationFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
@@ -277,4 +277,44 @@
     <None Include="CloudPlatformCodeSigning.pfx" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>echo ************  START POST BUILD STEPS **********************
+REM ------Do this only for the Release build ----------------
+if /I $(ConfigurationName) == Debug goto BuildEventOk
+
+REM ----------------------
+set ErrorTracker=1
+xcopy /Y /v $(TargetDir)$(TargetName).dll  $(SolutionDir)..\..\..\..\..\3rdParty\bin\release
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=2
+xcopy /Y /v $(TargetDir)$(TargetName).pdb  $(SolutionDir)..\..\..\..\..\3rdParty\bin\release
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=3
+xcopy /Y /v $(TargetDir)$(TargetName).xml  $(SolutionDir)..\..\..\..\..\3rdParty\bin\release
+if errorlevel 1 goto BuildEventFailed
+
+REM ---- PLACE THIS CODE AT THE END
+REM Exit properly because the build will not fail
+REM unless the final step exits with an error code
+goto BuildEventOK
+:BuildEventFailed
+echo PREBUILDSTEP for $(ProjectName) FAILED at step %25ErrorTracker%25
+set ErrorTracker=
+echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
+exit 1
+:BuildEventOK
+echo PREBUILDSTEP for $(ProjectName) COMPLETED OK
+echo ************  POST BUILD STEP COMPLETED OK **********************
+
+
+
+
+
+
+</PostBuildEvent>
+  </PropertyGroup>
 </Project>

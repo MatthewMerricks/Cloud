@@ -127,26 +127,6 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support Cloud.dll file.");
                 File.Copy(pathInstall + "\\Cloud.dll", pathWork);
 
-                // Copy EntityFramework.dll.
-                pathWork = pathInstall + "\\Support\\EntityFramework.dll";
-                if (File.Exists(pathWork))
-                {
-                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support EntityFramework.dll file.");
-                    File.Delete(pathWork);
-                }
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support Cloud.dll file.");
-                File.Copy(pathInstall + "\\EntityFramework.dll", pathWork);
-
-                // Copy EntityFramework.dll.
-                pathWork = pathInstall + "\\Support\\EntityFramework.dll";
-                if (File.Exists(pathWork))
-                {
-                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support EntityFramework.dll file.");
-                    File.Delete(pathWork);
-                }
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support EntityFramework.dll file.");
-                File.Copy(pathInstall + "\\EntityFramework.dll", pathWork);
-
                 // Copy ICSharpCode.SharpZipLib.dll.
                 pathWork = pathInstall + "\\Support\\ICSharpCode.SharpZipLib.dll";
                 if (File.Exists(pathWork))
@@ -319,13 +299,13 @@ namespace CloudSetupSdkSyncSampleSupport
 
             try
             {
-                // Copy RateBar.dll from the App directory to the Project bin folders
-                string source = pathInstall + "\\Sample Code\\Sync\\Live\\App\\RateBar.dll";
-                string target = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\bin\\Release\\RateBar.dll";
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy RateBar.dll. Src: <{0}>. Target: <{1}>.", source, target);
+                // Copy RateBar.CSDK.dll from the App directory to the Project bin folders
+                string source = pathInstall + "\\Sample Code\\Sync\\Live\\App\\RateBar.CSDK.dll";
+                string target = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\bin\\Release\\RateBar.CSDK.dll";
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy RateBar.CSDK.dll. Src: <{0}>. Target: <{1}>.", source, target);
                 File.Copy(source, target);
-                target = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\bin\\Debug\\RateBar.dll";
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy RateBar.dll. Src: <{0}>. Target: <{1}>.", source, target);
+                target = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\bin\\Debug\\RateBar.CSDK.dll";
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy RateBar.CSDK.dll. Src: <{0}>. Target: <{1}>.", source, target);
                 File.Copy(source, target);
 
                 // Install all of the DLLs required for the sample in the gac.
@@ -460,26 +440,26 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Cloud.dll to the gac.");
                 p.GacInstall(pathSdk + "\\Cloud.dll");
 
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy ErikEJ.SqlCe40.dll to the gac.");
-                p.GacInstall(pathSdk + "\\ErikEJ.SqlCe40.dll");
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy ErikEJ.SqlCe40.CSDK.dll to the gac.");
+                p.GacInstall(pathSdk + "\\ErikEJ.SqlCe40.CSDK.dll");
 
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.CSharp.dll to the gac.");
                 p.GacInstall(pathSdk + "\\Microsoft.CSharp.dll");
 
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.Net.dll to the gac.");
-                p.GacInstall(pathSdk + "\\Microsoft.Net.Http.dll");
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.Net.Http.CSDK.dll to the gac.");
+                p.GacInstall(pathSdk + "\\Microsoft.Net.Http.CSDK.dll");
 
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.Practices.ServiceLocation.dll to the gac.");
-                p.GacInstall(pathSdk + "\\Microsoft.Practices.ServiceLocation.dll");
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.Practices.ServiceLocation.CSDK.dll to the gac.");
+                p.GacInstall(pathSdk + "\\Microsoft.Practices.ServiceLocation.CSDK.dll");
 
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Newtonsoft.Json.dll to the gac.");
-                p.GacInstall(pathSdk + "\\Newtonsoft.Json.dll");
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Newtonsoft.Json.CSDK.dll to the gac.");
+                p.GacInstall(pathSdk + "\\Newtonsoft.Json.CSDK.dll");
 
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Salient.Data.dll to the gac.");
-                p.GacInstall(pathSdk + "\\Salient.Data.dll");
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Salient.Data.CSDK.dll to the gac.");
+                p.GacInstall(pathSdk + "\\Salient.Data.CSDK.dll");
 
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy SimpleJson.dll to the gac.");
-                p.GacInstall(pathSdk + "\\SimpleJson.dll");
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy SimpleJson.CSDK.dll to the gac.");
+                p.GacInstall(pathSdk + "\\SimpleJson.CSDK.dll");
 
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy System.Dynamic.dll to the gac.");
                 p.GacInstall(pathSdk + "\\System.Dynamic.dll");

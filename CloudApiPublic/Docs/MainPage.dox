@@ -5,7 +5,7 @@
 /// The Cloud Windows Client SDK allows your application to easily support real time file synchronization services.
 ///
 /// A SyncBox can be thought of as a folder with a hierarchical directory structure.  Any files placed in a SyncBox can be automatically
-/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS and Android).
+/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS and Android, etc.).
 ///
 /// An application can have a SyncBox which can have multiple devices. The ID of a device should be unique within a particular SyncBox.
 /// A physical computer (e.g., a local Windows Machine) may have multiple SyncBoxes running under multiple applications in different or possibly overlapping local directories.
@@ -88,9 +88,9 @@
 /// - Start menu items:
 ///   + Cloud.com
 ///     - Cloud
-///       + Start CloudSdkSyncSample: Starts the pre-built sample program which demonstrates the use of the API provided in the SDK.
+///       + Start Sample-Live-Sync: Starts the pre-built sample program which demonstrates the use of the API provided in the SDK.
 ///       + Show SDK Documentation: Launches your default browser to view this documentation.
-///       + VS CloudSdkSyncSample Solution: Launches Visual Studio with the sample app project.
+///       + VS Sample-Live-Sync Solution: Launches Visual Studio with the sample app project.
 ///       + Uninstall Cloud SDK:  Uninstalls the SDK.
 ///       .
 ///     .
@@ -99,23 +99,47 @@
 /// 
 /// Install the SDK by following the steps below:
 ///
-/// - Browse to the Cloud download page at https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal.
-/// - Create a developer account and login.
-/// - Click the Download link and download the Windows Cloud SDK installation program CloudSdkSetup.exe.
+/// - Browse to the Cloud Dashboard page at https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal.
+/// - Click the Download tab and download the Windows CloudSDK-vx.x.x.zip installation program (which contains CloudSdkSetup.exe).
+/// - Unzip the downloaded file and run the CloudSdkSetup.exe program.
 /// - Follow the instructions to install the Cloud SDK.
 /// .
 ///
+/// \subsection install-directories-subsec Installation Directories
+///
+/// After installing the SDK you will see the following directory structure:
+/// - C:\Program Files (x86)\Cloud.com
+///   + CloudSDK: \n
+/// This directory contains all of the files you will need to build a custom installation for your app.  You can elect to copy these files to your app installation directory (for a custom private installation), or you can elect to install these files to the GAC
+/// and to centrally install the required SQL Server CE V4.0.  Download the SQL Server Compact Edition for a central installation here: http://www.microsoft.com/en-us/download/details.aspx?id=17876.
+///   + Documentation: \n
+/// This directory contains this SDK documentation.  Launch the file index.html in your browser.
+///   + Sample Code: \n
+/// This directory contains the sample code (prebuilt binaries and project source code).
+///     - Live: \n
+/// This directory contains sample code for the "Live Sync" sample.
+///       + App: \n
+/// This directory contains the pre-build binary version of the "Live Sync" sample (Sample-Live-Sync.exe and supporting modules).
+///       + Project: \n
+/// This directory contains the VS 2012 project files and source code to build the "Live Sync" sample app.
+///       .
+///     .
+///   + Support: \n
+/// This directory contains support files required for uninstalling Windows Cloud SDK.
+///   .
+///
 /// \section sampleapp_sec Sample Application
-/// The sample app (CloudSdkSyncSample.exe) demonstrates the use of the SDK APIs.  It is a C# WPF application (.NET 4 Client Profile) designed using the Model-View-ViewModel (MVVM) pattern.  The sample app is provided in binary and source forms.
+/// The sample app (Sample-Live-Sync.exe) demonstrates the use of the SDK APIs.  It is a C# WPF application (.NET 4 Client Profile) designed using the Model-View-ViewModel (MVVM) pattern.  The sample app is provided in binary and source forms.
 ///
 /// \subsection sampleapp-mainwindow-subsec Main Window
 /// Run the sample app to see the main window below:
 /// \image html SampleAppMainWindow.jpg "Sample App Main Window"
 /// You will enter information into the following Required Settings fields:
-/// - SyncBoxFolder: This is the full path of the folder on your computer that will be synced.  The folder must be on a locally-attached drive.  Typically you will specify a folder in your user directory. You may use the Browse button to locate the folder to be synced.
+/// - SyncBox Folder: This is the full path of the folder on your computer that will be synced.  The folder must be on a locally-attached drive.  Typically you will specify a folder in your user directory. You may use the Browse button to locate the folder to be synced.
 /// - Key:  Paste this key from your Cloud developer DashBoard web page (https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal).  This key uniquely identifies your application.
 /// - Secret:  Paste this private key from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this private key from a secure location.
 /// - Token:  Paste this session token from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this token from a secure location.
+/// \note If the Token field is specified, then the Key, Secret and Token form a temporary session credential.  Otherwise, the Key and Secret form the permanent credential of your app.
 /// - SyncBox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the SyncBox.  It represents a folder that will be synced across all of your devices, and to Cloud.
 /// - (Optional) Unique Device ID: Choose a unique name (within this SyncBox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If you do not specify the device ID, it will default to a unique ID.
 /// .
@@ -202,7 +226,7 @@
 /// See the example below:
 /// \image html SampleAppBadgingExample.jpg "Explorer Sync Badges"
 ///
-/// The badging support is provided by modules in Cloud.dll and in BadgeCom.dll.  Badging support will be activated if BadgeCom.dll is registered as a shell extension.  If not, syncing will occur normally.
+/// The badging support is provided by modules in Cloud.dll and in BadgeCom.dll.  Badging support will be activated if BadgeCom.dll is registered as a shell extension, and if Badging Enabled has been selected.  If badgning is not enabled, syncing will occur normally.
 ///
 /// Because BadgeCom.dll is a shell extension, it requires special installation support.  When installing this DLL, you must perform the following steps:
 /// - Stop all Explorer processes
@@ -238,11 +262,13 @@
 ///
 ///In fact, you can pass a very simple parameter here if all you want to pass is the SyncBox path.  In that case, just pass “new CLSyncSettings(‘full path of the SyncBox’)”.
 /// \subsection sampleapp-sqlceinstallation-subsec Installation Issues Involving SQL CE
-/// When you write your own app using the SDK, you will need to install the SQL CE support DLLs in a particular way.
+/// When you write your own app using the SDK, you will need to provide an installer that will install the required SQL CE V4.0 along with your app.
 ///
-///The provided sample app VS2012 project in the SampleApp directory has been tested with all of the following: XpSp3X86, XpSp3X64, VistaX86, VistaX64, Win7X86, Win7X64, Win8X86 and Win8X64, including the SQL CE support.  See the SampleApp directory for an example of the requirement discussed below.
+///You can elect to install SQL CE in one of two ways: Central or Private.  See: http://msdn.microsoft.com/en-us/library/gg213826.aspx.
 ///
-///Your app installer must install the SQL CE DLLs in exactly the following structure (Microsoft's requirement).
+///When you install SQL CE centrally, you will run the full SQL CE installer (download here: http://www.microsoft.com/en-us/download/details.aspx?id=17876).  That installer will install the required DLLs in the GAC and register the SQL CE unmanaged DLLs so your app can find them on the target machine.
+///
+///You can also elect to install SQL CE using a Private installation.  In this case, your app installer must install the SQL CE DLLs in exactly the following structure (Microsoft's requirement).
 /// \code{.cs}
 ///             Your installation directory
 ///                             YourApp.exe
@@ -271,7 +297,7 @@
 ///                                             sqlcese40.dll
 /// \endcode
 ///
-///You will find the DLLs in the structure above in the SampleApp\\bin\\debug and SampleApp\\bin\\release directories.
+///You will find the DLLs in the structure above in the C:\Program Files (X86)\Cloud.com\CloudSDK\amd64 and C:\Program Files (X86)\Cloud.com\CloudSDK\x86 directories.
 ///
 ///In addition to the DLLs required (above), your app also needs an app.config file like the following.  See the SampleApp\\app.config file.
 /// \code{.cs}
@@ -322,7 +348,7 @@
 /// \endcode
 /// .
 /// \subsection sampleapp-eventmessagereceiver-subsec The EventMessageReceiver Class
-/// \link CloudSdkSyncSample.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink is the sample app's implementation of \link Cloud.Interfaces.IEventMessageReceiver Cloud.Interfaces.IEventMessageReceiver \endlink to aggregate status information.
+/// \link SampleLiveSync.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink is the sample app's implementation of \link Cloud.Interfaces.IEventMessageReceiver Cloud.Interfaces.IEventMessageReceiver \endlink to aggregate status information.
 /// It is used as one of the ViewModels for your sync status view.
 /// You can bind to any of the following ObservableCollections:
 /// - ListFilesDownloading
@@ -376,7 +402,7 @@
 /// \subsection sampleapp-syncstatusView-subsec The SyncStatusView Class
 /// The Sync Status View window is the sample app's implementation of a class to view the status information.
 /// Status information is produced by the sample app's implementation of \link Cloud.Interfaces.IEventMessageReceiver Cloud.Interfaces.IEventMessageReceiver \endlink,
-/// \link CloudSdkSyncSample.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink. Yours may be very different.
+/// \link SampleLiveSync.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink. Yours may be very different.
 ///
 /// The following information is produced by your message receiver for possible consumption by your sync status viewer:
 /// - List of files currently uploading (ObservableCollection)
@@ -400,7 +426,7 @@
 ///
 /// When the StatusUpdated callback is called by the engine, you can call \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.GetEngineCurrentStatus GetEngineCurrentStatus() \endlink to get the current sync summary status.
 /// You need to aggregate this information for display.
-/// See \link CloudSdkSyncSample.SyncStatusViewModel.OnSyncStatusUpdated SyncStatusViewModel.OnSyncStatusUpdated() \endlink.
+/// See \link SampleLiveSync.SyncStatusViewModel.OnSyncStatusUpdated SyncStatusViewModel.OnSyncStatusUpdated() \endlink.
 /// \subsection sampleapp-syncchangeevents-subsec Sync Change Events
 /// Sync change events can be used to track real-time progress.  They are described in class \link Cloud.Static.MessageEvents Cloud.Static.MessageEvents \endlink.
 /// \link Cloud.Static.MessageEvents Cloud.Static.MessageEvents \endlink exposes the following events:
@@ -420,6 +446,13 @@
 /// - public static event EventHandler<TransferUpdateArgs> FileUploadUpdated:
 /// This event is fired each time the transfer status changes for a file being uploaded.  The TransferUpdateArgs passed with each received message includes a unique ID if the file transfer, and the current real-time status of the transfer.
 /// .
+/// A lot of the information provided by the events above has been aggregated into a new aggregated event handler (MessageEvents.NewEventMessage).  Callbacks to this event handler are passed EventMessageArgs.  EventMessageArgs.Message.Type indicates
+/// the type of the message (EventMessageType.Error, Informational, UploadingCountChanged, DownloadingCountChanged, UploadProgress, DownloadProgress, SuccessfulUploadsIncremented, and SuccesfulDownloadsIncremented).  Depending on the
+/// type, each of the messages is cast to a particular type of message that contains specific information about that message.  For example, The ErrorMessage type contains an ErrorInfo.ErrorType that can be used in a switch to handle
+/// specific types of errors.  See the code in the sample app MainViewModel.cs:MessageEvents_NewEventMessage().
+///
+/// \section copyright_sec Copyright (C) Cloud.com.  All Rights Reserved.
+/// http://www.cloud.com
 ///
 /// \namespace Cloud
 /// \brief Contains all public API functions of Cloud for Windows XP through Windows 8. See detailed description.
@@ -465,5 +498,3 @@
 ///
 /// \link CloudSamples.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes. \link Cloud.CLSyncEngine  Cloud.CLSyncEngine \endlink fires event callbacks upon changes.\n
 ///
-/// \section copyright_sec Copyright (C) Cloud.com.  All Rights Reserved.
-/// http://www.cloud.com
