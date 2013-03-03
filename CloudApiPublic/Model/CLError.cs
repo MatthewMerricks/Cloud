@@ -5,14 +5,14 @@
 //  Created by BobS.
 //  Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Static;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     /// <summary>
     /// Class that represents an error, and supports logging of the error.  The error may contain one or more exceptions.

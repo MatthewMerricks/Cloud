@@ -5,13 +5,13 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Static;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Interfaces
+namespace Cloud.Interfaces
 {
     /// <summary>
     /// Never used by itself. Inherited by advanced settings interfaces to add properties which can enable tracing/logging.
@@ -42,7 +42,7 @@ namespace CloudApiPublic.Interfaces
     }
 
     /// <summary>
-    /// Basic settings for active sync (<see cref="CloudApiPublic.CLSyncEngine"/>).
+    /// Basic settings for active sync (<see cref="Cloud.CLSyncEngine"/>).
     /// </summary>
     public interface ICLSyncSettings
     {
@@ -53,7 +53,7 @@ namespace CloudApiPublic.Interfaces
     }
 
     /// <summary>
-    /// Advanced settings for active sync (<see cref="CloudApiPublic.CLSyncEngine"/>). The addition over basic settings is <see cref="ICLAddTraceSettings"/>.
+    /// Advanced settings for active sync (<see cref="Cloud.CLSyncEngine"/>). The addition over basic settings is <see cref="ICLAddTraceSettings"/>.
     /// </summary>
     public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLCredentialSettings
     {

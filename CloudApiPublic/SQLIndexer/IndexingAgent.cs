@@ -17,17 +17,17 @@ using System.Threading.Tasks;
 using System.Transactions;
 using System.Data.SqlServerCe;
 using System.Globalization;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.SQLIndexer.SqlModel;
-using CloudApiPublic.SQLIndexer.Migrations;
-using CloudApiPublic.SQLIndexer.Model;
-using SqlSync = CloudApiPublic.SQLIndexer.SqlModel.Sync;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.SQLIndexer.SqlModel;
+using Cloud.SQLIndexer.Migrations;
+using Cloud.SQLIndexer.Model;
+using SqlSync = Cloud.SQLIndexer.SqlModel.Sync;
+using Cloud.Interfaces;
+using Cloud.Support;
+using Cloud.Model.EventMessages.ErrorInfo;
 
-namespace CloudApiPublic.SQLIndexer
+namespace Cloud.SQLIndexer
 {
     internal sealed class IndexingAgent : IDisposable
     {

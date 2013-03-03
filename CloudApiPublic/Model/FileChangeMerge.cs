@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     /// <summary>
     /// Do not use the parameterless constructor because the resulting struct will be marked invalid and throw exceptions when retrieving public property values

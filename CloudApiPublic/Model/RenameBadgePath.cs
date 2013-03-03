@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     internal struct RenameBadgePath
     {

@@ -5,8 +5,8 @@
 // Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model;
-using CloudApiPublic.Support;
+using Cloud.Model;
+using Cloud.Support;
 using System;
 using System.Collections.Generic;
 using System.IO.Pipes;

@@ -11,18 +11,18 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using System.Windows;
 using System.Linq;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Net.Http.Properties;
 using System.Text;
 using System.Collections.Generic;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
-using CloudApiPublic.Resources;
-using CloudApiPublic.Static;
+using Cloud.Resources;
+using Cloud.Static;
 using System.IO;
 using CloudApiPrivate.Static;
 
@@ -74,7 +74,7 @@ namespace CloudApiPrivate.Model
 
             // Start the thread to be used to communicate with the server.
             CLError errorFromAsync = null;
-            Fixthis:://use a parameterized action and pass in the parameters to the task start instead of using the other thread's parameters within the anonymous method itself
+            //CloudAppBuild:Fixthis:://use a parameterized action and pass in the parameters to the task start instead of using the other thread's parameters within the anonymous method itself
             Task<bool>.Factory.StartNew(() => CreateNewAccountInternal(outRegistration, account, device, out errorFromAsync)).ContinueWith(task =>
                 {
                     bool isSuccess = true;
@@ -149,7 +149,7 @@ namespace CloudApiPrivate.Model
 
             Func<bool, string> getBody = excludeAuthorization =>
                 {
-                    return String.Format(CLDefinitions.CLRegistrationCreateRequestBodyString,
+                    return String.Format(/*CloudAppBuild:CLDefinitions.CLRegistrationCreateRequestBodyString*/"",
                         Helpers.JavaScriptStringEncode(account.FirstName, true),
                         Helpers.JavaScriptStringEncode(account.LastName, true),
                         (excludeAuthorization
@@ -163,7 +163,7 @@ namespace CloudApiPrivate.Model
                         Helpers.JavaScriptStringEncode(device.OSType(), true),
                         Helpers.JavaScriptStringEncode(device.OSPlatform(), true),
                         Helpers.JavaScriptStringEncode(device.OSVersion(), true),
-                        Helpers.JavaScriptStringEncode(CLDefinitions.AppVersion.ToString(), false),
+                        Helpers.JavaScriptStringEncode(/*CloudAppBuild:CLDefinitions.AppVersion.ToString()*/"", false),
                         Helpers.JavaScriptStringEncode(client_id, true),
                         (excludeAuthorization
                             ? "---Client secret excluded---"
@@ -196,17 +196,18 @@ namespace CloudApiPrivate.Model
                     sBoxId = sBoxIdTemp;
                 }
 
-                ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                    Settings.Settings.Instance.DeviceId,
-                    sBoxId,
-                    CommunicationEntryDirection.Request,
-                    CLDefinitions.CLRegistrationCreateRequestURLString,
-                    true,
-                    client.DefaultRequestHeaders,
-                    null,
-                    (Settings.Settings.Instance.TraceExcludeAuthorization ? (new StringContent(authorizationExcludedBody, Encoding.UTF8)) : content),
-                    null,
-                    Settings.Settings.Instance.TraceExcludeAuthorization);
+                //CloudAppBuild:
+                //ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                //    Settings.Settings.Instance.DeviceId,
+                //    sBoxId,
+                //    CommunicationEntryDirection.Request,
+                //    /*CloudAppBuild:CLDefinitions.CLRegistrationCreateRequestURLString*/"",
+                //    true,
+                //    client.DefaultRequestHeaders,
+                //    null,
+                //    (Settings.Settings.Instance.TraceExcludeAuthorization ? (new StringContent(authorizationExcludedBody, Encoding.UTF8)) : content),
+                //    null,
+                //    Settings.Settings.Instance.TraceExcludeAuthorization);
             }
 
             HttpResponseMessage result = null;
@@ -214,7 +215,7 @@ namespace CloudApiPrivate.Model
             // Perform the Post and wait for the result synchronously.
             try
             {
-                result = client.Post(CLDefinitions.CLRegistrationCreateRequestURLString, content);
+                //CloudAppBuild:result = client.Post(CLDefinitions.CLRegistrationCreateRequestURLString, content);
             }
             catch (AggregateException ex)
             {
@@ -282,16 +283,17 @@ namespace CloudApiPrivate.Model
                                 sBoxId = sBoxIdTemp;
                             }
 
-                            ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                                Settings.Settings.Instance.DeviceId,
-                                sBoxId,
-                                CommunicationEntryDirection.Response,
-                                CLDefinitions.CLRegistrationCreateRequestURLString,
-                                true,
-                                exceptionResponse.Headers,
-                                exceptionBody,
-                                (int)exceptionResponse.StatusCode,
-                                Settings.Settings.Instance.TraceExcludeAuthorization);
+                            //CloudAppBuild:
+                            //ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            //    Settings.Settings.Instance.DeviceId,
+                            //    sBoxId,
+                            //    CommunicationEntryDirection.Response,
+                            //    /*CloudAppBuild:CLDefinitions.CLRegistrationCreateRequestURLString*/"",
+                            //    true,
+                            //    exceptionResponse.Headers,
+                            //    exceptionBody,
+                            //    (int)exceptionResponse.StatusCode,
+                            //    Settings.Settings.Instance.TraceExcludeAuthorization);
                         }
 
                         error += new AggregateException("Create account error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
@@ -335,17 +337,18 @@ namespace CloudApiPrivate.Model
                             sBoxId = sBoxIdTemp;
                         }
 
-                        ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                            Settings.Settings.Instance.DeviceId,
-                            sBoxId,
-                            CommunicationEntryDirection.Response,
-                            CLDefinitions.CLRegistrationCreateRequestURLString,
-                            true,
-                            null,
-                            result.Headers,
-                            result.Content,
-                            (int)result.StatusCode,
-                            Settings.Settings.Instance.TraceExcludeAuthorization);
+                        //CloudAppBuild:
+                        //ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                        //    Settings.Settings.Instance.DeviceId,
+                        //    sBoxId,
+                        //    CommunicationEntryDirection.Response,
+                        //    /*CloudAppBuild:CLDefinitions.CLRegistrationCreateRequestURLString*/"",
+                        //    true,
+                        //    null,
+                        //    result.Headers,
+                        //    result.Content,
+                        //    (int)result.StatusCode,
+                        //    Settings.Settings.Instance.TraceExcludeAuthorization);
                     }
 
                     if (result.IsSuccessStatusCode)
@@ -400,9 +403,9 @@ namespace CloudApiPrivate.Model
                     // The server returned an errlr
                     retVal = false;
                     error = new CLError();
-                    ((int)error.code).ToString() = 1400;
+                    //CloudAppBuild:((int)error.code).ToString() = 1400;
                     error.errorDescription = String.Format((string)returnDictionary["message"], 1400) + ".";
-                    error.errorDomain = CLError.ErrorDomain_Application;
+                    //CloudAppBuild:error.errorDomain = CLError.ErrorDomain_Application;
                 }
                 else
                 {
@@ -437,9 +440,9 @@ namespace CloudApiPrivate.Model
                 // JSON parse error
                 retVal = false;
                 error = new CLError();
-                ((int)error.code).ToString() = 1400;
-                error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionCreatingUserRegistrationWithCode, 1400);
-                error.errorDomain = CLError.ErrorDomain_Application;
+                //CloudAppBuild:((int)error.code).ToString() = 1400;
+                error.errorDescription = String.Format(/*CloudAppBuild:Cloud.Resources.Resources.ExceptionCreatingUserRegistrationWithCode*/"", 1400);
+                //CloudAppBuild:error.errorDomain = CLError.ErrorDomain_Application;
             }
 
             return retVal;
@@ -527,7 +530,7 @@ namespace CloudApiPrivate.Model
 
             Func<bool, string> getBody = (excludeAuthorization) =>
                 {
-                    return String.Format(CLDefinitions.CLRegistrationLinkRequestBodyString,
+                    return String.Format(/*CloudAppBuild:CLDefinitions.CLRegistrationLinkRequestBodyString*/"",
                         (excludeAuthorization
                             ? "---Username excluded---"
                             : Helpers.JavaScriptStringEncode(userName, true)),
@@ -539,7 +542,7 @@ namespace CloudApiPrivate.Model
                         Helpers.JavaScriptStringEncode(device.OSType(), true),
                         Helpers.JavaScriptStringEncode(device.OSPlatform(), true),
                         Helpers.JavaScriptStringEncode(device.OSVersion(), true),
-                        Helpers.JavaScriptStringEncode(CLDefinitions.AppVersion.ToString(), false),
+                        Helpers.JavaScriptStringEncode(/*CloudAppBuild:CLDefinitions.AppVersion.ToString()*/"", false),
                         Helpers.JavaScriptStringEncode(client_id, true),
                         (excludeAuthorization
                             ? "---Client secret excluded---"
@@ -575,17 +578,18 @@ namespace CloudApiPrivate.Model
                     sBoxId = sBoxIdTemp;
                 }
 
-                ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                    Settings.Settings.Instance.DeviceId,
-                    sBoxId,
-                    CommunicationEntryDirection.Request,
-                    CLDefinitions.CLRegistrationLinkRequestURLString,
-                    true,
-                    client.DefaultRequestHeaders,
-                    null,
-                    (Settings.Settings.Instance.TraceExcludeAuthorization ? (new StringContent(authorizationExcludedBody, Encoding.UTF8)) : content),
-                    null,
-                    Settings.Settings.Instance.TraceExcludeAuthorization);
+                //CloudAppBuild:
+                //ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                //    Settings.Settings.Instance.DeviceId,
+                //    sBoxId,
+                //    CommunicationEntryDirection.Request,
+                //    "",//CloudAppBuild:CLDefinitions.CLRegistrationLinkRequestURLString,
+                //    true,
+                //    client.DefaultRequestHeaders,
+                //    null,
+                //    (Settings.Settings.Instance.TraceExcludeAuthorization ? (new StringContent(authorizationExcludedBody, Encoding.UTF8)) : content),
+                //    null,
+                //    Settings.Settings.Instance.TraceExcludeAuthorization);
             }
 
             HttpResponseMessage result = null;
@@ -593,7 +597,7 @@ namespace CloudApiPrivate.Model
             // Perform the Post and wait for the result synchronously.
             try
             {
-                result = client.Post(CLDefinitions.CLRegistrationLinkRequestURLString, content);
+                result = client.Post(/*CloudAppBuild:CLDefinitions.CLRegistrationLinkRequestURLString*/"", content);
             }
             catch (AggregateException ex)
             {
@@ -661,16 +665,17 @@ namespace CloudApiPrivate.Model
                                 sBoxId = sBoxIdTemp;
                             }
 
-                            ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                                Settings.Settings.Instance.DeviceId,
-                                sBoxId,
-                                CommunicationEntryDirection.Response,
-                                CLDefinitions.CLRegistrationLinkRequestURLString,
-                                true,
-                                exceptionResponse.Headers,
-                                exceptionBody,
-                                (int)exceptionResponse.StatusCode,
-                                Settings.Settings.Instance.TraceExcludeAuthorization);
+                            //CloudAppBuild:
+                            //ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            //    Settings.Settings.Instance.DeviceId,
+                            //    sBoxId,
+                            //    CommunicationEntryDirection.Response,
+                            //    /*CloudAppBuild:CLDefinitions.CLRegistrationLinkRequestURLString*/"",
+                            //    true,
+                            //    exceptionResponse.Headers,
+                            //    exceptionBody,
+                            //    (int)exceptionResponse.StatusCode,
+                            //    Settings.Settings.Instance.TraceExcludeAuthorization);
                         }
 
                         error += new AggregateException("Login error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
@@ -714,17 +719,18 @@ namespace CloudApiPrivate.Model
                             sBoxId = sBoxIdTemp;
                         }
 
-                        ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                            Settings.Settings.Instance.DeviceId,
-                            sBoxId,
-                            CommunicationEntryDirection.Response,
-                            CLDefinitions.CLRegistrationLinkRequestURLString,
-                            true,
-                            null,
-                            result.Headers,
-                            result.Content,
-                            (int)result.StatusCode,
-                            Settings.Settings.Instance.TraceExcludeAuthorization);
+                        //CloudAppBuild:
+                        //ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                        //    Settings.Settings.Instance.DeviceId,
+                        //    sBoxId,
+                        //    CommunicationEntryDirection.Response,
+                        //    /*CloudAppBuild:CLDefinitions.CLRegistrationLinkRequestURLString*/"",
+                        //    true,
+                        //    null,
+                        //    result.Headers,
+                        //    result.Content,
+                        //    (int)result.StatusCode,
+                        //    Settings.Settings.Instance.TraceExcludeAuthorization);
                     }
 
                     if (result.IsSuccessStatusCode)
@@ -810,9 +816,9 @@ namespace CloudApiPrivate.Model
                     // The server returned an errlr
                     retVal = false;
                     error = new CLError();
-                    ((int)error.code).ToString() = 1400;
+                    //CloudAppBuild:((int)error.code).ToString() = 1400;
                     error.errorDescription = String.Format((string)returnDictionary["message"], 1400) + ".";
-                    error.errorDomain = CLError.ErrorDomain_Application;
+                    //CloudAppBuild:error.errorDomain = CLError.ErrorDomain_Application;
                 }
                 else
                 {
@@ -827,7 +833,7 @@ namespace CloudApiPrivate.Model
                     Dictionary<string, object> deviceDictionary = new Dictionary<string, object>((Dictionary<string, object>)returnDictionary["device"]);
 
                     //¡¡ If the access token is ever not a root property of the server response with key CLDefinitions.CLRegistrationAccessTokenKey, !!
-                    //¡¡ then make sure to update CloudApiPublic.Static.Trace.LogCommunication private overload so that the property can be excluded when excludeAuthorization !!
+                    //¡¡ then make sure to update Cloud.Static.Trace.LogCommunication private overload so that the property can be excluded when excludeAuthorization !!
                     string apiKey = (string)returnDictionary[CLDefinitions.CLRegistrationAccessTokenKey];
                     string devicename = (string)deviceDictionary["friendly_name"];
                     string uuid = userInfoDictionary["id"].ToString();
@@ -847,9 +853,9 @@ namespace CloudApiPrivate.Model
                 // JSON parse error
                 retVal = false;
                 error = new CLError();
-                ((int)error.code).ToString() = 1400;
-                error.errorDescription = String.Format(CloudApiPublic.Resources.Resources.ExceptionLoggingInWithCode, 1400);
-                error.errorDomain = CLError.ErrorDomain_Application;
+                //CloudAppBuild:((int)error.code).ToString() = 1400;
+                error.errorDescription = String.Format(/*CloudAppBuild:Cloud.Resources.Resources.ExceptionLoggingInWithCode*/"", 1400);
+                //CloudAppBuild:error.errorDomain = CLError.ErrorDomain_Application;
             }
 
             return retVal;
@@ -940,17 +946,18 @@ namespace CloudApiPrivate.Model
                         sBoxId = sBoxIdTemp;
                     }
 
-                    ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                        Settings.Settings.Instance.DeviceId,
-                        sBoxId,
-                        CommunicationEntryDirection.Request,
-                        CLDefinitions.CLRegistrationUnlinkRequestURLString,
-                        true,
-                        client.DefaultRequestHeaders,
-                        null,
-                        content,
-                        null,
-                        Settings.Settings.Instance.TraceExcludeAuthorization);
+                    //CloudAppBuild:
+                    //ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                    //    Settings.Settings.Instance.DeviceId,
+                    //    sBoxId,
+                    //    CommunicationEntryDirection.Request,
+                    //    /*CloudAppBuild:CLDefinitions.CLRegistrationUnlinkRequestURLString*/"",
+                    //    true,
+                    //    client.DefaultRequestHeaders,
+                    //    null,
+                    //    content,
+                    //    null,
+                    //    Settings.Settings.Instance.TraceExcludeAuthorization);
                 }
 
                 HttpResponseMessage result = null;
@@ -958,7 +965,7 @@ namespace CloudApiPrivate.Model
                 // Perform the Post and wait for the result synchronously.
                 try
                 {
-                    result = client.Post(CLDefinitions.CLRegistrationUnlinkRequestURLString, content);
+                    //CloudAppBuild:result = client.Post(CLDefinitions.CLRegistrationUnlinkRequestURLString, content);
                 }
                 catch (AggregateException ex)
                 {
@@ -1026,16 +1033,17 @@ namespace CloudApiPrivate.Model
                                     sBoxId = sBoxIdTemp;
                                 }
 
-                                ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                                    Settings.Settings.Instance.DeviceId,
-                                    sBoxId,
-                                    CommunicationEntryDirection.Response,
-                                    CLDefinitions.CLRegistrationUnlinkRequestURLString,
-                                    true,
-                                    exceptionResponse.Headers,
-                                    exceptionBody,
-                                    (int)exceptionResponse.StatusCode,
-                                    Settings.Settings.Instance.TraceExcludeAuthorization);
+                                //CloudAppBuild:
+                                //ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                                //    Settings.Settings.Instance.DeviceId,
+                                //    sBoxId,
+                                //    CommunicationEntryDirection.Response,
+                                //    /*CloudAppBuild:CLDefinitions.CLRegistrationUnlinkRequestURLString*/"",
+                                //    true,
+                                //    exceptionResponse.Headers,
+                                //    exceptionBody,
+                                //    (int)exceptionResponse.StatusCode,
+                                //    Settings.Settings.Instance.TraceExcludeAuthorization);
                             }
 
                             error += new AggregateException("Unlink error. Code: " + ((int)exceptionResponse.StatusCode).ToString() +
@@ -1079,17 +1087,18 @@ namespace CloudApiPrivate.Model
                                 sBoxId = sBoxIdTemp;
                             }
 
-                            ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
-                                Settings.Settings.Instance.DeviceId,
-                                sBoxId,
-                                CommunicationEntryDirection.Response,
-                                CLDefinitions.CLRegistrationUnlinkRequestURLString,
-                                true,
-                                null,
-                                result.Headers,
-                                result.Content,
-                                (int)result.StatusCode,
-                                Settings.Settings.Instance.TraceExcludeAuthorization);
+                            //CloudAppBuild:
+                            //ComTrace.LogCommunication(Settings.Settings.Instance.TraceLocation,
+                            //    Settings.Settings.Instance.DeviceId,
+                            //    sBoxId,
+                            //    CommunicationEntryDirection.Response,
+                            //    /*CloudAppBuild:CLDefinitions.CLRegistrationUnlinkRequestURLString*/"",
+                            //    true,
+                            //    null,
+                            //    result.Headers,
+                            //    result.Content,
+                            //    (int)result.StatusCode,
+                            //    Settings.Settings.Instance.TraceExcludeAuthorization);
                         }
 
                         if (!result.IsSuccessStatusCode)

@@ -7,7 +7,7 @@
 
 using System;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     /// <summary>
     /// An object of this class represents a Cloud account.

@@ -5,8 +5,8 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 using ErikEJ.SqlCe;
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace CloudApiPublic.SQLIndexer.SqlModel
+namespace Cloud.SQLIndexer.SqlModel
 {
     internal static class SqlAccessor<T> where T : class
     {

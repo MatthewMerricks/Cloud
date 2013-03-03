@@ -11,7 +11,7 @@ using GalaSoft.MvvmLight.Messaging;
 using System.Windows.Navigation;
 using System.Collections.Generic;
 using win_client.Model;
-using CloudApiPublic.JsonContracts;
+using Cloud.JsonContracts;
 #if TRASH
 using win_client.DragDropServer;
 #endif // TRASH

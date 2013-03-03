@@ -5,14 +5,14 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
-using CloudApiPublic.Static;
+using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Model.EventMessages
+namespace Cloud.Model.EventMessages
 {
     public sealed class ErrorMessage : BaseMessage
     {

@@ -12,13 +12,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CloudApiPrivate.Model.Settings;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 using win_client.AppDelegate;
-using CloudApiPublic.SQLIndexer;
+using Cloud.SQLIndexer;
 using win_client.Services.FileSystemMonitoring;
 using win_client.Resources;
-using CloudApiPublic.Support;
+using Cloud.Support;
 
 namespace win_client.Common
 {

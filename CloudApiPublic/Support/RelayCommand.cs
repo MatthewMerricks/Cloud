@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Input;
 
-namespace CloudApiPublic.Support
+namespace Cloud.Support
 {
     public class RelayCommand<T> : ICommand
     {

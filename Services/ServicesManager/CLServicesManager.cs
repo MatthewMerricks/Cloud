@@ -6,9 +6,9 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 using System;
-using CloudApiPublic;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
+using Cloud;
+using Cloud.Support;
+using Cloud.Model;
 using win_client.Common;
 using GalaSoft.MvvmLight.Messaging;
 using win_client.Services.Badging;
@@ -17,7 +17,7 @@ using win_client.Services.FileSystemMonitoring;
 using win_client.Services.ContextMenu;
 using CloudApiPrivate.Common;
 using CloudApiPrivate.Model.Settings;
-using CloudApiPublic.FileMonitor.SyncImplementation;
+using Cloud.FileMonitor.SyncImplementation;
 #if TRASH
 using win_client.DragDropServer;
 #endif // TRASH

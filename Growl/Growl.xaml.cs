@@ -6,9 +6,9 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 //
 
-using CloudApiPublic.EventMessageReceiver;
+using Cloud.EventMessageReceiver;
 using CloudApiPrivate.Model.Settings;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

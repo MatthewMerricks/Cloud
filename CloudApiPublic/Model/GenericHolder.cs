@@ -13,9 +13,9 @@ using System.Linq.Expressions;
 using System;
 using System.Reflection;
 using System.Runtime.Serialization;
-using CloudApiPublic.JsonContracts;
+using Cloud.JsonContracts;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     [DataContract]
     [KnownType(typeof(MetadataDictionary))]

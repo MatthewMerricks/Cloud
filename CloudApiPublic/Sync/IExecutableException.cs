@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Sync
+namespace Cloud.Sync
 {
     /// <summary>
     /// Interface allowing an exception to be "executed" with an originally provided action and userstate

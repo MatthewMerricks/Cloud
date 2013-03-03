@@ -13,9 +13,9 @@ using System.Text;
 using Microsoft.VisualBasic.FileIO;
 using System.Threading.Tasks;
 using System.IO;
-using CloudApiPublic.Model;
+using Cloud.Model;
 
-namespace CloudApiPublic.Support
+namespace Cloud.Support
 {
     /// <summary>
     /// Static helper class providing methods to handle file/directory copying with full visual basic-style dialogs

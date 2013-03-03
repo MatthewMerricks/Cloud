@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CloudSdkSyncSample.Support
+namespace SampleLiveSync.Support
 {
     public class NotificationEventArgs : EventArgs
     {

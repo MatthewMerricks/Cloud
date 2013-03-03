@@ -1,7 +1,7 @@
-﻿using CloudApiPublic.Static;
+﻿using Cloud.Static;
 using System;
 
-namespace CloudSdkSyncSample.Models
+namespace SampleLiveSync.Models
 {
     public class Settings
     {

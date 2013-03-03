@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Sync.Model
+namespace Cloud.Sync.Model
 {
     internal struct DownloadIdAndMD5
     {

@@ -19,12 +19,12 @@ using System.Linq;
 using CloudApiPrivate.Common;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Model;
-using CloudApiPublic.Model;
-using CloudApiPublic.Support;
+using Cloud.Model;
+using Cloud.Support;
 using Microsoft.Win32;
 using RegisterCom.Static;
 using System.Runtime.InteropServices;
-using CloudApiPublic.Static;
+using Cloud.Static;
 
 namespace RegisterCom
 {
@@ -405,7 +405,7 @@ namespace RegisterCom
         ///   - ContextMenuCom.dll              Program Files\Cloud.Com\Cloud\x86               Program Files\Common Files\Cloud.Com\Cloud
         ///   - RegisterCom.exe                 Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
         ///   - CloudApiPrivate.dll             Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
-        ///   - CloudApiPublic.dll              Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
+        ///   - Cloud.dll              Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
         ///   - Microsoft.Net.Http.dll          Program Files\Cloud.Com\Cloud                   Program Files\Common Files\Cloud.Com\Cloud
         /// 64-bit systems:
         ///   - BadgeCom.dll                    Program Files (x86)\Cloud.Com\Cloud\amd64       Program Files\Common Files\Cloud.Com\Cloud
@@ -414,7 +414,7 @@ namespace RegisterCom
         ///   - ContextMenuCom.dll              Program Files (x86)\Cloud.Com\Cloud\x86         Program Files (x86)\Common Files\Cloud.Com\Cloud
         ///   - RegisterCom.exe                 Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
         ///   - CloudApiPrivate.dll             Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
-        ///   - CloudApiPublic.dll              Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
+        ///   - Cloud.dll              Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
         ///   - Microsoft.Net.Http.dll          Program Files (x86)\Cloud.Com\Cloud             Program Files (x86)\Common Files\Cloud.Com\Cloud
         ///   
         /// The ProgramFiles 32-bit functions used below will identify the following directories:
@@ -472,7 +472,7 @@ namespace RegisterCom
                 // Copy the AnyCpu files
                 CopyFileWithDeleteFirst(fromDirectory, to32BitDirectory, "RegisterCom.exe");
                 CopyFileWithDeleteFirst(fromDirectory, to32BitDirectory, "CloudApiPrivate.dll");
-                CopyFileWithDeleteFirst(fromDirectory, to32BitDirectory, "CloudApiPublic.dll");
+                CopyFileWithDeleteFirst(fromDirectory, to32BitDirectory, "Cloud.dll");
                 CopyFileWithDeleteFirst(fromDirectory, to32BitDirectory, "Microsoft.Net.Http.dll");
             }
             catch (Exception ex)

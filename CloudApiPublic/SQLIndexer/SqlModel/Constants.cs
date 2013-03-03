@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.SQLIndexer.SqlModel
+namespace Cloud.SQLIndexer.SqlModel
 {
     internal static class Constants
     {

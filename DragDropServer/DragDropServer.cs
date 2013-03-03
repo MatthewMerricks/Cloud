@@ -6,7 +6,7 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 #if TRASH
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +18,7 @@ using System.Diagnostics;
 using System.Threading;
 using EasyHook;
 using System.Security.Principal;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using win_client.Common;
 using System.Windows;
 

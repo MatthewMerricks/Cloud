@@ -22,10 +22,10 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Security.Principal;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
+using Cloud.Support;
+using Cloud.Model;
 
-namespace CloudSdkSyncSample.Static
+namespace SampleLiveSync.Static
 {
     public static class Helpers
     {
@@ -185,7 +185,7 @@ namespace CloudSdkSyncSample.Static
                 try
                 {
                     var token = identity.Token;
-                    var result = CloudSdkSyncSample.Static.NativeMethod.GetTokenInformation(token, CloudSdkSyncSample.Static.NativeMethod.TokenInformationClass.TokenElevationType, tokenInformation, tokenInfLength, out tokenInfLength);
+                    var result = SampleLiveSync.Static.NativeMethod.GetTokenInformation(token, SampleLiveSync.Static.NativeMethod.TokenInformationClass.TokenElevationType, tokenInformation, tokenInfLength, out tokenInfLength);
 
                     if (!result)
                     {
@@ -193,19 +193,19 @@ namespace CloudSdkSyncSample.Static
                         throw new InvalidOperationException("Couldn't get token information", exception);
                     }
 
-                    var elevationType = (CloudSdkSyncSample.Static.NativeMethod.TokenElevationType)Marshal.ReadInt32(tokenInformation);
+                    var elevationType = (SampleLiveSync.Static.NativeMethod.TokenElevationType)Marshal.ReadInt32(tokenInformation);
 
                     switch (elevationType)
                     {
-                        case CloudSdkSyncSample.Static.NativeMethod.TokenElevationType.TokenElevationTypeDefault:
+                        case SampleLiveSync.Static.NativeMethod.TokenElevationType.TokenElevationTypeDefault:
                             // TokenElevationTypeDefault - User is not using a split token, so they cannot elevate.
                             _trace.writeToLog(9, "Helpers: IsAdministrator: User is not using a split token, so they cannot elevate.  Return false.");
                             return false;
-                        case CloudSdkSyncSample.Static.NativeMethod.TokenElevationType.TokenElevationTypeFull:
+                        case SampleLiveSync.Static.NativeMethod.TokenElevationType.TokenElevationTypeFull:
                             // TokenElevationTypeFull - User has a split token, and the process is running elevated. Assuming they're an administrator.
                             _trace.writeToLog(9, "Helpers: IsAdministrator: User has a split token, and the process is running elevated. Assuming they're an administrator. Return true.");
                             return true;
-                        case CloudSdkSyncSample.Static.NativeMethod.TokenElevationType.TokenElevationTypeLimited:
+                        case SampleLiveSync.Static.NativeMethod.TokenElevationType.TokenElevationTypeLimited:
                             // TokenElevationTypeLimited - User has a split token, but the process is not running elevated. Assuming they're an administrator.
                             _trace.writeToLog(9, "Helpers: IsAdministrator: IsInRole User has a split token, but the process is not running elevated. Return false.");
                             return false;

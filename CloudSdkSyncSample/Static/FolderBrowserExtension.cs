@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CloudSdkSyncSample.Static
+namespace SampleLiveSync.Static
 {
     public static class FolderBrowserExtension
     {

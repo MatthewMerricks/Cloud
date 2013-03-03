@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Static
+namespace Cloud.Static
 {
     /// <summary>
     /// Types of Trace Log entries (flags); must match TraceLog.xsd

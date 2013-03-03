@@ -26,9 +26,9 @@ using Ookii.Dialogs.WpfMinusTaskDialog;
 using win_client.AppDelegate;
 using win_client.Model;
 using win_client.Resources;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using CleanShutdown.Messaging;
-using CloudApiPublic.Support;
+using Cloud.Support;
 
 namespace win_client.Views
 {

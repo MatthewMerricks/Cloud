@@ -5,15 +5,15 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
-using CloudApiPublic.Static;
+using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace CloudApiPublic.Sync
+namespace Cloud.Sync
 {
     /// <summary>
     /// Generic-typed executable exception which can be handled via an action passed as a construction parameter (along with the typed userstate)

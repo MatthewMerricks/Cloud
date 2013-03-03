@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.BadgeNET
+namespace Cloud.BadgeNET
 {
     //!!!!!!!! Changes to the enumeration names below must be replicated to the appropriate portions of the named pipe names in BadgeIcon*.cpp files in project BadgeCOM, Source Files (i.e. pipeForCurrentBadgeType = L"\\\\.\\Pipe\\BadgeCOMcloudAppBadgeSyncSelective")
     /// <summary>

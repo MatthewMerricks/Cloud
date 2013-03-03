@@ -1,16 +1,16 @@
-﻿using CloudApiPublic.Interfaces;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
-using CloudSdkSyncSample.Models;
-using CloudSdkSyncSample.Support;
+﻿using Cloud.Interfaces;
+using Cloud.Static;
+using Cloud.Support;
+using Cloud.Model;
+using SampleLiveSync.Models;
+using SampleLiveSync.Support;
 using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using System.Windows.Input;
 
-namespace CloudSdkSyncSample.ViewModels
+namespace SampleLiveSync.ViewModels
 {
     public sealed class AdvancedOptionsViewModel : WorkspaceViewModel
     {
@@ -457,7 +457,7 @@ namespace CloudSdkSyncSample.ViewModels
             _settingsCaller.LogErrors = LogErrors;
             _settingsCaller.TraceType = (TraceType)Convert.ToInt32(TraceType);
             _settingsCaller.TraceFolderFullPath = TraceFolderFullPath;
-            _settingsCaller.TraceExcludeAuthorization = (Convert.ToInt32(TraceType) & Convert.ToInt32(CloudApiPublic.Static.TraceType.AddAuthorization)) == 0 ? true : false;
+            _settingsCaller.TraceExcludeAuthorization = (Convert.ToInt32(TraceType) & Convert.ToInt32(Cloud.Static.TraceType.AddAuthorization)) == 0 ? true : false;
             _settingsCaller.TraceLevel = Convert.ToInt32(TraceLevel);
 
             // Close the window

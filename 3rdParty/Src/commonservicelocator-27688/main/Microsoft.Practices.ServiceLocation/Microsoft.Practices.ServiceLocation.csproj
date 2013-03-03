@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.Practices.ServiceLocation</RootNamespace>
-    <AssemblyName>Microsoft.Practices.ServiceLocation</AssemblyName>
+    <AssemblyName>Microsoft.Practices.ServiceLocation.CSDK</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -42,7 +42,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <DocumentationFile>bin\Debug\Microsoft.Practices.ServiceLocation.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Microsoft.Practices.ServiceLocation.CSDK.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -51,7 +51,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Microsoft.Practices.ServiceLocation.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Microsoft.Practices.ServiceLocation.CSDK.xml</DocumentationFile>
     <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup>
@@ -104,6 +104,49 @@
     <None Include="CloudPlatformCodeSigning.pfx" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>echo ************  START POST BUILD STEPS **********************
+REM ------Do this only for the Release build ----------------
+if /I $(ConfigurationName) == Debug goto BuildEventOk
+
+REM ----------------------
+set ErrorTracker=1
+echo xcopy /Y /v $(SolutionDir)$(ProjectName)\bin\release\$(TargetName).dll  $(SolutionDir)..\..\..\..\3rdParty\bin\release
+xcopy /Y /v $(SolutionDir)$(ProjectName)\bin\release\$(TargetName).dll  $(SolutionDir)..\..\..\..\3rdParty\bin\release
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=2
+echo xcopy /Y /v $(SolutionDir)$(ProjectName)\bin\release\$(TargetName).pdb  $(SolutionDir)..\..\..\..\3rdParty\bin\release
+xcopy /Y /v $(SolutionDir)$(ProjectName)\bin\release\$(TargetName).pdb  $(SolutionDir)..\..\..\..\3rdParty\bin\release
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=3
+echo xcopy /Y /v $(SolutionDir)$(ProjectName)\bin\release\$(TargetName).xml  $(SolutionDir)..\..\..\..\3rdParty\bin\release
+xcopy /Y /v $(SolutionDir)$(ProjectName)\bin\release\$(TargetName).xml  $(SolutionDir)..\..\..\..\3rdParty\bin\release
+if errorlevel 1 goto BuildEventFailed
+
+REM ---- PLACE THIS CODE AT THE END
+REM Exit properly because the build will not fail
+REM unless the final step exits with an error code
+goto BuildEventOK
+:BuildEventFailed
+echo PREBUILDSTEP for $(ProjectName) FAILED at step %25ErrorTracker%25
+set ErrorTracker=
+echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
+exit 1
+:BuildEventOK
+echo PREBUILDSTEP for $(ProjectName) COMPLETED OK
+echo ************  POST BUILD STEP COMPLETED OK **********************
+
+
+
+
+
+
+</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

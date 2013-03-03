@@ -1,5 +1,5 @@
-﻿using CloudSdkSyncSample.ViewModels;
-using CloudSdkSyncSample.Views;
+﻿using SampleLiveSync.ViewModels;
+using SampleLiveSync.Views;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -7,7 +7,7 @@ using System.Data;
 using System.Linq;
 using System.Windows;
 
-namespace CloudSdkSyncSample
+namespace SampleLiveSync
 {
     /// <summary>
     /// Interaction logic for App.xaml

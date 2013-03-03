@@ -27,7 +27,7 @@ using Dialog.Abstractions.Wpf.Intefaces;
 using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Windows.Input;
 using System.ComponentModel;
 using CleanShutdown.Messaging;
@@ -36,8 +36,8 @@ using win_client.Resources;
 using CleanShutdown.Helpers;
 using System.Windows.Threading;
 using System.Diagnostics;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 
 
 namespace win_client.ViewModels

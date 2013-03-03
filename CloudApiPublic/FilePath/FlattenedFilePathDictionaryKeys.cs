@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     public sealed partial class FilePathDictionary<T>
     {

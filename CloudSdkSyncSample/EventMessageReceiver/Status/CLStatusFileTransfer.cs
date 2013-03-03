@@ -7,7 +7,7 @@ using RateBar;
 using System.Windows.Data;
 using System.Linq.Expressions;
 
-namespace CloudSdkSyncSample.EventMessageReceiver.Status
+namespace SampleLiveSync.EventMessageReceiver.Status
 {
     internal sealed class CLStatusFileTransfer : CLStatusFileTransferBase<CLStatusFileTransfer>
     {

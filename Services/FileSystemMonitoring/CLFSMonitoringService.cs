@@ -9,13 +9,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
+using Cloud.Support;
+using Cloud.Model;
 using CloudApiPrivate.Model.Settings;
-using CloudApiPublic.FileMonitor;
-using CloudApiPublic.Sync;
-using CloudApiPublic.SQLIndexer;
-using CloudApiPublic.Static;
+using Cloud.FileMonitor;
+using Cloud.Sync;
+using Cloud.SQLIndexer;
+using Cloud.Static;
 using win_client.Common;
 
 
@@ -26,7 +26,7 @@ namespace win_client.Services.FileSystemMonitoring
         static readonly CLFSMonitoringService _instance = new CLFSMonitoringService();
         private static Boolean _isLoaded = false;
         private static CLTrace _trace = CLTrace.Instance;
-        internal CloudApiPublic.CLSync SyncBox { get; private set; }
+        internal Cloud.CLSync SyncBox { get; private set; }
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -53,7 +53,7 @@ namespace win_client.Services.FileSystemMonitoring
         {
             try
             {
-                SyncBox = new CloudApiPublic.CLSync();
+                SyncBox = new Cloud.CLSync();
             }
             catch (Exception ex)
             {
@@ -70,7 +70,7 @@ namespace win_client.Services.FileSystemMonitoring
         {
             try
             {
-                CloudApiPublic.CLSyncStartStatus startStatus;
+                Cloud.CLSyncStartStatus startStatus;
                 SyncBox.Start(CLSettingsSync.Instance, out startStatus);
             }
             catch (Exception ex)

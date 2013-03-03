@@ -18,7 +18,7 @@ using CloudApiPrivate.Static;
 using System.Windows.Controls;
 using CloudApiPrivate.Common;
 using System.ComponentModel;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Resources;
 using win_client.AppDelegate;
 using win_client.ViewModelHelpers;
