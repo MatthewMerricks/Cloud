@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:rate="clr-namespace:RateBar;assembly=RateBar"
+        xmlns:rate="clr-namespace:RateBar;assembly=RateBar.CSDK"
         xmlns:icHelper="clr-namespace:Cloud.Static;assembly=Cloud"
         xmlns:vm="clr-namespace:SampleLiveSync.ViewModels"
         xmlns:enums="clr-namespace:SampleLiveSync.Static"
