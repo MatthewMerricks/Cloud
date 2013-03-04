@@ -37,12 +37,9 @@ namespace CloudSDK_SmokeTest.Managers
         public int Create(SmokeTestManagerEventArgs e)
         {
             CLSyncBox syncBox;
-            ICLCredentialSettings settings;
-            CLError error = null;
             TaskEventArgs refArgs = (e as TaskEventArgs);
-            CredentialHelper.InitializeCreds(ref refArgs, out settings, out error);  
-            int response = SyncBoxManager.InitilizeSyncBox(e, null, out syncBox);
-            if (response == 0)
+            syncBox = SyncBoxManager.InitializeCredentialsAndSyncBox(e);
+            if (syncBox.SyncBoxId != 0)
             {
                 e.SyncBox = syncBox;
                 return BeginCreate(e);
@@ -272,24 +269,24 @@ namespace CloudSDK_SmokeTest.Managers
         #region Rename
         public int Rename(SmokeTestManagerEventArgs e)
         {
-            CLSyncBox syncBox;
+            int responseCode = 0;
             ICLCredentialSettings settings;
             CLError error = null;
             TaskEventArgs refArgs = (e as TaskEventArgs);
-            CredentialHelper.InitializeCreds(ref refArgs, out settings, out error);
             long id = SmokeTaskManager.GetOpperationSyncBoxID(e);
-            int response = SyncBoxManager.InitilizeSyncBox(e, id, out syncBox);
-            if (response == 0)
+
+            CLSyncBox syncBox = SyncBoxManager.InitializeCredentialsAndSyncBox(e);
+            if (syncBox.SyncBoxId != 0)
             {
                 e.SyncBox = syncBox;
-                response = BeginRename(e);
+                responseCode = BeginRename(e);
             }
             else
             {
                 return (int)FileManagerResponseCodes.UnknownError;
             }
 
-            return response;
+            return responseCode;
         }
 
         #region Rename Private
@@ -716,12 +713,9 @@ namespace CloudSDK_SmokeTest.Managers
         public int Delete(SmokeTestManagerEventArgs e)
         {
             CLSyncBox syncBox;
-            ICLCredentialSettings settings;
-            CLError error = null;
             TaskEventArgs refArgs = (e as TaskEventArgs);
-            CredentialHelper.InitializeCreds(ref refArgs, out settings, out error);
-            int response = SyncBoxManager.InitilizeSyncBox(e, null, out syncBox);
-            if (response == 0)
+            syncBox = SyncBoxManager.InitializeCredentialsAndSyncBox(e);
+            if (syncBox.SyncBoxId != 0)
             {
                 e.SyncBox = syncBox;
                 return BeginDelete(e);
