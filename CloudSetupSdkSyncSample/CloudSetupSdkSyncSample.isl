@@ -341,10 +341,10 @@
 		<col def="S0">ISDotNetInstallerArgsCommit</col>
 		<col def="S0">ISDotNetInstallerArgsUninstall</col>
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
-		<row><td>BadgeCOM.dll</td><td>{A6CA27A6-4894-4F9B-9A2F-FEA5A220F489}</td><td>X86</td><td>2</td><td/><td>badgecom.dll</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>BadgeCOM.dll1</td><td>{F177C4DD-A4CF-4F8A-828C-46E75BACE0E7}</td><td>AMD64</td><td>2</td><td/><td>badgecom.dll1</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>BadgeCOM.dll3</td><td>{4F6315EE-8C2B-4544-8991-F3E061B78C77}</td><td>AMD641</td><td>2</td><td/><td>badgecom.dll3</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>BadgeCOM.dll4</td><td>{893E737E-8BA6-4832-BE2D-3452D953CD8B}</td><td>X861</td><td>2</td><td/><td>badgecom.dll4</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOM.dll</td><td>{A6CA27A6-4894-4F9B-9A2F-FEA5A220F489}</td><td>X86</td><td>2</td><td/><td>badgecom.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOM.dll1</td><td>{F177C4DD-A4CF-4F8A-828C-46E75BACE0E7}</td><td>AMD64</td><td>2</td><td/><td>badgecom.dll1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOM.dll3</td><td>{4F6315EE-8C2B-4544-8991-F3E061B78C77}</td><td>AMD641</td><td>2</td><td/><td>badgecom.dll3</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOM.dll4</td><td>{893E737E-8BA6-4832-BE2D-3452D953CD8B}</td><td>X861</td><td>2</td><td/><td>badgecom.dll4</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BadgeCOMLib.dll2</td><td>{024D64E0-4A53-4C6F-A366-14FF2AD52CBD}</td><td>CLOUDSDK1</td><td>2</td><td/><td>badgecomlib.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Cloud.dll2</td><td>{A095316F-7316-466D-B4AF-A278A0D3BB13}</td><td>CLOUDSDK1</td><td>2</td><td/><td>cloud.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudApiPublic.Primary_output</td><td>{45E37818-16EC-444D-90E0-F5B8F87D3A14}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapipublic.primary_outpu</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -2002,8 +2002,8 @@
 		<col def="S72">ISComponentSubFolder_</col>
 		<row><td>badgecom.dll</td><td>BadgeCOM.dll</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll1</td><td>BadgeCOM.dll1</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
-		<row><td>badgecom.dll3</td><td>BadgeCOM.dll3</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
-		<row><td>badgecom.dll4</td><td>BadgeCOM.dll4</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\BadgeCOM.dll</td><td>1</td><td/></row>
+		<row><td>badgecom.dll3</td><td>BadgeCOM.dll3</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
+		<row><td>badgecom.dll4</td><td>BadgeCOM.dll4</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgecomlib.dll1</td><td>BadgeCOMLib.dll2</td><td>BADGEC~1.DLL|BadgeCOMLib.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\BadgeCOMLib.dll</td><td>1</td><td/></row>
 		<row><td>cloud.dll2</td><td>Cloud.dll2</td><td>Cloud.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Cloud.dll</td><td>1</td><td/></row>
 		<row><td>cloud.xml2</td><td>ISX_DEFAULTCOMPONENT8</td><td>Cloud.xml</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Cloud.xml</td><td>1</td><td/></row>
@@ -4330,7 +4330,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{65861209-25BE-4E87-B971-7962D25CA4A5}</td></row>
 		<row><td>ISUSSignature</td><td>{191E5117-09B8-4425-8EDA-93DB7879F0F5}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant,viewAppFiles,viewProject,viewRealSetupDesign,viewSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService,viewFeatureFiles,viewObjects,viewShortcuts,viewISToday,viewAppV,viewDependencies,viewCE,viewRelease,viewCustomActions,viewRegistry,viewIniFiles,viewTextFiles,viewXMLConfig,viewFileExtensions,viewEnvironmentVariables,viewVRoots,viewSQLServer,viewComponentServices,viewSystemSearch,viewSupportFiles,viewInstallScriptStd</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewAppFiles,viewProject,viewRealSetupDesign,viewSetupDesign,viewSetupTypes,viewUpgradePaths,viewUpdateService,viewFeatureFiles,viewObjects,viewShortcuts,viewISToday,viewAppV,viewDependencies,viewCE,viewRelease,viewCustomActions,viewRegistry,viewIniFiles,viewTextFiles,viewXMLConfig,viewFileExtensions,viewEnvironmentVariables,viewVRoots,viewSQLServer,viewComponentServices,viewSystemSearch,viewSupportFiles,viewInstallScriptStd,viewUI</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>

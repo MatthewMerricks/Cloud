@@ -314,8 +314,8 @@ namespace CloudSetupSdkSyncSampleSupport
 
                 // Install SQL CE V4.0.
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call InstallSqlCe.");
-                int rcFromInstallSqlCe = InstallSqlCe(pathInstall);
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Back from InstallSqlCe.  Return code: {0}.", rcFromInstallSqlCe.ToString());
+                InstallSqlCe(pathInstall);
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Back from InstallSqlCe.");
 
                 // Schedule cleanup of the files in the installation directory.
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call ScheduleCleanup.");
@@ -336,54 +336,25 @@ namespace CloudSetupSdkSyncSampleSupport
         /// Install SQL CE.
         /// </summary>
         /// <param name="pathInstall">The installation path (program files\Cloud.com).</param>
-        /// <returns>(int): Return code from the SQL CE installer.</returns>
-        private static int InstallSqlCe(string pathInstall)
+        private static void InstallSqlCe(string pathInstall)
         {
-            // Determine whether an installation is required.
-            if (IsSqlCeV40Installed())
+            try
             {
-                return 0;
-            }
+                // Determine whether an installation is required.
+                if (IsSqlCeV40Installed())
+                {
+                    // Not required to install
+                    _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Installation not required.");
+                }
 
-            Process installProcess = null;
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.CreateNoWindow = false;
-            startInfo.UseShellExecute = true;
-            string fileNameExt;
-            if (IntPtr.Size == 4)
+                // Create a flag file for CloudSetupSdkSyncSampleInstallCleanup to actually do the installation.
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Request installation.");
+                System.IO.File.WriteAllText(pathInstall + "\\Support\\InstallSqlCe.flg", "Flag file");
+            }
+            catch (Exception ex)
             {
-                // 32-bit 
-                fileNameExt = "SSCERuntime_x86-ENU.exe";
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: ERROR: Exception. Msg: {0}.", ex.Message);
             }
-            else
-            {
-                // 64-bit 
-                fileNameExt = "SSCERuntime_x64-ENU.exe";
-            }
-            startInfo.FileName = pathInstall + "\\Support\\" + fileNameExt;
-
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.Arguments = "";
-            if (!Cloud.Static.Helpers.IsAdministrator())
-            {
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Run as administrator.");
-                startInfo.Verb = "runas";
-            }
-            _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Start process to install SQL CE. Program: {0}. Arguments: {1}.", startInfo.FileName, startInfo.Arguments);
-            installProcess = Process.Start(startInfo);
-
-            // Wait for the process to exit
-            installProcess.WaitForExit();
-
-            // Process has exited.  Get the return code.
-            int retCode = installProcess.ExitCode;
-            if (retCode != 0)
-            {
-                // Error return code
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallBadging: Error installing SQL CE. Code: {0}.", retCode);
-            }
-
-            return retCode;
         }
 
         /// <summary>

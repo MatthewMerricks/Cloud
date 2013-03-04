@@ -61,43 +61,51 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BadgeCOMLib, Version=0.1.6.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+    <Reference Include="BadgeCOMLib, Version=0.1.5.1, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
-    <Reference Include="ErikEJ.SqlCe40.CSDK, Version=2.1.6.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+    <Reference Include="ErikEJ.SqlCe40.CSDK, Version=2.1.6.1, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\ErikEJ.SqlCe40.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="Interop.Shell32, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.Net.Http.CSDK, Version=0.3.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="Microsoft.Practices.ServiceLocation.CSDK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Newtonsoft.Json.CSDK, Version=4.5.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="Salient.Data.CSDK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Salient.Data.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="SimpleJson.CSDK, Version=0.1.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\SimpleJson.CSDK.dll</HintPath>
       <Aliases>global,SimpleJsonBase</Aliases>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.1, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\System.Data.SqlServerCe.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />
@@ -346,34 +354,6 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\amd64\sqlceer40EN.dll">
-      <Link>SQLIndexer\SqlCE\amd64\sqlceer40EN.dll</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\amd64\sqlceme40.dll">
-      <Link>SQLIndexer\SqlCE\amd64\sqlceme40.dll</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\amd64\sqlceqp40.dll">
-      <Link>SQLIndexer\SqlCE\amd64\sqlceqp40.dll</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\amd64\sqlcese40.dll">
-      <Link>SQLIndexer\SqlCE\amd64\sqlcese40.dll</Link>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\x86\sqlceer40EN.dll">
-      <Link>SQLIndexer\SqlCE\x86\sqlceer40EN.dll</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\x86\sqlceme40.dll">
-      <Link>SQLIndexer\SqlCE\x86\sqlceme40.dll</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\x86\sqlceqp40.dll">
-      <Link>SQLIndexer\SqlCE\x86\sqlceqp40.dll</Link>
-    </EmbeddedResource>
-    <EmbeddedResource Include="..\x86\sqlcese40.dll">
-      <Link>SQLIndexer\SqlCE\x86\sqlcese40.dll</Link>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="WindowsSdkReleaseNotes.txt" />

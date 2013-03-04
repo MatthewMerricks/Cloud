@@ -55,6 +55,7 @@
 REM ------- Loop through the entire solution directory and kill all .pfx files. Die a horrible death if any are found but don't delete. ---------------
 cd $(SolutionDir)
 
+set ErrorTracker=1
 for /f "delims=|" %25%25a in ('dir /s /b *.pfx') do (
   IF EXIST %25%25~fa (
     echo del %25%25~fa
@@ -79,6 +80,7 @@ exit 1
 :BuildEventOK
 echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
 echo ************  POST BUILD STEP COMPLETED OK **********************
+
 
 </PostBuildEvent>
   </PropertyGroup>

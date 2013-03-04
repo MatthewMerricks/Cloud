@@ -48,8 +48,10 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Cloud, Version=0.1.5.3, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" />
-    <Reference Include="RateBar.CSDK, Version=1.0.4810.27162, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+    <Reference Include="Cloud, Version=0.1.5.4, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <SpecificVersion>True</SpecificVersion>
+    </Reference>
+    <Reference Include="RateBar.CSDK, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\RateBar.CSDK.dll</HintPath>
     </Reference>
     <Reference Include="System" />
