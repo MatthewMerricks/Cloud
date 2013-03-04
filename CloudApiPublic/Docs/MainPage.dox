@@ -10,7 +10,7 @@
 /// An application can have a SyncBox which can have multiple devices. The ID of a device should be unique within a particular SyncBox.
 /// A physical computer (e.g., a local Windows Machine) may have multiple SyncBoxes running under multiple applications in different or possibly overlapping local directories.
 ///
-/// In desktop environments, a SyncBox is tied to a particular local disk directory.  e.g., on Windows, "C:\Users\<UserName>\<YourSyncBoxName>".
+/// In desktop environments, a SyncBox is tied to a particular local disk directory.  e.g., on Windows, "C:\\Users\\<UserName>\\<YourSyncBoxName>".
 ///
 /// To begin syncing, you will need to:     
 /// - Specify your credential.
@@ -230,13 +230,13 @@
 ///
 /// Because BadgeCom.dll is a shell extension, it requires special installation support.  When installing this DLL, you must perform the following steps:
 /// - Stop all Explorer processes
-/// - Run "regsvr32 <installation path>\BadgeCom.dll"
+/// - Run "regsvr32 <installation path>\\BadgeCom.dll"
 /// - Restart Explorer
 /// .
 ///
 /// Uninstalling BadgeCom.dll involves the following steps:
 /// - Stop all Explorer processes
-/// - Run "regsvr32 /u <installation path>\BadgeCom.dll"
+/// - Run "regsvr32 /u <installation path>\\BadgeCom.dll"
 /// - Restart Explorer
 /// - Delete the file BadgeCom.dll
 /// .
@@ -297,7 +297,9 @@
 ///                                             sqlcese40.dll
 /// \endcode
 ///
-///You will find the DLLs in the structure above in the C:\Program Files (X86)\Cloud.com\CloudSDK\amd64 and C:\Program Files (X86)\Cloud.com\CloudSDK\x86 directories.
+///You will find the DLLs and the Microsoft.VC90.CRT folders in the structure above in the %ProgramFiles(x86)%\\Cloud.com\\CloudSDK\\amd64 and %ProgramFiles(x86)%\\Cloud.com\\CloudSDK\\x86 directories.
+///Within a 32-bit operating system, %ProgramFiles(x86)% will not resolve, instead use %ProgramFiles%.
+///Files within amd64 and x86 must be kept unique from one another.
 ///
 ///In addition to the DLLs required (above), your app also needs an app.config file like the following.  See the SampleApp\\app.config file.
 /// \code{.cs}
