@@ -303,9 +303,20 @@ namespace CloudSetupSdkSyncSampleSupport
                 string source = pathInstall + "\\Sample Code\\Sync\\Live\\App\\RateBar.CSDK.dll";
                 string target = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\bin\\Release\\RateBar.CSDK.dll";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy RateBar.CSDK.dll. Src: <{0}>. Target: <{1}>.", source, target);
+                if (File.Exists(target))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete RateBar.CSDK.dll.");
+                    File.Delete(target);
+                }
                 File.Copy(source, target);
+
                 target = pathInstall + "\\Sample Code\\Sync\\Live\\Project\\bin\\Debug\\RateBar.CSDK.dll";
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy RateBar.CSDK.dll. Src: <{0}>. Target: <{1}>.", source, target);
+                if (File.Exists(target))
+                {
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete RateBar.CSDK.dll.");
+                    File.Delete(target);
+                }
                 File.Copy(source, target);
 
                 // Install all of the DLLs required for the sample in the gac.
@@ -346,10 +357,12 @@ namespace CloudSetupSdkSyncSampleSupport
                     // Not required to install
                     _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Installation not required.");
                 }
-
-                // Create a flag file for CloudSetupSdkSyncSampleInstallCleanup to actually do the installation.
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Request installation.");
-                System.IO.File.WriteAllText(pathInstall + "\\Support\\InstallSqlCe.flg", "Flag file");
+                else
+                {
+                    // Create a flag file for CloudSetupSdkSyncSampleInstallCleanup to actually do the installation.
+                    _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Request installation.");
+                    System.IO.File.WriteAllText(pathInstall + "\\Support\\InstallSqlCe.flg", "Flag file");
+                }
             }
             catch (Exception ex)
             {
@@ -366,22 +379,21 @@ namespace CloudSetupSdkSyncSampleSupport
         {
             try
             {
-                System.Reflection.Assembly.Load("System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91");
+                System.Reflection.Assembly.Load("System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL");
             }
-            catch (System.IO.FileNotFoundException)
+            catch (Exception ex)
             {
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: IsSqlCeV40Installed: Exception. Msg: {0}.", ex.Message);
                 return false;
             }
+
             try
             {
                 var factory = System.Data.Common.DbProviderFactories.GetFactory("System.Data.SqlServerCe.4.0");
             }
-            catch (System.Configuration.ConfigurationException)
+            catch (Exception ex)
             {
-                return false;
-            }
-            catch (System.ArgumentException)
-            {
+                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: IsSqlCeV40Installed: Exception. Msg(2): {0}.", ex.Message);
                 return false;
             }
 
