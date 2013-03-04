@@ -5,13 +5,13 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model;
+using Cloud.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic.Interfaces
+namespace Cloud.Interfaces
 {
     /// <summary>
     /// Interface to implement on an event source to pass to a SyncEngine; do not use any instance of an implementor for more than one SyncEngine

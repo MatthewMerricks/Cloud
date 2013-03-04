@@ -23,10 +23,10 @@ using System.Windows.Data;
 using win_client.Common;
 using win_client.ViewModels;
 using win_client.AppDelegate;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using win_client.Model;
 using CleanShutdown.Messaging;
-using CloudApiPublic.Support;
+using Cloud.Support;
 
 namespace win_client.Views
 {

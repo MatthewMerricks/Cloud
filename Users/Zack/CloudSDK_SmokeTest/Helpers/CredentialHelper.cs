@@ -1,6 +1,6 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model;
+﻿using Cloud;
+using Cloud.Interfaces;
+using Cloud.Model;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Settings;
 using System;

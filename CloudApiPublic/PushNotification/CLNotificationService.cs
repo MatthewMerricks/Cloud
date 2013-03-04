@@ -9,20 +9,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using WebSocket4Net;
-using WebSocket4Net.Command;
-using WebSocket4Net.Protocol;
-using SuperSocket.ClientEngine;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.REST;
+//using WebSocket4Net;
+//using WebSocket4Net.Command;
+//using WebSocket4Net.Protocol;
+//using SuperSocket.ClientEngine;
+using Cloud.Support;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.REST;
 
-namespace CloudApiPublic.PushNotification
+namespace Cloud.PushNotification
 {
-    extern alias WebSocket4NetBase;
+    //extern alias WebSocket4NetBase;
 
     /// <summary>
     /// Properties for a received notification message
@@ -195,6 +195,9 @@ namespace CloudApiPublic.PushNotification
         {
             try
             {
+                string syncBoxDeviceIdCombined = null;
+                bool shouldStopEngine = false;
+
                 lock (this)
                 {
                     _trace.writeToLog(9, "StartEngineThread: DisconnectPushNotificationServer: Entry.");
@@ -202,24 +205,41 @@ namespace CloudApiPublic.PushNotification
 
                     if (_syncBox != null)
                     {
-                        string syncBoxDeviceIdCombined = _syncBox.SyncBoxId.ToString() + " " + (_syncBox.CopiedSettings.DeviceId ?? string.Empty);
+                        syncBoxDeviceIdCombined = _syncBox.SyncBoxId.ToString() + " " + (_syncBox.CopiedSettings.DeviceId ?? string.Empty);
+                    }
+                }
 
+                if (syncBoxDeviceIdCombined != null)
+                {
+                    lock (NotificationClientsRunning)
+                    {
                         NotificationClientsRunning.Remove(syncBoxDeviceIdCombined);
                     }
+                }
 
+                lock (this)
+                {
                     if (_timerEngineWatcher != null)
                     {
                         _timerEngineWatcher.Dispose();
                         _timerEngineWatcher = null;
                     }
 
-                    // Stop the current engine if it is running
                     if (_currentEngine != null)
                     {
-                        _currentEngine.Stop();
-                        _currentEngine = null;
+                        shouldStopEngine = true;
                     }
+                }
 
+                // Stop the current engine if it is running
+                if (shouldStopEngine)
+                {
+                    _currentEngine.Stop();
+                }
+
+                lock (this)
+                {
+                    _currentEngine = null;
                     StopServiceManagerThread();
                 }
             }
@@ -229,21 +249,22 @@ namespace CloudApiPublic.PushNotification
             }
         }
 
+        /// <summary>
+        /// Start the service manager thread.
+        /// </summary>
+        /// <remarks>Assumes already locked.</remarks>
         private void StartServiceManagerThread()
         {
             try
             {
-                lock (this)
+                _trace.writeToLog(9, "StartEngineThread: StartServiceManagerThread: Entry.");
+                if (_serviceManagerThread.Value == null)
                 {
-                    _trace.writeToLog(9, "StartEngineThread: StartServiceManagerThread: Entry.");
-                    if (_serviceManagerThread.Value == null)
-                    {
-                        _trace.writeToLog(9, "StartEngineThread: StartServiceManagerThread: Start the service manager thread.");
-                        _serviceManagerThread.Value = new Thread(new ParameterizedThreadStart(this.ServiceManagerThreadProc));
-                        _serviceManagerThread.Value.Name = "Notification Engine";
-                        _serviceManagerThread.Value.IsBackground = true;
-                        _serviceManagerThread.Value.Start(this);
-                    }
+                    _trace.writeToLog(9, "StartEngineThread: StartServiceManagerThread: Start the service manager thread.");
+                    _serviceManagerThread.Value = new Thread(new ParameterizedThreadStart(this.ServiceManagerThreadProc));
+                    _serviceManagerThread.Value.Name = "Notification Engine";
+                    _serviceManagerThread.Value.IsBackground = true;
+                    _serviceManagerThread.Value.Start(this);
                 }
             }
             catch (Exception ex)
@@ -253,25 +274,26 @@ namespace CloudApiPublic.PushNotification
             }
         }
 
+        /// <summary>
+        /// Stopo the service manager thread.
+        /// </summary>
+        /// <remarks>Assumes already locked.</remarks>
         private void StopServiceManagerThread()
         {
             try
             {
-                lock (this)
+                _trace.writeToLog(9, "StartEngineThread: StopServiceManagerThread: Entry.");
+                if (_serviceManagerThread.Value != null)
                 {
-                    _trace.writeToLog(9, "StartEngineThread: StopServiceManagerThread: Entry.");
-                    if (_serviceManagerThread.Value != null)
+                    try
                     {
-                        try
-                        {
-                            _trace.writeToLog(9, "StartEngineThread: StopServiceManagerThread: Abort the service manager thread.");
-                            _serviceManagerThread.Value.Abort();
-                        }
-                        catch
-                        {
-                        }
-                        _serviceManagerThread.Value = null;
+                        _trace.writeToLog(9, "StartEngineThread: StopServiceManagerThread: Abort the service manager thread.");
+                        _serviceManagerThread.Value.Abort();
                     }
+                    catch
+                    {
+                    }
+                    _serviceManagerThread.Value = null;
                 }
             }
             catch (Exception ex)
@@ -360,6 +382,7 @@ namespace CloudApiPublic.PushNotification
                             // Start the engine and run it on this thread (might not return for a very long time)
                             _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Start the engine.");
                             bool engineStartDidReturnSuccess = _currentEngine.Start();
+                            _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Back from engine Start.");
 
                             // Cancel any outstanding engine watcher timer.
                             DisposeEngineTimer();
@@ -427,7 +450,7 @@ namespace CloudApiPublic.PushNotification
                     }
                 }
             }
-            catch (ThreadAbortException ex)
+            catch (ThreadAbortException)
             {
                 wasThreadAborted = true;
             }
@@ -547,20 +570,31 @@ namespace CloudApiPublic.PushNotification
 
         void DisposeEngineTimer()
         {
+            bool wasThreadAborted = false;
+
             try
             {
                 lock (this)
                 {
                     if (_timerEngineWatcher != null)
                     {
+                        _trace.writeToLog(1, "CLNotificationService: DisposeEngineTimer: Dispose the timer.");
                         _timerEngineWatcher.Dispose();
+                        _trace.writeToLog(1, "CLNotificationService: DisposeEngineTimer: Back from dispose.");
                         _timerEngineWatcher = null;
                     }
                 }
             }
+            catch (ThreadAbortException)
+            {
+                wasThreadAborted = true;
+            }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "CLNotificationService: DisposeEngineTimer: ERROR: Exception: Msg: {0}.", ex.Message);
+                if (!wasThreadAborted)
+                {
+                    _trace.writeToLog(1, "CLNotificationService: DisposeEngineTimer: ERROR: Exception: Msg: {0}.", ex.Message);
+                }
             }
         }
 

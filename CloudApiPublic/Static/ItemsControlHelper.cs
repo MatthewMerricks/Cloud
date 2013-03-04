@@ -15,7 +15,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 
-namespace CloudApiPublic.Static
+namespace Cloud.Static
 {
     /// <summary>
     /// Allows an attached property to define whether to start an ItemsControl (or derived class) as scrolled to the end

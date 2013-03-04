@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ErikEJ.SqlCe</RootNamespace>
-    <AssemblyName>ErikEJ.SqlCe40</AssemblyName>
+    <AssemblyName>ErikEJ.SqlCe40.CSDK</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
@@ -60,12 +60,13 @@
   <ItemGroup>
     <Reference Include="Salient.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\..\bin\Release\Salient.Data.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.SqlServerCe, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <HintPath>..\..\bin\Release\System.Data.SqlServerCe.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -100,6 +101,43 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>echo ************  START POST BUILD STEPS **********************
+REM ------Do this only for the Release build ----------------
+if /I $(ConfigurationName) == Debug goto BuildEventOk
+
+REM ----------------------
+set ErrorTracker=1
+echo xcopy /Y /v $(TargetDir)$(TargetName).dll  $(SolutionDir)..\..\..\3rdParty\bin\release
+xcopy /Y /v $(TargetDir)$(TargetName).dll  $(SolutionDir)..\..\..\3rdParty\bin\release
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=2
+echo xcopy /Y /v $(TargetDir)$(TargetName).pdb  $(SolutionDir)..\..\..\3rdParty\bin\release
+xcopy /Y /v $(TargetDir)$(TargetName).pdb  $(SolutionDir)..\..\..\3rdParty\bin\release
+if errorlevel 1 goto BuildEventFailed
+
+REM ---- PLACE THIS CODE AT THE END
+REM Exit properly because the build will not fail
+REM unless the final step exits with an error code
+goto BuildEventOK
+:BuildEventFailed
+echo PREBUILDSTEP for $(ProjectName) FAILED at step %25ErrorTracker%25
+set ErrorTracker=
+echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
+exit 1
+:BuildEventOK
+echo PREBUILDSTEP for $(ProjectName) COMPLETED OK
+echo ************  POST BUILD STEP COMPLETED OK **********************
+
+
+
+
+
+
+</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

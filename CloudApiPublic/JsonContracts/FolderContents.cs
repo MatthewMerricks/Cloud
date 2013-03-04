@@ -10,13 +10,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 
-namespace CloudApiPublic.JsonContracts
+namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetFolderContents"/>
+    /// Result from <see cref="Cloud.CLSyncBox.GetFolderContents"/>
     /// </summary>
     [DataContract]
     public sealed class FolderContents

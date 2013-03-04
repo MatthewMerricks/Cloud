@@ -24,9 +24,9 @@ using win_client.Common;
 using win_client.ViewModels;
 using win_client.AppDelegate;
 using win_client.Model;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using CleanShutdown.Messaging;
-using CloudApiPublic.Support;
+using Cloud.Support;
 
 namespace win_client.Views
 {

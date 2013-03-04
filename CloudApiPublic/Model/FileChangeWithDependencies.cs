@@ -9,10 +9,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     /// <summary>
     /// Extension of FileChange to add a property for Dependencies

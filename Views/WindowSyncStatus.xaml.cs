@@ -27,12 +27,12 @@ using CleanShutdown.Messaging;
 using System.Windows.Threading;
 using CloudApiPrivate.Model.Settings;
 using CleanShutdown.Helpers;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using CloudApiPrivate.Common;
 using System.Diagnostics;
-using CloudApiPublic.Model;
+using Cloud.Model;
 using System.Collections.Specialized;
-using CloudApiPublic.EventMessageReceiver;
+using Cloud.EventMessageReceiver;
 
 namespace win_client.Views
 {

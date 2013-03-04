@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     /// <summary>
     /// Used to represent a new collection from two composite collections

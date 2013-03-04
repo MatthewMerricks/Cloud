@@ -1,5 +1,4 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Model;
+﻿using Cloud.Model;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Helpers;
 using CloudSDK_SmokeTest.Managers;

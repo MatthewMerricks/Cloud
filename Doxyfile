@@ -714,7 +714,8 @@ EXCLUDE_PATTERNS       = */CloudApiPublic/Sync* \
                          */SQLIndexer* \
                          */CloudApiPublic/EventMessageReceiver/Status* \
                          */CloudApiPublic/REST* \
-                         */CloudApiPublic/JsonContracts*
+                         */CloudApiPublic/JsonContracts* \
+                         */CloudApiPublic/Support*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -722,38 +723,38 @@ EXCLUDE_PATTERNS       = */CloudApiPublic/Sync* \
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
 # AClass::ANamespace, ANamespace::*Test
 
-EXCLUDE_SYMBOLS        = CloudApiPublic::Interfaces::ISyncDataObject \
-                         CloudApiPublic::Model::GenericHolder< T > \
-                         CloudApiPublic::Model::GenericHolder \
-                         CloudApiPublic::Model::FileChangeWithDependencies \
-                         CloudApiPublic::Model::CombinedCollection< T > \
-                         CloudApiPublic::Model::CombinedCollection \
-                         CloudApiPublic::Model::FilePathHierarchicalNode< T > \
-                         CloudApiPublic::Model::FilePathHierarchicalNode \
-                         CloudApiPublic::Model::FilePathHierarchicalNodeWithValue< T > \
-                         CloudApiPublic::Model::FilePathHierarchicalNodeWithValue \
-                         CloudApiPublic::Model::FilePathDictionary< T > \
-                         CloudApiPublic::Model::FilePathDictionary \
-                         CloudApiPublic::Model::FileChangeMerge \
-                         CloudApiPublic::Model::PossiblyPreexistingFileChangeInError \
-                         CloudApiPublic::Model::PossiblyStreamableFileChange \
-                         CloudApiPublic::Static::CommunicationEntry \
-                         CloudApiPublic::Static::FileChangeFlowEntry \
-                         CloudApiPublic::Static::Entry \
-                         CloudApiPublic::Static::Log \
-                         CloudApiPublic::Static::Copyright \
-                         CloudApiPublic::Static::TraceFileChange \
-                         CloudApiPublic::Static::CommunicationEntryHeader \
-                         CloudApiPublic::Static::CopyrightCopyright \
-                         CloudApiPublic::Static::TraceFileChangeType \
-                         CloudApiPublic::Static::FileChangeFlowEntryPositionInFlow \
-                         CloudApiPublic::Static::CommunicationEntryDirection \
-                         CloudApiPublic::Static::OSVersionInfo \
-                         CloudApiPublic::CLSyncBox::HttpRestClient \
-                         CloudApiPublic::REST::CLHttpRest \
-                         CloudApiPublic::JsonContracts::Event \
-                         CloudApiPublic::JsonContracts::Header \
-                         CloudApiPublic::Static::ComTrace
+EXCLUDE_SYMBOLS        = Cloud::Interfaces::ISyncDataObject \
+                         Cloud::Model::GenericHolder< T > \
+                         Cloud::Model::GenericHolder \
+                         Cloud::Model::FileChangeWithDependencies \
+                         Cloud::Model::CombinedCollection< T > \
+                         Cloud::Model::CombinedCollection \
+                         Cloud::Model::FilePathHierarchicalNode< T > \
+                         Cloud::Model::FilePathHierarchicalNode \
+                         Cloud::Model::FilePathHierarchicalNodeWithValue< T > \
+                         Cloud::Model::FilePathHierarchicalNodeWithValue \
+                         Cloud::Model::FilePathDictionary< T > \
+                         Cloud::Model::FilePathDictionary \
+                         Cloud::Model::FileChangeMerge \
+                         Cloud::Model::PossiblyPreexistingFileChangeInError \
+                         Cloud::Model::PossiblyStreamableFileChange \
+                         Cloud::Static::CommunicationEntry \
+                         Cloud::Static::FileChangeFlowEntry \
+                         Cloud::Static::Entry \
+                         Cloud::Static::Log \
+                         Cloud::Static::Copyright \
+                         Cloud::Static::TraceFileChange \
+                         Cloud::Static::CommunicationEntryHeader \
+                         Cloud::Static::CopyrightCopyright \
+                         Cloud::Static::TraceFileChangeType \
+                         Cloud::Static::FileChangeFlowEntryPositionInFlow \
+                         Cloud::Static::CommunicationEntryDirection \
+                         Cloud::Static::OSVersionInfo \
+                         Cloud::CLSyncBox::HttpRestClient \
+                         Cloud::REST::CLHttpRest \
+                         Cloud::JsonContracts::Event \
+                         Cloud::JsonContracts::Header \
+                         Cloud::Static::ComTrace
 						 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see

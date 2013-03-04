@@ -14,16 +14,16 @@ using System.IO.Pipes;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using System.IO;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Runtime.InteropServices;
-using CloudApiPublic.Interfaces;
+using Cloud.Interfaces;
 
 namespace ContextMenuNET
 {

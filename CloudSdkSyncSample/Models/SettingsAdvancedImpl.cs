@@ -1,8 +1,8 @@
-﻿using CloudApiPublic.Interfaces;
-using CloudApiPublic.Static;
+﻿using Cloud.Interfaces;
+using Cloud.Static;
 using System;
 
-namespace CloudSdkSyncSample.Models
+namespace SampleLiveSync.Models
 {
     /// <summary>
     /// An implementation of the advanced settings interface.

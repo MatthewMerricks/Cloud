@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudSdkSyncSample.Model
+namespace SampleLiveSync.Model
 {
     /// <summary>
     /// Marker for whether partial-class specific construction methods are fired

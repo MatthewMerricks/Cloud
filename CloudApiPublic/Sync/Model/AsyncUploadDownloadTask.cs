@@ -5,14 +5,14 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Static;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CloudApiPublic.Sync.Model
+namespace Cloud.Sync.Model
 {
     internal struct AsyncUploadDownloadTask
     {

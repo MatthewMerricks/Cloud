@@ -5,17 +5,17 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model;
-using CloudApiPublic.REST;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
+using Cloud.Interfaces;
+using Cloud.Model;
+using Cloud.REST;
+using Cloud.Static;
+using Cloud.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace CloudApiPublic
+namespace Cloud
 {
     /// <summary>
     /// Represents a SyncBox in Cloud where everything is stored

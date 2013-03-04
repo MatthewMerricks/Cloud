@@ -10,14 +10,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 
-namespace CloudApiPublic.JsonContracts
+namespace Cloud.JsonContracts
 {
     // removed "<see cref="PendingResponse"/>, " from the summary below because it's internal
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLSyncBox.GetMetadata"/>; also an inner object containing metadata properties for <see cref="Event"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="Pictures"/>, <see cref="Videos"/>, <see cref="Audios"/>, <see cref="Archives"/>, and <see cref="Recents"/>
+    /// Result from <see cref="Cloud.CLSyncBox.GetMetadata"/>; also an inner object containing metadata properties for <see cref="Event"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="Pictures"/>, <see cref="Videos"/>, <see cref="Audios"/>, <see cref="Archives"/>, and <see cref="Recents"/>
     /// </summary>
     [DataContract]
     public sealed class Metadata

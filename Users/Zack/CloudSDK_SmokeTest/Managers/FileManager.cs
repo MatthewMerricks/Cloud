@@ -1,8 +1,8 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Helpers;
@@ -133,7 +133,7 @@ namespace CloudSDK_SmokeTest.Managers
             int createReturnCode = 0;
             List<FileChange> folderChanges = new List<FileChange>();
             fileChange = GetFileChange(isFile, eventArgs, ref folderChanges);
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
             CLHttpRestStatus restStatus = eventArgs.RestStatus;
 
             CLError postFolderError;
@@ -312,7 +312,7 @@ namespace CloudSDK_SmokeTest.Managers
         private int BeginManualRename(SmokeTestManagerEventArgs e, Rename renameTask)
         {
             FileChange fileChange = null;
-            CloudApiPublic.JsonContracts.Metadata metaData = new CloudApiPublic.JsonContracts.Metadata();
+            Cloud.JsonContracts.Metadata metaData = new Cloud.JsonContracts.Metadata();
             bool isFile = renameTask.ObjectType.type == ModificationObjectType.File;
             if ((isFile && e.FileInfo == null) || (!isFile && e.DirectoryInfo == null))
             {
@@ -352,7 +352,7 @@ namespace CloudSDK_SmokeTest.Managers
             StringBuilder newBuilder = new StringBuilder("Begining File Rename...");
             int responseCode = (int)FileManagerResponseCodes.Success;
             CLHttpRestStatus restStatus = e.RestStatus;
-            CloudApiPublic.JsonContracts.Event returnEvent = e.ReturnEvent;
+            Cloud.JsonContracts.Event returnEvent = e.ReturnEvent;
             CLError postFileError = e.SyncBox.HttpRestClient.PostFileChange(e.FileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
             e.ReturnEvent = returnEvent;
             e.RestStatus = restStatus;
@@ -379,7 +379,9 @@ namespace CloudSDK_SmokeTest.Managers
                             Directory.Move(e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString());
                             if(Directory.Exists(e.FileChange.NewPath.ToString()))
                             {
-                                 newBuilder.AppendLine(string.Format("Successfully Renamed Folder {0} to {1}", e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString()));
+                                newBuilder.AppendLine("Successfully Renamed Folder:");
+                                newBuilder.AppendLine(string.Format("  From: {0}", e.FileChange.OldPath.ToString()));
+                                newBuilder.AppendLine(string.Format("    To: {0}", e.FileChange.NewPath.ToString()));
                             }
                         }
                         else
@@ -397,7 +399,9 @@ namespace CloudSDK_SmokeTest.Managers
                             File.Move(e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString());
                             if(File.Exists(e.FileChange.NewPath.ToString()))
                             {
-                                newBuilder.AppendLine(string.Format("Successfully Renamed File {0} to {1}", e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString()));
+                                newBuilder.AppendLine("Successfully Renamed File:");
+                                newBuilder.AppendLine(string.Format("   From: {0}", e.FileChange.OldPath.ToString()));
+                                newBuilder.AppendLine(string.Format("     To: {0}", e.FileChange.NewPath.ToString()));
                             }
                         }
                         else
@@ -777,7 +781,7 @@ namespace CloudSDK_SmokeTest.Managers
             else
                 metadataList = GetFoldersForDelete(e, e.CurrentTask as Deletion).ToList();
             List<FileChange> changes = GetFileChangesFromMetadata(e.SyncBox, metadataList).ToList();
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
 
             foreach (FileChange fc in changes)
             {
@@ -856,7 +860,7 @@ namespace CloudSDK_SmokeTest.Managers
             List<Metadata> returnValues = new List<Metadata>();
             GenericHolder<CLError> refHolder = folderDeleteArgs.ProcessingErrorHolder;
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.Folders folders;
+            Cloud.JsonContracts.Folders folders;
             CLError getFilesError = folderDeleteArgs.SyncBox.GetFolderHierarchy(ManagerConstants.TimeOutMilliseconds, out restStatus, out folders);
             if (getFilesError != null || restStatus != CLHttpRestStatus.Success)
             {
@@ -950,7 +954,7 @@ namespace CloudSDK_SmokeTest.Managers
             {
                 if (!Directory.Exists(eventArgs.DirectoryInfo.FullName))
                     Directory.CreateDirectory(eventArgs.DirectoryInfo.FullName);
-                CloudApiPublic.JsonContracts.Metadata metadata = new CloudApiPublic.JsonContracts.Metadata()
+                Cloud.JsonContracts.Metadata metadata = new Cloud.JsonContracts.Metadata()
                 {
                     CreatedDate = DateTime.UtcNow,
                     IsFolder = true,
@@ -960,7 +964,7 @@ namespace CloudSDK_SmokeTest.Managers
             }
         }
 
-        private FileChange PrepareFileChangeForModification(SmokeTestManagerEventArgs e, FileChangeType changeType, CloudApiPublic.JsonContracts.Metadata metaDataResponse)
+        private FileChange PrepareFileChangeForModification(SmokeTestManagerEventArgs e, FileChangeType changeType, Cloud.JsonContracts.Metadata metaDataResponse)
         {
 
             FileChange fileChange = new FileChange();
@@ -977,7 +981,7 @@ namespace CloudSDK_SmokeTest.Managers
 
             try
             {
-                CLError badPathError = CloudApiPublic.Static.Helpers.CheckForBadPath(e.FileInfo.FullName);
+                CLError badPathError = Cloud.Static.Helpers.CheckForBadPath(e.FileInfo.FullName);
                 //TODO: Add call to check files exists   /// try syncbox.GetVersions 
                 if (metaDataResponse.Deleted == null || metaDataResponse.Deleted == false)
                     md5Bytes = FileHelper.CreateFileChangeObject(e.FileInfo.FullName, changeType, true, metaDataResponse.Size, metaDataResponse.StorageKey, metaDataResponse.ServerId, out fileChange);
@@ -993,7 +997,7 @@ namespace CloudSDK_SmokeTest.Managers
             return fileChange;
         }
 
-        private bool GetMetadata(SmokeTestManagerEventArgs e, bool isFile, out CloudApiPublic.JsonContracts.Metadata metaData)
+        private bool GetMetadata(SmokeTestManagerEventArgs e, bool isFile, out Cloud.JsonContracts.Metadata metaData)
         {
             bool success = true;
             CLHttpRestStatus restStatus = CLHttpRestStatus.BadRequest;
@@ -1090,7 +1094,7 @@ namespace CloudSDK_SmokeTest.Managers
             return fileChanges;
         }
 
-        private FileMetadata GetFileMetadataFromMetadata(CloudApiPublic.JsonContracts.Metadata item, bool isFolder)
+        private FileMetadata GetFileMetadataFromMetadata(Cloud.JsonContracts.Metadata item, bool isFolder)
         {
             FileMetadata metadata = new FileMetadata();
             metadata.HashableProperties = new FileMetadataHashableProperties(isFolder, item.ModifiedDate.Value, item.CreatedDate.Value, item.Size);

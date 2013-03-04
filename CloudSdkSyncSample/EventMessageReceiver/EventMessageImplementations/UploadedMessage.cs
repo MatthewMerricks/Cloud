@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Static;
+using Cloud.Static;
 
-namespace CloudSdkSyncSample.EventMessageReceiver
+namespace SampleLiveSync.EventMessageReceiver
 {
     /// <summary>
     /// <see cref="EventMessage"/> for number of files which have been uploaded since this message was first created.

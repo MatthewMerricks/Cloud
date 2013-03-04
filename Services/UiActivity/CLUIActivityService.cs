@@ -11,14 +11,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Threading;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using GalaSoft.MvvmLight.Ioc;
 using GalaSoft.MvvmLight.Messaging;
 using Hardcodet.Wpf.TaskbarNotification;
 using win_client.Common;
 using win_client.ViewModels;
 using System.Threading;
-using CloudApiPublic.Model;
+using Cloud.Model;
 
 namespace win_client.Services.UiActivity
 {

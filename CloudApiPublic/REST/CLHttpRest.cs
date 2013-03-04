@@ -5,25 +5,25 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Interfaces;
+using Cloud.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Sync;
+using Cloud.Sync;
 using System.IO;
 using System.Threading;
 using System.Net;
-using CloudApiPublic.Model;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.JsonContracts;
+using Cloud.Static;
 using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Linq.Expressions;
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
+using Cloud.Model.EventMessages.ErrorInfo;
 
-namespace CloudApiPublic.REST
+namespace Cloud.REST
 {
     // CLCredential class has additional HTTP calls which do not require a SyncBox id
     /// <summary>
@@ -886,7 +886,7 @@ namespace CloudApiPublic.REST
                     serverMethodPath, // dynamic upload path to add device id
                     Helpers.requestMethod.put, // upload is a put
                     timeoutMilliseconds, // time before communication timeout (does not restrict time for the actual file upload)
-                    new CloudApiPublic.Static.Helpers.uploadParams( // this is a special communication method and requires passing upload parameters
+                    new Cloud.Static.Helpers.uploadParams( // this is a special communication method and requires passing upload parameters
                         uploadStream, // stream for file to upload
                         Helpers.HandleUploadDownloadStatus, // private event handler to relay status change events
                         changeToUpload, // the FileChange describing the upload

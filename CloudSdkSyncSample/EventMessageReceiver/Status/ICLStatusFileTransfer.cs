@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 
-namespace CloudSdkSyncSample.EventMessageReceiver
+namespace SampleLiveSync.EventMessageReceiver
 {
     /// <summary>
     /// Interface for exposed properties on a file transfer status object

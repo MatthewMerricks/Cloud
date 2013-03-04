@@ -1,8 +1,8 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Helpers;
 using CloudSDK_SmokeTest.Settings;
@@ -238,7 +238,7 @@ namespace CloudSDK_SmokeTest.Managers
         {
             Console.WriteLine("Try Upload Entered...");
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
             int createResponseCode = -1;
             GenericHolder<CLError> errorHolder;
             if(this.ProcessingErrorHolder != null)
@@ -432,7 +432,7 @@ namespace CloudSDK_SmokeTest.Managers
             List<Metadata> returnValues = new List<Metadata>();
             GenericHolder<CLError> refHolder = folderDeleteArgs.ProcessingErrorHolder;
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.Folders folders;
+            Cloud.JsonContracts.Folders folders;
             CLError getFilesError = folderDeleteArgs.SyncBox.GetFolderHierarchy(ManagerConstants.TimeOutMilliseconds, out restStatus, out folders);
             if (getFilesError != null || restStatus != CLHttpRestStatus.Success)
             {
@@ -475,7 +475,7 @@ namespace CloudSDK_SmokeTest.Managers
             CLHttpRestStatus restStatus;
             List<Metadata> metadataList = GetFilesForDelete(args, deleteTask).ToList();
             List<FileChange> changes = GetFileChangesFromMetadata(args.SyncBox, metadataList).ToList();
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
             StringBuilder report = args.ReportBuilder;
             foreach (FileChange fc in changes)
             {
@@ -531,7 +531,7 @@ namespace CloudSDK_SmokeTest.Managers
             CLHttpRestStatus restStatus;
             List<Metadata> metadataList = GetFoldersForDelete(args, deleteTask).ToList();
             List<FileChange> filechangeList = GetFileChangesFromMetadata(args.SyncBox, metadataList).ToList();
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
             foreach (FileChange fc in filechangeList)
             {
                 if (deleteResponseCode == 0)
@@ -609,9 +609,9 @@ namespace CloudSDK_SmokeTest.Managers
                 reportBuilder.AppendLine("Exiting Process...");
                 return (int)FileManagerResponseCodes.InitializeCredsError;
             }
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
             long syncBoxId = renameTask.SyncType == SmokeTaskSyncType.Active ? paramSet.ActiveSyncBoxID : paramSet.ManualSyncBoxID;
-            CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
+            CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
             FileChange fileChange = null;
             if (renameTask.ObjectType.type == ModificationObjectType.Folder)
             {
@@ -622,7 +622,7 @@ namespace CloudSDK_SmokeTest.Managers
                 else
                     directoryPath = renameTask.OldName.Replace("\"", "");
                 DirectoryInfo dinfo = new DirectoryInfo(directoryPath);
-                CloudApiPublic.JsonContracts.Metadata metaData;
+                Cloud.JsonContracts.Metadata metaData;
                 CLError getMetaDataError = syncBox.GetMetadata(dinfo.FullName, true, ManagerConstants.TimeOutMilliseconds, out restStatus, out metaData);
                 string newPath = directoryPath.Replace(oldFileName.Replace("\"", ""), newFileName.Replace("\"", ""));
                 if(getMetaDataError != null || restStatus != CLHttpRestStatus.Success)
@@ -718,8 +718,8 @@ namespace CloudSDK_SmokeTest.Managers
                 try
                 {
                     FileInfo filetoDelete = new FileInfo(filePath);
-                    CloudApiPublic.JsonContracts.Metadata metaDataResponse;
-                    CLError badPathError = CloudApiPublic.Static.Helpers.CheckForBadPath(filePath);
+                    Cloud.JsonContracts.Metadata metaDataResponse;
+                    CLError badPathError = Cloud.Static.Helpers.CheckForBadPath(filePath);
                     //TODO: Add call to check files exists   /// try syncbox.GetVersions 
                     CLError metaDataRequestError = syncBox.GetMetadata(filePath, false, ManagerConstants.TimeOutMilliseconds, out restStatus, out metaDataResponse);
                     if (metaDataRequestError == null && (metaDataResponse.Deleted == null || metaDataResponse.Deleted == false))
@@ -856,7 +856,7 @@ namespace CloudSDK_SmokeTest.Managers
             return fileChanges;
         }
 
-        private FileMetadata GetFileMetadataFromMetadata(CloudApiPublic.JsonContracts.Metadata item, bool isFolder)
+        private FileMetadata GetFileMetadataFromMetadata(Cloud.JsonContracts.Metadata item, bool isFolder)
         { 
             FileMetadata metadata = new FileMetadata();
             metadata.HashableProperties = new FileMetadataHashableProperties(isFolder, item.ModifiedDate.Value, item.CreatedDate.Value, item.Size);

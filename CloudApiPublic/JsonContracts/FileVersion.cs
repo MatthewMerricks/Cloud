@@ -5,18 +5,18 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace CloudApiPublic.JsonContracts
+namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result (in array format) from <see cref="CloudApiPublic.CLSyncBox.GetFileVersions"/>
+    /// Result (in array format) from <see cref="Cloud.CLSyncBox.GetFileVersions"/>
     /// </summary>
     [DataContract]
     public sealed class FileVersion

@@ -13,7 +13,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     public abstract class NotifiableObject<T> : INotifyPropertyChanged where T : NotifiableObject<T>
     {

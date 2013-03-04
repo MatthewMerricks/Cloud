@@ -8,15 +8,15 @@
 // Back end definitions
 // @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND 
-#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
-//#define STAGING_BACKEND       // cloudstaging.us
+//#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
+#define STAGING_BACKEND       // cloudstaging.us
 
 // URL definitions
 // @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
 //#define URL_OLD
 #define URL_API         // api.cloud.com
 
-namespace CloudApiPublic.Static
+namespace Cloud.Static
 {
     /// <summary>
     /// Contains constants used by Cloud

@@ -1,11 +1,11 @@
-﻿using CloudSdkSyncSample.ViewModels;
-using CloudSdkSyncSample.Static;
+﻿using SampleLiveSync.ViewModels;
+using SampleLiveSync.Static;
 using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace CloudSdkSyncSample.Views
+namespace SampleLiveSync.Views
 {
     /// <summary>
     /// Interaction logic for MainView.xaml
@@ -88,7 +88,7 @@ namespace CloudSdkSyncSample.Views
             e.Completed(result == MessageBoxResult.Yes);
         }
 
-        private void OnNotifyException(object sender, Support.NotificationEventArgs<CloudApiPublic.Model.CLError> e)
+        private void OnNotifyException(object sender, Support.NotificationEventArgs<Cloud.Model.CLError> e)
         {
             MessageBox.Show(String.Format("{0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }

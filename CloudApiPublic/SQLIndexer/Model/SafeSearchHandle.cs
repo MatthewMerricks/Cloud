@@ -6,14 +6,14 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Microsoft.Win32.SafeHandles;
-using CloudApiPublic.Static;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
 using System.Text;
 
-namespace CloudApiPublic.SQLIndexer.Model
+namespace Cloud.SQLIndexer.Model
 {
     [SecurityCritical]
     /// <summary>

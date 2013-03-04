@@ -1,8 +1,8 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Helpers;
@@ -156,7 +156,7 @@ namespace CloudSDK_SmokeTest.Managers
         {
             bool areStructuresIdentical = true;
 
-            CloudApiPublic.JsonContracts.FolderContents serverContents;
+            Cloud.JsonContracts.FolderContents serverContents;
             serverContents = GetServerHierarchy(e, syncBox); 
             
             FileSystemInfo[] localContents = localDirectory.GetFileSystemInfos();
@@ -214,7 +214,7 @@ namespace CloudSDK_SmokeTest.Managers
         public static FolderContents GetServerHierarchy(SmokeTestManagerEventArgs e, CLSyncBox syncBox)
         {
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.FolderContents folderContents = new CloudApiPublic.JsonContracts.FolderContents();
+            Cloud.JsonContracts.FolderContents folderContents = new Cloud.JsonContracts.FolderContents();
             CLError getAllContentError;
            
             getAllContentError = syncBox.GetFolderContents(ManagerConstants.TimeOutMilliseconds, out restStatus, out folderContents, includeCount: false, contentsRoot: null, depthLimit: 9, includeDeleted: false);
@@ -399,7 +399,7 @@ namespace CloudSDK_SmokeTest.Managers
             eventArgs.boxCreationStatus = boxCreateStatus;
             eventArgs.SyncBox = syncBox;
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.SyncBoxHolder responseHolder;
+            Cloud.JsonContracts.SyncBoxHolder responseHolder;
             CLError updateBoxError = syncBox.UpdateSyncBox(renameTask.NewName, ManagerConstants.TimeOutMilliseconds, out restStatus, out responseHolder);
             if (updateBoxError != null || restStatus != CLHttpRestStatus.Success)
             {
@@ -552,7 +552,7 @@ namespace CloudSDK_SmokeTest.Managers
         {
             int responseCode = 0;
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.SyncBoxHolder response;
+            Cloud.JsonContracts.SyncBoxHolder response;
             CLError deleteError = e.SyncBox.DeleteSyncBox(ManagerConstants.TimeOutMilliseconds, out restStatus, out response);
             if (deleteError != null || restStatus != CLHttpRestStatus.Success)
             {
@@ -574,7 +574,7 @@ namespace CloudSDK_SmokeTest.Managers
             //Remove Deleted Items from ItemsManagerList if they currently exist there
             try
             {
-                CloudApiPublic.JsonContracts.SyncBox toRemove = mgr.SyncBoxes.Where(sb => sb.Id == e.SyncBox.SyncBoxId).FirstOrDefault();
+                Cloud.JsonContracts.SyncBox toRemove = mgr.SyncBoxes.Where(sb => sb.Id == e.SyncBox.SyncBoxId).FirstOrDefault();
                 if (mgr.SyncBoxes.Contains(toRemove))
                     mgr.SyncBoxes.Remove(toRemove);
             }
@@ -653,7 +653,7 @@ namespace CloudSDK_SmokeTest.Managers
                 newBuilder.AppendLine("There are no SyncBoxes To List.");
             else
             {
-                foreach (CloudApiPublic.JsonContracts.SyncBox syncBox in syncBoxList.SyncBoxes)
+                foreach (Cloud.JsonContracts.SyncBox syncBox in syncBoxList.SyncBoxes)
                 {
                     listManager.SyncBoxes.Add(syncBox);
                     newBuilder.AppendLine(string.Format("The SyncBox Name:{0} with ID:{1} and PlanID:{2} was retrieved and added to ItemsListManager's List of SyncBoxes", syncBox.FriendlyName, syncBox.Id, syncBox.PlanId));
@@ -811,11 +811,11 @@ namespace CloudSDK_SmokeTest.Managers
             }
         }
 
-        private static long? CreateNewSyncBoxAndAddToDictionary(SmokeTestManagerEventArgs e, CloudApiPublic.CLCredential creds, ref GenericHolder<CLError> ProcessingExceptionHolder)
+        private static long? CreateNewSyncBoxAndAddToDictionary(SmokeTestManagerEventArgs e, CLCredential creds, ref GenericHolder<CLError> ProcessingExceptionHolder)
         {
             long? returnValue = 0;
-            CloudApiPublic.Static.CLHttpRestStatus restStatus = new CLHttpRestStatus();
-            CloudApiPublic.JsonContracts.SyncBoxHolder syncBox = null;
+            Cloud.Static.CLHttpRestStatus restStatus = new CLHttpRestStatus();
+            Cloud.JsonContracts.SyncBoxHolder syncBox = null;
             CLError newBoxError = null;
             newBoxError = creds.AddSyncBoxOnServer(ManagerConstants.TimeOutMilliseconds, out restStatus, out syncBox);
 

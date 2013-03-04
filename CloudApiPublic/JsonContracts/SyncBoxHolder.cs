@@ -5,20 +5,20 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+using Cloud.Model;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace CloudApiPublic.JsonContracts
+namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="CloudApiPublic.CLCredential.AddSyncBoxOnServer"/>, <see cref="CloudApiPublic.CLSyncBox.SyncBoxUpdateExtendedMetadata"/>,
-    /// <see cref="CloudApiPublic.CLSyncBox.DeleteSyncBox"/>, and
-    /// <see cref="CloudApiPublic.CLSyncBox.GetSyncBoxStatus"/>
+    /// Result from <see cref="Cloud.CLCredential.AddSyncBoxOnServer"/>, <see cref="Cloud.CLSyncBox.SyncBoxUpdateExtendedMetadata"/>,
+    /// <see cref="Cloud.CLSyncBox.DeleteSyncBox"/>, and
+    /// <see cref="Cloud.CLSyncBox.GetSyncBoxStatus"/>
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary] // within SyncBox SyncBox

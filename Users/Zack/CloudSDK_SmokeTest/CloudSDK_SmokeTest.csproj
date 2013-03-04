@@ -36,27 +36,26 @@
       <HintPath>..\..\..\CloudApiPublic\bin\Release\BadgeCOMLib.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="CloudApiPublic, Version=0.1.5.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\CloudApiPublic\bin\Release\CloudApiPublic.dll</HintPath>
+    <Reference Include="Cloud">
+      <HintPath>..\..\..\CloudApiPublic\bin\Release\Cloud.dll</HintPath>
     </Reference>
-    <Reference Include="ErikEJ.SqlCe40">
-      <HintPath>..\..\..\3rdParty\bin\Release\ErikEJ.SqlCe40.dll</HintPath>
+    <Reference Include="ErikEJ.SqlCe40.CSDK">
+      <HintPath>..\..\..\CloudApiPublic\bin\Release\ErikEJ.SqlCe40.CSDK.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Net.Http">
-      <HintPath>..\..\..\3rdParty\bin\Release\Microsoft.Net.Http.dll</HintPath>
+    <Reference Include="Microsoft.Net.Http.CSDK">
+      <HintPath>..\..\..\CloudApiPublic\bin\Release\Microsoft.Net.Http.CSDK.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Practices.ServiceLocation">
-      <HintPath>..\..\..\3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.dll</HintPath>
+    <Reference Include="Microsoft.Practices.ServiceLocation.CSDK">
+      <HintPath>..\..\..\CloudApiPublic\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\3rdParty\bin\Release\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json.CSDK">
+      <HintPath>..\..\..\CloudApiPublic\bin\Release\Newtonsoft.Json.CSDK.dll</HintPath>
     </Reference>
-    <Reference Include="Salient.Data">
-      <HintPath>..\..\..\3rdParty\bin\Release\Salient.Data.dll</HintPath>
+    <Reference Include="Salient.Data.CSDK">
+      <HintPath>..\..\..\CloudApiPublic\bin\Release\Salient.Data.CSDK.dll</HintPath>
     </Reference>
-    <Reference Include="SimpleJson">
-      <HintPath>..\..\..\3rdParty\bin\Release\SimpleJson.dll</HintPath>
+    <Reference Include="SimpleJson.CSDK">
+      <HintPath>..\..\..\CloudApiPublic\bin\Release\SimpleJson.CSDK.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine.Core">
       <HintPath>..\..\..\3rdParty\bin\Release\SuperSocket.ClientEngine.Core.dll</HintPath>

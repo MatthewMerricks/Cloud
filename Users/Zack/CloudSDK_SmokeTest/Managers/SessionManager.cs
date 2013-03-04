@@ -1,8 +1,8 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Helpers;
@@ -17,9 +17,9 @@ namespace CloudSDK_SmokeTest.Managers
 {
     public class SessionManager : ISmokeTaskManager 
     {
-        public static CloudApiPublic.JsonContracts.Session ReturnSessionAtIndex(ItemListHelperEventArgs eventArgs, int index)
+        public static Cloud.JsonContracts.Session ReturnSessionAtIndex(ItemListHelperEventArgs eventArgs, int index)
         {
-            CloudApiPublic.JsonContracts.Session returnValue = null;
+            Cloud.JsonContracts.Session returnValue = null;
             CLCredential creds;
             CLCredentialCreationStatus credsStatus;
             GenericHolder<CLError> refHolder = eventArgs.ProcessingErrorHolder;
@@ -126,7 +126,7 @@ namespace CloudSDK_SmokeTest.Managers
                 return (int)FileManagerResponseCodes.InitializeCredsError;
 
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.SessionCreateResponse sessionCreateResponse;
+            Cloud.JsonContracts.SessionCreateResponse sessionCreateResponse;
             CLError createSessionError = args.Creds.CreateSession(ManagerConstants.TimeOutMilliseconds, out restStatus, out sessionCreateResponse);
             if (createSessionError != null || restStatus != CLHttpRestStatus.Success)
             {
@@ -171,8 +171,8 @@ namespace CloudSDK_SmokeTest.Managers
             if (deleteTask == null)
                 return (int)FileManagerResponseCodes.InvalidTaskType;
 
-            
-            List<CloudApiPublic.JsonContracts.Session> toDelete = new List<CloudApiPublic.JsonContracts.Session>();
+
+            List<Cloud.JsonContracts.Session> toDelete = new List<Cloud.JsonContracts.Session>();
             GenericHolder<CLError> refHolder = e.ProcessingErrorHolder;
             
             deleteSessionResponseCode = BeginDelete(e);
@@ -257,7 +257,7 @@ namespace CloudSDK_SmokeTest.Managers
 
             GenericHolder<CLError> refHolder = deleteEventArgs.ProcessingErrorHolder;
             CLHttpRestStatus restStatus = CLHttpRestStatus.BadRequest;
-            CloudApiPublic.JsonContracts.SessionDeleteResponse sessionDeleteResponse;
+            Cloud.JsonContracts.SessionDeleteResponse sessionDeleteResponse;
             CLError deleteSessionError = null;
             if (deleteEventArgs.Session != null && !string.IsNullOrEmpty(deleteEventArgs.Session.Key))
             {
@@ -286,7 +286,7 @@ namespace CloudSDK_SmokeTest.Managers
             List<Session> toDelete = new List<Session>();
             if (deleteTask.DeleteAllSpecified && deleteTask.DeleteAll)
             {
-                foreach (CloudApiPublic.JsonContracts.Session session in sessionList.Sessions)
+                foreach (Cloud.JsonContracts.Session session in sessionList.Sessions)
                     toDelete.Add(session);
             }
             else if (deleteTask.DeleteCountSpecified && deleteTask.DeleteCount > 0)

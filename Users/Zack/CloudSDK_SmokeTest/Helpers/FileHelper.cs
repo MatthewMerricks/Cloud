@@ -1,6 +1,6 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud;
+using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Managers;
@@ -28,7 +28,7 @@ namespace CloudSDK_SmokeTest.Helpers
                 WriteFile(createEventArgs.CreateTaskFileInfo, ref folderChanges);
 
             FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, createEventArgs.CreateTaskFileInfo, ref refProcessErrorHolder);
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
             CLHttpRestStatus restStatus = new CLHttpRestStatus();
 
             CLError postFileError = createEventArgs.SyncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
@@ -193,7 +193,7 @@ namespace CloudSDK_SmokeTest.Helpers
             {
                 if (!Directory.Exists(di.FullName))
                     Directory.CreateDirectory(di.FullName);
-                CloudApiPublic.JsonContracts.Metadata meta = new CloudApiPublic.JsonContracts.Metadata(){ CreatedDate = di.CreationTimeUtc};
+                Cloud.JsonContracts.Metadata meta = new Cloud.JsonContracts.Metadata() { CreatedDate = di.CreationTimeUtc };
                 FileChange folderFileChangeObject = FolderHelper.GetFolderFileChange(di, meta, FileChangeType.Created, di.FullName, string.Empty);
                 folderChange.Add(folderFileChangeObject);
             }
@@ -299,13 +299,13 @@ namespace CloudSDK_SmokeTest.Helpers
                     fileSize = size.HasValue ? size.Value : 0;
                 }
             }
-            fileChange = new CloudApiPublic.Model.FileChange()
+            fileChange = new Cloud.Model.FileChange()
             {
-                Direction = CloudApiPublic.Static.SyncDirection.To,
-                Metadata = new CloudApiPublic.Model.FileMetadata()
+                Direction = Cloud.Static.SyncDirection.To,
+                Metadata = new Cloud.Model.FileMetadata()
                 {
                     //TODO: Get the filesize of the file being uploaded 
-                    HashableProperties = new CloudApiPublic.Model.FileMetadataHashableProperties(false, forTime.LastWriteTime, forTime.CreationTime, fileSize),
+                    HashableProperties = new Cloud.Model.FileMetadataHashableProperties(false, forTime.LastWriteTime, forTime.CreationTime, fileSize),
                     //LinkTargetPath -- TTarget Pth of a Shortcut file 
                     //MimeType = null, //unsude by windows but could be calced by file extension 
                     StorageKey = storageKey,
@@ -358,7 +358,7 @@ namespace CloudSDK_SmokeTest.Helpers
 
         #region Modify 
         public static int TryUpload(FileInfo info, CLSyncBox syncBox, FileChange fileChange,
-                                CLHttpRestStatus restStatus, CloudApiPublic.JsonContracts.Event returnEvent, ref GenericHolder<CLError> ProcessingErrorHolder)
+                                CLHttpRestStatus restStatus, Cloud.JsonContracts.Event returnEvent, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             CLHttpRestStatus newStatus;
             int responseCode = 0;
@@ -403,7 +403,7 @@ namespace CloudSDK_SmokeTest.Helpers
         #endregion 
 
         #region Compare
-        public static bool ShouldUpdateFile(InputParams paramSet, CLSyncBox syncBox, string filePath, CloudApiPublic.JsonContracts.Metadata mdObject, ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static bool ShouldUpdateFile(InputParams paramSet, CLSyncBox syncBox, string filePath, Cloud.JsonContracts.Metadata mdObject, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
 
             //AllMappings mappings = XMLHelper.GetMappingItems(paramSet.FileNameMappingFile, ref ProcessingErrorHolder);

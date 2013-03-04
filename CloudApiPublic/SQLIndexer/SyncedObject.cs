@@ -10,9 +10,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CloudApiPublic.Model;
+using Cloud.Model;
 
-namespace CloudApiPublic.SQLIndexer
+namespace Cloud.SQLIndexer
 {
     internal class SyncedObject
     {

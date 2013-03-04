@@ -40,3 +40,4 @@ html/
 latex/
 CloudApiPublic/Help/
 CloudSetupSdkSyncSampleSupport/Help/
+*.cache

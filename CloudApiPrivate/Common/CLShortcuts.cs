@@ -11,9 +11,9 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using CloudApiPrivate.Model;
-using IWshRuntimeLibrary;
-using CloudApiPublic.Support;
-using CloudApiPublic.Model;
+using Interop.IWshRuntimeLibrary;
+using Cloud.Support;
+using Cloud.Model;
 using CloudApiPrivate.Model.Settings;
 using CloudApiPrivate.Common;
 using System.Reflection;
@@ -21,7 +21,7 @@ using System.Threading;
 using System.Diagnostics;
 using Microsoft.Win32;
 using System.Windows;
-using CloudApiPublic.Static;
+using Cloud.Static;
 
 namespace CloudApiPrivate.Common
 {
@@ -496,10 +496,10 @@ namespace CloudApiPrivate.Common
             try 
 	        {
                 _trace.writeToLog(9, "CLShortcuts: ModifyShortcutTargetPath: Entry: pathFolderContainingShortcut: <{0}>. shortcutNameWithoutLnkExtension: <{1}>. newTargetLocation: <{2}>.", pathFolderContainingShortcut, shortcutNameWithoutLnkExtension, newTargetLocation);
-                Shell32.Shell shl = new Shell32.Shell();
-                Shell32.Folder dir = shl.NameSpace(pathFolderContainingShortcut);
-                Shell32.FolderItem itm = dir.Items().Item(shortcutNameWithoutLnkExtension + ".lnk");
-                Shell32.ShellLinkObject lnk = (Shell32.ShellLinkObject)itm.GetLink;
+                Interop.Shell32.Shell shl = new Interop.Shell32.Shell();
+                Interop.Shell32.Folder dir = shl.NameSpace(pathFolderContainingShortcut);
+                Interop.Shell32.FolderItem itm = dir.Items().Item(shortcutNameWithoutLnkExtension + ".lnk");
+                Interop.Shell32.ShellLinkObject lnk = (Interop.Shell32.ShellLinkObject)itm.GetLink;
                 if (iconExeFilePath != null)
                 {
                     lnk.SetIconLocation(iconExeFilePath, iconOffset);

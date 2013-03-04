@@ -12,7 +12,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CloudApiPublic.Model
+namespace Cloud.Model
 {
     /// <summary>
     /// Node to represent a hierarchical representation of FilePaths and their generic-typed values

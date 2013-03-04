@@ -10,10 +10,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Management;
-using CloudApiPublic.Model;
-using CloudApiPublic.Support;
+using Cloud.Model;
+using Cloud.Support;
 
-namespace CloudApiPublic.Static
+namespace Cloud.Static
 {
     internal static class CLDevices
     {

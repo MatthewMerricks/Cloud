@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 #endregion USINGS
 
-namespace CloudApiPublic.Static
+namespace Cloud.Static
 {
     /// <summary>
     /// Provides detailed information about the host operating system.

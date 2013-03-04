@@ -1,8 +1,8 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Managers;
@@ -43,7 +43,7 @@ namespace CloudSDK_SmokeTest.Helpers
                     return (int)FileManagerResponseCodes.ExpectedItemMatchFailure;
             }
             ItemsListManager listManager = ItemsListManager.GetInstance();
-            foreach (CloudApiPublic.JsonContracts.Plan plan in plansList.Plans)
+            foreach (Cloud.JsonContracts.Plan plan in plansList.Plans)
             {
                 listManager.Plans.Add(plan);
                 Console.WriteLine(string.Format("The Plan Name:{0} ID:{1} was retrieved and added to ItemsListManager's List of Plans", plan.FriendlyPlanName, plan.Id));
@@ -137,7 +137,7 @@ namespace CloudSDK_SmokeTest.Helpers
             }
 
             ItemsListManager listManager = ItemsListManager.GetInstance();
-            foreach (CloudApiPublic.JsonContracts.SyncBox syncBox in syncBoxList.SyncBoxes)
+            foreach (Cloud.JsonContracts.SyncBox syncBox in syncBoxList.SyncBoxes)
             {
                 listManager.SyncBoxes.Add(syncBox);
                 if (itemListHelperArgs.ListItemsTask != null)

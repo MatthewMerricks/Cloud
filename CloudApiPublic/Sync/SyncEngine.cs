@@ -16,16 +16,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Security.Cryptography;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.Support;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.Sync.Model;
-using CloudApiPublic.REST;
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.Support;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.Sync.Model;
+using Cloud.REST;
+using Cloud.Model.EventMessages.ErrorInfo;
 
-namespace CloudApiPublic.Sync
+namespace Cloud.Sync
 {
     /// <summary>
     /// Processes events between an input event source (ISyncDataObject) such as FileMonitor and the server with callbacks for grabbing, rearranging, or updating events; also fires global event callbacks with status

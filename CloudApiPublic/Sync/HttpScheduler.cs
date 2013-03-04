@@ -12,12 +12,12 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model.EventMessages.ErrorInfo;
+using Cloud.Model;
+using Cloud.Static;
+using Cloud.Interfaces;
+using Cloud.Model.EventMessages.ErrorInfo;
 
-namespace CloudApiPublic.Sync
+namespace Cloud.Sync
 {
     /// <summary>
     /// Extended TaskScheduler for Sync upload and download tasks to limit concurrency and handle exceptions;

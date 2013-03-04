@@ -6,10 +6,10 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 using System;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Resources;
-using CloudApiPublic.Resources;
-using CloudApiPublic.Static;
+using Cloud.Resources;
+using Cloud.Static;
 
 namespace CloudApiPrivate.Model
 {
@@ -35,7 +35,7 @@ namespace CloudApiPrivate.Model
 
         public string OSType()
         {
-            string osType = OSVersionInfo.Name + " " + OSVersionInfo.Edition + " " + OSVersionInfo.OSBits.ToString() + " " + Resources.Resources.OsBits;
+            string osType = OSVersionInfo.Name + " " + OSVersionInfo.Edition + " " + OSVersionInfo.OSBits.ToString() + " " /*CloudAppBuild:+ Resources.Resources.OsBits*/;
             return osType;
         }
 

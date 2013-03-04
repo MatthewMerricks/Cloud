@@ -1,5 +1,5 @@
-﻿using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
@@ -14,7 +14,7 @@ namespace CloudSDK_SmokeTest.Helpers
     public static class FolderHelper
     {
 
-        public static FileChange GetFolderFileChange(DirectoryInfo dInfo, CloudApiPublic.JsonContracts.Metadata metaData, FileChangeType type, string directoryPath, string newPath)
+        public static FileChange GetFolderFileChange(DirectoryInfo dInfo, Cloud.JsonContracts.Metadata metaData, FileChangeType type, string directoryPath, string newPath)
         {
             FileChange returnValue = new FileChange();
             if (type == FileChangeType.Renamed)
@@ -90,7 +90,7 @@ namespace CloudSDK_SmokeTest.Helpers
             if(!task.Name.Contains(".") && !newPath.Contains(task.Name))
                 newPath = newPath + "\\" + task.Name;
             FileChange fileChange = FolderHelper.GetFolderFileChange(createEventArgs.CreateTaskDirectoryInfo, null, FileChangeType.Created, string.Empty, newPath);
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
 
             CLError postFolderError = createEventArgs.SyncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
             if (postFolderError != null || restStatus != CLHttpRestStatus.Success)

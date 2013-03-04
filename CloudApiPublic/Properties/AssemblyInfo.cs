@@ -6,11 +6,11 @@ using System.Resources;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("CloudApiClassLibrary")]
+[assembly: AssemblyTitle("CloudSDK")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Cloud.com")]
-[assembly: AssemblyProduct("CloudApiClassLibrary")]
+[assembly: AssemblyProduct("CloudSDK")]
 [assembly: AssemblyCopyright("Copyright © Cloud.com")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -33,6 +33,6 @@ using System.Resources;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.5.0")]
-[assembly: AssemblyFileVersion("0.1.5.0")]
+[assembly: AssemblyVersion("0.1.5.4")]
+[assembly: AssemblyFileVersion("0.1.5.4")]
 [assembly: NeutralResourcesLanguageAttribute("en")]

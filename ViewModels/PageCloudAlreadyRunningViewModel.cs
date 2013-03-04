@@ -26,7 +26,7 @@ using Dialog.Abstractions.Wpf.Intefaces;
 using System.Collections.Generic;
 using win_client.Views;
 using win_client.AppDelegate;
-using CloudApiPublic.Support;
+using Cloud.Support;
 using System.Windows.Input;
 using System.ComponentModel;
 using win_client.ViewModelHelpers;

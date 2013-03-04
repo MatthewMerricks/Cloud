@@ -1,5 +1,5 @@
-﻿using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Settings;
 using System;
@@ -16,7 +16,7 @@ namespace CloudSDK_SmokeTest.Events.ManagerEventArgs
         public DirectoryInfo DirectoryInfo { get; set; }
         public DateTime CurrentTime { get; set; }
         public DirectoryInfo RootDirectory { get; set; }
-        public CloudApiPublic.JsonContracts.Session Session { get; set; }
+        public Cloud.JsonContracts.Session Session { get; set; }
         public long PlanID { get; set; }
         public CLHttpRestStatus RestStatus { get; set; }
         public List<StringBuilder> StringBuilderList { get; set; }

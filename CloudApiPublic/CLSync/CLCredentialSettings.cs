@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Static;
+using Cloud.Interfaces;
+using Cloud.Static;
 
-namespace CloudApiPublic
+namespace Cloud
 {
     internal sealed class CLCredentialSettings : ICLCredentialSettings
     {

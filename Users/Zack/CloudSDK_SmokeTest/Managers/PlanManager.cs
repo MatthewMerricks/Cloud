@@ -1,8 +1,8 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Helpers;
@@ -131,7 +131,7 @@ namespace CloudSDK_SmokeTest.Managers
                 newBuilder.AppendLine("There are no Plans to be listed.");
             else
             {
-                foreach (CloudApiPublic.JsonContracts.Plan plan in plansList.Plans)
+                foreach (Cloud.JsonContracts.Plan plan in plansList.Plans)
                 {
                     listManager.Plans.Add(plan);
                     newBuilder.AppendLine(string.Format("The Plan Name:{0} ID:{1} was retrieved and added to ItemsListManager's List of Plans", plan.FriendlyPlanName, plan.Id));
