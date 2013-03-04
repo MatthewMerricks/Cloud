@@ -39,7 +39,7 @@ using System.Windows.Markup;
 [assembly: ComVisible(false)]
 [assembly: CLSCompliant(true)]
 
-[assembly: AssemblyVersion("4.0.21.*")]
+[assembly: AssemblyVersion("4.0.21.1")]
 ////[assembly: AssemblyFileVersion("4.0.21.0/BL0021")]
 
 // FxCop
@@ -58,3 +58,4 @@ using System.Windows.Markup;
     Scope = "namespace",
     Target = "GalaSoft.MvvmLight.Threading",
     MessageId = "Mvvm")]
+[assembly: AssemblyFileVersionAttribute("4.0.21.1")]

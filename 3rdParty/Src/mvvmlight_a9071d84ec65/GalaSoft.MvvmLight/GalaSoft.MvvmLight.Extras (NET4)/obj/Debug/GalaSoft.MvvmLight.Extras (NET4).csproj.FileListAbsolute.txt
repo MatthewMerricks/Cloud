@@ -20,3 +20,12 @@ C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmL
 C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\Microsoft.Practices.ServiceLocation.pdb
 C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\Microsoft.Practices.ServiceLocation.xml
 C:\Source\Projects\win-client\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\System.Windows.Interactivity.xml
+C:\Cloud\CloudSDK-Windows\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Properties.Resources.resources
+C:\Cloud\CloudSDK-Windows\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Extras (NET4).csproj.GenerateResource.Cache
+C:\Cloud\CloudSDK-Windows\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.CSDK.xml
+C:\Cloud\CloudSDK-Windows\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.CSDK.dll
+C:\Cloud\CloudSDK-Windows\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\GalaSoft.MvvmLight.Extras.WPF4.CSDK.pdb
+C:\Cloud\CloudSDK-Windows\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\System.Windows.Interactivity.dll
+C:\Cloud\CloudSDK-Windows\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\bin\Debug\System.Windows.Interactivity.xml
+C:\Cloud\CloudSDK-Windows\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Extras.WPF4.CSDK.dll
+C:\Cloud\CloudSDK-Windows\3rdParty\Src\mvvmlight_a9071d84ec65\GalaSoft.MvvmLight\GalaSoft.MvvmLight.Extras (NET4)\obj\Debug\GalaSoft.MvvmLight.Extras.WPF4.CSDK.pdb
