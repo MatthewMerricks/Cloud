@@ -1,4 +1,4 @@
-﻿using CloudApiPublic.Model;
+﻿using Cloud.Model;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Helpers;
 using CloudSDK_SmokeTest.Interfaces;
@@ -13,9 +13,9 @@ namespace CloudSDK_SmokeTest.Managers
     public sealed class ItemsListManager : ISmokeTaskManager
     {
 
-        public readonly List<CloudApiPublic.JsonContracts.Plan> Plans;
-        public readonly List<CloudApiPublic.JsonContracts.SyncBox> SyncBoxes;
-        public readonly List<CloudApiPublic.JsonContracts.Session> Sessions;
+        public readonly List<Cloud.JsonContracts.Plan> Plans;
+        public readonly List<Cloud.JsonContracts.SyncBox> SyncBoxes;
+        public readonly List<Cloud.JsonContracts.Session> Sessions;
 
         public readonly List<string> SessionsCreatedDynamically;
         public readonly List<long> SyncBoxesCreatedDynamically;
@@ -37,9 +37,9 @@ namespace CloudSDK_SmokeTest.Managers
 
         private ItemsListManager()
         {
-            Plans = new List<CloudApiPublic.JsonContracts.Plan>();
-            SyncBoxes = new List<CloudApiPublic.JsonContracts.SyncBox>();
-            Sessions = new List<CloudApiPublic.JsonContracts.Session>();
+            Plans = new List<Cloud.JsonContracts.Plan>();
+            SyncBoxes = new List<Cloud.JsonContracts.SyncBox>();
+            Sessions = new List<Cloud.JsonContracts.Session>();
             SessionsCreatedDynamically = new List<string>();
             SyncBoxesCreatedDynamically = new List<long>();
             PlansCreatedDynamically = new List<long>();
@@ -49,9 +49,9 @@ namespace CloudSDK_SmokeTest.Managers
             // create the other direction
         }
 
-        public void RemoveSession(CloudApiPublic.JsonContracts.Session session)
+        public void RemoveSession(Cloud.JsonContracts.Session session)
         {
-            CloudApiPublic.JsonContracts.Session fromList = Sessions.Where(s => s.Key == session.Key && s.Token == session.Token).FirstOrDefault();
+            Cloud.JsonContracts.Session fromList = Sessions.Where(s => s.Key == session.Key && s.Token == session.Token).FirstOrDefault();
             if (fromList != null)
                 Sessions.Remove(fromList);
         }

@@ -1,6 +1,4 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Model;
-using CloudSDK_SmokeTest.Settings;
+﻿using CloudSDK_SmokeTest.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,4 +1,4 @@
-﻿using CloudApiPublic.Model;
+﻿using Cloud.Model;
 using CloudSDK_SmokeTest.Settings;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-﻿using CloudApiPublic.Model;
+﻿using Cloud.Model;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace CloudSDK_SmokeTest.Events.ManagerEventArgs
     public class FileManagerReturnEventArgs : SmokeTestManagerEventArgs
     {
         public FileChange FileChange { get; set; }
-        public CloudApiPublic.JsonContracts.Event ReturnEvent {get;set;}
+        public Cloud.JsonContracts.Event ReturnEvent {get;set;}
         public FileManagerReturnEventArgs() { }
         public FileManagerReturnEventArgs(SmokeTestManagerEventArgs e)
             : base((e as TaskEventArgs))

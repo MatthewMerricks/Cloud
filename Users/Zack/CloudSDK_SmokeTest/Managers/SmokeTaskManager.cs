@@ -1,5 +1,5 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Static;
+﻿using Cloud;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Interfaces;
 using CloudSDK_SmokeTest.Settings;
@@ -32,6 +32,10 @@ namespace CloudSDK_SmokeTest.Managers
                     break;
                 case ModificationObjectType.Session:
                     manager = new SessionManager();
+                    break;
+                case ModificationObjectType.None:
+                    if (task.IsDownloadAll())
+                        manager = new DownloadManager();
                     break;
             }
             return manager;

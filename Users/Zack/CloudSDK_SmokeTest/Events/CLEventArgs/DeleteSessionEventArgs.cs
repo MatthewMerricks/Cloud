@@ -1,6 +1,4 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Model;
-using CloudSDK_SmokeTest.Settings;
+﻿using CloudSDK_SmokeTest.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +8,7 @@ namespace CloudSDK_SmokeTest.Events.CLEventArgs
 {
     public class DeleteSessionEventArgs : TaskEventArgs
     {
-        public CloudApiPublic.JsonContracts.Session Session { get; set; }
+        public Cloud.JsonContracts.Session Session { get; set; }
 
 
 

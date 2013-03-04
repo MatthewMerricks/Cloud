@@ -1,8 +1,8 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.JsonContracts;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud;
+using Cloud.Interfaces;
+using Cloud.JsonContracts;
+using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Helpers;
 using CloudSDK_SmokeTest.Settings;
@@ -238,7 +238,7 @@ namespace CloudSDK_SmokeTest.Managers
         {
             Console.WriteLine("Try Upload Entered...");
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
             int createResponseCode = -1;
             GenericHolder<CLError> errorHolder;
             if(this.ProcessingErrorHolder != null)
@@ -432,7 +432,7 @@ namespace CloudSDK_SmokeTest.Managers
             List<Metadata> returnValues = new List<Metadata>();
             GenericHolder<CLError> refHolder = folderDeleteArgs.ProcessingErrorHolder;
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.Folders folders;
+            Cloud.JsonContracts.Folders folders;
             CLError getFilesError = folderDeleteArgs.SyncBox.GetFolderHierarchy(ManagerConstants.TimeOutMilliseconds, out restStatus, out folders);
             if (getFilesError != null || restStatus != CLHttpRestStatus.Success)
             {
@@ -475,7 +475,7 @@ namespace CloudSDK_SmokeTest.Managers
             CLHttpRestStatus restStatus;
             List<Metadata> metadataList = GetFilesForDelete(args, deleteTask).ToList();
             List<FileChange> changes = GetFileChangesFromMetadata(args.SyncBox, metadataList).ToList();
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
             StringBuilder report = args.ReportBuilder;
             foreach (FileChange fc in changes)
             {
@@ -531,7 +531,7 @@ namespace CloudSDK_SmokeTest.Managers
             CLHttpRestStatus restStatus;
             List<Metadata> metadataList = GetFoldersForDelete(args, deleteTask).ToList();
             List<FileChange> filechangeList = GetFileChangesFromMetadata(args.SyncBox, metadataList).ToList();
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
             foreach (FileChange fc in filechangeList)
             {
                 if (deleteResponseCode == 0)
@@ -609,9 +609,9 @@ namespace CloudSDK_SmokeTest.Managers
                 reportBuilder.AppendLine("Exiting Process...");
                 return (int)FileManagerResponseCodes.InitializeCredsError;
             }
-            CloudApiPublic.JsonContracts.Event returnEvent;
+            Cloud.JsonContracts.Event returnEvent;
             long syncBoxId = renameTask.SyncType == SmokeTaskSyncType.Active ? paramSet.ActiveSyncBoxID : paramSet.ManualSyncBoxID;
-            CloudApiPublic.CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
+            CLSyncBox.CreateAndInitialize(creds, syncBoxId, out syncBox, out boxCreateStatus, settings as ICLSyncSettings);
             FileChange fileChange = null;
             if (renameTask.ObjectType.type == ModificationObjectType.Folder)
             {
@@ -622,7 +622,7 @@ namespace CloudSDK_SmokeTest.Managers
                 else
                     directoryPath = renameTask.OldName.Replace("\"", "");
                 DirectoryInfo dinfo = new DirectoryInfo(directoryPath);
-                CloudApiPublic.JsonContracts.Metadata metaData;
+                Cloud.JsonContracts.Metadata metaData;
                 CLError getMetaDataError = syncBox.GetMetadata(dinfo.FullName, true, ManagerConstants.TimeOutMilliseconds, out restStatus, out metaData);
                 string newPath = directoryPath.Replace(oldFileName.Replace("\"", ""), newFileName.Replace("\"", ""));
                 if(getMetaDataError != null || restStatus != CLHttpRestStatus.Success)
@@ -681,324 +681,6 @@ namespace CloudSDK_SmokeTest.Managers
         }
         #endregion
 
-        #region Download All Content
-
-        public static int RunDownloadAllSyncBoxContentTask(InputParams paramSet, SmokeTask smokeTask, ref StringBuilder reportBuilder,  ref ManualSyncManager manager, ref GenericHolder<CLError> ProcessingErrorHolder)
-        {
-            int responseCode = -1;
-            try
-            {
-                reportBuilder.AppendLine("Initiating Download All Content...");
-                responseCode = manager.InitiateDownloadAll(smokeTask, ref reportBuilder,  ref ProcessingErrorHolder);
-                reportBuilder.AppendLine("End Download All Content...");
-            }
-            catch (Exception exception)
-            {
-                lock (ProcessingErrorHolder)
-                {
-                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-                }
-            }
-            return responseCode;
-        }
-
-        /// <summary>
-        /// This method is called to overwrite the entire contents of the clients Machine Sync Path with the current SyncBox content
-        /// </summary>
-        /// <param name="smokeTask"></param>
-        /// <param name="ProcessingErrorHolder"></param>
-        /// <returns>
-        ///     int downloadAllResponseCode -- Description of Completion of Process 
-        /// </returns>
-        public int InitiateDownloadAll(SmokeTask smokeTask, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
-        {
-            CurrentTask = smokeTask;
-            if (this.ProcessingErrorHolder == null)
-                this.ProcessingErrorHolder = ProcessingErrorHolder;
-            int dloadAllResponseCode = 0;
-            CLCredential creds; 
-            CLCredentialCreationStatus credsCreateStatus;
-            // Try to Create a Credentail set to make the Change 
-            InitalizeCredentials("ManualSyncManager.InitiateDownloadAll", ref reportBuilder, out creds, out credsCreateStatus);
-            // If Status returns anything other than success notify the user and stop the process.
-            if (credsCreateStatus != CLCredentialCreationStatus.Success)
-            {
-                reportBuilder.AppendLine(string.Format(
-                                            "There was an error Creating Credentials Initiate Download All Method. Credential Create Status: {0}", 
-                                            credsCreateStatus.ToString()
-                                         ));
-                reportBuilder.AppendLine("Exiting Process...");
-                dloadAllResponseCode = (int)FileManagerResponseCodes.InitializeCredsError;
-                return dloadAllResponseCode;
-            }
-
-
-            CLSyncBox syncBox;
-            CLSyncBoxCreationStatus boxCreateStatus;
-            CLHttpRestStatus restStatus = new CLHttpRestStatus();
-
-            ICLSyncSettings settings = new AdvancedSyncSettings(InputParams.ManualSync_Folder.Replace("\"", "")); 
-                                                                
-
-            CloudApiPublic.CLSyncBox.CreateAndInitialize(   creds, 
-                                                            InputParams.ActiveSyncBoxID, 
-                                                            out syncBox, 
-                                                            out boxCreateStatus, 
-                                                            settings as ICLSyncSettings);
-            
-            if (restStatus != CLHttpRestStatus.Success)
-            {
-                lock (ProcessingErrorHolder)
-                {
-                    Exception exception = new Exception(string.Format("There was an error creating the Sync Box with ID: {0} in the Initiate Download All Method"));
-                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-                }
-                return 1;
-            }
-            GetAllContentFromSyncBox(syncBox, smokeTask, creds, ref reportBuilder, ref ProcessingErrorHolder);
-            return dloadAllResponseCode; 
-        }
-
-        private void GetAllContentFromSyncBox(CLSyncBox syncBox, SmokeTask smokeTask, CLCredential creds, ref StringBuilder reportBuilder, ref GenericHolder<CLError> ProcessingErrorHolder)
-        {
-            if (this.ProcessingErrorHolder == null)
-                this.ProcessingErrorHolder = ProcessingErrorHolder;
-            CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.FolderContents folderContents = new CloudApiPublic.JsonContracts.FolderContents();
-            try
-            {
-                CLError getAllContentError = syncBox.GetFolderContents(ManagerConstants.TimeOutMilliseconds, out restStatus, out folderContents, includeCount: false, contentsRoot:null, depthLimit:9, includeDeleted:false);
-                if (restStatus != CLHttpRestStatus.Success || getAllContentError != null)
-                {
-                    HandleFailure(getAllContentError, restStatus, null, "GetAllContentFromSyncBox", ref ProcessingErrorHolder);
-                    return;
-                }
-            }
-            catch(Exception exception)
-            {
-                lock (ProcessingErrorHolder)
-                {
-                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-                }
-                return;
-            }
-
-            DownloadAllSyncBoxContent downloadAllTest = smokeTask as DownloadAllSyncBoxContent;
-            if(downloadAllTest == null)
-            {
-                Exception exception = new Exception("Smoke Task was unable to be cast as DownloadAllSyncBoxContent");
-                lock(ProcessingErrorHolder)
-                {
-                    ProcessingErrorHolder.Value  = ProcessingErrorHolder.Value + exception;
-                }
-                return;
-            }
-
-            //Async Parallel Opperations
-            //System.Threading.Tasks.Parallel.ForEach(folderContents.Objects, (mdObject) =>
-            //{
-            //      HandleAdd(mdObject, syncBox);
-            //});
-            
-            //Synchronous Opperations
-            foreach (CloudApiPublic.JsonContracts.Metadata mdObject in folderContents.Objects)
-            {
-                HandleAdd(mdObject, syncBox, ref reportBuilder);
-            }
-            reportBuilder.AppendLine(string.Format("Add File Counter: {0}", AddFileCounter.ToString()));           
-
-        }
-
-        private void HandleAdd(CloudApiPublic.JsonContracts.Metadata mdObject, CLSyncBox syncBox, ref StringBuilder reportBuilder)
-        {
-            if (mdObject.IsFolder.HasValue && mdObject.IsFolder.Value)
-            {
-                string directoryPath = RootDirectory.FullName + mdObject.RelativePathWithoutEnclosingSlashes.Replace("\"", "");
-                if (!Directory.Exists(directoryPath))
-                {
-                    Directory.CreateDirectory(directoryPath);
-                }
-            }
-            else
-            {
-                AddFileCounter++;
-                string filePath = RootDirectory.FullName + mdObject.RelativePathWithoutEnclosingSlashes.Replace("/", "\\").Replace("\"", "");
-                FileInfo fileInfo = new FileInfo(filePath);
-                if (!fileInfo.Exists)
-                {
-                    CompleteAddFile(syncBox, filePath, mdObject);
-                }
-                else
-                {
-                    HandleFileComparison(syncBox, filePath, mdObject);
-                }
-            }
-        }
-
-        private void CompleteAddFile(CLSyncBox syncBox, string filePath, CloudApiPublic.JsonContracts.Metadata mdObject)
-        {
-            //Possibly need to create a FileChange off of the current metadata
-            //Move file Upon copletion -- give an old path (temp) and a new path (truePath), move the file form old to new 
-            FileChange currentFile;
-            CLHttpRestStatus restStatus;
-            FileHelper.CreateFileChangeObject(filePath, FileChangeType.Created, false, mdObject.Size, mdObject.StorageKey, mdObject.ServerId, out currentFile);
-            currentFile.Direction = SyncDirection.From;
-            object state = new object();
-            CLError downloadError = syncBox.HttpRestClient.DownloadFile(currentFile, AfterDownloadCallback, state, ManagerConstants.TimeOutMilliseconds, out restStatus);
-            if (ProcessingErrorHolder == null)
-                ProcessingErrorHolder = new GenericHolder<CLError>();
-            if (downloadError != null || restStatus != CLHttpRestStatus.Success)
-            {
-                GenericHolder<CLError> refProcessingErrorHolder = ProcessingErrorHolder;
-                HandleFailure(downloadError, restStatus, null, "CompleteAddFile", ref refProcessingErrorHolder);
-            }
-        }
-
-        private void HandleFileComparison(CLSyncBox syncBox, string filePath, CloudApiPublic.JsonContracts.Metadata mdObject)
-        {
-            GenericHolder<CLError> refToProcessErrorHolder = ProcessingErrorHolder;
-            bool downloadServerFile = FileHelper.ShouldUpdateFile(InputParams, syncBox, filePath, mdObject, ref refToProcessErrorHolder);
-        }
-
-        private void AfterDownloadCallback(string inputString, FileChange fileChange, ref string refString, object state, Guid id)
-        { 
-            //This is where we will move the file from temp styorage to its place on the disk. 
-            if (!string.IsNullOrEmpty(inputString))
-            {
-                if (!File.Exists(inputString))
-                {
-                    lock (this.ProcessingErrorHolder)
-                    {
-                        Exception ex = new Exception("The Expected file Does Not Exist in the Temporary Folder.");
-                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
-                    }
-                }
-                else
-                {
-                    AfterDownloadCallbackCounter++;
-                    string rootString = RootDirectory.ToString().Replace(RootDirectory.Name + '\\', RootDirectory.Name);
-                    string destination = rootString + fileChange.NewPath.GetRelativePath(RootDirectory, false);
-                    try
-                    {
-                        bool continueMove = true;
-                        if (File.Exists(destination) && CurrentTask is DownloadAllSyncBoxContent)
-                        {
-                            Exception currentException;
-                            string serverId = fileChange.Metadata.ServerId.ToString();
-                            int count = ServerIdAndPaths.Where(kvp => kvp.Value == serverId && kvp.Key == destination).Count();
-                            bool shouldRetry = true;
-                            if (count > 0)
-                            {
-                                FileInfo localFile = new FileInfo(destination);
-                                if (localFile.CreationTime == fileChange.Metadata.HashableProperties.CreationTime)
-                                    shouldRetry = false;
-                                currentException = new Exception(DuplicateFileErrorString);
-                            }
-                            else
-                                currentException = new Exception(CaseSensitiveFileNameString);
-
-                            if (shouldRetry)
-                            {
-                                RetryDownloadCallbackRecursive(currentException, fileChange, inputString, destination, rootString);
-                                continueMove = false;
-                            }
-                            
-                        }
-                        if (continueMove)
-                        {
-                            File.Move(inputString, destination);
-                            //No Need to Map the files, we are not yewt supporting duplicate file names.
-                            //if (!string.IsNullOrEmpty(fileChange.Metadata.ServerId))
-                            //    ServerIdAndPaths.Add(destination, fileChange.Metadata.ServerId);
-                        }
-                    }
-                    catch (Exception exception)
-                    {
-                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception;
-                        //if the exception is of type File Exists Exception it means there is a duplicate name,
-                        // or the Delta is case sensitivity
-                        //RetryDownloadCallbackRecursive(exception, fileChange, inputString, destination, rootString);                  
-                    }
-                }
-                Console.WriteLine(string.Format("After File Download Counter: {0}", AfterDownloadCallbackCounter.ToString()));
-            }
-        }
-
-        private void RetryDownloadCallbackRecursive(Exception exception, FileChange fileChange, string originalPath, string destination, string rootString)
-        {
-            //ZW: Since we are not yet supporting mutiple files with the same name, this function should not ever get called. 
-            
-
-            if (exception.Message == CaseSensitiveFileNameString || exception.Message == DuplicateFileErrorString)
-            {
-                GenericHolder<CLError> errorHolder;
-                if(this.ProcessingErrorHolder == null)
-                    this.ProcessingErrorHolder = new GenericHolder<CLError>();
-                
-                errorHolder = this.ProcessingErrorHolder;
-                destination = FileHelper.CreateNewFileName(destination, false, true, ref errorHolder);
-
-                try
-                {
-                    File.Move(originalPath, destination);
-                    //ZW no need to map the files, duplicate names unsupported 
-                    //AddEntryToMappingFile(originalPath, destination);
-                }
-                catch (Exception exception2)
-                {
-                    lock(ProcessingErrorHolder)
-                    {
-                        ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + exception2;
-                    }
-                    //if the exception is of type File Exists Exception it means there is a duplicate name,
-                    // or the Delta is case sensitivity
-                    //RetryDownloadCallbackRecursive(exception2, fileChange, originalPath, destination, rootString);
-                }
-            }
-        }               
-
-        private void AddEntryToMappingFile(string originalName, string localName)
-        {
-            //ZW: Not yet mapping files Throw breaking exception if this methiod gets called 
-            throw new NotImplementedException("AddEntryToMappingFile Method of Manual Sync Manager");
-
-            string mappingFilePath = InputParams.FileNameMappingFile.Replace("\"", "");
-            FileStream fileStream;
-            try
-            {
-                StringBuilder kvpBuilder = new StringBuilder(originalName);
-                kvpBuilder.Append(":");
-                kvpBuilder.Append(localName);
-
-                if (!File.Exists(mappingFilePath))
-                {
-                    fileStream = new FileStream(mappingFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);                 
-                    StreamWriter writer = new StreamWriter(fileStream);
-                    writer.WriteLine(kvpBuilder.ToString());
-                    writer.Close();
-                }
-                else
-                {
-                    using (StreamWriter sw = File.AppendText(mappingFilePath))
-                    {
-                        sw.WriteLine(kvpBuilder.ToString());
-                    }
-                }
-            }
-            catch (Exception exception)
-            {
-                if (this.ProcessingErrorHolder == null)
-                    this.ProcessingErrorHolder = new GenericHolder<CLError>();
-
-                GenericHolder<CLError> errorHolder = this.ProcessingErrorHolder;
-                lock (errorHolder)
-                {
-                    errorHolder.Value = errorHolder.Value + exception;
-                }
-            }
-        }
-
-        #endregion 
 
         #region All
         private void InitalizeCredentials(string callerName, ref StringBuilder reportBuilder, out CLCredential creds, out CLCredentialCreationStatus credsCreateStatus)
@@ -1036,8 +718,8 @@ namespace CloudSDK_SmokeTest.Managers
                 try
                 {
                     FileInfo filetoDelete = new FileInfo(filePath);
-                    CloudApiPublic.JsonContracts.Metadata metaDataResponse;
-                    CLError badPathError = CloudApiPublic.Static.Helpers.CheckForBadPath(filePath);
+                    Cloud.JsonContracts.Metadata metaDataResponse;
+                    CLError badPathError = Cloud.Static.Helpers.CheckForBadPath(filePath);
                     //TODO: Add call to check files exists   /// try syncbox.GetVersions 
                     CLError metaDataRequestError = syncBox.GetMetadata(filePath, false, ManagerConstants.TimeOutMilliseconds, out restStatus, out metaDataResponse);
                     if (metaDataRequestError == null && (metaDataResponse.Deleted == null || metaDataResponse.Deleted == false))
@@ -1174,7 +856,7 @@ namespace CloudSDK_SmokeTest.Managers
             return fileChanges;
         }
 
-        private FileMetadata GetFileMetadataFromMetadata(CloudApiPublic.JsonContracts.Metadata item, bool isFolder)
+        private FileMetadata GetFileMetadataFromMetadata(Cloud.JsonContracts.Metadata item, bool isFolder)
         { 
             FileMetadata metadata = new FileMetadata();
             metadata.HashableProperties = new FileMetadataHashableProperties(isFolder, item.ModifiedDate.Value, item.CreatedDate.Value, item.Size);

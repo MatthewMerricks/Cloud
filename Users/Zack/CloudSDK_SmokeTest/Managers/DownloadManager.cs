@@ -1,7 +1,7 @@
-﻿using CloudApiPublic;
-using CloudApiPublic.Interfaces;
-using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud;
+using Cloud.Interfaces;
+using Cloud.Model;
+using Cloud.Static;
 using CloudSDK_SmokeTest.Events.CLEventArgs;
 using CloudSDK_SmokeTest.Events.ManagerEventArgs;
 using CloudSDK_SmokeTest.Helpers;
@@ -41,19 +41,20 @@ namespace CloudSDK_SmokeTest.Managers
             CLHttpRestStatus restStatus = CLHttpRestStatus.BadRequest;
 
             long syncBoxId = SmokeTaskManager.GetOpperationSyncBoxID(e);
-            CloudApiPublic.CLSyncBox.CreateAndInitialize(e.Creds,
+            CLError error = Cloud.CLSyncBox.CreateAndInitialize(e.Creds,
                                                             syncBoxId,
                                                             out syncBox,
                                                             out boxCreateStatus,
                                                             settings as ICLSyncSettings);
 
-            if (restStatus != CLHttpRestStatus.Success)
+            if (boxCreateStatus != CLSyncBoxCreationStatus.Success)
             {
                 ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs()
                 {
                     RestStatus = restStatus,
                     OpperationName = "DownloadManager.InitiateDownloadAll",
-                    Error = new CLError(),
+                    Error = error,
+                    ProcessingErrorHolder = e.ProcessingErrorHolder,
                 };
                 SmokeTaskManager.HandleFailure(failArgs);
                 return (int)FileManagerResponseCodes.InitializeSynBoxError;
@@ -71,7 +72,7 @@ namespace CloudSDK_SmokeTest.Managers
         {
             int responseCode = 0;
             CLHttpRestStatus restStatus;
-            CloudApiPublic.JsonContracts.FolderContents folderContents = new CloudApiPublic.JsonContracts.FolderContents();
+            Cloud.JsonContracts.FolderContents folderContents = new Cloud.JsonContracts.FolderContents();
             CLError getAllContentError = syncBox.GetFolderContents(ManagerConstants.TimeOutMilliseconds, out restStatus, out folderContents, includeCount: false, contentsRoot: null, depthLimit: 9, includeDeleted: false);
             if (restStatus != CLHttpRestStatus.Success || getAllContentError != null)
             {
@@ -84,7 +85,7 @@ namespace CloudSDK_SmokeTest.Managers
                 SmokeTaskManager.HandleFailure(failArgs);
                 return (int)FileManagerResponseCodes.UnknownError;
             }
-            foreach (CloudApiPublic.JsonContracts.Metadata mdObject in folderContents.Objects)
+            foreach (Cloud.JsonContracts.Metadata mdObject in folderContents.Objects)
             {
                 HandleAdd(e, mdObject, syncBox);
             }
@@ -92,7 +93,7 @@ namespace CloudSDK_SmokeTest.Managers
             return responseCode;           
         }
 
-        private void HandleAdd(SmokeTestManagerEventArgs e, CloudApiPublic.JsonContracts.Metadata mdObject, CLSyncBox syncBox)
+        private void HandleAdd(SmokeTestManagerEventArgs e, Cloud.JsonContracts.Metadata mdObject, CLSyncBox syncBox)
         {
             if (mdObject.IsFolder.HasValue && mdObject.IsFolder.Value)
             {
@@ -114,7 +115,7 @@ namespace CloudSDK_SmokeTest.Managers
             }
         }
 
-        private int CompleteAddFile(CLSyncBox syncBox, string filePath, CloudApiPublic.JsonContracts.Metadata mdObject, SmokeTestManagerEventArgs e)
+        private int CompleteAddFile(CLSyncBox syncBox, string filePath, Cloud.JsonContracts.Metadata mdObject, SmokeTestManagerEventArgs e)
         { 
             int responseCode = 0;
             FileChange currentFile;
@@ -183,6 +184,11 @@ namespace CloudSDK_SmokeTest.Managers
             try
             {
                 Console.WriteLine("Initiating Download All Content...");
+                if (e.CurrentTask.SyncType == SmokeTaskSyncType.Active)
+                    e.RootDirectory = new DirectoryInfo(e.ParamSet.ActiveSync_Folder.Replace("\"", ""));
+                else
+                    e.RootDirectory = new DirectoryInfo(e.ParamSet.ManualSync_Folder.Replace("\"", ""));
+
                 responseCode = InitiateDownloadAll(e);
                 Console.WriteLine("End Download All Content...");
             }

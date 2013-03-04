@@ -1,5 +1,5 @@
-﻿using CloudApiPublic.Model;
-using CloudApiPublic.Static;
+﻿using Cloud.Model;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace CloudSDK_SmokeTest.Events.CLEventArgs
         public string ResponseText { get; set; }
         public FileChange FileChange { get; set; }
         public CLHttpRestStatus RestStatus { get; set; }
-        public CloudApiPublic.JsonContracts.Event ReturnEvent { get; set; }
+        public Cloud.JsonContracts.Event ReturnEvent { get; set; }
 
         public CreateFileResponseEventArgs(CreateFileEventArgs baseInput)
         {
@@ -26,7 +26,7 @@ namespace CloudSDK_SmokeTest.Events.CLEventArgs
             this.SyncBox = baseInput.SyncBox;
         }
 
-        public CreateFileResponseEventArgs(CreateFileEventArgs baseInput, FileChange change, string response, CLHttpRestStatus restStatus, CloudApiPublic.JsonContracts.Event returnEvent)
+        public CreateFileResponseEventArgs(CreateFileEventArgs baseInput, FileChange change, string response, CLHttpRestStatus restStatus, Cloud.JsonContracts.Event returnEvent)
         {
             this.boxCreationStatus = baseInput.boxCreationStatus;
             this.CreateCurrentTime = baseInput.CreateCurrentTime;
