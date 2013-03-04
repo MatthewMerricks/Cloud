@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{40A9C587-10CD-4979-A289-2B06F550DB51}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SampleLiveSync</RootNamespace>
+    <AssemblyName>Sample-Live-Sync</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Artwork\cloud.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Cloud, Version=0.1.5.4, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\CloudApiPublic\bin\Release\Cloud.dll</HintPath>
+    </Reference>
+    <Reference Include="RateBar.CSDK, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\RateBar.CSDK.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.1, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>True</SpecificVersion>
+    </Reference>
+    <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="EventMessageReceiver\BindingAndTriggerValue.cs" />
+    <Compile Include="EventMessageReceiver\BindingEvaluator.cs" />
+    <Compile Include="EventMessageReceiver\DelayChangeObservableCollection.cs" />
+    <Compile Include="EventMessageReceiver\EventMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadedMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadingMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\ErrorMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\InformationalMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadedMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadingMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageReceiver.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransfer.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferBase.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusFileTransferBlank.cs" />
+    <Compile Include="EventMessageReceiver\Status\CLStatusMessage.cs" />
+    <Compile Include="EventMessageReceiver\Status\ICLStatusFileTransfer.cs" />
+    <Compile Include="EventMessageReceiver\WindowSyncStatusViewModel.cs" />
+    <Compile Include="Models\ConstructedHolder.cs" />
+    <Compile Include="Static\Enums.cs" />
+    <Compile Include="Static\NativeMethod.cs" />
+    <Compile Include="Static\Helpers.cs" />
+    <Compile Include="ViewModels\SyncStatusViewModel.cs" />
+    <Compile Include="Views\SyncStatusView.xaml.cs">
+      <DependentUpon>SyncStatusView.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Views\AdvancedOptionsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\MainView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Models\Settings.cs" />
+    <Compile Include="Models\SettingsAdvancedImpl.cs" />
+    <Compile Include="Static\FocusExtension.cs" />
+    <Compile Include="Static\FolderBrowserExtension.cs" />
+    <Compile Include="Support\Notification.cs" />
+    <Compile Include="Support\Utilities.cs" />
+    <Compile Include="ViewModels\AdvancedOptionsViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\ViewModelBase.cs" />
+    <Compile Include="ViewModels\WorkspaceViewModel.cs" />
+    <Compile Include="Views\AdvancedOptionsView.xaml.cs">
+      <DependentUpon>AdvancedOptionsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\MainView.xaml.cs">
+      <DependentUpon>MainView.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Views\SyncStatusView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="app.manifest">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="TraceConfig\CloudTraceLevel.ini" />
+    <None Include="TraceConfig\EnableTrace.ini" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\cloud.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\WinClient_CloudSetup_bg_650x485.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Synced.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Artwork\Syncing.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
