@@ -714,7 +714,8 @@ EXCLUDE_PATTERNS       = */CloudApiPublic/Sync* \
                          */SQLIndexer* \
                          */CloudApiPublic/EventMessageReceiver/Status* \
                          */CloudApiPublic/REST* \
-                         */CloudApiPublic/JsonContracts*
+                         */CloudApiPublic/JsonContracts* \
+                         */CloudApiPublic/Support*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
