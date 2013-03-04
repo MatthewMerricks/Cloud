@@ -373,11 +373,43 @@ namespace CloudSDK_SmokeTest.Managers
                 try
                 {
                     if (renameTask.ObjectType.type == ModificationObjectType.Folder)
-                        Directory.Move(e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString());
+                    {
+                        if (!Directory.Exists(e.FileChange.NewPath.ToString()))
+                        {
+                            Directory.Move(e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString());
+                            if(Directory.Exists(e.FileChange.NewPath.ToString()))
+                            {
+                                 newBuilder.AppendLine(string.Format("Successfully Renamed Folder {0} to {1}", e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString()));
+                            }
+                        }
+                        else
+                        {
+                            newBuilder.AppendLine("Failed to Rename Folder Because Source Already Exists: ");
+                            newBuilder.AppendLine(string.Format("     Source Folder      : {0}", e.FileChange.OldPath.ToString()));
+                            newBuilder.AppendLine(string.Format("     Destination Folder : {0}", e.FileChange.NewPath.ToString()));
+                            newBuilder.AppendLine();
+                        }
+                    }
                     else if (renameTask.ObjectType.type == ModificationObjectType.File)
-                        File.Move(e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString());
+                    {
+                        if (!File.Exists(e.FileChange.NewPath.ToString()))
+                        {
+                            File.Move(e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString());
+                            if(File.Exists(e.FileChange.NewPath.ToString()))
+                            {
+                                newBuilder.AppendLine(string.Format("Successfully Renamed File {0} to {1}", e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString()));
+                            }
+                        }
+                        else
+                        {
+                            newBuilder.AppendLine("Failed to Rename File Because Source Already Exists: ");
+                            newBuilder.AppendLine(string.Format("     Source File      : {0}", e.FileChange.OldPath.ToString()));
+                            newBuilder.AppendLine(string.Format("     Destination File : {0}", e.FileChange.NewPath.ToString()));
+                            newBuilder.AppendLine();
+                        }
+                    }
 
-                    newBuilder.AppendLine(string.Format("Successfully Renamed File {0} to {1}", e.FileChange.OldPath.ToString(), e.FileChange.NewPath.ToString()));
+                   
                 }
                 catch (Exception excetpion)
                 {
@@ -458,6 +490,9 @@ namespace CloudSDK_SmokeTest.Managers
             try
             {
                 File.Move(oldPath, newPath);
+                FileInfo newInfo = new FileInfo(newPath);
+                if(!newInfo.Exists)
+                    throw new Exception(string.Format("{0} Not Moved to {1}.", oldPath, newPath));
                 reportBuilder.AppendLine();
                 reportBuilder.AppendLine("Successfully Renamed Item:");
                 reportBuilder.AppendLine(string.Format("    From: {0}", oldPath));
@@ -606,9 +641,12 @@ namespace CloudSDK_SmokeTest.Managers
                 rootFolder = TrimTrailingSlash(e.ParamSet.ManualSync_Folder.Replace("\"", ""));
             else
                 rootFolder = TrimTrailingSlash(e.ParamSet.ActiveSync_Folder.Replace("\"", ""));
-                
-                
-            relative = TrimTrailingSlash(renameTask.RelativeDirectoryPath);
+
+            if (FileHelper.PathEndsWithSlash(renameTask.RelativeDirectoryPath) && renameTask.RelativeDirectoryPath.Count() > 1)
+                relative = TrimTrailingSlash(renameTask.RelativeDirectoryPath);
+            else
+                relative = renameTask.RelativeDirectoryPath;
+
             fullPath = string.Concat(rootFolder, relative, renameTask.OldName.Replace("\"", ""));
             if (Directory.Exists(fullPath))
                 returnInfo = new DirectoryInfo(fullPath);

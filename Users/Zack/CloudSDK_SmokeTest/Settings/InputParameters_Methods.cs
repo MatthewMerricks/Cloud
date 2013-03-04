@@ -37,6 +37,13 @@ namespace CloudSDK_SmokeTest.Settings
             }
             return false;
         }
+
+        public bool IsDownloadAll()
+        {
+            if (this.GetType() == typeof(DownloadAllSyncBoxContent))
+                return true;
+            return false;
+        }
     }
 
 

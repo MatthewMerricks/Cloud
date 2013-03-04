@@ -41,19 +41,20 @@ namespace CloudSDK_SmokeTest.Managers
             CLHttpRestStatus restStatus = CLHttpRestStatus.BadRequest;
 
             long syncBoxId = SmokeTaskManager.GetOpperationSyncBoxID(e);
-            CloudApiPublic.CLSyncBox.CreateAndInitialize(e.Creds,
+            CLError error = CloudApiPublic.CLSyncBox.CreateAndInitialize(e.Creds,
                                                             syncBoxId,
                                                             out syncBox,
                                                             out boxCreateStatus,
                                                             settings as ICLSyncSettings);
 
-            if (restStatus != CLHttpRestStatus.Success)
+            if (boxCreateStatus != CLSyncBoxCreationStatus.Success)
             {
                 ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs()
                 {
                     RestStatus = restStatus,
                     OpperationName = "DownloadManager.InitiateDownloadAll",
-                    Error = new CLError(),
+                    Error = error,
+                    ProcessingErrorHolder = e.ProcessingErrorHolder,
                 };
                 SmokeTaskManager.HandleFailure(failArgs);
                 return (int)FileManagerResponseCodes.InitializeSynBoxError;
@@ -183,6 +184,11 @@ namespace CloudSDK_SmokeTest.Managers
             try
             {
                 Console.WriteLine("Initiating Download All Content...");
+                if (e.CurrentTask.SyncType == SmokeTaskSyncType.Active)
+                    e.RootDirectory = new DirectoryInfo(e.ParamSet.ActiveSync_Folder.Replace("\"", ""));
+                else
+                    e.RootDirectory = new DirectoryInfo(e.ParamSet.ManualSync_Folder.Replace("\"", ""));
+
                 responseCode = InitiateDownloadAll(e);
                 Console.WriteLine("End Download All Content...");
             }

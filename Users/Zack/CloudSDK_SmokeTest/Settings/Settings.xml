@@ -26,6 +26,19 @@
   </InputParams>
   <Scenario>
     <!--<ScenarioTasks>
+      <SmokeTask xsi:type="DownloadAllSyncBoxContent">
+        <type>DownloadAllSyncBoxContent</type>
+        <SyncType>Manual</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>1296</SelectedSyncBoxID>
+        <FolderPath>C:\Users\t_zacharyw\Cloud</FolderPath>
+        <FilePath></FilePath>
+      </SmokeTask>
+      
+    </ScenarioTasks>-->
+    <!--<ScenarioTasks>
       <SmokeTask xsi:type="CreateSyncBox">
         <type>CreateSyncBox</type>
         <SyncType>Active</SyncType>
@@ -349,10 +362,10 @@
           <type>None</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <ComparisonType>ManualToActive</ComparisonType>
+        <ComparisonType>ActiveToServer</ComparisonType>
         <UseDynamicSyncBox>true</UseDynamicSyncBox>
         <ShouldWait>true</ShouldWait>
       </SmokeTask>
-    </ScenarioTasks> 
+    </ScenarioTasks>
   </Scenario>
 </SmokeTest>

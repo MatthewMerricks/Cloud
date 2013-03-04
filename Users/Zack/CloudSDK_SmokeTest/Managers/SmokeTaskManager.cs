@@ -33,6 +33,10 @@ namespace CloudSDK_SmokeTest.Managers
                 case ModificationObjectType.Session:
                     manager = new SessionManager();
                     break;
+                case ModificationObjectType.None:
+                    if (task.IsDownloadAll())
+                        manager = new DownloadManager();
+                    break;
             }
             return manager;
         }
