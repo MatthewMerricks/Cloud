@@ -4076,7 +4076,7 @@
 		<row><td>IDS__TargetReq_DESC_PROCESSOR</td><td>1033</td><td>The processor is not adequate for running [ProductName].</td><td>0</td><td/><td>-1642060529</td></row>
 		<row><td>IDS__TargetReq_DESC_RAM</td><td>1033</td><td>The amount of RAM is not adequate for running [ProductName].</td><td>0</td><td/><td>-1642060529</td></row>
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>-1642060529</td></row>
-		<row><td>ID_STRING1</td><td>1033</td><td>http://www.Cloud.com.com</td><td>0</td><td/><td>430002988</td></row>
+		<row><td>ID_STRING1</td><td>1033</td><td>http://www.cloud.com</td><td>0</td><td/><td>564246605</td></row>
 		<row><td>ID_STRING10</td><td>1033</td><td>SHOWSD~1|Show SDK Release Notes</td><td>0</td><td/><td>-1197368049</td></row>
 		<row><td>ID_STRING11</td><td>1033</td><td>Show the SDK Release Notes</td><td>0</td><td/><td>-1197368017</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td>Cloud.com</td><td>0</td><td/><td>430002988</td></row>
@@ -4713,7 +4713,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[APP]Sample-Live-Sync.Primary output</td><td/></row>
 		<row><td>ProductCode</td><td>{8B476C3F-CD29-4B06-AD4C-22C14619E258}</td><td/></row>
 		<row><td>ProductName</td><td>CloudSdk</td><td/></row>
-		<row><td>ProductVersion</td><td>0.01.0005</td><td/></row>
+		<row><td>ProductVersion</td><td>0.01.0006</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
