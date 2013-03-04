@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>GalaSoft.MvvmLight.Extras.WPF4</name>
+        <name>GalaSoft.MvvmLight.Extras.WPF4.CSDK</name>
     </assembly>
     <members>
         <member name="T:GalaSoft.MvvmLight.Ioc.ISimpleIoc">
