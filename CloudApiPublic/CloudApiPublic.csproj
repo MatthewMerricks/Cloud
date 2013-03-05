@@ -67,7 +67,7 @@
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
-    <Reference Include="ErikEJ.SqlCe40.CSDK, Version=2.1.6.1, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+    <Reference Include="ErikEJ.SqlCe40.CSDK, Version=2.1.6.2, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\ErikEJ.SqlCe40.CSDK.dll</HintPath>
       <SpecificVersion>True</SpecificVersion>
     </Reference>
@@ -104,9 +104,8 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0-4.0.0.1, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\System.Data.SqlServerCe.dll</HintPath>
-      <SpecificVersion>True</SpecificVersion>
     </Reference>
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />
