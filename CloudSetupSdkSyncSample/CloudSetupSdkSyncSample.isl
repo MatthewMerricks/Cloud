@@ -345,11 +345,12 @@
 		<row><td>BadgeCOM.dll1</td><td>{F177C4DD-A4CF-4F8A-828C-46E75BACE0E7}</td><td>AMD64</td><td>2</td><td/><td>badgecom.dll1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BadgeCOM.dll3</td><td>{4F6315EE-8C2B-4544-8991-F3E061B78C77}</td><td>AMD641</td><td>2</td><td/><td>badgecom.dll3</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>BadgeCOM.dll4</td><td>{893E737E-8BA6-4832-BE2D-3452D953CD8B}</td><td>X861</td><td>2</td><td/><td>badgecom.dll4</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>BadgeCOMLib.dll2</td><td>{024D64E0-4A53-4C6F-A366-14FF2AD52CBD}</td><td>CLOUDSDK1</td><td>2</td><td/><td>badgecomlib.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Cloud.dll2</td><td>{A095316F-7316-466D-B4AF-A278A0D3BB13}</td><td>CLOUDSDK1</td><td>2</td><td/><td>cloud.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>CloudApiPublic.Primary_output</td><td>{45E37818-16EC-444D-90E0-F5B8F87D3A14}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudapipublic.primary_outpu</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>CloudSetupSdkSyncSampleSupport.Primary_output2</td><td>{4E691118-B8D5-4547-89E8-F57A817D9D37}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsetupsdksyncsamplesuppo2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ErikEJ.SqlCe40.CSDK.dll</td><td>{AA0A1797-A59B-476C-AAEB-086FB9509905}</td><td>CLOUDSDK1</td><td>2</td><td/><td>erikej.sqlce40.csdk.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>BadgeCOMLib.dll2</td><td>{024D64E0-4A53-4C6F-A366-14FF2AD52CBD}</td><td>CLOUDSDK1</td><td>2</td><td/><td>badgecomlib.dll1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Cloud.dll</td><td>{14F4D5BF-63C1-4ABB-9481-AB6896AA7D25}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloud.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Cloud.dll2</td><td>{A095316F-7316-466D-B4AF-A278A0D3BB13}</td><td>CLOUDSDK1</td><td>2</td><td/><td>cloud.dll2</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>CloudSetupSdkSyncSampleSupport.exe</td><td>{CCC9F016-CDB5-474C-B34F-ECA5CCB04550}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsetupsdksyncsamplesuppo</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ErikEJ.SqlCe40.CSDK.dll</td><td>{AA0A1797-A59B-476C-AAEB-086FB9509905}</td><td>CLOUDSDK1</td><td>2</td><td/><td>erikej.sqlce40.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ICSharpCode.SharpZipLib.dll</td><td>{8623CFE1-E705-4D4B-A994-440962F23635}</td><td>INSTALLDIR</td><td>2</td><td/><td>icsharpcode.sharpziplib.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td>{7EA159F8-CDFA-4A5F-929A-34E5B979C67B}</td><td>AMD64</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{46A4698E-F6CF-40A1-A918-64C012C67F52}</td><td>X86</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT10</td><td>{8BD252F1-8A94-4616-8066-DB1F14BF3BEF}</td><td>PROJECT</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -365,29 +366,30 @@
 		<row><td>ISX_DEFAULTCOMPONENT6</td><td>{EA752021-9B1B-44AC-BC21-AD6A9D7BB491}</td><td>SystemFolder</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT8</td><td>{FDA3D860-1D1B-496C-8ACF-9EA6BF7EA8EB}</td><td>CLOUDSDK1</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT9</td><td>{2239655F-BF69-4E47-89BF-65E56AB1DA37}</td><td>APP</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Microsoft.Net.Http.CSDK.dll</td><td>{E6845937-96E4-4741-949B-5A67F8BDD39F}</td><td>CLOUDSDK1</td><td>2</td><td/><td>microsoft.net.http.csdk.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>{397879BD-0C02-409F-A2CE-3E0ED70DAAE7}</td><td>CLOUDSDK1</td><td>2</td><td/><td>microsoft.practices.servicel1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Newtonsoft.Json.CSDK.dll</td><td>{E0C5EF41-32D0-40C9-AB8F-1E6BC860FB5F}</td><td>CLOUDSDK1</td><td>2</td><td/><td>newtonsoft.json.csdk.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SSCERuntime_x64_ENU.exe</td><td>{A3AF0DC7-1E1C-46C9-9390-5B2ADAA8A167}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssceruntime_x64_enu.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SSCERuntime_x86_ENU.exe</td><td>{E5D17D83-4A62-43E1-AC34-BC6E2B301C21}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssceruntime_x86_enu.exe</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Salient.Data.CSDK.dll</td><td>{2C2C2D4F-A2E5-41C2-B9F4-44BE0BF15CBA}</td><td>CLOUDSDK1</td><td>2</td><td/><td>salient.data.csdk.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Sample_Live_Sync.Primary_output</td><td>{B7215F67-4203-4F3D-A8D9-BED466905AAD}</td><td>APP</td><td>2</td><td/><td>sample_live_sync.primary_out</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SimpleJson.CSDK.dll</td><td>{715F9DD2-9949-4127-9D0E-4240FB47529B}</td><td>CLOUDSDK1</td><td>2</td><td/><td>simplejson.csdk.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>System.Data.SqlServerCe.dll2</td><td>{F7C48A95-1E57-4F53-9C7D-D8CB4845392D}</td><td>CLOUDSDK1</td><td>2</td><td/><td>system.data.sqlserverce.dll2</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>msvcr90.dll</td><td>{C2B525D2-CBA5-49C5-A78E-F1F27A5CE158}</td><td>MICROSOFT.VC90.CRT</td><td>2</td><td/><td>msvcr90.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>msvcr90.dll1</td><td>{873561D9-C148-4507-80BD-104B8E5CA892}</td><td>MICROSOFT.VC90.CRT1</td><td>2</td><td/><td>msvcr90.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceca40.dll</td><td>{8890D898-5D02-4B6F-A463-7268AE19C7B6}</td><td>AMD64</td><td>2</td><td/><td>sqlceca40.dll</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceca40.dll1</td><td>{26A4C4C6-DF19-4925-8CF9-976A143764FA}</td><td>X86</td><td>2</td><td/><td>sqlceca40.dll1</td><td>20</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlcecompact40.dll</td><td>{AB5A16C2-C38F-401E-A3D7-8943D78ED50F}</td><td>AMD64</td><td>2</td><td/><td>sqlcecompact40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlcecompact40.dll1</td><td>{85D0F21B-9F52-440C-86C8-91EC5A0F90E8}</td><td>X86</td><td>2</td><td/><td>sqlcecompact40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceer40EN.dll</td><td>{27ADDE42-CF42-4B8C-A545-4879EFA0D929}</td><td>AMD64</td><td>2</td><td/><td>sqlceer40en.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceer40EN.dll1</td><td>{D1B1E1A4-B703-4D55-B209-9C3767CB80EB}</td><td>X86</td><td>2</td><td/><td>sqlceer40en.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceme40.dll</td><td>{9BEF6B58-86E9-4402-93AA-00E88E2CE80E}</td><td>AMD64</td><td>2</td><td/><td>sqlceme40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceme40.dll1</td><td>{DD23A8E4-2445-4387-A93E-0B7FC9ACA50E}</td><td>X86</td><td>2</td><td/><td>sqlceme40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceqp40.dll</td><td>{C9BAA3F2-05BE-4066-8A92-38312704B6EB}</td><td>AMD64</td><td>2</td><td/><td>sqlceqp40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlceqp40.dll1</td><td>{12B862A0-95CF-4C01-9E37-0849E190428C}</td><td>X86</td><td>2</td><td/><td>sqlceqp40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlcese40.dll</td><td>{D8BEE8FA-845F-4AFE-8DC8-4705609FF65E}</td><td>AMD64</td><td>2</td><td/><td>sqlcese40.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>sqlcese40.dll1</td><td>{6BA47ABA-EFF8-4FE5-BF02-C7E24870EFBB}</td><td>X86</td><td>2</td><td/><td>sqlcese40.dll1</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Microsoft.Net.Http.CSDK.dll</td><td>{E6845937-96E4-4741-949B-5A67F8BDD39F}</td><td>CLOUDSDK1</td><td>2</td><td/><td>microsoft.net.http.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>{397879BD-0C02-409F-A2CE-3E0ED70DAAE7}</td><td>CLOUDSDK1</td><td>2</td><td/><td>microsoft.practices.servicel1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Newtonsoft.Json.CSDK.dll</td><td>{E0C5EF41-32D0-40C9-AB8F-1E6BC860FB5F}</td><td>CLOUDSDK1</td><td>2</td><td/><td>newtonsoft.json.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>RateBar.CSDK.dll</td><td>{58A4D7FD-CD4A-4A6B-8961-4C13785FB229}</td><td>APP</td><td>2</td><td/><td>ratebar.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>SSCERuntime_x64_ENU.exe</td><td>{A3AF0DC7-1E1C-46C9-9390-5B2ADAA8A167}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssceruntime_x64_enu.exe</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>SSCERuntime_x86_ENU.exe</td><td>{E5D17D83-4A62-43E1-AC34-BC6E2B301C21}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssceruntime_x86_enu.exe</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Salient.Data.CSDK.dll</td><td>{2C2C2D4F-A2E5-41C2-B9F4-44BE0BF15CBA}</td><td>CLOUDSDK1</td><td>2</td><td/><td>salient.data.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Sample_Live_Sync.exe</td><td>{D936F44A-28E5-4073-8640-0CD04AF47C46}</td><td>APP</td><td>2</td><td/><td>sample_live_sync.exe</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>SimpleJson.CSDK.dll</td><td>{715F9DD2-9949-4127-9D0E-4240FB47529B}</td><td>CLOUDSDK1</td><td>2</td><td/><td>simplejson.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>System.Data.SqlServerCe.dll2</td><td>{F7C48A95-1E57-4F53-9C7D-D8CB4845392D}</td><td>CLOUDSDK1</td><td>2</td><td/><td>system.data.sqlserverce.dll2</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>msvcr90.dll</td><td>{C2B525D2-CBA5-49C5-A78E-F1F27A5CE158}</td><td>MICROSOFT.VC90.CRT</td><td>2</td><td/><td>msvcr90.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>msvcr90.dll1</td><td>{873561D9-C148-4507-80BD-104B8E5CA892}</td><td>MICROSOFT.VC90.CRT1</td><td>2</td><td/><td>msvcr90.dll1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceca40.dll</td><td>{8890D898-5D02-4B6F-A463-7268AE19C7B6}</td><td>AMD64</td><td>2</td><td/><td>sqlceca40.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceca40.dll1</td><td>{26A4C4C6-DF19-4925-8CF9-976A143764FA}</td><td>X86</td><td>2</td><td/><td>sqlceca40.dll1</td><td>4</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlcecompact40.dll</td><td>{AB5A16C2-C38F-401E-A3D7-8943D78ED50F}</td><td>AMD64</td><td>2</td><td/><td>sqlcecompact40.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlcecompact40.dll1</td><td>{85D0F21B-9F52-440C-86C8-91EC5A0F90E8}</td><td>X86</td><td>2</td><td/><td>sqlcecompact40.dll1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceer40EN.dll</td><td>{27ADDE42-CF42-4B8C-A545-4879EFA0D929}</td><td>AMD64</td><td>2</td><td/><td>sqlceer40en.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceer40EN.dll1</td><td>{D1B1E1A4-B703-4D55-B209-9C3767CB80EB}</td><td>X86</td><td>2</td><td/><td>sqlceer40en.dll1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceme40.dll</td><td>{9BEF6B58-86E9-4402-93AA-00E88E2CE80E}</td><td>AMD64</td><td>2</td><td/><td>sqlceme40.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceme40.dll1</td><td>{DD23A8E4-2445-4387-A93E-0B7FC9ACA50E}</td><td>X86</td><td>2</td><td/><td>sqlceme40.dll1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceqp40.dll</td><td>{C9BAA3F2-05BE-4066-8A92-38312704B6EB}</td><td>AMD64</td><td>2</td><td/><td>sqlceqp40.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlceqp40.dll1</td><td>{12B862A0-95CF-4C01-9E37-0849E190428C}</td><td>X86</td><td>2</td><td/><td>sqlceqp40.dll1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlcese40.dll</td><td>{D8BEE8FA-845F-4AFE-8DC8-4705609FF65E}</td><td>AMD64</td><td>2</td><td/><td>sqlcese40.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>sqlcese40.dll1</td><td>{6BA47ABA-EFF8-4FE5-BF02-C7E24870EFBB}</td><td>X86</td><td>2</td><td/><td>sqlcese40.dll1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
 
 	<table name="Condition">
@@ -1100,8 +1102,6 @@
 		<col key="yes" def="s72">Component_</col>
 		<row><td>AMD64</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>AMD641</td><td>ISX_DEFAULTCOMPONENT11</td></row>
-		<row><td>APP</td><td>ISX_DEFAULTCOMPONENT9</td></row>
-		<row><td>INSTALLDIR</td><td>ISX_DEFAULTCOMPONENT2</td></row>
 		<row><td>LIVE</td><td>ISX_DEFAULTCOMPONENT16</td></row>
 		<row><td>SAMPLE_CODE</td><td>ISX_DEFAULTCOMPONENT14</td></row>
 		<row><td>SYNC</td><td>ISX_DEFAULTCOMPONENT15</td></row>
@@ -1124,7 +1124,7 @@
 		<row><td>ISSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFiles</td><td/><td/></row>
 		<row><td>ISSelfRegisterFinalize</td><td>1</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFinalize</td><td/><td/></row>
 		<row><td>ISUnSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISUnSelfRegisterFiles</td><td/><td/></row>
-		<row><td>InstallDocs</td><td>1042</td><td>cloudsetupsdksyncsamplesuppo2</td><td>/i</td><td/><td>Install documentation</td></row>
+		<row><td>InstallDocs</td><td>1042</td><td>cloudsetupsdksyncsamplesuppo</td><td>/i</td><td/><td>Install documentation</td></row>
 		<row><td>LaunchProgramFileFromSetupCompleteSuccess</td><td>1</td><td>NewBinary19</td><td>LaunchProgram</td><td/><td/></row>
 		<row><td>LaunchReadmeFileFromSetupCompleteSuccess</td><td>1</td><td>NewBinary19</td><td>LaunchReadMe</td><td/><td/></row>
 		<row><td>SetARPINSTALLLOCATION</td><td>51</td><td>ARPINSTALLLOCATION</td><td>[INSTALLDIR]</td><td/><td/></row>
@@ -1944,10 +1944,11 @@
 		<row><td>AlwaysInstall</td><td>BadgeCOM.dll3</td></row>
 		<row><td>AlwaysInstall</td><td>BadgeCOM.dll4</td></row>
 		<row><td>AlwaysInstall</td><td>BadgeCOMLib.dll2</td></row>
+		<row><td>AlwaysInstall</td><td>Cloud.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Cloud.dll2</td></row>
-		<row><td>AlwaysInstall</td><td>CloudApiPublic.Primary_output</td></row>
-		<row><td>AlwaysInstall</td><td>CloudSetupSdkSyncSampleSupport.Primary_output2</td></row>
+		<row><td>AlwaysInstall</td><td>CloudSetupSdkSyncSampleSupport.exe</td></row>
 		<row><td>AlwaysInstall</td><td>ErikEJ.SqlCe40.CSDK.dll</td></row>
+		<row><td>AlwaysInstall</td><td>ICSharpCode.SharpZipLib.dll</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT10</td></row>
@@ -1966,10 +1967,11 @@
 		<row><td>AlwaysInstall</td><td>Microsoft.Net.Http.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Newtonsoft.Json.CSDK.dll</td></row>
+		<row><td>AlwaysInstall</td><td>RateBar.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SSCERuntime_x64_ENU.exe</td></row>
 		<row><td>AlwaysInstall</td><td>SSCERuntime_x86_ENU.exe</td></row>
 		<row><td>AlwaysInstall</td><td>Salient.Data.CSDK.dll</td></row>
-		<row><td>AlwaysInstall</td><td>Sample_Live_Sync.Primary_output</td></row>
+		<row><td>AlwaysInstall</td><td>Sample_Live_Sync.exe</td></row>
 		<row><td>AlwaysInstall</td><td>SimpleJson.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>System.Data.SqlServerCe.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>msvcr90.dll</td></row>
@@ -2004,41 +2006,45 @@
 		<row><td>badgecom.dll1</td><td>BadgeCOM.dll1</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll3</td><td>BadgeCOM.dll3</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release64\BadgeCOM.dll</td><td>1</td><td/></row>
 		<row><td>badgecom.dll4</td><td>BadgeCOM.dll4</td><td>BadgeCOM.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\BadgeCOM.dll</td><td>1</td><td/></row>
-		<row><td>badgecomlib.dll1</td><td>BadgeCOMLib.dll2</td><td>BADGEC~1.DLL|BadgeCOMLib.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\BadgeCOMLib.dll</td><td>1</td><td/></row>
-		<row><td>cloud.dll2</td><td>Cloud.dll2</td><td>Cloud.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Cloud.dll</td><td>1</td><td/></row>
+		<row><td>badgecomlib.dll1</td><td>BadgeCOMLib.dll2</td><td>BADGEC~1.DLL|BadgeCOMLib.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\BadgeCOMLib.dll</td><td>1</td><td/></row>
+		<row><td>cloud.dll</td><td>Cloud.dll</td><td>Cloud.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetupSdkSyncSampleSupport\bin\Release\Cloud.dll</td><td>1</td><td/></row>
+		<row><td>cloud.dll2</td><td>Cloud.dll2</td><td>Cloud.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Cloud.dll</td><td>1</td><td/></row>
 		<row><td>cloud.xml2</td><td>ISX_DEFAULTCOMPONENT8</td><td>Cloud.xml</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Cloud.xml</td><td>1</td><td/></row>
-		<row><td>cloudapipublic.primary_outpu</td><td>CloudApiPublic.Primary_output</td><td>CloudApiPublic.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudApiPublic&gt;|Built</td><td>3</td><td/></row>
-		<row><td>cloudsetupsdksyncsamplesuppo2</td><td>CloudSetupSdkSyncSampleSupport.Primary_output2</td><td>CloudSetupSdkSyncSampleSupport.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;CloudSetupSdkSyncSampleSupport&gt;|Built</td><td>3</td><td/></row>
-		<row><td>erikej.sqlce40.csdk.dll</td><td>ErikEJ.SqlCe40.CSDK.dll</td><td>ERIKEJ~1.DLL|ErikEJ.SqlCe40.CSDK.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\ErikEJ.SqlCe40.CSDK.dll</td><td>1</td><td/></row>
-		<row><td>microsoft.net.http.csdk.dll</td><td>Microsoft.Net.Http.CSDK.dll</td><td>MICROS~1.DLL|Microsoft.Net.Http.CSDK.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Net.Http.CSDK.dll</td><td>1</td><td/></row>
-		<row><td>microsoft.practices.servicel1</td><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>1</td><td/></row>
+		<row><td>cloudsetupsdksyncsamplesuppo</td><td>CloudSetupSdkSyncSampleSupport.exe</td><td>CLOUDS~1.EXE|CloudSetupSdkSyncSampleSupport.exe</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetupSdkSyncSampleSupport\bin\Release\CloudSetupSdkSyncSampleSupport.exe</td><td>1</td><td/></row>
+		<row><td>cloudsetupsdksyncsamplesuppo1</td><td>ISX_DEFAULTCOMPONENT2</td><td>CLOUDS~1.CON|CloudSetupSdkSyncSampleSupport.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetupSdkSyncSampleSupport\bin\Release\CloudSetupSdkSyncSampleSupport.exe.config</td><td>1</td><td/></row>
+		<row><td>erikej.sqlce40.csdk.dll</td><td>ErikEJ.SqlCe40.CSDK.dll</td><td>ERIKEJ~1.DLL|ErikEJ.SqlCe40.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\ErikEJ.SqlCe40.CSDK.dll</td><td>1</td><td/></row>
+		<row><td>icsharpcode.sharpziplib.dll</td><td>ICSharpCode.SharpZipLib.dll</td><td>ICSHAR~1.DLL|ICSharpCode.SharpZipLib.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetupSdkSyncSampleSupport\bin\Release\ICSharpCode.SharpZipLib.dll</td><td>1</td><td/></row>
+		<row><td>microsoft.net.http.csdk.dll</td><td>Microsoft.Net.Http.CSDK.dll</td><td>MICROS~1.DLL|Microsoft.Net.Http.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Net.Http.CSDK.dll</td><td>1</td><td/></row>
+		<row><td>microsoft.practices.servicel1</td><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest</td><td>ISX_DEFAULTCOMPONENT3</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
 		<row><td>microsoft.vc90.crt.manifest1</td><td>ISX_DEFAULTCOMPONENT4</td><td>MICROS~1.MAN|Microsoft.VC90.CRT.manifest</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\Microsoft.VC90.CRT.manifest</td><td>1</td><td/></row>
-		<row><td>msvcr90.dll</td><td>msvcr90.dll</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
-		<row><td>msvcr90.dll1</td><td>msvcr90.dll1</td><td>msvcr90.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
-		<row><td>newtonsoft.json.csdk.dll</td><td>Newtonsoft.Json.CSDK.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.CSDK.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Newtonsoft.Json.CSDK.dll</td><td>1</td><td/></row>
+		<row><td>msvcr90.dll</td><td>msvcr90.dll</td><td>msvcr90.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
+		<row><td>msvcr90.dll1</td><td>msvcr90.dll1</td><td>msvcr90.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\msvcr90.dll</td><td>1</td><td/></row>
+		<row><td>newtonsoft.json.csdk.dll</td><td>Newtonsoft.Json.CSDK.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Newtonsoft.Json.CSDK.dll</td><td>1</td><td/></row>
+		<row><td>ratebar.csdk.dll</td><td>RateBar.CSDK.dll</td><td>RATEBA~1.DLL|RateBar.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\RateBar.CSDK.dll</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt</td><td>ISX_DEFAULTCOMPONENT3</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
 		<row><td>readme_enu.txt1</td><td>ISX_DEFAULTCOMPONENT4</td><td>README~1.TXT|README_ENU.txt</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\Microsoft.VC90.CRT\README_ENU.txt</td><td>1</td><td/></row>
-		<row><td>salient.data.csdk.dll</td><td>Salient.Data.CSDK.dll</td><td>SALIEN~1.DLL|Salient.Data.CSDK.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Salient.Data.CSDK.dll</td><td>1</td><td/></row>
-		<row><td>sample_live_sync.primary_out</td><td>Sample_Live_Sync.Primary_output</td><td>Sample-Live-Sync.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Sample-Live-Sync&gt;|Built</td><td>3</td><td/></row>
+		<row><td>salient.data.csdk.dll</td><td>Salient.Data.CSDK.dll</td><td>SALIEN~1.DLL|Salient.Data.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Salient.Data.CSDK.dll</td><td>1</td><td/></row>
+		<row><td>sample_live_sync.exe</td><td>Sample_Live_Sync.exe</td><td>SAMPLE~1.EXE|Sample-Live-Sync.exe</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Sample-Live-Sync.exe</td><td>1</td><td/></row>
+		<row><td>sample_live_sync.exe.config</td><td>ISX_DEFAULTCOMPONENT9</td><td>SAMPLE~1.CON|Sample-Live-Sync.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Sample-Live-Sync.exe.config</td><td>1</td><td/></row>
 		<row><td>samplelivesyncdocs.zip</td><td>ISX_DEFAULTCOMPONENT5</td><td>SAMPLE~1.ZIP|SampleLiveSyncDocs.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\html\SampleLiveSyncDocs.zip</td><td>1</td><td/></row>
 		<row><td>samplelivesyncsource.zip</td><td>ISX_DEFAULTCOMPONENT10</td><td>SAMPLE~1.ZIP|SampleLiveSyncSource.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\SampleLiveSyncSource.zip</td><td>1</td><td/></row>
-		<row><td>simplejson.csdk.dll</td><td>SimpleJson.CSDK.dll</td><td>SIMPLE~1.DLL|SimpleJson.CSDK.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SimpleJson.CSDK.dll</td><td>1</td><td/></row>
-		<row><td>sqlceca40.dll</td><td>sqlceca40.dll</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceca40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceca40.dll1</td><td>sqlceca40.dll1</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceca40.dll</td><td>1</td><td/></row>
-		<row><td>sqlcecompact40.dll</td><td>sqlcecompact40.dll</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlcecompact40.dll</td><td>1</td><td/></row>
-		<row><td>sqlcecompact40.dll1</td><td>sqlcecompact40.dll1</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlcecompact40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceer40en.dll</td><td>sqlceer40EN.dll</td><td>SQLCEE~1.DLL|sqlceer40EN.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceer40EN.dll</td><td>1</td><td/></row>
-		<row><td>sqlceer40en.dll1</td><td>sqlceer40EN.dll1</td><td>SQLCEE~1.DLL|sqlceer40EN.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceer40EN.dll</td><td>1</td><td/></row>
-		<row><td>sqlceme40.dll</td><td>sqlceme40.dll</td><td>SQLCEM~1.DLL|sqlceme40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceme40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceme40.dll1</td><td>sqlceme40.dll1</td><td>SQLCEM~1.DLL|sqlceme40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceme40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceqp40.dll</td><td>sqlceqp40.dll</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceqp40.dll</td><td>1</td><td/></row>
-		<row><td>sqlceqp40.dll1</td><td>sqlceqp40.dll1</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceqp40.dll</td><td>1</td><td/></row>
-		<row><td>sqlcese40.dll</td><td>sqlcese40.dll</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlcese40.dll</td><td>1</td><td/></row>
-		<row><td>sqlcese40.dll1</td><td>sqlcese40.dll1</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlcese40.dll</td><td>1</td><td/></row>
-		<row><td>ssceruntime_x64_enu.exe</td><td>SSCERuntime_x64_ENU.exe</td><td>SSCERU~1.EXE|SSCERuntime_x64-ENU.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SSCERuntime_x64-ENU.exe</td><td>1</td><td/></row>
-		<row><td>ssceruntime_x86_enu.exe</td><td>SSCERuntime_x86_ENU.exe</td><td>SSCERU~1.EXE|SSCERuntime_x86-ENU.exe</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SSCERuntime_x86-ENU.exe</td><td>1</td><td/></row>
-		<row><td>system.data.sqlserverce.dll2</td><td>System.Data.SqlServerCe.dll2</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\System.Data.SqlServerCe.dll</td><td>1</td><td/></row>
+		<row><td>simplejson.csdk.dll</td><td>SimpleJson.CSDK.dll</td><td>SIMPLE~1.DLL|SimpleJson.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SimpleJson.CSDK.dll</td><td>1</td><td/></row>
+		<row><td>sqlceca40.dll</td><td>sqlceca40.dll</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceca40.dll</td><td>1</td><td/></row>
+		<row><td>sqlceca40.dll1</td><td>sqlceca40.dll1</td><td>SQLCEC~1.DLL|sqlceca40.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceca40.dll</td><td>1</td><td/></row>
+		<row><td>sqlcecompact40.dll</td><td>sqlcecompact40.dll</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlcecompact40.dll</td><td>1</td><td/></row>
+		<row><td>sqlcecompact40.dll1</td><td>sqlcecompact40.dll1</td><td>SQLCEC~1.DLL|sqlcecompact40.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlcecompact40.dll</td><td>1</td><td/></row>
+		<row><td>sqlceer40en.dll</td><td>sqlceer40EN.dll</td><td>SQLCEE~1.DLL|sqlceer40EN.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceer40EN.dll</td><td>1</td><td/></row>
+		<row><td>sqlceer40en.dll1</td><td>sqlceer40EN.dll1</td><td>SQLCEE~1.DLL|sqlceer40EN.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceer40EN.dll</td><td>1</td><td/></row>
+		<row><td>sqlceme40.dll</td><td>sqlceme40.dll</td><td>SQLCEM~1.DLL|sqlceme40.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceme40.dll</td><td>1</td><td/></row>
+		<row><td>sqlceme40.dll1</td><td>sqlceme40.dll1</td><td>SQLCEM~1.DLL|sqlceme40.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceme40.dll</td><td>1</td><td/></row>
+		<row><td>sqlceqp40.dll</td><td>sqlceqp40.dll</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlceqp40.dll</td><td>1</td><td/></row>
+		<row><td>sqlceqp40.dll1</td><td>sqlceqp40.dll1</td><td>SQLCEQ~1.DLL|sqlceqp40.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlceqp40.dll</td><td>1</td><td/></row>
+		<row><td>sqlcese40.dll</td><td>sqlcese40.dll</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\amd64\sqlcese40.dll</td><td>1</td><td/></row>
+		<row><td>sqlcese40.dll1</td><td>sqlcese40.dll1</td><td>SQLCES~1.DLL|sqlcese40.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\x86\sqlcese40.dll</td><td>1</td><td/></row>
+		<row><td>ssceruntime_x64_enu.exe</td><td>SSCERuntime_x64_ENU.exe</td><td>SSCERU~1.EXE|SSCERuntime_x64-ENU.exe</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SSCERuntime_x64-ENU.exe</td><td>1</td><td/></row>
+		<row><td>ssceruntime_x86_enu.exe</td><td>SSCERuntime_x86_ENU.exe</td><td>SSCERU~1.EXE|SSCERuntime_x86-ENU.exe</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SSCERuntime_x86-ENU.exe</td><td>1</td><td/></row>
+		<row><td>system.data.sqlserverce.dll2</td><td>System.Data.SqlServerCe.dll2</td><td>SYSTEM~1.DLL|System.Data.SqlServerCe.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\System.Data.SqlServerCe.dll</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -2300,10 +2306,11 @@
 		<row><td>BadgeCOM.dll3</td><td/><td/><td>_C88374CD_E9CC_49DD_94C4_201ED0A46BD7_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>BadgeCOM.dll4</td><td/><td/><td>_699C9CBB_DF21_4FA8_821C_97E56810D59F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>BadgeCOMLib.dll2</td><td/><td/><td>_EB414DB3_92B7_4233_B295_27BAE07BF6E3_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Cloud.dll</td><td/><td/><td>_2704C4AC_630D_4332_9ECC_BC312EF03DF6_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Cloud.dll2</td><td/><td/><td>_75A16B8E_D29B_4F39_86F9_072509BD3B84_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>CloudApiPublic.Primary_output</td><td/><td/><td>_F4819243_7E10_4B1A_A38B_9B492DDB105C_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>CloudSetupSdkSyncSampleSupport.Primary_output2</td><td/><td/><td>_1B994DC1_111D_4F1E_949C_EF1D8E3C7FB7_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>CloudSetupSdkSyncSampleSupport.exe</td><td/><td/><td>_998E688E_1380_414C_A5BB_28DC36DF6867_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ErikEJ.SqlCe40.CSDK.dll</td><td/><td/><td>_F9C92B8C_7936_4553_88D8_40EB1ECA2DB3_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ICSharpCode.SharpZipLib.dll</td><td/><td/><td>_2878759C_71A5_4539_A222_D2A5DEE3F0CC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_D29534D4_7FB3_465B_A835_9A28A2CD95F4_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_3C0733B3_E0BD_4F89_AC46_4E8D5AD2EB30_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT10</td><td/><td/><td>_0811E04F_C88E_4E65_BEA6_1D3544023863_FILTER</td><td/><td/><td/><td/></row>
@@ -2322,10 +2329,11 @@
 		<row><td>Microsoft.Net.Http.CSDK.dll</td><td/><td/><td>_3D7EC03E_9D6A_4251_AF3C_CAE1D893AC6F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td/><td/><td>_67D4A127_01EE_4795_97D5_F70001497330_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Newtonsoft.Json.CSDK.dll</td><td/><td/><td>_9B7F7F1E_9760_4FA8_8B2B_11AAF943F4FF_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>RateBar.CSDK.dll</td><td/><td/><td>_381DF397_E3B7_40C8_BB53_7722EF03A91F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SSCERuntime_x64_ENU.exe</td><td/><td/><td>_90699031_5D1C_4D41_B456_C5BCA0F2D294_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SSCERuntime_x86_ENU.exe</td><td/><td/><td>_AC1C9F25_0BA8_4BA5_A18F_EF9F6B845D6D_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Salient.Data.CSDK.dll</td><td/><td/><td>_7E394B92_5C23_4C2D_9663_45FF61EBC9EC_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Sample_Live_Sync.Primary_output</td><td/><td/><td>_FF5F6A1D_CCC6_4A2B_A446_C75E0D521515_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Sample_Live_Sync.exe</td><td/><td/><td>_A84C0BBF_665F_4FD7_890F_E77F236CF4BE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SimpleJson.CSDK.dll</td><td/><td/><td>_509C3DC4_EF57_4FA9_9971_F2EE123D8441_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Data.SqlServerCe.dll2</td><td/><td/><td>_59B39F71_591E_4AA3_8B5D_0FCE24E0B505_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>msvcr90.dll</td><td/><td/><td>_B9128E43_32FC_4156_A935_139019751765_FILTER</td><td/><td/><td/><td/></row>
@@ -4680,7 +4688,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>LAUNCHPREADMECOMPCODE</td><td>{834E7B3D-BEA3-48B1-87D1-7B36B724B0E5}</td><td/></row>
 		<row><td>LAUNCHPREADMEFILEKEY</td><td>index.html</td><td/></row>
 		<row><td>LAUNCHPROGRAMCOMPCODE</td><td>{5A5C3695-8306-4CCB-8FB8-8C67E2C77534}</td><td/></row>
-		<row><td>LAUNCHPROGRAMFILEKEY</td><td>sample_live_sync.primary_out</td><td/></row>
+		<row><td>LAUNCHPROGRAMFILEKEY</td><td>sample_live_sync.exe</td><td/></row>
 		<row><td>LAUNCHREADME</td><td>1</td><td/></row>
 		<row><td>MSIFASTINSTALL</td><td>7</td><td/></row>
 		<row><td>Manufacturer</td><td>##COMPANY_NAME##</td><td/></row>
@@ -4710,10 +4718,10 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGMSG_IIS_ROLLBACKAPPPOOLS</td><td>##IDS_PROGMSG_IIS_ROLLBACKAPPPOOLS##</td><td/></row>
 		<row><td>PROGMSG_IIS_ROLLBACKVROOTS</td><td>##IDS_PROGMSG_IIS_ROLLBACKVROOTS##</td><td/></row>
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
-		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[APP]Sample-Live-Sync.Primary output</td><td/></row>
+		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[APP]sample_live_sync.exe</td><td/></row>
 		<row><td>ProductCode</td><td>{8B476C3F-CD29-4B06-AD4C-22C14619E258}</td><td/></row>
 		<row><td>ProductName</td><td>CloudSdk</td><td/></row>
-		<row><td>ProductVersion</td><td>0.01.0006</td><td/></row>
+		<row><td>ProductVersion</td><td>0.01.0006.1</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>

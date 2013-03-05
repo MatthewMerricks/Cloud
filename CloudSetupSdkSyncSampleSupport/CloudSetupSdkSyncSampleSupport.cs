@@ -137,26 +137,25 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support ICSharpCode.SharpZipLib.dll file.");
                 File.Copy(pathInstall + "\\ICSharpCode.SharpZipLib.dll", pathWork);
 
-                // Copy Interop.Shell32.dll.
-                pathWork = pathInstall + "\\Support\\Interop.Shell32.dll";
-                if (File.Exists(pathWork))
-                {
-                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support Interop.Shell32.dll file.");
-                    File.Delete(pathWork);
-                }
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support Interop.Shell32.dll file.");
-                File.Copy(pathInstall + "\\Interop.Shell32.dll", pathWork);
+                //// Copy Interop.Shell32.dll.
+                //pathWork = pathInstall + "\\Support\\Interop.Shell32.dll";
+                //if (File.Exists(pathWork))
+                //{
+                //    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support Interop.Shell32.dll file.");
+                //    File.Delete(pathWork);
+                //}
+                //_trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support Interop.Shell32.dll file.");
+                //File.Copy(pathInstall + "\\Interop.Shell32.dll", pathWork);
 
-                // Copy System.Xaml.dll.
-                pathWork = pathInstall + "\\Support\\System.Xaml.dll";
-                if (File.Exists(pathWork))
-                {
-                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support System.Xaml.dll file.");
-                    File.Delete(pathWork);
-                }
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support System.Xaml.dll file.");
-                File.Copy(pathInstall + "\\System.Xaml.dll", pathWork);
-
+                //// Copy System.Xaml.dll.
+                //pathWork = pathInstall + "\\Support\\System.Xaml.dll";
+                //if (File.Exists(pathWork))
+                //{
+                //    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support System.Xaml.dll file.");
+                //    File.Delete(pathWork);
+                //}
+                //_trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support System.Xaml.dll file.");
+                //File.Copy(pathInstall + "\\System.Xaml.dll", pathWork);
 
                 // Determine the SQL CE installation program to run
                 string fileNameExt;
