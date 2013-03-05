@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B1E1F2CD-D999-4223-8F7F-80469E0B3875}"
 	ProjectSection(SolutionItems) = preProject
 		GalaSoft.MvvmLight.vsmdi = GalaSoft.MvvmLight.vsmdi
@@ -27,28 +27,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NET35", "NET35", "{30B76B96
 		External\NET35\System.Windows.Interactivity.dll = External\NET35\System.Windows.Interactivity.dll
 		External\NET35\System.Windows.Interactivity.xml = External\NET35\System.Windows.Interactivity.xml
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (NET35)", "GalaSoft.MvvmLight (NET35)\GalaSoft.MvvmLight (NET35).csproj", "{ADB28C09-8DE9-4006-80D5-74856EB4A48B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (SL3)", "GalaSoft.MvvmLight (SL3)\GalaSoft.MvvmLight (SL3).csproj", "{74712BA6-83BE-470C-9ED0-879DD1B08D9E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Test (SL3)", "GalaSoft.MvvmLight.Test (SL3)\GalaSoft.MvvmLight.Test (SL3).csproj", "{3A385A3C-0569-4F3B-8D3C-EDAEFB6AA6D3}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (NET35)", "GalaSoft.MvvmLight.Extras (NET35)\GalaSoft.MvvmLight.Extras (NET35).csproj", "{78EECC01-BAE7-4914-BE2D-6BAB1059F29B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (SL3)", "GalaSoft.MvvmLight.Extras (SL3)\GalaSoft.MvvmLight.Extras (SL3).csproj", "{8ABB3CDF-47C4-468E-9C8A-56491C5F1C7D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (WP7)", "GalaSoft.MvvmLight (WP7)\GalaSoft.MvvmLight (WP7).csproj", "{CD51F6FA-CD5B-4405-B5F1-B65CCAE8845B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (WP7)", "GalaSoft.MvvmLight.Extras (WP7)\GalaSoft.MvvmLight.Extras (WP7).csproj", "{54CA67DF-6987-4855-A45E-5CB7C1677E9A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (SL4)", "GalaSoft.MvvmLight (SL4)\GalaSoft.MvvmLight (SL4).csproj", "{11A41BAF-44C7-4F4E-9E7C-B9427414AEA6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (NET4)", "GalaSoft.MvvmLight (NET4)\GalaSoft.MvvmLight (NET4).csproj", "{E8EF2656-7165-42D1-9C46-63E66679808D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (SL4)", "GalaSoft.MvvmLight.Extras (SL4)\GalaSoft.MvvmLight.Extras (SL4).csproj", "{CC59E77A-1843-4293-B7CC-1BC84F79ABB7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (NET4)", "GalaSoft.MvvmLight.Extras (NET4)\GalaSoft.MvvmLight.Extras (NET4).csproj", "{4934C525-4BC4-400C-B5C8-E5B6CF7CBF7A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WP7", "WP7", "{1AB1E221-6EE2-41CF-BEC8-AAB6B613DF9D}"
 	ProjectSection(SolutionItems) = preProject
@@ -83,8 +61,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SL4", "SL4", "{E3327395-6DB
 		External\SL4\System.Windows.Interactivity.xml = External\SL4\System.Windows.Interactivity.xml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Test (SL4)", "GalaSoft.MvvmLight.Test (SL4)\GalaSoft.MvvmLight.Test (SL4).csproj", "{540219BD-EBEA-4956-AAF7-CA1A87B1D177}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WP71", "WP71", "{74CB8C6A-8236-42AE-9099-2C5031139035}"
 	ProjectSection(SolutionItems) = preProject
 		External\WP71\Microsoft.Practices.ServiceLocation.dll = External\WP71\Microsoft.Practices.ServiceLocation.dll
@@ -96,16 +72,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WP71", "WP71", "{74CB8C6A-8
 		External\WP71\System.Windows.Interactivity.dll = External\WP71\System.Windows.Interactivity.dll
 		External\WP71\System.Windows.Interactivity.xml = External\WP71\System.Windows.Interactivity.xml
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (WP71)", "GalaSoft.MvvmLight (WP71)\GalaSoft.MvvmLight (WP71).csproj", "{278602AC-0053-4EA4-BE56-C2F51C381F2D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (WP71)", "GalaSoft.MvvmLight.Extras (WP71)\GalaSoft.MvvmLight.Extras (WP71).csproj", "{7B6403F8-D179-4EDE-B23F-2D3F87869543}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (SL5)", "GalaSoft.MvvmLight (SL5)\GalaSoft.MvvmLight (SL5).csproj", "{D9C091D2-648C-46F0-B897-1522CE9EF728}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (SL5)", "GalaSoft.MvvmLight.Extras (SL5)\GalaSoft.MvvmLight.Extras (SL5).csproj", "{26BF62F8-CA28-4C4F-90D3-873C78139122}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Test (SL5)", "GalaSoft.MvvmLight.Test (SL5)\GalaSoft.MvvmLight.Test (SL5).csproj", "{0E24C663-BDCB-4702-864B-A850A9C68F03}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SL5", "SL5", "{2A5D9B65-3E47-466C-8639-0418DF8B0331}"
 	ProjectSection(SolutionItems) = preProject
@@ -119,6 +85,40 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SL5", "SL5", "{2A5D9B65-3E4
 		External\SL5\System.Windows.Interactivity.dll = External\SL5\System.Windows.Interactivity.dll
 		External\SL5\System.Windows.Interactivity.xml = External\SL5\System.Windows.Interactivity.xml
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (NET35)", "GalaSoft.MvvmLight (NET35)\GalaSoft.MvvmLight (NET35).csproj", "{ADB28C09-8DE9-4006-80D5-74856EB4A48B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (SL3)", "GalaSoft.MvvmLight (SL3)\GalaSoft.MvvmLight (SL3).csproj", "{74712BA6-83BE-470C-9ED0-879DD1B08D9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Test (SL3)", "GalaSoft.MvvmLight.Test (SL3)\GalaSoft.MvvmLight.Test (SL3).csproj", "{3A385A3C-0569-4F3B-8D3C-EDAEFB6AA6D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (NET35)", "GalaSoft.MvvmLight.Extras (NET35)\GalaSoft.MvvmLight.Extras (NET35).csproj", "{78EECC01-BAE7-4914-BE2D-6BAB1059F29B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (SL3)", "GalaSoft.MvvmLight.Extras (SL3)\GalaSoft.MvvmLight.Extras (SL3).csproj", "{8ABB3CDF-47C4-468E-9C8A-56491C5F1C7D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (WP7)", "GalaSoft.MvvmLight (WP7)\GalaSoft.MvvmLight (WP7).csproj", "{CD51F6FA-CD5B-4405-B5F1-B65CCAE8845B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (WP7)", "GalaSoft.MvvmLight.Extras (WP7)\GalaSoft.MvvmLight.Extras (WP7).csproj", "{54CA67DF-6987-4855-A45E-5CB7C1677E9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (SL4)", "GalaSoft.MvvmLight (SL4)\GalaSoft.MvvmLight (SL4).csproj", "{11A41BAF-44C7-4F4E-9E7C-B9427414AEA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (NET4)", "GalaSoft.MvvmLight (NET4)\GalaSoft.MvvmLight (NET4).csproj", "{E8EF2656-7165-42D1-9C46-63E66679808D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (SL4)", "GalaSoft.MvvmLight.Extras (SL4)\GalaSoft.MvvmLight.Extras (SL4).csproj", "{CC59E77A-1843-4293-B7CC-1BC84F79ABB7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (NET4)", "GalaSoft.MvvmLight.Extras (NET4)\GalaSoft.MvvmLight.Extras (NET4).csproj", "{4934C525-4BC4-400C-B5C8-E5B6CF7CBF7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Test (SL4)", "GalaSoft.MvvmLight.Test (SL4)\GalaSoft.MvvmLight.Test (SL4).csproj", "{540219BD-EBEA-4956-AAF7-CA1A87B1D177}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (WP71)", "GalaSoft.MvvmLight (WP71)\GalaSoft.MvvmLight (WP71).csproj", "{278602AC-0053-4EA4-BE56-C2F51C381F2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (WP71)", "GalaSoft.MvvmLight.Extras (WP71)\GalaSoft.MvvmLight.Extras (WP71).csproj", "{7B6403F8-D179-4EDE-B23F-2D3F87869543}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight (SL5)", "GalaSoft.MvvmLight (SL5)\GalaSoft.MvvmLight (SL5).csproj", "{D9C091D2-648C-46F0-B897-1522CE9EF728}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Extras (SL5)", "GalaSoft.MvvmLight.Extras (SL5)\GalaSoft.MvvmLight.Extras (SL5).csproj", "{26BF62F8-CA28-4C4F-90D3-873C78139122}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaSoft.MvvmLight.Test (SL5)", "GalaSoft.MvvmLight.Test (SL5)\GalaSoft.MvvmLight.Test (SL5).csproj", "{0E24C663-BDCB-4702-864B-A850A9C68F03}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
