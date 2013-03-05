@@ -66,6 +66,14 @@ namespace CloudSDK_SmokeTest.Managers
             }            
         }
 
+        public static long PropmtTask(SmokeTestManagerEventArgs e)
+        {
+            Console.WriteLine(((e.CurrentTask as Prompt).Message).ToString());
+            Console.WriteLine("Press Enter to Continue...");
+            Console.ReadLine();
+            return 0;
+        }
+
         public static void BuildResults(out StringBuilder explanation, String title, int initialCount, int expectedCount, int currentCount)
         {
             explanation = new StringBuilder(string.Format("{0} Count Before Add {1}.", title, initialCount));

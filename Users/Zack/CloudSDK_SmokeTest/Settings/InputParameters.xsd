@@ -85,6 +85,7 @@
             <xs:enumeration value = "ListItems" />
             <xs:enumeration value = "Comparison" />
             <xs:enumeration value = "LoginRegister" />
+            <xs:enumeration value = "Prompt"/> 
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
@@ -115,6 +116,7 @@
           <xs:element name="CreateNew" type="xs:boolean" />
           <xs:element name="Count" type="xs:int" minOccurs="0" />
           <xs:element name="ActInTwoFolders" type="xs:boolean" minOccurs="0" maxOccurs="1" />
+          <xs:element name="IsLarge" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
@@ -257,6 +259,16 @@
           <xs:element name ="PostalCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
           <xs:element name ="Phone" type="xs:string" minOccurs="0" maxOccurs="1"/>          
         </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="Prompt">
+    <xs:complexContent>
+      <xs:extension base="SmokeTask">
+        <xs:sequence>
+          <xs:element name="Message" type="xs:string" />
+          </xs:sequence>        
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>

@@ -169,6 +169,7 @@ namespace CloudSDK_SmokeTest.Settings {
     }
     
     /// <remarks/>
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(Prompt))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(LoginRegister))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(Comparison))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(ListItems))]
@@ -307,6 +308,9 @@ namespace CloudSDK_SmokeTest.Settings {
         
         /// <remarks/>
         LoginRegister,
+        
+        /// <remarks/>
+        Prompt,
     }
     
     /// <remarks/>
@@ -323,6 +327,27 @@ namespace CloudSDK_SmokeTest.Settings {
         
         /// <remarks/>
         Account,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class Prompt : SmokeTask {
+        
+        private string messageField;
+        
+        /// <remarks/>
+        public string Message {
+            get {
+                return this.messageField;
+            }
+            set {
+                this.messageField = value;
+            }
+        }
     }
     
     /// <remarks/>
@@ -1023,6 +1048,10 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private bool actInTwoFoldersFieldSpecified;
         
+        private bool isLargeField;
+        
+        private bool isLargeFieldSpecified;
+        
         /// <remarks/>
         public string Name {
             get {
@@ -1092,6 +1121,27 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.actInTwoFoldersFieldSpecified = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool IsLarge {
+            get {
+                return this.isLargeField;
+            }
+            set {
+                this.isLargeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool IsLargeSpecified {
+            get {
+                return this.isLargeFieldSpecified;
+            }
+            set {
+                this.isLargeFieldSpecified = value;
             }
         }
     }

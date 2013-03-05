@@ -38,7 +38,25 @@
       </SmokeTask>
       
     </ScenarioTasks>-->
+    <!-- Task For Testing Host 1 Folder Rename while Host 2 Offline  -->
+    <!-- Testing Scenario where 2 Hosts are Open and in Sync 
+           Host 2 Goes Offline 
+           Make Changes to Host 1 (including Folder Rename)
+           Host  2 Comes Back Online
+           Host 2 Creates / Modifies Existing items 
+           Check if Folders are in Sync-->
     <!--<ScenarioTasks>
+      <SmokeTask xsi:type="Deletion">
+        <type>Deletion</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <DeleteAll>true</DeleteAll>
+        <ID>0</ID>
+        <ServerID>0</ServerID>
+      </SmokeTask>
       <SmokeTask xsi:type="CreateSyncBox">
         <type>CreateSyncBox</type>
         <SyncType>Active</SyncType>
@@ -49,6 +67,15 @@
         <CreateNew>true</CreateNew>
         <Count>1</Count>
       </SmokeTask>
+      <SmokeTask xsi:type="Prompt">
+        <type>Prompt</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Message>Please Begin 2 Active Sync Processes.</Message>
+      </SmokeTask>
       <SmokeTask xsi:type="Creation">
         <type>Creation</type>
         <SyncType>Active</SyncType>
@@ -56,11 +83,22 @@
           <type>File</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <Name>ANewAttempt.txt</Name>
-        <Path>C:\Users\t_zacharyw\Cloud\SomeNewPlace</Path>
+        <Name>BeforeStopping.txt</Name>
+        <Path>\</Path>
         <CreateNew>true</CreateNew>
         <Count>5</Count>
-        <ActInTwoFolders>false</ActInTwoFolders>
+      </SmokeTask>
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Name>ProiorStopping.txt</Name>
+        <Path>\Prior\</Path>
+        <CreateNew>true</CreateNew>
+        <Count>5</Count>
       </SmokeTask>
       <SmokeTask xsi:type="Creation">
         <type>Creation</type>
@@ -69,13 +107,274 @@
           <type>Folder</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <Name>AnotherFolder</Name>
-        <Path>\</Path>
+        <Name>PreStop</Name>
+        <Path>\Prior\</Path>
         <CreateNew>true</CreateNew>
+        <Count>5</Count>
+      </SmokeTask>
+      <SmokeTask xsi:type="Comparison">
+        <type>Comparison</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <ComparisonType>ActiveToActive</ComparisonType>
+        <UseDynamicSyncBox>true</UseDynamicSyncBox>
+        <ShouldWait>true</ShouldWait>
+      </SmokeTask>
+      <SmokeTask xsi:type="Prompt">
+        <type>Prompt</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Message>Please Pause One Of SyncBox's Active Sync Process</Message>
+      </SmokeTask>
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Name>AfterStopping.txt</Name>
+        <Path>\After\</Path>
+        <CreateNew>true</CreateNew>
+        <Count>5</Count>
+      </SmokeTask>
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Name>PostStop</Name>
+        <Path>\Post\</Path>
+        <CreateNew>true</CreateNew>
+        <Count>5</Count>
+      </SmokeTask>
+      <SmokeTask xsi:type="Prompt">
+        <type>Prompt</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Message>Please Restart Stopped Active Process</Message>
+      </SmokeTask>
+      <SmokeTask xsi:type="Rename">
+        <type>Rename</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <OldName>Prior</OldName>
+        <NewName>PriorRenamed</NewName>
+        <RelativeDirectoryPath>\</RelativeDirectoryPath>
+        <ServerID>0</ServerID>
         <ActInTwoFolders>false</ActInTwoFolders>
       </SmokeTask>
+      <SmokeTask xsi:type="Rename">
+        <type>Rename</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <OldName>PreStop</OldName>
+        <NewName>PreStoppedRenamed</NewName>
+        <RelativeDirectoryPath>\PriorRenamed\</RelativeDirectoryPath>
+        <ServerID>0</ServerID>
+        <ActInTwoFolders>false</ActInTwoFolders>
+      </SmokeTask>
+      <SmokeTask xsi:type="Comparison">
+        <type>Comparison</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <ComparisonType>ActiveToActive</ComparisonType>
+        <UseDynamicSyncBox>true</UseDynamicSyncBox>
+        <ShouldWait>true</ShouldWait>
+      </SmokeTask>
     </ScenarioTasks>-->
+    <!-- End Task For Testing Host 1 Folder Rename while Host 2 Offline  -->
+    
+    <!-- Task For Testing Posting an RTF File-->
+    <!-- Start 2 Active Sync Sessions 
+         Create an RTF file in the Directory for Active Sync 1 
+         Confirm the RTF file was Synced to Active Sync Directory 2-->
+    <!--<ScenarioTasks>
+      <SmokeTask xsi:type="Deletion">
+        <type>Deletion</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <DeleteAll>true</DeleteAll>
+      </SmokeTask>
+      <SmokeTask xsi:type="CreateSyncBox">
+        <type>CreateSyncBox</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <CreateNew>true</CreateNew>
+        <Count>1</Count>
+      </SmokeTask>
+      <SmokeTask xsi:type="Prompt">
+        <type>Prompt</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Message>Please Begin 2 Active SyncBox Sessions on the Same SyncBox Id</Message>
+      </SmokeTask>
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Name>IAmRichTextFile.rtf</Name>
+        <Path>\</Path>
+        <CreateNew>true</CreateNew>
+        <Count>3</Count>
+        <ActInTwoFolders>false</ActInTwoFolders>
+      </SmokeTask>
+      <SmokeTask xsi:type="Comparison">
+        <type>Comparison</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <ComparisonType>ActiveToActive</ComparisonType>
+        <UseDynamicSyncBox>true</UseDynamicSyncBox>
+        <ShouldWait>true</ShouldWait>
+      </SmokeTask>
+    </ScenarioTasks>-->
+    <!-- End Task For Testing Posting an RTF File-->
+    
+    <!-- Task For Testing Host 1 Folder Rename While Host 2 is Mid Sync-->
+    <!-- Start 1 Active Sync Session 
+          Add Multiple Large Files to Host 1 Active Sync Folder
+          Confirm Upload of Host 1 Files are complete 
+          Start Active Sync Session for Host 2 
+          Rename a Folder in Host 1 while host 2 is syncing-->
+
     <ScenarioTasks>
+      <SmokeTask xsi:type="Deletion">
+        <type>Deletion</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <DeleteAll>true</DeleteAll>
+      </SmokeTask>
+      <SmokeTask xsi:type="CreateSyncBox">
+        <type>CreateSyncBox</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>SyncBox</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <CreateNew>true</CreateNew>
+        <Count>1</Count>
+      </SmokeTask>
+      <SmokeTask xsi:type="Prompt">
+        <type>Prompt</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Message>Please Begin An Active Sync Session.</Message>
+      </SmokeTask>
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Name>FolderForTesting</Name>
+        <Path>\</Path>
+        <CreateNew>true</CreateNew>
+      </SmokeTask>
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Name>mySmallFile.txt</Name>
+        <Path>\FolderForTesting\</Path>
+        <CreateNew>true</CreateNew>
+        <Count>5</Count>
+        <ActInTwoFolders>false</ActInTwoFolders>
+        <IsLarge>false</IsLarge>
+      </SmokeTask>
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Name>myLargeFile.txt</Name>
+        <Path>\FolderForTesting\</Path>
+        <CreateNew>true</CreateNew>
+        <Count>10</Count>
+        <ActInTwoFolders>false</ActInTwoFolders>
+        <IsLarge>true</IsLarge>
+      </SmokeTask>
+      <SmokeTask xsi:type="Prompt">
+        <type>Prompt</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Message>Please wait and confirm that SyncBox File Upload are Complete</Message>
+      </SmokeTask>
+      <SmokeTask xsi:type="Prompt">
+        <type>Prompt</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Message>Start Second Active Sync Session with Syncbox Id used in initial Sync</Message>
+      </SmokeTask>
+      <SmokeTask xsi:type="Rename">
+        <type>Rename</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>Folder</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <OldName>FolderForTesting</OldName>
+        <NewName>RenamedSuccessful</NewName>
+        <RelativeDirectoryPath>\</RelativeDirectoryPath>
+        <ActInTwoFolders>false</ActInTwoFolders>
+      </SmokeTask>
+    </ScenarioTasks>
+    
+    <!-- End Task For Testing Host 1 Folder Rename While Host 2 is Mid Sync-->
+    
+    <!--<ScenarioTasks>
       <SmokeTask xsi:type="Deletion">
         <type>Deletion</type>
         <SyncType>Active</SyncType>
@@ -342,8 +641,9 @@
         <UseDynamicSyncBox>true</UseDynamicSyncBox>
         <ShouldWait>true</ShouldWait>
       </SmokeTask>
-    </ScenarioTasks>
-      <!--<SmokeTask xsi:type="LoginRegister">
+    </ScenarioTasks>-->
+    
+    <!--<SmokeTask xsi:type="LoginRegister">
         <type>LoginRegister</type>
         <SyncType>Account</SyncType>
         <ObjectType>
@@ -354,6 +654,7 @@
         <Password>Password#1</Password>
         <ActionType>Login</ActionType>
       </SmokeTask>-->
+    
     <!--<SmokeTask xsi:type="Comparison">
         <type>Comparison</type>
         <SyncType>Active</SyncType>
@@ -365,6 +666,7 @@
         <UseDynamicSyncBox>true</UseDynamicSyncBox>
         <ShouldWait>false</ShouldWait>
       </SmokeTask>-->
+    
     <!--
       <SmokeTask xsi:type ="Rename">
         <type>Rename</type>

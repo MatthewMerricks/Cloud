@@ -105,6 +105,9 @@ namespace CloudSDK_SmokeTest.Helpers
                     else
                         responseCode = manager.Create(e);
                     break;
+                case SmokeTaskType.Prompt:
+                    responseCode = SmokeTaskManager.PropmtTask(e);
+                    break;
                 default:
                     responseCode = (int)FileManagerResponseCodes.InvalidTaskType;
                     break;

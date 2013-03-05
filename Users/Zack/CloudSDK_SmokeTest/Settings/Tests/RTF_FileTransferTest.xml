@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<SmokeTest xmlns="http://www.cloud.com/InputParameters.xsd"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.cloud.com InputParameters.xsd">
+  <!-- Task For Testing Posting an RTF File-->
+  <!-- Start 2 Active Sync Sessions 
+         Create an RTF file in the Directory for Active Sync 1 
+         Confirm the RTF file was Synced to Active Sync Directory 2-->
+  <ScenarioTasks>
+    <SmokeTask xsi:type="Deletion">
+      <type>Deletion</type>
+      <SyncType>Active</SyncType>
+      <ObjectType>
+        <type>SyncBox</type>
+      </ObjectType>
+      <SelectedSyncBoxID>0</SelectedSyncBoxID>
+      <DeleteAll>true</DeleteAll>
+    </SmokeTask>
+    <SmokeTask xsi:type="CreateSyncBox">
+      <type>CreateSyncBox</type>
+      <SyncType>Active</SyncType>
+      <ObjectType>
+        <type>SyncBox</type>
+      </ObjectType>
+      <SelectedSyncBoxID>0</SelectedSyncBoxID>
+      <CreateNew>true</CreateNew>
+      <Count>1</Count>
+    </SmokeTask>
+    <SmokeTask xsi:type="Prompt">
+      <type>Prompt</type>
+      <SyncType>Active</SyncType>
+      <ObjectType>
+        <type>None</type>
+      </ObjectType>
+      <SelectedSyncBoxID>0</SelectedSyncBoxID>
+      <Message>Please Begin 2 Active SyncBox Sessions on the Same SyncBox Id</Message>
+    </SmokeTask>
+    <SmokeTask xsi:type="Creation">
+      <type>Creation</type>
+      <SyncType>Active</SyncType>
+      <ObjectType>
+        <type>File</type>
+      </ObjectType>
+      <SelectedSyncBoxID>0</SelectedSyncBoxID>
+      <Name>IAmRichTextFile.rtf</Name>
+      <Path>\</Path>
+      <CreateNew>true</CreateNew>
+      <Count>3</Count>
+      <ActInTwoFolders>false</ActInTwoFolders>
+    </SmokeTask>
+    <SmokeTask xsi:type="Comparison">
+      <type>Comparison</type>
+      <SyncType>Active</SyncType>
+      <ObjectType>
+        <type>None</type>
+      </ObjectType>
+      <SelectedSyncBoxID>0</SelectedSyncBoxID>
+      <ComparisonType>ActiveToActive</ComparisonType>
+      <UseDynamicSyncBox>true</UseDynamicSyncBox>
+      <ShouldWait>true</ShouldWait>
+    </SmokeTask>
+  </ScenarioTasks>
+  <!-- End Task For Testing Posting an RTF File-->
+
+</SmokeTest>

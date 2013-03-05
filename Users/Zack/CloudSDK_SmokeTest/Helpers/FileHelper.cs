@@ -25,9 +25,9 @@ namespace CloudSDK_SmokeTest.Helpers
             List<FileChange> folderChanges = new List<FileChange>();
             string fullPath = createEventArgs.CreateTaskFileInfo.FullName;
             if (!File.Exists(createEventArgs.CreateTaskFileInfo.FullName))
-                WriteFile(createEventArgs.CreateTaskFileInfo, ref folderChanges);
+                WriteFile(createEventArgs.CreateTaskFileInfo, (createEventArgs.CurrentTask as Creation).IsLarge, ref folderChanges);
 
-            FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, createEventArgs.CreateTaskFileInfo, ref refProcessErrorHolder);
+            FileChange fileChange = PrepareMD5FileChange(InputParams, createEventArgs.Creds, createEventArgs.CreateTaskFileInfo, (createEventArgs.CurrentTask as Creation).IsLarge, ref refProcessErrorHolder);
             Cloud.JsonContracts.Event returnEvent;
             CLHttpRestStatus restStatus = new CLHttpRestStatus();
 
@@ -45,17 +45,17 @@ namespace CloudSDK_SmokeTest.Helpers
 
         private static int RenameAndTryUpload(CreateFileEventArgs responseArgs, FileChange currentFileChange, ManualSyncManager manager)
         {
-            FileChange newFileChange = manager.CreateFileChangeWithNewName(currentFileChange);
+            FileChange newFileChange = manager.CreateFileChangeWithNewName(currentFileChange, (responseArgs.CurrentTask as Creation).IsLarge);
             manager.TryUpload(responseArgs, newFileChange);
             return 0;
         }
 
-        public static FileChange PrepareMD5FileChange(InputParams paramSet, CLCredential creds, FileInfo fi,  ref GenericHolder<CLError> ProcessingErrorHolder)
+        public static FileChange PrepareMD5FileChange(InputParams paramSet, CLCredential creds, FileInfo fi, bool isLarge, ref GenericHolder<CLError> ProcessingErrorHolder)
         {
             FileChange fileChange = new FileChange();
             List<FileChange> folderChanges = new List<FileChange>();
             if (!File.Exists(fi.FullName))
-                WriteFile(fi, ref folderChanges);
+                WriteFile(fi, isLarge, ref folderChanges);
             byte[] md5Bytes = FileHelper.CreateFileChangeObject(fi.FullName, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
             CLError hashError = fileChange.SetMD5(md5Bytes);
             if (hashError != null)
@@ -77,7 +77,7 @@ namespace CloudSDK_SmokeTest.Helpers
             FileChange fileChange = new FileChange();
             List<FileChange> folderChanges = new List<FileChange>();
             if (!File.Exists(e.FileInfo.FullName))
-                WriteFile(e.FileInfo, ref folderChanges);
+                WriteFile(e.FileInfo, (e.CurrentTask as Creation).IsLarge, ref folderChanges);
             byte[] md5Bytes = FileHelper.CreateFileChangeObject(e.FileInfo.FullName, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
             CLError hashError = fileChange.SetMD5(md5Bytes);
             if (hashError != null)
@@ -95,7 +95,7 @@ namespace CloudSDK_SmokeTest.Helpers
         }
 
         
-        public static bool WriteFile(string path, string fileName)
+        public static bool WriteFile(string path, string fileName, bool isLarge)
         {
             string fullPath = path + '\\' + fileName;
             bool returnValue = true;
@@ -105,8 +105,19 @@ namespace CloudSDK_SmokeTest.Helpers
                 {
                     Random rnd = new Random();
                     int maxRandom = 1000000000;
-                    int maxforCount = 1000;
-                    int byteCount = rnd.Next(maxforCount);
+                    int maxforCount = 0;
+                    int minForCount = 0;
+                    if (!isLarge)
+                    {
+                        maxforCount = 1000;
+                        minForCount = 100;
+                    }
+                    else
+                    {
+                        maxforCount = 100000000;
+                        minForCount = 10000000;
+                    }
+                    int byteCount = rnd.Next(minForCount, maxforCount);
                     for (int i = 0; i < byteCount; i++)
                     {
                         int currentRandom = rnd.Next(maxRandom);
@@ -125,7 +136,7 @@ namespace CloudSDK_SmokeTest.Helpers
             return returnValue;
         }
 
-        public static bool WriteFile(FileInfo fileInfo, ref List<FileChange> folderChanges)
+        public static bool WriteFile(FileInfo fileInfo, bool isLarge, ref List<FileChange> folderChanges)
         {
             string fullPath = fileInfo.FullName;
             bool returnValue = true;
@@ -141,8 +152,12 @@ namespace CloudSDK_SmokeTest.Helpers
                 {
                     Random rnd = new Random();
                     int maxRandom = 1000000000;
-                    int maxforCount = 1000;
-                    int byteCount = rnd.Next(maxforCount);
+                    int maxForCount = 0;
+                    if (!isLarge)
+                        maxForCount = 1000;
+                    else
+                        maxForCount = 1000000;
+                    int byteCount = rnd.Next(maxForCount);
                     for (int i = 0; i < byteCount; i++)
                     {
                         int currentRandom = rnd.Next(maxRandom);
@@ -301,7 +316,7 @@ namespace CloudSDK_SmokeTest.Helpers
             return md5Bytes;
         }
 
-        public static void CreateFilePathString(Creation creation, out string fullPath)
+        public static void CreateFilePathString(SmokeTestManagerEventArgs e, Creation creation, out string fullPath)
         {
             string modPath = string.Empty;
             string modName = string.Empty;
@@ -312,6 +327,15 @@ namespace CloudSDK_SmokeTest.Helpers
                 if (PathEndsWithSlash(modPath))
                     modPath = modPath.Remove(modPath.Count() - 1, 1);
 
+                string root = string.Empty;
+                if (creation.SyncType == SmokeTaskSyncType.Active)
+                    root = e.ParamSet.ActiveSync_Folder.Replace("\"", "");
+                else
+                    root = e.ParamSet.ManualSync_Folder.Replace("\"", "");
+
+                if (!modPath.Contains("C:\\"))
+                    modPath = FileManager.TrimTrailingSlash(root + modPath);
+                
                 fullPath = modPath + "\\" + modName;
             }
             else

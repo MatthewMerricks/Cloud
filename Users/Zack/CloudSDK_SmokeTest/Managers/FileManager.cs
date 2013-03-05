@@ -18,6 +18,8 @@ namespace CloudSDK_SmokeTest.Managers
 {
     public class FileManager : ISmokeTaskManager
     {
+        private int _ExceptionCounter = 0;
+
         #region Public Static 
         public static string TrimTrailingSlash(string path)
         {
@@ -134,7 +136,7 @@ namespace CloudSDK_SmokeTest.Managers
             {
                 FileInfo info = new FileInfo(activePath);
                 List<FileChange> folderChanges = new List<FileChange>();
-                responseCode = FileHelper.WriteFile(info, ref folderChanges) == true ? 0: (int)FileManagerResponseCodes.UnknownError;
+                responseCode = FileHelper.WriteFile(info, thisTask.IsLarge, ref folderChanges) == true ? 0: (int)FileManagerResponseCodes.UnknownError;
             }
             else
             {
@@ -245,17 +247,17 @@ namespace CloudSDK_SmokeTest.Managers
         private bool ApplyFileOrDirectoryInfo(Creation createTask, SmokeTestManagerEventArgs eventArgs)
         {
             bool isFile = false;
+            string fullPath = string.Empty;
+            FileHelper.CreateFilePathString(eventArgs, createTask, out fullPath);
             if (eventArgs.CurrentTask.ObjectType.type == ModificationObjectType.File && eventArgs.FileInfo == null)
-            { 
-                string fullPath = string.Empty;
-                FileHelper.CreateFilePathString(createTask, out fullPath);
+            {           
                 eventArgs.FileInfo = new FileInfo(fullPath);
                 isFile = true;
             }
             else if (eventArgs.CurrentTask.ObjectType.type == ModificationObjectType.Folder && eventArgs.DirectoryInfo == null)
             {
-                if (createTask.Path.Count() > 0 && createTask.Path.Contains("C:/"))
-                    eventArgs.DirectoryInfo = new DirectoryInfo(createTask.Path);
+                if (createTask.Path.Count() > 0 && fullPath.Contains("C:\\"))
+                    eventArgs.DirectoryInfo = new DirectoryInfo(fullPath);
                 else
                     eventArgs.DirectoryInfo = new DirectoryInfo(eventArgs.RootDirectory + createTask.Path + createTask.Name);
             }
@@ -565,17 +567,27 @@ namespace CloudSDK_SmokeTest.Managers
             }
             catch (Exception exception)
             {
-                lock (e.ProcessingErrorHolder)
+                string accessExceptionPre = "Access to the path";
+                string accessExceptionPost = "is denied";
+                if (exception.Message.Contains(accessExceptionPre) && exception.Message.Contains(accessExceptionPost) && _ExceptionCounter < 100)
                 {
-                    e.ProcessingErrorHolder.Value = e.ProcessingErrorHolder.Value + exception;
-
+                    _ExceptionCounter++;
+                    ExecuteAutoRenameFolder(e, renameTask);
                 }
-                reportBuilder.AppendLine();
-                reportBuilder.AppendLine("There was an error Renaming Item:");
-                reportBuilder.AppendLine(string.Format("    From: {0}", oldPath));
-                reportBuilder.AppendLine(string.Format("      To: {0}", newPath));
-                reportBuilder.AppendLine();
+                else
+                {
+                    lock (e.ProcessingErrorHolder)
+                    {
+                        e.ProcessingErrorHolder.Value = e.ProcessingErrorHolder.Value + exception;
 
+                    }
+                    reportBuilder.AppendLine();
+                    reportBuilder.AppendLine("There was an error Renaming Item:");
+                    reportBuilder.AppendLine(string.Format("    From: {0}", oldPath));
+                    reportBuilder.AppendLine(string.Format("      To: {0}", newPath));
+                    reportBuilder.AppendLine();
+                }
+                _ExceptionCounter = 0;
                 responseCode = (int)FileManagerResponseCodes.UnknownError;
             }
             e.StringBuilderList.Add(new StringBuilder(reportBuilder.ToString()));
@@ -667,12 +679,20 @@ namespace CloudSDK_SmokeTest.Managers
                 relative = TrimTrailingSlash(renameTask.RelativeDirectoryPath);
             else
                 relative = renameTask.RelativeDirectoryPath;
-
-            fullPath = string.Concat(rootFolder, relative, renameTask.OldName.Replace("\"", ""));
-            if (Directory.Exists(fullPath))
-                returnInfo = new DirectoryInfo(fullPath);
+            if (string.IsNullOrEmpty(renameTask.OldName))
+            {
+                StringBuilder report = new StringBuilder("The Expected Property OldName for Task of type Rename is Null");
+                report.AppendLine();
+                e.StringBuilderList.Add(new StringBuilder(report.ToString()));
+            }
             else
-                returnInfo = FileHelper.FindFirstSubFolder(rootFolder);
+            {
+                fullPath = string.Concat(rootFolder, relative, renameTask.OldName.Replace("\"", ""));
+                if (Directory.Exists(fullPath))
+                    returnInfo = new DirectoryInfo(fullPath);
+                else
+                    returnInfo = FileHelper.FindFirstSubFolder(rootFolder);
+            }
 
             return returnInfo;
         }
@@ -966,7 +986,7 @@ namespace CloudSDK_SmokeTest.Managers
             if (isFile)
             {
                 if (!File.Exists(eventArgs.FileInfo.FullName))
-                    FileHelper.WriteFile(eventArgs.FileInfo, ref folderChanges);
+                    FileHelper.WriteFile(eventArgs.FileInfo, (eventArgs.CurrentTask as Creation).IsLarge, ref folderChanges);
                 return FileHelper.PrepareMD5FileChange(eventArgs);
             }
             else
