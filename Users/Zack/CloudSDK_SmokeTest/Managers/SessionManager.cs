@@ -384,6 +384,8 @@ namespace CloudSDK_SmokeTest.Managers
             return getListResponseCode;
         }
 
+
+
         #region Private
         private String AddSessionsToManager(ListSessionsResponse sessionList, ref ItemsListManager mgr, bool printValues, ref StringBuilder builder)
         {
@@ -433,6 +435,11 @@ namespace CloudSDK_SmokeTest.Managers
 
         #endregion List Items
 
+
+        public int AlternativeAction(SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
         #endregion Interface Implementation
 
         #region Private
@@ -445,5 +452,8 @@ namespace CloudSDK_SmokeTest.Managers
             }
         }
         #endregion 
+    
+
+        
     }
 }

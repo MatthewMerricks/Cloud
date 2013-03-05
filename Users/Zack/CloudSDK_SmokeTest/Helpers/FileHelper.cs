@@ -107,17 +107,13 @@ namespace CloudSDK_SmokeTest.Helpers
                     int maxRandom = 1000000000;
                     int maxforCount = 1000;
                     int byteCount = rnd.Next(maxforCount);
-                    Console.WriteLine(string.Format("The total number of iterations will be {0}", byteCount.ToString()));
                     for (int i = 0; i < byteCount; i++)
                     {
                         int currentRandom = rnd.Next(maxRandom);
                         byte[] bytes = Encoding.ASCII.GetBytes(currentRandom.ToString());
                         foreach (Byte b in bytes)
                             fs.WriteByte(b);
-
-                        int rem = i % 100;
-                        if (rem == 0)
-                            Console.WriteLine(string.Format("{0} - Value: {1}", i, currentRandom));
+                        Console.WriteLine(string.Format("Created File: {0}", fileName));
                     }
                 }
             }
@@ -147,25 +143,13 @@ namespace CloudSDK_SmokeTest.Helpers
                     int maxRandom = 1000000000;
                     int maxforCount = 1000;
                     int byteCount = rnd.Next(maxforCount);
-                    Console.WriteLine(string.Format("The total number of iterations will be {0}", byteCount.ToString()));
                     for (int i = 0; i < byteCount; i++)
                     {
                         int currentRandom = rnd.Next(maxRandom);
                         byte[] bytes = Encoding.ASCII.GetBytes(currentRandom.ToString());
                         foreach (Byte b in bytes)
                             fs.WriteByte(b);
-
-                        int rem = i % 100;
-                        if (rem == 0)
-                            Console.WriteLine(string.Format("{0} - Value: {1}", i, currentRandom));
                     }
-                    //string thisString = "Some Text To Be Written";
-                    //byte[] bytes = Encoding.ASCII.GetBytes(thisString);
-                    //for (int x = 0; x < 23; x++)
-                    //{ 
-                    //    foreach(Byte b in bytes)
-                    //        fs.WriteByte(b);
-                    //}
                 }
             }
             else

@@ -62,6 +62,7 @@
             <xs:enumeration value="SyncBox" />
             <xs:enumeration value="Session" />
             <xs:enumeration value="Plan" />
+            <xs:enumeration value="Account" />
             <xs:enumeration value="None" />
           </xs:restriction>
         </xs:simpleType>
@@ -83,6 +84,7 @@
             <xs:enumeration value = "HttpTest" />
             <xs:enumeration value = "ListItems" />
             <xs:enumeration value = "Comparison" />
+            <xs:enumeration value = "LoginRegister" />
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
@@ -91,6 +93,7 @@
           <xs:restriction base="xs:string">
             <xs:enumeration value="Active"/>
             <xs:enumeration value ="Manual" />
+            <xs:enumeration value ="Account" />            
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
@@ -224,6 +227,35 @@
           </xs:element>
           <xs:element name="UseDynamicSyncBox" type="xs:boolean" />
           <xs:element name="ShouldWait" type="xs:boolean" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="LoginRegister" >
+    <xs:complexContent>
+      <xs:extension base="SmokeTask" >
+        <xs:sequence>
+          <xs:element name ="Username" type="xs:string" minOccurs="1" />
+          <xs:element name ="Password" type="xs:string" minOccurs="1"/>
+          <xs:element name ="ActionType" minOccurs="1">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value ="Login" />
+                <xs:enumeration value ="Register" />
+                <xs:enumeration value="ForgotPassword" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name ="Email" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name ="FirstName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name ="LastName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name ="Address1" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name ="Address2" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name ="City" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name ="State" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name ="PostalCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
+          <xs:element name ="Phone" type="xs:string" minOccurs="0" maxOccurs="1"/>          
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

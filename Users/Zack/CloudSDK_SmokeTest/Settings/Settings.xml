@@ -57,22 +57,21 @@
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
         <Name>ANewAttempt.txt</Name>
-        <Path>C:\Users\t_zacharyw\Cloud2</Path>
+        <Path>C:\Users\t_zacharyw\Cloud\SomeNewPlace</Path>
         <CreateNew>true</CreateNew>
-        <Count>1</Count>
-        <ActInTwoFolders>true</ActInTwoFolders>
+        <Count>5</Count>
+        <ActInTwoFolders>false</ActInTwoFolders>
       </SmokeTask>
-      <SmokeTask xsi:type="Rename">
-        <type>Rename</type>
+      <SmokeTask xsi:type="Creation">
+        <type>Creation</type>
         <SyncType>Active</SyncType>
         <ObjectType>
-          <type>File</type>
+          <type>Folder</type>
         </ObjectType>
         <SelectedSyncBoxID>0</SelectedSyncBoxID>
-        <OldName>RenameMe.txt</OldName>
-        <NewName>SecondRename</NewName>
-        <RelativeDirectoryPath>\</RelativeDirectoryPath>
-        <ServerID>0</ServerID>
+        <Name>AnotherFolder</Name>
+        <Path>\</Path>
+        <CreateNew>true</CreateNew>
         <ActInTwoFolders>false</ActInTwoFolders>
       </SmokeTask>
     </ScenarioTasks>-->
@@ -320,7 +319,41 @@
         <UseDynamicSyncBox>true</UseDynamicSyncBox>
         <ShouldWait>false</ShouldWait>
       </SmokeTask>
+      <SmokeTask xsi:type="Rename">
+        <type>Rename</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>File</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <OldName>CouldThisBeCoo1.txt</OldName>
+        <NewName>MyNewestName</NewName>
+        <RelativeDirectoryPath>\</RelativeDirectoryPath>
+        <ActInTwoFolders>true</ActInTwoFolders>
+      </SmokeTask>
+      <SmokeTask xsi:type="Comparison">
+        <type>Comparison</type>
+        <SyncType>Active</SyncType>
+        <ObjectType>
+          <type>None</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <ComparisonType>ActiveToActive</ComparisonType>
+        <UseDynamicSyncBox>true</UseDynamicSyncBox>
+        <ShouldWait>true</ShouldWait>
+      </SmokeTask>
     </ScenarioTasks>
+      <!--<SmokeTask xsi:type="LoginRegister">
+        <type>LoginRegister</type>
+        <SyncType>Account</SyncType>
+        <ObjectType>
+          <type>Account</type>
+        </ObjectType>
+        <SelectedSyncBoxID>0</SelectedSyncBoxID>
+        <Username>ANewUser1</Username>
+        <Password>Password#1</Password>
+        <ActionType>Login</ActionType>
+      </SmokeTask>-->
     <!--<SmokeTask xsi:type="Comparison">
         <type>Comparison</type>
         <SyncType>Active</SyncType>

@@ -99,6 +99,12 @@ namespace CloudSDK_SmokeTest.Helpers
                 case SmokeTaskType.Comparison:
                     responseCode = SyncBoxManager.CompareSyncBoxFolders(e);
                     break;
+                case SmokeTaskType.LoginRegister:
+                    if ((e.CurrentTask as LoginRegister).ActionType == LoginRegisterActionType.Login)
+                        responseCode = manager.AlternativeAction(e);
+                    else
+                        responseCode = manager.Create(e);
+                    break;
                 default:
                     responseCode = (int)FileManagerResponseCodes.InvalidTaskType;
                     break;

@@ -670,6 +670,12 @@ namespace CloudSDK_SmokeTest.Managers
         }
         #endregion 
 
+        
+        public int AlternativeAction(SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         #region Compare 
         public static int CompareSyncBoxFolders(SmokeTestManagerEventArgs e)
         {
@@ -894,5 +900,7 @@ namespace CloudSDK_SmokeTest.Managers
             report.AppendLine();
         }
         #endregion
+
+
     }
 }

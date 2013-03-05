@@ -152,5 +152,10 @@ namespace CloudSDK_SmokeTest.Managers
             }
             return responseCode;
         }
+
+        public int AlternativeAction(Events.ManagerEventArgs.SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
