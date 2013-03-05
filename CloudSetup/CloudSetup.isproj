@@ -52,8 +52,8 @@
 			<Name>CloudSendTo</Name>
 			<Project>{F645F31E-ED61-481F-9048-E7765ED96691}</Project>
 		</ProjectReference>
-		<ProjectReference Include="..\Cloud\Cloud.csproj">
-			<Name>Cloud</Name>
+		<ProjectReference Include="..\CloudApiPublic\CloudApiPublic.csproj">
+			<Name>CloudApiPublic</Name>
 			<Project>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</Project>
 		</ProjectReference>
 	</ItemGroup>
