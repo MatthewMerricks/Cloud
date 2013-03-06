@@ -22,12 +22,27 @@ namespace Cloud.Model
     /// </summary>
     public class FileChange : DelayProcessable<FileChange>
     {
+        #region special handling for a file download dependent on a rename
+        internal readonly object fileDownloadMoveLocker;
+        #endregion
+
         // If properties are changed/added/removed, make sure to update FileChangeWithDependencies in the Sync project!!
 
         /// <summary>
         /// Current path associated with the file system event
         /// </summary>
-        public FilePath NewPath { get; set; }
+        public FilePath NewPath
+        {
+            get
+            {
+                return _newPath;
+            }
+            set
+            {
+                _newPath = value;
+            }
+        }
+        private volatile FilePath _newPath = null;
         /// <summary>
         /// For rename events only, this is the old path
         /// </summary>
@@ -175,8 +190,11 @@ namespace Cloud.Model
         /// DelayCompletedLocker to lock upon delay completion must be provided for syncing the DelayCompleted boolean
         /// </summary>
         /// <param name="DelayCompletedLocker">Object to lock on to synchronize setting DelayCompleted boolean</param>
-        internal FileChange(object DelayCompletedLocker) : base(DelayCompletedLocker)
+        /// <param name="fileDownloadMoveLocker">A locker for file downloads, or null if not a file download (Sync From file create/modify)</param>
+        internal FileChange(object DelayCompletedLocker, object fileDownloadMoveLocker = null)
+            : base(DelayCompletedLocker)
         {
+            this.fileDownloadMoveLocker = fileDownloadMoveLocker;
             SetIncrementedId();
         }
         /// <summary>
@@ -185,6 +203,7 @@ namespace Cloud.Model
         /// </summary>
         public FileChange() : base()
         {
+            this.fileDownloadMoveLocker = null;
             SetIncrementedId();
         }
 
@@ -216,7 +235,7 @@ namespace Cloud.Model
         internal void FileChange_UpDown(object sender, UpDownEventArgs e)
         {
             // fires a callback stored in the event arguments with the current FileChange
-            e.SendBackChange(this);
+            e.SendBackChange(this, sender);
         }
 
         /// <summary>
@@ -225,13 +244,13 @@ namespace Cloud.Model
         internal class UpDownEventArgs : EventArgs
         {
             // stores the callback which will be fired back upon event handling (see FileChange_UpDown above)
-            public Action<FileChange> SendBackChange { get; private set; }
+            public Action<FileChange, object> SendBackChange { get; private set; }
 
             /// <summary>
             /// Constructs new arguments to fire the UpDownEvent with a supplied callback which will be fired for every FileChange subscribed to the event
             /// </summary>
             /// <param name="SendBackChange">Required callback to receive each FileChange which had subscribed to the event</param>
-            public UpDownEventArgs(Action<FileChange> SendBackChange)
+            public UpDownEventArgs(Action<FileChange, object> SendBackChange)
             {
                 // check that the input parameter was set; if it wasn't, throw an exception
                 if (SendBackChange == null)
