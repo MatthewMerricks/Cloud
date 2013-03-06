@@ -51,19 +51,12 @@ namespace Cloud.Model
         /// <param name="rebuiltFileChange">Output change with dependencies</param>
         /// <param name="DelayCompletedLocker">Optional DelayCompletedLocker required for DelayProcessable methods</param>
         /// <returns>Returns an error in constructing the FileChangeWithDependencies, if any</returns>
-        public static CLError CreateAndInitialize(FileChange baseChange, IEnumerable<FileChange> initialDependencies, out FileChangeWithDependencies rebuiltFileChange, object DelayCompletedLocker = null)
+        internal static CLError CreateAndInitialize(FileChange baseChange, IEnumerable<FileChange> initialDependencies, out FileChangeWithDependencies rebuiltFileChange, object DelayCompletedLocker = null, object fileDownloadMoveLocker = null)
         {
             try
             {
                 // The base FileChange has two constructors so we have to split our construction accordingly
-                if (DelayCompletedLocker == null)
-                {
-                    rebuiltFileChange = new FileChangeWithDependencies(baseChange, initialDependencies);
-                }
-                else
-                {
-                    rebuiltFileChange = new FileChangeWithDependencies(baseChange, initialDependencies, DelayCompletedLocker);
-                }
+                rebuiltFileChange = new FileChangeWithDependencies(baseChange, initialDependencies, DelayCompletedLocker, fileDownloadMoveLocker);
             }
             catch (Exception ex)
             {
@@ -73,16 +66,21 @@ namespace Cloud.Model
             return null;
         }
 
-        // Base constructor with locker for DelayProcessesable methods followed by copy of parameters from baseChange
-        private FileChangeWithDependencies(FileChange baseChange, IEnumerable<FileChange> initialDependencies, object DelayCompletedLocker)
-            : base(DelayCompletedLocker)
+        /// <summary>
+        /// Creates a new FileChangeWithDependencies from a base change and initial dependencies
+        /// </summary>
+        /// <param name="baseChange">Base change to copy</param>
+        /// <param name="initialDependencies">Dependencies for starting initial list</param>
+        /// <param name="rebuiltFileChange">Output change with dependencies</param>
+        /// <returns>Returns an error in constructing the FileChangeWithDependencies, if any</returns>
+        public static CLError CreateAndInitialize(FileChange baseChange, IEnumerable<FileChange> initialDependencies, out FileChangeWithDependencies rebuiltFileChange)
         {
-            FillInObjectFromConstructionParameters(baseChange, initialDependencies);
+            return CreateAndInitialize(baseChange, initialDependencies, out rebuiltFileChange, DelayCompletedLocker: null, fileDownloadMoveLocker: null);
         }
 
-        // Base constructor without locker for DelayProcessesable methods followed by copy of parameters from baseChange
-        private FileChangeWithDependencies(FileChange baseChange, IEnumerable<FileChange> initialDependencies)
-            : base()
+        // Base constructor with locker for DelayProcessesable methods followed by copy of parameters from baseChange
+        private FileChangeWithDependencies(FileChange baseChange, IEnumerable<FileChange> initialDependencies, object DelayCompletedLocker, object fileDownloadMoveLocker)
+            : base(DelayCompletedLocker, fileDownloadMoveLocker)
         {
             FillInObjectFromConstructionParameters(baseChange, initialDependencies);
         }

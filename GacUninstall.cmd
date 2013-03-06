@@ -1,3 +1,6 @@
+echo set path=%%path%%;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools
+set path=%%path%%;C:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools
+
 echo gacutil /u BadgeCOMLib,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
 gacutil /u BadgeCOMLib,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
 

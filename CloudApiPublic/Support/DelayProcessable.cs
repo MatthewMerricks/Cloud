@@ -278,9 +278,9 @@ namespace Cloud.Support
         }
         #endregion
 
-        #region private methods
+        #region protected Disposed
         // Standard IDisposable implementation based on MSDN System.IDisposable
-        private void Dispose(bool disposing)
+        internal protected virtual void Dispose(bool disposing)
         {
             if (DelayCompletedLocker == null)
             {
@@ -294,6 +294,9 @@ namespace Cloud.Support
                 }
             }
         }
+        #endregion
+
+        #region private methods
         private void ProcessDisposeCompletion()
         {
             if (!DelayCompleted)

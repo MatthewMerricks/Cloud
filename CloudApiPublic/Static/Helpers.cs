@@ -2691,18 +2691,21 @@ namespace Cloud.Static
                             if (uploadDownload.StatusUpdate != null
                                 && uploadDownload.StatusUpdateId != null)
                             {
-                                try
+                                if (uploadDownload.RelativePathForStatus != null)
                                 {
-                                    uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
-                                        uploadDownload.ChangeToTransfer.EventId,
-                                        uploadDownload.ChangeToTransfer.Direction,
-                                        uploadDownload.RelativePathForStatus,
-                                        0,
-                                        (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
-                                        false);
-                                }
-                                catch
-                                {
+                                    try
+                                    {
+                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                            uploadDownload.ChangeToTransfer.EventId,
+                                            uploadDownload.ChangeToTransfer.Direction,
+                                            uploadDownload.RelativePathForStatus,
+                                            0,
+                                            (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
+                                            false);
+                                    }
+                                    catch
+                                    {
+                                    }
                                 }
                             }
 
@@ -2754,6 +2757,26 @@ namespace Cloud.Static
                                         // append the count of the read bytes on this buffer transfer to the total downloaded
                                         totalBytesDownloaded += read;
 
+                                        GenericHolder<string> storeReturnBody = new GenericHolder<string>(null);
+                                        Func<GenericHolder<string>, string, string> fillAndReturnBody =
+                                            (innerStoreReturnBody, innerResponseBody) =>
+                                            {
+                                                if (innerStoreReturnBody.Value == null)
+                                                {
+                                                    innerStoreReturnBody.Value = (innerResponseBody ?? "---responseBody set to null---").TrimEnd('-') + ": cancelled---";
+                                                }
+                                                return innerStoreReturnBody.Value;
+                                            };
+
+                                        if (uploadDownload.ChangeToTransfer.NewPath == null)
+                                        {
+                                            status = CLHttpRestStatus.Cancelled;
+
+                                            responseBody = fillAndReturnBody(storeReturnBody, responseBody);
+
+                                            return null;
+                                        }
+
                                         // check for sync shutdown
                                         if (uploadDownload.ShutdownToken != null)
                                         {
@@ -2764,7 +2787,7 @@ namespace Cloud.Static
                                                 {
                                                     status = CLHttpRestStatus.Cancelled;
 
-                                                    responseBody = (responseBody ?? "---responseBody set to null---").TrimEnd('-') + ": cancelled---";
+                                                    responseBody = fillAndReturnBody(storeReturnBody, responseBody);
 
                                                     return null;
                                                 }
@@ -2975,21 +2998,24 @@ namespace Cloud.Static
                     // try/catch fire the event callback for final transfer status, silencing errors
                     try
                     {
-                        uploadDownload.StatusCallback(
-                            new CLStatusFileTransferUpdateParameters(
-                                transferStartTime, // retrieve the upload start time
+                        if (uploadDownload.RelativePathForStatus != null)
+                        {
+                            uploadDownload.StatusCallback(
+                                new CLStatusFileTransferUpdateParameters(
+                                    transferStartTime, // retrieve the upload start time
 
-                                // need to send a file size which matches the total uploaded bytes so they are equal to cancel the status
-                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+                                    // need to send a file size which matches the total uploaded bytes so they are equal to cancel the status
+                                    uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
 
-                                // try to build the same relative path that would be used in the normal status, falling back first to the full path then to an empty string
-                                uploadDownload.RelativePathForStatus,
+                                    // try to build the same relative path that would be used in the normal status, falling back first to the full path then to an empty string
+                                    uploadDownload.RelativePathForStatus,
 
-                                // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
-                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0),
-                            uploadDownload.ChangeToTransfer, // sender of event (the event itself)
-                            SyncBoxId, // pass in sync box id for filtering
-                            CopiedSettings.DeviceId); // pass in device id for filtering
+                                    // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
+                                    uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0),
+                                uploadDownload.ChangeToTransfer, // sender of event (the event itself)
+                                SyncBoxId, // pass in sync box id for filtering
+                                CopiedSettings.DeviceId); // pass in device id for filtering
+                        }
                     }
                     catch
                     {
@@ -3000,13 +3026,16 @@ namespace Cloud.Static
                     {
                         try
                         {
-                            uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
-                                uploadDownload.ChangeToTransfer.EventId,
-                                uploadDownload.ChangeToTransfer.Direction,
-                                uploadDownload.RelativePathForStatus,
-                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
-                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
-                                false);
+                            if (uploadDownload.RelativePathForStatus != null)
+                            {
+                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                    uploadDownload.ChangeToTransfer.EventId,
+                                    uploadDownload.ChangeToTransfer.Direction,
+                                    uploadDownload.RelativePathForStatus,
+                                    uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+                                    uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+                                    false);
+                            }
                         }
                         catch
                         {
@@ -3601,10 +3630,14 @@ namespace Cloud.Static
                 {
                     throw new ArgumentException("ChangeToTransfer Metadata StorageKey cannot be null");
                 }
-                if (ChangeToTransfer.NewPath == null)
+
+                //// new path can be null if event was cancelled on an alternate thread, but that only happens for downloads
+                if (ChangeToTransfer.Direction == SyncDirection.To
+                    && ChangeToTransfer.NewPath == null)
                 {
                     throw new NullReferenceException("ChangeToTransfer NewPath cannot be null");
                 }
+
                 if (StatusCallback == null)
                 {
                     throw new NullReferenceException("StatusCallback cannot be null");
@@ -3614,7 +3647,15 @@ namespace Cloud.Static
 
                 this._statusCallback = StatusCallback;
                 this._changeToTransfer = ChangeToTransfer;
-                this._relativePathForStatus = this.ChangeToTransfer.NewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
+                FilePath retainNewPath = this.ChangeToTransfer.NewPath;
+                if (retainNewPath == null)
+                {
+                    this._relativePathForStatus = null;
+                }
+                else
+                {
+                    this._relativePathForStatus = retainNewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
+                }
                 this._shutdownToken = ShutdownToken;
                 this._aCallback = ACallback;
                 this._aResult = AResult;

@@ -93,7 +93,8 @@ namespace Cloud.FileMonitor
         // stores the optional FileChange queueing callback intialization parameter
         private Action<MonitorAgent, FileChange> OnQueueing;
 
-        Func<bool, CLError> SyncRun = null;
+        private Func<bool, CLError> SyncRun = null;
+        private Func<string, KeyValuePair<FilePathDictionary<List<FileChange>>, CLError>> GetUploadDownloadTransfersInProgress = null;
 
         private GenericHolder<bool> SyncRunLocker = new GenericHolder<bool>(false);
         private GenericHolder<bool> NextSyncQueued = new GenericHolder<bool>(false);
@@ -446,6 +447,7 @@ namespace Cloud.FileMonitor
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;
                 newAgent.SyncRun = syncEngine.Run;
+                newAgent.GetUploadDownloadTransfersInProgress = syncEngine.GetUploadDownloadTransfersInProgress;
                 newAgent.LogProcessingFileChanges = logProcessing;
 
                 // assign timer object that is used for processing the FileChange queues in batches
@@ -558,11 +560,32 @@ namespace Cloud.FileMonitor
                     throw new ArgumentException("Cannot download a file in MonitorAgent, it needs to be downloaded through Sync");
                 }
 
-                FilePath rootPath = CurrentFolderPath;
+                string rootPathString;
+                FilePath rootPath = rootPathString = CurrentFolderPath;
                 if (!toApply.NewPath.Contains(rootPath))
                 {
                     throw new ArgumentException("FileChange's NewPath does not fall within the root directory");
                 }
+
+                GenericHolder<FilePathDictionary<List<FileChange>>> upDownsHolder = new GenericHolder<FilePathDictionary<List<FileChange>>>(null);
+                Func<GenericHolder<FilePathDictionary<List<FileChange>>>, MonitorAgent, string, FilePathDictionary<List<FileChange>>> fillAndReturnUpDowns =
+                    (innerUpDownsHolder, thisAgent, innerRootPath) =>
+                        {
+                            if (innerUpDownsHolder.Value == null)
+                            {
+                                KeyValuePair<FilePathDictionary<List<FileChange>>, CLError> upDownsPair = thisAgent.GetUploadDownloadTransfersInProgress(innerRootPath);
+                                if (upDownsPair.Value != null)
+                                {
+                                    throw new AggregateException("Error in GetUploadDownloadTransfersInProgress", upDownsPair.Value.GrabExceptions());
+                                }
+                                if (upDownsPair.Key == null)
+                                {
+                                    throw new NullReferenceException("GetUploadDownloadTransfersInProgress return cannot have a null Key");
+                                }
+                                innerUpDownsHolder.Value = upDownsPair.Key;
+                            }
+                            return innerUpDownsHolder.Value;
+                        };
 
                 Action<FilePath, FilePath, object, Nullable<DateTime>, Nullable<DateTime>> recurseFolderCreationToRoot = (toCreate, root, currentAction, creationTime, lastTime) =>
                     {
@@ -601,6 +624,42 @@ namespace Cloud.FileMonitor
                         }
                     };
 
+                Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object> recurseHierarchyAndAddSyncFromsToList =
+                    (innerHierarchy, innerMatchedDowns, innerRecurseHierarchy) =>
+                    {
+                        Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object> castRecurseHierarchy =
+                            innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object>;
+
+                        if (castRecurseHierarchy == null)
+                        {
+                            MessageEvents.FireNewEventMessage(
+                                "Unable to cast innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object>",
+                                EventMessageLevel.Important,
+                                new HaltAllOfCloudSDKErrorInfo());
+                        }
+                        else
+                        {
+                            FilePathHierarchicalNodeWithValue<List<FileChange>> castHierarchy = innerHierarchy as FilePathHierarchicalNodeWithValue<List<FileChange>>;
+                            if (castHierarchy != null)
+                            {
+                                foreach (FileChange innerUpDown in (castHierarchy.Value.Value ?? Enumerable.Empty<FileChange>()))
+                                {
+                                    if (innerUpDown.Direction == SyncDirection.From)
+                                    {
+                                        innerMatchedDowns.Add(innerUpDown);
+                                    }
+                                }
+                            }
+                            if (innerHierarchy != null)
+                            {
+                                foreach (FilePathHierarchicalNode<List<FileChange>> recurseHierarchicalNode in (innerHierarchy.Children ?? Enumerable.Empty<FilePathHierarchicalNode<List<FileChange>>>()))
+                                {
+                                    castRecurseHierarchy(recurseHierarchicalNode, innerMatchedDowns, castRecurseHierarchy);
+                                }
+                            }
+                        }
+                    };
+
                 lock (AllPaths)
                 {
                     switch (toApply.Type)
@@ -609,24 +668,72 @@ namespace Cloud.FileMonitor
                             recurseFolderCreationToRoot(toApply.NewPath, rootPath, recurseFolderCreationToRoot, toApply.Metadata.HashableProperties.CreationTime, toApply.Metadata.HashableProperties.LastTime);
                             break;
                         case FileChangeType.Deleted:
-                            if (toApply.Metadata.HashableProperties.IsFolder)
+                            List<FileChange> matchedDownsForDeleted = new List<FileChange>();
+                            FilePathDictionary<List<FileChange>> upDownsForDeleted = fillAndReturnUpDowns(upDownsHolder, this, rootPathString);
+
+                            FilePathHierarchicalNode<List<FileChange>> deletedHierarchy;
+                            CLError deletedHierarchyError = upDownsForDeleted.GrabHierarchyForPath(toApply.NewPath, out deletedHierarchy, suppressException: true);
+                            if (deletedHierarchyError != null)
                             {
-                                try
+                                throw new AggregateException("Error grabbing hierarchy from upDownsForDeleted", deletedHierarchyError.GrabExceptions());
+                            }
+
+                            recurseHierarchyAndAddSyncFromsToList(deletedHierarchy, matchedDownsForDeleted, recurseHierarchyAndAddSyncFromsToList);
+
+                            foreach (FileChange matchedDown in matchedDownsForDeleted)
+                            {
+                                if (matchedDown.fileDownloadMoveLocker != null)
                                 {
-                                    Directory.Delete(toApply.NewPath.ToString(), true);
-                                }
-                                catch (DirectoryNotFoundException)
-                                {
+                                    Monitor.Enter(matchedDown.fileDownloadMoveLocker);
                                 }
                             }
-                            else
+
+                            try
                             {
-                                try
+                                bool deleteHappened;
+                                if (toApply.Metadata.HashableProperties.IsFolder)
                                 {
-                                    File.Delete(toApply.NewPath.ToString());
+
+                                    try
+                                    {
+                                        Directory.Delete(toApply.NewPath.ToString(), true);
+                                        deleteHappened = true;
+                                    }
+                                    catch (DirectoryNotFoundException)
+                                    {
+                                        deleteHappened = false;
+                                    }
                                 }
-                                catch (FileNotFoundException)
+                                else
                                 {
+                                    try
+                                    {
+                                        File.Delete(toApply.NewPath.ToString());
+                                        deleteHappened = true;
+                                    }
+                                    catch (FileNotFoundException)
+                                    {
+                                        deleteHappened = false;
+                                    }
+                                }
+
+                                if (deleteHappened)
+                                {
+                                    foreach (FileChange matchedDown in matchedDownsForDeleted)
+                                    {
+                                        matchedDown.NewPath = null; // set volatile path on this alternate thread which is checked as a way to cancel a download
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                matchedDownsForDeleted.Reverse(); // not sure if reversal is necessary, but other types of locks should be exited in reverse order
+                                foreach (FileChange matchedDown in matchedDownsForDeleted)
+                                {
+                                    if (matchedDown.fileDownloadMoveLocker != null)
+                                    {
+                                        Monitor.Exit(matchedDown.fileDownloadMoveLocker);
+                                    }
                                 }
                             }
 
@@ -635,57 +742,103 @@ namespace Cloud.FileMonitor
                         case FileChangeType.Renamed:
                             recurseFolderCreationToRoot(toApply.NewPath.Parent, rootPath, recurseFolderCreationToRoot, null, null);
 
-                            if (toApply.Metadata.HashableProperties.IsFolder)
+                            List<FileChange> matchedDownsForRenamed = new List<FileChange>();
+                            // check if move old path is outside of the cloud directory (temp download directory) in order to bypass updown checking and locking
+                            if (toApply.Metadata.HashableProperties.IsFolder
+                                || toApply.OldPath.Contains(rootPath, insensitiveNameSearch: true))
                             {
-                                Directory.Move(toApply.OldPath.ToString(), toApply.NewPath.ToString());
-                            }
-                            else
-                            {
-                                string newPathString = toApply.NewPath.ToString();
-                                string oldPathString = toApply.OldPath.ToString();
+                                FilePathDictionary<List<FileChange>> upDownsForRenamed = fillAndReturnUpDowns(upDownsHolder, this, rootPathString);
 
-                                if (File.Exists(newPathString))
+                                FilePathHierarchicalNode<List<FileChange>> renamedHierarchy;
+                                CLError renamedHierarchyError = upDownsForRenamed.GrabHierarchyForPath(toApply.OldPath, out renamedHierarchy, suppressException: true);
+                                if (renamedHierarchyError != null)
                                 {
-                                    try
-                                    {
-                                        string backupLocation = Helpers.GetTempFileDownloadPath(_syncBox.CopiedSettings, _syncBox.SyncBoxId) + "\\" + Guid.NewGuid().ToString();
-                                        File.Replace(oldPathString,
-                                            newPathString,
-                                            backupLocation,
-                                            ignoreMetadataErrors: true);
-                                        try
-                                        {
-                                            if (File.Exists(backupLocation))
-                                            {
-                                                File.Delete(backupLocation);
-                                            }
-                                        }
-                                        catch
-                                        {
-                                        }
-                                    }
-                                    // File.Replace not supported on non-NTFS drives, must use traditional move
-                                    catch (PlatformNotSupportedException)
-                                    {
-                                        if (File.Exists(newPathString))
-                                        {
-                                            File.Delete(newPathString);
-                                        }
-                                        File.Move(oldPathString, newPathString);
-                                    }
-                                    // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
-                                    catch (IOException)
-                                    {
-                                        if (File.Exists(newPathString))
-                                        {
-                                            File.Delete(newPathString);
-                                        }
-                                        File.Move(oldPathString, newPathString);
-                                    }
+                                    throw new AggregateException("Error grabbing hierarchy from upDownsForRenamed", renamedHierarchyError.GrabExceptions());
+                                }
+
+                                recurseHierarchyAndAddSyncFromsToList(renamedHierarchy, matchedDownsForRenamed, recurseHierarchyAndAddSyncFromsToList);
+                            }
+
+                            foreach (FileChange matchedDown in matchedDownsForRenamed)
+                            {
+                                if (matchedDown.fileDownloadMoveLocker != null)
+                                {
+                                    Monitor.Enter(matchedDown.fileDownloadMoveLocker);
+                                }
+                            }
+
+                            try
+                            {
+                                if (toApply.Metadata.HashableProperties.IsFolder)
+                                {
+                                    Directory.Move(toApply.OldPath.ToString(), toApply.NewPath.ToString());
                                 }
                                 else
                                 {
-                                    File.Move(oldPathString, newPathString);
+                                    string newPathString = toApply.NewPath.ToString();
+                                    string oldPathString = toApply.OldPath.ToString();
+
+                                    if (File.Exists(newPathString))
+                                    {
+                                        try
+                                        {
+                                            string backupLocation = Helpers.GetTempFileDownloadPath(_syncBox.CopiedSettings, _syncBox.SyncBoxId) + "\\" + Guid.NewGuid().ToString();
+                                            File.Replace(oldPathString,
+                                                newPathString,
+                                                backupLocation,
+                                                ignoreMetadataErrors: true);
+                                            try
+                                            {
+                                                if (File.Exists(backupLocation))
+                                                {
+                                                    File.Delete(backupLocation);
+                                                }
+                                            }
+                                            catch
+                                            {
+                                            }
+                                        }
+                                        // File.Replace not supported on non-NTFS drives, must use traditional move
+                                        catch (PlatformNotSupportedException)
+                                        {
+                                            if (File.Exists(newPathString))
+                                            {
+                                                File.Delete(newPathString);
+                                            }
+                                            File.Move(oldPathString, newPathString);
+                                        }
+                                        // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
+                                        catch (IOException)
+                                        {
+                                            if (File.Exists(newPathString))
+                                            {
+                                                File.Delete(newPathString);
+                                            }
+                                            File.Move(oldPathString, newPathString);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        File.Move(oldPathString, newPathString);
+                                    }
+                                }
+
+                                foreach (FileChange matchedDown in matchedDownsForRenamed)
+                                {
+                                    FilePath rebuiltNewPath = matchedDown.NewPath.Copy();
+                                    FilePath.ApplyRename(rebuiltNewPath, toApply.OldPath, toApply.NewPath);
+                                    matchedDown.NewPath = rebuiltNewPath;
+                                }
+                            }
+                            finally
+                            {
+                                matchedDownsForRenamed.Reverse(); // not sure if reversal is necessary, but other types of locks should be exited in reverse order
+                                foreach (FileChange matchedDown in matchedDownsForRenamed)
+                                {
+                                    if (matchedDown.fileDownloadMoveLocker != null)
+                                    {
+                                        Monitor.Exit(matchedDown.fileDownloadMoveLocker);
+                                    }
                                 }
                             }
 
@@ -963,7 +1116,10 @@ namespace Cloud.FileMonitor
                                 GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> newProcessingAction = new GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>();
                                 startProcessingActions.Add(newProcessingAction);
 
-                                QueueFileChange(new FileChange(QueuedChanges)
+                                QueueFileChange(new FileChange(QueuedChanges,
+                                    ((currentChange.Direction == SyncDirection.From && (currentChange.Type == FileChangeType.Created || currentChange.Type == FileChangeType.Modified))
+                                        ? new object()
+                                        : null))
                                     {
                                         NewPath = currentChange.NewPath,
                                         OldPath = currentChange.OldPath,
@@ -1432,7 +1588,11 @@ namespace Cloud.FileMonitor
                         }
 
                         FileChangeWithDependencies outputChange;
-                        CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(inputChange.FileChange, /* initialDependencies */ null, out outputChange);
+                        CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(
+                            inputChange.FileChange,
+                            /* initialDependencies */ null,
+                            out outputChange,
+                            fileDownloadMoveLocker: inputChange.FileChange.fileDownloadMoveLocker);
                         if (conversionError != null)
                         {
                             throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
@@ -1540,9 +1700,11 @@ namespace Cloud.FileMonitor
                         Func<KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>, FileChangeWithDependencies> convertChange = toConvert =>
                             {
                                 FileChangeWithDependencies converted;
-                                CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(toConvert.Value.Value,
+                                CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(
+                                    toConvert.Value.Value,
                                     ((toConvert.Value.Value is FileChangeWithDependencies) ? ((FileChangeWithDependencies)toConvert.Value.Value).Dependencies : null),
-                                    out converted);
+                                    out converted,
+                                    fileDownloadMoveLocker: toConvert.Value.Value.fileDownloadMoveLocker);
                                 if (conversionError != null)
                                 {
                                     throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
@@ -1854,6 +2016,7 @@ namespace Cloud.FileMonitor
                 ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
                     {
                         FileChangeWithDependencies selectedWithoutDependencies;
+                        // don't need to set optional parameter (fileDownloadMoveLocker: removeDependencies.fileDownloadMoveLocker) because the returned changes are only used for logging
                         CLError createSelectedError = FileChangeWithDependencies.CreateAndInitialize(removeDependencies, /* initialDependencies */ null, out selectedWithoutDependencies);
                         if (createSelectedError != null)
                         {
@@ -3604,6 +3767,42 @@ namespace Cloud.FileMonitor
                     mergeAll.Add(sender);
                 }
 
+                Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object> recurseHierarchyAndAddSyncFromsToList =
+                    (innerHierarchy, innerMatchedDowns, innerRecurseHierarchy) =>
+                    {
+                        Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object> castRecurseHierarchy =
+                            innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object>;
+
+                        if (castRecurseHierarchy == null)
+                        {
+                            MessageEvents.FireNewEventMessage(
+                                "Unable to cast innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object>",
+                                EventMessageLevel.Important,
+                                new HaltAllOfCloudSDKErrorInfo());
+                        }
+                        else
+                        {
+                            FilePathHierarchicalNodeWithValue<List<FileChange>> castHierarchy = innerHierarchy as FilePathHierarchicalNodeWithValue<List<FileChange>>;
+                            if (castHierarchy != null)
+                            {
+                                foreach (FileChange innerUpDown in (castHierarchy.Value.Value ?? Enumerable.Empty<FileChange>()))
+                                {
+                                    if (innerUpDown.Direction == SyncDirection.From)
+                                    {
+                                        innerMatchedDowns.Add(innerUpDown);
+                                    }
+                                }
+                            }
+                            if (innerHierarchy != null)
+                            {
+                                foreach (FilePathHierarchicalNode<List<FileChange>> recurseHierarchicalNode in (innerHierarchy.Children ?? Enumerable.Empty<FilePathHierarchicalNode<List<FileChange>>>()))
+                                {
+                                    castRecurseHierarchy(recurseHierarchicalNode, innerMatchedDowns, castRecurseHierarchy);
+                                }
+                            }
+                        }
+                    };
+
                 do
                 {
                     lock (NeedsMergeToSql)
@@ -3622,6 +3821,78 @@ namespace Cloud.FileMonitor
                                 mergeAll.Add(nextMerge);
                             }
                         }
+                    }
+
+                    KeyValuePair<FilePathDictionary<List<FileChange>>, CLError> upDownsWrapped = GetUploadDownloadTransfersInProgress(CurrentFolderPath);
+                    if (upDownsWrapped.Value == null
+                        && upDownsWrapped.Key != null)
+                    {
+                        FilePathDictionary<List<FileChange>> upDowns = upDownsWrapped.Key;
+
+                        foreach (FileChange currentMerge in mergeBatch)
+                        {
+                            if (currentMerge.Direction == SyncDirection.To
+                                && (currentMerge.Type == FileChangeType.Deleted
+                                    || currentMerge.Type == FileChangeType.Renamed))
+                            {
+                                List<FileChange> matchedToCurrentMerge = new List<FileChange>();
+
+                                FilePathHierarchicalNode<List<FileChange>> matchedHierarchy;
+                                CLError matchedHierarchyError = upDowns.GrabHierarchyForPath(
+                                    (currentMerge.Type == FileChangeType.Deleted
+                                        ? currentMerge.NewPath
+                                        : /* currentMerge.Type == FileChangeType.Renamed */ currentMerge.OldPath),
+                                    out matchedHierarchy,
+                                    suppressException: true);
+                                if (matchedHierarchyError == null)
+                                {
+                                    recurseHierarchyAndAddSyncFromsToList(matchedHierarchy, matchedToCurrentMerge, recurseHierarchyAndAddSyncFromsToList);
+
+                                    foreach (FileChange currentMatchedDownload in matchedToCurrentMerge)
+                                    {
+                                        if (currentMatchedDownload.fileDownloadMoveLocker != null)
+                                        {
+                                            Monitor.Enter(currentMatchedDownload.fileDownloadMoveLocker);
+                                        }
+
+                                        try
+                                        {
+                                            if (currentMerge.Type == FileChangeType.Renamed)
+                                            {
+                                                FilePath rebuiltNewPath = currentMatchedDownload.NewPath.Copy();
+                                                FilePath.ApplyRename(rebuiltNewPath, currentMerge.OldPath, currentMerge.NewPath);
+                                                currentMatchedDownload.NewPath = rebuiltNewPath;
+                                            }
+                                            else /* currentMerge.Type == FileChangeType.Deleted */
+                                            {
+                                                currentMatchedDownload.NewPath = null; // will trigger donwload to stop and not to copy to the final location
+                                            }
+                                        }
+                                        catch
+                                        {
+                                        }
+                                        finally
+                                        {
+                                            Monitor.Enter(currentMatchedDownload.fileDownloadMoveLocker);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    MessageEvents.FireNewEventMessage(
+                                        "Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database: " + matchedHierarchyError.errorDescription,
+                                        EventMessageLevel.Important,
+                                        new GeneralErrorInfo());
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        MessageEvents.FireNewEventMessage(
+                            "An error occurred checking against uploads or downloads in progress before merging new events into the database: " + (upDownsWrapped.Value == null ? "{null}" : upDownsWrapped.Value.errorDescription),
+                            EventMessageLevel.Important,
+                            new GeneralErrorInfo());
                     }
 
                     CLError mergeError = Indexer.MergeEventsIntoDatabase(mergeBatch.Select(currentMerge => new FileChangeMerge(currentMerge, null)));
