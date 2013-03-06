@@ -49,7 +49,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Cloud, Version=0.1.6.1, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-      <SpecificVersion>True</SpecificVersion>
+      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="RateBar.CSDK, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\RateBar.CSDK.dll</HintPath>

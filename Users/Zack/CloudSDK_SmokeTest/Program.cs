@@ -5,6 +5,7 @@ using CloudSDK_SmokeTest.Managers;
 using CloudSDK_SmokeTest.Settings;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,6 +19,7 @@ namespace CloudSDK_SmokeTest
         #region Constants
         //TODO: Pull this from the XSD
         public const string SettingsPath = "C:\\Cloud\\windows-client\\Users\\Zack\\CloudSDK_SmokeTest\\Settings\\Settings.xml";
+        public const string ReportPath = "C:\\Cloud";
         private static Dictionary<int, StringBuilder> staticBuilderList = new Dictionary<int, StringBuilder>();
         #endregion
 
@@ -80,7 +82,6 @@ namespace CloudSDK_SmokeTest
                     Console.WriteLine("Xml Data Initialized From Schema...");
                     Console.WriteLine();
                     InputParams.PrintDefaultValues(smokeTestClass.InputParams);
-
                     foreach (ParallelTaskSet parallelSet in smokeTestClass.Scenario.Items)
                     {
                         StringBuilder _report = new StringBuilder();
@@ -92,8 +93,11 @@ namespace CloudSDK_SmokeTest
                             RunInnerTasks(smokeTestClass, currentTask, e);
                             for (int x = 0; x < e.StringBuilderList.Count; x++)
                             {
+                                ReportBuilder.AppendLine(e.StringBuilderList[x].ToString());
                                 Console.WriteLine(e.StringBuilderList[x].ToString());
                             }
+                            
+                            StreamReader file =  
 
                         }
                         //System.Threading.Tasks.Parallel.ForEach(

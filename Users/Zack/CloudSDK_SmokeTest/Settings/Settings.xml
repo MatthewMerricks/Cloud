@@ -374,6 +374,7 @@
     
     <!-- End Task For Testing Host 1 Folder Rename While Host 2 is Mid Sync-->
     
+    <!-- Full One Off Testing -->
     <!--<ScenarioTasks>
       <SmokeTask xsi:type="Deletion">
         <type>Deletion</type>
@@ -642,6 +643,8 @@
         <ShouldWait>true</ShouldWait>
       </SmokeTask>
     </ScenarioTasks>-->
+    
+    <!-- Full One off end -->
     
     <!--<SmokeTask xsi:type="LoginRegister">
         <type>LoginRegister</type>
