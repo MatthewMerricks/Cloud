@@ -2649,8 +2649,8 @@ namespace Cloud.SQLIndexer
                                     ServerId = existingFileMetadata.ServerId,
                                     HashableProperties = compareProperties,
                                     LinkTargetPath = existingFileMetadata.LinkTargetPath, //Todo: needs to check again for new target path
-                                    Revision = existingFileMetadata.Revision,
-                                    StorageKey = existingFileMetadata.StorageKey
+                                    Revision = existingFileMetadata.Revision/*,
+                                    StorageKey = existingFileMetadata.StorageKey*/ // DO NOT copy StorageKey because this metadata is for a modified change which would therefore require a new StorageKey
                                 };
 
                             changeList.Add(new FileChange()
