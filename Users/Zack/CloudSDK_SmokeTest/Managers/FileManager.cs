@@ -567,14 +567,14 @@ namespace CloudSDK_SmokeTest.Managers
             }
             catch (Exception exception)
             {
-                string accessExceptionPre = "Access to the path";
-                string accessExceptionPost = "is denied";
-                if (exception.Message.Contains(accessExceptionPre) && exception.Message.Contains(accessExceptionPost) && _ExceptionCounter < 100)
-                {
-                    _ExceptionCounter++;
-                    ExecuteAutoRenameFolder(e, renameTask);
-                }
-                else
+                //string accessExceptionPre = "Access to the path";
+                //string accessExceptionPost = "is denied";
+                //if (exception.Message.Contains(accessExceptionPre) && exception.Message.Contains(accessExceptionPost) && _ExceptionCounter < 100)
+                //{
+                //    _ExceptionCounter++;
+                //    ExecuteAutoRenameFolder(e, renameTask);
+                //}
+                //else
                 {
                     lock (e.ProcessingErrorHolder)
                     {

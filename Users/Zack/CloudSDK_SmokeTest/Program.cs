@@ -97,8 +97,6 @@ namespace CloudSDK_SmokeTest
                                 Console.WriteLine(e.StringBuilderList[x].ToString());
                             }
                             
-                            StreamReader file =  
-
                         }
                         //System.Threading.Tasks.Parallel.ForEach(
                         //    parallelSet.Items,
