@@ -57,12 +57,12 @@ cd $(SolutionDir)
 
 set ErrorTracker=1
 for /f "delims=|" %25%25a in ('dir /s /b *.pfx') do (
-  IF EXIST %25%25~fa (
-    echo del %25%25~fa
-    del %25%25~fa
+  IF EXIST "%25%25~fa" (
+    echo "del %25%25~fa"
+    del "%25%25~fa"
     if errorlevel 1 goto BuildEventFailed
   ) ELSE (
-    echo %25%25~fa is missing.
+    echo "%25%25~fa" is missing.
     BuildEventFailed
   )
 )  
