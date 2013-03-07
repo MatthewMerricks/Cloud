@@ -1781,26 +1781,27 @@ namespace SampleLiveSync.ViewModels
             try
             {
                 // Start Explorer
-                string explorerLocation = String.Empty;
-                explorerLocation = "\"" + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe") + "\"";
+                string explorerLocation = "\" start " + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe") + "\"";
+                string commandLocation = Environment.SystemDirectory + "\\cmd.exe";
 
                 // Start explorer as a medium integrity process for Vista and above.
                 // Note: For Windows 8, the Metro mode will be disabled if Explorer is started with Administrator privileges.  That could
                 // happen if this app is started to "runas" Administrator.
                 if (System.Environment.OSVersion.Version.Major >= 6)
                 {
-                    _trace.writeToLog(9, "MainViewModel: StartExplorer: Create medium integrity process. Explorer location: <{0}>.", explorerLocation);
-                    SampleLiveSync.Static.Helpers.CreateMediumIntegrityProcess(explorerLocation, NativeMethod.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
+                    string commandLine = "\"" + commandLocation + "\" /c " + explorerLocation;
+                    _trace.writeToLog(9, "MainViewModel: StartExplorer: Create medium integrity process. Command line: <{0}>.", commandLine);
+                    SampleLiveSync.Static.Helpers.CreateMediumIntegrityProcess(commandLine, NativeMethod.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
                 }
                 else
                 {
-                    _trace.writeToLog(9, "MainViewModel: StartExplorer: Create normal process. Explorer location: <{0}>.", explorerLocation);
+                    _trace.writeToLog(9, "MainViewModel: StartExplorer: Create normal process. Explorer location: <{0}>. Cmd location: <{1}.", explorerLocation, commandLocation);
                     ProcessStartInfo taskStartInfo = new ProcessStartInfo();
                     taskStartInfo.CreateNoWindow = true;
                     taskStartInfo.UseShellExecute = true;
-                    taskStartInfo.FileName = explorerLocation;
+                    taskStartInfo.FileName = commandLocation;
                     taskStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                    taskStartInfo.Arguments = String.Empty;
+                    taskStartInfo.Arguments = explorerLocation;
                     _trace.writeToLog(9, "MainViewModel: StartExplorer: Start explorer.");
                     Process.Start(taskStartInfo);
                 }
