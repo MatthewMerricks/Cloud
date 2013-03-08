@@ -64,9 +64,7 @@ namespace CloudSDK_SmokeTest.Managers
                 return (int)FileManagerResponseCodes.InitializeSynBoxError;
             }
             return initResponse;
-        }
-
-        
+        }        
 
         public static bool CompareActiveToActive(SmokeTestManagerEventArgs e, DirectoryInfo activeFolder, ref StringBuilder report)
         {
@@ -291,7 +289,7 @@ namespace CloudSDK_SmokeTest.Managers
             int response = ItemsListHelper.GetSyncBoxCount(e, out initialCount);
             if (createTask != null && createTask.CreateNew == true)
             {
-                newBuilder.AppendLine("Preapring to create new SyncBoxs.");
+                newBuilder.AppendLine("Preapring to create new Sync Boxes.");
                 int iterations = 1;
                 if (createTask.Count > 0)
                     iterations = createTask.Count;
@@ -382,6 +380,8 @@ namespace CloudSDK_SmokeTest.Managers
         #region Private Rename
         private static int RenameSyncBox(SmokeTestManagerEventArgs eventArgs)
         {
+            StringBuilder reportBuilder = new StringBuilder();
+            string oldName = string.Empty;
             Rename renameTask = eventArgs.CurrentTask as Rename;
             if (renameTask == null)
                 return (int)FileManagerResponseCodes.InvalidTaskType;
@@ -405,6 +405,11 @@ namespace CloudSDK_SmokeTest.Managers
             {
                 ManualSyncManager.HandleFailure(updateBoxError, restStatus, null, "SyncBoxManger.RunSyncBoxRename - Update Box Failure", ref refHolder);
                 return (int)FileManagerResponseCodes.UnknownError;
+            }
+            else
+            {
+                reportBuilder.AppendLine(string.Format("Successfully Renamed SyncBox ID: {0}", eventArgs.SyncBox.SyncBoxId.ToString()));
+                reportBuilder.AppendLine(string.Format("New Name: {0}", renameTask.NewName));
             }
             return 0;
         }
@@ -665,6 +670,12 @@ namespace CloudSDK_SmokeTest.Managers
         }
         #endregion 
 
+        
+        public int AlternativeAction(SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         #region Compare 
         public static int CompareSyncBoxFolders(SmokeTestManagerEventArgs e)
         {
@@ -889,5 +900,7 @@ namespace CloudSDK_SmokeTest.Managers
             report.AppendLine();
         }
         #endregion
+
+
     }
 }

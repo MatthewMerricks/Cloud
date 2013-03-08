@@ -123,6 +123,16 @@ namespace Cloud.Interfaces
         CLError applySyncFromChange(FileChange toApply);
 
         /// <summary>
+        /// Callback from SyncEngine to perform the action of a FileChange locally (i.e. for a Sync From Folder Creation, actually create the folder on disk);
+        /// May include moving a downloaded file from a temporary download path (outside the root directoy) to somewhere within the root directory;
+        /// Make sure to create parent folders as needed to handle the current change;
+        /// Do not return resulting events back on subsequent calls to grabChangesFromFileSystemMonitor
+        /// </summary>
+        /// <param name="toApply">FileChange to perform</param>
+        /// <returns>Should return any error that occurred while performing the FileChange</returns>
+        CLError applySyncFromChange<T>(FileChange toApply, Action<T> onAllPathsLock, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths);
+
+        /// <summary>
         /// Callback from SyncEngine to complete a single FileChange as of the last sync (used for asynchronously completed operations file upload and file download)
         /// </summary>
         /// <param name="toApply">Id of a single FileChange to mark complete</param>

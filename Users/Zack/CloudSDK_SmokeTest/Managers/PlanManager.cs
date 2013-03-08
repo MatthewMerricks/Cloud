@@ -141,6 +141,11 @@ namespace CloudSDK_SmokeTest.Managers
             e.StringBuilderList.Add(new StringBuilder(newBuilder.ToString()));
             return getListResponseCode;
         }
+        public int AlternativeAction(SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion 
 
         #region Private

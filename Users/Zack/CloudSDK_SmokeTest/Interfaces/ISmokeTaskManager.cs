@@ -14,5 +14,6 @@ namespace CloudSDK_SmokeTest.Interfaces
         int UnDelete(SmokeTestManagerEventArgs e);
         int Download(SmokeTestManagerEventArgs e);
         int ListItems(SmokeTestManagerEventArgs e);
+        int AlternativeAction(SmokeTestManagerEventArgs e);
     }
 }

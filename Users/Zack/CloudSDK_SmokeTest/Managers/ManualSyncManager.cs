@@ -150,7 +150,7 @@ namespace CloudSDK_SmokeTest.Managers
         //    return createResponseCode;
         //}      
 
-        public FileChange CreateFileChangeWithNewName(FileChange oldFileChange)
+        public FileChange CreateFileChangeWithNewName(FileChange oldFileChange, bool isLarge)
         {   
             FileChange fileChange = new FileChange();
             bool isDuplicate = true;
@@ -193,7 +193,7 @@ namespace CloudSDK_SmokeTest.Managers
                         if (!File.Exists(newFullPath))
                         {
                             byte[] md5 = null;
-                            CreateReplaceFileAndCreateFileChangeObject(newFileName, oldFileChange, ref md5, ref fileChange);
+                            CreateReplaceFileAndCreateFileChangeObject(newFileName, isLarge, oldFileChange, ref md5, ref fileChange);
                             fileChange.SetMD5(md5);
                             isDuplicate = false;
                         }
@@ -208,7 +208,7 @@ namespace CloudSDK_SmokeTest.Managers
                     if (!File.Exists(newFullPath))
                     {
                         byte[] md5 = null;
-                        CreateReplaceFileAndCreateFileChangeObject(newFileName, oldFileChange, ref md5, ref fileChange);
+                        CreateReplaceFileAndCreateFileChangeObject(newFileName, isLarge, oldFileChange, ref md5, ref fileChange);
                         isDuplicate = false;
                     }
                 }
@@ -216,12 +216,12 @@ namespace CloudSDK_SmokeTest.Managers
             return fileChange;
         }
 
-        private void CreateReplaceFileAndCreateFileChangeObject(string newFileName, FileChange oldFileChange, ref byte[] md5, ref FileChange fileChange)
+        private void CreateReplaceFileAndCreateFileChangeObject(string newFileName, bool isLarge, FileChange oldFileChange, ref byte[] md5, ref FileChange fileChange)
         {
             try
             {
                 string fullPath = oldFileChange.NewPath.Parent.ToString() + '\\' + newFileName;
-                FileHelper.WriteFile(oldFileChange.NewPath.Parent.ToString(), newFileName);
+                FileHelper.WriteFile(oldFileChange.NewPath.Parent.ToString(), newFileName, isLarge);
                 md5 = FileHelper.CreateFileChangeObject(fullPath, FileChangeType.Created, true, null, null, string.Empty, out fileChange);
                 fileChange.SetMD5(md5);
             }

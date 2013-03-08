@@ -162,10 +162,15 @@ namespace CloudSDK_SmokeTest.Settings {
         Plan,
         
         /// <remarks/>
+        Account,
+        
+        /// <remarks/>
         None,
     }
     
     /// <remarks/>
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(Prompt))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(LoginRegister))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(Comparison))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(ListItems))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(HttpTest))]
@@ -300,6 +305,12 @@ namespace CloudSDK_SmokeTest.Settings {
         
         /// <remarks/>
         Comparison,
+        
+        /// <remarks/>
+        LoginRegister,
+        
+        /// <remarks/>
+        Prompt,
     }
     
     /// <remarks/>
@@ -313,6 +324,199 @@ namespace CloudSDK_SmokeTest.Settings {
         
         /// <remarks/>
         Manual,
+        
+        /// <remarks/>
+        Account,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class Prompt : SmokeTask {
+        
+        private string messageField;
+        
+        /// <remarks/>
+        public string Message {
+            get {
+                return this.messageField;
+            }
+            set {
+                this.messageField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public partial class LoginRegister : SmokeTask {
+        
+        private string usernameField;
+        
+        private string passwordField;
+        
+        private LoginRegisterActionType actionTypeField;
+        
+        private string emailField;
+        
+        private string firstNameField;
+        
+        private string lastNameField;
+        
+        private string address1Field;
+        
+        private string address2Field;
+        
+        private string cityField;
+        
+        private string stateField;
+        
+        private string postalCodeField;
+        
+        private string phoneField;
+        
+        /// <remarks/>
+        public string Username {
+            get {
+                return this.usernameField;
+            }
+            set {
+                this.usernameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string Password {
+            get {
+                return this.passwordField;
+            }
+            set {
+                this.passwordField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public LoginRegisterActionType ActionType {
+            get {
+                return this.actionTypeField;
+            }
+            set {
+                this.actionTypeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string Email {
+            get {
+                return this.emailField;
+            }
+            set {
+                this.emailField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string FirstName {
+            get {
+                return this.firstNameField;
+            }
+            set {
+                this.firstNameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string LastName {
+            get {
+                return this.lastNameField;
+            }
+            set {
+                this.lastNameField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string Address1 {
+            get {
+                return this.address1Field;
+            }
+            set {
+                this.address1Field = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string Address2 {
+            get {
+                return this.address2Field;
+            }
+            set {
+                this.address2Field = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string City {
+            get {
+                return this.cityField;
+            }
+            set {
+                this.cityField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string State {
+            get {
+                return this.stateField;
+            }
+            set {
+                this.stateField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string PostalCode {
+            get {
+                return this.postalCodeField;
+            }
+            set {
+                this.postalCodeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        public string Phone {
+            get {
+                return this.phoneField;
+            }
+            set {
+                this.phoneField = value;
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://www.cloud.com/InputParameters.xsd")]
+    public enum LoginRegisterActionType {
+        
+        /// <remarks/>
+        Login,
+        
+        /// <remarks/>
+        Register,
+        
+        /// <remarks/>
+        ForgotPassword,
     }
     
     /// <remarks/>
@@ -844,6 +1048,10 @@ namespace CloudSDK_SmokeTest.Settings {
         
         private bool actInTwoFoldersFieldSpecified;
         
+        private bool isLargeField;
+        
+        private bool isLargeFieldSpecified;
+        
         /// <remarks/>
         public string Name {
             get {
@@ -913,6 +1121,27 @@ namespace CloudSDK_SmokeTest.Settings {
             }
             set {
                 this.actInTwoFoldersFieldSpecified = value;
+            }
+        }
+        
+        /// <remarks/>
+        public bool IsLarge {
+            get {
+                return this.isLargeField;
+            }
+            set {
+                this.isLargeField = value;
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool IsLargeSpecified {
+            get {
+                return this.isLargeFieldSpecified;
+            }
+            set {
+                this.isLargeFieldSpecified = value;
             }
         }
     }

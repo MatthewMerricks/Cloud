@@ -38,8 +38,6 @@ namespace CloudSDK_SmokeTest.Managers
 
             CLSyncBox syncBox;
             CLSyncBoxCreationStatus boxCreateStatus;
-            CLHttpRestStatus restStatus = CLHttpRestStatus.BadRequest;
-
             long syncBoxId = SmokeTaskManager.GetOpperationSyncBoxID(e);
             CLError error = Cloud.CLSyncBox.CreateAndInitialize(e.Creds,
                                                             syncBoxId,
@@ -51,7 +49,7 @@ namespace CloudSDK_SmokeTest.Managers
             {
                 ExceptionManagerEventArgs failArgs = new ExceptionManagerEventArgs()
                 {
-                    RestStatus = restStatus,
+                    SyncBoxCreateStatus = boxCreateStatus,
                     OpperationName = "DownloadManager.InitiateDownloadAll",
                     Error = error,
                     ProcessingErrorHolder = e.ProcessingErrorHolder,
@@ -72,7 +70,7 @@ namespace CloudSDK_SmokeTest.Managers
         {
             int responseCode = 0;
             CLHttpRestStatus restStatus;
-            Cloud.JsonContracts.FolderContents folderContents = new Cloud.JsonContracts.FolderContents();
+            Cloud.JsonContracts.FolderContents folderContents;
             CLError getAllContentError = syncBox.GetFolderContents(ManagerConstants.TimeOutMilliseconds, out restStatus, out folderContents, includeCount: false, contentsRoot: null, depthLimit: 9, includeDeleted: false);
             if (restStatus != CLHttpRestStatus.Success || getAllContentError != null)
             {
@@ -139,23 +137,29 @@ namespace CloudSDK_SmokeTest.Managers
         private void AfterDownloadCallback(string inputString, FileChange fileChange, ref string refString, object state, Guid id)
         {
             _callbackCounter++;
+            List<Exception> exList = new List<Exception>();
             if (string.IsNullOrEmpty(inputString) || !File.Exists(inputString))
             {
-                ReturnException("The local file can not be reached");
-                return;
+                exList.Add(ExceptionManager.ReturnException("DownloadManager.AfterDownloadCallback", "The local file can not be reached"));
             }
             
             string rootString = RootDirectory.ToString().Replace(RootDirectory.Name + '\\', RootDirectory.Name);
             string destination = rootString + fileChange.NewPath.GetRelativePath(RootDirectory, false);
             if (File.Exists(destination))
             {
-                ReturnException("There is already a File at the File Path returned from download response");
-                return;
+                exList.Add(ExceptionManager.ReturnException("DownloadManager.AfterDownloadCallback", "There is already a File at the File Path returned from download response"));
             }
-            TryFileMove(inputString, destination);
+            Exception moveException = TryFileMove(inputString, destination);
+            if (moveException != null)
+                exList.Add(moveException);
+            lock (ProcessingErrorHolder)
+            {
+                foreach (Exception ex in exList)
+                    ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
+            }
         }
 
-        private void TryFileMove(string inputString, string destination)
+        private Exception TryFileMove(string inputString, string destination)
         {
             try
             {
@@ -163,17 +167,9 @@ namespace CloudSDK_SmokeTest.Managers
             }
             catch (Exception ex)
             {
-                ReturnException(ex.Message);
+                return ex;
             }
-        }
-
-        private void ReturnException(string message)
-        {
-            Exception ex = new Exception(message);
-            lock (ProcessingErrorHolder)
-            {
-                ProcessingErrorHolder.Value = ProcessingErrorHolder.Value + ex;
-            }
+            return null;
         }
         #endregion 
 
@@ -224,6 +220,11 @@ namespace CloudSDK_SmokeTest.Managers
         }  
 
         public int ListItems(Events.ManagerEventArgs.SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int AlternativeAction(SmokeTestManagerEventArgs e)
         {
             throw new NotImplementedException();
         }

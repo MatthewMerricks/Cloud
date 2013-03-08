@@ -281,7 +281,8 @@ namespace Cloud.Sync
             qsRestrictions = new NativeMethods.WSAQUERYSET();
             qsRestrictions.dwSize = Marshal.SizeOf(typeof(NativeMethods.WSAQUERYSET));
             qsRestrictions.dwNameSpace = NativeMethods.NAMESPACE_PROVIDER_PTYPE.NS_NLA;
-            dwControlFlags = 0x0FF0; //LUP_RETURN_ALL;
+            dwControlFlags = 0x0200; //LUP_RETURN_BLOB
+                //0x0FF0; //LUP_RETURN_ALL;
 
             int result = NativeMethods.WSALookupServiceBegin(
                 qsRestrictions,

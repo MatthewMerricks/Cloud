@@ -18,6 +18,8 @@ namespace CloudSDK_SmokeTest.Managers
 {
     public class FileManager : ISmokeTaskManager
     {
+        private int _ExceptionCounter = 0;
+
         #region Public Static 
         public static string TrimTrailingSlash(string path)
         {
@@ -37,12 +39,9 @@ namespace CloudSDK_SmokeTest.Managers
         public int Create(SmokeTestManagerEventArgs e)
         {
             CLSyncBox syncBox;
-            ICLCredentialSettings settings;
-            CLError error = null;
             TaskEventArgs refArgs = (e as TaskEventArgs);
-            CredentialHelper.InitializeCreds(ref refArgs, out settings, out error);  
-            int response = SyncBoxManager.InitilizeSyncBox(e, null, out syncBox);
-            if (response == 0)
+            syncBox = SyncBoxManager.InitializeCredentialsAndSyncBox(e);
+            if (syncBox.SyncBoxId != 0)
             {
                 e.SyncBox = syncBox;
                 return BeginCreate(e);
@@ -62,9 +61,16 @@ namespace CloudSDK_SmokeTest.Managers
             if (createTask.Count > 0)
                 iterations = createTask.Count;
 
-            bool isFile = ApplyFileOrDirectoryInfo(createTask, eventArgs);     
+            //First figure out if we are opperating on a file or a folder 
+            bool isFile = ApplyFileOrDirectoryInfo(createTask, eventArgs);
+            //For each of the times specified from the SmokeTask 
             for (int x = 0; x < iterations; x++)
             {
+                //If reposne code for any of the files was not successful ... break the opperation
+                if (createResponseCode > 0)
+                    return createResponseCode;
+                //If thius is not the first iteration make sure to incrtement the file/flder name so we dont get a same name error 
+                //once the name is incremented return a new FileFolderInfo object with the new path 
                 if (x > 0)
                 {
                     string path = IncrementNameReturnPath(isFile, x, eventArgs);
@@ -73,23 +79,28 @@ namespace CloudSDK_SmokeTest.Managers
                     else
                         eventArgs.DirectoryInfo = new DirectoryInfo(path);
                 }
-                if (createResponseCode == 0)
+                //If the create type is manual, we have to pass this call to the REST call that will attempt to see
+                //If this file exists in the syncBox already
+                if (createTask.SyncType == SmokeTaskSyncType.Manual)
+                    createResponseCode = PostCreate(eventArgs, isFile);
+                else // If Create Type is Active, we will just make the change, and record the results 
                 {
-                    if(createTask.SyncType == SmokeTaskSyncType.Manual)
-                        createResponseCode = PostCreate(eventArgs, isFile);
-                    else // If its not Manual, we must default to active 
+                    // If the task is to create to files or folders at the same time
+                    if (createTask.ActInTwoFoldersSpecified && createTask.ActInTwoFolders)
                     {
-                        if (createTask.ActInTwoFoldersSpecified && createTask.ActInTwoFolders)
+                        // then we need to copy the Task, and change the copy's destination name 
+                        createTask.SpecifiedFolder = FolderToUse.Active;
+                        List<Creation> creationItemsList = GetCreationList(createTask);
+                        // then run both tasks in paralell 
+                        System.Threading.Tasks.Parallel.ForEach(creationItemsList, createItem =>
                         {
-                            createTask.SpecifiedFolder = FolderToUse.Active;
-                            List<Creation> creationItemsList = GetCreationList(createTask);
-                            System.Threading.Tasks.Parallel.ForEach(creationItemsList, createItem =>
-                                {
-                                    BeginAutoCreate(eventArgs, x, isFile, createItem);
-                                });
-                        }
-                        else
-                            BeginAutoCreate(eventArgs, x, isFile, createTask);
+                            BeginAutoCreate(eventArgs, x, isFile, createItem);
+                        });
+                    }
+                    else
+                    {
+                        BeginAutoCreate(eventArgs, x, isFile, createTask);
+
                     }
                 }
             }
@@ -106,25 +117,35 @@ namespace CloudSDK_SmokeTest.Managers
             return creationList;
         }
 
-        private int BeginAutoCreate(SmokeTestManagerEventArgs eventArgs, int iteration, bool isFile, Creation thisTask)
+        private int BeginAutoCreate(SmokeTestManagerEventArgs e, int iteration, bool isFile, Creation thisTask)
         {
-            Creation createTask = eventArgs.CurrentTask as Creation;
-            string newPath = IncrementNameReturnPath(isFile, iteration, eventArgs);
-            string original = eventArgs.ParamSet.ManualSync_Folder.Replace("\"", "");
-            string activePath = string.Empty;
-            if (thisTask.SpecifiedFolder== FolderToUse.None || thisTask.SpecifiedFolder == FolderToUse.Active)
-                activePath = eventArgs.ParamSet.ActiveSync_Folder.Replace("\"", "");
-            else
-                activePath = eventArgs.ParamSet.ActiveSync_Folder2.Replace("\"", "");
 
-            string filePath = newPath.Replace(original, activePath);
-            FileInfo info = new FileInfo(filePath);
-            List<FileChange> folderChanges = new List<FileChange>();
-            bool success = FileHelper.WriteFile(info, ref folderChanges);
-            if (!success)
-                return (int)FileManagerResponseCodes.UnknownError;
+            int responseCode = 0;
+            Creation createTask = e.CurrentTask as Creation;
+
+            string activePath = string.Empty;
+            if (isFile)
+                activePath = e.FileInfo.FullName;
             else
-                return 0;
+                activePath = e.DirectoryInfo.FullName;
+
+            if (thisTask.ActInTwoFoldersSpecified && thisTask.ActInTwoFolders && thisTask.SpecifiedFolder == FolderToUse.Active2)
+                activePath.Replace(e.ParamSet.ActiveSync_Folder.Replace("\"", ""), e.ParamSet.ActiveSync_Folder2.Replace("\"", ""));
+
+            if (isFile)
+            {
+                FileInfo info = new FileInfo(activePath);
+                List<FileChange> folderChanges = new List<FileChange>();
+                responseCode = FileHelper.WriteFile(info, thisTask.IsLarge, ref folderChanges) == true ? 0: (int)FileManagerResponseCodes.UnknownError;
+            }
+            else
+            {
+                DirectoryInfo dInfo = null;
+                if (!Directory.Exists(activePath))
+                   dInfo = Directory.CreateDirectory(activePath);
+                responseCode = dInfo.Exists ? 0 : (int)FileManagerResponseCodes.UnknownError;
+            }
+            return responseCode;
         }
 
         private int PostCreate(SmokeTestManagerEventArgs eventArgs, bool isFile)
@@ -137,20 +158,15 @@ namespace CloudSDK_SmokeTest.Managers
             CLHttpRestStatus restStatus = eventArgs.RestStatus;
 
             CLError postFolderError;
+            //If we created subfolders for the new fiels to exist in, we should post those first 
             foreach (FileChange folder in folderChanges)
             {
                 postFolderError = eventArgs.SyncBox.HttpRestClient.PostFileChange(folder, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
-
-                if (postFolderError != null)
-                {
-                    lock (eventArgs.ProcessingErrorHolder)
-                    {
-                        foreach(Exception exception in postFolderError.GrabExceptions())
-                            eventArgs.ProcessingErrorHolder.Value = eventArgs.ProcessingErrorHolder.Value + exception;
-                    }
-                }
+                 if (postFolderError != null)
+                    HandleExceptions(eventArgs, postFolderError);
             }
             
+            // then post the actual file we are tyring to create on the server 
             CLError postFileError = eventArgs.SyncBox.HttpRestClient.PostFileChange(fileChange, ManagerConstants.TimeOutMilliseconds, out restStatus, out returnEvent);
             if (postFileError != null || restStatus != CLHttpRestStatus.Success)
             {
@@ -231,16 +247,19 @@ namespace CloudSDK_SmokeTest.Managers
         private bool ApplyFileOrDirectoryInfo(Creation createTask, SmokeTestManagerEventArgs eventArgs)
         {
             bool isFile = false;
+            string fullPath = string.Empty;
+            FileHelper.CreateFilePathString(eventArgs, createTask, out fullPath);
             if (eventArgs.CurrentTask.ObjectType.type == ModificationObjectType.File && eventArgs.FileInfo == null)
-            { 
-                string fullPath = string.Empty;
-                FileHelper.CreateFilePathString(createTask, out fullPath);
+            {           
                 eventArgs.FileInfo = new FileInfo(fullPath);
                 isFile = true;
             }
             else if (eventArgs.CurrentTask.ObjectType.type == ModificationObjectType.Folder && eventArgs.DirectoryInfo == null)
             {
-                eventArgs.DirectoryInfo = new DirectoryInfo(createTask.Path);
+                if (createTask.Path.Count() > 0 && fullPath.Contains("C:\\"))
+                    eventArgs.DirectoryInfo = new DirectoryInfo(fullPath);
+                else
+                    eventArgs.DirectoryInfo = new DirectoryInfo(eventArgs.RootDirectory + createTask.Path + createTask.Name);
             }
             return isFile;
         }
@@ -272,24 +291,24 @@ namespace CloudSDK_SmokeTest.Managers
         #region Rename
         public int Rename(SmokeTestManagerEventArgs e)
         {
-            CLSyncBox syncBox;
+            int responseCode = 0;
             ICLCredentialSettings settings;
             CLError error = null;
             TaskEventArgs refArgs = (e as TaskEventArgs);
-            CredentialHelper.InitializeCreds(ref refArgs, out settings, out error);
             long id = SmokeTaskManager.GetOpperationSyncBoxID(e);
-            int response = SyncBoxManager.InitilizeSyncBox(e, id, out syncBox);
-            if (response == 0)
+
+            CLSyncBox syncBox = SyncBoxManager.InitializeCredentialsAndSyncBox(e);
+            if (syncBox.SyncBoxId != 0)
             {
                 e.SyncBox = syncBox;
-                response = BeginRename(e);
+                responseCode = BeginRename(e);
             }
             else
             {
                 return (int)FileManagerResponseCodes.UnknownError;
             }
 
-            return response;
+            return responseCode;
         }
 
         #region Rename Private
@@ -548,17 +567,27 @@ namespace CloudSDK_SmokeTest.Managers
             }
             catch (Exception exception)
             {
-                lock (e.ProcessingErrorHolder)
+                //string accessExceptionPre = "Access to the path";
+                //string accessExceptionPost = "is denied";
+                //if (exception.Message.Contains(accessExceptionPre) && exception.Message.Contains(accessExceptionPost) && _ExceptionCounter < 100)
+                //{
+                //    _ExceptionCounter++;
+                //    ExecuteAutoRenameFolder(e, renameTask);
+                //}
+                //else
                 {
-                    e.ProcessingErrorHolder.Value = e.ProcessingErrorHolder.Value + exception;
+                    lock (e.ProcessingErrorHolder)
+                    {
+                        e.ProcessingErrorHolder.Value = e.ProcessingErrorHolder.Value + exception;
 
+                    }
+                    reportBuilder.AppendLine();
+                    reportBuilder.AppendLine("There was an error Renaming Item:");
+                    reportBuilder.AppendLine(string.Format("    From: {0}", oldPath));
+                    reportBuilder.AppendLine(string.Format("      To: {0}", newPath));
+                    reportBuilder.AppendLine();
                 }
-                reportBuilder.AppendLine();
-                reportBuilder.AppendLine("There was an error Renaming Item:");
-                reportBuilder.AppendLine(string.Format("    From: {0}", oldPath));
-                reportBuilder.AppendLine(string.Format("      To: {0}", newPath));
-                reportBuilder.AppendLine();
-
+                _ExceptionCounter = 0;
                 responseCode = (int)FileManagerResponseCodes.UnknownError;
             }
             e.StringBuilderList.Add(new StringBuilder(reportBuilder.ToString()));
@@ -650,12 +679,20 @@ namespace CloudSDK_SmokeTest.Managers
                 relative = TrimTrailingSlash(renameTask.RelativeDirectoryPath);
             else
                 relative = renameTask.RelativeDirectoryPath;
-
-            fullPath = string.Concat(rootFolder, relative, renameTask.OldName.Replace("\"", ""));
-            if (Directory.Exists(fullPath))
-                returnInfo = new DirectoryInfo(fullPath);
+            if (string.IsNullOrEmpty(renameTask.OldName))
+            {
+                StringBuilder report = new StringBuilder("The Expected Property OldName for Task of type Rename is Null");
+                report.AppendLine();
+                e.StringBuilderList.Add(new StringBuilder(report.ToString()));
+            }
             else
-                returnInfo = FileHelper.FindFirstSubFolder(rootFolder);
+            {
+                fullPath = string.Concat(rootFolder, relative, renameTask.OldName.Replace("\"", ""));
+                if (Directory.Exists(fullPath))
+                    returnInfo = new DirectoryInfo(fullPath);
+                else
+                    returnInfo = FileHelper.FindFirstSubFolder(rootFolder);
+            }
 
             return returnInfo;
         }
@@ -716,12 +753,9 @@ namespace CloudSDK_SmokeTest.Managers
         public int Delete(SmokeTestManagerEventArgs e)
         {
             CLSyncBox syncBox;
-            ICLCredentialSettings settings;
-            CLError error = null;
             TaskEventArgs refArgs = (e as TaskEventArgs);
-            CredentialHelper.InitializeCreds(ref refArgs, out settings, out error);
-            int response = SyncBoxManager.InitilizeSyncBox(e, null, out syncBox);
-            if (response == 0)
+            syncBox = SyncBoxManager.InitializeCredentialsAndSyncBox(e);
+            if (syncBox.SyncBoxId != 0)
             {
                 e.SyncBox = syncBox;
                 return BeginDelete(e);
@@ -939,6 +973,11 @@ namespace CloudSDK_SmokeTest.Managers
         }
         #endregion ListItems
 
+
+        public int AlternativeAction(Events.ManagerEventArgs.SmokeTestManagerEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
         #endregion 
 
         #region Private
@@ -947,7 +986,7 @@ namespace CloudSDK_SmokeTest.Managers
             if (isFile)
             {
                 if (!File.Exists(eventArgs.FileInfo.FullName))
-                    FileHelper.WriteFile(eventArgs.FileInfo, ref folderChanges);
+                    FileHelper.WriteFile(eventArgs.FileInfo, (eventArgs.CurrentTask as Creation).IsLarge, ref folderChanges);
                 return FileHelper.PrepareMD5FileChange(eventArgs);
             }
             else
@@ -1119,6 +1158,15 @@ namespace CloudSDK_SmokeTest.Managers
             else
             {
                 return eventArgs.DirectoryInfo.FullName + increment.ToString();
+            }
+        }
+
+        private void HandleExceptions(SmokeTestManagerEventArgs e, CLError error)
+        {
+            lock (e.ProcessingErrorHolder)
+            {
+                foreach (Exception exception in error.GrabExceptions())
+                    e.ProcessingErrorHolder.Value = e.ProcessingErrorHolder.Value + exception;
             }
         }
         #endregion

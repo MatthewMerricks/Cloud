@@ -5361,50 +5361,50 @@ namespace Cloud.Sync
             ProcessingQueuesTimer failureTimer,
             Guid newTempFile)
         {
-            // Declare the error which will store any errors returned from performing the file move operation via the event source
-            CLError applyError;
-            // Lock for changes to the UpDownEvent (the FilePath of the download could actually change when the parent folder is renamed on a different thread)
-            lock (UpDownEventLocker)
-            {
-                if (completedDownload.fileDownloadMoveLocker != null)
+            // Create a new file move change (from the temp download file path to the final destination) and perform it via the event source, storing any error that occurs
+            // And store any errors returned from performing the file move operation via the event source
+            CLError applyError = syncData.applySyncFromChange(new FileChange()
                 {
-                    Monitor.Enter(completedDownload.fileDownloadMoveLocker);
-                }
-                try
+                    Direction = SyncDirection.From, // File downloads are always Sync From operations
+                    DoNotAddToSQLIndex = true, // If the root download event fails, it will be retried; this 'pseudo' server event should not be recorded
+                    Metadata = completedDownload.Metadata, // Use the metadata from the actual download event so that it will match the file properties
+                    NewPath = completedDownload.NewPath, // Move to the destination from the actual download event
+                    OldPath = newTempFileString, // Move from the location of the file within the temp download directory
+                    Type = FileChangeType.Renamed // Operation is a move
+                },
+            onLockState =>
                 {
-                    if (completedDownload.NewPath == null) // condition when the target path had required a deletion change
+                    if (onLockState.fileDownloadMoveLocker != null)
                     {
-                        applyError = null; // signifies to remove download id from dictionary of temp files
-                        try
+                        Monitor.Enter(onLockState.fileDownloadMoveLocker);
+                    }
+                    try
+                    {
+                        if (onLockState.NewPath == null
+                            && !string.IsNullOrEmpty(onLockState.newTempFileString))
                         {
-                            File.Delete(newTempFileString);
+                            File.Delete(onLockState.newTempFileString);
                         }
-                        catch
-                        {
-                        }
                     }
-                    else
+                    catch
                     {
-                        // Create a new file move change (from the temp download file path to the final destination) and perform it via the event source, storing any error that occurs
-                        applyError = syncData.applySyncFromChange(new FileChange()
-                        {
-                            Direction = SyncDirection.From, // File downloads are always Sync From operations
-                            DoNotAddToSQLIndex = true, // If the root download event fails, it will be retried; this 'pseudo' server event should not be recorded
-                            Metadata = completedDownload.Metadata, // Use the metadata from the actual download event so that it will match the file properties
-                            NewPath = completedDownload.NewPath, // Move to the destination from the actual download event
-                            OldPath = newTempFileString, // Move from the location of the file within the temp download directory
-                            Type = FileChangeType.Renamed // Operation is a move
-                        });
                     }
-                }
-                finally
+                },
+            onBeforeUnlockState =>
                 {
-                    if (completedDownload.fileDownloadMoveLocker != null)
+                    if (onBeforeUnlockState.fileDownloadMoveLocker != null)
                     {
-                        Monitor.Exit(completedDownload.fileDownloadMoveLocker);
+                        Monitor.Exit(onBeforeUnlockState.fileDownloadMoveLocker);
                     }
-                }
-            }
+                },
+            new
+                {
+                    fileDownloadMoveLocker = completedDownload.fileDownloadMoveLocker,
+                    NewPath = completedDownload.NewPath,
+                    newTempFileString = newTempFileString
+                },
+            lockerInsideAllPaths: UpDownEventLocker); // Lock for changes to the UpDownEvent (the FilePath of the download could actually change when the parent folder is renamed on a different thread)
+
             // If an error occurred moving the file from the temp download folder to the final destination, then rethrow the exception
             if (applyError != null)
             {
@@ -6066,29 +6066,32 @@ namespace Cloud.Sync
                                 // grab the current event
                                 Event currentEvent = deserializedResponse.Events[currentEventIndex];
 
-                                if (currentEvent.Header == null)
+                                if (currentEvent.Metadata == null || (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath) != "/") // special event on SID "0" for root folder
                                 {
-                                    throw new NullReferenceException("Invalid HTTP response body in Sync To, an Event has a null Sync Header");
-                                }
+                                    if (currentEvent.Header == null)
+                                    {
+                                        throw new NullReferenceException("Invalid HTTP response body in Sync To, an Event has a null Sync Header");
+                                    }
 
-                                // if there is no status set (Sync From), then add current index to fromEvents
-                                if (string.IsNullOrEmpty(currentEvent.Header.Status))
-                                {
-                                    fromEvents.Add(currentEventIndex);
-                                }
-                                // else if there is a status set (Sync To) and the event is not a download, then add to eventsByPath (Sync To events)
-                                else if (currentEvent.Header.Status != CLDefinitions.CLEventTypeDownload) // exception for download when looking for dependencies since we actually want the Sync From event
-                                {
-                                    // add the file path to eventsByPath (Sync To paths) from either the original change (rename events only) or produce it from the root folder path plus the metadata path
-                                    eventsByPath.Add((currentEvent.Metadata == null
+                                    // if there is no status set (Sync From), then add current index to fromEvents
+                                    if (string.IsNullOrEmpty(currentEvent.Header.Status))
+                                    {
+                                        fromEvents.Add(currentEventIndex);
+                                    }
+                                    // else if there is a status set (Sync To) and the event is not a download, then add to eventsByPath (Sync To events)
+                                    else if (currentEvent.Header.Status != CLDefinitions.CLEventTypeDownload) // exception for download when looking for dependencies since we actually want the Sync From event
+                                    {
+                                        // add the file path to eventsByPath (Sync To paths) from either the original change (rename events only) or produce it from the root folder path plus the metadata path
+                                        eventsByPath.Add((currentEvent.Metadata == null
 
-                                        // if the current event does not have metadata (a sign of a rename event??), then find the original change sent to the server which matches by event id and use its file path
-                                        ? toCommunicate.First(currentToCommunicate => (currentEvent.EventId != null || currentEvent.Header.EventId != null) && currentToCommunicate.FileChange.EventId == (long)(currentEvent.EventId ?? currentEvent.Header.EventId))
-                                            .FileChange.NewPath
+                                            // if the current event does not have metadata (a sign of a rename event??), then find the original change sent to the server which matches by event id and use its file path
+                                            ? toCommunicate.First(currentToCommunicate => (currentEvent.EventId != null || currentEvent.Header.EventId != null) && currentToCommunicate.FileChange.EventId == (long)(currentEvent.EventId ?? currentEvent.Header.EventId))
+                                                .FileChange.NewPath
 
-                                        // else if the current event does have metadata (non-rename events), then build the path from the root path plus the metadata path
-                                        : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
-                                            (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')));
+                                            // else if the current event does have metadata (non-rename events), then build the path from the root path plus the metadata path
+                                            : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
+                                                (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')));
+                                    }
                                 }
                             }
                             catch
@@ -6170,248 +6173,647 @@ namespace Cloud.Sync
                         {
                             // grab the current event by index
                             Event currentEvent = deserializedResponse.Events[currentEventIndex];
-                            // define the current FileChange, defaulting to null
-                            FileChangeWithDependencies currentChange = null;
-                            // define the current Stream, defaulting to null
-                            Stream currentStream = null;
-                            // define a string for storing an event's revision which will be used to replace a Sync To event revision upon certain conflict conditions
-                            string previousRevisionOnConflictException = null;
 
-                            // try/catch create a FileChange out of the current event, handle special rename conditions, decide if the metadata has changed to update SQL, and case-switch to decide what to do with the FileChange, on catch add the FileChange as an error to be reprocessed
-                            try
+                            if (currentEvent.Metadata == null || (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath) != "/") // special event on SID "0" for root folder
                             {
-                                // full path for the destination of the event
-                                FilePath findNewPath;
-                                // full path for a previous destination of a rename event
-                                FilePath findOldPath;
-                                // MD5 hash for the event as a string
-                                string findHash;
-                                // unique id from server
-                                string findServerId;
-                                // Metadata properties for the event
-                                FileMetadataHashableProperties findHashableProperties;
-                                // full path for the target of a shortcut for the event
-                                FilePath findLinkTargetPath;
-                                // storage key for a file event
-                                string findStorageKey;
-                                // revision for a file event
-                                string findRevision;
-                                // never set on Windows
-                                string findMimeType;
+                                // define the current FileChange, defaulting to null
+                                FileChangeWithDependencies currentChange = null;
+                                // define the current Stream, defaulting to null
+                                Stream currentStream = null;
+                                // define a string for storing an event's revision which will be used to replace a Sync To event revision upon certain conflict conditions
+                                string previousRevisionOnConflictException = null;
 
-                                // define a FileChange for the previous event which may be found from the events which were sent up to the server, or null as default
-                                Nullable<PossiblyStreamableFileChange> usePreviousFileChange = null;
-                                // if the current event has no metadata (for rename events??), then use the previous FileChange for metadata and fill in all the fields for the current FileChange
-                                if (currentEvent.Metadata == null)
+                                // try/catch create a FileChange out of the current event, handle special rename conditions, decide if the metadata has changed to update SQL, and case-switch to decide what to do with the FileChange, on catch add the FileChange as an error to be reprocessed
+                                try
                                 {
-                                    // use the previous FileChange for metadata, searching by matching event ids, throws an error if no matching FileChanges are found
-                                    usePreviousFileChange = toCommunicate.First(currentToCommunicate =>
-                                        (currentEvent.EventId != null || currentEvent.Header.EventId != null)
-                                            && currentToCommunicate.FileChange.EventId == (long)(currentEvent.EventId ?? currentEvent.Header.EventId));
-                                    // cast the found change as non-nullable
-                                    PossiblyStreamableFileChange nonNullPreviousFileChange = (PossiblyStreamableFileChange)usePreviousFileChange;
-                                    // set the new path
-                                    findNewPath = nonNullPreviousFileChange.FileChange.NewPath;
-                                    // set the old path for renames or null otherwise
-                                    findOldPath = nonNullPreviousFileChange.FileChange.OldPath;
-                                    // try to retrieve the hash, storing any error that occurs (could be null for non-files)
-                                    CLError hashRetrievalError = nonNullPreviousFileChange.FileChange.GetMD5LowercaseString(out findHash);
-                                    // if an error occurred retrieving the hash, then rethrow the exception
-                                    if (hashRetrievalError != null)
+                                    // full path for the destination of the event
+                                    FilePath findNewPath;
+                                    // full path for a previous destination of a rename event
+                                    FilePath findOldPath;
+                                    // MD5 hash for the event as a string
+                                    string findHash;
+                                    // unique id from server
+                                    string findServerId;
+                                    // Metadata properties for the event
+                                    FileMetadataHashableProperties findHashableProperties;
+                                    // full path for the target of a shortcut for the event
+                                    FilePath findLinkTargetPath;
+                                    // storage key for a file event
+                                    string findStorageKey;
+                                    // revision for a file event
+                                    string findRevision;
+                                    // never set on Windows
+                                    string findMimeType;
+
+                                    // define a FileChange for the previous event which may be found from the events which were sent up to the server, or null as default
+                                    Nullable<PossiblyStreamableFileChange> usePreviousFileChange = null;
+                                    // if the current event has no metadata (for rename events??), then use the previous FileChange for metadata and fill in all the fields for the current FileChange
+                                    if (currentEvent.Metadata == null)
                                     {
-                                        throw new AggregateException("Error retrieving MD5 hash as lowercase string", hashRetrievalError.GrabExceptions());
+                                        // use the previous FileChange for metadata, searching by matching event ids, throws an error if no matching FileChanges are found
+                                        usePreviousFileChange = toCommunicate.First(currentToCommunicate =>
+                                            (currentEvent.EventId != null || currentEvent.Header.EventId != null)
+                                                && currentToCommunicate.FileChange.EventId == (long)(currentEvent.EventId ?? currentEvent.Header.EventId));
+                                        // cast the found change as non-nullable
+                                        PossiblyStreamableFileChange nonNullPreviousFileChange = (PossiblyStreamableFileChange)usePreviousFileChange;
+                                        // set the new path
+                                        findNewPath = nonNullPreviousFileChange.FileChange.NewPath;
+                                        // set the old path for renames or null otherwise
+                                        findOldPath = nonNullPreviousFileChange.FileChange.OldPath;
+                                        // try to retrieve the hash, storing any error that occurs (could be null for non-files)
+                                        CLError hashRetrievalError = nonNullPreviousFileChange.FileChange.GetMD5LowercaseString(out findHash);
+                                        // if an error occurred retrieving the hash, then rethrow the exception
+                                        if (hashRetrievalError != null)
+                                        {
+                                            throw new AggregateException("Error retrieving MD5 hash as lowercase string", hashRetrievalError.GrabExceptions());
+                                        }
+                                        // ser the unique server id
+                                        findServerId = nonNullPreviousFileChange.FileChange.Metadata.ServerId;
+                                        // set the metadata properties
+                                        findHashableProperties = nonNullPreviousFileChange.FileChange.Metadata.HashableProperties;
+                                        // set the shortcut target path, or null if the event is not for a shortcut file
+                                        findLinkTargetPath = nonNullPreviousFileChange.FileChange.Metadata.LinkTargetPath;
+                                        // set the storage key, or null if the event is not for a file
+                                        findStorageKey = nonNullPreviousFileChange.FileChange.Metadata.StorageKey;
+                                        // set the revision, or null if the event is not for a file
+                                        findRevision = nonNullPreviousFileChange.FileChange.Metadata.Revision;
+                                        // never set on Windows
+                                        findMimeType = nonNullPreviousFileChange.FileChange.Metadata.MimeType;
                                     }
-                                    // ser the unique server id
-                                    findServerId = nonNullPreviousFileChange.FileChange.Metadata.ServerId;
-                                    // set the metadata properties
-                                    findHashableProperties = nonNullPreviousFileChange.FileChange.Metadata.HashableProperties;
-                                    // set the shortcut target path, or null if the event is not for a shortcut file
-                                    findLinkTargetPath = nonNullPreviousFileChange.FileChange.Metadata.LinkTargetPath;
-                                    // set the storage key, or null if the event is not for a file
-                                    findStorageKey = nonNullPreviousFileChange.FileChange.Metadata.StorageKey;
-                                    // set the revision, or null if the event is not for a file
-                                    findRevision = nonNullPreviousFileChange.FileChange.Metadata.Revision;
-                                    // never set on Windows
-                                    findMimeType = nonNullPreviousFileChange.FileChange.Metadata.MimeType;
-                                }
-                                // else if the current event has metadata, then set all the properties for the FileChange from the event metadata
-                                else
-                                {
-                                    // set the new path by appending the relative path to the root
-                                    findNewPath = (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
-                                        (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\');
-                                    // set the old path for rename events by appending the relative path to the root, or null for non-renames
-                                    findOldPath = (CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action)
-                                        ? (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')
-                                        : null);
-                                    // set the MD5 hash, or null for non-files
-                                    findHash = currentEvent.Metadata.Hash;
-                                    // set the unique server id
-                                    findServerId = currentEvent.Metadata.ServerId;
-                                    // set the metadata properties
-                                    findHashableProperties = new FileMetadataHashableProperties(currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action), // whether the event represents a folder, first try to grab the bool otherwise you can parse it from the action
-                                        currentEvent.Metadata.ModifiedDate, // the last time the file system object was modified
-                                        currentEvent.Metadata.CreatedDate, // the time the file system object was created
-                                        currentEvent.Metadata.Size); // the size of a file or null for non-files
-                                    findLinkTargetPath = (string.IsNullOrEmpty(currentEvent.Metadata.TargetPath)
-                                        ? null // if the current event has no shortcut target path, then set the target path as null
-                                        : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")); // else if the current event has a shortcut path, then create the shortcut path by appending a relative path to the root
-                                    // set the revision from the current file, or null for non-files
-                                    findRevision = currentEvent.Metadata.Revision;
-                                    // set the storage key from the current file, or null for non-files
-                                    findStorageKey = currentEvent.Metadata.StorageKey;
-                                    // never set on Windows
-                                    findMimeType = currentEvent.Metadata.MimeType;
-                                }
-
-                                // create a FileChange with dependencies using a new FileChange from the stored FileChange data (except metadata) and adding the MD5 hash (null for non-files)
-                                currentChange = CreateFileChangeFromBaseChangePlusHash(
-                                    new FileChange(
-                                        DelayCompletedLocker: null,
-                                        fileDownloadMoveLocker:
-                                            ((string.IsNullOrEmpty(currentEvent.Header.Status)
-                                                    || CLDefinitions.SyncHeaderDeletions.Contains(currentEvent.Header.Action ?? currentEvent.Action)
-                                                    || CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action))
-                                                ? null
-                                                : new object()))
-                                        {
-                                            Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To), // Sync From events have no status while Sync To events have status
-                                            EventId = currentEvent.Header.EventId ?? 0, // The "client_reference" field from the communication which was set from a Sync To event or left out for Sync From, null-coallesce for the second case
-                                            NewPath = findNewPath, // The full path for the event
-                                            OldPath = findOldPath, // The previous path for rename events, or null for everything else
-                                            Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action) // The FileChange type parsed from the event action
-                                        },
-                                    findHash, // The MD5 hash, or null for non-files
-                                    DependencyDebugging);
-
-                                // set the previous FileChange which was matched to the current event, first from the previous FileChange calculated for no event metadata or null if no "client_reference" was returned or finally search it from the communicated events by event id
-                                Nullable<PossiblyStreamableFileChange> matchedChange = usePreviousFileChange // already found previous FileChange if the current event had no metadata
-                                    ?? (currentChange.EventId == 0
-                                        ? (Nullable<PossiblyStreamableFileChange>)null // if the current event has metadata and does not have "client_reference" set, then there was no previous change (new Sync From)
-                                        : toCommunicate.FirstOrDefault(currentToCommunicate => currentToCommunicate.FileChange.EventId == currentChange.EventId)); // else if the current event has metadata and has "client_reference" set then use it to find the previous event from the list communicated (match against event id)
-
-                                // if a matched change was set and has metadata, then record its revision as the previous revision to set for conflicts
-                                if (matchedChange != null
-                                    && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata != null)
-                                {
-                                    previousRevisionOnConflictException = ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision;
-                                }
-
-                                // set the metadata for the current FileChange (copying the RevisionChanger if a previous matched FileChange was found)
-                                currentChange.Metadata = new FileMetadata(matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.RevisionChanger) // copy previous RevisionChanger if possible
+                                    // else if the current event has metadata, then set all the properties for the FileChange from the event metadata
+                                    else
                                     {
-                                        ServerId = findServerId, // set the server unique id
-                                        HashableProperties = findHashableProperties, // set the metadata properties
-                                        LinkTargetPath = findLinkTargetPath, // set the full path target of a shortcut file, or null for non-shortcuts
-                                        Revision = findRevision, // set the file revision, or null for non-files
-                                        StorageKey = findStorageKey, // set the storage key, or null for non-files
-                                        MimeType = findMimeType // never set on Windows
-                                    };
-                                if (matchedChange != null
-                                    && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision != findRevision)
-                                {
-                                    currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-                                }
+                                        // set the new path by appending the relative path to the root
+                                        findNewPath = (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
+                                            (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\');
+                                        // set the old path for rename events by appending the relative path to the root, or null for non-renames
+                                        findOldPath = (CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action)
+                                            ? (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')
+                                            : null);
+                                        // set the MD5 hash, or null for non-files
+                                        findHash = currentEvent.Metadata.Hash;
+                                        // set the unique server id
+                                        findServerId = currentEvent.Metadata.ServerId;
+                                        // set the metadata properties
+                                        findHashableProperties = new FileMetadataHashableProperties(currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action), // whether the event represents a folder, first try to grab the bool otherwise you can parse it from the action
+                                            currentEvent.Metadata.ModifiedDate, // the last time the file system object was modified
+                                            currentEvent.Metadata.CreatedDate, // the time the file system object was created
+                                            currentEvent.Metadata.Size); // the size of a file or null for non-files
+                                        findLinkTargetPath = (string.IsNullOrEmpty(currentEvent.Metadata.TargetPath)
+                                            ? null // if the current event has no shortcut target path, then set the target path as null
+                                            : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")); // else if the current event has a shortcut path, then create the shortcut path by appending a relative path to the root
+                                        // set the revision from the current file, or null for non-files
+                                        findRevision = currentEvent.Metadata.Revision;
+                                        // set the storage key from the current file, or null for non-files
+                                        findStorageKey = currentEvent.Metadata.StorageKey;
+                                        // never set on Windows
+                                        findMimeType = currentEvent.Metadata.MimeType;
+                                    }
 
-                                // if a matched change was set, then use the Stream from the previous FileChange as the current Stream
-                                if (matchedChange != null)
-                                {
-                                    currentStream = ((PossiblyStreamableFileChange)matchedChange).Stream;
-                                }
-
-                                // define a bool for whether the current event is a rename but no metadata was found amongst current FileChanges nor in the last sync states in the database
-                                bool notFoundRename = false;
-
-                                // define an action to add the current FileChange to the list of incomplete changes, including any Stream and whether or not the FileChange requires updating the event source database
-                                Action<Dictionary<long, List<PossiblyStreamableAndPossiblyChangedFileChange>>, FileChangeWithDependencies, Stream, bool> AddToIncompleteChanges = (innerIncompleteChangesList, innerCurrentChange, innerCurrentStream, innerMetadataIsDifferent) =>
-                                    {
-                                        // wrap the current change for adding to the incomplete changes list
-                                        PossiblyStreamableAndPossiblyChangedFileChange addChange = new PossiblyStreamableAndPossiblyChangedFileChange(innerMetadataIsDifferent,
-                                            innerCurrentChange,
-                                            innerCurrentStream);
-
-                                        // if the incomplete change's map already contains the current change's event id, then add the current change to the existing list
-                                        if (innerIncompleteChangesList.ContainsKey(innerCurrentChange.EventId))
-                                        {
-                                            innerIncompleteChangesList[innerCurrentChange.EventId].Add(addChange);
-                                        }
-                                        // else if the incomplete change's map does not already contain the current change's event id, then create a new list with only the current change and add it to the map for the current change's event id
-                                        else
-                                        {
-                                            innerIncompleteChangesList.Add(innerCurrentChange.EventId,
-                                                new List<PossiblyStreamableAndPossiblyChangedFileChange>(new[]
-                                                        {
-                                                            addChange
-                                                        }));
-                                        }
-                                    };
-
-                                switch (currentChange.Type)
-                                {
-                                    // if the current event is a rename, then try to find its metadata from existing changes, the database, or lastly if not found then mark it not found and try to query the server for metadata and process a new event
-                                    case FileChangeType.Renamed:
-                                        // the current FileChange is a rename and should have a previous path, if not then throw an exception
-                                        if (currentChange.OldPath == null)
-                                        {
-                                            throw new NullReferenceException("OldPath cannot be null if currentChange is of Type Renamed");
-                                        }
-
-                                        // define a FileChange which will store the last matching FileChange with the metadata for this rename event
-                                        FileChange fileChangeForOriginalMetadata = null;
-                                        // if a previous matched change for the current event was not found, then try to search for a change by the events path and revision
-                                        if (matchedChange == null)
-                                        {
-                                            // if the current event does not have a revision then we cannot search, so throw an exception
-                                            if (string.IsNullOrEmpty(currentChange.Metadata.Revision))
+                                    // create a FileChange with dependencies using a new FileChange from the stored FileChange data (except metadata) and adding the MD5 hash (null for non-files)
+                                    currentChange = CreateFileChangeFromBaseChangePlusHash(
+                                        new FileChange(
+                                            DelayCompletedLocker: null,
+                                            fileDownloadMoveLocker:
+                                                ((string.IsNullOrEmpty(currentEvent.Header.Status)
+                                                        || CLDefinitions.SyncHeaderDeletions.Contains(currentEvent.Header.Action ?? currentEvent.Action)
+                                                        || CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action))
+                                                    ? null
+                                                    : new object()))
                                             {
-                                                throw new NullReferenceException("Revision cannot be null if currentChange is of Type Renamed and matchedChange is also null");
+                                                Direction = (string.IsNullOrEmpty(currentEvent.Header.Status) ? SyncDirection.From : SyncDirection.To), // Sync From events have no status while Sync To events have status
+                                                EventId = currentEvent.Header.EventId ?? 0, // The "client_reference" field from the communication which was set from a Sync To event or left out for Sync From, null-coallesce for the second case
+                                                NewPath = findNewPath, // The full path for the event
+                                                OldPath = findOldPath, // The previous path for rename events, or null for everything else
+                                                Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action) // The FileChange type parsed from the event action
+                                            },
+                                        findHash, // The MD5 hash, or null for non-files
+                                        DependencyDebugging);
+
+                                    // set the previous FileChange which was matched to the current event, first from the previous FileChange calculated for no event metadata or null if no "client_reference" was returned or finally search it from the communicated events by event id
+                                    Nullable<PossiblyStreamableFileChange> matchedChange = usePreviousFileChange // already found previous FileChange if the current event had no metadata
+                                        ?? (currentChange.EventId == 0
+                                            ? (Nullable<PossiblyStreamableFileChange>)null // if the current event has metadata and does not have "client_reference" set, then there was no previous change (new Sync From)
+                                            : toCommunicate.FirstOrDefault(currentToCommunicate => currentToCommunicate.FileChange.EventId == currentChange.EventId)); // else if the current event has metadata and has "client_reference" set then use it to find the previous event from the list communicated (match against event id)
+
+                                    // if a matched change was set and has metadata, then record its revision as the previous revision to set for conflicts
+                                    if (matchedChange != null
+                                        && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata != null)
+                                    {
+                                        previousRevisionOnConflictException = ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision;
+                                    }
+
+                                    // set the metadata for the current FileChange (copying the RevisionChanger if a previous matched FileChange was found)
+                                    currentChange.Metadata = new FileMetadata(matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.RevisionChanger) // copy previous RevisionChanger if possible
+                                        {
+                                            ServerId = findServerId, // set the server unique id
+                                            HashableProperties = findHashableProperties, // set the metadata properties
+                                            LinkTargetPath = findLinkTargetPath, // set the full path target of a shortcut file, or null for non-shortcuts
+                                            Revision = findRevision, // set the file revision, or null for non-files
+                                            StorageKey = findStorageKey, // set the storage key, or null for non-files
+                                            MimeType = findMimeType // never set on Windows
+                                        };
+                                    if (matchedChange != null
+                                        && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision != findRevision)
+                                    {
+                                        currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
+                                    }
+
+                                    // if a matched change was set, then use the Stream from the previous FileChange as the current Stream
+                                    if (matchedChange != null)
+                                    {
+                                        currentStream = ((PossiblyStreamableFileChange)matchedChange).Stream;
+                                    }
+
+                                    // define a bool for whether the current event is a rename but no metadata was found amongst current FileChanges nor in the last sync states in the database
+                                    bool notFoundRename = false;
+
+                                    // define an action to add the current FileChange to the list of incomplete changes, including any Stream and whether or not the FileChange requires updating the event source database
+                                    Action<Dictionary<long, List<PossiblyStreamableAndPossiblyChangedFileChange>>, FileChangeWithDependencies, Stream, bool> AddToIncompleteChanges = (innerIncompleteChangesList, innerCurrentChange, innerCurrentStream, innerMetadataIsDifferent) =>
+                                        {
+                                            // wrap the current change for adding to the incomplete changes list
+                                            PossiblyStreamableAndPossiblyChangedFileChange addChange = new PossiblyStreamableAndPossiblyChangedFileChange(innerMetadataIsDifferent,
+                                                innerCurrentChange,
+                                                innerCurrentStream);
+
+                                            // if the incomplete change's map already contains the current change's event id, then add the current change to the existing list
+                                            if (innerIncompleteChangesList.ContainsKey(innerCurrentChange.EventId))
+                                            {
+                                                innerIncompleteChangesList[innerCurrentChange.EventId].Add(addChange);
+                                            }
+                                            // else if the incomplete change's map does not already contain the current change's event id, then create a new list with only the current change and add it to the map for the current change's event id
+                                            else
+                                            {
+                                                innerIncompleteChangesList.Add(innerCurrentChange.EventId,
+                                                    new List<PossiblyStreamableAndPossiblyChangedFileChange>(new[]
+                                                            {
+                                                                addChange
+                                                            }));
+                                            }
+                                        };
+
+                                    switch (currentChange.Type)
+                                    {
+                                        // if the current event is a rename, then try to find its metadata from existing changes, the database, or lastly if not found then mark it not found and try to query the server for metadata and process a new event
+                                        case FileChangeType.Renamed:
+                                            // the current FileChange is a rename and should have a previous path, if not then throw an exception
+                                            if (currentChange.OldPath == null)
+                                            {
+                                                throw new NullReferenceException("OldPath cannot be null if currentChange is of Type Renamed");
                                             }
 
-                                            // declare a FileChange which will be used as temp storage upon iterations searching the current UpDownEvent changes and the current failures
-                                            FileChange foundOldPath;
-                                            // declare metadata which will be used as temp storage upon iterations searching the previously visited renames
-                                            FileMetadata foundOldPathMetadataOnly;
+                                            // define a FileChange which will store the last matching FileChange with the metadata for this rename event
+                                            FileChange fileChangeForOriginalMetadata = null;
+                                            // if a previous matched change for the current event was not found, then try to search for a change by the events path and revision
+                                            if (matchedChange == null)
+                                            {
+                                                // if the current event does not have a revision then we cannot search, so throw an exception
+                                                if (string.IsNullOrEmpty(currentChange.Metadata.Revision))
+                                                {
+                                                    throw new NullReferenceException("Revision cannot be null if currentChange is of Type Renamed and matchedChange is also null");
+                                                }
 
-                                            // loop through previously visited renamed Metadata, the FileChanges in the current UpDownEvent changes, the failure changes, and the currently processing changes where the OldPath matches the current event's previous path
-                                            foreach (FileChange findMetadata in
+                                                // declare a FileChange which will be used as temp storage upon iterations searching the current UpDownEvent changes and the current failures
+                                                FileChange foundOldPath;
+                                                // declare metadata which will be used as temp storage upon iterations searching the previously visited renames
+                                                FileMetadata foundOldPathMetadataOnly;
 
-                                                // search the already visited Sync From rename events by the current event's previous path for when multiple rename events in a communication batch keep moving the metadata forward
-                                                (alreadyVisitedRenames.TryGetValue(currentChange.OldPath, out foundOldPathMetadataOnly)
-                                                    ? new[]
-                                                        {
-                                                            new FileChange() // if a match is found, then include the found result
+                                                // loop through previously visited renamed Metadata, the FileChanges in the current UpDownEvent changes, the failure changes, and the currently processing changes where the OldPath matches the current event's previous path
+                                                foreach (FileChange findMetadata in
+
+                                                    // search the already visited Sync From rename events by the current event's previous path for when multiple rename events in a communication batch keep moving the metadata forward
+                                                    (alreadyVisitedRenames.TryGetValue(currentChange.OldPath, out foundOldPathMetadataOnly)
+                                                        ? new[]
                                                             {
-                                                                Metadata = foundOldPathMetadataOnly, // metadata to move forward
+                                                                new FileChange() // if a match is found, then include the found result
+                                                                {
+                                                                    Metadata = foundOldPathMetadataOnly, // metadata to move forward
+                                                                }
                                                             }
-                                                        }
-                                                    : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
+                                                        : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
-                                                // search the current UpDownEvents for one matching the current event's previous path (comparing against the UpDownEvent's NewPath)
-                                                .Concat((getRunningUpDownChangesDict().TryGetValue(currentChange.OldPath, out foundOldPath)
-                                                    ? new FileChange[] { foundOldPath } // if a match is found, then include the found result
-                                                    : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
-
-                                                    // then search the current failures for the one matching the current event's previous path (comparing against the failed event's NewPath)
-                                                    .Concat(getFailuresDict().TryGetValue(currentChange.OldPath, out foundOldPath)
+                                                    // search the current UpDownEvents for one matching the current event's previous path (comparing against the UpDownEvent's NewPath)
+                                                    .Concat((getRunningUpDownChangesDict().TryGetValue(currentChange.OldPath, out foundOldPath)
                                                         ? new FileChange[] { foundOldPath } // if a match is found, then include the found result
                                                         : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
-                                                    // lastly search the current list of communicated events for one matching the current event's previous path (comparing against the communicated event's NewPath)
-                                                    .Concat(communicationArray.Where(currentCommunication =>
-                                                            FilePathComparer.Instance.Equals(currentCommunication.FileChange.NewPath, currentChange.OldPath)) // search current rename event's OldPath against the other communication event's NewPath
-                                                        .Select(currentCommunication => currentCommunication.FileChange)) // select into the correct format
+                                                        // then search the current failures for the one matching the current event's previous path (comparing against the failed event's NewPath)
+                                                        .Concat(getFailuresDict().TryGetValue(currentChange.OldPath, out foundOldPath)
+                                                            ? new FileChange[] { foundOldPath } // if a match is found, then include the found result
+                                                            : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
-                                                        // order the results descending by EventId so the first match will be the latest event
-                                                        .OrderByDescending(currentOldPath => currentOldPath.EventId)))
-                                            {
-                                                // if the current matched change by path also matches by revision, then use the found change for the previous metadata and stop searching
-                                                if (findMetadata.Metadata.Revision == currentChange.Metadata.Revision)
+                                                        // lastly search the current list of communicated events for one matching the current event's previous path (comparing against the communicated event's NewPath)
+                                                        .Concat(communicationArray.Where(currentCommunication =>
+                                                                FilePathComparer.Instance.Equals(currentCommunication.FileChange.NewPath, currentChange.OldPath)) // search current rename event's OldPath against the other communication event's NewPath
+                                                            .Select(currentCommunication => currentCommunication.FileChange)) // select into the correct format
+
+                                                            // order the results descending by EventId so the first match will be the latest event
+                                                            .OrderByDescending(currentOldPath => currentOldPath.EventId)))
                                                 {
-                                                    // use the found change for the previous metadata
-                                                    fileChangeForOriginalMetadata = findMetadata;
+                                                    // if the current matched change by path also matches by revision, then use the found change for the previous metadata and stop searching
+                                                    if (findMetadata.Metadata.Revision == currentChange.Metadata.Revision)
+                                                    {
+                                                        // use the found change for the previous metadata
+                                                        fileChangeForOriginalMetadata = findMetadata;
 
-                                                    // if the current event direction is from the server, then add the current event new path as a visited path for the Sync From renames
-                                                    if (currentChange.Direction == SyncDirection.From)
+                                                        // if the current event direction is from the server, then add the current event new path as a visited path for the Sync From renames
+                                                        if (currentChange.Direction == SyncDirection.From)
+                                                        {
+                                                            // declare a hierarchy for the old path of the rename
+                                                            FilePathHierarchicalNode<FileMetadata> renameHierarchy;
+                                                            // grab the hierarchy for the old path of the rename from already visited renames, storing any error that occurred
+                                                            CLError grabHierarchyError = alreadyVisitedRenames.GrabHierarchyForPath(currentChange.OldPath, out renameHierarchy, suppressException: true);
+                                                            // if there was an error grabbing the hierarchy, then rethrow the error
+                                                            if (grabHierarchyError != null)
+                                                            {
+                                                                throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.GrabExceptions());
+                                                            }
+                                                            // if there was a hierarchy found at the old path for the rename, then apply a rename to the dictionary based on the current rename
+                                                            if (renameHierarchy != null)
+                                                            {
+                                                                alreadyVisitedRenames.Rename(currentChange.OldPath, currentChange.NewPath.Copy());
+                                                            }
+
+                                                            // add the currently found metadata to the rename dictionary so it can be searched for subsequent renames
+                                                            alreadyVisitedRenames[currentChange.NewPath.Copy()] = findMetadata.Metadata;
+                                                        }
+
+                                                        // stop searching for a match
+                                                        break;
+                                                    }
+                                                }
+
+                                                // if a change was not found by the rename event's old path and revision, then try to grab the previous metadata from the database
+                                                if (fileChangeForOriginalMetadata == null)
+                                                {
+                                                    // declare metadata which will be output from the database
+                                                    FileMetadata syncStateMetadata;
+                                                    // search the database for metadata for the event's previous path and revision, storing any error that occurred
+                                                    CLError queryMetadataError = syncData.getMetadataByPathAndRevision(currentChange.OldPath.ToString(),
+                                                        currentChange.Metadata.Revision,
+                                                        out syncStateMetadata);
+
+                                                    // if there was an error querying the database for existing metadata, then rethrow the error
+                                                    if (queryMetadataError != null)
+                                                    {
+                                                        throw new AggregateException("Error querying SqlIndexer for sync state by path: " + currentChange.OldPath.ToString() +
+                                                            " and revision: " + currentChange.Metadata.Revision, queryMetadataError.GrabExceptions());
+                                                    }
+
+                                                    // if no metadata was returned from the database, then throw an error if the change originated on the client or otherwise try to grab the metadata from the server for a new creation event at the final destination of the rename
+                                                    if (syncStateMetadata == null)
+                                                    {
+                                                        // if the change is a Sync From, then try to grab the metadata from the server at the new destination for the rename to use to create a new creation event at the new path
+                                                        if (currentChange.Direction == SyncDirection.From)
+                                                        {
+                                                            // declare the status of communication from getting metadata
+                                                            CLHttpRestStatus getNewMetadataStatus;
+                                                            // declare the response object of the actual metadata when returned
+                                                            JsonContracts.Metadata newMetadata;
+                                                            // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
+                                                            CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath, // path to query
+                                                                currentChange.Metadata.HashableProperties.IsFolder, // whether path represents a folder (as opposed to a file or shortcut)
+                                                                HttpTimeoutMilliseconds, // milliseconds before communication would expire on an operation
+                                                                out getNewMetadataStatus, // output the status of communication
+                                                                out newMetadata); // output the resulting metadata, if any is found
+
+                                                            // if an error occurred getting metadata, rethrow the error
+                                                            if (getNewMetadataError != null)
+                                                            {
+                                                                throw new AggregateException("An error occurred retrieving metadata", getNewMetadataError.GrabExceptions());
+                                                            }
+
+                                                            // if the communication was not successful, then throw an error with the bad status
+                                                            if (getNewMetadataStatus != CLHttpRestStatus.Success
+                                                                && getNewMetadataStatus != CLHttpRestStatus.NoContent)
+                                                            {
+                                                                throw new Exception("Retrieving metadata did not return successful status: CLHttpRestStatus." + getNewMetadataStatus.ToString());
+                                                            }
+
+                                                            // if there was no content, then the metadata was not found at the given path so throw an error
+                                                            if (getNewMetadataStatus == CLHttpRestStatus.NoContent
+                                                                || newMetadata.Deleted == true)
+                                                            {
+                                                                throw new Exception("Metadata not found for given path");
+                                                            }
+
+                                                            if (newMetadata.IsNotPending == false)
+                                                            {
+                                                                CLHttpRestStatus fileVersionsStatus;
+                                                                JsonContracts.FileVersion[] fileVersions;
+                                                                CLError fileVersionsError = httpRestClient.GetFileVersions(
+                                                                    newMetadata.ServerId,
+                                                                    HttpTimeoutMilliseconds,
+                                                                    out fileVersionsStatus,
+                                                                    out fileVersions);
+
+                                                                if (fileVersionsStatus != CLHttpRestStatus.Success
+                                                                    && fileVersionsStatus != CLHttpRestStatus.NoContent)
+                                                                {
+                                                                    throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.GrabExceptions());
+                                                                }
+
+                                                                JsonContracts.FileVersion lastNonPendingVersion = (fileVersions ?? Enumerable.Empty<JsonContracts.FileVersion>())
+                                                                    .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
+                                                                    .FirstOrDefault(fileVersion => fileVersion.IsDeleted != true
+                                                                        && fileVersion.IsNotPending != false);
+
+                                                                if (lastNonPendingVersion == null)
+                                                                {
+                                                                    throw new Exception("A previous non-pending file version was not found");
+                                                                }
+
+                                                                newMetadata.IsNotPending = true;
+
+                                                                // server does not version other metadata, so these are the only ones we can really use to update
+                                                                newMetadata.StorageKey = lastNonPendingVersion.StorageKey;
+                                                                newMetadata.Hash = lastNonPendingVersion.FileHash;
+                                                                newMetadata.Size = lastNonPendingVersion.FileSize;
+                                                            }
+
+                                                            // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
+                                                            FileChangeWithDependencies newPathCreation = CreateFileChangeFromBaseChangePlusHash(new FileChange(DelayCompletedLocker: null, fileDownloadMoveLocker: new object())
+                                                                {
+                                                                    Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
+                                                                    NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
+                                                                    Type = FileChangeType.Created, // a create to download a new file or process a new folder
+                                                                    Metadata = new FileMetadata()
+                                                                    {
+                                                                        //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
+
+                                                                        ServerId = currentChange.Metadata.ServerId, // the unique id on the server
+                                                                        HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
+                                                                            newMetadata.ModifiedDate, // last modified time for this file system object
+                                                                            newMetadata.CreatedDate, // creation time for this file system object
+                                                                            newMetadata.Size), // file size or null for folders
+                                                                        Revision = newMetadata.Revision, // file revision or null for folders
+                                                                        StorageKey = newMetadata.StorageKey, // file storage key or null for folders
+                                                                        LinkTargetPath = (newMetadata.TargetPath == null
+                                                                            ? null // if server metadata does not have a shortcut file target path, then use null
+                                                                            : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
+                                                                        MimeType = newMetadata.MimeType // never set on Windows
+                                                                    }
+                                                                },
+                                                                newMetadata.Hash, // file MD5 hash or null for folder
+                                                                DependencyDebugging);
+
+                                                            // make sure to add change to SQL
+                                                            newPathCreation.DoNotAddToSQLIndex = false;
+                                                            currentChange.DoNotAddToSQLIndex = false;
+
+                                                            alreadyVisitedRenames[newPathCreation.NewPath.Copy()] = newPathCreation.Metadata;
+
+                                                            // merge the creation of the new FileChange for a pseudo Sync From creation event with the event source database, storing any error that occurs
+                                                            CLError newPathCreationError = syncData.mergeToSql(new[] { new FileChangeMerge(newPathCreation, currentChange) });
+                                                            // if an error occurred merging the new FileChange with the event source database, then rethrow the error
+                                                            if (newPathCreationError != null)
+                                                            {
+                                                                throw new AggregateException("Error merging new file creation change in response to not finding existing metadata at sync from rename old path", newPathCreationError.GrabExceptions());
+                                                            }
+
+                                                            // create the change in a new format to add to errors for reprocessing
+                                                            PossiblyStreamableAndPossiblyChangedFileChangeWithError notFoundChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(/* changed */false, // technically this is a change, but it was manually added to SQL so effectively it's not different from the database
+                                                                newPathCreation, // wrapped FileChange
+                                                                null, // no stream since this is not a file upload
+                                                                new Exception("Unable to find metadata for file. May have been a rename on a local file path that does not exist. Created new FileChange for creation at path: " + newPathCreation.NewPath.ToString())); // Error message for growl or logging
+
+                                                            // if a change in error already exists for the current event id, then expand the array of errors at this event id with the created FileChange
+                                                            if (changesInErrorList.ContainsKey(currentChange.EventId))
+                                                            {
+                                                                // store the previous array of errors
+                                                                PossiblyStreamableAndPossiblyChangedFileChangeWithError[] previousErrors = changesInErrorList[currentChange.EventId];
+                                                                // create a new array for error with a size expanded by one
+                                                                PossiblyStreamableAndPossiblyChangedFileChangeWithError[] newErrors = new PossiblyStreamableAndPossiblyChangedFileChangeWithError[previousErrors.Length + 1];
+                                                                // copy all the previous errors to the new array
+                                                                previousErrors.CopyTo(newErrors, 0);
+                                                                // put the new error as the last index of the new array
+                                                                newErrors[previousErrors.Length] = notFoundChange;
+                                                                // replace the value in the error mapping dictionary for the current event id with the expanded array
+                                                                changesInErrorList[currentChange.EventId] = newErrors;
+                                                            }
+                                                            // else if a change in error does not already exist for the current event id, then add a new array with just the current created FileChange
+                                                            else
+                                                            {
+                                                                // add a new array with just the created FileChange to the error mapping dictionary for the current event id
+                                                                changesInErrorList.Add(currentChange.EventId,
+                                                                    new PossiblyStreamableAndPossiblyChangedFileChangeWithError[]
+                                                                    {
+                                                                        notFoundChange
+                                                                    });
+                                                            }
+
+
+                                                            // a file may still exist at the old path on disk, so to make sure the server looks the same, we must duplicate the file on the server
+                                                            // TODO: all System.IO or disk access should be done through syncData ISyncDataObject interface object
+
+                                                            if (currentChange.OldPath != null)
+                                                            {
+                                                                FileStream uploadStreamForDuplication = null;
+                                                                try
+                                                                {
+                                                                    string oldPathString = currentChange.OldPath.ToString();
+                                                                    bool fileExists;
+                                                                    try
+                                                                    {
+                                                                        fileExists = File.Exists(oldPathString);
+
+                                                                        if (fileExists)
+                                                                        {
+                                                                            uploadStreamForDuplication = new FileStream(oldPathString, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+                                                                            long duplicateSize = 0;
+                                                                            byte[] duplicateHash;
+                                                                            MD5 duplicateHasher = MD5.Create();
+
+                                                                            try
+                                                                            {
+                                                                                byte[] fileBuffer = new byte[FileConstants.BufferSize];
+                                                                                int fileReadBytes;
+
+                                                                                while ((fileReadBytes = uploadStreamForDuplication.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
+                                                                                {
+                                                                                    duplicateSize += fileReadBytes;
+                                                                                    duplicateHasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                                                                }
+
+                                                                                duplicateHasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+                                                                                duplicateHash = duplicateHasher.Hash;
+                                                                            }
+                                                                            finally
+                                                                            {
+                                                                                try
+                                                                                {
+                                                                                    if (uploadStreamForDuplication != null)
+                                                                                    {
+                                                                                        uploadStreamForDuplication.Seek(0, SeekOrigin.Begin);
+                                                                                    }
+                                                                                }
+                                                                                catch
+                                                                                {
+                                                                                }
+
+                                                                                duplicateHasher.Dispose();
+                                                                            }
+
+                                                                            FileChange duplicateChange =
+                                                                                new FileChange()
+                                                                                {
+                                                                                    Direction = SyncDirection.To,
+                                                                                    Metadata = new FileMetadata()
+                                                                                    {
+                                                                                        HashableProperties = new FileMetadataHashableProperties(
+                                                                                            /*isFolder*/ false,
+                                                                                            File.GetLastAccessTimeUtc(oldPathString),
+                                                                                            File.GetLastWriteTimeUtc(oldPathString),
+                                                                                            duplicateSize)
+                                                                                    },
+                                                                                    NewPath = oldPathString,
+                                                                                    Type = FileChangeType.Created
+                                                                                };
+                                                                            CLError setDuplicateHash = duplicateChange.SetMD5(duplicateHash);
+                                                                            if (setDuplicateHash != null)
+                                                                            {
+                                                                                throw new AggregateException("Error setting MD5 on duplicateChange: " + setDuplicateHash.errorDescription, setDuplicateHash.GrabExceptions());
+                                                                            }
+
+                                                                            CLHttpRestStatus postDuplicateChangeStatus;
+                                                                            JsonContracts.Event postDuplicateChangeResult;
+                                                                            CLError postDuplicateChange = httpRestClient.PostFileChange(
+                                                                                duplicateChange,
+                                                                                HttpTimeoutMilliseconds,
+                                                                                out postDuplicateChangeStatus,
+                                                                                out postDuplicateChangeResult);
+                                                                            if (postDuplicateChangeStatus != CLHttpRestStatus.Success)
+                                                                            {
+                                                                                throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChange.errorDescription, postDuplicateChange.GrabExceptions());
+                                                                            }
+
+                                                                            if (postDuplicateChangeResult == null)
+                                                                            {
+                                                                                throw new NullReferenceException("Null event response adding duplicate file");
+                                                                            }
+                                                                            if (postDuplicateChangeResult.Header == null)
+                                                                            {
+                                                                                throw new NullReferenceException("Null event response header adding duplicate file");
+                                                                            }
+                                                                            if (string.IsNullOrEmpty(postDuplicateChangeResult.Header.Status))
+                                                                            {
+                                                                                throw new NullReferenceException("Null event response header status adding duplicate file");
+                                                                            }
+                                                                            if (postDuplicateChangeResult.Metadata == null)
+                                                                            {
+                                                                                throw new NullReferenceException("Null event response metadata adding duplicate file");
+                                                                            }
+
+                                                                            duplicateChange.Metadata.Revision = postDuplicateChangeResult.Metadata.Revision;
+                                                                            duplicateChange.Metadata.StorageKey = postDuplicateChangeResult.Metadata.StorageKey;
+
+                                                                            if ((new[]
+                                                                                {
+                                                                                    CLDefinitions.CLEventTypeAccepted,
+                                                                                    CLDefinitions.CLEventTypeNoOperation,
+                                                                                    CLDefinitions.CLEventTypeExists,
+                                                                                    CLDefinitions.CLEventTypeDuplicate,
+                                                                                    CLDefinitions.CLEventTypeUploading
+                                                                                }).Contains(postDuplicateChangeResult.Header.Status))
+                                                                            {
+                                                                                CLError mergeDuplicateChange = syncData.mergeToSql(new[] { new FileChangeMerge(duplicateChange) });
+                                                                                if (mergeDuplicateChange != null)
+                                                                                {
+                                                                                    throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.errorDescription, mergeDuplicateChange.GrabExceptions());
+                                                                                }
+
+                                                                                CLError completeDuplicateChange = syncData.completeSingleEvent(duplicateChange.EventId);
+                                                                                if (completeDuplicateChange != null)
+                                                                                {
+                                                                                    throw new AggregateException("Error marking duplicate file change complete in database: " + completeDuplicateChange.errorDescription, completeDuplicateChange.GrabExceptions());
+                                                                                }
+                                                                            }
+                                                                            else if ((new[]
+                                                                                {
+                                                                                    CLDefinitions.CLEventTypeUpload,
+                                                                                    CLDefinitions.CLEventTypeUploading
+                                                                                }).Contains(postDuplicateChangeResult.Header.Status))
+                                                                            {
+                                                                                FileChangeWithDependencies copyDuplicateChange;
+                                                                                // don't need to set optional parameter (fileDownloadMoveLocker: removeDependencies.fileDownloadMoveLocker) because this if condition is on "upload" status thus not a file download
+                                                                                CLError createCopyDuplicateChange = FileChangeWithDependencies.CreateAndInitialize(duplicateChange, /* initialDependencies */ null, out copyDuplicateChange);
+
+                                                                                if (createCopyDuplicateChange != null)
+                                                                                {
+                                                                                    throw new AggregateException("Error copying duplicate file change for upload processing: " + createCopyDuplicateChange.errorDescription, createCopyDuplicateChange.GrabExceptions());
+                                                                                }
+
+                                                                                AddToIncompleteChanges(incompleteChangesList, copyDuplicateChange, uploadStreamForDuplication, /* different metadata since this is new */true);
+
+                                                                                uploadStreamForDuplication = null; // prevents disposal on finally since the Stream will now be sent off for async processing
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                throw new InvalidOperationException("Event response header status invalid for duplicating file: " + postDuplicateChangeResult.Header.Status);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    catch (Exception ex)
+                                                                    {
+                                                                        try
+                                                                        {
+                                                                            MessageEvents.FireNewEventMessage(
+                                                                                "Error occurred handling conflict for a file rename: " + ex.Message,
+                                                                                EventMessageLevel.Regular,
+                                                                                /*Error*/ new GeneralErrorInfo(),
+                                                                                syncBox.SyncBoxId,
+                                                                                syncBox.CopiedSettings.DeviceId);
+                                                                        }
+                                                                        catch
+                                                                        {
+                                                                        }
+
+                                                                        fileExists = false;
+                                                                    }
+
+                                                                    if (fileExists)
+                                                                    {
+                                                                        try
+                                                                        {
+                                                                            MessageEvents.FireNewEventMessage(
+                                                                                "File rename conflict handled through duplication",
+                                                                                EventMessageLevel.Minor,
+                                                                                /*Error*/ null,
+                                                                                syncBox.SyncBoxId,
+                                                                                syncBox.CopiedSettings.DeviceId);
+                                                                        }
+                                                                        catch
+                                                                        {
+                                                                        }
+                                                                    }
+                                                                }
+                                                                finally
+                                                                {
+                                                                    if (uploadStreamForDuplication != null)
+                                                                    {
+                                                                        try
+                                                                        {
+                                                                            uploadStreamForDuplication.Dispose();
+                                                                        }
+                                                                        catch
+                                                                        {
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            // Existing metadata for a client event was not found for the current rename's previous path and revision
+                                                            notFoundRename = true;
+                                                        }
+                                                        // else if the change was a rename event with missing metadata on the client and the change originated on the client (Sync To), then throw an error
+                                                        else
+                                                        {
+                                                            throw new NullReferenceException("syncStateMetadata must be found by getMetadataByPathAndRevision");
+                                                        }
+                                                    }
+                                                    // else if metadata was found by querying the event source database and the current event is a Sync From, then set the dictionary for the new path so metadata can be searched on subsequent renames
+                                                    else if (currentChange.Direction == SyncDirection.From)
                                                     {
                                                         // declare a hierarchy for the old path of the rename
                                                         FilePathHierarchicalNode<FileMetadata> renameHierarchy;
@@ -6429,147 +6831,682 @@ namespace Cloud.Sync
                                                         }
 
                                                         // add the currently found metadata to the rename dictionary so it can be searched for subsequent renames
-                                                        alreadyVisitedRenames[currentChange.NewPath.Copy()] = findMetadata.Metadata;
+                                                        alreadyVisitedRenames[currentChange.NewPath.Copy()] = syncStateMetadata;
                                                     }
 
-                                                    // stop searching for a match
-                                                    break;
+                                                    // create a fake FileChange just to store found metadata for the current event which will be used if event processing continues (notFoundRename == false)
+                                                    fileChangeForOriginalMetadata = new FileChange()
+                                                    {
+                                                        NewPath = new FilePath("Not a valid file change", new FilePath(string.Empty)), // no idea why I set a fake NewPath, it should not be read later for anything
+                                                        Metadata = syncStateMetadata
+                                                    };
+                                                }
+                                            }
+                                            // else if a previous matched change for the current event was found, then set the FileChange to use for previous metadata from the matched change
+                                            else
+                                            {
+                                                fileChangeForOriginalMetadata = ((PossiblyStreamableFileChange)matchedChange).FileChange;
+
+                                                // puts back the latest updated revision from the server (which would have been lost when the metadata instance would be replaced next below), update revision changer for difference
+                                                if (fileChangeForOriginalMetadata.Metadata != null
+                                                    && string.IsNullOrEmpty(fileChangeForOriginalMetadata.Metadata.Revision)
+                                                    && currentChange.Metadata != null
+                                                    && !string.IsNullOrEmpty(currentChange.Metadata.Revision))
+                                                {
+                                                    fileChangeForOriginalMetadata.Metadata.Revision = currentChange.Metadata.Revision;
+
+                                                    fileChangeForOriginalMetadata.Metadata.RevisionChanger.FireRevisionChanged(fileChangeForOriginalMetadata.Metadata);
                                                 }
                                             }
 
-                                            // if a change was not found by the rename event's old path and revision, then try to grab the previous metadata from the database
-                                            if (fileChangeForOriginalMetadata == null)
-                                            {
-                                                // declare metadata which will be output from the database
-                                                FileMetadata syncStateMetadata;
-                                                // search the database for metadata for the event's previous path and revision, storing any error that occurred
-                                                CLError queryMetadataError = syncData.getMetadataByPathAndRevision(currentChange.OldPath.ToString(),
-                                                    currentChange.Metadata.Revision,
-                                                    out syncStateMetadata);
+                                            // set the metadata of the current FileChange as the metadata from the previous change (or fake previous change if server was queried for new metadata)
+                                            currentChange.Metadata = fileChangeForOriginalMetadata.Metadata;
+                                            break;
 
-                                                // if there was an error querying the database for existing metadata, then rethrow the error
-                                                if (queryMetadataError != null)
+                                        case FileChangeType.Created:
+                                        case FileChangeType.Modified:
+                                            alreadyVisitedRenames[currentChange.NewPath.Copy()] = currentChange.Metadata;
+                                            break;
+
+                                        case FileChangeType.Deleted:
+                                            alreadyVisitedRenames.Remove(currentChange.NewPath);
+                                            break;
+                                    }
+
+                                    // if a previous FileChange could be found or previous metadata could be found on the client, then determine what to do to about the current event
+
+                                    if (!notFoundRename)
+                                    {
+                                        // define a bool for whether the creation time is the same from previous metadata and the current event
+                                        bool sameCreationTime = false;
+                                        // define a bool for whether the last modified time is the same from the previous metadata and the current event
+                                        bool sameLastTime = false;
+
+                                        // define a bool for whether the event source database will need to be updated with a change (either because the new event is entirely new, or because the data has changed)
+                                        bool metadataIsDifferent = (matchedChange == null) // different because the event is entirely new
+                                            || ((PossiblyStreamableFileChange)matchedChange).FileChange.Type != currentChange.Type // different if types are different
+                                            || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.IsFolder != currentChange.Metadata.HashableProperties.IsFolder // different if one is a folder and the other is not
+
+                                            // different if the new location is different
+                                            || !((((PossiblyStreamableFileChange)matchedChange).FileChange.NewPath == null && currentChange.NewPath == null)
+                                                || (((PossiblyStreamableFileChange)matchedChange).FileChange.NewPath != null && currentChange.NewPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.NewPath, currentChange.NewPath)))
+
+                                            // different if the old location is different (for renames)
+                                            || !((((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath == null && currentChange.OldPath == null)
+                                                || (((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath != null && currentChange.OldPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath, currentChange.OldPath)))
+
+                                            // different if FileChanges have mismatching unique server ids
+                                            || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerId != null && !string.IsNullOrEmpty(currentChange.Metadata.ServerId)
+                                                && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerId != currentChange.Metadata.ServerId)
+
+                                            // different if the revision is different
+
+                                            // different if the change is not a rename and any remaining metadata is different (rename is not checked for other metadata here because the remaining metadata properties were copied from previous metadata and are therefore known to match)
+                                            || (currentChange.Type != FileChangeType.Renamed
+
+                                                // possible non-rename metadata that could still be different:
+                                                && (((PossiblyStreamableFileChange)matchedChange).FileChange.Direction != currentChange.Direction // different by direction of the change (being Sync To or Sync From)
+                                                    || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.Size != currentChange.Metadata.HashableProperties.Size // different by file size
+                                                    || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.StorageKey != currentChange.Metadata.StorageKey // different by storage key
+
+                                                    // different by shortcut file target path:
+                                                    || !((((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath == null && currentChange.Metadata.LinkTargetPath == null)
+                                                        || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath != null && currentChange.Metadata.LinkTargetPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath, currentChange.Metadata.LinkTargetPath)))
+
+                                                    || !(sameCreationTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.CreationTime, currentChange.Metadata.HashableProperties.CreationTime)) // different by creation time; compare within 1 second since communication drops subseconds
+                                                    || !(sameLastTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.LastTime, currentChange.Metadata.HashableProperties.LastTime)))); // different by last modified time; compare within 1 second since communication drops subseconds
+
+                                        // declare FileChange for casting matched change as one with Dependencies
+                                        FileChangeWithDependencies castMatchedChange;
+                                        // if something is new or different for the current FileChange, then keep associated metadata revisions up to date, move dependencies from any matched changed to the current change, and recreate the metadata properties to drop subseconds if they matched within a second
+                                        if (metadataIsDifferent)
+                                        {
+                                            // update associated metadata with the current revision
+                                            currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
+
+                                            // if a matched change was found, then move dependencies and replace the metadata properties for times within a second
+                                            if (matchedChange != null)
+                                            {
+                                                // assign and check if the cast matched change (one with dependencies) exists after trying to cast from the matched change, then copy dependencies
+                                                if ((castMatchedChange = ((PossiblyStreamableFileChange)matchedChange).FileChange as FileChangeWithDependencies) != null
+                                                    && castMatchedChange.DependenciesCount > 0) // also only copy dependencies if there are dependencies to copy
                                                 {
-                                                    throw new AggregateException("Error querying SqlIndexer for sync state by path: " + currentChange.OldPath.ToString() +
-                                                        " and revision: " + currentChange.Metadata.Revision, queryMetadataError.GrabExceptions());
+                                                    // loop through dependencies of the cast matched change
+                                                    foreach (FileChange matchedDependency in castMatchedChange.Dependencies)
+                                                    {
+                                                        // copy current dependency
+                                                        currentChange.AddDependency(matchedDependency);
+                                                    }
+                                                    if (DependencyDebugging)
+                                                    {
+                                                        Helpers.CheckFileChangeDependenciesForDuplicates(currentChange);
+                                                    }
                                                 }
 
-                                                // if no metadata was returned from the database, then throw an error if the change originated on the client or otherwise try to grab the metadata from the server for a new creation event at the final destination of the rename
-                                                if (syncStateMetadata == null)
+                                                // if at least one of the times matched within a second, then rewrite the metadata properties to keep the previous time(s)
+                                                if (sameCreationTime || sameLastTime)
                                                 {
-                                                    // if the change is a Sync From, then try to grab the metadata from the server at the new destination for the rename to use to create a new creation event at the new path
-                                                    if (currentChange.Direction == SyncDirection.From)
-                                                    {
-                                                        // declare the status of communication from getting metadata
-                                                        CLHttpRestStatus getNewMetadataStatus;
-                                                        // declare the response object of the actual metadata when returned
-                                                        JsonContracts.Metadata newMetadata;
-                                                        // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
-                                                        CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath, // path to query
-                                                            currentChange.Metadata.HashableProperties.IsFolder, // whether path represents a folder (as opposed to a file or shortcut)
-                                                            HttpTimeoutMilliseconds, // milliseconds before communication would expire on an operation
-                                                            out getNewMetadataStatus, // output the status of communication
-                                                            out newMetadata); // output the resulting metadata, if any is found
+                                                    currentChange.Metadata.HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder,
+                                                        (sameLastTime ? ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.LastTime : currentChange.Metadata.HashableProperties.LastTime),
+                                                        (sameCreationTime ? ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.CreationTime : currentChange.Metadata.HashableProperties.CreationTime),
+                                                        currentChange.Metadata.HashableProperties.Size);
+                                                }
+                                            }
+                                        }
+                                        // else if nothing is new or different for the current FileChange, then use the matched change instead of the current change (reassign), making sure it is a FileChange with dependencies
+                                        else
+                                        {
+                                            // assign and check if the cast matched change (one with dependencies) exists after trying to cast from the matched change, then set the current change as the cast matched change
+                                            if ((castMatchedChange = ((PossiblyStreamableFileChange)matchedChange).FileChange as FileChangeWithDependencies) != null)
+                                            {
+                                                currentChange = castMatchedChange;
+                                            }
+                                            // else if the matched changed failed to be cast as one with dependencies, then create a new FileChange with dependencies from the matched changed and set it as the current change, rethrowing any errors that occur
+                                            else
+                                            {
+                                                CLError convertMatchedChangeError = FileChangeWithDependencies.CreateAndInitialize(
+                                                    ((PossiblyStreamableFileChange)matchedChange).FileChange,
+                                                    /* initialDependencies */ null,
+                                                    out currentChange,
+                                                    fileDownloadMoveLocker: ((PossiblyStreamableFileChange)matchedChange).FileChange.fileDownloadMoveLocker);
+                                                if (convertMatchedChangeError != null)
+                                                {
+                                                    throw new AggregateException("Error converting matchedChange to FileChangeWithDependencies", convertMatchedChangeError.GrabExceptions());
+                                                }
+                                            }
+                                        }
 
-                                                        // if an error occurred getting metadata, rethrow the error
-                                                        if (getNewMetadataError != null)
+                                        //ZW: this is where the Processing of the Event Header (Return ) Status is processed including conflict rename handling 
+                                        //ZW: If Changes are triggered by muliple actions at the same time, async  processes may try to operate on the 
+                                        //ZW: the same file before the previous change is complete. In this case there are dependencies, which arise for ordering the changes
+                                        //ZW: Change 2 is Dependent on change 1. 
+                                        // switch on direction of change first (Sync From versus Sync To)
+                                        switch (currentChange.Direction)
+                                        {
+                                            case SyncDirection.From:
+                                                // Sync From only requires adding the current change to the incomplete changes list (all Sync From changes are processed)
+                                                AddToIncompleteChanges(incompleteChangesList, currentChange, currentStream, metadataIsDifferent);
+                                                break;
+
+                                            case SyncDirection.To:
+                                                // Sync To has a status returned from the server which describes how to process the event, so switch on it
+                                                switch (currentEvent.Header.Status)
+                                                {
+                                                    // cases that trigger a file upload
+                                                    case CLDefinitions.CLEventTypeUpload:
+                                                    case CLDefinitions.CLEventTypeUploading:
+                                                        // Todo: need optimization to prevent uploading two identical files from the same client, the first of each storage key that gets uploaded will autocomplete all other events with the same storage key
+
+                                                        // Sync To event did not complete with communication since it still requires a file upload so add it to incomplete changes list
+                                                        AddToIncompleteChanges(incompleteChangesList, currentChange, currentStream, metadataIsDifferent);
+                                                        break;
+
+                                                    // group not found (a possible error case) with the immediately completed cases since "not_found" for a deletion requires no more action and can be presumed completed successfully
+                                                    case CLDefinitions.CLEventTypeAccepted:
+                                                    case CLDefinitions.CLEventTypeExists:
+                                                    case CLDefinitions.CLEventTypeDuplicate:
+                                                    case CLDefinitions.CLEventTypeNotFound:
+                                                    case CLDefinitions.CLEventTypeDownload:
+                                                    case CLDefinitions.CLEventTypeAlreadyDeleted:
+                                                    case CLDefinitions.CLEventTypeNoOperation:
+                                                        // if the file system object was not found on the server and was not marked for deletion, then convert the operation to a creation at the new path so it can still be processed on a future sync
+                                                        if (currentEvent.Header.Status == CLDefinitions.CLEventTypeNotFound
+                                                            && currentChange.Type != FileChangeType.Deleted)
                                                         {
-                                                            throw new AggregateException("An error occurred retrieving metadata", getNewMetadataError.GrabExceptions());
-                                                        }
+                                                            // clear unique server id
+                                                            currentChange.Metadata.ServerId = null;
+                                                            // convert change to creation
+                                                            currentChange.Type = FileChangeType.Created;
+                                                            // remove old path since creation does not have one
+                                                            currentChange.OldPath = null;
+                                                            // clear revision since new file system objects never need one
+                                                            currentChange.Metadata.Revision = null;
+                                                            // notify associated metadata with the change to the revision
+                                                            currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
+                                                            // clear storage key since the server may need to assign a new one when creation is sent
+                                                            currentChange.Metadata.StorageKey = null;
+                                                            // clear mime type, which is not set on Windows anyways
+                                                            currentChange.Metadata.MimeType = null;
 
-                                                        // if the communication was not successful, then throw an error with the bad status
-                                                        if (getNewMetadataStatus != CLHttpRestStatus.Success
-                                                            && getNewMetadataStatus != CLHttpRestStatus.NoContent)
-                                                        {
-                                                            throw new Exception("Retrieving metadata did not return successful status: CLHttpRestStatus." + getNewMetadataStatus.ToString());
-                                                        }
+                                                            // wrap the modified current change so it can be added to the changes in error list
+                                                            PossiblyStreamableAndPossiblyChangedFileChangeWithError notFoundChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(true, // type was converted so database needs to be updated
+                                                                currentChange, // the modified current change
+                                                                currentStream, // any stream that needs to be disposed for the current change
 
-                                                        // if there was no content, then the metadata was not found at the given path so throw an error
-                                                        if (getNewMetadataStatus == CLHttpRestStatus.NoContent
-                                                            || newMetadata.Deleted == true)
-                                                        {
-                                                            throw new Exception("Metadata not found for given path");
-                                                        }
+                                                                // calculate dynamic exception message for the "not_found" status
+                                                                new Exception(CLDefinitions.CLEventTypeNotFound + " " +
+                                                                    (currentEvent.Header.Action ?? currentEvent.Action) +
+                                                                    " " + currentChange.EventId + " " + currentChange.NewPath.ToString()));
 
-                                                        if (newMetadata.IsNotPending == false)
-                                                        {
-                                                            CLHttpRestStatus fileVersionsStatus;
-                                                            JsonContracts.FileVersion[] fileVersions;
-                                                            CLError fileVersionsError = httpRestClient.GetFileVersions(
-                                                                newMetadata.ServerId,
-                                                                HttpTimeoutMilliseconds,
-                                                                out fileVersionsStatus,
-                                                                out fileVersions);
-
-                                                            if (fileVersionsStatus != CLHttpRestStatus.Success
-                                                                && fileVersionsStatus != CLHttpRestStatus.NoContent)
+                                                            // if the changes in error list already contains a mapping from the current change's event id to an array of errors, then expand the array and add the modified current change
+                                                            if (changesInErrorList.ContainsKey(currentChange.EventId))
                                                             {
-                                                                throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.GrabExceptions());
+                                                                // store the previous array of errors
+                                                                PossiblyStreamableAndPossiblyChangedFileChangeWithError[] previousErrors = changesInErrorList[currentChange.EventId];
+                                                                // create a new array for error with a size expanded by one
+                                                                PossiblyStreamableAndPossiblyChangedFileChangeWithError[] newErrors = new PossiblyStreamableAndPossiblyChangedFileChangeWithError[previousErrors.Length + 1];
+                                                                // copy all the previous errors to the new array
+                                                                previousErrors.CopyTo(newErrors, 0);
+                                                                // put the modified current change as the last index of the new array
+                                                                newErrors[previousErrors.Length] = notFoundChange;
+                                                                // replace the value in the error mapping dictionary for the current event id with the expanded array
+                                                                changesInErrorList[currentChange.EventId] = newErrors;
                                                             }
-
-                                                            JsonContracts.FileVersion lastNonPendingVersion = (fileVersions ?? Enumerable.Empty<JsonContracts.FileVersion>())
-                                                                .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
-                                                                .FirstOrDefault(fileVersion => fileVersion.IsDeleted != true
-                                                                    && fileVersion.IsNotPending != false);
-
-                                                            if (lastNonPendingVersion == null)
+                                                            // else if a change in error does not already exist for the current event id, then add a new array with just the modified current change
+                                                            else
                                                             {
-                                                                throw new Exception("A previous non-pending file version was not found");
+                                                                // add a new array with just the modified current change to the error mapping dictionary for the current event id
+                                                                changesInErrorList.Add(currentChange.EventId,
+                                                                    new PossiblyStreamableAndPossiblyChangedFileChangeWithError[]
+                                                                    {
+                                                                        notFoundChange
+                                                                    });
                                                             }
-
-                                                            newMetadata.IsNotPending = true;
-
-                                                            // server does not version other metadata, so these are the only ones we can really use to update
-                                                            newMetadata.StorageKey = lastNonPendingVersion.StorageKey;
-                                                            newMetadata.Hash = lastNonPendingVersion.FileHash;
-                                                            newMetadata.Size = lastNonPendingVersion.FileSize;
                                                         }
+                                                        // else if the status was an accepted status or it was a "not_found" for a deletion event, then add the current change to the list of completed changes
+                                                        else
+                                                        {
+                                                            // wrap the current change so it can be added to the list of completed changes
+                                                            PossiblyChangedFileChange addCompletedChange = new PossiblyChangedFileChange(metadataIsDifferent, // whether the event source database needs to be updated
+                                                                currentChange); // the current change
 
-                                                        // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
-                                                        FileChangeWithDependencies newPathCreation = CreateFileChangeFromBaseChangePlusHash(new FileChange(DelayCompletedLocker: null, fileDownloadMoveLocker: new object())
+                                                            // if there is a Stream for the current change, then add it to the list of completed streams and dispose it
+                                                            if (currentStream != null)
                                                             {
-                                                                Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
-                                                                NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
-                                                                Type = FileChangeType.Created, // a create to download a new file or process a new folder
-                                                                Metadata = new FileMetadata()
+                                                                // add current stream to list of completed streams
+                                                                completedStreams.Add(currentStream);
+
+                                                                // try/catch to dispose the current stream, failing silently
+                                                                try
                                                                 {
-                                                                    //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
-
-                                                                    ServerId = currentChange.Metadata.ServerId, // the unique id on the server
-                                                                    HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
-                                                                        newMetadata.ModifiedDate, // last modified time for this file system object
-                                                                        newMetadata.CreatedDate, // creation time for this file system object
-                                                                        newMetadata.Size), // file size or null for folders
-                                                                    Revision = newMetadata.Revision, // file revision or null for folders
-                                                                    StorageKey = newMetadata.StorageKey, // file storage key or null for folders
-                                                                    LinkTargetPath = (newMetadata.TargetPath == null
-                                                                        ? null // if server metadata does not have a shortcut file target path, then use null
-                                                                        : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
-                                                                    MimeType = newMetadata.MimeType // never set on Windows
+                                                                    currentStream.Dispose();
                                                                 }
-                                                            },
-                                                            newMetadata.Hash, // file MD5 hash or null for folder
-                                                            DependencyDebugging);
+                                                                catch
+                                                                {
+                                                                }
+                                                            }
 
-                                                        // make sure to add change to SQL
-                                                        newPathCreation.DoNotAddToSQLIndex = false;
-                                                        currentChange.DoNotAddToSQLIndex = false;
+                                                            // if the mapping of event ids to arrays of completed changes contains the current change's event id, then expand the array and add the current change
+                                                            if (completedChangesList.ContainsKey(currentChange.EventId))
+                                                            {
+                                                                // store the previous array of completed changes
+                                                                PossiblyChangedFileChange[] previousCompleted = completedChangesList[currentChange.EventId];
+                                                                // create a new array for completions with a size expanded by one
+                                                                PossiblyChangedFileChange[] newCompleted = new PossiblyChangedFileChange[previousCompleted.Length + 1];
+                                                                // copy all the previous completed changes to the new array
+                                                                previousCompleted.CopyTo(newCompleted, 0);
+                                                                // put the completed change at the last index of the new array
+                                                                newCompleted[previousCompleted.Length] = addCompletedChange;
+                                                                // replace the value in the completed changes mapping dictionary for the current event id with the expanded array
+                                                                completedChangesList[currentChange.EventId] = newCompleted;
+                                                            }
+                                                            // else if the mapping of event ids to arrays of completed changes does not contain the current change's event id, then add a new array with just the current change
+                                                            else
+                                                            {
+                                                                // add a new array with just the completed change to the completed changes mapping dictionary for the current event id
+                                                                completedChangesList.Add(currentChange.EventId,
+                                                                    new PossiblyChangedFileChange[]
+                                                                    {
+                                                                        addCompletedChange
+                                                                    });
+                                                            }
+                                                        }
+                                                        break;
+                                                    //ZW: File Rename scheme for conflicting file names 
+                                                    // case that triggers moving the local file to a new location in the same directory and processing it as a new file creation (the latest version of the file at the original location will likely be downloaded from a Sync From event)
+                                                    case CLDefinitions.CLEventTypeConflict:
+                                                        // store original path for current change (a new path with "CONFLICT" appended to the name will be calculated)
+                                                        FilePath originalConflictPath = currentChange.NewPath;
 
-                                                        alreadyVisitedRenames[newPathCreation.NewPath.Copy()] = newPathCreation.Metadata;
+                                                        // define an exception for storing any error that may occur while processing the conflict change 
+                                                        Exception innerExceptionAppend = null;
 
-                                                        // merge the creation of the new FileChange for a pseudo Sync From creation event with the event source database, storing any error that occurs
-                                                        CLError newPathCreationError = syncData.mergeToSql(new[] { new FileChangeMerge(newPathCreation, currentChange) });
-                                                        // if an error occurred merging the new FileChange with the event source database, then rethrow the error
-                                                        if (newPathCreationError != null)
+                                                        // try/catch process the conflict change, on catch reassign the previous revision so the change won't succeed the next sync iteration and replace the conflicted file, also store the error
+                                                        try
                                                         {
-                                                            throw new AggregateException("Error merging new file creation change in response to not finding existing metadata at sync from rename old path", newPathCreationError.GrabExceptions());
+                                                            // TODO: The directory file enumeration in this function should be run via the event source (to remove the ties to the file system here)
+                                                            // create a function to find the next available name for a conflicted file, will run again if the ending number can't be incremeneted and new counter has to be added, i.e. "Z (2147483647)" will need a " (2)" added
+                                                            Func<FilePath, string, string, KeyValuePair<bool, string>> getNextName = (innerOriginalConflictPath, extension, mainName) =>
+                                                            {
+                                                                // if the main name of the file (before extension) has a positive length and ends with a right paranthesis, then try to process the ending of the name as a number surrounded by parenthesis so we can remove it to find the real name (without the incrementor)
+                                                                if (mainName.Length > 0
+                                                                    && mainName[mainName.Length - 1] == ')')
+                                                                {
+                                                                    // define a count for the number of numeric digits between the terminal parentheses in the file
+                                                                    int numDigits = 0;
+                                                                    // continue while there is still at least 3 non-digit characters left the name (enclosing parentheses plus a space before them)
+                                                                    // and also only continue while the number of digits is within the count parsable to a 32-bit integer (10 digits)
+                                                                    while (mainName.Length > numDigits + 2
+                                                                        && numDigits < 11)
+                                                                    {
+                                                                        // if the next character to check is a digit, then increment the number of digits found
+                                                                        if (char.IsDigit(mainName[mainName.Length - 2 - numDigits]))
+                                                                        {
+                                                                            numDigits++;
+                                                                        }
+                                                                        // else if at least one digit has been found and the characters before the digits are a space followed by a right parenthesis, then try to parse the digits as an integer to find if the ending can be chopped off
+                                                                        else if (numDigits > 0
+                                                                            && mainName[mainName.Length - 2 - numDigits] == '('
+                                                                            && mainName[mainName.Length - 3 - numDigits] == ' ')
+                                                                        {
+                                                                            // take the substring for just the digits found
+                                                                            string numPortion = mainName.Substring(mainName.Length - 1 - numDigits, numDigits);
+                                                                            // declare an int for the parsed number
+                                                                            int numPortionParsed;
+                                                                            // try to parse the found digits into the number and if successful and the number is not the max value for a 32-bit int (thus cannot be further incremented), then chop off the digits to set the actual main name of the file
+                                                                            if (int.TryParse(numPortion, out numPortionParsed)
+                                                                                && numPortionParsed != int.MaxValue)
+                                                                            {
+                                                                                mainName = mainName.Substring(0, mainName.Length - 3 - numDigits);
+                                                                            }
+
+                                                                            // done checking (either digits were chopped off or the end was not parsable)
+                                                                            break;
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            // done checking (either no digits were found or they weren't preceded with a space and left paranthesis
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                // declare an int for the highest number found between parentheses after the main name of the file (before extension and without existing incrementor)
+                                                                int highestNumFound = 0;
+                                                                // TODO: this is the part which needs to be performed via the event source since it access the file system
+                                                                // loop through all sibling files within the same parent directory as the current file
+                                                                foreach (string currentSibling in Directory.EnumerateFiles(innerOriginalConflictPath.Parent.ToString()))
+                                                                {
+                                                                    // if the sibling has the same exact file name (including extension) then increment the number found to 1 if it hasn't already been incremented
+                                                                    if (currentSibling.Equals(mainName + extension, StringComparison.InvariantCultureIgnoreCase))
+                                                                    {
+                                                                        // if number has not already been incremented, then increment to 1
+                                                                        if (highestNumFound == 0)
+                                                                        {
+                                                                            highestNumFound = 1;
+                                                                        }
+                                                                    }
+                                                                    // else if the sibling does not have the same exact file name but is named based on the name with an incrementor "Z (XXX).YYY",
+                                                                    // then try to pull out the number value of the incrementor to use and use it as the highest number if greatest found so far
+                                                                    else if (currentSibling.StartsWith(mainName + " (", StringComparison.InvariantCultureIgnoreCase) // "Z (..."
+                                                                        && currentSibling.EndsWith(")" + extension, StringComparison.InvariantCultureIgnoreCase)) // "...).YYY"
+                                                                    {
+                                                                        // pull out the portion of the name between the parenteses
+                                                                        string siblingNumberPortion = currentSibling.Substring(mainName.Length + 2,
+                                                                            currentSibling.Length - mainName.Length - extension.Length - 3);
+                                                                        // declare an int for the parsed number
+                                                                        int siblingNumberParsed;
+                                                                        // try to parse the portion of the name pulled out as an int and if successful, then see if it's the highest number found so far to set
+                                                                        if (int.TryParse(siblingNumberPortion, out siblingNumberParsed))
+                                                                        {
+                                                                            if (siblingNumberParsed > highestNumFound)
+                                                                            {
+                                                                                highestNumFound = siblingNumberParsed;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+
+                                                                // return with the incremented name (or stay at the max int value and return with a true as well if the highest number is at int.MaxValue and a new incrementor needs to be added)
+                                                                return new KeyValuePair<bool, string>(highestNumFound == int.MaxValue,
+                                                                    mainName + " (" + (highestNumFound == int.MaxValue ? highestNumFound : highestNumFound + 1).ToString() + ")");
+                                                            };
+
+                                                            // declare a string for the main name portion of the file name (before the last extension)
+                                                            string findMainName;
+                                                            // declare a string for the last extension of the file name, if any
+                                                            string findExtension;
+
+                                                            // define the index of the final period in the file name (marks the start of the extension)
+                                                            int extensionIndex = originalConflictPath.Name.LastIndexOf('.');
+                                                            // if an extension was not found, then set the extension as an empty string, and the entire file name as the main name
+                                                            if (extensionIndex == -1)
+                                                            {
+                                                                findExtension = string.Empty;
+                                                                findMainName = originalConflictPath.Name;
+                                                            }
+                                                            // else if an extension was found, then set the extension as the extesion part of the file name, and the rest as the main name
+                                                            else
+                                                            {
+                                                                findExtension = currentChange.NewPath.Name.Substring(extensionIndex);
+                                                                findMainName = currentChange.NewPath.Name.Substring(0, extensionIndex);
+                                                            }
+
+                                                            // define a portion of the name which needs to be added to describe the conflict state dynamic to the current friendly-named device
+                                                            string deviceAppend = " CONFLICT " + syncBox.CopiedSettings.FriendlyName;
+                                                            // declare a string to store the main name of the conflict file to create
+                                                            string finalizedMainName;
+                                                            // declare a FilePath to store the full path to the conflict file to create
+                                                            FilePath finalizedNewPath;
+
+                                                            // TODO: Need to check for file existance of the conflict path via the event source to remove dependence on the file system
+                                                            // if the main name of the current file in conflict already contains the "CONFLICT" portion in the name
+                                                            // or if a file already exists at the new conflict path, then need to run function to find the next available name
+                                                            //
+                                                            // this process also sets the full path to use for the new conflict FileChange (either in the second condition or in the code which may run)
+                                                            if (findMainName.IndexOf(deviceAppend, 0, StringComparison.InvariantCultureIgnoreCase) != -1
+                                                                || System.IO.File.Exists((finalizedNewPath = new FilePath((finalizedMainName = findMainName + deviceAppend) + findExtension, originalConflictPath.Parent)).ToString()))
+                                                            {
+                                                                // define a starting point for the name search iteration
+                                                                KeyValuePair<bool, string> mainNameIteration = new KeyValuePair<bool, string>(
+                                                                    true, // needs to iterate the first time
+                                                                    findMainName); // starting name to search
+
+                                                                // continue while the input or return value has the flag to continue
+                                                                while (mainNameIteration.Key)
+                                                                {
+                                                                    // set the latest calculated name by the function which finds the next available name to use, if true is returned for the return Key, then a deeper name has to be searched again
+                                                                    mainNameIteration = getNextName(originalConflictPath, findExtension, mainNameIteration.Value);
+                                                                }
+
+                                                                // take out the final calculated, available name for the conflict
+                                                                finalizedMainName = mainNameIteration.Value;
+
+                                                                // build the full path for the calculated conflict name
+                                                                finalizedNewPath = new FilePath(finalizedMainName + findExtension, originalConflictPath.Parent);
+                                                            }
+
+                                                            // store the current type of the change to reset upon error
+                                                            FileChangeType storeType = currentChange.Type;
+                                                            // store the current path of the change to reset upon error
+                                                            FilePath storePath = currentChange.NewPath;
+
+                                                            // try/catch to create a creation FileChange to process the conflict file to rename the file locally and add an event to upload it, on catch revert the modified event path and type
+                                                            try
+                                                            {
+                                                                FileChange oldPathDownload = null;
+
+                                                                try
+                                                                {
+                                                                    FileMetadata oldPathMetadata;
+                                                                    CLError oldPathMetadataError = syncData.getMetadataByPathAndRevision(
+                                                                        originalConflictPath.ToString(),
+                                                                        /* revision */ null,
+                                                                        out oldPathMetadata);
+
+                                                                    if (oldPathMetadataError == null
+                                                                        && oldPathMetadata != null)
+                                                                    {
+                                                                        if (string.IsNullOrEmpty(oldPathMetadata.Revision))
+                                                                        {
+                                                                            JsonContracts.Metadata oldPathMetadataRevision;
+                                                                            CLHttpRestStatus oldPathMetadataRevisionStatus;
+                                                                            CLError oldPathMetadataRevisionError = httpRestClient.GetMetadata(
+                                                                                originalConflictPath,
+                                                                                /* isFolder */ false,
+                                                                                HttpTimeoutMilliseconds,
+                                                                                out oldPathMetadataRevisionStatus,
+                                                                                out oldPathMetadataRevision);
+
+                                                                            if (oldPathMetadataRevisionStatus == CLHttpRestStatus.Success
+                                                                                && oldPathMetadataRevision != null
+                                                                                && oldPathMetadataRevision.Deleted != true)
+                                                                            {
+                                                                                oldPathMetadata.Revision = oldPathMetadataRevision.Revision;
+                                                                            }
+                                                                        }
+
+                                                                        if (!string.IsNullOrEmpty(oldPathMetadata.Revision))
+                                                                        {
+                                                                            FileChangeWithDependencies oldPathDownloadNoDependencies;
+                                                                            CLError oldPathDownloadNoDependenciesError = FileChangeWithDependencies.CreateAndInitialize(
+                                                                                new FileChange(DelayCompletedLocker: null, fileDownloadMoveLocker: new object())
+                                                                                {
+                                                                                    Direction = SyncDirection.From,
+                                                                                    Metadata = oldPathMetadata,
+                                                                                    NewPath = originalConflictPath.Copy(),
+                                                                                    Type = FileChangeType.Created
+                                                                                }, /* initialDependencies */ null,
+                                                                                out oldPathDownloadNoDependencies,
+                                                                                fileDownloadMoveLocker: new object()); // Sync From file create is always a file download, so create its download locker
+
+                                                                            if (oldPathDownloadNoDependenciesError == null)
+                                                                            {
+                                                                                CLError oldPathDownloadToSqlError = syncData.mergeToSql(new[] { new FileChangeMerge(oldPathDownloadNoDependencies) });
+                                                                                if (oldPathDownloadToSqlError == null)
+                                                                                {
+                                                                                    oldPathDownload = oldPathDownloadNoDependencies;
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                catch
+                                                                {
+                                                                }
+
+                                                                // change conflict event into a creation for a new upload
+                                                                currentChange.Type = FileChangeType.Created;
+                                                                // change conflict path to the new conflict path
+                                                                currentChange.NewPath = finalizedNewPath;
+                                                                // <David fix for a file creation with an old path> file creations should not have an old path (only for renames)
+                                                                currentChange.OldPath = null;
+                                                                // clear the revision (since it will be a new file)
+                                                                currentChange.Metadata.Revision = null;
+                                                                // update associated Metadatas with the revision change
+                                                                currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
+                                                                // clear the storage key (since it will be a new file)
+                                                                currentChange.Metadata.StorageKey = null;
+
+                                                                // make sure to add change to SQL
+                                                                currentChange.DoNotAddToSQLIndex = false;
+
+                                                                // declare a new FileChange with dependencies for moving the conflict file to the new conflict path
+                                                                FileChangeWithDependencies reparentConflict;
+                                                                // initialize and set the rename change with a new FileChange for moving the conflict file to the new conflict path and include the conflict creation change as a dependency, storing any error that occurs
+                                                                CLError reparentCreateError = FileChangeWithDependencies.CreateAndInitialize(new FileChange()
+                                                                    {
+                                                                        Direction = SyncDirection.From, // rename the file locally (Sync From)
+                                                                        Metadata = new FileMetadata()
+                                                                        {
+                                                                            HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
+                                                                            LinkTargetPath = currentChange.Metadata.LinkTargetPath // copy shortcut target path from the conflicted file
+                                                                        },
+                                                                        NewPath = currentChange.NewPath, // use the new conflict path as the rename destination
+                                                                        OldPath = originalConflictPath, // use the location of the current conflicted file as move from location
+                                                                        Type = FileChangeType.Renamed // this operation is a move
+                                                                    },
+                                                                    (oldPathDownload == null
+                                                                        ? new[] { currentChange }  // add the creation at the new location as a dependency to the rename
+                                                                        : new[] { oldPathDownload, currentChange }), // in addition to the create at the new location in the line above, also download the original copy of the file to the old path
+                                                                    out reparentConflict); // output the new rename change
+                                                                // if an error occurred creating the FileChange for the rename operation, rethrow the error
+                                                                if (reparentCreateError != null)
+                                                                {
+                                                                    throw new AggregateException("Error creating reparentConflict", reparentCreateError.GrabExceptions());
+                                                                }
+                                                                else if (DependencyDebugging)
+                                                                {
+                                                                    Helpers.CheckFileChangeDependenciesForDuplicates(reparentConflict);
+                                                                }
+
+                                                                // if the current change already exists in the database then it may have been in the initial changes to communicate,
+                                                                // so the current change will need to be added to a list which will be checked to make sure all changes to communicate were processed
+                                                                if (currentChange.EventId > 0)
+                                                                {
+                                                                    // if the current change had a stream (which it should for file uploads),
+                                                                    // then it needs to be disposed because it is now a dependency which needs to go through sync to recommunicate for a new storage key
+                                                                    if (currentStream != null)
+                                                                    {
+                                                                        try
+                                                                        {
+                                                                            currentStream.Dispose();
+                                                                        }
+                                                                        catch
+                                                                        {
+                                                                        }
+                                                                    }
+
+                                                                    // wrap the current event so it can be added to the converted dependencies list
+                                                                    PossiblyStreamableFileChange dependencyHidden = new PossiblyStreamableFileChange(
+                                                                        currentChange, // current event
+                                                                        currentStream, // current stream, or null if it had not existed
+                                                                        true); // this change will be added to errors anyways, so invalid nullability of the Stream is not important for reprocessing
+
+                                                                    // declare array for grabbing converted dependencies for current event id
+                                                                    PossiblyStreamableFileChange[] currentEventIdDependencies;
+                                                                    // try to grab the converted dependencies for the current event id and if successful, then the existing array will need to be expanded with the current event
+                                                                    if (changesConvertedToDependencies.TryGetValue(currentChange.EventId, out currentEventIdDependencies))
+                                                                    {
+                                                                        // create an array with length one larger than the previous array
+                                                                        PossiblyStreamableFileChange[] previousDependenciesPlusOne = new PossiblyStreamableFileChange[currentEventIdDependencies.Length + 1];
+                                                                        // copy everything from the previous array into the expanded array
+                                                                        Array.Copy(currentEventIdDependencies, // previous array
+                                                                            previousDependenciesPlusOne, // expanded array
+                                                                            currentEventIdDependencies.Length); // grab everything from the previous array
+                                                                        // set the added slot in the array as the current event
+                                                                        previousDependenciesPlusOne[currentEventIdDependencies.Length] = dependencyHidden;
+                                                                        // set the array for the current event id as the expanded array
+                                                                        changesConvertedToDependencies[currentChange.EventId] = previousDependenciesPlusOne;
+                                                                    }
+                                                                    // else if converted dependencies could not be grabbed for the current event id, then add a new array with the current event
+                                                                    else
+                                                                    {
+                                                                        changesConvertedToDependencies.Add(currentChange.EventId, new[]
+                                                                        {
+                                                                            dependencyHidden
+                                                                        });
+                                                                    }
+                                                                }
+
+                                                                // remove the previous conflict change from the event source database, storing any error that occurred
+                                                                CLError removalOfPreviousChange = syncData.mergeToSql(new[] { new FileChangeMerge(null, currentChange) });
+                                                                // if an error occurred removing the previous conflict change, then rethrow the error
+                                                                if (removalOfPreviousChange != null)
+                                                                {
+                                                                    throw new AggregateException("Error removing the existing FileChange for a conflict", removalOfPreviousChange.GrabExceptions());
+                                                                }
+
+                                                                // add the local rename change to the event source database, storing any error that occurred
+                                                                CLError addRenameToConflictPath = syncData.mergeToSql(new[] { new FileChangeMerge(reparentConflict) });
+                                                                // if there was an error adding the local rename change, then readd the reverted conflict change to the event source database and rethrow the error
+                                                                if (addRenameToConflictPath != null)
+                                                                {
+                                                                    currentChange.Type = storeType;
+                                                                    currentChange.NewPath = storePath;
+                                                                    syncData.mergeToSql(new[] { new FileChangeMerge(currentChange) });
+
+                                                                    throw new AggregateException("Error adding a rename FileChange for a conflicted file", addRenameToConflictPath.GrabExceptions());
+                                                                }
+
+                                                                // store the current event id in case it needs to be reverted
+                                                                long storeEventId = currentChange.EventId;
+                                                                // wipe the event id so a new event can be added
+                                                                currentChange.EventId = 0;
+
+                                                                // write the original conflict as a file creation to upload to the server to the event source database, storing any error that occurred
+                                                                CLError addModifiedConflictAsCreate = syncData.mergeToSql(new FileChangeMerge[] { new FileChangeMerge(currentChange) });
+
+                                                                // if an error occurred writing the original conflict as a file creation, then remove the added rename change and readd the reverted conflict change to the event source database and rethrow the error
+                                                                if (addModifiedConflictAsCreate != null)
+                                                                {
+                                                                    syncData.mergeToSql(new[] { new FileChangeMerge(null, reparentConflict) });
+                                                                    currentChange.EventId = storeEventId;
+                                                                    currentChange.Type = storeType;
+                                                                    currentChange.NewPath = storePath;
+
+                                                                    syncData.mergeToSql(new[] { new FileChangeMerge(currentChange) });
+
+                                                                    throw new AggregateException("Error adding a new creation FileChange at the new conflict path", addModifiedConflictAsCreate.GrabExceptions());
+                                                                }
+
+                                                                // store the succesfully created rename change with the modified conflict change as the current change to process
+                                                                currentChange = reparentConflict;
+                                                                // since we updated the event source database already for the changes, treat the changes as not different
+                                                                metadataIsDifferent = false;
+                                                            }
+                                                            catch
+                                                            {
+                                                                // revert the changes to the current conflict and rethrow the error
+
+                                                                currentChange.Type = storeType;
+                                                                currentChange.NewPath = storePath;
+                                                                throw;
+                                                            }
+                                                        }
+                                                        catch (Exception ex)
+                                                        {
+                                                            bool reversedRevision = currentChange.Metadata.Revision != previousRevisionOnConflictException;
+                                                            // revert the revision to the value before communication so it will get a conflict the next iteration through Sync to attempt to handle it again
+                                                            currentChange.Metadata.Revision = previousRevisionOnConflictException;
+                                                            currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
+                                                            // update associated Metadatas with the change to the revision
+                                                            currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
+
+                                                            // store the exception that occurred processing the conflict
+                                                            innerExceptionAppend = new Exception("Error creating local rename to apply for conflict", ex);
                                                         }
 
-                                                        // create the change in a new format to add to errors for reprocessing
-                                                        PossiblyStreamableAndPossiblyChangedFileChangeWithError notFoundChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(/* changed */false, // technically this is a change, but it was manually added to SQL so effectively it's not different from the database
-                                                            newPathCreation, // wrapped FileChange
-                                                            null, // no stream since this is not a file upload
-                                                            new Exception("Unable to find metadata for file. May have been a rename on a local file path that does not exist. Created new FileChange for creation at path: " + newPathCreation.NewPath.ToString())); // Error message for growl or logging
+                                                        // wrap the conflict change so it can be added to the changes in error
+                                                        PossiblyStreamableAndPossiblyChangedFileChangeWithError addErrorChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(metadataIsDifferent, // whether the event source database needs to be updated for the conflict change
+                                                            currentChange, // the conflict change itself
+                                                            currentStream, // any stream belonging to the conflict change
+
+                                                            // dynamic conflict message for the exception from the conflict state, the original change action, and the conflict id and path; also add any inner exception from processing failures
+                                                            new Exception(CLDefinitions.CLEventTypeConflict + " " +
+                                                                (currentEvent.Header.Action ?? currentEvent.Action) +
+                                                                " " + currentChange.EventId + " " + originalConflictPath.ToString(),
+                                                                innerExceptionAppend));
 
                                                         // if a change in error already exists for the current event id, then expand the array of errors at this event id with the created FileChange
                                                         if (changesInErrorList.ContainsKey(currentChange.EventId))
@@ -6581,7 +7518,7 @@ namespace Cloud.Sync
                                                             // copy all the previous errors to the new array
                                                             previousErrors.CopyTo(newErrors, 0);
                                                             // put the new error as the last index of the new array
-                                                            newErrors[previousErrors.Length] = notFoundChange;
+                                                            newErrors[previousErrors.Length] = addErrorChange;
                                                             // replace the value in the error mapping dictionary for the current event id with the expanded array
                                                             changesInErrorList[currentChange.EventId] = newErrors;
                                                         }
@@ -6592,994 +7529,64 @@ namespace Cloud.Sync
                                                             changesInErrorList.Add(currentChange.EventId,
                                                                 new PossiblyStreamableAndPossiblyChangedFileChangeWithError[]
                                                                 {
-                                                                    notFoundChange
+                                                                    addErrorChange
                                                                 });
                                                         }
+                                                        break;
 
+                                                    // "error"
+                                                    case CLDefinitions.RESTResponseStatusFailed:
+                                                        throw new Exception("Error response: " +
+                                                            (currentEvent.Metadata == null
+                                                                ? "{null Metadata}"
+                                                                : string.IsNullOrEmpty(currentEvent.Metadata.ErrorMessage)
+                                                                    ? "{Metadata has null ErrorMessage}"
+                                                                    : currentEvent.Metadata.ErrorMessage));
 
-                                                        // a file may still exist at the old path on disk, so to make sure the server looks the same, we must duplicate the file on the server
-                                                        // TODO: all System.IO or disk access should be done through syncData ISyncDataObject interface object
-
-                                                        if (currentChange.OldPath != null)
-                                                        {
-                                                            FileStream uploadStreamForDuplication = null;
-                                                            try
-                                                            {
-                                                                string oldPathString = currentChange.OldPath.ToString();
-                                                                bool fileExists;
-                                                                try
-                                                                {
-                                                                    fileExists = File.Exists(oldPathString);
-
-                                                                    if (fileExists)
-                                                                    {
-                                                                        uploadStreamForDuplication = new FileStream(oldPathString, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-                                                                        long duplicateSize = 0;
-                                                                        byte[] duplicateHash;
-                                                                        MD5 duplicateHasher = MD5.Create();
-
-                                                                        try
-                                                                        {
-                                                                            byte[] fileBuffer = new byte[FileConstants.BufferSize];
-                                                                            int fileReadBytes;
-
-                                                                            while ((fileReadBytes = uploadStreamForDuplication.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
-                                                                            {
-                                                                                duplicateSize += fileReadBytes;
-                                                                                duplicateHasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
-                                                                            }
-
-                                                                            duplicateHasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
-                                                                            duplicateHash = duplicateHasher.Hash;
-                                                                        }
-                                                                        finally
-                                                                        {
-                                                                            try
-                                                                            {
-                                                                                if (uploadStreamForDuplication != null)
-                                                                                {
-                                                                                    uploadStreamForDuplication.Seek(0, SeekOrigin.Begin);
-                                                                                }
-                                                                            }
-                                                                            catch
-                                                                            {
-                                                                            }
-
-                                                                            duplicateHasher.Dispose();
-                                                                        }
-
-                                                                        FileChange duplicateChange =
-                                                                            new FileChange()
-                                                                            {
-                                                                                Direction = SyncDirection.To,
-                                                                                Metadata = new FileMetadata()
-                                                                                {
-                                                                                    HashableProperties = new FileMetadataHashableProperties(
-                                                                                        /*isFolder*/ false,
-                                                                                        File.GetLastAccessTimeUtc(oldPathString),
-                                                                                        File.GetLastWriteTimeUtc(oldPathString),
-                                                                                        duplicateSize)
-                                                                                },
-                                                                                NewPath = oldPathString,
-                                                                                Type = FileChangeType.Created
-                                                                            };
-                                                                        CLError setDuplicateHash = duplicateChange.SetMD5(duplicateHash);
-                                                                        if (setDuplicateHash != null)
-                                                                        {
-                                                                            throw new AggregateException("Error setting MD5 on duplicateChange: " + setDuplicateHash.errorDescription, setDuplicateHash.GrabExceptions());
-                                                                        }
-
-                                                                        CLHttpRestStatus postDuplicateChangeStatus;
-                                                                        JsonContracts.Event postDuplicateChangeResult;
-                                                                        CLError postDuplicateChange = httpRestClient.PostFileChange(
-                                                                            duplicateChange,
-                                                                            HttpTimeoutMilliseconds,
-                                                                            out postDuplicateChangeStatus,
-                                                                            out postDuplicateChangeResult);
-                                                                        if (postDuplicateChangeStatus != CLHttpRestStatus.Success)
-                                                                        {
-                                                                            throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChange.errorDescription, postDuplicateChange.GrabExceptions());
-                                                                        }
-
-                                                                        if (postDuplicateChangeResult == null)
-                                                                        {
-                                                                            throw new NullReferenceException("Null event response adding duplicate file");
-                                                                        }
-                                                                        if (postDuplicateChangeResult.Header == null)
-                                                                        {
-                                                                            throw new NullReferenceException("Null event response header adding duplicate file");
-                                                                        }
-                                                                        if (string.IsNullOrEmpty(postDuplicateChangeResult.Header.Status))
-                                                                        {
-                                                                            throw new NullReferenceException("Null event response header status adding duplicate file");
-                                                                        }
-                                                                        if (postDuplicateChangeResult.Metadata == null)
-                                                                        {
-                                                                            throw new NullReferenceException("Null event response metadata adding duplicate file");
-                                                                        }
-
-                                                                        duplicateChange.Metadata.Revision = postDuplicateChangeResult.Metadata.Revision;
-                                                                        duplicateChange.Metadata.StorageKey = postDuplicateChangeResult.Metadata.StorageKey;
-
-                                                                        if ((new[]
-                                                                            {
-                                                                                CLDefinitions.CLEventTypeAccepted,
-                                                                                CLDefinitions.CLEventTypeNoOperation,
-                                                                                CLDefinitions.CLEventTypeExists,
-                                                                                CLDefinitions.CLEventTypeDuplicate,
-                                                                                CLDefinitions.CLEventTypeUploading
-                                                                            }).Contains(postDuplicateChangeResult.Header.Status))
-                                                                        {
-                                                                            CLError mergeDuplicateChange = syncData.mergeToSql(new[] { new FileChangeMerge(duplicateChange) });
-                                                                            if (mergeDuplicateChange != null)
-                                                                            {
-                                                                                throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.errorDescription, mergeDuplicateChange.GrabExceptions());
-                                                                            }
-
-                                                                            CLError completeDuplicateChange = syncData.completeSingleEvent(duplicateChange.EventId);
-                                                                            if (completeDuplicateChange != null)
-                                                                            {
-                                                                                throw new AggregateException("Error marking duplicate file change complete in database: " + completeDuplicateChange.errorDescription, completeDuplicateChange.GrabExceptions());
-                                                                            }
-                                                                        }
-                                                                        else if ((new[]
-                                                                            {
-                                                                                CLDefinitions.CLEventTypeUpload,
-                                                                                CLDefinitions.CLEventTypeUploading
-                                                                            }).Contains(postDuplicateChangeResult.Header.Status))
-                                                                        {
-                                                                            FileChangeWithDependencies copyDuplicateChange;
-                                                                            // don't need to set optional parameter (fileDownloadMoveLocker: removeDependencies.fileDownloadMoveLocker) because this if condition is on "upload" status thus not a file download
-                                                                            CLError createCopyDuplicateChange = FileChangeWithDependencies.CreateAndInitialize(duplicateChange, /* initialDependencies */ null, out copyDuplicateChange);
-
-                                                                            if (createCopyDuplicateChange != null)
-                                                                            {
-                                                                                throw new AggregateException("Error copying duplicate file change for upload processing: " + createCopyDuplicateChange.errorDescription, createCopyDuplicateChange.GrabExceptions());
-                                                                            }
-
-                                                                            AddToIncompleteChanges(incompleteChangesList, copyDuplicateChange, uploadStreamForDuplication, /* different metadata since this is new */true);
-
-                                                                            uploadStreamForDuplication = null; // prevents disposal on finally since the Stream will now be sent off for async processing
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            throw new InvalidOperationException("Event response header status invalid for duplicating file: " + postDuplicateChangeResult.Header.Status);
-                                                                        }
-                                                                    }
-                                                                }
-                                                                catch (Exception ex)
-                                                                {
-                                                                    try
-                                                                    {
-                                                                        MessageEvents.FireNewEventMessage(
-                                                                            "Error occurred handling conflict for a file rename: " + ex.Message,
-                                                                            EventMessageLevel.Regular,
-                                                                            /*Error*/ new GeneralErrorInfo(),
-                                                                            syncBox.SyncBoxId,
-                                                                            syncBox.CopiedSettings.DeviceId);
-                                                                    }
-                                                                    catch
-                                                                    {
-                                                                    }
-
-                                                                    fileExists = false;
-                                                                }
-
-                                                                if (fileExists)
-                                                                {
-                                                                    try
-                                                                    {
-                                                                        MessageEvents.FireNewEventMessage(
-                                                                            "File rename conflict handled through duplication",
-                                                                            EventMessageLevel.Minor,
-                                                                            /*Error*/ null,
-                                                                            syncBox.SyncBoxId,
-                                                                            syncBox.CopiedSettings.DeviceId);
-                                                                    }
-                                                                    catch
-                                                                    {
-                                                                    }
-                                                                }
-                                                            }
-                                                            finally
-                                                            {
-                                                                if (uploadStreamForDuplication != null)
-                                                                {
-                                                                    try
-                                                                    {
-                                                                        uploadStreamForDuplication.Dispose();
-                                                                    }
-                                                                    catch
-                                                                    {
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-
-                                                        // Existing metadata for a client event was not found for the current rename's previous path and revision
-                                                        notFoundRename = true;
-                                                    }
-                                                    // else if the change was a rename event with missing metadata on the client and the change originated on the client (Sync To), then throw an error
-                                                    else
-                                                    {
-                                                        throw new NullReferenceException("syncStateMetadata must be found by getMetadataByPathAndRevision");
-                                                    }
+                                                    // server sent a new type of message that is not yet recognized
+                                                    default:
+                                                        throw new ArgumentException("Unknown SyncHeader Status: " + currentEvent.Header.Status);
                                                 }
-                                                // else if metadata was found by querying the event source database and the current event is a Sync From, then set the dictionary for the new path so metadata can be searched on subsequent renames
-                                                else if (currentChange.Direction == SyncDirection.From)
-                                                {
-                                                    // declare a hierarchy for the old path of the rename
-                                                    FilePathHierarchicalNode<FileMetadata> renameHierarchy;
-                                                    // grab the hierarchy for the old path of the rename from already visited renames, storing any error that occurred
-                                                    CLError grabHierarchyError = alreadyVisitedRenames.GrabHierarchyForPath(currentChange.OldPath, out renameHierarchy, suppressException: true);
-                                                    // if there was an error grabbing the hierarchy, then rethrow the error
-                                                    if (grabHierarchyError != null)
-                                                    {
-                                                        throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.GrabExceptions());
-                                                    }
-                                                    // if there was a hierarchy found at the old path for the rename, then apply a rename to the dictionary based on the current rename
-                                                    if (renameHierarchy != null)
-                                                    {
-                                                        alreadyVisitedRenames.Rename(currentChange.OldPath, currentChange.NewPath.Copy());
-                                                    }
+                                                break;
 
-                                                    // add the currently found metadata to the rename dictionary so it can be searched for subsequent renames
-                                                    alreadyVisitedRenames[currentChange.NewPath.Copy()] = syncStateMetadata;
-                                                }
-
-                                                // create a fake FileChange just to store found metadata for the current event which will be used if event processing continues (notFoundRename == false)
-                                                fileChangeForOriginalMetadata = new FileChange()
-                                                {
-                                                    NewPath = new FilePath("Not a valid file change", new FilePath(string.Empty)), // no idea why I set a fake NewPath, it should not be read later for anything
-                                                    Metadata = syncStateMetadata
-                                                };
-                                            }
-                                        }
-                                        // else if a previous matched change for the current event was found, then set the FileChange to use for previous metadata from the matched change
-                                        else
-                                        {
-                                            fileChangeForOriginalMetadata = ((PossiblyStreamableFileChange)matchedChange).FileChange;
-
-                                            // puts back the latest updated revision from the server (which would have been lost when the metadata instance would be replaced next below), update revision changer for difference
-                                            if (fileChangeForOriginalMetadata.Metadata != null
-                                                && string.IsNullOrEmpty(fileChangeForOriginalMetadata.Metadata.Revision)
-                                                && currentChange.Metadata != null
-                                                && !string.IsNullOrEmpty(currentChange.Metadata.Revision))
-                                            {
-                                                fileChangeForOriginalMetadata.Metadata.Revision = currentChange.Metadata.Revision;
-
-                                                fileChangeForOriginalMetadata.Metadata.RevisionChanger.FireRevisionChanged(fileChangeForOriginalMetadata.Metadata);
-                                            }
-                                        }
-
-                                        // set the metadata of the current FileChange as the metadata from the previous change (or fake previous change if server was queried for new metadata)
-                                        currentChange.Metadata = fileChangeForOriginalMetadata.Metadata;
-                                        break;
-
-                                    case FileChangeType.Created:
-                                    case FileChangeType.Modified:
-                                        alreadyVisitedRenames[currentChange.NewPath.Copy()] = currentChange.Metadata;
-                                        break;
-
-                                    case FileChangeType.Deleted:
-                                        alreadyVisitedRenames.Remove(currentChange.NewPath);
-                                        break;
-                                }
-
-                                // if a previous FileChange could be found or previous metadata could be found on the client, then determine what to do to about the current event
-
-                                if (!notFoundRename)
-                                {
-                                    // define a bool for whether the creation time is the same from previous metadata and the current event
-                                    bool sameCreationTime = false;
-                                    // define a bool for whether the last modified time is the same from the previous metadata and the current event
-                                    bool sameLastTime = false;
-
-                                    // define a bool for whether the event source database will need to be updated with a change (either because the new event is entirely new, or because the data has changed)
-                                    bool metadataIsDifferent = (matchedChange == null) // different because the event is entirely new
-                                        || ((PossiblyStreamableFileChange)matchedChange).FileChange.Type != currentChange.Type // different if types are different
-                                        || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.IsFolder != currentChange.Metadata.HashableProperties.IsFolder // different if one is a folder and the other is not
-
-                                        // different if the new location is different
-                                        || !((((PossiblyStreamableFileChange)matchedChange).FileChange.NewPath == null && currentChange.NewPath == null)
-                                            || (((PossiblyStreamableFileChange)matchedChange).FileChange.NewPath != null && currentChange.NewPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.NewPath, currentChange.NewPath)))
-
-                                        // different if the old location is different (for renames)
-                                        || !((((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath == null && currentChange.OldPath == null)
-                                            || (((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath != null && currentChange.OldPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath, currentChange.OldPath)))
-
-                                        // different if FileChanges have mismatching unique server ids
-                                        || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerId != null && !string.IsNullOrEmpty(currentChange.Metadata.ServerId)
-                                            && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerId != currentChange.Metadata.ServerId)
-
-                                        // different if the revision is different
-
-                                        // different if the change is not a rename and any remaining metadata is different (rename is not checked for other metadata here because the remaining metadata properties were copied from previous metadata and are therefore known to match)
-                                        || (currentChange.Type != FileChangeType.Renamed
-
-                                            // possible non-rename metadata that could still be different:
-                                            && (((PossiblyStreamableFileChange)matchedChange).FileChange.Direction != currentChange.Direction // different by direction of the change (being Sync To or Sync From)
-                                                || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.Size != currentChange.Metadata.HashableProperties.Size // different by file size
-                                                || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.StorageKey != currentChange.Metadata.StorageKey // different by storage key
-
-                                                // different by shortcut file target path:
-                                                || !((((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath == null && currentChange.Metadata.LinkTargetPath == null)
-                                                    || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath != null && currentChange.Metadata.LinkTargetPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath, currentChange.Metadata.LinkTargetPath)))
-
-                                                || !(sameCreationTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.CreationTime, currentChange.Metadata.HashableProperties.CreationTime)) // different by creation time; compare within 1 second since communication drops subseconds
-                                                || !(sameLastTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.LastTime, currentChange.Metadata.HashableProperties.LastTime)))); // different by last modified time; compare within 1 second since communication drops subseconds
-
-                                    // declare FileChange for casting matched change as one with Dependencies
-                                    FileChangeWithDependencies castMatchedChange;
-                                    // if something is new or different for the current FileChange, then keep associated metadata revisions up to date, move dependencies from any matched changed to the current change, and recreate the metadata properties to drop subseconds if they matched within a second
-                                    if (metadataIsDifferent)
-                                    {
-                                        // update associated metadata with the current revision
-                                        currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-
-                                        // if a matched change was found, then move dependencies and replace the metadata properties for times within a second
-                                        if (matchedChange != null)
-                                        {
-                                            // assign and check if the cast matched change (one with dependencies) exists after trying to cast from the matched change, then copy dependencies
-                                            if ((castMatchedChange = ((PossiblyStreamableFileChange)matchedChange).FileChange as FileChangeWithDependencies) != null
-                                                && castMatchedChange.DependenciesCount > 0) // also only copy dependencies if there are dependencies to copy
-                                            {
-                                                // loop through dependencies of the cast matched change
-                                                foreach (FileChange matchedDependency in castMatchedChange.Dependencies)
-                                                {
-                                                    // copy current dependency
-                                                    currentChange.AddDependency(matchedDependency);
-                                                }
-                                                if (DependencyDebugging)
-                                                {
-                                                    Helpers.CheckFileChangeDependenciesForDuplicates(currentChange);
-                                                }
-                                            }
-
-                                            // if at least one of the times matched within a second, then rewrite the metadata properties to keep the previous time(s)
-                                            if (sameCreationTime || sameLastTime)
-                                            {
-                                                currentChange.Metadata.HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder,
-                                                    (sameLastTime ? ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.LastTime : currentChange.Metadata.HashableProperties.LastTime),
-                                                    (sameCreationTime ? ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.CreationTime : currentChange.Metadata.HashableProperties.CreationTime),
-                                                    currentChange.Metadata.HashableProperties.Size);
-                                            }
+                                            // event is neither Sync From nor Sync To, do not know how to process
+                                            default:
+                                                throw new ArgumentException("Unknown SyncDirection in currentChange: " + currentChange.Direction.ToString());
                                         }
                                     }
-                                    // else if nothing is new or different for the current FileChange, then use the matched change instead of the current change (reassign), making sure it is a FileChange with dependencies
+                                }
+                                catch (Exception ex)
+                                {
+                                    // wrap the current FileChange so it can be added to the changes in error
+                                    PossiblyStreamableAndPossiblyChangedFileChangeWithError addErrorChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(currentChange != null, // update database if a change exists
+                                        currentChange, // the current change in error
+                                        currentStream, // any stream for the current change
+                                        ex); // the error itself
+
+                                    // if a change in error already exists for the current event id, then expand the array of errors at this event id with the created FileChange
+                                    if (changesInErrorList.ContainsKey(currentChange == null ? 0 : currentChange.EventId))
+                                    {
+                                        // store the previous array of errors
+                                        PossiblyStreamableAndPossiblyChangedFileChangeWithError[] previousErrors = changesInErrorList[currentChange == null ? 0 : currentChange.EventId];
+                                        // create a new array for error with a size expanded by one
+                                        PossiblyStreamableAndPossiblyChangedFileChangeWithError[] newErrors = new PossiblyStreamableAndPossiblyChangedFileChangeWithError[previousErrors.Length + 1];
+                                        // copy all the previous errors to the new array
+                                        previousErrors.CopyTo(newErrors, 0);
+                                        // put the new error as the last index of the new array
+                                        newErrors[previousErrors.Length] = addErrorChange;
+                                        // replace the value in the error mapping dictionary for the current event id with the expanded array
+                                        changesInErrorList[currentChange.EventId] = newErrors;
+                                    }
+                                    // else if a change in error does not already exist for the current event id, then add a new array with just the current created FileChange
                                     else
                                     {
-                                        // assign and check if the cast matched change (one with dependencies) exists after trying to cast from the matched change, then set the current change as the cast matched change
-                                        if ((castMatchedChange = ((PossiblyStreamableFileChange)matchedChange).FileChange as FileChangeWithDependencies) != null)
-                                        {
-                                            currentChange = castMatchedChange;
-                                        }
-                                        // else if the matched changed failed to be cast as one with dependencies, then create a new FileChange with dependencies from the matched changed and set it as the current change, rethrowing any errors that occur
-                                        else
-                                        {
-                                            CLError convertMatchedChangeError = FileChangeWithDependencies.CreateAndInitialize(
-                                                ((PossiblyStreamableFileChange)matchedChange).FileChange,
-                                                /* initialDependencies */ null,
-                                                out currentChange,
-                                                fileDownloadMoveLocker: ((PossiblyStreamableFileChange)matchedChange).FileChange.fileDownloadMoveLocker);
-                                            if (convertMatchedChangeError != null)
+                                        // add a new array with just the created FileChange to the error mapping dictionary for the current event id
+                                        changesInErrorList.Add(currentChange == null ? 0 : currentChange.EventId,
+                                            new PossiblyStreamableAndPossiblyChangedFileChangeWithError[]
                                             {
-                                                throw new AggregateException("Error converting matchedChange to FileChangeWithDependencies", convertMatchedChangeError.GrabExceptions());
-                                            }
-                                        }
+                                                addErrorChange
+                                            });
                                     }
-
-                                    //ZW: this is where the Processing of the Event Header (Return ) Status is processed including conflict rename handling 
-                                    //ZW: If Changes are triggered by muliple actions at the same time, async  processes may try to operate on the 
-                                    //ZW: the same file before the previous change is complete. In this case there are dependencies, which arise for ordering the changes
-                                    //ZW: Change 2 is Dependent on change 1. 
-                                    // switch on direction of change first (Sync From versus Sync To)
-                                    switch (currentChange.Direction)
-                                    {
-                                        case SyncDirection.From:
-                                            // Sync From only requires adding the current change to the incomplete changes list (all Sync From changes are processed)
-                                            AddToIncompleteChanges(incompleteChangesList, currentChange, currentStream, metadataIsDifferent);
-                                            break;
-
-                                        case SyncDirection.To:
-                                            // Sync To has a status returned from the server which describes how to process the event, so switch on it
-                                            switch (currentEvent.Header.Status)
-                                            {
-                                                // cases that trigger a file upload
-                                                case CLDefinitions.CLEventTypeUpload:
-                                                case CLDefinitions.CLEventTypeUploading:
-                                                    // Todo: need optimization to prevent uploading two identical files from the same client, the first of each storage key that gets uploaded will autocomplete all other events with the same storage key
-
-                                                    // Sync To event did not complete with communication since it still requires a file upload so add it to incomplete changes list
-                                                    AddToIncompleteChanges(incompleteChangesList, currentChange, currentStream, metadataIsDifferent);
-                                                    break;
-
-                                                // group not found (a possible error case) with the immediately completed cases since "not_found" for a deletion requires no more action and can be presumed completed successfully
-                                                case CLDefinitions.CLEventTypeAccepted:
-                                                case CLDefinitions.CLEventTypeExists:
-                                                case CLDefinitions.CLEventTypeDuplicate:
-                                                case CLDefinitions.CLEventTypeNotFound:
-                                                case CLDefinitions.CLEventTypeDownload:
-                                                case CLDefinitions.CLEventTypeAlreadyDeleted:
-                                                case CLDefinitions.CLEventTypeNoOperation:
-                                                    // if the file system object was not found on the server and was not marked for deletion, then convert the operation to a creation at the new path so it can still be processed on a future sync
-                                                    if (currentEvent.Header.Status == CLDefinitions.CLEventTypeNotFound
-                                                        && currentChange.Type != FileChangeType.Deleted)
-                                                    {
-                                                        // clear unique server id
-                                                        currentChange.Metadata.ServerId = null;
-                                                        // convert change to creation
-                                                        currentChange.Type = FileChangeType.Created;
-                                                        // remove old path since creation does not have one
-                                                        currentChange.OldPath = null;
-                                                        // clear revision since new file system objects never need one
-                                                        currentChange.Metadata.Revision = null;
-                                                        // notify associated metadata with the change to the revision
-                                                        currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-                                                        // clear storage key since the server may need to assign a new one when creation is sent
-                                                        currentChange.Metadata.StorageKey = null;
-                                                        // clear mime type, which is not set on Windows anyways
-                                                        currentChange.Metadata.MimeType = null;
-
-                                                        // wrap the modified current change so it can be added to the changes in error list
-                                                        PossiblyStreamableAndPossiblyChangedFileChangeWithError notFoundChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(true, // type was converted so database needs to be updated
-                                                            currentChange, // the modified current change
-                                                            currentStream, // any stream that needs to be disposed for the current change
-
-                                                            // calculate dynamic exception message for the "not_found" status
-                                                            new Exception(CLDefinitions.CLEventTypeNotFound + " " +
-                                                                (currentEvent.Header.Action ?? currentEvent.Action) +
-                                                                " " + currentChange.EventId + " " + currentChange.NewPath.ToString()));
-
-                                                        // if the changes in error list already contains a mapping from the current change's event id to an array of errors, then expand the array and add the modified current change
-                                                        if (changesInErrorList.ContainsKey(currentChange.EventId))
-                                                        {
-                                                            // store the previous array of errors
-                                                            PossiblyStreamableAndPossiblyChangedFileChangeWithError[] previousErrors = changesInErrorList[currentChange.EventId];
-                                                            // create a new array for error with a size expanded by one
-                                                            PossiblyStreamableAndPossiblyChangedFileChangeWithError[] newErrors = new PossiblyStreamableAndPossiblyChangedFileChangeWithError[previousErrors.Length + 1];
-                                                            // copy all the previous errors to the new array
-                                                            previousErrors.CopyTo(newErrors, 0);
-                                                            // put the modified current change as the last index of the new array
-                                                            newErrors[previousErrors.Length] = notFoundChange;
-                                                            // replace the value in the error mapping dictionary for the current event id with the expanded array
-                                                            changesInErrorList[currentChange.EventId] = newErrors;
-                                                        }
-                                                        // else if a change in error does not already exist for the current event id, then add a new array with just the modified current change
-                                                        else
-                                                        {
-                                                            // add a new array with just the modified current change to the error mapping dictionary for the current event id
-                                                            changesInErrorList.Add(currentChange.EventId,
-                                                                new PossiblyStreamableAndPossiblyChangedFileChangeWithError[]
-                                                                {
-                                                                    notFoundChange
-                                                                });
-                                                        }
-                                                    }
-                                                    // else if the status was an accepted status or it was a "not_found" for a deletion event, then add the current change to the list of completed changes
-                                                    else
-                                                    {
-                                                        // wrap the current change so it can be added to the list of completed changes
-                                                        PossiblyChangedFileChange addCompletedChange = new PossiblyChangedFileChange(metadataIsDifferent, // whether the event source database needs to be updated
-                                                            currentChange); // the current change
-
-                                                        // if there is a Stream for the current change, then add it to the list of completed streams and dispose it
-                                                        if (currentStream != null)
-                                                        {
-                                                            // add current stream to list of completed streams
-                                                            completedStreams.Add(currentStream);
-
-                                                            // try/catch to dispose the current stream, failing silently
-                                                            try
-                                                            {
-                                                                currentStream.Dispose();
-                                                            }
-                                                            catch
-                                                            {
-                                                            }
-                                                        }
-
-                                                        // if the mapping of event ids to arrays of completed changes contains the current change's event id, then expand the array and add the current change
-                                                        if (completedChangesList.ContainsKey(currentChange.EventId))
-                                                        {
-                                                            // store the previous array of completed changes
-                                                            PossiblyChangedFileChange[] previousCompleted = completedChangesList[currentChange.EventId];
-                                                            // create a new array for completions with a size expanded by one
-                                                            PossiblyChangedFileChange[] newCompleted = new PossiblyChangedFileChange[previousCompleted.Length + 1];
-                                                            // copy all the previous completed changes to the new array
-                                                            previousCompleted.CopyTo(newCompleted, 0);
-                                                            // put the completed change at the last index of the new array
-                                                            newCompleted[previousCompleted.Length] = addCompletedChange;
-                                                            // replace the value in the completed changes mapping dictionary for the current event id with the expanded array
-                                                            completedChangesList[currentChange.EventId] = newCompleted;
-                                                        }
-                                                        // else if the mapping of event ids to arrays of completed changes does not contain the current change's event id, then add a new array with just the current change
-                                                        else
-                                                        {
-                                                            // add a new array with just the completed change to the completed changes mapping dictionary for the current event id
-                                                            completedChangesList.Add(currentChange.EventId,
-                                                                new PossiblyChangedFileChange[]
-                                                                {
-                                                                    addCompletedChange
-                                                                });
-                                                        }
-                                                    }
-                                                    break;
-                                                //ZW: File Rename scheme for conflicting file names 
-                                                // case that triggers moving the local file to a new location in the same directory and processing it as a new file creation (the latest version of the file at the original location will likely be downloaded from a Sync From event)
-                                                case CLDefinitions.CLEventTypeConflict:
-                                                    // store original path for current change (a new path with "CONFLICT" appended to the name will be calculated)
-                                                    FilePath originalConflictPath = currentChange.NewPath;
-
-                                                    // define an exception for storing any error that may occur while processing the conflict change 
-                                                    Exception innerExceptionAppend = null;
-
-                                                    // try/catch process the conflict change, on catch reassign the previous revision so the change won't succeed the next sync iteration and replace the conflicted file, also store the error
-                                                    try
-                                                    {
-                                                        // TODO: The directory file enumeration in this function should be run via the event source (to remove the ties to the file system here)
-                                                        // create a function to find the next available name for a conflicted file, will run again if the ending number can't be incremeneted and new counter has to be added, i.e. "Z (2147483647)" will need a " (2)" added
-                                                        Func<FilePath, string, string, KeyValuePair<bool, string>> getNextName = (innerOriginalConflictPath, extension, mainName) =>
-                                                        {
-                                                            // if the main name of the file (before extension) has a positive length and ends with a right paranthesis, then try to process the ending of the name as a number surrounded by parenthesis so we can remove it to find the real name (without the incrementor)
-                                                            if (mainName.Length > 0
-                                                                && mainName[mainName.Length - 1] == ')')
-                                                            {
-                                                                // define a count for the number of numeric digits between the terminal parentheses in the file
-                                                                int numDigits = 0;
-                                                                // continue while there is still at least 3 non-digit characters left the name (enclosing parentheses plus a space before them)
-                                                                // and also only continue while the number of digits is within the count parsable to a 32-bit integer (10 digits)
-                                                                while (mainName.Length > numDigits + 2
-                                                                    && numDigits < 11)
-                                                                {
-                                                                    // if the next character to check is a digit, then increment the number of digits found
-                                                                    if (char.IsDigit(mainName[mainName.Length - 2 - numDigits]))
-                                                                    {
-                                                                        numDigits++;
-                                                                    }
-                                                                    // else if at least one digit has been found and the characters before the digits are a space followed by a right parenthesis, then try to parse the digits as an integer to find if the ending can be chopped off
-                                                                    else if (numDigits > 0
-                                                                        && mainName[mainName.Length - 2 - numDigits] == '('
-                                                                        && mainName[mainName.Length - 3 - numDigits] == ' ')
-                                                                    {
-                                                                        // take the substring for just the digits found
-                                                                        string numPortion = mainName.Substring(mainName.Length - 1 - numDigits, numDigits);
-                                                                        // declare an int for the parsed number
-                                                                        int numPortionParsed;
-                                                                        // try to parse the found digits into the number and if successful and the number is not the max value for a 32-bit int (thus cannot be further incremented), then chop off the digits to set the actual main name of the file
-                                                                        if (int.TryParse(numPortion, out numPortionParsed)
-                                                                            && numPortionParsed != int.MaxValue)
-                                                                        {
-                                                                            mainName = mainName.Substring(0, mainName.Length - 3 - numDigits);
-                                                                        }
-
-                                                                        // done checking (either digits were chopped off or the end was not parsable)
-                                                                        break;
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        // done checking (either no digits were found or they weren't preceded with a space and left paranthesis
-                                                                        break;
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            // declare an int for the highest number found between parentheses after the main name of the file (before extension and without existing incrementor)
-                                                            int highestNumFound = 0;
-                                                            // TODO: this is the part which needs to be performed via the event source since it access the file system
-                                                            // loop through all sibling files within the same parent directory as the current file
-                                                            foreach (string currentSibling in Directory.EnumerateFiles(innerOriginalConflictPath.Parent.ToString()))
-                                                            {
-                                                                // if the sibling has the same exact file name (including extension) then increment the number found to 1 if it hasn't already been incremented
-                                                                if (currentSibling.Equals(mainName + extension, StringComparison.InvariantCultureIgnoreCase))
-                                                                {
-                                                                    // if number has not already been incremented, then increment to 1
-                                                                    if (highestNumFound == 0)
-                                                                    {
-                                                                        highestNumFound = 1;
-                                                                    }
-                                                                }
-                                                                // else if the sibling does not have the same exact file name but is named based on the name with an incrementor "Z (XXX).YYY",
-                                                                // then try to pull out the number value of the incrementor to use and use it as the highest number if greatest found so far
-                                                                else if (currentSibling.StartsWith(mainName + " (", StringComparison.InvariantCultureIgnoreCase) // "Z (..."
-                                                                    && currentSibling.EndsWith(")" + extension, StringComparison.InvariantCultureIgnoreCase)) // "...).YYY"
-                                                                {
-                                                                    // pull out the portion of the name between the parenteses
-                                                                    string siblingNumberPortion = currentSibling.Substring(mainName.Length + 2,
-                                                                        currentSibling.Length - mainName.Length - extension.Length - 3);
-                                                                    // declare an int for the parsed number
-                                                                    int siblingNumberParsed;
-                                                                    // try to parse the portion of the name pulled out as an int and if successful, then see if it's the highest number found so far to set
-                                                                    if (int.TryParse(siblingNumberPortion, out siblingNumberParsed))
-                                                                    {
-                                                                        if (siblingNumberParsed > highestNumFound)
-                                                                        {
-                                                                            highestNumFound = siblingNumberParsed;
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            // return with the incremented name (or stay at the max int value and return with a true as well if the highest number is at int.MaxValue and a new incrementor needs to be added)
-                                                            return new KeyValuePair<bool, string>(highestNumFound == int.MaxValue,
-                                                                mainName + " (" + (highestNumFound == int.MaxValue ? highestNumFound : highestNumFound + 1).ToString() + ")");
-                                                        };
-
-                                                        // declare a string for the main name portion of the file name (before the last extension)
-                                                        string findMainName;
-                                                        // declare a string for the last extension of the file name, if any
-                                                        string findExtension;
-
-                                                        // define the index of the final period in the file name (marks the start of the extension)
-                                                        int extensionIndex = originalConflictPath.Name.LastIndexOf('.');
-                                                        // if an extension was not found, then set the extension as an empty string, and the entire file name as the main name
-                                                        if (extensionIndex == -1)
-                                                        {
-                                                            findExtension = string.Empty;
-                                                            findMainName = originalConflictPath.Name;
-                                                        }
-                                                        // else if an extension was found, then set the extension as the extesion part of the file name, and the rest as the main name
-                                                        else
-                                                        {
-                                                            findExtension = currentChange.NewPath.Name.Substring(extensionIndex);
-                                                            findMainName = currentChange.NewPath.Name.Substring(0, extensionIndex);
-                                                        }
-
-                                                        // define a portion of the name which needs to be added to describe the conflict state dynamic to the current friendly-named device
-                                                        string deviceAppend = " CONFLICT " + syncBox.CopiedSettings.FriendlyName;
-                                                        // declare a string to store the main name of the conflict file to create
-                                                        string finalizedMainName;
-                                                        // declare a FilePath to store the full path to the conflict file to create
-                                                        FilePath finalizedNewPath;
-
-                                                        // TODO: Need to check for file existance of the conflict path via the event source to remove dependence on the file system
-                                                        // if the main name of the current file in conflict already contains the "CONFLICT" portion in the name
-                                                        // or if a file already exists at the new conflict path, then need to run function to find the next available name
-                                                        //
-                                                        // this process also sets the full path to use for the new conflict FileChange (either in the second condition or in the code which may run)
-                                                        if (findMainName.IndexOf(deviceAppend, 0, StringComparison.InvariantCultureIgnoreCase) != -1
-                                                            || System.IO.File.Exists((finalizedNewPath = new FilePath((finalizedMainName = findMainName + deviceAppend) + findExtension, originalConflictPath.Parent)).ToString()))
-                                                        {
-                                                            // define a starting point for the name search iteration
-                                                            KeyValuePair<bool, string> mainNameIteration = new KeyValuePair<bool, string>(
-                                                                true, // needs to iterate the first time
-                                                                findMainName); // starting name to search
-
-                                                            // continue while the input or return value has the flag to continue
-                                                            while (mainNameIteration.Key)
-                                                            {
-                                                                // set the latest calculated name by the function which finds the next available name to use, if true is returned for the return Key, then a deeper name has to be searched again
-                                                                mainNameIteration = getNextName(originalConflictPath, findExtension, mainNameIteration.Value);
-                                                            }
-
-                                                            // take out the final calculated, available name for the conflict
-                                                            finalizedMainName = mainNameIteration.Value;
-
-                                                            // build the full path for the calculated conflict name
-                                                            finalizedNewPath = new FilePath(finalizedMainName + findExtension, originalConflictPath.Parent);
-                                                        }
-
-                                                        // store the current type of the change to reset upon error
-                                                        FileChangeType storeType = currentChange.Type;
-                                                        // store the current path of the change to reset upon error
-                                                        FilePath storePath = currentChange.NewPath;
-
-                                                        // try/catch to create a creation FileChange to process the conflict file to rename the file locally and add an event to upload it, on catch revert the modified event path and type
-                                                        try
-                                                        {
-                                                            FileChange oldPathDownload = null;
-
-                                                            try
-                                                            {
-                                                                FileMetadata oldPathMetadata;
-                                                                CLError oldPathMetadataError = syncData.getMetadataByPathAndRevision(
-                                                                    originalConflictPath.ToString(),
-                                                                    /* revision */ null,
-                                                                    out oldPathMetadata);
-
-                                                                if (oldPathMetadataError == null
-                                                                    && oldPathMetadata != null)
-                                                                {
-                                                                    if (string.IsNullOrEmpty(oldPathMetadata.Revision))
-                                                                    {
-                                                                        JsonContracts.Metadata oldPathMetadataRevision;
-                                                                        CLHttpRestStatus oldPathMetadataRevisionStatus;
-                                                                        CLError oldPathMetadataRevisionError = httpRestClient.GetMetadata(
-                                                                            originalConflictPath,
-                                                                            /* isFolder */ false,
-                                                                            HttpTimeoutMilliseconds,
-                                                                            out oldPathMetadataRevisionStatus,
-                                                                            out oldPathMetadataRevision);
-
-                                                                        if (oldPathMetadataRevisionStatus == CLHttpRestStatus.Success
-                                                                            && oldPathMetadataRevision != null
-                                                                            && oldPathMetadataRevision.Deleted != true)
-                                                                        {
-                                                                            oldPathMetadata.Revision = oldPathMetadataRevision.Revision;
-                                                                        }
-                                                                    }
-
-                                                                    if (!string.IsNullOrEmpty(oldPathMetadata.Revision))
-                                                                    {
-                                                                        FileChangeWithDependencies oldPathDownloadNoDependencies;
-                                                                        CLError oldPathDownloadNoDependenciesError = FileChangeWithDependencies.CreateAndInitialize(
-                                                                            new FileChange(DelayCompletedLocker: null, fileDownloadMoveLocker: new object())
-                                                                            {
-                                                                                Direction = SyncDirection.From,
-                                                                                Metadata = oldPathMetadata,
-                                                                                NewPath = originalConflictPath.Copy(),
-                                                                                Type = FileChangeType.Created
-                                                                            }, /* initialDependencies */ null,
-                                                                            out oldPathDownloadNoDependencies,
-                                                                            fileDownloadMoveLocker: new object()); // Sync From file create is always a file download, so create its download locker
-
-                                                                        if (oldPathDownloadNoDependenciesError == null)
-                                                                        {
-                                                                            CLError oldPathDownloadToSqlError = syncData.mergeToSql(new[] { new FileChangeMerge(oldPathDownloadNoDependencies) });
-                                                                            if (oldPathDownloadToSqlError == null)
-                                                                            {
-                                                                                oldPathDownload = oldPathDownloadNoDependencies;
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                            catch
-                                                            {
-                                                            }
-
-                                                            // change conflict event into a creation for a new upload
-                                                            currentChange.Type = FileChangeType.Created;
-                                                            // change conflict path to the new conflict path
-                                                            currentChange.NewPath = finalizedNewPath;
-                                                            // <David fix for a file creation with an old path> file creations should not have an old path (only for renames)
-                                                            currentChange.OldPath = null;
-                                                            // clear the revision (since it will be a new file)
-                                                            currentChange.Metadata.Revision = null;
-                                                            // update associated Metadatas with the revision change
-                                                            currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-                                                            // clear the storage key (since it will be a new file)
-                                                            currentChange.Metadata.StorageKey = null;
-
-                                                            // make sure to add change to SQL
-                                                            currentChange.DoNotAddToSQLIndex = false;
-
-                                                            // declare a new FileChange with dependencies for moving the conflict file to the new conflict path
-                                                            FileChangeWithDependencies reparentConflict;
-                                                            // initialize and set the rename change with a new FileChange for moving the conflict file to the new conflict path and include the conflict creation change as a dependency, storing any error that occurs
-                                                            CLError reparentCreateError = FileChangeWithDependencies.CreateAndInitialize(new FileChange()
-                                                                {
-                                                                    Direction = SyncDirection.From, // rename the file locally (Sync From)
-                                                                    Metadata = new FileMetadata()
-                                                                    {
-                                                                        HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
-                                                                        LinkTargetPath = currentChange.Metadata.LinkTargetPath // copy shortcut target path from the conflicted file
-                                                                    },
-                                                                    NewPath = currentChange.NewPath, // use the new conflict path as the rename destination
-                                                                    OldPath = originalConflictPath, // use the location of the current conflicted file as move from location
-                                                                    Type = FileChangeType.Renamed // this operation is a move
-                                                                },
-                                                                (oldPathDownload == null
-                                                                    ? new[] { currentChange }  // add the creation at the new location as a dependency to the rename
-                                                                    : new[] { oldPathDownload, currentChange }), // in addition to the create at the new location in the line above, also download the original copy of the file to the old path
-                                                                out reparentConflict); // output the new rename change
-                                                            // if an error occurred creating the FileChange for the rename operation, rethrow the error
-                                                            if (reparentCreateError != null)
-                                                            {
-                                                                throw new AggregateException("Error creating reparentConflict", reparentCreateError.GrabExceptions());
-                                                            }
-                                                            else if (DependencyDebugging)
-                                                            {
-                                                                Helpers.CheckFileChangeDependenciesForDuplicates(reparentConflict);
-                                                            }
-
-                                                            // if the current change already exists in the database then it may have been in the initial changes to communicate,
-                                                            // so the current change will need to be added to a list which will be checked to make sure all changes to communicate were processed
-                                                            if (currentChange.EventId > 0)
-                                                            {
-                                                                // if the current change had a stream (which it should for file uploads),
-                                                                // then it needs to be disposed because it is now a dependency which needs to go through sync to recommunicate for a new storage key
-                                                                if (currentStream != null)
-                                                                {
-                                                                    try
-                                                                    {
-                                                                        currentStream.Dispose();
-                                                                    }
-                                                                    catch
-                                                                    {
-                                                                    }
-                                                                }
-
-                                                                // wrap the current event so it can be added to the converted dependencies list
-                                                                PossiblyStreamableFileChange dependencyHidden = new PossiblyStreamableFileChange(
-                                                                    currentChange, // current event
-                                                                    currentStream, // current stream, or null if it had not existed
-                                                                    true); // this change will be added to errors anyways, so invalid nullability of the Stream is not important for reprocessing
-
-                                                                // declare array for grabbing converted dependencies for current event id
-                                                                PossiblyStreamableFileChange[] currentEventIdDependencies;
-                                                                // try to grab the converted dependencies for the current event id and if successful, then the existing array will need to be expanded with the current event
-                                                                if (changesConvertedToDependencies.TryGetValue(currentChange.EventId, out currentEventIdDependencies))
-                                                                {
-                                                                    // create an array with length one larger than the previous array
-                                                                    PossiblyStreamableFileChange[] previousDependenciesPlusOne = new PossiblyStreamableFileChange[currentEventIdDependencies.Length + 1];
-                                                                    // copy everything from the previous array into the expanded array
-                                                                    Array.Copy(currentEventIdDependencies, // previous array
-                                                                        previousDependenciesPlusOne, // expanded array
-                                                                        currentEventIdDependencies.Length); // grab everything from the previous array
-                                                                    // set the added slot in the array as the current event
-                                                                    previousDependenciesPlusOne[currentEventIdDependencies.Length] = dependencyHidden;
-                                                                    // set the array for the current event id as the expanded array
-                                                                    changesConvertedToDependencies[currentChange.EventId] = previousDependenciesPlusOne;
-                                                                }
-                                                                // else if converted dependencies could not be grabbed for the current event id, then add a new array with the current event
-                                                                else
-                                                                {
-                                                                    changesConvertedToDependencies.Add(currentChange.EventId, new[]
-                                                                    {
-                                                                        dependencyHidden
-                                                                    });
-                                                                }
-                                                            }
-
-                                                            // remove the previous conflict change from the event source database, storing any error that occurred
-                                                            CLError removalOfPreviousChange = syncData.mergeToSql(new[] { new FileChangeMerge(null, currentChange) });
-                                                            // if an error occurred removing the previous conflict change, then rethrow the error
-                                                            if (removalOfPreviousChange != null)
-                                                            {
-                                                                throw new AggregateException("Error removing the existing FileChange for a conflict", removalOfPreviousChange.GrabExceptions());
-                                                            }
-
-                                                            // add the local rename change to the event source database, storing any error that occurred
-                                                            CLError addRenameToConflictPath = syncData.mergeToSql(new[] { new FileChangeMerge(reparentConflict) });
-                                                            // if there was an error adding the local rename change, then readd the reverted conflict change to the event source database and rethrow the error
-                                                            if (addRenameToConflictPath != null)
-                                                            {
-                                                                currentChange.Type = storeType;
-                                                                currentChange.NewPath = storePath;
-                                                                syncData.mergeToSql(new[] { new FileChangeMerge(currentChange) });
-
-                                                                throw new AggregateException("Error adding a rename FileChange for a conflicted file", addRenameToConflictPath.GrabExceptions());
-                                                            }
-
-                                                            // store the current event id in case it needs to be reverted
-                                                            long storeEventId = currentChange.EventId;
-                                                            // wipe the event id so a new event can be added
-                                                            currentChange.EventId = 0;
-
-                                                            // write the original conflict as a file creation to upload to the server to the event source database, storing any error that occurred
-                                                            CLError addModifiedConflictAsCreate = syncData.mergeToSql(new FileChangeMerge[] { new FileChangeMerge(currentChange) });
-
-                                                            // if an error occurred writing the original conflict as a file creation, then remove the added rename change and readd the reverted conflict change to the event source database and rethrow the error
-                                                            if (addModifiedConflictAsCreate != null)
-                                                            {
-                                                                syncData.mergeToSql(new[] { new FileChangeMerge(null, reparentConflict) });
-                                                                currentChange.EventId = storeEventId;
-                                                                currentChange.Type = storeType;
-                                                                currentChange.NewPath = storePath;
-
-                                                                syncData.mergeToSql(new[] { new FileChangeMerge(currentChange) });
-
-                                                                throw new AggregateException("Error adding a new creation FileChange at the new conflict path", addModifiedConflictAsCreate.GrabExceptions());
-                                                            }
-
-                                                            // store the succesfully created rename change with the modified conflict change as the current change to process
-                                                            currentChange = reparentConflict;
-                                                            // since we updated the event source database already for the changes, treat the changes as not different
-                                                            metadataIsDifferent = false;
-                                                        }
-                                                        catch
-                                                        {
-                                                            // revert the changes to the current conflict and rethrow the error
-
-                                                            currentChange.Type = storeType;
-                                                            currentChange.NewPath = storePath;
-                                                            throw;
-                                                        }
-                                                    }
-                                                    catch (Exception ex)
-                                                    {
-                                                        bool reversedRevision = currentChange.Metadata.Revision != previousRevisionOnConflictException;
-                                                        // revert the revision to the value before communication so it will get a conflict the next iteration through Sync to attempt to handle it again
-                                                        currentChange.Metadata.Revision = previousRevisionOnConflictException;
-                                                        currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-                                                        // update associated Metadatas with the change to the revision
-                                                        currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-
-                                                        // store the exception that occurred processing the conflict
-                                                        innerExceptionAppend = new Exception("Error creating local rename to apply for conflict", ex);
-                                                    }
-
-                                                    // wrap the conflict change so it can be added to the changes in error
-                                                    PossiblyStreamableAndPossiblyChangedFileChangeWithError addErrorChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(metadataIsDifferent, // whether the event source database needs to be updated for the conflict change
-                                                        currentChange, // the conflict change itself
-                                                        currentStream, // any stream belonging to the conflict change
-
-                                                        // dynamic conflict message for the exception from the conflict state, the original change action, and the conflict id and path; also add any inner exception from processing failures
-                                                        new Exception(CLDefinitions.CLEventTypeConflict + " " +
-                                                            (currentEvent.Header.Action ?? currentEvent.Action) +
-                                                            " " + currentChange.EventId + " " + originalConflictPath.ToString(),
-                                                            innerExceptionAppend));
-
-                                                    // if a change in error already exists for the current event id, then expand the array of errors at this event id with the created FileChange
-                                                    if (changesInErrorList.ContainsKey(currentChange.EventId))
-                                                    {
-                                                        // store the previous array of errors
-                                                        PossiblyStreamableAndPossiblyChangedFileChangeWithError[] previousErrors = changesInErrorList[currentChange.EventId];
-                                                        // create a new array for error with a size expanded by one
-                                                        PossiblyStreamableAndPossiblyChangedFileChangeWithError[] newErrors = new PossiblyStreamableAndPossiblyChangedFileChangeWithError[previousErrors.Length + 1];
-                                                        // copy all the previous errors to the new array
-                                                        previousErrors.CopyTo(newErrors, 0);
-                                                        // put the new error as the last index of the new array
-                                                        newErrors[previousErrors.Length] = addErrorChange;
-                                                        // replace the value in the error mapping dictionary for the current event id with the expanded array
-                                                        changesInErrorList[currentChange.EventId] = newErrors;
-                                                    }
-                                                    // else if a change in error does not already exist for the current event id, then add a new array with just the current created FileChange
-                                                    else
-                                                    {
-                                                        // add a new array with just the created FileChange to the error mapping dictionary for the current event id
-                                                        changesInErrorList.Add(currentChange.EventId,
-                                                            new PossiblyStreamableAndPossiblyChangedFileChangeWithError[]
-                                                            {
-                                                                addErrorChange
-                                                            });
-                                                    }
-                                                    break;
-
-                                                // "error"
-                                                case CLDefinitions.RESTResponseStatusFailed:
-                                                    throw new Exception("Error response: " +
-                                                        (currentEvent.Metadata == null
-                                                            ? "{null Metadata}"
-                                                            : string.IsNullOrEmpty(currentEvent.Metadata.ErrorMessage)
-                                                                ? "{Metadata has null ErrorMessage}"
-                                                                : currentEvent.Metadata.ErrorMessage));
-
-                                                // server sent a new type of message that is not yet recognized
-                                                default:
-                                                    throw new ArgumentException("Unknown SyncHeader Status: " + currentEvent.Header.Status);
-                                            }
-                                            break;
-
-                                        // event is neither Sync From nor Sync To, do not know how to process
-                                        default:
-                                            throw new ArgumentException("Unknown SyncDirection in currentChange: " + currentChange.Direction.ToString());
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                // wrap the current FileChange so it can be added to the changes in error
-                                PossiblyStreamableAndPossiblyChangedFileChangeWithError addErrorChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(currentChange != null, // update database if a change exists
-                                    currentChange, // the current change in error
-                                    currentStream, // any stream for the current change
-                                    ex); // the error itself
-
-                                // if a change in error already exists for the current event id, then expand the array of errors at this event id with the created FileChange
-                                if (changesInErrorList.ContainsKey(currentChange == null ? 0 : currentChange.EventId))
-                                {
-                                    // store the previous array of errors
-                                    PossiblyStreamableAndPossiblyChangedFileChangeWithError[] previousErrors = changesInErrorList[currentChange == null ? 0 : currentChange.EventId];
-                                    // create a new array for error with a size expanded by one
-                                    PossiblyStreamableAndPossiblyChangedFileChangeWithError[] newErrors = new PossiblyStreamableAndPossiblyChangedFileChangeWithError[previousErrors.Length + 1];
-                                    // copy all the previous errors to the new array
-                                    previousErrors.CopyTo(newErrors, 0);
-                                    // put the new error as the last index of the new array
-                                    newErrors[previousErrors.Length] = addErrorChange;
-                                    // replace the value in the error mapping dictionary for the current event id with the expanded array
-                                    changesInErrorList[currentChange.EventId] = newErrors;
-                                }
-                                // else if a change in error does not already exist for the current event id, then add a new array with just the current created FileChange
-                                else
-                                {
-                                    // add a new array with just the created FileChange to the error mapping dictionary for the current event id
-                                    changesInErrorList.Add(currentChange == null ? 0 : currentChange.EventId,
-                                        new PossiblyStreamableAndPossiblyChangedFileChangeWithError[]
-                                        {
-                                            addErrorChange
-                                        });
                                 }
                             }
                         }
@@ -7849,41 +7856,43 @@ namespace Cloud.Sync
                         newSyncId = deserializedResponse.SyncId;
 
                         // store all events from sync from as events which still need to be performed (set as the output parameter for incomplete changes)
-                        incompleteChanges = deserializedResponse.Events.Select(currentEvent => new PossiblyStreamableAndPossiblyChangedFileChange(/* needs to update SQL */ true, // all Sync From events are new and should thus be added to the event source database
-                            CreateFileChangeFromBaseChangePlusHash(new FileChange( // create a FileChange with dependencies and set the hash, start by creating a new FileChange input
-                                    DelayCompletedLocker: null,
-                                    fileDownloadMoveLocker:
-                                        ((CLDefinitions.SyncHeaderDeletions.Contains(currentEvent.Header.Action ?? currentEvent.Action)
-                                                || CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action))
-                                            ? null
-                                            : new object()))
-                                    {
-                                        Direction = SyncDirection.From, // current communcation direction is Sync From (only Sync From events, not mixed like Sync To events)
-                                        NewPath = (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'), // new location of change
-                                        OldPath = (currentEvent.Metadata.RelativeFromPath == null
-                                            ? null // if the current event is not a rename, then it has no previous path
-                                            : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')), // if the current event is a rename, grab the previous path
-                                        Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action), // grab the type of change from the action string
-                                        Metadata = new FileMetadata()
+                        incompleteChanges = deserializedResponse.Events
+                            .Where(currentEvent => currentEvent.Metadata == null || (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath) != "/") // special condition on SID "0" for root folder path
+                            .Select(currentEvent => new PossiblyStreamableAndPossiblyChangedFileChange(/* needs to update SQL */ true, // all Sync From events are new and should thus be added to the event source database
+                                CreateFileChangeFromBaseChangePlusHash(new FileChange( // create a FileChange with dependencies and set the hash, start by creating a new FileChange input
+                                        DelayCompletedLocker: null,
+                                        fileDownloadMoveLocker:
+                                            ((CLDefinitions.SyncHeaderDeletions.Contains(currentEvent.Header.Action ?? currentEvent.Action)
+                                                    || CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action))
+                                                ? null
+                                                : new object()))
                                         {
-                                            //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
+                                            Direction = SyncDirection.From, // current communcation direction is Sync From (only Sync From events, not mixed like Sync To events)
+                                            NewPath = (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'), // new location of change
+                                            OldPath = (currentEvent.Metadata.RelativeFromPath == null
+                                                ? null // if the current event is not a rename, then it has no previous path
+                                                : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.RelativeFromPathWithoutEnclosingSlashes.Replace('/', '\\')), // if the current event is a rename, grab the previous path
+                                            Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action), // grab the type of change from the action string
+                                            Metadata = new FileMetadata()
+                                            {
+                                                //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
-                                            ServerId = currentEvent.Metadata.ServerId, // unique id on the server
-                                            HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
-                                                currentEvent.Metadata.ModifiedDate, // grab the last modified time
-                                                currentEvent.Metadata.CreatedDate, // grab the time of creation
-                                                currentEvent.Metadata.Size), // grab the file size, or null for non-files
-                                            Revision = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
-                                            StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
-                                            LinkTargetPath = (currentEvent.Metadata.TargetPath == null
-                                                ? null // if current event is a folder or a file which is not a shortcut, then there is no shortcut target path
-                                                : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else if the current event is a shortcut file, then grab the shortcut path
-                                            MimeType = currentEvent.Metadata.MimeType // never set on Windows
-                                        }
-                                    },
-                                currentEvent.Metadata.Hash, // grab the MD5 hash
-                                DependencyDebugging),
-                            null)) // no streams for Sync From events
+                                                ServerId = currentEvent.Metadata.ServerId, // unique id on the server
+                                                HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
+                                                    currentEvent.Metadata.ModifiedDate, // grab the last modified time
+                                                    currentEvent.Metadata.CreatedDate, // grab the time of creation
+                                                    currentEvent.Metadata.Size), // grab the file size, or null for non-files
+                                                Revision = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
+                                                StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
+                                                LinkTargetPath = (currentEvent.Metadata.TargetPath == null
+                                                    ? null // if current event is a folder or a file which is not a shortcut, then there is no shortcut target path
+                                                    : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else if the current event is a shortcut file, then grab the shortcut path
+                                                MimeType = currentEvent.Metadata.MimeType // never set on Windows
+                                            }
+                                        },
+                                    currentEvent.Metadata.Hash, // grab the MD5 hash
+                                    DependencyDebugging),
+                                null)) // no streams for Sync From events
                             .ToArray(); // select into an array to prevent reiteration of select logic
 
                         // create a list for storing rename changes where the old file/folder was not found to rename
