@@ -176,6 +176,34 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _pendingResponseSerializer = null;
         private static readonly object PendingResponseSerializerLocker = new object();
 
+        public static DataContractJsonSerializer NotificationUnsubscribeRequestSerializer
+        {
+            get
+            {
+                lock (NotificationUnsubscribeRequestSerializerLocker)
+                {
+                    return _notificationUnsubscribeRequestSerializer
+                        ?? (_notificationUnsubscribeRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.NotificationUnsubscribeRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _notificationUnsubscribeRequestSerializer = null;
+        private static readonly object NotificationUnsubscribeRequestSerializerLocker = new object();
+
+        public static DataContractJsonSerializer NotificationUnsubscribeResponseSerializer
+        {
+            get
+            {
+                lock (NotificationUnsubscribeResponseSerializerLocker)
+                {
+                    return _notificationUnsubscribeResponseSerializer
+                        ?? (_notificationUnsubscribeResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.NotificationUnsubscribeResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _notificationUnsubscribeResponseSerializer = null;
+        private static readonly object NotificationUnsubscribeResponseSerializerLocker = new object();
+
         #region one-off contract serializers
         public static DataContractJsonSerializer FolderAddSerializer
         {

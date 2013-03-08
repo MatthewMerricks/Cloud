@@ -146,6 +146,8 @@
     <Compile Include="JsonContracts\AuthenticationErrorMessage.cs" />
     <Compile Include="JsonContracts\AuthenticationErrorResponse.cs" />
     <Compile Include="JsonContracts\ContainsMetadataDictionaryAttribute.cs" />
+    <Compile Include="JsonContracts\NotificationUnsubscribeResponse.cs" />
+    <Compile Include="JsonContracts\NotificationUnsubscribeRequest.cs" />
     <Compile Include="JsonContracts\SessionDeleteResponse.cs" />
     <Compile Include="JsonContracts\SessionDeleteRequest.cs" />
     <Compile Include="JsonContracts\SessionShowResponse.cs" />

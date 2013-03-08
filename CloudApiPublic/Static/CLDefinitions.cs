@@ -153,7 +153,8 @@ namespace Cloud.Static
 
         #region Notification operations
         public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";                  // GET
-    	#endregion
+        public const string MethodPathPushUnsubscribe = VersionPrefix + "/sync/notifications/unsubscribe";              // POST
+        #endregion
 
         #region Platform Management operations
         public const string MethodPathAuthCreateSyncBox = VersionPrefix + "/sync/syncbox/create";                       // POST

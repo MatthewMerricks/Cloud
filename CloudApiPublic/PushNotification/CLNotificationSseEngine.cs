@@ -30,8 +30,8 @@ namespace Cloud.PushNotification
         private CancelEngineTimeout _delegateCancelEngineTimeout = null;
         private DisposeEngineTimer _delegateDisposeEngineTimer = null;
         private SendNotificationEvent _delegateSendNotificationEvent = null;
-        private bool _isStarted = false;
-        private bool _isConnectionSuccesful = false;
+        private bool _isEngineThreadStarted = false;
+        private bool _fToReturnIsSuccess = false;
         private readonly object _locker = new object();
         private readonly GenericHolder<Thread> _engineThread = new GenericHolder<Thread>(null);
         private readonly ManualResetEvent _startComplete = new ManualResetEvent(false);
@@ -153,7 +153,7 @@ namespace Cloud.PushNotification
                 _trace.writeToLog(9, "CLNotificationSseEngine: Start: Entry.");
                 lock (_locker)
                 {
-                    if (_isStarted)
+                    if (_isEngineThreadStarted)
                     {
                         throw new InvalidOperationException("Already initialized");
                     }
@@ -162,12 +162,12 @@ namespace Cloud.PushNotification
 
                     // Start the engine.
                     StartEngineThread();
-                    _isStarted = true;
+                    _isEngineThreadStarted = true;
                 }
 
                 // Wait here for the thread to finish.
                 _startComplete.WaitOne();
-                fToReturnIsSuccess = _isConnectionSuccesful;
+                fToReturnIsSuccess = _fToReturnIsSuccess;
             }
             catch (Exception ex)
             {
@@ -223,7 +223,7 @@ namespace Cloud.PushNotification
             try
             {
                 // Initialize
-                _trace.writeToLog(9, "CLNotificationSseEngine: StartEngineThread: Entry.");
+                _trace.writeToLog(9, "CLNotificationSseEngine: StartThreadProc: Entry.");
                 CLNotificationSseEngine castState = obj as CLNotificationSseEngine;
                 if (castState == null)
                 {
@@ -308,7 +308,20 @@ namespace Cloud.PushNotification
                     CLError error = ex;
                     _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}.", ex.Message);
                     error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
-                    _isConnectionSuccesful = false;
+
+                    // This exception probably occurred because we had difficulty reaching the server.  In that case, we should
+                    // probably retry soon because it may just be a temporary inability to communication.  So, we have to reverse
+                    // the logic of "success" vs. "failure" as far as the service manager is concerned.
+                    // Wait here to add some delay.
+                    int reconnectionTimeout = DELAY_RECONNECT_MILLISECONDS;     // default from SSE spec
+                    if (_reconnectionTime != 0)
+                    {
+                        reconnectionTimeout = _reconnectionTime;
+                    }
+                    Thread.Sleep(reconnectionTimeout);
+
+                    // Tell the manager we succeeded.
+                    _fToReturnIsSuccess = true;
                     _startComplete.Set();
                 }
             }
@@ -447,7 +460,7 @@ namespace Cloud.PushNotification
                         Thread.Sleep(reconnectionTimeout);
 
                         // Successful.  Post the waiting event.
-                        _isConnectionSuccesful = true;
+                        _fToReturnIsSuccess = true;
                         _startComplete.Set();
 
                         break;
@@ -475,8 +488,8 @@ namespace Cloud.PushNotification
                             _trace.writeToLog(9, "CLNotificationSseEngine: StartThreadProc: Received no content from server.");
                         }
 
-                        // Successful.  Post the waiting event.
-                        _isConnectionSuccesful = true;
+                        // In this case, the server has told us positively not to reconnect.  Return failure to the manager.
+                        _fToReturnIsSuccess = false;
                         _startComplete.Set();
 
                         break;
@@ -516,7 +529,20 @@ namespace Cloud.PushNotification
                     CLError error = ex;
                     _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
                     error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
-                    _isConnectionSuccesful = false;
+
+                    // This exception probably occurred because we had difficulty reaching the server.  In that case, we should
+                    // probably retry soon because it may just be a temporary inability to communication.  So, we have to reverse
+                    // the logic of "success" vs. "failure" as far as the service manager is concerned.
+                    // Wait here to add some delay.
+                    int reconnectionTimeout = DELAY_RECONNECT_MILLISECONDS;     // default from SSE spec
+                    if (_reconnectionTime != 0)
+                    {
+                        reconnectionTimeout = _reconnectionTime;
+                    }
+                    Thread.Sleep(reconnectionTimeout);
+
+                    // Tell the manager we succeeded so this engine will usually be retried.
+                    _fToReturnIsSuccess = true;
                     _startComplete.Set();
                 }
             }
@@ -724,18 +750,28 @@ namespace Cloud.PushNotification
             try
             {
                 // Get back the state.
-                _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: Entry.");
+                _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Entry.");
                 CLNotificationSseEngine castState = userState as CLNotificationSseEngine;
                 if (castState != null)
                 {
+                    // Send an unsubscribe to the server.  Allow just 200 ms for this to complete.
+                    CLHttpRestStatus status;
+                    JsonContracts.NotificationUnsubscribeResponse response;
+                    CLError errorFromUnsubscribe = SendUnsubscribeToServer(200, out status, out response, castState._syncBox);
+                    if (errorFromUnsubscribe != null)
+                    {
+                        _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}.", errorFromUnsubscribe.errorDescription);
+                        errorFromUnsubscribe.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                    }
+
                     // Fail the service manager thread.
-                    _isConnectionSuccesful = false;
+                    _fToReturnIsSuccess = false;
                     _startComplete.Set();
 
                     // Kill the engine thread
                     if (_engineThread.Value != null)
                     {
-                        _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: Abort the engine thread.");
+                        _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Abort the engine thread.");
                         _engineThread.Value.Abort();
                     }
 
@@ -744,6 +780,7 @@ namespace Cloud.PushNotification
                     {
                         try
                         {
+                            _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Clean up resource: {0}.", toDispose.ToString());
                             toDispose.Dispose();
                         }
                         catch
@@ -764,6 +801,84 @@ namespace Cloud.PushNotification
                 _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Exception: Msg: {0}.", ex.Message);
                 error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
             }
+            _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Exit.");
+        }
+
+        /// <summary>
+        /// Unsubscribe this SyncBox/Device ID from Sync notifications.Add a Sync box on the server for the current application
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="syncBox">the SyncBox to use.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        private CLError SendUnsubscribeToServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.NotificationUnsubscribeResponse response,
+                    CLSyncBox syncBox)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the metadata query, on catch return the error
+            try
+            {
+                // check input parameters
+                _trace.writeToLog(9, "CLNotificationSseEngine: SendUnsubscribeToServer: Entry.");
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                if (syncBox == null)
+                {
+                    throw new ArgumentException("syncBox must not be null");
+                }
+
+                if (syncBox.CopiedSettings == null)
+                {
+                    throw new NullReferenceException("syncBox.CopiedSettings must not be null");
+                }
+
+                // copy settings so they don't change while processing; this also defaults some values
+                ICLSyncSettingsAdvanced copiedSettings = syncBox.CopiedSettings.CopySettings();
+
+                JsonContracts.NotificationUnsubscribeRequest request = new JsonContracts.NotificationUnsubscribeRequest()
+                {
+                    DeviceId = copiedSettings.DeviceId,
+                    SyncBoxId = syncBox.SyncBoxId
+                };
+
+
+                // Build the query string.
+                string query = Helpers.QueryStringBuilder(
+                    new[]
+                    {
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBox.SyncBoxId.ToString()), // no need to escape string characters since the source is an integer
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
+                    });
+
+
+                _trace.writeToLog(9, "CLNotificationSseEngine: SendUnsubscribeToServer: Send unsubscribe.");
+                response = Helpers.ProcessHttp<JsonContracts.NotificationUnsubscribeResponse>(
+                    null,           // no body needed
+                    CLDefinitions.CLPlatformAuthServerURL,
+                    CLDefinitions.MethodPathPushUnsubscribe + query,
+                    Helpers.requestMethod.post,
+                    timeoutMilliseconds,
+                    null, // not an upload nor download
+                    Helpers.HttpStatusesOkAccepted,
+                    ref status,
+                    copiedSettings,
+                    syncBox.Credential,
+                    syncBox.SyncBoxId);
+            }
+            catch (Exception ex)
+            {
+                _trace.writeToLog(1, "CLNotificationSseEngine: SendUnsubscribeToServer: ERROR: Exception: Msg: {0}.", ex.Message);
+                response = Helpers.DefaultForType<JsonContracts.NotificationUnsubscribeResponse>();
+                return ex;
+            }
+
+            _trace.writeToLog(9, "CLNotificationSseEngine: SendUnsubscribeToServer: Return OK.");
+            return null;
         }
 
         #endregion
