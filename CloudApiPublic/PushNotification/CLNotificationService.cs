@@ -22,6 +22,31 @@ using Cloud.REST;
 
 namespace Cloud.PushNotification
 {
+    //public static class DebugDeleteMe
+    //{
+    //    public static void RecordMessage(string message)
+    //    {
+    //        lock (messages)
+    //        {
+    //            if (messages.Count == 0)
+    //            {
+    //                System.Windows.MessageBox.Show("DEBUG ONLY CODE!!! Remove Cloud.PushNotification.DebugDeleteMe");
+    //            }
+    //            messages.Add(message);
+    //        }
+    //    }
+    //    private static readonly List<string> messages = new List<string>();
+
+    //    public static string ViewMessages()
+    //    {
+    //        lock (messages)
+    //        {
+    //            return String.Join(Environment.NewLine, messages);
+    //        }
+    //    }
+    //}
+
+
     //extern alias WebSocket4NetBase;
 
     /// <summary>
@@ -82,19 +107,109 @@ namespace Cloud.PushNotification
         /// <summary>
         /// Event fired when a push notification message is received from the server.
         /// </summary>
-        public event EventHandler<NotificationEventArgs> NotificationReceived;
+        public event EventHandler<NotificationEventArgs> NotificationReceived
+        {
+            add
+            {
+                lock (NotificationReceivedQueue)
+                {
+                    _notificationReceived += value;
+
+                    while (NotificationReceivedQueue.Count > 0)
+                    {
+                        KeyValuePair<object, NotificationEventArgs> dequeuedNotification = NotificationReceivedQueue.Dequeue();
+                        try
+                        {
+                            value(dequeuedNotification.Key, dequeuedNotification.Value);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+            }
+            remove
+            {
+                lock (NotificationReceivedQueue)
+                {
+                    _notificationReceived -= value;
+                }
+            }
+        }
+        private event EventHandler<NotificationEventArgs> _notificationReceived;
+        private readonly Queue<KeyValuePair<object, NotificationEventArgs>> NotificationReceivedQueue = new Queue<KeyValuePair<object, NotificationEventArgs>>();
 
         /// <summary>
         /// Event fired when manual polling is being used.  The application should send
         /// a Sync_From request to the server.
         /// </summary>
-        public event EventHandler<NotificationEventArgs> NotificationStillDisconnectedPing;
+        public event EventHandler<NotificationEventArgs> NotificationStillDisconnectedPing
+        {
+            add
+            {
+                lock (NotificationStillDisconnectedPingQueue)
+                {
+                    _notificationStillDisconnectedPing += value;
+
+                    while (NotificationStillDisconnectedPingQueue.Count > 0)
+                    {
+                        KeyValuePair<object, NotificationEventArgs> dequeuedNotification = NotificationStillDisconnectedPingQueue.Dequeue();
+                        try
+                        {
+                            value(dequeuedNotification.Key, dequeuedNotification.Value);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+            }
+            remove
+            {
+                lock (NotificationStillDisconnectedPingQueue)
+                {
+                    _notificationStillDisconnectedPing -= value;
+                }
+            }
+        }
+        private event EventHandler<NotificationEventArgs> _notificationStillDisconnectedPing;
+        private readonly Queue<KeyValuePair<object, NotificationEventArgs>> NotificationStillDisconnectedPingQueue = new Queue<KeyValuePair<object, NotificationEventArgs>>();
 
         /// <summary>
         /// Event fired when a serious error has occurred.  Push notification is
         /// no longer functional.
         /// </summary>
-        public event EventHandler<NotificationErrorEventArgs> ConnectionError;
+        public event EventHandler<NotificationErrorEventArgs> ConnectionError
+        {
+            add
+            {
+                lock (ConnectionErrorQueue)
+                {
+                    _connectionError += value;
+
+                    while (ConnectionErrorQueue.Count > 0)
+                    {
+                        KeyValuePair<object, NotificationErrorEventArgs> dequeuedNotification = ConnectionErrorQueue.Dequeue();
+                        try
+                        {
+                            value(dequeuedNotification.Key, dequeuedNotification.Value);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+            }
+            remove
+            {
+                lock (ConnectionErrorQueue)
+                {
+                    _connectionError -= value;
+                }
+            }
+        }
+        private event EventHandler<NotificationErrorEventArgs> _connectionError;
+        private readonly Queue<KeyValuePair<object, NotificationErrorEventArgs>> ConnectionErrorQueue = new Queue<KeyValuePair<object, NotificationErrorEventArgs>>();
 
         private static object _instanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance;
@@ -434,7 +549,19 @@ namespace Cloud.PushNotification
                         // Let everyone know that we have had a serious error.
                         _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: ERROR: All engines failed.");
                         NotificationErrorEventArgs err = new NotificationErrorEventArgs(new Exception("Notification service has failed"), null);
-                        castState.ConnectionError(castState, err);
+                        lock (castState.ConnectionErrorQueue)
+                        {
+                            if (castState._connectionError != null)
+                            {
+                                castState._connectionError(castState, err);
+                            }
+                            else
+                            {
+                                castState.ConnectionErrorQueue.Enqueue(
+                                    new KeyValuePair<object, NotificationErrorEventArgs>(
+                                        castState, err));
+                            }
+                        }
 
                         // Not running now
                         lock (this)
@@ -467,15 +594,25 @@ namespace Cloud.PushNotification
 
         private void SendManualPollCallback()
         {
-            if (NotificationStillDisconnectedPing != null)
+            _trace.writeToLog(9, "CLNotificationService: PerformManualSyncFrom: Fire event to request the application to send a Sync_From request.");
+            NotificationEventArgs args = new NotificationEventArgs(
+                new NotificationResponse()
+                {
+                    Body = CLDefinitions.CLNotificationTypeNew
+                });
+            lock (NotificationStillDisconnectedPingQueue)
             {
-                _trace.writeToLog(9, "CLNotificationService: PerformManualSyncFrom: Fire event to request the application to send a Sync_From request.");
-                NotificationEventArgs args = new NotificationEventArgs(
-                    new NotificationResponse()
-                    {
-                        Body = CLDefinitions.CLNotificationTypeNew
-                    });
-                NotificationStillDisconnectedPing(this, args);
+                if (_notificationStillDisconnectedPing != null)
+                {
+                    _notificationStillDisconnectedPing(this, args);
+                }
+                else
+                {
+                    NotificationStillDisconnectedPingQueue.Enqueue(
+                        new KeyValuePair<object, NotificationEventArgs>(
+                            this,
+                            args));
+                }
             }
         }
 
@@ -631,13 +768,24 @@ namespace Cloud.PushNotification
                         || parsedResponse.Body != CLDefinitions.CLNotificationTypeNew
                         || parsedResponse.Author.ToUpper() != _syncBox.CopiedSettings.DeviceId.ToUpper())
                     {
+                        ////DEBUG ONLY CODE!!! Remove
+                        //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
+                        //    "Notification received: " + (evt.Data ?? "{null}") + ", SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
+
                         _trace.writeToLog(9, "CLNotificationService: SendNotificationEventCallback: Send DidReceivePushNotificationFromServer.");
-                        if (NotificationReceived != null)
+                        lock (NotificationReceivedQueue)
                         {
                             _trace.writeToLog(9, "CLNotificationService: PerformManualSyncFrom: Fire event to notify the application  Msg: {0}.", evt.Data);
                             NotificationEventArgs args = new NotificationEventArgs(
                                 parsedResponse);
-                            NotificationReceived(this, args);
+                            if (_notificationReceived != null)
+                            {
+                                _notificationReceived(this, args);
+                            }
+                            else
+                            {
+                                NotificationReceivedQueue.Enqueue(new KeyValuePair<object, NotificationEventArgs>(this, args));
+                            }
                         }
                     }
                 }

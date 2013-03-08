@@ -11,17 +11,17 @@
   <InputParams>
     <API_Key>5d6563e245ffee808065ff97fe7303f2df8ffcd925c0843402433f2a8dd45167</API_Key>
     <API_Secret>3811e827db8fa611e09eab2a60d10b82957718589f02f1479a085de85f5c9ade</API_Secret>
-    <ActiveSync_Folder>"C:\Users\t_zacharyw\Cloud\"</ActiveSync_Folder>
-    <ActiveSync_Folder2>"C:\Users\t_zacharyw\CloudActive2\"</ActiveSync_Folder2>
+    <ActiveSync_Folder>"C:\Users\t_davidbru\Cloud\"</ActiveSync_Folder>
+    <ActiveSync_Folder2>"C:\Users\t_davidbru\CloudActive2\"</ActiveSync_Folder2>
     <ActiveSync_TraceFolder>"C:\TestSyncBoxes\Traces\AutoSyncTraces"</ActiveSync_TraceFolder>
     <ActiveSyncBoxID>516</ActiveSyncBoxID>
     <ManualSyncBoxID>516</ManualSyncBoxID>
-    <ManualSync_Folder>"C:\Users\t_zacharyw\Cloud2\"</ManualSync_Folder>
+    <ManualSync_Folder>"C:\Users\t_davidbru\Cloud2\"</ManualSync_Folder>
     <ManualSync_TraceFolder>"C:\TestSyncBoxes\Traces\ManualSyncTraces"</ManualSync_TraceFolder>
     <Token></Token>
     <TraceLevel>5</TraceLevel>
     <TraceType>4</TraceType>
-    <FileNameMappingFile>"C:\Users\t_zacharyw\Cloud\NamingConflicts.xml"</FileNameMappingFile>
+    <FileNameMappingFile>"C:\Users\t_davidbru\Cloud\NamingConflicts.xml"</FileNameMappingFile>
     <SettingsPath></SettingsPath>
   </InputParams>
   <Scenario>
@@ -533,7 +533,7 @@
               </ObjectType>
               <SelectedSyncBoxID>0</SelectedSyncBoxID>
               <Name>MyFileIsCool.txt</Name>
-              <Path>C:\Users\t_zacharyw\Cloud2\TerriblyAwesome\</Path>
+              <Path>C:\Users\t_davidbru\Cloud2\TerriblyAwesome\</Path>
               <CreateNew>true</CreateNew>
               <Count>5</Count>
             </InnerTask>
@@ -542,7 +542,7 @@
             </ObjectType>
             <SelectedSyncBoxID>0</SelectedSyncBoxID>
             <Name>TheseFilesAreAwesome.txt</Name>
-            <Path>C:\Users\t_zacharyw\Cloud2\NotSoCool\</Path>
+            <Path>C:\Users\t_davidbru\Cloud2\NotSoCool\</Path>
             <CreateNew>true</CreateNew>
             <Count>5</Count>
           </InnerTask>
@@ -551,7 +551,7 @@
           </ObjectType>
           <SelectedSyncBoxID>0</SelectedSyncBoxID>
           <Name>CouldThisBeCool.txt</Name>
-          <Path>C:\Users\t_zacharyw\Cloud2</Path>
+          <Path>C:\Users\t_davidbru\Cloud2</Path>
           <CreateNew>true</CreateNew>
           <Count>3</Count>
         </InnerTask>
