@@ -384,6 +384,16 @@ namespace SampleLiveSync.ViewModels
                 return;
             }
 
+            // The temporary download file path cannot be in the SyncBox directory.
+            FilePath fpTemp = TempDownloadFolderFullPath;
+            FilePath fpSyncBox = _settingsCaller.SyncBoxFullPath;
+            if (fpTemp.Contains(fpSyncBox, insensitiveNameSearch: true))
+            {
+                MessageBox.Show("The temporary download folder cannot be inside the SyncBox directory.");
+                this.IsTempDownloadFolderFullPathFocused = true;
+                return;
+            }
+
             // Validate the database file path.  OK to be empty.
             DatabaseFolderFullPath = DatabaseFolderFullPath.Trim();
             if (!String.IsNullOrEmpty(DatabaseFolderFullPath) &&
@@ -402,6 +412,15 @@ namespace SampleLiveSync.ViewModels
                 return;
             }
 
+            // The database file path cannot be in the SyncBox directory.
+            fpTemp = DatabaseFolderFullPath;
+            if (fpTemp.Contains(fpSyncBox, insensitiveNameSearch: true))
+            {
+                MessageBox.Show("The database folder cannot be inside the SyncBox directory.");
+                this.IsDatabaseFolderFullPathFocused = true;
+                return;
+            }
+
             // Validate the trace files file path.  OK to be empty.
             TraceFolderFullPath = TraceFolderFullPath.Trim();
             if (!String.IsNullOrEmpty(TraceFolderFullPath) &&
@@ -416,6 +435,15 @@ namespace SampleLiveSync.ViewModels
             if (TraceFolderFullPath.Length > 0 && TraceFolderFullPath.Length > (259 - (CLDefinitions.kMaxTraceFilenameExtLength + 1)))             // 259 maximum path length on Windows, minus the max length of a trace filename.ext, minus one char for backslash.
             {
                 MessageBox.Show(String.Format("The trace folder path is too long by {0} characters.  Please shorten the path.", TraceFolderFullPath.Length - (259 - (CLDefinitions.kMaxTraceFilenameExtLength + 1))));
+                this.IsTraceFolderFullPathFocused = true;
+                return;
+            }
+
+            // The trace file path cannot be in the SyncBox directory.
+            fpTemp = TraceFolderFullPath;
+            if (fpTemp.Contains(fpSyncBox, insensitiveNameSearch: true))
+            {
+                MessageBox.Show("The trace folder cannot be inside the SyncBox directory.");
                 this.IsTraceFolderFullPathFocused = true;
                 return;
             }

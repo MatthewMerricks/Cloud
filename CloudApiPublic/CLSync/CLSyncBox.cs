@@ -1844,9 +1844,9 @@ namespace Cloud
     /// </summary>
     public enum CLSyncBoxCreationStatus : byte
     {
-        Success,
-        ErrorNullCredential,
-        ErrorUnknown,
-        ErrorCreatingRestClient
+        Success = 0,
+        ErrorNullCredential = 1,
+        ErrorUnknown = 2,
+        ErrorCreatingRestClient = 3,
     }
 }

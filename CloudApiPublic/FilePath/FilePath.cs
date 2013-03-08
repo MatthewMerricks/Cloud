@@ -63,8 +63,43 @@ namespace Cloud.Model
         /// <param name="parent">(optional) Reference to parent directory</param>
         public FilePath(string name, FilePath parent = null)
         {
-            this._name = name;
-            this.Parent = parent;
+            if (parent == null
+                && !string.IsNullOrEmpty(name)
+                && name.Contains('\\'))
+            {
+                string[] nameSplit = name.Split('\\');
+
+                if (nameSplit[nameSplit.Length - 1] == string.Empty
+                    && nameSplit.Length == 2
+                    && nameSplit[0].Length > 0
+                    && nameSplit[0][(nameSplit[0].Length - 1)] == ':')
+                {
+                    this._name = name;
+                    this.Parent = null;
+                }
+                else
+                {
+                    this._name = nameSplit[nameSplit.Length - 1];
+
+                    if (nameSplit.Length == 2
+                        && nameSplit[0].Length > 0
+                        && nameSplit[0][(nameSplit[0].Length - 1)] == ':')
+                    {
+                        this.Parent = nameSplit[0] + "\\";
+                    }
+                    else
+                    {
+                        this.Parent = (nameSplit.Length == 1
+                            ? null
+                            : string.Join("\\", nameSplit.Take(nameSplit.Length - 1)));
+                    }
+                }
+            }
+            else
+            {
+                this._name = name;
+                this.Parent = parent;
+            }
         }
 
         /// <summary>
@@ -144,6 +179,11 @@ namespace Cloud.Model
                 return null;
             }
 
+            if (fullPath == string.Empty)
+            {
+                return new FilePath(string.Empty);
+            }
+
             ////// Cannot use System.IO for paths due to size limitation
             //// Must use DirectoryInfo implicit converter instead of FileInfo because
             //// "C:\\" produces a FileInfo without a name
@@ -154,11 +194,13 @@ namespace Cloud.Model
                 return fullPath.Substring(4);
             }
 
-            int lastSlash;
-            if ((lastSlash = fullPath.LastIndexOf("\\")) < -1)
+            //// a less than -1 check would never be true anyways
+            //
+            int lastSlash/*;
+            if ((lastSlash*/ = fullPath.LastIndexOf("\\")/*) < -1)
             {
-                throw new ArgumentException("fullPath is not a properly formatted file or folder absolute path");
-            }
+                throw new ArgumentException("fullPath is not a properly formatted file or folder absolute path")*/;/*
+            }*/
 
             int firstSlash;
             if ((firstSlash = fullPath.IndexOf("\\")) == lastSlash)
@@ -166,6 +208,16 @@ namespace Cloud.Model
                 if (fullPath.EndsWith(":\\"))
                 {
                     return new FilePath(fullPath);
+                }
+                else if (fullPath[0] == '\\')
+                {
+                    return new FilePath(fullPath.Substring(lastSlash + 1),
+                        new FilePath(string.Empty));
+                }
+                else if (fullPath[fullPath.Length - 1] == '\\')
+                {
+                    return new FilePath(string.Empty,
+                        fullPath.Substring(0, lastSlash));
                 }
 
                 return new FilePath(fullPath.Substring(lastSlash + 1),
@@ -268,7 +320,8 @@ namespace Cloud.Model
         }
 
         /// <summary>
-        /// Determines whether or not the second path is contained within the first path (including if both are perfectly equal)
+        /// Determines whether or not the second path is contained within the first path (including if both are perfectly equal);
+        /// For example: C:\A\B contains C:\A and C:\A\B but C:\A does NOT contain C:\A\B
         /// </summary>
         /// <param name="outerPath">First path that may contain the second path</param>
         /// <param name="innerPath">Second path which may be contained in the first path</param>

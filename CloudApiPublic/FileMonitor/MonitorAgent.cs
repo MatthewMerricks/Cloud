@@ -421,10 +421,11 @@ namespace Cloud.FileMonitor
 
             try
             {
-                if (string.IsNullOrEmpty(syncBox.CopiedSettings.SyncRoot))
+                if (string.IsNullOrWhiteSpace(syncBox.CopiedSettings.SyncRoot))
                 {
-                    throw new Exception("Folder path cannot be null nor empty");
+                    throw new ArgumentException("Folder path cannot be null or empty");
                 }
+
                 DirectoryInfo folderInfo = new DirectoryInfo(syncBox.CopiedSettings.SyncRoot);
                 if (!folderInfo.Exists)
                 {

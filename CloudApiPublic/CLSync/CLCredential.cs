@@ -1768,9 +1768,9 @@ namespace Cloud
     /// </summary>
     public enum CLCredentialCreationStatus : byte
     {
-        Success,
-        ErrorNullKey,
-        ErrorNullSecret,
-        ErrorUnknown
+        Success = 0,
+        ErrorNullKey = 1,
+        ErrorNullSecret = 2,
+        ErrorUnknown = 3,
     }
 }

@@ -17,20 +17,23 @@ namespace Cloud
     /// </summary>
     public enum CLSyncStartStatus : byte
     {
-        ErrorNullSyncBox,
-        ErrorTraceEnabledWithoutDirectory,
-        ErrorNullDeviceId,
-        ErrorLongRootPath,
-        ErrorBadRootPath,
-        ErrorAlreadyStarted,
-        ErrorIndexCreation,
-        ErrorStartingNotification,
-        ErrorCreatingFileMonitor,
-        ErrorStartingFileMonitor,
-        ErrorStartingInitialIndexing,
-        ErrorExceptionStartingFileMonitor,
-        ErrorGeneralSyncStartException,
-        ErrorInProcessOfModification,
-        Success
+        Success = 0,
+        ErrorNullSyncBox = 1,
+        ErrorTraceEnabledWithoutDirectory = 2,
+        ErrorDatabaseFolderInsideSyncBoxFolder = 3,
+        ErrorTraceFolderInsideSyncBoxFolder = 4,
+        ErrorTempDownloadFolderInsideSyncBoxFolder = 5,
+        ErrorNullDeviceId = 6,
+        ErrorLongRootPath = 7,
+        ErrorBadRootPath = 8,
+        ErrorAlreadyStarted = 9,
+        ErrorIndexCreation = 10,
+        ErrorStartingNotification = 11,
+        ErrorCreatingFileMonitor = 12,
+        ErrorStartingFileMonitor = 13,
+        ErrorStartingInitialIndexing = 14,
+        ErrorExceptionStartingFileMonitor = 15,
+        ErrorGeneralSyncStartException = 16,
+        ErrorInProcessOfModification = 17,
     }
 }

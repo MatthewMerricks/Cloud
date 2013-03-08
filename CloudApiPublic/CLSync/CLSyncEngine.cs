@@ -507,6 +507,11 @@ namespace Cloud
                     }
                 }
 
+                //// DO NOT MOVE THIS EARLIER EVEN THOUGH EARLIER STATEMENTS HAVE TRACE
+                // Initialize trace in case it is not already initialized.
+                CLTrace.Initialize(this._syncBox.CopiedSettings.TraceLocation, "Cloud", "log", this._syncBox.CopiedSettings.TraceLevel, this._syncBox.CopiedSettings.LogErrors);
+                _trace.writeToLog(1, "CLSyncEngine: Starting...");
+
                 // Check the TraceLocation vs. LogErrors
                 if (string.IsNullOrWhiteSpace(this._syncBox.CopiedSettings.TraceLocation) && this._syncBox.CopiedSettings.LogErrors)
                 {
@@ -522,9 +527,44 @@ namespace Cloud
                     return new ArgumentException(verifyTraceError);
                 }
 
-                // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(this._syncBox.CopiedSettings.TraceLocation, "Cloud", "log", this._syncBox.CopiedSettings.TraceLevel, this._syncBox.CopiedSettings.LogErrors);
-                _trace.writeToLog(1, "CLSyncEngine: Starting...");
+                if (!String.IsNullOrWhiteSpace(this._syncBox.CopiedSettings.DatabaseFolder))
+                {
+                    FilePath fpDatabase = this._syncBox.CopiedSettings.DatabaseFolder;
+                    FilePath fpSyncBox = this._syncBox.CopiedSettings.SyncRoot;
+                    if (fpDatabase.Contains(fpSyncBox, insensitiveNameSearch: true))
+                    {
+                        const string verifyDatabaseError = "SyncBox settings DatabaseFolder cannot be inside the SyncBox settings SyncRoot";
+                        _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", verifyDatabaseError);
+                        Status = CLSyncStartStatus.ErrorDatabaseFolderInsideSyncBoxFolder;
+                        return new ArgumentException(verifyDatabaseError);
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(this._syncBox.CopiedSettings.TraceLocation))
+                {
+                    FilePath fpTraceLocation = this._syncBox.CopiedSettings.TraceLocation;
+                    FilePath fpSyncBox = this._syncBox.CopiedSettings.SyncRoot;
+                    if (fpTraceLocation.Contains(fpSyncBox, insensitiveNameSearch: true))
+                    {
+                        const string verifyTraceLocationError = "SyncBox settings TraceLocation cannot be inside the SyncBox settings SyncRoot";
+                        _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", verifyTraceLocationError);
+                        Status = CLSyncStartStatus.ErrorTraceFolderInsideSyncBoxFolder;
+                        return new ArgumentException(verifyTraceLocationError);
+                    }
+                }
+
+                if (!String.IsNullOrWhiteSpace(this._syncBox.CopiedSettings.TempDownloadFolderFullPath))
+                {
+                    FilePath fpTemp = this._syncBox.CopiedSettings.TempDownloadFolderFullPath;
+                    FilePath fpSyncBox = this._syncBox.CopiedSettings.SyncRoot;
+                    if (fpTemp.Contains(fpSyncBox, insensitiveNameSearch: true))
+                    {
+                        const string verifyTempDownloadFolderError = "SyncBox settings TempDownloadFolderFullPath cannot be inside the SyncBox settings SyncRoot";
+                        _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", verifyTempDownloadFolderError);
+                        Status = CLSyncStartStatus.ErrorTempDownloadFolderInsideSyncBoxFolder;
+                        return new ArgumentException(verifyTempDownloadFolderError);
+                    }
+                }
 
                 CLError checkBadPath = Helpers.CheckForBadPath(this._syncBox.CopiedSettings.SyncRoot);
                 if (checkBadPath != null)
