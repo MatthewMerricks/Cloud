@@ -29,5 +29,7 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
         public string DeviceId { get; set; }
 
+        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxQuota, IsRequired = false)]
+        public SyncBoxUsage Quota { get; set; }
     }
 }

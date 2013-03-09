@@ -559,6 +559,7 @@ namespace Cloud.Static
         public const string RESTResponseSyncBoxCreatedAt = "created_at";
         public const string RESTResponseSyncBoxFriendlyName = "friendly_name";
         public const string RESTResponseSyncBoxMetadata = "metadata";
+        public const string RESTResponseSyncBoxQuota = "quota";
 
         // REST Request SyncBox
         public const string RESTRequestSyncBox = "sync_box";
