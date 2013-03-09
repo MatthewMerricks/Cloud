@@ -25,12 +25,12 @@ CBadgeIconSelective::CBadgeIconSelective()
     try
     {
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-		//static bool fCompletedOnce = false;
-		//while (!fCompletedOnce)
-		//{
-		//	Sleep(100);
-		//}
-		//fCompletedOnce = true;
+		static bool fCompletedOnce = false;
+		while (!fCompletedOnce)
+		{
+			Sleep(100);
+		}
+		fCompletedOnce = true;
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 	    // Allocate the base shell extension.
