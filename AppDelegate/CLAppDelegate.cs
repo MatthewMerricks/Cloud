@@ -839,77 +839,81 @@ namespace win_client.AppDelegate
                 {
                     recycleLocation = "RECYCLER";
                 }
-                ObjectQuery query = new ObjectQuery("Select * from Win32_LogicalDisk Where DriveType = 3");
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
-                ManagementObjectCollection queryCollection = searcher.Get();
-                foreach (ManagementObject mgtObject in queryCollection)
+                ObjectQuery query = new ObjectQuery("Select * from Win32_LogicalDisk Where DriveType = 3 OR DriveType = 2");
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
                 {
-                    // Get the drive letter of this drive.  We will use it if it matches the original cloud folder path.
-                    string strTmpDrive = mgtObject["Name"].ToString();
-                    if (cloudFolderLocation.Substring(0, 2).ToLower().Equals(strTmpDrive.ToLower(), StringComparison.InvariantCulture))
+                    using (ManagementObjectCollection queryCollection = searcher.Get())
                     {
-                        // Loop through the recycle bins on this drive (usually just one).
-                        foreach (string strSubKey in arrSubKeys)
+                        foreach (ManagementObject mgtObject in queryCollection)
                         {
-                            // Form the full path of the recycle bin and process it if it exists.
-                            string regKeySID = strSubKey;
-                            string recycleBinLocation = (strTmpDrive + "\\" + recycleLocation + "\\" + regKeySID + "\\");
-                            if (recycleBinLocation != "" && Directory.Exists(recycleBinLocation))
+                            // Get the drive letter of this drive.  We will use it if it matches the original cloud folder path.
+                            string strTmpDrive = mgtObject["Name"].ToString();
+                            if (cloudFolderLocation.Substring(0, 2).ToLower().Equals(strTmpDrive.ToLower(), StringComparison.InvariantCulture))
                             {
-                                // Process this directory.  Get the list of folders contained in the recycle bin.  Loop through the folders.
-                                DirectoryInfo recycleBin = new DirectoryInfo(recycleBinLocation);
-                                DirectoryInfo[] recycleBinFolders = recycleBin.GetDirectories();
-                                foreach (DirectoryInfo folder in recycleBinFolders)
+                                // Loop through the recycle bins on this drive (usually just one).
+                                foreach (string strSubKey in arrSubKeys)
                                 {
-                                    // See if this is the original cloud folder.  It is if the folder creation time is equal.
-                                    if (folder.CreationTime.ToUniversalTime() == cloudFolderCreationTimeUtc)
+                                    // Form the full path of the recycle bin and process it if it exists.
+                                    string regKeySID = strSubKey;
+                                    string recycleBinLocation = (strTmpDrive + "\\" + recycleLocation + "\\" + regKeySID + "\\");
+                                    if (recycleBinLocation != "" && Directory.Exists(recycleBinLocation))
                                     {
-                                        // This is our cloud folder.  Find the original path.  That is in the corresponding
-                                        // $I file.  e.g., if the name of this $R file is $RABCDEF, then locate the file
-                                        // with name $IABCDEF.  The deletion time is stored in 8 bytes at offset 0x10 in the
-                                        /// $I file.  The Unicode original path string is stored at offset 0x18.  The
-                                        // path string is a maximum of 260 characters (or 520 bytes), including the double
-                                        // null termination.
-                                        string iFilePath = recycleBinLocation + "\\$I" + folder.Name.Substring(2);
-                                        byte[] fileBytes = File.ReadAllBytes(iFilePath);
-
-                                        // Parse out the DateTime ticks.
-                                        const int offsetDateTimeTicks = 0x10;
-                                        const int offsetPath = 0x18;
-                                        const int lengthPath = 520;
-                                        UInt64 ulTicks = 0;
-
-                                        for (int index = offsetDateTimeTicks; index < offsetPath; ++index)
+                                        // Process this directory.  Get the list of folders contained in the recycle bin.  Loop through the folders.
+                                        DirectoryInfo recycleBin = new DirectoryInfo(recycleBinLocation);
+                                        DirectoryInfo[] recycleBinFolders = recycleBin.GetDirectories();
+                                        foreach (DirectoryInfo folder in recycleBinFolders)
                                         {
-                                            ulTicks |= ((UInt64)fileBytes[index]) << ((index - offsetDateTimeTicks) * 8);
-                                        }
-
-                                        // Parse out the original path
-                                        string originalPath = String.Empty;
-                                        UInt16 uChar = 0;
-                                        for (int index = offsetPath; index < (offsetPath + lengthPath); ++index)
-                                        {
-                                            int tempShift = fileBytes[index] << ((index % 2) * 8);
-                                            uChar |= (UInt16)tempShift;
-
-                                            if (index != offsetPath && (index % 2) != 0)
+                                            // See if this is the original cloud folder.  It is if the folder creation time is equal.
+                                            if (folder.CreationTime.ToUniversalTime() == cloudFolderCreationTimeUtc)
                                             {
-                                                if (uChar == 0)
+                                                // This is our cloud folder.  Find the original path.  That is in the corresponding
+                                                // $I file.  e.g., if the name of this $R file is $RABCDEF, then locate the file
+                                                // with name $IABCDEF.  The deletion time is stored in 8 bytes at offset 0x10 in the
+                                                /// $I file.  The Unicode original path string is stored at offset 0x18.  The
+                                                // path string is a maximum of 260 characters (or 520 bytes), including the double
+                                                // null termination.
+                                                string iFilePath = recycleBinLocation + "\\$I" + folder.Name.Substring(2);
+                                                byte[] fileBytes = File.ReadAllBytes(iFilePath);
+
+                                                // Parse out the DateTime ticks.
+                                                const int offsetDateTimeTicks = 0x10;
+                                                const int offsetPath = 0x18;
+                                                const int lengthPath = 520;
+                                                UInt64 ulTicks = 0;
+
+                                                for (int index = offsetDateTimeTicks; index < offsetPath; ++index)
                                                 {
-                                                    break;
+                                                    ulTicks |= ((UInt64)fileBytes[index]) << ((index - offsetDateTimeTicks) * 8);
                                                 }
 
-                                                originalPath += (char)uChar;
-                                                uChar = 0;
+                                                // Parse out the original path
+                                                string originalPath = String.Empty;
+                                                UInt16 uChar = 0;
+                                                for (int index = offsetPath; index < (offsetPath + lengthPath); ++index)
+                                                {
+                                                    int tempShift = fileBytes[index] << ((index % 2) * 8);
+                                                    uChar |= (UInt16)tempShift;
+
+                                                    if (index != offsetPath && (index % 2) != 0)
+                                                    {
+                                                        if (uChar == 0)
+                                                        {
+                                                            break;
+                                                        }
+
+                                                        originalPath += (char)uChar;
+                                                        uChar = 0;
+                                                    }
+                                                }
+
+
+                                                foundOriginalPath = originalPath;
+                                                foundDeletionTimeLocal = DateTime.FromFileTime((long)ulTicks);
+                                                foundPathToDeletedCloudFolderRFile = folder.FullName;
+                                                foundPathToDeletedCloudFolderIFile = iFilePath;
+                                                return true;
                                             }
                                         }
-
-
-                                        foundOriginalPath = originalPath;
-                                        foundDeletionTimeLocal = DateTime.FromFileTime((long)ulTicks);
-                                        foundPathToDeletedCloudFolderRFile = folder.FullName;
-                                        foundPathToDeletedCloudFolderIFile = iFilePath;
-                                        return true;
                                     }
                                 }
                             }
