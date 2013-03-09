@@ -988,8 +988,8 @@ namespace Cloud.Static
 
         public static string GetClientVersionHttpHeader(string clientVersion)
         {
-            return OSVersionInfo.Name + "_" + OSVersionInfo.Edition + "_ " + OSVersionInfo.OSBits.ToString() + "_" + Resources.Resources.OsBits + "_" + 
-                        OSVersionInfo.VersionString + "&" + clientVersion;
+            return OSVersionInfo.Name + "_" + OSVersionInfo.Edition + "_ " + OSVersionInfo.OSBits.ToString() + "_" + 
+                        OSVersionInfo.VersionString + "&V" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() + "&" + clientVersion;
         }
 
         #endregion
