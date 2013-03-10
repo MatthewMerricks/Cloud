@@ -24,13 +24,15 @@ CBadgeIconSynced::CBadgeIconSynced()
 {
     try
     {
+#if WAIT_FOR_DEBUG
         //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
         static bool fCompletedOnce = false;
         while (!fCompletedOnce)
         {
-              Sleep(100);
+			Sleep(100);
         }
         fCompletedOnce = true;
+#endif // WAIT_FOR_DEBUG
         //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 	    // Allocate the base shell extension.

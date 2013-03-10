@@ -25,12 +25,14 @@ CBadgeIconFailed::CBadgeIconFailed()
     try
     {
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+#if WAIT_FOR_DEBUG
 		static bool fCompletedOnce = false;
 		while (!fCompletedOnce)
 		{
 			Sleep(100);
 		}
 		fCompletedOnce = true;
+#endif // WAIT_FOR_DEBUG
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 	    // Allocate the base shell extension.

@@ -11,6 +11,8 @@
 
 #pragma once
 
+#define WAIT_FOR_DEBUG 1				// define to wait at initialization for debug attach in BadgeIconFailed, etc.
+
 #ifndef STRICT
 #define STRICT
 #endif
