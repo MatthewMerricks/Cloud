@@ -583,6 +583,15 @@ namespace Cloud.Static
         }
 
         /// <summary>
+        /// Gets a random integer between 0 and 10,000,000 which can be used to append a random number of sub-second ticks to a DateTime
+        /// </summary>
+        internal static int GetRandomNumberOfTicksLessThanASecond()
+        {
+            return MillisecondsRandom.Next((int)TimeSpan.TicksPerSecond);
+        }
+        private static readonly Random MillisecondsRandom = new Random(Environment.MachineName.GetHashCode());
+
+        /// <summary>
         /// Generic-typed method to run Convert.ChangeType on an object to convert it to the generic type; will throw exceptions on conversion failure or trying to convert null to a non-nullable type
         /// </summary>
         /// <typeparam name="T">Type to convert to</typeparam>

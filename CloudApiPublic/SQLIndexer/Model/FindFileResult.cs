@@ -42,9 +42,9 @@ namespace Cloud.SQLIndexer.Model
         }
         private IFileResultParent Parent { get; set; }
 
-        public static IList<FindFileResult> RecursiveDirectorySearch(string fullDirectoryPath, FileAttributes toIgnore, out bool rootNotFound)
+        public static IList<FindFileResult> RecursiveDirectorySearch(string fullDirectoryPath, FileAttributes toIgnore, out bool rootNotFound, bool returnFoldersOnly = false)
         {
-            return RecursiveDirectorySearch(fullDirectoryPath, toIgnore, out rootNotFound, null);
+            return RecursiveDirectorySearch(fullDirectoryPath, toIgnore, out rootNotFound, null, returnFoldersOnly);
         }
 
         private static bool IsDotDirectory(string directoryName)
@@ -66,7 +66,7 @@ namespace Cloud.SQLIndexer.Model
             }
         }
 
-        private static IList<FindFileResult> RecursiveDirectorySearch(string fullDirectoryPath, FileAttributes toIgnore, out bool rootNotFound, IFileResultParent searchParent)
+        private static IList<FindFileResult> RecursiveDirectorySearch(string fullDirectoryPath, FileAttributes toIgnore, out bool rootNotFound, IFileResultParent searchParent, bool returnFoldersOnly)
         {
             List<FindFileResult> toReturn = new List<FindFileResult>();
 
@@ -87,7 +87,9 @@ namespace Cloud.SQLIndexer.Model
                     fullDirectoryPath + "\\*.*",
                     NativeMethods.FINDEX_INFO_LEVELS.FindExInfoStandard,// Basic would be optimal but it's only supported in Windows 7 on up
                     out fileData,
-                    NativeMethods.FINDEX_SEARCH_OPS.FindExSearchNameMatch,
+                    (returnFoldersOnly
+                        ? NativeMethods.FINDEX_SEARCH_OPS.FindExSearchNameMatch | NativeMethods.FINDEX_SEARCH_OPS.FindExSearchLimitToDirectories
+                        : NativeMethods.FINDEX_SEARCH_OPS.FindExSearchNameMatch),
                     IntPtr.Zero,
                     (OSVersionInfo.Version.Major > 6 || (OSVersionInfo.Version.Major == 6 && OSVersionInfo.Version.Minor >= 1)) ?
                                     NativeMethods.FINDEX_ADDITIONAL_FLAGS.FIND_FIRST_EX_LARGE_FETCH : NativeMethods.FINDEX_ADDITIONAL_FLAGS.None);
@@ -100,8 +102,9 @@ namespace Cloud.SQLIndexer.Model
                     {
                         if ((FileAttributes)0 ==// compare bitwise and of FileAttributes and all unwanted attributes to '0'
                             (fileData.dwFileAttributes & toIgnore)
-                            && ((fileData.dwFileAttributes & FileAttributes.Directory) == (FileAttributes)0
-                                || !IsDotDirectory(fileData.cFileName)))
+                            && (((fileData.dwFileAttributes & FileAttributes.Directory) == FileAttributes.Directory)
+                                ? !IsDotDirectory(fileData.cFileName) // for directories, make sure name is not "." or ".."
+                                : !returnFoldersOnly)) // do not return files if returnFoldersOnly is set to true
                         {
                             toReturn.Add(new FindFileResult()
                             {
@@ -137,10 +140,13 @@ namespace Cloud.SQLIndexer.Model
                 }
             }
 
-            foreach (FindFileResult currentInnerDirectory in toReturn.Where(currentReturn => currentReturn.Size == null))
+            foreach (FindFileResult currentInnerDirectory in 
+                (returnFoldersOnly
+                    ? toReturn // no need to sort for directories via Size == null if no files were added due to input flag returnFoldersOnly being true
+                    : toReturn.Where(currentReturn => currentReturn.Size == null)))
             {
                 bool innerDirectoryNotFound;
-                currentInnerDirectory.Children = RecursiveDirectorySearch(fullDirectoryPath + "\\" + currentInnerDirectory.Name, toIgnore, out innerDirectoryNotFound, currentInnerDirectory);
+                currentInnerDirectory.Children = RecursiveDirectorySearch(fullDirectoryPath + "\\" + currentInnerDirectory.Name, toIgnore, out innerDirectoryNotFound, currentInnerDirectory, returnFoldersOnly);
             }
 
             return toReturn;

@@ -1165,6 +1165,7 @@ namespace Cloud.Sync
                     new FileChange.UpDownEventArgs(
                         (upDownChange, innerState) =>
                         {
+                            FilePath storeNewPath;
                             FilePathDictionary<List<FileChange>> castState = innerState as FilePathDictionary<List<FileChange>>;
                             if (castState == null)
                             {
@@ -1173,14 +1174,14 @@ namespace Cloud.Sync
                                     EventMessageLevel.Important,
                                     new HaltAllOfCloudSDKErrorInfo());
                             }
-                            else
+                            else if ((storeNewPath = upDownChange.NewPath) != null)
                             {
                                 List<FileChange> upDownsAtPath;
                                 if (!castState.TryGetValue(
-                                    upDownChange.NewPath,
+                                    storeNewPath,
                                     out upDownsAtPath))
                                 {
-                                    castState.Add(upDownChange.NewPath, upDownsAtPath = new List<FileChange>());
+                                    castState.Add(storeNewPath, upDownsAtPath = new List<FileChange>());
                                 }
                                 upDownsAtPath.Add(upDownChange);
                             }
@@ -6053,6 +6054,8 @@ namespace Cloud.Sync
                     // if there are events in the response to process, then loop through all events looking for duplicates between Sync From and Sync To
                     if (deserializedResponse.Events.Length > 0)
                     {
+                        AppendRandomSubSecondTicksToSyncFromFolderCreationTimes(deserializedResponse.Events);
+
                         // create a list for the indexes of events for Sync From
                         List<int> fromEvents = new List<int>();
                         // create a list for the paths of events for Sync To (excluding events with a "download" status)
@@ -7852,6 +7855,18 @@ namespace Cloud.Sync
                                         err.GrabExceptions())));
                         }
 
+                        if (deserializedResponse == null)
+                        {
+                            throw new NullReferenceException("SyncFrom deserializedResponse cannot be null");
+                        }
+
+                        if (deserializedResponse.Events == null)
+                        {
+                            throw new NullReferenceException("SyncFrom deserializedResponse cannot have null Events");
+                        }
+
+                        AppendRandomSubSecondTicksToSyncFromFolderCreationTimes(deserializedResponse.Events);
+
                         // record the latest sync id from the deserialized response
                         newSyncId = deserializedResponse.SyncId;
 
@@ -8431,6 +8446,27 @@ namespace Cloud.Sync
                 return ex;
             }
             return null;
+        }
+
+        private static void AppendRandomSubSecondTicksToSyncFromFolderCreationTimes(Event[] deserializedResponseEvents)
+        {
+            // loop through events to add random sub-seconds to creation time for Sync From folder creations so that the time can be used by the
+            // FileMonitor MonitorAgent later as a way to compare folder deletions versus creations to convert to moves
+            foreach (JsonContracts.Event toModifyTime in deserializedResponseEvents)
+            {
+                if (toModifyTime.Header != null
+                    && string.IsNullOrEmpty(toModifyTime.Header.Status) // condition for SyncFrom
+                    && toModifyTime.Metadata != null
+                    && (toModifyTime.Metadata.IsFolder ?? ParseEventStringToIsFolder(toModifyTime.Header.Action ?? toModifyTime.Action)) // condition for directories
+                    && toModifyTime.Metadata.CreatedDate != null
+                    && ((DateTime)toModifyTime.Metadata.CreatedDate).DropSubSeconds().Ticks == ((DateTime)toModifyTime.Metadata.CreatedDate).Ticks) // only if it does not already have sub-second detail
+                {
+                    toModifyTime.Metadata.CreatedDate = new DateTime(
+                        ((DateTime)toModifyTime.Metadata.CreatedDate).Ticks
+                            + ((long)Helpers.GetRandomNumberOfTicksLessThanASecond()), // random number of sub-second ticks appended for better comparisons in the FileMonitor later
+                        ((DateTime)toModifyTime.Metadata.CreatedDate).Kind);
+                }
+            }
         }
 
         // helper method which adds a FileChange to a FilePathDictionary by its NewPath and recursively does the same for inner dependencies (if any)

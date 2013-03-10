@@ -871,8 +871,8 @@ namespace CloudApiPrivate.Model.Settings
             // Load defaults
 
             // Historic bandwidth
-            _historicUploadBandwidthBitsPS = 1048576d; // 1 megabits per second
-            _historicDownloadBandwidthBitsPS = 262144d; // 250 kilobits per second
+            _historicUploadBandwidthBitsPS = 262144d; // 250 kilobits per second
+            _historicDownloadBandwidthBitsPS = 1048576d; // 1 megabits per second
 
             // Logging
             _logErrors = 0;

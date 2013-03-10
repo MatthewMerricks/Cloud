@@ -133,8 +133,300 @@ namespace Cloud.FileMonitor
         // This stores if this current monitor instance has been disposed (defaults to not disposed)
         private bool Disposed = false;
 
-        // Storage of current file indexes, keyed by file path
+        #region Storage of current file indexes, keyed by file path
+
         private FilePathDictionary<FileMetadata> AllPaths;
+        private readonly Dictionary<long, FilePath[]> FolderCreationTimeUtcTicksToPath = new Dictionary<long, FilePath[]>();
+
+        private enum ChangeAllPathsType : byte
+        {
+            Add,
+            Remove,
+            Rename,
+            Clear,
+            IndexSet
+        }
+        /// <summary>
+        /// Must already be holding lock on AllPaths
+        /// </summary>
+        private abstract class ChangeAllPathsBase
+        {
+            protected ChangeAllPathsBase(ChangeAllPathsType Type, MonitorAgent Agent, FilePath OldPath = null, FilePath NewPath = null, FileMetadata Metadata = null/*, Nullable<FileMetadataHashableProperties> NewHashables = null*/) // NewHashables commented out because ChangeMetadataHashableProperties was not needed
+            {
+                switch (Type)
+                {
+                    case ChangeAllPathsType.Add:
+                        Agent.AllPaths.Add(NewPath, Metadata);
+
+                        if (Metadata.HashableProperties.IsFolder)
+                        {
+                            long createItemCreationUtcTicks = Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks;
+                            FilePath[] existingAddFolderPaths;
+                            if (Agent.FolderCreationTimeUtcTicksToPath.TryGetValue(createItemCreationUtcTicks, out existingAddFolderPaths))
+                            {
+                                FilePath[] appendExistingPaths = new FilePath[existingAddFolderPaths.Length + 1];
+                                Array.Copy(existingAddFolderPaths, appendExistingPaths, existingAddFolderPaths.Length);
+                                appendExistingPaths[appendExistingPaths.Length - 1] = NewPath;
+                                Agent.FolderCreationTimeUtcTicksToPath[createItemCreationUtcTicks] = appendExistingPaths;
+                            }
+                            else
+                            {
+                                Agent.FolderCreationTimeUtcTicksToPath.Add(createItemCreationUtcTicks, new[] { NewPath });
+                            }
+                        }
+                        break;
+
+                    //// no cases where the hashable properties are replaced (and thus the creation time) for a folder in AllPaths, so this case was not needed
+                    //
+                    //case ChangeAllPathsType.ChangeMetadataHashableProperties:
+                    //    FileMetadataHashableProperties previousProperties = Metadata.HashableProperties;
+                    //    Metadata.HashableProperties = (FileMetadataHashableProperties)NewHashables;
+
+                    //    if (Metadata.HashableProperties.IsFolder)
+                    //    {
+                    //        long previousHashablesCreationUtcTicks = previousProperties.CreationTime.ToUniversalTime().Ticks;
+                    //        FilePath[] previousHashablesPaths;
+                    //        if (Agent.FolderCreationTimeUtcTicksToPath.TryGetValue(previousHashablesCreationUtcTicks, out previousHashablesPaths))
+                    //        {
+                    //            if (previousHashablesPaths.Length == 1)
+                    //            {
+                    //                if (FilePathComparer.Instance.Equals(NewPath, previousHashablesPaths[0]))
+                    //                {
+                    //                    Agent.FolderCreationTimeUtcTicksToPath.Remove(previousHashablesCreationUtcTicks);
+                    //                }
+                    //            }
+                    //            else
+                    //            {
+                    //                for (int currentDeleteIndex = 0; currentDeleteIndex < previousHashablesPaths.Length; currentDeleteIndex++)
+                    //                {
+                    //                    if (FilePathComparer.Instance.Equals(NewPath, previousHashablesPaths[currentDeleteIndex]))
+                    //                    {
+                    //                        FilePath[] pathsMinusDeleted = new FilePath[previousHashablesPaths.Length - 1];
+                    //                        if (currentDeleteIndex != 0)
+                    //                        {
+                    //                            Array.Copy(previousHashablesPaths, 0, pathsMinusDeleted, 0, currentDeleteIndex);
+                    //                        }
+
+                    //                        if (currentDeleteIndex != previousHashablesPaths.Length - 1)
+                    //                        {
+                    //                            Array.Copy(previousHashablesPaths, currentDeleteIndex + 1, pathsMinusDeleted, currentDeleteIndex, pathsMinusDeleted.Length - currentDeleteIndex);
+                    //                        }
+
+                    //                        Agent.FolderCreationTimeUtcTicksToPath[previousHashablesCreationUtcTicks] = pathsMinusDeleted;
+                    //                        break; // presumes only a single folder path will ever be in FolderCreationTimeUtcTicksToPath, therefore stop checking since we found a path
+                    //                    }
+                    //                }
+                    //            }
+                    //        }
+                            
+                    //        long newHashablesUtcTicks = Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks;
+                    //        FilePath[] newHashablesPaths;
+                    //        if (Agent.FolderCreationTimeUtcTicksToPath.TryGetValue(newHashablesUtcTicks, out newHashablesPaths))
+                    //        {
+                    //            FilePath[] appendExistingPaths = new FilePath[newHashablesPaths.Length + 1];
+                    //            Array.Copy(newHashablesPaths, appendExistingPaths, newHashablesPaths.Length);
+                    //            appendExistingPaths[appendExistingPaths.Length - 1] = NewPath;
+                    //            Agent.FolderCreationTimeUtcTicksToPath[newHashablesUtcTicks] = appendExistingPaths;
+                    //        }
+                    //        else
+                    //        {
+                    //            Agent.FolderCreationTimeUtcTicksToPath.Add(newHashablesUtcTicks, new[] { NewPath });
+                    //        }
+                    //    }
+                    //    break;
+
+                    case ChangeAllPathsType.Clear:
+                        Agent.AllPaths.Clear();
+                        Agent.FolderCreationTimeUtcTicksToPath.Clear();
+                        break;
+
+                    case ChangeAllPathsType.IndexSet:
+                        FileMetadata previousMetadata;
+                        if ((Metadata != null
+                                && !Metadata.HashableProperties.IsFolder)
+                            || !Agent.AllPaths.TryGetValue(NewPath, out previousMetadata)
+                            || (Metadata == null && !previousMetadata.HashableProperties.IsFolder))
+                        {
+                            previousMetadata = null;
+                        }
+
+                        Agent.AllPaths[NewPath] = Metadata;
+
+                        if (Metadata == null
+                            ? previousMetadata != null
+                            : Metadata.HashableProperties.IsFolder)
+                        {
+                            if (previousMetadata != null)
+                            {
+                                long previousMetadataCreationUtcTicks = previousMetadata.HashableProperties.CreationTime.ToUniversalTime().Ticks;
+                                FilePath[] previousHashablesPaths;
+                                if (Agent.FolderCreationTimeUtcTicksToPath.TryGetValue(previousMetadataCreationUtcTicks, out previousHashablesPaths))
+                                {
+                                    if (previousHashablesPaths.Length == 1)
+                                    {
+                                        if (FilePathComparer.Instance.Equals(NewPath, previousHashablesPaths[0]))
+                                        {
+                                            Agent.FolderCreationTimeUtcTicksToPath.Remove(previousMetadataCreationUtcTicks);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        for (int currentDeleteIndex = 0; currentDeleteIndex < previousHashablesPaths.Length; currentDeleteIndex++)
+                                        {
+                                            if (FilePathComparer.Instance.Equals(NewPath, previousHashablesPaths[currentDeleteIndex]))
+                                            {
+                                                FilePath[] pathsMinusDeleted = new FilePath[previousHashablesPaths.Length - 1];
+                                                if (currentDeleteIndex != 0)
+                                                {
+                                                    Array.Copy(previousHashablesPaths, 0, pathsMinusDeleted, 0, currentDeleteIndex);
+                                                }
+
+                                                if (currentDeleteIndex != previousHashablesPaths.Length - 1)
+                                                {
+                                                    Array.Copy(previousHashablesPaths, currentDeleteIndex + 1, pathsMinusDeleted, currentDeleteIndex, pathsMinusDeleted.Length - currentDeleteIndex);
+                                                }
+
+                                                Agent.FolderCreationTimeUtcTicksToPath[previousMetadataCreationUtcTicks] = pathsMinusDeleted;
+                                                break; // presumes only a single folder path will ever be in FolderCreationTimeUtcTicksToPath, therefore stop checking since we found a path
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            long createItemCreationUtcTicks = Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks;
+                            FilePath[] existingAddFolderPaths;
+                            if (Agent.FolderCreationTimeUtcTicksToPath.TryGetValue(createItemCreationUtcTicks, out existingAddFolderPaths))
+                            {
+                                FilePath[] appendExistingPaths = new FilePath[existingAddFolderPaths.Length + 1];
+                                Array.Copy(existingAddFolderPaths, appendExistingPaths, existingAddFolderPaths.Length);
+                                appendExistingPaths[appendExistingPaths.Length - 1] = NewPath;
+                                Agent.FolderCreationTimeUtcTicksToPath[createItemCreationUtcTicks] = appendExistingPaths;
+                            }
+                            else
+                            {
+                                Agent.FolderCreationTimeUtcTicksToPath.Add(createItemCreationUtcTicks, new[] { NewPath });
+                            }
+                        }
+                        break;
+
+                    case ChangeAllPathsType.Remove:
+                        FileMetadata removeMetadata;
+                        if (!Agent.AllPaths.TryGetValue(NewPath, out removeMetadata))
+                        {
+                            removeMetadata = null;
+                        }
+
+                        Agent.AllPaths.Remove(NewPath);
+
+                        if (removeMetadata != null
+                            && removeMetadata.HashableProperties.IsFolder)
+                        {
+                            long previousMetadataCreationUtcTicks = removeMetadata.HashableProperties.CreationTime.ToUniversalTime().Ticks;
+                            FilePath[] previousHashablesPaths;
+                            if (Agent.FolderCreationTimeUtcTicksToPath.TryGetValue(previousMetadataCreationUtcTicks, out previousHashablesPaths))
+                            {
+                                if (previousHashablesPaths.Length == 1)
+                                {
+                                    if (FilePathComparer.Instance.Equals(NewPath, previousHashablesPaths[0]))
+                                    {
+                                        Agent.FolderCreationTimeUtcTicksToPath.Remove(previousMetadataCreationUtcTicks);
+                                    }
+                                }
+                                else
+                                {
+                                    for (int currentDeleteIndex = 0; currentDeleteIndex < previousHashablesPaths.Length; currentDeleteIndex++)
+                                    {
+                                        if (FilePathComparer.Instance.Equals(NewPath, previousHashablesPaths[currentDeleteIndex]))
+                                        {
+                                            FilePath[] pathsMinusDeleted = new FilePath[previousHashablesPaths.Length - 1];
+                                            if (currentDeleteIndex != 0)
+                                            {
+                                                Array.Copy(previousHashablesPaths, 0, pathsMinusDeleted, 0, currentDeleteIndex);
+                                            }
+
+                                            if (currentDeleteIndex != previousHashablesPaths.Length - 1)
+                                            {
+                                                Array.Copy(previousHashablesPaths, currentDeleteIndex + 1, pathsMinusDeleted, currentDeleteIndex, pathsMinusDeleted.Length - currentDeleteIndex);
+                                            }
+
+                                            Agent.FolderCreationTimeUtcTicksToPath[previousMetadataCreationUtcTicks] = pathsMinusDeleted;
+                                            break; // presumes only a single folder path will ever be in FolderCreationTimeUtcTicksToPath, therefore stop checking since we found a path
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        break;
+
+                    case ChangeAllPathsType.Rename:
+                        FileMetadata movedMetadata;
+                        if (!Agent.AllPaths.TryGetValue(OldPath, out movedMetadata))
+                        {
+                            movedMetadata = null;
+                        }
+
+                        Agent.AllPaths.Rename(OldPath, NewPath);
+                        
+                        if (movedMetadata != null
+                            && movedMetadata.HashableProperties.IsFolder)
+                        {
+                            long movedMetadataCreationUtcTicks = movedMetadata.HashableProperties.CreationTime.ToUniversalTime().Ticks;
+                            FilePath[] movedHashablesPaths;
+                            if (Agent.FolderCreationTimeUtcTicksToPath.TryGetValue(movedMetadataCreationUtcTicks, out movedHashablesPaths))
+                            {
+                                for (int currentDeleteIndex = 0; currentDeleteIndex < movedHashablesPaths.Length; currentDeleteIndex++)
+                                {
+                                    if (FilePathComparer.Instance.Equals(OldPath, movedHashablesPaths[currentDeleteIndex]))
+                                    {
+                                        movedHashablesPaths[currentDeleteIndex] = NewPath;
+                                        break; // presumes only a single folder path will ever be in FolderCreationTimeUtcTicksToPath, therefore stop checking since we found a path
+                                    }
+                                    else if (currentDeleteIndex == movedHashablesPaths.Length - 1) // not found to replace, need to add
+                                    {
+                                        FilePath[] appendMoved = new FilePath[movedHashablesPaths.Length + 1];
+                                        Array.Copy(movedHashablesPaths, appendMoved, movedHashablesPaths.Length);
+                                        appendMoved[appendMoved.Length - 1] = NewPath;
+                                        Agent.FolderCreationTimeUtcTicksToPath[movedMetadataCreationUtcTicks] = appendMoved;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Agent.FolderCreationTimeUtcTicksToPath.Add(movedMetadataCreationUtcTicks, new[] { NewPath });
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+        private sealed class ChangeAllPathsAdd : ChangeAllPathsBase
+        {
+            public ChangeAllPathsAdd(MonitorAgent Agent, FilePath NewPath, FileMetadata Metadata)
+                : base(ChangeAllPathsType.Add, Agent, NewPath: NewPath, Metadata: Metadata) { }
+        }
+        private sealed class ChangeAllPathsRemove : ChangeAllPathsBase
+        {
+            public ChangeAllPathsRemove(MonitorAgent Agent, FilePath NewPath)
+                : base(ChangeAllPathsType.Remove, Agent, NewPath: NewPath) { }
+        }
+        private sealed class ChangeAllPathsRename : ChangeAllPathsBase
+        {
+            public ChangeAllPathsRename(MonitorAgent Agent, FilePath OldPath, FilePath NewPath)
+                : base(ChangeAllPathsType.Rename, Agent, OldPath: OldPath, NewPath: NewPath) { }
+        }
+        private sealed class ChangeAllPathsClear : ChangeAllPathsBase
+        {
+            public ChangeAllPathsClear(MonitorAgent Agent)
+                : base(ChangeAllPathsType.Clear, Agent) { }
+        }
+        private sealed class ChangeAllPathsIndexSet : ChangeAllPathsBase
+        {
+            public ChangeAllPathsIndexSet(MonitorAgent Agent, FilePath NewPath, FileMetadata Metadata)
+                : base(ChangeAllPathsType.IndexSet, Agent, NewPath: NewPath, Metadata: Metadata) { }
+        }
+
+        #endregion
 
         // Storage of changes queued to process (QueuedChanges used as the locker for both and keyed by file path, QueuedChangesByMetadata keyed by the hashable metadata properties)
         private Dictionary<FilePath, FileChange> QueuedChanges = new Dictionary<FilePath, FileChange>(FilePathComparer.Instance);
@@ -618,27 +910,28 @@ namespace Cloud.FileMonitor
                             {
                                 CreateDirectoryWithAttributes(toCreate, creationTime, lastTime, out createdLastWriteUtc, out createdCreationUtc);
 
-                                AllPaths.Add(toCreate, new FileMetadata()
-                                {
-                                    HashableProperties = new FileMetadataHashableProperties(true,
-                                        createdLastWriteUtc,
-                                        createdCreationUtc,
-                                        null)
-                                });
+                                new ChangeAllPathsAdd(this, toCreate,
+                                    new FileMetadata()
+                                    {
+                                        HashableProperties = new FileMetadataHashableProperties(true,
+                                            createdLastWriteUtc,
+                                            createdCreationUtc,
+                                            null)
+                                    });
                             }
                         }
                     };
 
-                Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object> recurseHierarchyAndAddSyncFromsToList =
+                Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object> recurseHierarchyAndAddSyncFromsToHashSet =
                     (innerHierarchy, innerMatchedDowns, innerRecurseHierarchy) =>
                     {
-                        Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object> castRecurseHierarchy =
-                            innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object>;
+                        Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object> castRecurseHierarchy =
+                            innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object>;
 
                         if (castRecurseHierarchy == null)
                         {
                             MessageEvents.FireNewEventMessage(
-                                "Unable to cast innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object>",
+                                "Unable to cast innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object>",
                                 EventMessageLevel.Important,
                                 new HaltAllOfCloudSDKErrorInfo());
                         }
@@ -693,9 +986,64 @@ namespace Cloud.FileMonitor
                             {
                                 case FileChangeType.Created:
                                     recurseFolderCreationToRoot(toApply.NewPath, rootPath, recurseFolderCreationToRoot, toApply.Metadata.HashableProperties.CreationTime, toApply.Metadata.HashableProperties.LastTime);
+
+                                    Exception creationToRethrow = null;
+                                    try
+                                    {
+                                        string creationPathString = toApply.NewPath.ToString();
+                                        DateTime actualCreationTime = Directory.GetCreationTimeUtc(creationPathString);
+                                        if (actualCreationTime.Ticks != FileConstants.InvalidUtcTimeTicks
+                                            && (actualCreationTime.ToUniversalTime()).Ticks != FileConstants.InvalidUtcTimeTicks
+                                            && DateTime.Compare(actualCreationTime, toApply.Metadata.HashableProperties.CreationTime) != 0)
+                                        {
+                                            toApply.Metadata.HashableProperties = new FileMetadataHashableProperties(
+                                                /* isFolder */ true,
+                                                toApply.Metadata.HashableProperties.LastTime,
+                                                actualCreationTime,
+                                                /* size */ null);
+
+                                            CLError updateCreationTimeError = SyncData.mergeToSql(new[] { new FileChangeMerge(toApply) });
+                                            if (updateCreationTimeError != null)
+                                            {
+                                                try
+                                                {
+                                                    Directory.Delete(creationPathString);
+                                                    try
+                                                    {
+                                                        throw new AggregateException("Error updating creation time for folder to event in database", updateCreationTimeError.GrabExceptions());
+                                                    }
+                                                    catch (Exception ex)
+                                                    {
+                                                        creationToRethrow = ex;
+                                                        throw ex;
+                                                    }
+                                                }
+                                                catch
+                                                {
+                                                    if (creationToRethrow != null)
+                                                    {
+                                                        throw creationToRethrow;
+                                                    }
+                                                }
+                                            }
+
+                                            new ChangeAllPathsIndexSet(this, toApply.NewPath,
+                                                new FileMetadata()
+                                                {
+                                                    HashableProperties = toApply.Metadata.HashableProperties
+                                                });
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        if (creationToRethrow != null)
+                                        {
+                                            throw creationToRethrow;
+                                        }
+                                    }
                                     break;
                                 case FileChangeType.Deleted:
-                                    List<FileChange> matchedDownsForDeleted = new List<FileChange>();
+                                    HashSet<FileChange> matchedDownsForDeleted = new HashSet<FileChange>();
                                     FilePathDictionary<List<FileChange>> upDownsForDeleted = fillAndReturnUpDowns(upDownsHolder, this, rootPathString);
 
                                     FilePathHierarchicalNode<List<FileChange>> deletedHierarchy;
@@ -705,7 +1053,7 @@ namespace Cloud.FileMonitor
                                         throw new AggregateException("Error grabbing hierarchy from upDownsForDeleted", deletedHierarchyError.GrabExceptions());
                                     }
 
-                                    recurseHierarchyAndAddSyncFromsToList(deletedHierarchy, matchedDownsForDeleted, recurseHierarchyAndAddSyncFromsToList);
+                                    recurseHierarchyAndAddSyncFromsToHashSet(deletedHierarchy, matchedDownsForDeleted, recurseHierarchyAndAddSyncFromsToHashSet);
 
                                     foreach (FileChange matchedDown in matchedDownsForDeleted)
                                     {
@@ -764,12 +1112,12 @@ namespace Cloud.FileMonitor
                                         }
                                     }
 
-                                    AllPaths.Remove(toApply.NewPath);
+                                    new ChangeAllPathsRemove(this, toApply.NewPath);
                                     break;
                                 case FileChangeType.Renamed:
                                     recurseFolderCreationToRoot(toApply.NewPath.Parent, rootPath, recurseFolderCreationToRoot, null, null);
 
-                                    List<FileChange> matchedDownsForRenamed = new List<FileChange>();
+                                    HashSet<FileChange> matchedDownsForRenamed = new HashSet<FileChange>();
                                     // check if move old path is outside of the cloud directory (temp download directory) in order to bypass updown checking and locking
                                     if (toApply.Metadata.HashableProperties.IsFolder
                                         || toApply.OldPath.Contains(rootPath, insensitiveNameSearch: true))
@@ -783,7 +1131,7 @@ namespace Cloud.FileMonitor
                                             throw new AggregateException("Error grabbing hierarchy from upDownsForRenamed", renamedHierarchyError.GrabExceptions());
                                         }
 
-                                        recurseHierarchyAndAddSyncFromsToList(renamedHierarchy, matchedDownsForRenamed, recurseHierarchyAndAddSyncFromsToList);
+                                        recurseHierarchyAndAddSyncFromsToHashSet(renamedHierarchy, matchedDownsForRenamed, recurseHierarchyAndAddSyncFromsToHashSet);
                                     }
 
                                     foreach (FileChange matchedDown in matchedDownsForRenamed)
@@ -883,9 +1231,13 @@ namespace Cloud.FileMonitor
 
                                         foreach (FileChange matchedDown in matchedDownsForRenamed)
                                         {
-                                            FilePath rebuiltNewPath = matchedDown.NewPath.Copy();
-                                            FilePath.ApplyRename(rebuiltNewPath, toApply.OldPath, toApply.NewPath);
-                                            matchedDown.NewPath = rebuiltNewPath;
+                                            FilePath previousNewPath = matchedDown.NewPath;
+                                            if (previousNewPath != null)
+                                            {
+                                                FilePath rebuiltNewPath = previousNewPath.Copy();
+                                                FilePath.ApplyRename(rebuiltNewPath, toApply.OldPath, toApply.NewPath);
+                                                matchedDown.NewPath = rebuiltNewPath;
+                                            }
                                         }
                                     }
                                     finally
@@ -900,14 +1252,15 @@ namespace Cloud.FileMonitor
                                         }
                                     }
 
-                                    AllPaths.Remove(toApply.OldPath);
-                                    AllPaths[toApply.NewPath] = new FileMetadata(toApply.Metadata.RevisionChanger)
-                                    {
-                                        ServerId = toApply.Metadata.ServerId,
-                                        HashableProperties = toApply.Metadata.HashableProperties,
-                                        LinkTargetPath = toApply.Metadata.LinkTargetPath,
-                                        Revision = toApply.Metadata.Revision
-                                    };
+                                    new ChangeAllPathsRemove(this, toApply.OldPath);
+                                    new ChangeAllPathsIndexSet(this, toApply.NewPath,
+                                        new FileMetadata(toApply.Metadata.RevisionChanger)
+                                        {
+                                            ServerId = toApply.Metadata.ServerId,
+                                            HashableProperties = toApply.Metadata.HashableProperties,
+                                            LinkTargetPath = toApply.Metadata.LinkTargetPath,
+                                            Revision = toApply.Metadata.Revision
+                                        });
                                     break;
                             }
                         }
@@ -1214,6 +1567,26 @@ namespace Cloud.FileMonitor
                                         EventId = currentChange.EventId,
                                         Direction = currentChange.Direction
                                     }, newProcessingAction);
+                            }
+                        }
+
+                        foreach (KeyValuePair<FilePath, FileMetadata> currentItem in AllPaths)
+                        {
+                            if (currentItem.Value.HashableProperties.IsFolder)
+                            {
+                                long createItemAddFolderCreationUtcTicks = currentItem.Value.HashableProperties.CreationTime.ToUniversalTime().Ticks;
+                                FilePath[] existingAddFolderPaths;
+                                if (FolderCreationTimeUtcTicksToPath.TryGetValue(createItemAddFolderCreationUtcTicks, out existingAddFolderPaths))
+                                {
+                                    FilePath[] appendExistingAddFolderPaths = new FilePath[existingAddFolderPaths.Length + 1];
+                                    Array.Copy(existingAddFolderPaths, appendExistingAddFolderPaths, existingAddFolderPaths.Length);
+                                    appendExistingAddFolderPaths[appendExistingAddFolderPaths.Length - 1] = currentItem.Key;
+                                    FolderCreationTimeUtcTicksToPath[createItemAddFolderCreationUtcTicks] = appendExistingAddFolderPaths;
+                                }
+                                else
+                                {
+                                    FolderCreationTimeUtcTicksToPath.Add(createItemAddFolderCreationUtcTicks, new[] { currentItem.Key });
+                                }
                             }
                         }
 
@@ -2215,7 +2588,7 @@ namespace Cloud.FileMonitor
                         lock (AllPaths)
                         {
                             // clear current index storage
-                            AllPaths.Clear();
+                            new ChangeAllPathsClear(this);
                         }
 
                         // protect root directory from changes such as deletion
@@ -2605,7 +2978,6 @@ namespace Cloud.FileMonitor
                     // most paths modify the list of current indexes, so lock it from other reads/changes
                     lock (AllPaths)
                     {
-
                         // object for gathering folder info at current path
                         FilePath pathObject;
                         DirectoryInfo folder;
@@ -2665,6 +3037,124 @@ namespace Cloud.FileMonitor
                             }
                         }
 
+                        // folder move handling: both delete then create or create then delete, we only check on the first event that comes in, the next one should short the more complex processing
+                        // move is accomplished by changing the input param references so we now have a renamed change with their required oldpath\newpath combination
+                        if (isFolder)
+                        {
+                            switch (changeType)
+                            {
+                                case WatcherChangeTypes.Created:
+                                    if (exists
+                                        && !AllPaths.ContainsKey(pathObject))
+                                    {
+                                        DateTime addFolderCreationTime = folder.CreationTimeUtc;
+                                        long addFolderCreationTimeUtcTicks = addFolderCreationTime.Ticks;
+                                        FilePath[] addFolderAlreadyExistingCreationTimePaths;
+                                        if (FolderCreationTimeUtcTicksToPath.TryGetValue(addFolderCreationTimeUtcTicks, out addFolderAlreadyExistingCreationTimePaths))
+                                        {
+                                            int matchedDelete = -1;
+                                            for (int movedFolderIdx = 0; movedFolderIdx < addFolderAlreadyExistingCreationTimePaths.Length; movedFolderIdx++)
+                                            {
+                                                FilePath currentDeletedPath = addFolderAlreadyExistingCreationTimePaths[movedFolderIdx];
+                                                if (AllPaths.ContainsKey(currentDeletedPath)
+                                                    && !Directory.Exists(currentDeletedPath.ToString()))
+                                                {
+                                                    matchedDelete = movedFolderIdx;
+                                                    if (currentDeletedPath.Name == pathObject.Name)
+                                                    {
+                                                        break; // best match found, break out now to use this matched path for the folder move
+                                                    }
+                                                }
+                                            }
+
+                                            if (matchedDelete != -1)
+                                            {
+                                                oldPath = addFolderAlreadyExistingCreationTimePaths[matchedDelete].ToString();
+                                                changeType = WatcherChangeTypes.Renamed;
+                                            }
+                                        }
+                                    }
+                                    break;
+
+                                case WatcherChangeTypes.Deleted:
+                                    FileMetadata deletedMetadata;
+
+                                    if (!exists
+                                        && AllPaths.TryGetValue(pathObject, out deletedMetadata))
+                                    {
+                                        bool rootError;
+                                        // horribly inefficient (does a full index of every folder on disk)...but I found no way to do a WMI query on winmgmts:\\.\root\cimv2\Win32_Directory for all recursive folders within the sync root with a matching CreationDate
+                                        IList<SQLIndexer.Model.FindFileResult> outermostSearch = SQLIndexer.Model.FindFileResult.RecursiveDirectorySearch(
+                                                GetCurrentPath(), // start search in sync root
+                                                (FileAttributes.Hidden // ignore hidden files
+                                                    | FileAttributes.Offline // ignore offline files (data is not available on them)
+                                                    | FileAttributes.System // ignore system files
+                                                    | FileAttributes.Temporary), // ignore temporary files
+                                                out rootError,
+                                                returnFoldersOnly: true);
+
+                                        GenericHolder<SQLIndexer.Model.FindFileResult> firstFoundMatchingTime = new GenericHolder<SQLIndexer.Model.FindFileResult>();
+
+                                        Action<SQLIndexer.Model.FindFileResult, DateTime, FilePathDictionary<FileMetadata>, GenericHolder<SQLIndexer.Model.FindFileResult>, object> checkThroughFolderResults =
+                                            (currentNodeToCheck, creationTimeOfDeletedMetadata, innerAllPaths, innerFoundMatchingTime, thisAction) =>
+                                            {
+                                                Action<SQLIndexer.Model.FindFileResult, DateTime, FilePathDictionary<FileMetadata>, GenericHolder<SQLIndexer.Model.FindFileResult>, object> castAction =
+                                                    thisAction as Action<SQLIndexer.Model.FindFileResult, DateTime, FilePathDictionary<FileMetadata>, GenericHolder<SQLIndexer.Model.FindFileResult>, object>;
+
+                                                if (castAction == null)
+                                                {
+                                                    MessageEvents.FireNewEventMessage(
+                                                        "Unable to cast thisAction as Action<SQLIndexer.Model.FindFileResult, DateTime, FilePathDictionary<FileMetadata>, GenericHolder<SQLIndexer.Model.FindFileResult>, object>",
+                                                        EventMessageLevel.Important,
+                                                        new HaltAllOfCloudSDKErrorInfo());
+                                                }
+                                                else
+                                                {
+                                                    if (currentNodeToCheck.CreationTime != null
+                                                        && DateTime.Compare(creationTimeOfDeletedMetadata, ((DateTime)currentNodeToCheck.CreationTime).ToUniversalTime()) == 0
+                                                        && !innerAllPaths.ContainsKey(currentNodeToCheck.FullName))
+                                                    {
+                                                        innerFoundMatchingTime.Value = currentNodeToCheck;
+                                                    }
+                                                    else if (currentNodeToCheck.Children != null)
+                                                    {
+                                                        for (int currentInnerResultIdx = 0; currentInnerResultIdx < currentNodeToCheck.Children.Count; currentInnerResultIdx++)
+                                                        {
+                                                            castAction(currentNodeToCheck.Children[currentInnerResultIdx], creationTimeOfDeletedMetadata, innerAllPaths, innerFoundMatchingTime, thisAction);
+
+                                                            if (innerFoundMatchingTime.Value != null)
+                                                            {
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            };
+
+                                        if (outermostSearch != null)
+                                        {
+                                            for (int folderInRootIdx = 0; folderInRootIdx < outermostSearch.Count; folderInRootIdx++)
+                                            {
+                                                checkThroughFolderResults(outermostSearch[folderInRootIdx], deletedMetadata.HashableProperties.CreationTime, AllPaths, firstFoundMatchingTime, checkThroughFolderResults);
+
+                                                if (firstFoundMatchingTime.Value != null)
+                                                {
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        if (firstFoundMatchingTime.Value != null)
+                                        {
+                                            oldPath = newPath;
+                                            newPath = firstFoundMatchingTime.Value.FullName;
+                                            changeType = WatcherChangeTypes.Renamed;
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+
                         CheckMetadataEntry debugEntry;
                         if (debugMemory)
                         {
@@ -2715,8 +3205,8 @@ namespace Cloud.FileMonitor
                                     // set last time and creation time from appropriate info based on whether change is on a folder or file
                                     if (isFolder)
                                     {
-                                        lastTime = folder.LastWriteTimeUtc.DropSubSeconds();
-                                        creationTime = folder.CreationTimeUtc.DropSubSeconds();
+                                        lastTime = folder.LastWriteTimeUtc;
+                                        creationTime = folder.CreationTimeUtc;
                                     }
                                     // change was not a folder, grab times based on file
                                     else
@@ -2779,7 +3269,7 @@ namespace Cloud.FileMonitor
                                                     }
 
                                                     // replace index at current path
-                                                    AllPaths[pathObject] = newMetadata;
+                                                    new ChangeAllPathsIndexSet(this, pathObject, newMetadata);
                                                     // queue file change for modify
                                                     QueueFileChange(new FileChange(QueuedChanges)
                                                     {
@@ -2801,7 +3291,7 @@ namespace Cloud.FileMonitor
                                             }
 
                                             // add new index
-                                            AllPaths.Add(pathObject,
+                                            new ChangeAllPathsAdd(this, pathObject,
                                                 new FileMetadata()
                                                 {
                                                     HashableProperties = new FileMetadataHashableProperties(isFolder,
@@ -2838,7 +3328,7 @@ namespace Cloud.FileMonitor
                                             Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                         }, startProcessingAction);
                                         // remove index
-                                        AllPaths.Remove(pathObject);
+                                        new ChangeAllPathsRemove(this, pathObject);
                                     }
                                     else if (debugMemory)
                                     {
@@ -2903,7 +3393,7 @@ namespace Cloud.FileMonitor
                                                 Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                             }, startProcessingAction);
                                             // remove index at previous path
-                                            AllPaths.Remove(oldPathObject);
+                                            new ChangeAllPathsRemove(this, oldPathObject);
                                         }
                                     }
                                     else if (debugMemory)
@@ -2969,7 +3459,7 @@ namespace Cloud.FileMonitor
                                                     }
 
                                                     // replace index at current path
-                                                    AllPaths[pathObject] = newMetadata;
+                                                    new ChangeAllPathsIndexSet(this, pathObject, newMetadata);
                                                     // queue file change for modify
                                                     QueueFileChange(new FileChange(QueuedChanges)
                                                     {
@@ -3031,7 +3521,7 @@ namespace Cloud.FileMonitor
                                                 Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                             }, startProcessingAction);
                                             // remove index for new path
-                                            AllPaths.Remove(pathObject);
+                                            new ChangeAllPathsRemove(this, pathObject);
 
                                             // no need to continue and check possibeRename since it required exists to be true, return now
                                             return;
@@ -3055,7 +3545,7 @@ namespace Cloud.FileMonitor
                                                 Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                             }, startProcessingAction);
                                             // remove index at the previous path
-                                            AllPaths.Remove(oldPathObject);
+                                            new ChangeAllPathsRemove(this, oldPathObject);
                                         }
                                     }
                                     // if precursor condition was set for a file change for rename
@@ -3123,7 +3613,7 @@ namespace Cloud.FileMonitor
                                         {
                                             MoveOldPathsToNewPaths(oldPathHierarchy, oldPathObject, pathObject);
                                         }
-                                        AllPaths[pathObject] = newMetadata ?? previousMetadata;
+                                        new ChangeAllPathsIndexSet(this, pathObject, newMetadata ?? previousMetadata);
 
                                         // queue file change for rename (use changed metadata if it exists otherwise the previous metadata)
                                         QueueFileChange(new FileChange(QueuedChanges)
@@ -3171,7 +3661,7 @@ namespace Cloud.FileMonitor
                                         }
 
                                         // add new index at new path
-                                        AllPaths.Add(pathObject,
+                                        new ChangeAllPathsAdd(this, pathObject,
                                             new FileMetadata()
                                             {
                                                 HashableProperties = new FileMetadataHashableProperties(isFolder,
@@ -3224,7 +3714,7 @@ namespace Cloud.FileMonitor
                                                     }
 
                                                     // replace index at current path
-                                                    AllPaths[pathObject] = newMetadata;
+                                                    new ChangeAllPathsIndexSet(this, pathObject, newMetadata);
                                                     // queue file change for modify
                                                     QueueFileChange(new FileChange(QueuedChanges)
                                                     {
@@ -3266,7 +3756,7 @@ namespace Cloud.FileMonitor
                                         }, startProcessingAction);
 
                                         // remove index
-                                        AllPaths.Remove(pathObject);
+                                        new ChangeAllPathsRemove(this, pathObject);
                                     }
                                     else if (debugMemory)
                                     {
@@ -3340,13 +3830,13 @@ namespace Cloud.FileMonitor
             FilePathHierarchicalNodeWithValue<FileMetadata> oldPathHierarchyWithValue = oldPathHierarchy as FilePathHierarchicalNodeWithValue<FileMetadata>;
             if (oldPathHierarchyWithValue != null)
             {
-                AllPaths[oldPathHierarchyWithValue.Value.Key] = null;
+                new ChangeAllPathsIndexSet(this, oldPathHierarchyWithValue.Value.Key, null);
 
                 if (!FilePathComparer.Instance.Equals(oldPathHierarchyWithValue.Value.Key, oldPath))
                 {
                     FilePath rebuiltNewPath = oldPathHierarchyWithValue.Value.Key.Copy();
                     FilePath.ApplyRename(rebuiltNewPath, oldPath, newPath);
-                    AllPaths[rebuiltNewPath] = oldPathHierarchyWithValue.Value.Value;
+                    new ChangeAllPathsIndexSet(this, rebuiltNewPath, oldPathHierarchyWithValue.Value.Value);
                 }
             }
 
@@ -3577,12 +4067,28 @@ namespace Cloud.FileMonitor
                                         // error condition
                                         break;
                                     case FileChangeType.Deleted:
-                                        if (
-                                            // Folder modify events are not useful, so discard the deletion change instead
-                                            previousChange.Metadata.HashableProperties.IsFolder
+                                        // if the path represents a folder, the delete and create must both be processed because their contents might differ
+                                        if (previousChange.Metadata.HashableProperties.IsFolder)
+                                        {
+                                            FileChange changeForPreviousMetadata;
+                                            if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out changeForPreviousMetadata)
+                                                && changeForPreviousMetadata.Equals(previousChange))
+                                            {
+                                                QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties); // the previous change will be allowed to process as-is, clear out its metadata for future checking
+                                            }
 
-                                            // Also discard the deletion change for files which have been deleted and created again with the same metadata
-                                            || QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
+                                            FileChange toCompareForNewMetadata;
+                                            if (!QueuedChangesByMetadata.TryGetValue(toChange.Metadata.HashableProperties, out toCompareForNewMetadata)
+                                                || !toCompareForNewMetadata.Equals(toChange))
+                                            {
+                                                QueuedChangesByMetadata[toChange.Metadata.HashableProperties] = toChange;
+                                            }
+
+                                            QueuedChanges[toChange.NewPath] = toChange; // the previous folder deletion change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
+                                        }
+                                        // else if the path does not represent a folder,
+                                        // discard the deletion change for files which have been deleted and created again with the same metadata
+                                        else if (QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
                                         {
                                             FileChange toCompare;
                                             if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out toCompare)
@@ -3852,16 +4358,16 @@ namespace Cloud.FileMonitor
                     mergeAll.Add(sender);
                 }
 
-                Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object> recurseHierarchyAndAddSyncFromsToList =
+                Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object> recurseHierarchyAndAddSyncFromsToHashSet =
                     (innerHierarchy, innerMatchedDowns, innerRecurseHierarchy) =>
                     {
-                        Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object> castRecurseHierarchy =
-                            innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object>;
+                        Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object> castRecurseHierarchy =
+                            innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object>;
 
                         if (castRecurseHierarchy == null)
                         {
                             MessageEvents.FireNewEventMessage(
-                                "Unable to cast innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, List<FileChange>, object>",
+                                "Unable to cast innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object>",
                                 EventMessageLevel.Important,
                                 new HaltAllOfCloudSDKErrorInfo());
                         }
@@ -3920,7 +4426,7 @@ namespace Cloud.FileMonitor
                                 && (currentMerge.Type == FileChangeType.Deleted
                                     || currentMerge.Type == FileChangeType.Renamed))
                             {
-                                List<FileChange> matchedToCurrentMerge = new List<FileChange>();
+                                HashSet<FileChange> matchedToCurrentMerge = new HashSet<FileChange>();
 
                                 FilePathHierarchicalNode<List<FileChange>> matchedHierarchy;
                                 CLError matchedHierarchyError = upDowns.GrabHierarchyForPath(
@@ -3931,7 +4437,7 @@ namespace Cloud.FileMonitor
                                     suppressException: true);
                                 if (matchedHierarchyError == null)
                                 {
-                                    recurseHierarchyAndAddSyncFromsToList(matchedHierarchy, matchedToCurrentMerge, recurseHierarchyAndAddSyncFromsToList);
+                                    recurseHierarchyAndAddSyncFromsToHashSet(matchedHierarchy, matchedToCurrentMerge, recurseHierarchyAndAddSyncFromsToHashSet);
 
                                     foreach (FileChange currentMatchedDownload in matchedToCurrentMerge)
                                     {
@@ -3944,9 +4450,13 @@ namespace Cloud.FileMonitor
                                         {
                                             if (currentMerge.Type == FileChangeType.Renamed)
                                             {
-                                                FilePath rebuiltNewPath = currentMatchedDownload.NewPath.Copy();
-                                                FilePath.ApplyRename(rebuiltNewPath, currentMerge.OldPath, currentMerge.NewPath);
-                                                currentMatchedDownload.NewPath = rebuiltNewPath;
+                                                FilePath previousNewPath = currentMatchedDownload.NewPath;
+                                                if (previousNewPath != null)
+                                                {
+                                                    FilePath rebuiltNewPath = previousNewPath.Copy();
+                                                    FilePath.ApplyRename(rebuiltNewPath, currentMerge.OldPath, currentMerge.NewPath);
+                                                    currentMatchedDownload.NewPath = rebuiltNewPath;
+                                                }
                                             }
                                             else /* currentMerge.Type == FileChangeType.Deleted */
                                             {
@@ -4216,6 +4726,44 @@ namespace Cloud.FileMonitor
         /// <param name="changeRoot">Original FilePath removed/cleared that triggered recursion</param>
         private void MetadataPath_RecursiveDelete(FilePath deletePath, FileMetadata value, FilePath changeRoot)
         {
+            if (value.HashableProperties.IsFolder)
+            {
+                long createItemAddFolderCreationUtcTicks = value.HashableProperties.CreationTime.ToUniversalTime().Ticks;
+                FilePath[] existingAddFolderPaths;
+                if (FolderCreationTimeUtcTicksToPath.TryGetValue(createItemAddFolderCreationUtcTicks, out existingAddFolderPaths))
+                {
+                    if (existingAddFolderPaths.Length == 1)
+                    {
+                        if (FilePathComparer.Instance.Equals(deletePath, existingAddFolderPaths[0]))
+                        {
+                            FolderCreationTimeUtcTicksToPath.Remove(createItemAddFolderCreationUtcTicks);
+                        }
+                    }
+                    else
+                    {
+                        for (int currentDeleteIndex = 0; currentDeleteIndex < existingAddFolderPaths.Length; currentDeleteIndex++)
+                        {
+                            if (FilePathComparer.Instance.Equals(deletePath, existingAddFolderPaths[currentDeleteIndex]))
+                            {
+                                FilePath[] addFolderPathsMinusDeleted = new FilePath[existingAddFolderPaths.Length - 1];
+                                if (currentDeleteIndex != 0)
+                                {
+                                    Array.Copy(existingAddFolderPaths, 0, addFolderPathsMinusDeleted, 0, currentDeleteIndex);
+                                }
+
+                                if (currentDeleteIndex != existingAddFolderPaths.Length - 1)
+                                {
+                                    Array.Copy(existingAddFolderPaths, currentDeleteIndex + 1, addFolderPathsMinusDeleted, currentDeleteIndex, addFolderPathsMinusDeleted.Length - currentDeleteIndex);
+                                }
+
+                                FolderCreationTimeUtcTicksToPath[createItemAddFolderCreationUtcTicks] = addFolderPathsMinusDeleted;
+                                break; // presumes only a single folder path will ever be in FolderCreationTimeUtcTicksToPath, therefore stop checking since we found a path
+                            }
+                        }
+                    }
+                }
+            }
+
             // If a filepath is deleted, that means a delete operation may occur in the sync as well for the same path;
             // If the final change to be processed will be a delete,
             // all previous changes below the deleted path should be disposed since they don't need to fire (will be overridden with deletion)
@@ -4258,11 +4806,38 @@ namespace Cloud.FileMonitor
         /// <param name="changeRootNew">Original new FilePath renamed to that triggered recursion</param>
         private void MetadataPath_RecursiveRename(FilePath oldPath, FilePath newPath, FileMetadata value, FilePath changeRootOld, FilePath changeRootNew)
         {
+            if (value.HashableProperties.IsFolder)
+            {
+                long movedMetadataCreationUtcTicks = value.HashableProperties.CreationTime.ToUniversalTime().Ticks;
+                FilePath[] movedHashablesPaths;
+                if (FolderCreationTimeUtcTicksToPath.TryGetValue(movedMetadataCreationUtcTicks, out movedHashablesPaths))
+                {
+                    for (int currentDeleteIndex = 0; currentDeleteIndex < movedHashablesPaths.Length; currentDeleteIndex++)
+                    {
+                        if (FilePathComparer.Instance.Equals(oldPath, movedHashablesPaths[currentDeleteIndex]))
+                        {
+                            movedHashablesPaths[currentDeleteIndex] = newPath;
+                            break; // presumes only a single folder path will ever be in FolderCreationTimeUtcTicksToPath, therefore stop checking since we found a path
+                        }
+                        else if (currentDeleteIndex == movedHashablesPaths.Length - 1) // not found to replace, need to add
+                        {
+                            FilePath[] appendMoved = new FilePath[movedHashablesPaths.Length + 1];
+                            Array.Copy(movedHashablesPaths, appendMoved, movedHashablesPaths.Length);
+                            appendMoved[appendMoved.Length - 1] = newPath;
+                            FolderCreationTimeUtcTicksToPath[movedMetadataCreationUtcTicks] = appendMoved;
+                        }
+                    }
+                }
+                else
+                {
+                    FolderCreationTimeUtcTicksToPath.Add(movedMetadataCreationUtcTicks, new[] { newPath });
+                }
+            }
+
             // If allpaths gets a rename, queuedchanges may get a rename FileChange to sync;
             // If the final change to be processed will be a rename,
             // all previous changes that had a old or new path under the change root need to have
             // that path updated appropriately if the change root gets processed first
-
             lock (QueuedChanges)
             {
                 if (QueuedChanges.ContainsKey(changeRootNew))

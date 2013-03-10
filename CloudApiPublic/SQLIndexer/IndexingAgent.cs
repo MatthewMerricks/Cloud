@@ -1204,7 +1204,8 @@ namespace Cloud.SQLIndexer
                                             case FileChangeType.Created:
                                                 Tuple<long, Nullable<long>, FileMetadata> previousCreatedState;
                                                 KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>> previousCreatedObjects;
-                                                if (newSyncStates.TryGetValue(newPath, out previousCreatedState)
+                                                if (lastSyncCounter != null
+                                                    && newSyncStates.TryGetValue(newPath, out previousCreatedState)
                                                     && previousCreatedState.Item1 != previousEvent.FileSystemObject.FileSystemObjectId
                                                     && mappedSyncStates.TryGetValue(previousCreatedState.Item1, out previousCreatedObjects))
                                                 {
@@ -1262,7 +1263,8 @@ namespace Cloud.SQLIndexer
                                             case FileChangeType.Modified:
                                                 Tuple<long, Nullable<long>, FileMetadata> previousModifiedState;
                                                 KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>> previousModifiedObjects;
-                                                if (newSyncStates.TryGetValue(newPath, out previousModifiedState)
+                                                if (lastSyncCounter != null
+                                                    && newSyncStates.TryGetValue(newPath, out previousModifiedState)
                                                     && previousModifiedState.Item1 != previousEvent.FileSystemObject.FileSystemObjectId
                                                     && mappedSyncStates.TryGetValue(previousModifiedState.Item1, out previousModifiedObjects))
                                                 {
@@ -1309,7 +1311,8 @@ namespace Cloud.SQLIndexer
 
                                                     KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>> previousNewPathObjects;
 
-                                                    if (previousNewPathState.Item1 != previousEvent.FileSystemObject.FileSystemObjectId
+                                                    if (lastSyncCounter != null
+                                                        && previousNewPathState.Item1 != previousEvent.FileSystemObject.FileSystemObjectId
                                                         && mappedSyncStates.TryGetValue(previousNewPathState.Item1, out previousNewPathObjects))
                                                     {
                                                         if (previousNewPathObjects.Key.Value != null)
@@ -1328,7 +1331,8 @@ namespace Cloud.SQLIndexer
 
                                                     KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>> previousOldPathObjects;
 
-                                                    if (previousOldPathState.Item1 != previousEvent.FileSystemObject.FileSystemObjectId
+                                                    if (lastSyncCounter != null
+                                                        && previousOldPathState.Item1 != previousEvent.FileSystemObject.FileSystemObjectId
                                                         && mappedSyncStates.TryGetValue(previousOldPathState.Item1, out previousOldPathObjects))
                                                     {
                                                         if (previousOldPathObjects.Key.Value != null)
@@ -2581,8 +2585,8 @@ namespace Cloud.SQLIndexer
                     filePathsFound.Add(subDirectoryFullPath);
                     // Create properties for the current subdirectory
                     FileMetadataHashableProperties compareProperties = new FileMetadataHashableProperties(true,
-                        (subDirectory.LastWriteTime == null ? (Nullable<DateTime>)null : ((DateTime)subDirectory.LastWriteTime).DropSubSeconds()),
-                        (subDirectory.CreationTime == null ? (Nullable<DateTime>)null : ((DateTime)subDirectory.CreationTime).DropSubSeconds()),
+                        (subDirectory.LastWriteTime == null ? (Nullable<DateTime>)null : ((DateTime)subDirectory.LastWriteTime)),
+                        (subDirectory.CreationTime == null ? (Nullable<DateTime>)null : ((DateTime)subDirectory.CreationTime)),
                         null);
 
                     // Grab the last metadata that matches the current directory path, if any
