@@ -1925,7 +1925,8 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncBoxUpdateRequest), JsonContractHelpers.SyncBoxUpdateRequestSerializer },
             { typeof(JsonContracts.SessionCreateRequest), JsonContractHelpers.SessionCreateRequestSerializer },
             { typeof(JsonContracts.SessionCreateAllRequest), JsonContractHelpers.SessionCreateAllRequestSerializer },
-            { typeof(JsonContracts.SessionDeleteRequest), JsonContractHelpers.SessionDeleteRequestSerializer }
+            { typeof(JsonContracts.SessionDeleteRequest), JsonContractHelpers.SessionDeleteRequestSerializer },
+            { typeof(JsonContracts.NotificationUnsubscribeRequest), JsonContractHelpers.NotificationUnsubscribeRequestSerializer },
             #endregion
         };
 
@@ -1960,6 +1961,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.ListSessionsResponse), JsonContractHelpers.ListSessionsSerializer },
             { typeof(JsonContracts.SessionShowResponse), JsonContractHelpers.SessionShowSerializer },
             { typeof(JsonContracts.SessionDeleteResponse), JsonContractHelpers.SessionDeleteSerializer },
+            { typeof(JsonContracts.NotificationUnsubscribeResponse), JsonContractHelpers.NotificationUnsubscribeResponseSerializer },
             #endregion
         };
         #endregion

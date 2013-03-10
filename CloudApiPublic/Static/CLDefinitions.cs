@@ -153,7 +153,8 @@ namespace Cloud.Static
 
         #region Notification operations
         public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";                  // GET
-    	#endregion
+        public const string MethodPathPushUnsubscribe = VersionPrefix + "/sync/notifications/unsubscribe";              // POST
+        #endregion
 
         #region Platform Management operations
         public const string MethodPathAuthCreateSyncBox = VersionPrefix + "/sync/syncbox/create";                       // POST
@@ -558,6 +559,7 @@ namespace Cloud.Static
         public const string RESTResponseSyncBoxCreatedAt = "created_at";
         public const string RESTResponseSyncBoxFriendlyName = "friendly_name";
         public const string RESTResponseSyncBoxMetadata = "metadata";
+        public const string RESTResponseSyncBoxQuota = "quota";
 
         // REST Request SyncBox
         public const string RESTRequestSyncBox = "sync_box";

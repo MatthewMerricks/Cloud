@@ -315,7 +315,7 @@ namespace Cloud.PushNotification
 
                 lock (this)
                 {
-                    _trace.writeToLog(9, "StartEngineThread: DisconnectPushNotificationServer: Entry.");
+                    _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Entry.");
                     _isServiceStarted = false;
 
                     if (_syncBox != null)
@@ -328,18 +328,13 @@ namespace Cloud.PushNotification
                 {
                     lock (NotificationClientsRunning)
                     {
+                        _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Remove client: {0}.", syncBoxDeviceIdCombined);
                         NotificationClientsRunning.Remove(syncBoxDeviceIdCombined);
                     }
                 }
 
                 lock (this)
                 {
-                    if (_timerEngineWatcher != null)
-                    {
-                        _timerEngineWatcher.Dispose();
-                        _timerEngineWatcher = null;
-                    }
-
                     if (_currentEngine != null)
                     {
                         shouldStopEngine = true;
@@ -349,19 +344,32 @@ namespace Cloud.PushNotification
                 // Stop the current engine if it is running
                 if (shouldStopEngine)
                 {
+                    _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Stop the engine.");
                     _currentEngine.Stop();
+                }
+
+                // Dispose the timer if we should
+                lock (this)
+                {
+                    if (_timerEngineWatcher != null)
+                    {
+                        _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Dispose the engine watcher.");
+                        _timerEngineWatcher.Dispose();
+                        _timerEngineWatcher = null;
+                    }
                 }
 
                 lock (this)
                 {
-                    _currentEngine = null;
+                    _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: StopServiceMangagerThread.");
                     StopServiceManagerThread();
                 }
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "DisconnectPushNotificationServer: DisconnectPushNotificationServer: ERROR: Exception: Msg: {0}.", ex.Message);
+                _trace.writeToLog(1, "CLNotificationService: DisconnectPushNotificationServer: ERROR: Exception: Msg: {0}.", ex.Message);
             }
+            _trace.writeToLog(9, "CLNotificationService: DisconnectPushNotificationServer: Exit.");
         }
 
         /// <summary>
@@ -372,10 +380,10 @@ namespace Cloud.PushNotification
         {
             try
             {
-                _trace.writeToLog(9, "StartEngineThread: StartServiceManagerThread: Entry.");
+                _trace.writeToLog(9, "CLNotificationService: StartServiceManagerThread: Entry.");
                 if (_serviceManagerThread.Value == null)
                 {
-                    _trace.writeToLog(9, "StartEngineThread: StartServiceManagerThread: Start the service manager thread.");
+                    _trace.writeToLog(9, "CLNotificationService: StartServiceManagerThread: Start the service manager thread.");
                     _serviceManagerThread.Value = new Thread(new ParameterizedThreadStart(this.ServiceManagerThreadProc));
                     _serviceManagerThread.Value.Name = "Notification Engine";
                     _serviceManagerThread.Value.IsBackground = true;
@@ -384,7 +392,7 @@ namespace Cloud.PushNotification
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "StartEngineThread: StartEngineThread: ERROR: Exception: Msg: {0}.", ex.Message);
+                _trace.writeToLog(1, "CLNotificationService: StartServiceManagerThread: ERROR: Exception: Msg: {0}.", ex.Message);
                 throw;
             }
         }
@@ -397,12 +405,12 @@ namespace Cloud.PushNotification
         {
             try
             {
-                _trace.writeToLog(9, "StartEngineThread: StopServiceManagerThread: Entry.");
+                _trace.writeToLog(9, "CLNotificationService: StopServiceManagerThread: Entry.");
                 if (_serviceManagerThread.Value != null)
                 {
                     try
                     {
-                        _trace.writeToLog(9, "StartEngineThread: StopServiceManagerThread: Abort the service manager thread.");
+                        _trace.writeToLog(9, "CLNotificationService: StopServiceManagerThread: Abort the service manager thread.");
                         _serviceManagerThread.Value.Abort();
                     }
                     catch
@@ -413,7 +421,7 @@ namespace Cloud.PushNotification
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "StartEngineThread: StopEngineThread: ERROR: Exception: Msg: {0}.", ex.Message);
+                _trace.writeToLog(1, "CLNotificationService: StopEngineThread: ERROR: Exception: Msg: {0}.", ex.Message);
             }
         }
 
@@ -424,7 +432,7 @@ namespace Cloud.PushNotification
             try
             {
                 // Initialize
-                _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Entry.");
+                _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Entry.");
                 CLNotificationService castState = obj as CLNotificationService;
                 if (castState == null)
                 {
@@ -437,7 +445,7 @@ namespace Cloud.PushNotification
                     bool fBackToTopOfList = false;
 
                     // Loop through the engines (first to last, highest priority to lowest priority).
-                    _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Restart at top of list.");
+                    _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Restart at top of list.");
                     IEnumerable<NotificationEngines> engineIndices = Enum.GetValues(typeof(NotificationEngines)).Cast<NotificationEngines>();
                     foreach (NotificationEngines engineIndex in engineIndices)
                     {
@@ -448,13 +456,21 @@ namespace Cloud.PushNotification
                         while (true)
                         {
                             // Construct a new instance and start this engine.
-                            _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Top of loop running engine {0}.", engineIndex.ToString());
+                            _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Top of loop running engine {0}.", engineIndex.ToString());
                             lock (this)
                             {
+                                // Don't run another engine if we have been stopped.
+                                if (!_isServiceStarted)
+                                {
+                                    _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Service requested to stop.  Exit thread.");
+                                    return;             // exit this thread now
+                                }
+
+                                // Set the engine to run
                                 switch (engineIndex)
                                 {
                                     case NotificationEngines.NotificationEngine_SSE:
-                                        _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Instantiate SSE engine.");
+                                        _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Instantiate SSE engine.");
                                         CLNotificationSseEngine engineSse = new CLNotificationSseEngine(
                                                     syncBox: this._syncBox,
                                                     delegateCreateEngineTimer: this.CreateEngineTimer,
@@ -481,7 +497,7 @@ namespace Cloud.PushNotification
                                     //break;
 
                                     case NotificationEngines.NotificationEngine_ManualPolling:
-                                        _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Instantiate manual polling engine.");
+                                        _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Instantiate manual polling engine.");
                                         CLNotificationManualPollingEngine engineManualPolling = new CLNotificationManualPollingEngine(
                                                     syncBox: this._syncBox,
                                                     delegateSendManualPoll: this.SendManualPollCallback);
@@ -495,9 +511,9 @@ namespace Cloud.PushNotification
                             }
 
                             // Start the engine and run it on this thread (might not return for a very long time)
-                            _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Start the engine.");
+                            _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Start the engine.");
                             bool engineStartDidReturnSuccess = _currentEngine.Start();
-                            _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Back from engine Start.");
+                            _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Back from engine Start.");
 
                             // Cancel any outstanding engine watcher timer.
                             DisposeEngineTimer();
@@ -506,18 +522,18 @@ namespace Cloud.PushNotification
                             // Determine which engine will run next
                             if (engineStartDidReturnSuccess)
                             {
-                                _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Engine {0} returned success.", engineIndex.ToString());
+                                _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Engine {0} returned success.", engineIndex.ToString());
                                 ++successes;
                                 if (successes >= _currentEngine.MaxSuccesses)
                                 {
                                     if (_currentEngineIndex == NotificationEngines.NotificationEngine_SSE)
                                     {
                                         // Do nothing in this case.  We will go down the list if SSE has had MaxSuccesses reconnections.
-                                        _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Select next in list.");
+                                        _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Select next in list.");
                                     }
                                     else
                                     {
-                                        _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Select back to top of list.");
+                                        _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Select back to top of list.");
                                         fBackToTopOfList = true;
                                     }
                                     break;    // stop running this engine.  Select the next in the list, or start at the top of the list.
@@ -526,11 +542,11 @@ namespace Cloud.PushNotification
                             else
                             {
                                 // The engine returned failure.
-                                _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Engine {0} returned failure.", engineIndex.ToString());
+                                _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Engine {0} returned failure.", engineIndex.ToString());
                                 ++failures;
                                 if (failures >= _currentEngine.MaxFailures)
                                 {
-                                    _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Select next in list (2).");
+                                    _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Select next in list (2).");
                                 }
                                 break;    // stop running this engine.  Select the next in the list.
                             }
@@ -538,7 +554,7 @@ namespace Cloud.PushNotification
 
                         if (fBackToTopOfList)
                         {
-                            _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: Break to go to top of list.");
+                            _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: Break to go to top of list.");
                             break;
                         }
                     }  // end loop through the engines to run.
@@ -547,7 +563,7 @@ namespace Cloud.PushNotification
                     if (!fBackToTopOfList)
                     {
                         // Let everyone know that we have had a serious error.
-                        _trace.writeToLog(9, "StartEngineThread: ServiceManagerThreadProc: ERROR: All engines failed.");
+                        _trace.writeToLog(9, "CLNotificationService: ServiceManagerThreadProc: ERROR: All engines failed.");
                         NotificationErrorEventArgs err = new NotificationErrorEventArgs(new Exception("Notification service has failed"), null);
                         lock (castState.ConnectionErrorQueue)
                         {
@@ -585,7 +601,7 @@ namespace Cloud.PushNotification
             {
                 if (!wasThreadAborted)
                 {
-                    _trace.writeToLog(1, "StartEngineThread: EngineThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
+                    _trace.writeToLog(1, "CLNotificationService: ServiceManagerThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
                 }
             }
         }
