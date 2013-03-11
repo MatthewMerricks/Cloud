@@ -58,3 +58,9 @@ gacutil /u SuperSocket.ClientEngine.Common,Culture=neutral,PublicKeyToken=840eb9
 echo gacutil /u SuperSocket.ClientEngine.Protocol,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
 gacutil /u SuperSocket.ClientEngine.Protocol,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
 
+echo gacutil /u System.Data.SQLite64,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
+gacutil /u System.Data.SQLite64,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
+
+echo gacutil /u System.Data.SQLite32,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
+gacutil /u System.Data.SQLite32,Culture=neutral,PublicKeyToken=840eb90fa4503c3c
+
