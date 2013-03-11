@@ -293,19 +293,22 @@ namespace Cloud.FileMonitor
                                     }
                                 }
                             }
-                            
-                            long createItemCreationUtcTicks = Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks;
-                            FilePath[] existingAddFolderPaths;
-                            if (Agent.FolderCreationTimeUtcTicksToPath.TryGetValue(createItemCreationUtcTicks, out existingAddFolderPaths))
+
+                            if (Metadata != null)
                             {
-                                FilePath[] appendExistingPaths = new FilePath[existingAddFolderPaths.Length + 1];
-                                Array.Copy(existingAddFolderPaths, appendExistingPaths, existingAddFolderPaths.Length);
-                                appendExistingPaths[appendExistingPaths.Length - 1] = NewPath;
-                                Agent.FolderCreationTimeUtcTicksToPath[createItemCreationUtcTicks] = appendExistingPaths;
-                            }
-                            else
-                            {
-                                Agent.FolderCreationTimeUtcTicksToPath.Add(createItemCreationUtcTicks, new[] { NewPath });
+                                long createItemCreationUtcTicks = Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks;
+                                FilePath[] existingAddFolderPaths;
+                                if (Agent.FolderCreationTimeUtcTicksToPath.TryGetValue(createItemCreationUtcTicks, out existingAddFolderPaths))
+                                {
+                                    FilePath[] appendExistingPaths = new FilePath[existingAddFolderPaths.Length + 1];
+                                    Array.Copy(existingAddFolderPaths, appendExistingPaths, existingAddFolderPaths.Length);
+                                    appendExistingPaths[appendExistingPaths.Length - 1] = NewPath;
+                                    Agent.FolderCreationTimeUtcTicksToPath[createItemCreationUtcTicks] = appendExistingPaths;
+                                }
+                                else
+                                {
+                                    Agent.FolderCreationTimeUtcTicksToPath.Add(createItemCreationUtcTicks, new[] { NewPath });
+                                }
                             }
                         }
                         break;
