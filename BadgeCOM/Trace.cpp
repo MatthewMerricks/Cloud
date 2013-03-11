@@ -3,7 +3,7 @@
 
 using namespace std;
 
-bool Trace::_fInstanceFlag = false;
+BOOL Trace::_fInstanceFlag = false;
 Trace* Trace::_single = NULL;
 volatile long Trace::instanceInitialized = 0;
 CRITICAL_SECTION Trace::_cs;

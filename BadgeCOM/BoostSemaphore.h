@@ -54,9 +54,9 @@ public:
     /// Wait for the semaphore to be signaled.
     /// </summary>
     /// <param name=timeout>Timeout system time.</param>
-    bool wait(boost::system_time const timeout) //called "acquire" in Java
+    BOOL wait(boost::system_time const timeout) //called "acquire" in Java
     {
-        bool result = false;
+        BOOL result = false;
         boost::unique_lock<boost::mutex> lock(mutex_);
         while (count_ == 0)
         {

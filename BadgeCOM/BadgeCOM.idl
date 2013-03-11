@@ -141,11 +141,11 @@ library BadgeCOMLib
 	    [id(3), helpstring("method Subscribe")] HRESULT(Subscribe)(
                         [in] EnumEventType EventType,
                         [in] GUID guidSubscriber,
-                        [in] LONG TimeoutMilliseconds,
+                        [in] ULONG32 TimeoutMilliseconds,
                         [out] EnumEventSubType *outEventSubType,
                         [out] EnumCloudAppIconBadgeType *outBadgeType,
                         [out] BSTR *outFullPath,
-                        [out] ULONG *outProcessId,
+                        [out] ULONG32 *outProcessId,
                         [out] GUID *GuidPublisher,
                         [out, retval] EnumPubSubServerSubscribeReturnCodes *returnValue);
 
@@ -155,7 +155,7 @@ library BadgeCOMLib
                         [out, retval] EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
 
 	    [id(5), helpstring("method CancelSubscriptionsForProcessId")] HRESULT(CancelSubscriptionsForProcessId)(
-                        [in] ULONG ProcessId,
+                        [in] ULONG32 ProcessId,
                         [out, retval] EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue);
 
 	    [id(6), helpstring("method CleanUpUnusedResources")] HRESULT(CleanUpUnusedResources)(

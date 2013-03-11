@@ -42,7 +42,7 @@ private:
     typedef struct _DATAFORBADGEPATH
     {
         EnumCloudAppIconBadgeType badgeType;                            // the type of this badge  (cloudAppBadgeNone for a root folder, otherwise one of the four other types)
-        boost::unordered_map<ULONG, boost::unordered_set<GUID>> processesThatAddedThisBadge;        // dictionary of process IDs that have badged this path with this badge type.  Each process ID is associated with multiple SyncBox GUIDs (in that process) that badged this path with this badge type.
+        boost::unordered_map<ULONG32, boost::unordered_set<GUID>> processesThatAddedThisBadge;        // dictionary of process IDs that have badged this path with this badge type.  Each process ID is associated with multiple SyncBox GUIDs (in that process) that badged this path with this badge type.
     } DATA_FOR_BADGE_PATH, *P_DATA_FOR_BADGE_PATH;
 
     // Private fields
@@ -52,26 +52,26 @@ private:
     CBadgeNetPubSubEvents *_pBadgeNetPubSubEvents;
     boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH> _mapBadges;             // the dictionary of fullPath->(badgeType, unordered_map<PublisherProcessId, unordered_set<PublisherSyncBoxId>>) for the badges.
     boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH> _mapRootFolders;        // the dictionary of fullPath->(badgeType, unordered_map<PublisherProcessId, unordered_set<PublisherSyncBoxId>>) for the SyncBox root folders.
-    boost::unordered_set<ULONG> _setActiveProcessIds;                               // a set of active process ids.
+    boost::unordered_set<ULONG32> _setActiveProcessIds;                               // a set of active process ids.
     HANDLE _threadSubscriptionRestart;
-    bool _fIsInitialized;
+    BOOL _fIsInitialized;
     GUID _guidPublisher;
     std::string _strBaseBadgeType;
     boost::recursive_mutex _mutexBadgeDatabase;
 
     // Private methods
-    void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG processId, GUID guidPublisher);
-    bool OnEventRemoveBadgePath(BSTR fullPath, ULONG processId, GUID guidPublisher);
-    void OnEventAddSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG processId, GUID guidPublisher);
-    void OnEventRemoveSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG processId, GUID guidPublisher);
+    void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG32 processId, GUID guidPublisher);
+    BOOL OnEventRemoveBadgePath(BSTR fullPath, ULONG32 processId, GUID guidPublisher);
+    void OnEventAddSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG32 processId, GUID guidPublisher);
+    void OnEventRemoveSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG32 processId, GUID guidPublisher);
     void OnEventSubscriptionWatcherFailed();
     void OnEventTimerTick();
     std::wstring NormalizePath(std::wstring inPath);
-    bool IsPathInRootPath(std::wstring testPath, std::wstring rootPath);
+    BOOL IsPathInRootPath(std::wstring testPath, std::wstring rootPath);
     static void SubscriptionRestartThreadProc(LPVOID pUserState);
     void InitializeBadgeNetPubSubEvents();
     void InitializeBadgeNetPubSubEventsViaThread();
     static void InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserState);
     static char *BadgeTypeToString(EnumCloudAppIconBadgeType badgeType);
-    void CleanBadgingDatabaseForProcessId(ULONG processIdPublisher);
+    void CleanBadgingDatabaseForProcessId(ULONG32 processIdPublisher);
 };

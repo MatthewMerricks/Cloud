@@ -28,7 +28,7 @@ private:
     static const int _knDeleteTraceFilesOlderThanDays = 10;
 
     // Private static fields
-    static bool _fInstanceFlag;
+    static BOOL _fInstanceFlag;
     static Trace *_single;
 	static CRITICAL_SECTION _cs;
     volatile static long instanceInitialized;
@@ -38,7 +38,7 @@ private:
 	FILE *_streamTrace;
 	std::wstring _wsTraceFileFullPath;
 	int _nMaxPriorityToTrace;
-	bool _fTraceEnabled;
+	BOOL _fTraceEnabled;
     int _nYear;
     int _nMonth;
     int _nDay;

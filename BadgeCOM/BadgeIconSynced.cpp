@@ -26,7 +26,7 @@ CBadgeIconSynced::CBadgeIconSynced()
     {
 #if WAIT_FOR_DEBUG
         //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        static bool fCompletedOnce = false;
+        static BOOL fCompletedOnce = false;
         while (!fCompletedOnce)
         {
 			Sleep(100);

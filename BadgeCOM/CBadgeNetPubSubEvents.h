@@ -25,20 +25,20 @@ private:
 
 
     // Static private fields
-    static bool _fDebugging;
+    static BOOL _fDebugging;
 
     // Private fields
     CPubSubServer *_pPubSubServer;
     GUID _guidSubscriber;
     HANDLE _threadSubscribingHandle;
     HANDLE _threadWatchingHandle;
-    bool _isSubscriberThreadAlive;
+    BOOL _isSubscriberThreadAlive;
     boost::mutex _locker;
     semaphore _semWaitForSubscriptionThreadStart;
     semaphore _semWatcher;
-    bool _fRequestSubscribingThreadExit;
-    bool _fRequestWatchingThreadExit;
-    bool _fTerminating;
+    BOOL _fRequestSubscribingThreadExit;
+    BOOL _fRequestWatchingThreadExit;
+    BOOL _fTerminating;
 
 public:
     // Life cycle
@@ -46,25 +46,25 @@ public:
     ~CBadgeNetPubSubEvents(void);
 
     // Events
-    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG, GUID)> FireEventAddSyncBoxFolderPath;
-    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG, GUID)> FireEventRemoveSyncBoxFolderPath;
-    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG, GUID)> FireEventAddBadgePath;
-    boost::signal<void (BSTR, ULONG, GUID)> FireEventRemoveBadgePath;
+    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG32, GUID)> FireEventAddSyncBoxFolderPath;
+    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG32, GUID)> FireEventRemoveSyncBoxFolderPath;
+    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG32, GUID)> FireEventAddBadgePath;
+    boost::signal<void (BSTR, ULONG32, GUID)> FireEventRemoveBadgePath;
     boost::signal<void ()> FireEventSubscriptionWatcherFailed;
     boost::signal<void ()> FireEventTimerTick;
 
     // Methods
 	void Initialize();
     void PublishEventToBadgeNet(EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, BSTR *fullPath, GUID guidPublisher);
-    bool SubscribeToBadgeNetEvents();
+    BOOL SubscribeToBadgeNetEvents();
     static void SubscribingThreadProc(LPVOID pUserState);
     static void WatchingThreadProc(LPVOID pUserState);
     static void CBadgeNetPubSubEvents::HandleWatchingThreadException(CBadgeNetPubSubEvents *pThis);
     void KillSubscribingThread();
     void KillWatchingThread();
-    bool StartSubscribingThread();
+    BOOL StartSubscribingThread();
     void StartWatchingThread();
     void RestartSubcribingThread();
-    bool IsThreadAlive(const HANDLE hThread);
+    BOOL IsThreadAlive(const HANDLE hThread);
 };
 

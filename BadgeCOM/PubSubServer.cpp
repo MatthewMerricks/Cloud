@@ -46,12 +46,26 @@ STDMETHODIMP CPubSubServer::Initialize()
             pszExceptionStateTracker = "Call get_address";
 			shm_base = _pSegment->get_address();
 			CLTRACE(9, "PubSubServer: Initialize: shm_base: Address in this process: %p.", shm_base);
-			//bool fIsSane = segm->check_sanity();
+			//BOOL fIsSane = segm->check_sanity();
 			//if (!fIsSane)
 			//{
 			//	pszExceptionStateTracker = "Throw";
 			//	throw new std::exception("ERROR: Shared memory segment is corrupted.");
 			//}
+
+			// Trace the sizes of the shared memory types.
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(IntPtr): %d", sizeof(shm_base));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(ULONG32): %d", sizeof(ULONG32));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(BOOL): %d", sizeof(BOOL));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumEventType): %d", sizeof(EnumEventType));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumEventSubType): %d", sizeof(EnumEventSubType));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumCloudAppIconBadgeType): %d", sizeof(EnumCloudAppIconBadgeType));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(GUID): %d", sizeof(GUID));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage): %d", sizeof(EventMessage));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(Subscription): %d", sizeof(Subscription));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(Base): %d", sizeof(Base));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(UniqueSubscription_tag): %d", sizeof(UniqueSubscription_tag));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(size_t): %d", sizeof(size_t));
 		}
        	CLTRACE(9, "PubSubServer: Initialize: Segment: %p.", _pSegment);
     }
@@ -93,8 +107,8 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		    return E_POINTER;
 	    }
 
-        ULONG processId = GetCurrentProcessId();
-        ULONG threadId = GetCurrentThreadId();
+        ULONG32 processId = GetCurrentProcessId();
+        ULONG32 threadId = GetCurrentThreadId();
 		std::vector<GUID> subscribers;
 
 	    CLTRACE(9, "PubSubServer: Publish: Entry. EventType: %d. EventSubType: %d. BadgeType: %d. FullPath: %ls. processId: %lx. GuidPublisher: %ls.", EventType, EventSubType, BadgeType, *FullPath, processId, CComBSTR(GuidPublisher));
@@ -158,9 +172,9 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		{
 			for (int nRetry = 0; nRetry < _knShortRetries; ++nRetry)
 			{
-				bool fEventDelivered = false;
-				bool fSubscriptionRemoved = false;
-				bool fSubscriptionNotFound = false;
+				BOOL fEventDelivered = false;
+				BOOL fSubscriptionRemoved = false;
+				BOOL fSubscriptionNotFound = false;
 
 				pBase->mutexSharedMemory_.lock();
 				try
@@ -170,7 +184,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 					guid_subscription_map::iterator outItSubscription;
 					offset_ptr<Subscription> outOptrFoundSubscription;
                     pszExceptionStateTracker = "Call FindSubscription";
-					bool fFoundSubscription = FindSubscription(EventType, *itGuid, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
+					BOOL fFoundSubscription = FindSubscription(EventType, *itGuid, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
 					if (fFoundSubscription)
 					{
 						// We found the subscription.  This is a subscriber of this event.  Is its event queue full?
@@ -263,11 +277,11 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 STDMETHODIMP CPubSubServer::Subscribe(
             EnumEventType EventType,
             GUID guidSubscriber,
-            LONG TimeoutMilliseconds,
+            ULONG32 TimeoutMilliseconds,
             EnumEventSubType *outEventSubType,
             EnumCloudAppIconBadgeType *outBadgeType,
             BSTR *outFullPath,
-            ULONG *outProcessIdPublisher,
+            ULONG32 *outProcessIdPublisher,
             GUID *outGuidPublisher,
             EnumPubSubServerSubscribeReturnCodes *returnValue)
 {
@@ -284,14 +298,14 @@ STDMETHODIMP CPubSubServer::Subscribe(
 
 	    CLTRACE(9, "PubSubServer: Subscribe: Entry. EventType: %d. GUID: %ls. TimeoutMilliseconds: %d.", EventType, CComBSTR(guidSubscriber), TimeoutMilliseconds);
 		Base *pBase = NULL;
-	    bool fSubscriptionFound;
+	    BOOL fSubscriptionFound;
 	    subscription_vector::iterator itFoundSubscription;
 
-        bool fWaitRequired = false;
+        BOOL fWaitRequired = false;
 		interprocess_semaphore *pFoundSemaphore = NULL;
 
-        ULONG processId = GetCurrentProcessId();
-        ULONG threadId = GetCurrentThreadId();
+        ULONG32 processId = GetCurrentProcessId();
+        ULONG32 threadId = GetCurrentThreadId();
 
         // An allocator convertible to any allocator<T, segment_manager_t> type.
 	    CLTRACE(9, "PubSubServer: Subscribe: Call get_segment_manager. _pSegment: %p.", _pSegment);
@@ -364,7 +378,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					// The event type record was found in the outer map.  Add a pair_guid_subscription record to the inner map.
 					CLTRACE(9, "PubSubServer: Subscribe: The EventType record was found in the outer map.  Construct an inner map pair_guid_subscription and add it to the inner map.");
                     pszExceptionStateTracker = "Add an inner map";
-					std::pair<guid_subscription_map::iterator, bool> retvalEmplace;
+					std::pair<guid_subscription_map::iterator, BOOL> retvalEmplace;
 					retvalEmplace = itMapOuter->second.emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, alloc_inst)));
 					retvalEmplace.first->second.fWaiting_ = true;
 					outOptrFoundSubscription = &retvalEmplace.first->second;
@@ -374,7 +388,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					// The event type was not found in the outer map.  Construct an inner map<GUID, Subscription> and add it to the outer map.
 					CLTRACE(9, "PubSubServer: Subscribe: The EventType record was not found in the outer map.  Construct and add it.");
                     pszExceptionStateTracker = "Construct an inner map";
-					std::pair<guid_subscription_map::iterator, bool> retvalEmplace;
+					std::pair<guid_subscription_map::iterator, BOOL> retvalEmplace;
 					guid_subscription_map *mapGuidSubscription = _pSegment->construct<guid_subscription_map>(anonymous_instance)(_knInnerMapBuckets, boost::hash<GUID>(), std::equal_to<GUID>(), alloc_inst);
 					if (mapGuidSubscription == NULL)
 					{
@@ -435,7 +449,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 				CLTRACE(9, "PubSubServer: Subscribe: Wait with timeout. Waiting ProcessId: %lx. ThreadId: %lx. Guid: %ls. Semaphore local addr: %p.", processId, threadId, CComBSTR(guidSubscriber), pFoundSemaphore);
                 pszExceptionStateTracker = "Call timed_wait";
                 boost::posix_time::ptime tNow(boost::posix_time::microsec_clock::universal_time());
-                bool fDidNotTimeOut = pFoundSemaphore->timed_wait(tNow + boost::posix_time::milliseconds(TimeoutMilliseconds));
+                BOOL fDidNotTimeOut = pFoundSemaphore->timed_wait(tNow + boost::posix_time::milliseconds(TimeoutMilliseconds));
                 if (fDidNotTimeOut)
                 {
 					CLTRACE(9, "PubSubServer: Subscribe: Got an event or posted by a cancel. Return code 'try again'.");
@@ -524,7 +538,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 /// <Summary>
 /// Cancel all of the subscriptions belonging to a particular process ID.
 /// </Summary>
-STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue)
+STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG32 ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue)
 {
     EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes nResult = RC_CANCELBYPROCESSID_NOT_FOUND;
     char *pszExceptionStateTracker = "Start";
@@ -670,7 +684,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 			guid_subscription_map::iterator outItSubscription;
 			offset_ptr<Subscription> outOptrFoundSubscription;
             pszExceptionStateTracker = "Call FindSubscription";
-			bool fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
+			BOOL fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
 			if (fSubscriptionFound)
 			{
 				// Found our subscription.  Post the semaphore to allow the waiting thread to fall through the wait.
@@ -684,7 +698,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 				outOptrFoundSubscription->pSemaphoreSubscription_->post();
 
 				// Give the thread a chance to exit the wait.
-				bool fCancelOk = false;
+				BOOL fCancelOk = false;
 				for (int i = 0; i < _knShortRetries; i++)
 				{
 					// Give up some cycles.  Free the lock momentarily.
@@ -869,11 +883,11 @@ void CPubSubServer::DeleteSubscriptionById(Base * pBase, CPubSubServer::UniqueSu
 /// Find a subscription by its event type and GUID.
 /// NOTE: Assumes the shared memory lock is held.
 /// </summary>
-/// <returns>bool: true: found the subscription.</returns>
-bool CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidSubscriber, Base *pBase, eventtype_map_guid_subscription_map::iterator *outItEventType,
+/// <returns>BOOL: true: found the subscription.</returns>
+BOOL CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidSubscriber, Base *pBase, eventtype_map_guid_subscription_map::iterator *outItEventType,
 						guid_subscription_map::iterator *outItSubscription,	offset_ptr<Subscription> *outOptrFoundSubscription)
 {
-    bool result = false;
+    BOOL result = false;
  	try
 	{
 		eventtype_map_guid_subscription_map::iterator itMapOuter = pBase->subscriptions_.find(EventType);
@@ -987,8 +1001,8 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 			pBase->mutexSharedMemory_.lock();
 			try
 			{
-				ULONG processId = GetCurrentProcessId();
-				ULONG threadId = GetCurrentThreadId();
+				ULONG32 processId = GetCurrentProcessId();
+				ULONG32 threadId = GetCurrentThreadId();
 
 				CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Trace current state of shared memory.  This process ID: %lx. This thread ID: %lx", processId, threadId);
                 TraceCurrentStateOfSharedMemory(pBase);
@@ -1000,8 +1014,8 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 					for (guid_subscription_map::iterator itSubscription = itEventType->second.begin(); itSubscription != itEventType->second.end(); /* iterator bumped in the body */)
 					{
 						// Log this subscription
-                        bool fBumpIterator = true;
-                        ULONG thisProcessId = itSubscription->second.uSubscribingProcessId_;
+                        BOOL fBumpIterator = true;
+                        ULONG32 thisProcessId = itSubscription->second.uSubscribingProcessId_;
 						CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Found subscription: EventType: %d. ProcessId: %lx. ThreadId: %lx. Guid: %ls.", 
 								itSubscription->second.nEventType_, thisProcessId, 
 								itSubscription->second.uSubscribingThreadId_, CComBSTR(itSubscription->second.guidSubscriber_));
@@ -1090,8 +1104,8 @@ STDMETHODIMP CPubSubServer::Terminate()
 				}
 				_trackedSubscriptionIds.clear();
 
-				ULONG processId = GetCurrentProcessId();
-				ULONG threadId = GetCurrentThreadId();
+				ULONG32 processId = GetCurrentProcessId();
+				ULONG32 threadId = GetCurrentThreadId();
 
 				CLTRACE(9, "PubSubServer: Terminate: Print subscriptions left.  This process ID: %lx. This thread ID: %lx", processId, threadId);
 				for (eventtype_map_guid_subscription_map::iterator itEventType = pBase->subscriptions_.begin(); itEventType != pBase->subscriptions_.end(); ++itEventType)
@@ -1157,7 +1171,7 @@ STDMETHODIMP CPubSubServer::Terminate()
 /// Checks whether a process is alive.
 /// </summary>
 /// <param name="pid">Process ID to check.</param>
-/// <returns>bool true: The process is still alive.</returns>
+/// <returns>BOOL true: The process is still alive.</returns>
 BOOL CPubSubServer::IsProcessRunning(DWORD pid)
 {
     HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, pid);
@@ -1221,7 +1235,7 @@ std::string CPubSubServer::GetSharedMemoryNameWithVersion()
         // We have version information.  Extract it.
         UINT    			len = 0;
         VS_FIXEDFILEINFO*   vsfi = NULL;
-        bool fRc = VerQueryValue(versionInfo, L"\\", (void**)&vsfi, &len);
+        BOOL fRc = VerQueryValue(versionInfo, L"\\", (void**)&vsfi, &len);
         if (!fRc)
         {
             throw new std::exception("VerQueryValue error.  Name or resource is invalid");
