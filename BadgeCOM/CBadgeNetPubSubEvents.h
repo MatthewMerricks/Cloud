@@ -46,10 +46,10 @@ public:
     ~CBadgeNetPubSubEvents(void);
 
     // Events
-    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG32, GUID)> FireEventAddSyncBoxFolderPath;
-    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG32, GUID)> FireEventRemoveSyncBoxFolderPath;
-    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG32, GUID)> FireEventAddBadgePath;
-    boost::signal<void (BSTR, ULONG32, GUID)> FireEventRemoveBadgePath;
+    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG, GUID)> FireEventAddSyncBoxFolderPath;
+    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG, GUID)> FireEventRemoveSyncBoxFolderPath;
+    boost::signal<void (BSTR, EnumCloudAppIconBadgeType, ULONG, GUID)> FireEventAddBadgePath;
+    boost::signal<void (BSTR, ULONG, GUID)> FireEventRemoveBadgePath;
     boost::signal<void ()> FireEventSubscriptionWatcherFailed;
     boost::signal<void ()> FireEventTimerTick;
 

@@ -94,14 +94,14 @@ public:
 	public:
 		EnumEventType				EventType_;                 // this event's event type
         EnumEventSubType            EventSubType_;              // this event's event subtype
-		ULONG32						ProcessId_;                 // for logging only
-		ULONG32						ThreadId_;                  // for logging only
+		uint64_t					ProcessId_;                 // for logging only
+		uint64_t					ThreadId_;                  // for logging only
 		EnumCloudAppIconBadgeType	BadgeType_;                 // the badge type associated with this event
 		wchar_string				FullPath_;                  // the full path associated with this event
         GUID                        GuidPublisher_;             // the identity of the publisher
 
 		// Constructor
-		EventMessage(EnumEventType EventType, EnumEventSubType EventSubType, ULONG32 ProcessId, ULONG32 ThreadId, 
+		EventMessage(EnumEventType EventType, EnumEventSubType EventSubType, ULONG ProcessId, ULONG ThreadId, 
 				EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, GUID GuidPublisher, const wchar_string::allocator_type &allocator) :
 				EventType_(EventType), EventSubType_(EventSubType), ProcessId_(ProcessId), ThreadId_(ThreadId), 
 					BadgeType_(BadgeType), FullPath_(*FullPath, allocator), GuidPublisher_(GuidPublisher) {}
@@ -115,21 +115,21 @@ public:
 	class Subscription
 	{
 	public:
-        ULONG32                     uSignature_;                // 0xCACACACACA
-		ULONG32                     uSubscribingProcessId_;     // the subscribing process ID (logging only)
-		ULONG32                     uSubscribingThreadId_;      // the subscribing thread ID (logging only)
+        uint64_t                    uSignature_;                // 0xCACACACACACACACACA
+		uint64_t                    uSubscribingProcessId_;     // the subscribing process ID (logging only)
+		uint64_t                    uSubscribingThreadId_;      // the subscribing thread ID (logging only)
 		EnumEventType               nEventType_;                // the event type being subscribed to
 		offset_ptr<interprocess_semaphore>	pSemaphoreSubscription_;    // allows a subscribing thread to wait for events to arrive.
         GUID                        guidSubscriber_;                    // the unique identifier of the subscriber
-		BOOL                        fDestructed_;               // true: this object has been destructed
-        BOOL                        fWaiting_;                  // true: the subscribing thread is waiting
-        BOOL                        fCancelled_;                // true: this subscription has been cancelled.
+		uint64_t                    fDestructed_;               // true: this object has been destructed
+        uint64_t                    fWaiting_;                  // true: the subscribing thread is waiting
+        uint64_t                    fCancelled_;                // true: this subscription has been cancelled.
 		EventMessage_vector		    events_;					// a vector of events,
 
 		// Constructor
-		Subscription(GUID guidSubscriber, ULONG32 uSubscribingProcessId, ULONG32 uSubscribingThreadId, EnumEventType nEventType, 
+		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, 
 									const void_allocator &allocator) :
-                            uSignature_(0xCACACACA),
+                            uSignature_(0xCACACACACACACACA),
 							uSubscribingProcessId_(uSubscribingProcessId), 
 							uSubscribingThreadId_(uSubscribingThreadId),
 							nEventType_(nEventType),
@@ -143,7 +143,7 @@ public:
 			// reference to allow the object to be copied to get past the compiler error.  The actual semaphore should be allocated in
 			// shared memory by this constructor, and it should be deallocated when this subscription is destructed.
 			 pSemaphoreSubscription_ = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
-		}
+		}	
 
 		// Destructor
 		~Subscription()
@@ -181,7 +181,7 @@ public:
 	public:
 		uint64_t reserved1_, reserved2_;
 		// Put any required global data here.
-        ULONG32                     uSignature_;                 // 0xACACACAC
+        uint64_t            uSignature_;                 // 0xACACACACACACACAC
 		interprocess_mutex  mutexSharedMemory_;  // lock to protect the whole Base object
 		eventtype_map_guid_subscription_map subscriptions_;      // a map of [GUID, Subscription] (the active subscriptions)
 
@@ -190,7 +190,7 @@ public:
 				: 
 			reserved1_(0),
 			reserved2_(0),
-			uSignature_(0xACACACAC),
+			uSignature_(0xACACACACACACACAC),
 			subscriptions_(initialBucketCount, boost::hash<int>(), std::equal_to<int>(), allocator) {}
 	};
 
@@ -204,11 +204,11 @@ public:
     STDMETHOD(Subscribe)(
             EnumEventType EventType,
             GUID guidSubscriber,
-            ULONG32 TimeoutMilliseconds,
+            ULONG TimeoutMilliseconds,
             EnumEventSubType *outEventSubType,
             EnumCloudAppIconBadgeType *outBadgeType,
             BSTR *outFullPath,
-            ULONG32 *outProcessId,
+            ULONG *outProcessId,
             GUID *outGuidPublisher,
             EnumPubSubServerSubscribeReturnCodes *returnValue);
     STDMETHOD(Publish)(EnumEventType EventType,
@@ -218,7 +218,7 @@ public:
             GUID GuidPublisher,
             EnumPubSubServerPublishReturnCodes *returnValue);
 	STDMETHOD(CancelWaitingSubscription)(EnumEventType EventType, GUID guidSubscriber, EnumPubSubServerCancelWaitingSubscriptionReturnCodes *returnValue);
-	STDMETHOD(CancelSubscriptionsForProcessId)(ULONG32 ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue);
+	STDMETHOD(CancelSubscriptionsForProcessId)(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue);
 	STDMETHOD(CleanUpUnusedResources)(EnumPubSubServerCleanUpUnusedResourcesReturnCodes *returnValue);
     STDMETHOD(Terminate)();
 

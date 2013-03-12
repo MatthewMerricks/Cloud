@@ -257,7 +257,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             EnumEventSubType eventSubType;
             EnumCloudAppIconBadgeType badgeType;
             BSTR bsFullPath;                                // allocated by Subscribe.  Must be freed eventually (SysFreeString()).
-            ULONG32 processIdPublisher;
+            ULONG processIdPublisher;
             GUID guidPublisher;
             HRESULT hr = pThis->_pPubSubServer->Subscribe(BadgeNet_To_BadgeCom, pThis->_guidSubscriber, _knSubscriptionTimeoutMs, &eventSubType, &badgeType, &bsFullPath, &processIdPublisher, &guidPublisher, &result);
             if (!SUCCEEDED(hr))

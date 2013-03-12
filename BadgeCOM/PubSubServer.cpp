@@ -55,7 +55,10 @@ STDMETHODIMP CPubSubServer::Initialize()
 
 			// Trace the sizes of the shared memory types.
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(IntPtr): %d", sizeof(shm_base));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(ULONG): %d", sizeof(ULONG));
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(ULONG32): %d", sizeof(ULONG32));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(ULONG64): %d", sizeof(ULONG64));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(uint64_t): %d", sizeof(uint64_t));
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(BOOL): %d", sizeof(BOOL));
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumEventType): %d", sizeof(EnumEventType));
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumEventSubType): %d", sizeof(EnumEventSubType));
@@ -107,8 +110,8 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		    return E_POINTER;
 	    }
 
-        ULONG32 processId = GetCurrentProcessId();
-        ULONG32 threadId = GetCurrentThreadId();
+        ULONG processId = GetCurrentProcessId();
+        ULONG threadId = GetCurrentThreadId();
 		std::vector<GUID> subscribers;
 
 	    CLTRACE(9, "PubSubServer: Publish: Entry. EventType: %d. EventSubType: %d. BadgeType: %d. FullPath: %ls. processId: %lx. GuidPublisher: %ls.", EventType, EventSubType, BadgeType, *FullPath, processId, CComBSTR(GuidPublisher));
@@ -277,11 +280,11 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 STDMETHODIMP CPubSubServer::Subscribe(
             EnumEventType EventType,
             GUID guidSubscriber,
-            ULONG32 TimeoutMilliseconds,
+            ULONG TimeoutMilliseconds,
             EnumEventSubType *outEventSubType,
             EnumCloudAppIconBadgeType *outBadgeType,
             BSTR *outFullPath,
-            ULONG32 *outProcessIdPublisher,
+            ULONG *outProcessIdPublisher,
             GUID *outGuidPublisher,
             EnumPubSubServerSubscribeReturnCodes *returnValue)
 {
@@ -304,8 +307,8 @@ STDMETHODIMP CPubSubServer::Subscribe(
         BOOL fWaitRequired = false;
 		interprocess_semaphore *pFoundSemaphore = NULL;
 
-        ULONG32 processId = GetCurrentProcessId();
-        ULONG32 threadId = GetCurrentThreadId();
+        ULONG processId = GetCurrentProcessId();
+        ULONG threadId = GetCurrentThreadId();
 
         // An allocator convertible to any allocator<T, segment_manager_t> type.
 	    CLTRACE(9, "PubSubServer: Subscribe: Call get_segment_manager. _pSegment: %p.", _pSegment);
@@ -538,7 +541,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 /// <Summary>
 /// Cancel all of the subscriptions belonging to a particular process ID.
 /// </Summary>
-STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG32 ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue)
+STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes *returnValue)
 {
     EnumPubSubServerCancelSubscriptionsByProcessIdReturnCodes nResult = RC_CANCELBYPROCESSID_NOT_FOUND;
     char *pszExceptionStateTracker = "Start";
@@ -1001,8 +1004,8 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 			pBase->mutexSharedMemory_.lock();
 			try
 			{
-				ULONG32 processId = GetCurrentProcessId();
-				ULONG32 threadId = GetCurrentThreadId();
+				ULONG processId = GetCurrentProcessId();
+				ULONG threadId = GetCurrentThreadId();
 
 				CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Trace current state of shared memory.  This process ID: %lx. This thread ID: %lx", processId, threadId);
                 TraceCurrentStateOfSharedMemory(pBase);
@@ -1015,7 +1018,7 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 					{
 						// Log this subscription
                         BOOL fBumpIterator = true;
-                        ULONG32 thisProcessId = itSubscription->second.uSubscribingProcessId_;
+                        ULONG thisProcessId = itSubscription->second.uSubscribingProcessId_;
 						CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Found subscription: EventType: %d. ProcessId: %lx. ThreadId: %lx. Guid: %ls.", 
 								itSubscription->second.nEventType_, thisProcessId, 
 								itSubscription->second.uSubscribingThreadId_, CComBSTR(itSubscription->second.guidSubscriber_));
@@ -1104,8 +1107,8 @@ STDMETHODIMP CPubSubServer::Terminate()
 				}
 				_trackedSubscriptionIds.clear();
 
-				ULONG32 processId = GetCurrentProcessId();
-				ULONG32 threadId = GetCurrentThreadId();
+				ULONG processId = GetCurrentProcessId();
+				ULONG threadId = GetCurrentThreadId();
 
 				CLTRACE(9, "PubSubServer: Terminate: Print subscriptions left.  This process ID: %lx. This thread ID: %lx", processId, threadId);
 				for (eventtype_map_guid_subscription_map::iterator itEventType = pBase->subscriptions_.begin(); itEventType != pBase->subscriptions_.end(); ++itEventType)
