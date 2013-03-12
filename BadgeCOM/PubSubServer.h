@@ -119,7 +119,7 @@ public:
 		uint64_t                    uSubscribingProcessId_;     // the subscribing process ID (logging only)
 		uint64_t                    uSubscribingThreadId_;      // the subscribing thread ID (logging only)
 		EnumEventType               nEventType_;                // the event type being subscribed to
-		offset_ptr<interprocess_semaphore>	pSemaphoreSubscription_;    // allows a subscribing thread to wait for events to arrive.
+		offset_ptr<interprocess_semaphore, int64_t, uint64_t>	pSemaphoreSubscription_;    // allows a subscribing thread to wait for events to arrive.
         GUID                        guidSubscriber_;                    // the unique identifier of the subscriber
 		uint64_t                    fDestructed_;               // true: this object has been destructed
         uint64_t                    fWaiting_;                  // true: the subscribing thread is waiting

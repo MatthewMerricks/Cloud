@@ -40,6 +40,7 @@ namespace bi = boost::intrusive;
 #include <functional>
 #include <iosfwd>
 #include <string>
+#include <stdint.h>   // ADDED RKS
 
 /// @endcond
 
@@ -150,7 +151,8 @@ class cached_adaptive_pool;
 
 static const std::size_t offset_type_alignment = 0;
 
-template <class T, class DifferenceType = std::ptrdiff_t, class OffsetType = std::size_t, std::size_t Alignment = offset_type_alignment>
+//Changed RKS: template <class T, class DifferenceType = std::ptrdiff_t, class OffsetType = std::size_t, std::size_t Alignment = offset_type_alignment>
+template <class T, class DifferenceType = int64_t, class OffsetType = uint64_t, std::size_t Alignment = offset_type_alignment>
 class offset_ptr;
 
 //////////////////////////////////////////////////////////////////////////////

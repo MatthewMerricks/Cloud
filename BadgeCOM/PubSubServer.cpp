@@ -352,7 +352,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					*outEventSubType = itEvent->EventSubType_;
 					*outBadgeType = itEvent->BadgeType_;
 					*outFullPath = SysAllocString(itEvent->FullPath_.c_str());             // this is freed explicitly by the subscriber.  On the .Net side, the interop wrapper frees it.
-                    *outProcessIdPublisher = itEvent->ProcessId_;
+                    *outProcessIdPublisher = (ULONG)itEvent->ProcessId_;
                     *outGuidPublisher = itEvent->GuidPublisher_;
 					CLTRACE(9, "PubSubServer: Subscribe: Returned event info: EventSubType: %d. BadgeType: %d. FullPath: %ls. ProcessId: %lx. GuidPublisher: %ls.", *outEventSubType, *outBadgeType, *outFullPath, *outProcessIdPublisher, CComBSTR(*outGuidPublisher));
 
@@ -1018,7 +1018,7 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 					{
 						// Log this subscription
                         BOOL fBumpIterator = true;
-                        ULONG thisProcessId = itSubscription->second.uSubscribingProcessId_;
+                        ULONG thisProcessId = (ULONG)itSubscription->second.uSubscribingProcessId_;
 						CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Found subscription: EventType: %d. ProcessId: %lx. ThreadId: %lx. Guid: %ls.", 
 								itSubscription->second.nEventType_, thisProcessId, 
 								itSubscription->second.uSubscribingThreadId_, CComBSTR(itSubscription->second.guidSubscriber_));
