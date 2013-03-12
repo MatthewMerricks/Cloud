@@ -19,8 +19,6 @@ static const char * _ksBaseSharedMemoryObjectName = "Base";					// the name of t
 static const int _knMaxEventsInEventQueue = 1000;							// maximum number of events allowed in a subscription's event queue
 static const int _knShortRetries = 5;										// number of retries when giving up short amounts of CPU
 static const int _knShortRetrySleepMs = 50;									// time to wait when giving up short amounts of CPU
-static const int _knOuterMapBuckets = 11;									// number of buckets for the unordered_map<EventType, unordered_map<GUID, Subscription>>.
-static const int _knInnerMapBuckets = 11;									// number of buckets for the unordered_map<GUID, Subscription>.
 
 // Static constant initializers
 managed_windows_shared_memory *CPubSubServer::_pSegment = NULL;						// pointer to the shared memory segment
@@ -125,7 +123,13 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
         pszExceptionStateTracker = "Call find_or_construct";
-        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
+		std::less<int> comparator;
+        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
+	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved1_): %d", sizeof(pBase->reserved1_));
+	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved2_): %d", sizeof(pBase->reserved2_));
+	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved3_): %d", sizeof(pBase->reserved3_));
+	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
+	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
 
 		// We want to add this event to the queue for each of the scriptions waiting for this event type, but
 		// one or more of the subscriber's event queues may be full.  If we find a full event queue, we will
@@ -319,8 +323,14 @@ STDMETHODIMP CPubSubServer::Subscribe(
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
 	    CLTRACE(9, "PubSubServer: Subscribe: Call find_or_construct.  _pSegment: %p.", _pSegment);
         pszExceptionStateTracker = "Call find_or_construct";
-        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
+		std::less<int> comparator;
+        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 	    CLTRACE(9, "PubSubServer: Subscribe: After call to find_or_construct. pBase: %p.", pBase);
+	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved1_): %d", sizeof(pBase->reserved1_));
+	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved2_): %d", sizeof(pBase->reserved2_));
+	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved3_): %d", sizeof(pBase->reserved3_));
+	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
+	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
 
 	    pBase->mutexSharedMemory_.lock();
 		try
@@ -390,20 +400,38 @@ STDMETHODIMP CPubSubServer::Subscribe(
 				{
 					// The event type was not found in the outer map.  Construct an inner map<GUID, Subscription> and add it to the outer map.
 					CLTRACE(9, "PubSubServer: Subscribe: The EventType record was not found in the outer map.  Construct and add it.");
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(subscription_allocator): %d.", sizeof(subscription_allocator));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(guid_allocator): %d.", sizeof(guid_allocator));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(pair_guid_subscription): %d.", sizeof(pair_guid_subscription));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(eventtype_allocator): %d.", sizeof(eventtype_allocator));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(pair_guid_subscription_allocator): %d.", sizeof(pair_guid_subscription_allocator));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(guid_subscription_map): %d.", sizeof(guid_subscription_map));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(pair_eventtype_pair_guid_subscription): %d.", sizeof(pair_eventtype_pair_guid_subscription));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(pair_eventtype_pair_guid_subscription_allocator): %d.", sizeof(pair_eventtype_pair_guid_subscription_allocator));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(eventtype_map_guid_subscription_map): %d.", sizeof(eventtype_map_guid_subscription_map));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(subscription_vector): %d.", sizeof(subscription_vector));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(subscription_vector_allocator): %d.", sizeof(subscription_vector_allocator));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(guid_subscription_map_allocator): %d.", sizeof(guid_subscription_map_allocator));
+					CLTRACE(9, "PubSubServer: Subscribe: sizeof(eventtype_map_guid_subscription_map_allocator): %d.", sizeof(eventtype_map_guid_subscription_map_allocator));
+
                     pszExceptionStateTracker = "Construct an inner map";
 					std::pair<guid_subscription_map::iterator, BOOL> retvalEmplace;
-					guid_subscription_map *mapGuidSubscription = _pSegment->construct<guid_subscription_map>(anonymous_instance)(_knInnerMapBuckets, boost::hash<GUID>(), std::equal_to<GUID>(), alloc_inst);
+
+					GUIDPairsComparer comparator;
+					guid_subscription_map *mapGuidSubscription = _pSegment->construct<guid_subscription_map>(anonymous_instance)(comparator, alloc_inst);
 					if (mapGuidSubscription == NULL)
 					{
 						throw new std::exception("ERROR: mapGuidSubscrition is NULL");
 					}
 
 					// Add a pair_guid_subscription to the inner map just constructed.
+					CLTRACE(9, "PubSubServer: Subscribe: Construct the GUID/Subscription pair to the inner map.");
 					retvalEmplace = mapGuidSubscription->emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, alloc_inst)));
 					retvalEmplace.first->second.fWaiting_ = true;
 					outOptrFoundSubscription = &retvalEmplace.first->second;
 
 					// Then add the constructed inner map to the outer map.
+					CLTRACE(9, "PubSubServer: Subscribe: Add the constructed inner map to the outer map.");
 					pBase->subscriptions_.emplace(pair_eventtype_pair_guid_subscription(EventType, *mapGuidSubscription));
 				}
 
@@ -564,7 +592,8 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
         pszExceptionStateTracker = "Call find_or_construct";
-        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
+		std::less<int> comparator;
+        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 
 		// Loop until we don't find any subscriptions for this process
 		while (true)
@@ -677,7 +706,8 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 
         // Construct the shared memory Base image and initiliaze it.  This is atomic.
         pszExceptionStateTracker = "Call find_or_construct";
-        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
+		std::less<int> comparator;
+        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 
 	    pBase->mutexSharedMemory_.lock();
 		try
@@ -999,7 +1029,8 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 
 			// Construct the shared memory Base image and initiliaze it.  This is atomic.
             pszExceptionStateTracker = "Call find_or_construct";
-	        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
+			std::less<int> comparator;
+	        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 
 			pBase->mutexSharedMemory_.lock();
 			try
@@ -1093,7 +1124,8 @@ STDMETHODIMP CPubSubServer::Terminate()
 
 			// Construct the shared memory Base image and initiliaze it.  This is atomic.
             pszExceptionStateTracker = "Call find_or_construct";
-	        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(_knOuterMapBuckets, alloc_inst);
+			std::less<int> comparator;
+	        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 
 			pBase->mutexSharedMemory_.lock();
 			try

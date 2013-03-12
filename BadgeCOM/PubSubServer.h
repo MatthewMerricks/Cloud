@@ -14,11 +14,12 @@
 #include <limits.h>
 #include <WinVer.h>
 #include <boost\interprocess\managed_windows_shared_memory.hpp>
-#include <boost\interprocess\containers\map.hpp>
-#include <boost\unordered_map.hpp>
 #include <boost\interprocess\allocators\allocator.hpp>
+#include <boost\interprocess\containers\map.hpp>
 #include <boost\interprocess\containers\vector.hpp>
 #include <boost\interprocess\containers\string.hpp>
+#include <boost\interprocess\containers\flat_set.hpp>
+#include <boost\interprocess\containers\flat_map.hpp>
 #include <boost\interprocess\sync\interprocess_mutex.hpp>
 #include <boost\interprocess\sync\interprocess_semaphore.hpp>
 #include <boost\interprocess\sync\scoped_lock.hpp>
@@ -74,6 +75,27 @@ END_COM_MAP()
 	}
 
 public:
+
+	// A GUID comparator for std::less<GUID>.
+	struct GUIDPairsComparer
+	{
+	    bool operator()(const GUID &left, const GUID &right) const
+	    {
+			if (left.Data1 < right.Data1)
+				return true; 
+			else if (left.Data1 > right.Data1)
+				return false;
+			if (left.Data2 < right.Data2)
+				return true; 
+			else if (left.Data2 > right.Data2)
+				return false;    
+			if (left.Data3 < right.Data3)
+				return true; 
+			else if (left.Data3 > right.Data3)
+				return false;
+			return memcmp(left.Data4, right.Data4, 8) < 0;
+		}
+	};
 
 	// Typedefs of allocators and containers
 	typedef managed_windows_shared_memory::segment_manager          segment_manager_t;      // this is the segment_manager
@@ -166,10 +188,10 @@ public:
 	typedef std::pair<const GUID, Subscription>													pair_guid_subscription;	// a pair of GUID, Subscription
 	typedef boost::interprocess::allocator<EnumEventType, segment_manager_t>					eventtype_allocator;	// allocator for allocating EnumEventType
 	typedef boost::interprocess::allocator<pair_guid_subscription, segment_manager_t>			pair_guid_subscription_allocator;  // allocator for pair_guid_subscription
-	typedef boost::unordered_map<GUID, Subscription, boost::hash<GUID>, std::equal_to<GUID>, pair_guid_subscription_allocator>  guid_subscription_map;  // a map of GUID => Subscription
+	typedef boost::interprocess::flat_map<GUID, Subscription, GUIDPairsComparer, pair_guid_subscription_allocator>  guid_subscription_map;  // a map of GUID => Subscription
 	typedef std::pair<const EnumEventType, guid_subscription_map>								pair_eventtype_pair_guid_subscription;  // a pair(EnumEventType, pair(GUID, Subscription))
 	typedef boost::interprocess::allocator<pair_eventtype_pair_guid_subscription, segment_manager_t>  pair_eventtype_pair_guid_subscription_allocator;  // allocator for pair(EnumEventType, pair(GUID, Subscription))
-	typedef boost::unordered_map<EnumEventType, guid_subscription_map, boost::hash<int>, std::equal_to<int>, pair_eventtype_pair_guid_subscription_allocator> eventtype_map_guid_subscription_map;  // a map(EnumEventType, map<GUID, Subscription)>
+	typedef boost::interprocess::flat_map<EnumEventType, guid_subscription_map, std::less<int>, pair_eventtype_pair_guid_subscription_allocator> eventtype_map_guid_subscription_map;  // a map(EnumEventType, map<GUID, Subscription)>
 	typedef boost::interprocess::vector<Subscription, subscription_allocator>                    subscription_vector;    // a vector of Subscriptions
 	typedef boost::interprocess::allocator<subscription_vector, segment_manager_t>               subscription_vector_allocator;  // allocator for allocating a vector of Subscription.
 	typedef boost::interprocess::allocator<guid_subscription_map, segment_manager_t>			guid_subscription_map_allocator;  // allocator for allocating a map of GUID => Subscription
@@ -184,14 +206,15 @@ public:
         uint64_t            uSignature_;                 // 0xACACACACACACACAC
 		interprocess_mutex  mutexSharedMemory_;  // lock to protect the whole Base object
 		eventtype_map_guid_subscription_map subscriptions_;      // a map of [GUID, Subscription] (the active subscriptions)
+		uint64_t reserved3_;
 
-		Base(eventtype_map_guid_subscription_map::size_type initialBucketCount,
-				const void_allocator &allocator)
+		Base(const std::less<int> &comparator, const void_allocator &allocator)
 				: 
 			reserved1_(0),
 			reserved2_(0),
 			uSignature_(0xACACACACACACACAC),
-			subscriptions_(initialBucketCount, boost::hash<int>(), std::equal_to<int>(), allocator) {}
+			subscriptions_(comparator, allocator),
+			reserved3_(0) {}
 	};
 
 	// Definition of the map holding all of the data.  There will just be a single map element with key "base".  The value
@@ -272,5 +295,8 @@ static std::size_t hash_value(GUID const& guid)
 {
 	return FNV_hash(&guid, sizeof(GUID));
 }
+
+// GUID Comparator
+
 
 OBJECT_ENTRY_AUTO(__uuidof(PubSubServer), CPubSubServer)

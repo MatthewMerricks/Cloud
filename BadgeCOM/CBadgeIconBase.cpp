@@ -746,11 +746,11 @@ void CBadgeIconBase::OnEventTimerTick()
         BOOL fAtLeastOneProcessCleaned = false;
         for (boost::unordered_set<uint64_t>::iterator itProcess = setCopyOfActiveProcesses.begin(); itProcess != setCopyOfActiveProcesses.end();  ++itProcess)
         {
-            if (!CPubSubServer::IsProcessRunning(*itProcess))
+            if (!CPubSubServer::IsProcessRunning((DWORD)*itProcess))
             {
                 CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Process ID %lx is dead.  Clean the badging database.", *itProcess);
                 fAtLeastOneProcessCleaned = true;
-                CleanBadgingDatabaseForProcessId(*itProcess);   // locks on its own
+                CleanBadgingDatabaseForProcessId((DWORD)*itProcess);   // locks on its own
             }
         }
 
