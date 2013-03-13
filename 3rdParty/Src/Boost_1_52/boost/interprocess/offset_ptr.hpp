@@ -82,7 +82,8 @@ namespace ipcdetail {
    #elif defined(NDEBUG)
       inline
    #endif
-   void * offset_ptr_to_raw_pointer(const volatile void *this_ptr, std::size_t offset)
+   //RKS:void * offset_ptr_to_raw_pointer(const volatile void *this_ptr, std::size_t offset)
+   void * offset_ptr_to_raw_pointer(const volatile void *this_ptr, uint64_t offset)
    {
       typedef pointer_size_t_caster<void*> caster_t;
       #ifndef BOOST_INTERPROCESS_OFFSET_PTR_BRANCHLESS_TO_PTR
@@ -95,7 +96,8 @@ namespace ipcdetail {
          }
       #else
          caster_t caster((void*)this_ptr);
-         return caster_t((caster.size() + offset) & -std::size_t(offset != 1)).pointer();
+         //RKS:return caster_t((caster.size() + offset) & -std::size_t(offset != 1)).pointer();
+         return caster_t((caster.size() + offset) & -uint64_t(offset != 1)).pointer();
       #endif
    }
 
@@ -121,7 +123,8 @@ namespace ipcdetail {
    #elif defined(NDEBUG)
       inline
    #endif
-   std::size_t offset_ptr_to_offset(const volatile void *ptr, const volatile void *this_ptr)
+   //RKS:std::size_t offset_ptr_to_offset(const volatile void *ptr, const volatile void *this_ptr)
+   uint64_t offset_ptr_to_offset(const volatile void *ptr, const volatile void *this_ptr)
    {
       typedef pointer_size_t_caster<void*> caster_t;
       #ifndef BOOST_INTERPROCESS_OFFSET_PTR_BRANCHLESS_TO_OFF
@@ -132,14 +135,16 @@ namespace ipcdetail {
          else{
             caster_t this_caster((void*)this_ptr);
             caster_t ptr_caster((void*)ptr);
-            std::size_t offset = ptr_caster.size() - this_caster.size();
+            //RKS:std::size_t offset = ptr_caster.size() - this_caster.size();
+            uint64_t offset = ptr_caster.size() - this_caster.size();
             BOOST_ASSERT(offset != 1);
             return offset;
          }
       #else
          caster_t this_caster((void*)this_ptr);
          caster_t ptr_caster((void*)ptr);
-         std::size_t offset = (ptr_caster.size() - this_caster.size() - 1) & -std::size_t(ptr != 0);
+         //RKS:std::size_t offset = (ptr_caster.size() - this_caster.size() - 1) & -std::size_t(ptr != 0);
+         uint64_t offset = (ptr_caster.size() - this_caster.size() - 1) & -uint64_t(ptr != 0);
          ++offset;
          return offset;
       #endif
@@ -167,8 +172,11 @@ namespace ipcdetail {
    #elif defined(NDEBUG)
       inline
    #endif
-   std::size_t offset_ptr_to_offset_from_other
-      (const volatile void *this_ptr, const volatile void *other_ptr, std::size_t other_offset)
+   //RKS:Change to a 64-bit offset.
+   //RKS:std::size_t offset_ptr_to_offset_from_other
+   //RKS:  (const volatile void *this_ptr, const volatile void *other_ptr, std::size_t other_offset)
+   uint64_t offset_ptr_to_offset_from_other
+      (const volatile void *this_ptr, const volatile void *other_ptr, uint64_t other_offset)
    {
       typedef pointer_size_t_caster<void*> caster_t;
       #ifndef BOOST_INTERPROCESS_OFFSET_PTR_BRANCHLESS_TO_OFF_FROM_OTHER
@@ -178,14 +186,16 @@ namespace ipcdetail {
       else{
          caster_t this_caster((void*)this_ptr);
          caster_t other_caster((void*)other_ptr);
-         std::size_t offset = other_caster.size() - this_caster.size() + other_offset;
+         //RKS:std::size_t offset = other_caster.size() - this_caster.size() + other_offset;
+         uint64_t offset = other_caster.size() - this_caster.size() + other_offset;
          BOOST_ASSERT(offset != 1);
          return offset;
       }
       #else
       caster_t this_caster((void*)this_ptr);
       caster_t other_caster((void*)other_ptr);
-      std::size_t offset = (other_caster.size() - this_caster.size()) & -std::size_t(other_offset != 1);
+      //RKS:std::size_t offset = (other_caster.size() - this_caster.size()) & -std::size_t(other_offset != 1);
+      uint64_t offset = (other_caster.size() - this_caster.size()) & -uint64_t(other_offset != 1);
       offset += other_offset;
       return offset;
       #endif

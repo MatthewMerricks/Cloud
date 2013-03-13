@@ -43,6 +43,10 @@ using namespace boost::interprocess;
 static std::size_t FNV_hash(const void* dataToHash, std::size_t length);
 static std::size_t hash_value(GUID const& guid);
 
+// Constants
+static const uint64_t _kuEventSignature = 0x1212121212121212;				// event object signature
+static const uint64_t _kuSubscriptionSignature = 0xCACACACACACACACA;		// subscription object signature
+static const uint64_t _kuBaseSignature = 0xACACACACACACACAC;				// base object signature
 
 // CPubSubServer
 
@@ -114,6 +118,7 @@ public:
 	class EventMessage
 	{
 	public:
+		uint64_t					Signature1_;				// signature 0x1212121212121212
 		EnumEventType				EventType_;                 // this event's event type
         EnumEventSubType            EventSubType_;              // this event's event subtype
 		uint64_t					ProcessId_;                 // for logging only
@@ -121,12 +126,13 @@ public:
 		EnumCloudAppIconBadgeType	BadgeType_;                 // the badge type associated with this event
 		wchar_string				FullPath_;                  // the full path associated with this event
         GUID                        GuidPublisher_;             // the identity of the publisher
+		uint64_t					Signature2_;				// signature 0x1212121212121212
 
 		// Constructor
 		EventMessage(EnumEventType EventType, EnumEventSubType EventSubType, ULONG ProcessId, ULONG ThreadId, 
 				EnumCloudAppIconBadgeType BadgeType, BSTR *FullPath, GUID GuidPublisher, const wchar_string::allocator_type &allocator) :
-				EventType_(EventType), EventSubType_(EventSubType), ProcessId_(ProcessId), ThreadId_(ThreadId), 
-					BadgeType_(BadgeType), FullPath_(*FullPath, allocator), GuidPublisher_(GuidPublisher) {}
+				Signature1_(_kuEventSignature), EventType_(EventType), EventSubType_(EventSubType), ProcessId_(ProcessId), ThreadId_(ThreadId), 
+					BadgeType_(BadgeType), FullPath_(*FullPath, allocator), GuidPublisher_(GuidPublisher), Signature2_(_kuEventSignature) {}
 	};
 
 	// Event allocators
@@ -137,7 +143,7 @@ public:
 	class Subscription
 	{
 	public:
-        uint64_t                    uSignature_;                // 0xCACACACACACACACACA
+        uint64_t                    uSignature1_;               // 0xCACACACACACACACA
 		uint64_t                    uSubscribingProcessId_;     // the subscribing process ID (logging only)
 		uint64_t                    uSubscribingThreadId_;      // the subscribing thread ID (logging only)
 		EnumEventType               nEventType_;                // the event type being subscribed to
@@ -147,11 +153,12 @@ public:
         uint64_t                    fWaiting_;                  // true: the subscribing thread is waiting
         uint64_t                    fCancelled_;                // true: this subscription has been cancelled.
 		EventMessage_vector		    events_;					// a vector of events,
+        uint64_t                    uSignature2_;               // 0xCACACACACACACACA
 
 		// Constructor
 		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, 
 									const void_allocator &allocator) :
-                            uSignature_(0xCACACACACACACACA),
+                            uSignature1_(_kuSubscriptionSignature),
 							uSubscribingProcessId_(uSubscribingProcessId), 
 							uSubscribingThreadId_(uSubscribingThreadId),
 							nEventType_(nEventType),
@@ -159,7 +166,8 @@ public:
 							fDestructed_(false),
 							fWaiting_(false),
 							fCancelled_(false),
-							events_(allocator)
+							events_(allocator),
+							uSignature2_(_kuSubscriptionSignature)
 		{
 			// The interprocess_semaphore object is marked not copyable, and this prevented compilation.  Change it to a pointer
 			// reference to allow the object to be copied to get past the compiler error.  The actual semaphore should be allocated in
@@ -203,18 +211,18 @@ public:
 	public:
 		uint64_t reserved1_, reserved2_;
 		// Put any required global data here.
-        uint64_t            uSignature_;                 // 0xACACACACACACACAC
+        uint64_t            uSignature1_;                 // 0xACACACACACACACAC
 		interprocess_mutex  mutexSharedMemory_;  // lock to protect the whole Base object
 		eventtype_map_guid_subscription_map subscriptions_;      // a map of [GUID, Subscription] (the active subscriptions)
-		uint64_t reserved3_;
+        uint64_t            uSignature2_;                 // 0xACACACACACACACAC
 
 		Base(const std::less<int> &comparator, const void_allocator &allocator)
 				: 
 			reserved1_(0),
 			reserved2_(0),
-			uSignature_(0xACACACACACACACAC),
+			uSignature1_(_kuBaseSignature),
 			subscriptions_(comparator, allocator),
-			reserved3_(0) {}
+			uSignature2_(_kuBaseSignature) {}
 	};
 
 	// Definition of the map holding all of the data.  There will just be a single map element with key "base".  The value

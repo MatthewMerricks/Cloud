@@ -125,11 +125,15 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
         pszExceptionStateTracker = "Call find_or_construct";
 		std::less<int> comparator;
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
-	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved1_): %d", sizeof(pBase->reserved1_));
-	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved2_): %d", sizeof(pBase->reserved2_));
-	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved3_): %d", sizeof(pBase->reserved3_));
 	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
 	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
+
+		// Check the signature
+		if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
+		{
+		    CLTRACE(1, "PubSubServer: Publish: ERROR. Base signatures don't match.");
+		    return E_POINTER;
+		}
 
 		// We want to add this event to the queue for each of the scriptions waiting for this event type, but
 		// one or more of the subscriber's event queues may be full.  If we find a full event queue, we will
@@ -326,11 +330,15 @@ STDMETHODIMP CPubSubServer::Subscribe(
 		std::less<int> comparator;
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 	    CLTRACE(9, "PubSubServer: Subscribe: After call to find_or_construct. pBase: %p.", pBase);
-	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved1_): %d", sizeof(pBase->reserved1_));
-	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved2_): %d", sizeof(pBase->reserved2_));
-	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->reserved3_): %d", sizeof(pBase->reserved3_));
 	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
 	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
+
+		// Check the signature
+		if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
+		{
+		    CLTRACE(1, "PubSubServer: Subscribe: ERROR. Base signatures don't match.");
+		    return E_POINTER;
+		}
 
 	    pBase->mutexSharedMemory_.lock();
 		try
@@ -595,6 +603,13 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 		std::less<int> comparator;
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 
+		// Check the signature
+		if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
+		{
+		    CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: ERROR. Base signatures don't match.");
+		    return E_POINTER;
+		}
+
 		// Loop until we don't find any subscriptions for this process
 		while (true)
 		{
@@ -708,6 +723,13 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
         pszExceptionStateTracker = "Call find_or_construct";
 		std::less<int> comparator;
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
+
+		// Check the signature
+		if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
+		{
+		    CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR. Base signatures don't match.");
+		    return E_POINTER;
+		}
 
 	    pBase->mutexSharedMemory_.lock();
 		try
@@ -1032,6 +1054,13 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 			std::less<int> comparator;
 	        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 
+			// Check the signature
+			if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
+			{
+				CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR. Base signatures don't match.");
+				return E_POINTER;
+			}
+
 			pBase->mutexSharedMemory_.lock();
 			try
 			{
@@ -1126,6 +1155,13 @@ STDMETHODIMP CPubSubServer::Terminate()
             pszExceptionStateTracker = "Call find_or_construct";
 			std::less<int> comparator;
 	        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
+
+			// Check the signature
+			if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
+			{
+				CLTRACE(1, "PubSubServer: Terminate: ERROR. Base signatures don't match.");
+				return E_POINTER;
+			}
 
 			pBase->mutexSharedMemory_.lock();
 			try
