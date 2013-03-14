@@ -36,6 +36,9 @@
 #error "Single-threaded COM objects are not properly supported on Windows CE platform, such as the Windows Mobile platforms that do not include full DCOM support. Define _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA to force ATL to support creating single-thread COM object's and allow use of it's single-threaded COM object implementations. The threading model in your rgs file was set to 'Free' as that is the only threading model supported in non DCOM Windows CE platforms."
 #endif
 
+// Debug trace
+#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
+
 using namespace ATL;
 using namespace boost::interprocess;
 
@@ -172,21 +175,28 @@ public:
 			// The interprocess_semaphore object is marked not copyable, and this prevented compilation.  Change it to a pointer
 			// reference to allow the object to be copied to get past the compiler error.  The actual semaphore should be allocated in
 			// shared memory by this constructor, and it should be deallocated when this subscription is destructed.
-			 pSemaphoreSubscription_ = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
+			CLTRACE(9, "PubSubServer: Subscription constructor: Construct the semaphore.");
+			pSemaphoreSubscription_ = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
+			CLTRACE(9, "PubSubServer: Subscription constructor: After construct the semaphore.");
 		}	
 
 		// Destructor
 		~Subscription()
 		{
 			// Don't do this twice
+			CLTRACE(9, "PubSubServer: Subscription destructor: Entry.");
 			if (fDestructed_)
 			{
+				CLTRACE(9, "PubSubServer: Subscription destructor: Already destructed the semaphore.");
 				return;
 			}
 			fDestructed_ = true;
 
 			// Deallocate the semaphore
+			CLTRACE(9, "PubSubServer: Subscription destructor: Destruct the semaphore.");
 			pSemaphoreSubscription_->~interprocess_semaphore();
+			pSemaphoreSubscription_ = 0;		// Indicate that it has been disposed
+			CLTRACE(9, "PubSubServer: Subscription destructor: After destruct the semaphore.");
 		}
 	};
 

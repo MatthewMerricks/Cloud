@@ -10,9 +10,6 @@
 #include "stdafx.h"
 #include "PubSubServer.h"
 
-// Debug trace
-#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
-
 // Constants
 static const char * _ksSharedMemoryName = "64BDBAC9-709B-4429-A616-A6D4661C78A2";	// the name of the shared memory segment, GUID so it won't be obvious who owns it.
 static const char * _ksBaseSharedMemoryObjectName = "Base";					// the name of the single shared memory object that contains our shared memory data.
@@ -125,8 +122,8 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
         pszExceptionStateTracker = "Call find_or_construct";
 		std::less<int> comparator;
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
-	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
-	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
+	    CLTRACE(9, "PubSubServer: Publish: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
+	    CLTRACE(9, "PubSubServer: Publish: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
 
 		// Check the signature
 		if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
@@ -157,6 +154,13 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 				// We found the inner map<GUID, Subscription> for this event type.  Iterate through that map and capture the guids so we can deliver this event to all of those subscribers.
 				for (guid_subscription_map::iterator itSubscription = itMapOuter->second.begin(); itSubscription != itMapOuter->second.end(); ++itSubscription)
 				{
+					// Check the subscription signature.
+					if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
+					{
+						CLTRACE(1, "PubSubServer: Publish: Bad subscription signature.");
+						throw new std::exception("Bad subscription signature");
+					}
+
 					CLTRACE(9, "PubSubServer: Publish: Subscriber with GUID<%ls> is subscribed to this event.", CComBSTR(itSubscription->first));
 					subscribers.push_back(itSubscription->first);
 				}
@@ -218,6 +222,11 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 							// The event queue has room.  Construct this event in shared memory and add it at the back of the event queue for this subscription.
 							CLTRACE(9, "PubSubServer: Publish: Post this event to subscription with GUID<%ls>. pSemaphoreSubscription local addr: %p.", CComBSTR(*itGuid), outOptrFoundSubscription->pSemaphoreSubscription_.get());
 							outOptrFoundSubscription->events_.emplace_back(EventType, EventSubType, processId, threadId, BadgeType, FullPath, GuidPublisher, alloc_inst);
+
+							if (!outOptrFoundSubscription->pSemaphoreSubscription_)
+							{
+								throw new std::exception("Subscription semaphore has been destructed");
+							}
 
 							// Post the subscription's semaphore.
 							outOptrFoundSubscription->pSemaphoreSubscription_->post();
@@ -330,8 +339,8 @@ STDMETHODIMP CPubSubServer::Subscribe(
 		std::less<int> comparator;
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 	    CLTRACE(9, "PubSubServer: Subscribe: After call to find_or_construct. pBase: %p.", pBase);
-	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
-	    CLTRACE(9, "PubSubServer: Initialize: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
+	    CLTRACE(9, "PubSubServer: Subscribe: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
+	    CLTRACE(9, "PubSubServer: Subscribe: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
 
 		// Check the signature
 		if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
@@ -367,6 +376,14 @@ STDMETHODIMP CPubSubServer::Subscribe(
 				{
 					// An event is waiting.  Return the information.
 					EventMessage_vector::iterator itEvent = outOptrFoundSubscription->events_.begin();  // first event waiting
+
+					// Check the event signature.
+					if (itEvent->Signature1_ != _kuEventSignature || itEvent->Signature2_ != _kuEventSignature)
+					{
+						throw new std::exception("Bad event signature");
+					}
+
+					// Pass back the event
 					*outEventSubType = itEvent->EventSubType_;
 					*outBadgeType = itEvent->BadgeType_;
 					*outFullPath = SysAllocString(itEvent->FullPath_.c_str());             // this is freed explicitly by the subscriber.  On the .Net side, the interop wrapper frees it.
@@ -459,6 +476,11 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			// Without the lock, the subscriptions may move around in shared memory, but the semaphore itself will remain fixed.
 			if (fSubscriptionFound && fWaitRequired)
 			{
+				if (!outOptrFoundSubscription->pSemaphoreSubscription_)
+				{
+					throw new std::exception("Subscription semaphore has been destructed");
+				}
+
 				pFoundSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
 				CLTRACE(9, "PubSubServer: Subscribe: optrSemaphore local address under lock: %p.", pFoundSemaphore);
 			}
@@ -626,6 +648,13 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 					EnumEventType eventType = itEventType->first;
 					for (guid_subscription_map::iterator itSubscription = itEventType->second.begin(); itSubscription != itEventType->second.end(); ++itSubscription)
 					{
+						// Check the subscription signature.
+						if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
+						{
+							CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: Bad subscription signature.");
+							throw new std::exception("Bad subscription signature");
+						}
+
 						if (itSubscription->second.uSubscribingProcessId_ == ProcessId)
 						{
 							// This is one of our subscriptions.  Add it to a list to cancel.
@@ -749,6 +778,11 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 										outOptrFoundSubscription->fWaiting_, outOptrFoundSubscription->uSubscribingProcessId_, 
 										outOptrFoundSubscription->uSubscribingThreadId_, outOptrFoundSubscription->pSemaphoreSubscription_.get(), 
 										CComBSTR(outOptrFoundSubscription->guidSubscriber_));
+				if (!outOptrFoundSubscription->pSemaphoreSubscription_)
+				{
+					throw new std::exception("Subscription semaphore has been destructed");
+				}
+
 				outOptrFoundSubscription->fCancelled_ = true;
 				outOptrFoundSubscription->pSemaphoreSubscription_->post();
 
@@ -775,6 +809,11 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 										outOptrFoundSubscription->fWaiting_, outOptrFoundSubscription->uSubscribingProcessId_, 
 										outOptrFoundSubscription->uSubscribingThreadId_, outOptrFoundSubscription->pSemaphoreSubscription_.get(), 
 										CComBSTR(outOptrFoundSubscription->guidSubscriber_));
+
+							if (!outOptrFoundSubscription->pSemaphoreSubscription_)
+							{
+								throw new std::exception("Subscription semaphore has been destructed");
+							}
 							outOptrFoundSubscription->fCancelled_ = true;
 							outOptrFoundSubscription->pSemaphoreSubscription_->post();
 							continue;
@@ -917,6 +956,13 @@ void CPubSubServer::DeleteSubscriptionById(Base * pBase, CPubSubServer::UniqueSu
 			guid_subscription_map::iterator itMapInner = itMapOuter->second.find(subscriptionId.guid);
 			if (itMapInner != itMapOuter->second.end())
 			{
+				// Check the subscription signature.
+				if (itMapInner->second.uSignature1_ != _kuSubscriptionSignature || itMapInner->second.uSignature2_ != _kuSubscriptionSignature)
+				{
+					CLTRACE(1, "PubSubServer: DeleteSubscriptionById: Bad subscription signature.");
+					throw new std::exception("Bad subscription signature");
+				}
+
 				CLTRACE(9, "PubSubServer: DeleteSubscriptionById: Delete subscription.  EventType: %d. GUID: %ls.", subscriptionId.eventType, CComBSTR(subscriptionId.guid));
                 RemoveTrackedSubscriptionId(subscriptionId.eventType, subscriptionId.guid);
 
@@ -953,6 +999,13 @@ BOOL CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidSubscribe
 			guid_subscription_map::iterator itMapInner = itMapOuter->second.find(guidSubscriber);
 			if (itMapInner != itMapOuter->second.end())
 			{
+				// Check the subscription signature.
+				if (itMapInner->second.uSignature1_ != _kuSubscriptionSignature || itMapInner->second.uSignature2_ != _kuSubscriptionSignature)
+				{
+					CLTRACE(1, "PubSubServer: FindSubscription: Bad subscription signature.");
+					throw new std::exception("Bad subscription signature");
+				}
+
 				CLTRACE(9, "PubSubServer: FindSubscription: Found subscription.");
 				*outItSubscription = itMapInner;
 				*outOptrFoundSubscription = &itMapInner->second;
@@ -986,6 +1039,13 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
             // Loop through all of the subscriptions for this event type.
 			for (guid_subscription_map::iterator itSubscription = itEventType->second.begin(); itSubscription != itEventType->second.end(); ++itSubscription)
 			{
+				// Check the subscription signature.
+				if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
+				{
+					CLTRACE(1, "PubSubServer: TraceCurrentStateOfSharedMemory: Bad subscription signature.");
+					throw new std::exception("Bad subscription signature");
+				}
+
 				// Log this subscription
 				CLTRACE(9, "PubSubServer: TraceCurrentStateOfSharedMemory: Subscription: EventType: %d. ProcessId: %lx. ThreadId: %lx. Guid: %ls. fCancelled: %d. fDestructed: %d. fWaiting: %d. pSemaphoreSubscription: %p.", 
 						itSubscription->second.nEventType_,
@@ -1001,6 +1061,12 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
 				// List all of the events
                 for (EventMessage_vector::iterator itEvent = itSubscription->second.events_.begin(); itEvent != itSubscription->second.events_.end(); ++itEvent)
                 {
+					// Check the event signature.
+					if (itEvent->Signature1_ != _kuEventSignature || itEvent->Signature2_ != _kuEventSignature)
+					{
+						throw new std::exception("Bad event signature");
+					}
+
     				CLTRACE(9, "PubSubServer: TraceCurrentStateOfSharedMemory: Event: EventType: %d. ProcessId: %lx. ThreadId: %lx. EventSubType: %d. BadgeType: %d. FullPath: %ls. GuidPublisher: %ls.", 
                         itEvent->EventType_,
                         itEvent->ProcessId_,
@@ -1054,7 +1120,7 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 			std::less<int> comparator;
 	        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 
-			// Check the signature
+			// Check the base signature
 			if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
 			{
 				CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR. Base signatures don't match.");
@@ -1076,6 +1142,13 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
                     // Loop through the subscriptions for this event type.  Check each of the processes.  If the process is not running, erase the subscription.
 					for (guid_subscription_map::iterator itSubscription = itEventType->second.begin(); itSubscription != itEventType->second.end(); /* iterator bumped in the body */)
 					{
+						// Check the subscription signature.
+						if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
+						{
+							CLTRACE(1, "PubSubServer: CleanUpUnusedResources: Bad subscription signature.");
+							throw new std::exception("Bad subscription signature");
+						}
+
 						// Log this subscription
                         BOOL fBumpIterator = true;
                         ULONG thisProcessId = (ULONG)itSubscription->second.uSubscribingProcessId_;
@@ -1183,6 +1256,13 @@ STDMETHODIMP CPubSubServer::Terminate()
 				{
 					for (guid_subscription_map::iterator itSubscription = itEventType->second.begin(); itSubscription != itEventType->second.end(); ++itSubscription)
 					{
+						// Check the subscription signature.
+						if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
+						{
+							CLTRACE(1, "PubSubServer: Terminate: Bad subscription signature.");
+							throw new std::exception("Bad subscription signature");
+						}
+
 						// Log this subscription.
 						CLTRACE(9, "PubSubServer: Terminate: Remaining subscription: EventType: %d. ProcessId: %lx. ThreadId: %lx. Guid: %ls.", 
 								itSubscription->second.nEventType_, itSubscription->second.uSubscribingProcessId_, 
