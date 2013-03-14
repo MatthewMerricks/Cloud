@@ -229,7 +229,12 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 							}
 
 							// Post the subscription's semaphore.
-							outOptrFoundSubscription->pSemaphoreSubscription_->post();
+							interprocess_semaphore *pSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
+							if (pSemaphore == NULL)
+							{
+								throw new std::exception("Local subscription pointer is null");
+							}
+							pSemaphore->post();
 							fEventDelivered = true;
 						}
 					}
@@ -784,7 +789,14 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 				}
 
 				outOptrFoundSubscription->fCancelled_ = true;
-				outOptrFoundSubscription->pSemaphoreSubscription_->post();
+
+				// Post the subscription's semaphore.
+				interprocess_semaphore *pSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
+				if (pSemaphore == NULL)
+				{
+					throw new std::exception("Local subscription pointer is null");
+				}
+				pSemaphore->post();
 
 				// Give the thread a chance to exit the wait.
 				BOOL fCancelOk = false;
@@ -815,7 +827,14 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 								throw new std::exception("Subscription semaphore has been destructed");
 							}
 							outOptrFoundSubscription->fCancelled_ = true;
-							outOptrFoundSubscription->pSemaphoreSubscription_->post();
+
+							// Post the subscription's semaphore.
+							interprocess_semaphore *pSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
+							if (pSemaphore == NULL)
+							{
+								throw new std::exception("Local subscription pointer is null");
+							}
+							pSemaphore->post();
 							continue;
 						}
 
