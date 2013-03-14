@@ -195,7 +195,12 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 							outOptrFoundSubscription->events_.emplace_back(EventType, EventSubType, processId, threadId, BadgeType, FullPath, GuidPublisher, alloc_inst);
 
 							// Post the subscription's semaphore.
-							outOptrFoundSubscription->pSemaphoreSubscription_->post();
+							interprocess_semaphore *pSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
+							if (pSemaphore == NULL)
+							{
+								throw new std::exception("Local subscription pointer is null");
+							}
+							pSemaphore->post();
 							fEventDelivered = true;
 						}
 					}
@@ -681,7 +686,14 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 										outOptrFoundSubscription->uSubscribingThreadId_, outOptrFoundSubscription->pSemaphoreSubscription_.get(), 
 										CComBSTR(outOptrFoundSubscription->guidSubscriber_));
 				outOptrFoundSubscription->fCancelled_ = true;
-				outOptrFoundSubscription->pSemaphoreSubscription_->post();
+
+				// Post the subscription's semaphore.
+				interprocess_semaphore *pSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
+				if (pSemaphore == NULL)
+				{
+					throw new std::exception("Local subscription pointer is null");
+				}
+				pSemaphore->post();
 
 				// Give the thread a chance to exit the wait.
 				bool fCancelOk = false;
@@ -707,7 +719,14 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 										outOptrFoundSubscription->uSubscribingThreadId_, outOptrFoundSubscription->pSemaphoreSubscription_.get(), 
 										CComBSTR(outOptrFoundSubscription->guidSubscriber_));
 							outOptrFoundSubscription->fCancelled_ = true;
-							outOptrFoundSubscription->pSemaphoreSubscription_->post();
+
+							// Post the subscription's semaphore.
+							interprocess_semaphore *pSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
+							if (pSemaphore == NULL)
+							{
+								throw new std::exception("Local subscription pointer is null");
+							}
+							pSemaphore->post();
 							continue;
 						}
 
