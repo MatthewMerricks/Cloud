@@ -14,26 +14,7 @@ namespace Cloud.Static
 {
     internal enum AuthenticationErrorType : ulong
     {
-        /*
-         * number to the left of the decimal point is used as a 32-bit unsigned integer bit-shifted greater by 32 bits
-         * number to the right of the decimal point is taken first as a string, its characters are reversed, and then parsed as a 32-bit unsigned integer
-         *    (which takes the lower-order 32 bits)
-         * these higher and lower-order bits are ORed together
-         * 
-         * decimal 3000.2 translates to
-         * (((ulong)3000) << 32) | 2
-         * 
-         * decimal 2.11 translates to
-         * (((ulong)2) << 32) | 11
-         * 
-         * decimal 44.05 translates to
-         * (((ulong)44) << 32) | 50        <-- notice 05 => 50
-         * 
-         * decimal ABC.DEF translates to   <-- notice DEF => FED
-         * (((ulong)ABC) << 32) | FED
-         */
-
-        SessionExpired = (((ulong)3000) << 32) | 2 // 3000.2
+        SessionExpired = 30002
     }
 
     [Flags]
