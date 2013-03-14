@@ -193,7 +193,7 @@ public:
 			fDestructed_ = true;
 
 			// Deallocate the semaphore
-			CLTRACE(9, "PubSubServer: Subscription destructor: Destruct the semaphore.");
+			CLTRACE(9, "PubSubServer: Subscription destructor: Destruct the semaphore. Local addr %p.", pSemaphoreSubscription_.get());
 			pSemaphoreSubscription_->~interprocess_semaphore();
 			pSemaphoreSubscription_ = 0;		// Indicate that it has been disposed
 			CLTRACE(9, "PubSubServer: Subscription destructor: After destruct the semaphore.");
