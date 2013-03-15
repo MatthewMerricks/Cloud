@@ -103,12 +103,13 @@ HRESULT CBadgeIconBase::GetOverlayInfo(
 	try
 	{
 		// Get our module's full path
-		CLTRACE(9, "CBadgeIconBase: GetOverlayInfo: Entry. Badge type: %s.", _strBaseBadgeType.c_str());
+		CLTRACE(9, "CBadgeIconBase: GetOverlayInfo: Entry. Badge type: %s. cchMax: %d.", _strBaseBadgeType.c_str(), cchMax);
 		GetModuleFileNameW(_AtlBaseModule.GetModuleInstance(), pwszIconFile, cchMax);
 
         *pIndex = _iconIndex;                       // this is the index of the icon to use (synced, syncing, ...)
 
 		*pdwFlags = ISIOI_ICONFILE | ISIOI_ICONINDEX;
+		CLTRACE(9, "CBadgeIconBase: GetOverlayInfo: Returned info: Path: <%ls>. Index: %d. pdwFlags: %lu.", pwszIconFile, *pIndex, *pdwFlags);
 	}
 	catch (const std::exception &ex)
 	{
@@ -185,6 +186,7 @@ HRESULT CBadgeIconBase::GetPriority(int* pPriority)
 	    CLTRACE(9, "CBadgeIconBase: GetPriority: Entry. Badge type: %s.", _strBaseBadgeType.c_str());
 	    // change the following to set priority between multiple overlays
 	    *pPriority = 0;
+        CLTRACE(9, "CBadgeIconBase: GetPriority: Return Priority %d.", *pPriority);
     }
     catch (const std::exception &ex)
     {

@@ -168,7 +168,7 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, Enum
 		CLTRACE(9, "CBadgeNetPubSubEvents: PublishEventToBadgeNet: Entry. EventType: %d. EventSubType: %d. BadgeType: %d.", eventType, eventSubType, badgeType);
         if (_pPubSubServer == NULL || fullPath == NULL)
         {
-            throw new std::exception("Call Initialize() first");
+            throw new std::exception("Call Initialize() first, and fullPath must not be null");
         }
 
         // Publish the event

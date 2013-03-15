@@ -112,7 +112,7 @@ STDMETHODIMP CBadgeIconSynced::GetPriority(int* pPriority)
         CLTRACE(9, "CBadgeIconSynced: GetPriority: Entry");
         if (_pBaseShellExtension != NULL)
         {
-            _pBaseShellExtension->GetPriority(pPriority);
+            _pBaseShellExtension->GetPriority(pPriority);	
         }
     }
     catch (const std::exception &ex)
