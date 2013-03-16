@@ -203,25 +203,25 @@ void Trace::PerhapsChangeTraceFilename()
 
         // Create the new trace file full path if the date has changed.  Get the current time.
 	    time_t rawtime;
-	    struct tm *timeinfo;
+	    struct tm timeinfo;
 
 	    time(&rawtime);
-	    timeinfo = localtime(&rawtime);
+	    localtime_s(&timeinfo, &rawtime);
 
         // Check the date.  Note: tm_mon is 0-11, and tm_year is year - 1900.
-        if (timeinfo->tm_year != _nYear
-            || timeinfo->tm_mon != _nMonth
-            || timeinfo->tm_mday != _nDay)
+        if (timeinfo.tm_year != _nYear
+            || timeinfo.tm_mon != _nMonth
+            || timeinfo.tm_mday != _nDay)
         {
             // The date has changed
-            _nYear = timeinfo->tm_year;
-            _nMonth = timeinfo->tm_mon;
-            _nDay = timeinfo->tm_mday;
+            _nYear = timeinfo.tm_year;
+            _nMonth = timeinfo.tm_mon;
+            _nDay = timeinfo.tm_mday;
 
             // Generate the full path of the new trace file.
     	    WCHAR wsTime[200];
 		    WCHAR wsBuff[200];
-    	    wcsftime(wsTime, sizeof(wsTime) / sizeof(WCHAR), L"%Y-%m-%d", timeinfo);
+    	    wcsftime(wsTime, sizeof(wsTime) / sizeof(WCHAR), L"%Y-%m-%d", &timeinfo);
 		    wsprintf(wsBuff, L"\\Trace-%ls-CloudShellExt.log", wsTime);
 		    _wsTraceFileFullPath = _wsTraceDirectory + wsBuff;
 
@@ -345,5 +345,146 @@ int Trace::GetFileList(std::wstring &wsSearchKey, std::vector<std::wstring> &out
         }
     }
 
-    return outList.size();
+    return (int)outList.size();
 }
+
+/// <summary>
+/// Trace bytes stored at an arbitrary memory address.  Also trace interpreted ASCII data to the right in each line.
+/// </summary>
+void Trace::writeDumpData(void *pvData, USHORT usLenData, int priority, char *szFormat, ...)
+{
+	CHAR	szDump[_knDbgMaxBufferSize];
+	CHAR*	pByte;
+	DWORD	nLines;
+	DWORD	x;
+	DWORD	y;
+	CHAR*	pbaData = (CHAR *)pvData;
+
+	try
+	{
+	    EnterCriticalSection(&Trace::_cs);
+	    if (!_fTraceEnabled || priority > _nMaxPriorityToTrace)
+	    {
+		    LeaveCriticalSection(&Trace::_cs);
+		    return;
+	    }
+
+        // Change the trace file name if the date has changed, and manage the number of trace files in the trace directory.
+        PerhapsChangeTraceFilename();
+
+        // Start the variable arg list.
+	    va_list vl;
+	    va_start(vl, szFormat);
+
+	    // Open the trace file for output.  Allow other processes to append to the file also to intermix the entries.
+	    _streamTrace = _wfsopen(_wsTraceFileFullPath.c_str(), L"a", _SH_DENYNO);
+	    if (_streamTrace == NULL)
+	    {
+		    _fTraceEnabled = false;
+		    va_end(vl);
+		    LeaveCriticalSection(&Trace::_cs);
+		    return;
+	    }
+
+	    // Get the thread ID and process ID
+	    DWORD threadId = GetCurrentThreadId();
+	    DWORD processId = GetCurrentProcessId();
+	
+	    // Get the current local time
+        SYSTEMTIME st, lt;
+        GetSystemTime(&st);
+        GetLocalTime(&lt);
+
+        // Trace the line prefix
+	    fprintf(_streamTrace, "CPP_%04d-%02d-%02d_%02d:%02d:%02d-%03d_P%lx-T%lx_", lt.wYear, lt.wMonth, lt.wDay, lt.wHour, lt.wMinute, lt.wSecond, lt.wMilliseconds, processId, threadId);
+
+	    // Trace the message
+	    vfprintf(_streamTrace, szFormat, vl);
+
+        // Add a newline
+	    fprintf(_streamTrace, "\n");
+
+		// Start putting out the data lines.
+		nLines = usLenData / _knDbgBytesInDumpLine;
+		if( nLines * _knDbgBytesInDumpLine != usLenData)
+		{
+			nLines++;
+		}
+
+		for( x=0;x<nLines;x++)
+		{
+			UCHAR	ucChar;
+			size_t	stBytesToDump;
+			size_t	stDumpUsed;
+
+			stBytesToDump = min( _knDbgBytesInDumpLine, usLenData - (x*_knDbgBytesInDumpLine));
+			sprintf_s( szDump, sizeof( szDump), "%04X:  ", x * _knDbgBytesInDumpLine);
+			pByte = &pbaData[ x * _knDbgBytesInDumpLine];
+			for( y=0; y<_knDbgBytesInDumpLine; y++, pByte++)
+			{
+				if( y!= 0 && y % 8 == 0)
+				{
+					strcat_s( szDump, sizeof( szDump), "- ");
+				}
+				else if (y != 0 && y % 4 == 0)
+				{
+					strcat_s( szDump, sizeof( szDump), ". ");
+				}
+
+				if( y < stBytesToDump)
+				{
+					stDumpUsed = strlen( szDump);
+					sprintf_s( &szDump[stDumpUsed], sizeof( szDump) - stDumpUsed, "%02x ", *pByte & 0xff);
+				}
+				else
+				{
+					strcat_s( &szDump[stDumpUsed], sizeof( szDump) - stDumpUsed, "   ");
+				}
+			}
+
+			strcat_s( szDump, sizeof( szDump), "  ");
+			pByte = &pbaData[ x * _knDbgBytesInDumpLine];
+			for (y = 0; y < stBytesToDump; y++, pByte++)
+			{
+				if (y != 0 && y % 4 == 0)
+				{
+					strcat_s( szDump, sizeof( szDump), " ");
+				}
+
+				stDumpUsed = strlen( szDump);
+				ucChar = *pByte & 0xff;
+				if(isgraph(ucChar) || isspace(ucChar) && ucChar > 14)
+				{
+					ucChar = *pByte & 0xff;
+				}
+				else
+				{
+					ucChar = '.';
+				}
+
+				sprintf_s( &szDump[stDumpUsed], sizeof( szDump) - stDumpUsed, "%c", ucChar);
+			}
+
+			// Output this dump line indented.
+			fprintf(_streamTrace, "               %s\n", szDump);
+		}
+
+	    // Close the stream to flush the data
+	    fclose(_streamTrace);
+
+	    va_end(vl);
+    }
+    catch (...)
+    {
+    }
+
+    try
+    {
+        LeaveCriticalSection(&Trace::_cs);
+    }
+    catch (...)
+    {
+    }
+}
+
+

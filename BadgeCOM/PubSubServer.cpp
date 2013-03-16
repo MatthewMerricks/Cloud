@@ -58,6 +58,7 @@ STDMETHODIMP CPubSubServer::Initialize()
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(BOOL): %d", sizeof(BOOL));
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumEventType): %d", sizeof(EnumEventType));
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumEventSubType): %d", sizeof(EnumEventSubType));
+	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage_vector): %d", sizeof(EventMessage_vector));
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumCloudAppIconBadgeType): %d", sizeof(EnumCloudAppIconBadgeType));
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(GUID): %d", sizeof(GUID));
 	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage): %d", sizeof(EventMessage));
@@ -493,7 +494,11 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			else
 			{
 				// Our specific subscription was not found.  We will need to add it.
-				// First, locate the event type element in the outer map<EventType, map<GUID, Subscription>>.  The record may not be there.
+				// Construct a semaphore in shared memory.  The subscription will need a pointer to it.
+				pszExceptionStateTracker = "Construct subscription's semaphore";
+				offset_ptr<interprocess_semaphore, int64_t, uint64_t> opSemaphore = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
+
+				// Locate the event type element in the outer map<EventType, map<GUID, Subscription>>.  The record may not be there.
 				CLTRACE(9, "PubSubServer: Subscribe: Our specific subscription was not found.");
                 pszExceptionStateTracker = "Subscription not found";
 				eventtype_map_guid_subscription_map::iterator itMapOuter = pBase->subscriptions_.find(EventType);
@@ -501,9 +506,12 @@ STDMETHODIMP CPubSubServer::Subscribe(
 				{
 					// The event type record was found in the outer map.  Add a pair_guid_subscription record to the inner map.
 					CLTRACE(9, "PubSubServer: Subscribe: The EventType record was found in the outer map.  Construct an inner map pair_guid_subscription and add it to the inner map.");
+                    pszExceptionStateTracker = "Construct subscription's semaphore";
+					offset_ptr<interprocess_semaphore, int64_t, uint64_t> opSemaphore = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
+
                     pszExceptionStateTracker = "Add an inner map";
 					std::pair<guid_subscription_map::iterator, BOOL> retvalEmplace;
-					retvalEmplace = itMapOuter->second.emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, alloc_inst)));
+					retvalEmplace = itMapOuter->second.emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, opSemaphore, alloc_inst)));
 					retvalEmplace.first->second.fWaiting_ = true;
 					outOptrFoundSubscription = &retvalEmplace.first->second;
 				}
@@ -523,7 +531,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					// Add a pair_guid_subscription to the inner map just constructed.
 					CLTRACE(9, "PubSubServer: Subscribe: Construct the GUID/Subscription pair to the inner map.");
 	                pszExceptionStateTracker = "Add a guid_subscription pair to the inner map";
-					retvalEmplace = mapGuidSubscription->emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, alloc_inst)));
+					retvalEmplace = mapGuidSubscription->emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, opSemaphore, alloc_inst)));
 					retvalEmplace.first->second.fWaiting_ = true;
 					outOptrFoundSubscription = &retvalEmplace.first->second;
 
@@ -1152,6 +1160,7 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
                         itSubscription->second.fWaiting_,
                         itSubscription->second.pSemaphoreSubscription_.get()
                        );
+				CLTRACE_DUMP(&(itSubscription->second.pSemaphoreSubscription_), sizeof(itSubscription->second.pSemaphoreSubscription_), 9, "PubSubServer: TraceCurrentStateOfSharedMemory: Data in pSemaphoreSubscription offset pointer:");
 
 				// List all of the events
                 for (EventMessage_vector::iterator itEvent = itSubscription->second.events_.begin(); itEvent != itSubscription->second.events_.end(); ++itEvent)

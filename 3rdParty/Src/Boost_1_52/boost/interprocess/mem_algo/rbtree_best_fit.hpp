@@ -62,7 +62,8 @@ namespace interprocess {
 
 //!This class implements an algorithm that stores the free nodes in a red-black tree
 //!to have logarithmic search/insert times.
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 class rbtree_best_fit
 {
    /// @cond
@@ -368,7 +369,8 @@ class rbtree_best_fit
 
 /// @cond
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::size_type
        rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>
    ::priv_first_block_offset_from_this(const void *this_ptr, size_type extra_hdr_bytes)
@@ -382,7 +384,8 @@ inline typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::size_ty
    return block1_off;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    priv_add_segment(void *addr, size_type size)
 {
@@ -427,7 +430,8 @@ void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    m_header.m_imultiset.insert(*first_big_block);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
        rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>
    ::priv_first_block()
@@ -436,7 +440,8 @@ inline typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_c
    return reinterpret_cast<block_ctrl *>(reinterpret_cast<char*>(this) + block1_off);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
        rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>
    ::priv_end_block()
@@ -448,7 +453,8 @@ inline typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_c
    return end_block;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    rbtree_best_fit(size_type size, size_type extra_hdr_bytes)
 {
@@ -464,7 +470,8 @@ inline rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    priv_add_segment(reinterpret_cast<char*>(this) + block1_off, size - block1_off);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::~rbtree_best_fit()
 {
    //There is a memory leak!
@@ -472,7 +479,8 @@ inline rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::~rbtree_best_fit
 //   BOOST_ASSERT(m_header.m_root.m_next->m_next == block_ctrl_ptr(&m_header.m_root));
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::grow(size_type extra_size)
 {
    //Get the address of the first block
@@ -523,7 +531,8 @@ void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::grow(size_type ext
    this->priv_deallocate(priv_get_user_buffer(new_block));
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::shrink_to_fit()
 {
    //Get the address of the first block
@@ -594,12 +603,14 @@ void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::shrink_to_fit()
       priv_deallocate(unique_buffer);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::size_type
 rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::get_size()  const
 {  return m_header.m_size;  }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::size_type
 rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::get_free_memory()  const
 {
@@ -607,7 +618,8 @@ rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::get_free_memory()  cons
       priv_first_block_offset_from_this(this, m_header.m_extra_hdr_bytes);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::size_type
 rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    get_min_size (size_type extra_hdr_bytes)
@@ -617,7 +629,8 @@ rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
            MinBlockUnits + EndCtrlBlockUnits)*Alignment;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline bool rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
     all_memory_deallocated()
 {
@@ -634,7 +647,8 @@ inline bool rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
          (m_header.m_size - block1_off - EndCtrlBlockBytes)/Alignment;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 bool rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
     check_sanity()
 {
@@ -668,7 +682,8 @@ bool rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    return true;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline void* rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    allocate(size_type nbytes)
 {
@@ -680,7 +695,8 @@ inline void* rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    return ret;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline void* rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    allocate_aligned(size_type nbytes, size_type alignment)
 {
@@ -690,7 +706,8 @@ inline void* rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    return algo_impl_t::allocate_aligned(this, nbytes, alignment);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 template<class T>
 inline std::pair<T*, bool> rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    allocation_command  (boost::interprocess::allocation_type command,   size_type limit_size,
@@ -704,7 +721,8 @@ inline std::pair<T*, bool> rbtree_best_fit<MutexFamily, VoidPointer, MemAlignmen
    return std::pair<T *, bool>(static_cast<T*>(ret.first), ret.second);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline std::pair<void*, bool> rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    raw_allocation_command  (boost::interprocess::allocation_type command,   size_type limit_objects,
                         size_type preferred_objects,size_type &received_objects,
@@ -724,7 +742,8 @@ inline std::pair<void*, bool> rbtree_best_fit<MutexFamily, VoidPointer, MemAlign
 }
 
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline std::pair<void*, bool> rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    priv_allocation_command (boost::interprocess::allocation_type command,   size_type limit_size,
                        size_type preferred_size,size_type &received_size,
@@ -748,7 +767,8 @@ inline std::pair<void*, bool> rbtree_best_fit<MutexFamily, VoidPointer, MemAlign
    return ret;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::size_type
 rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    size(const void *ptr) const
@@ -759,7 +779,8 @@ rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    return ((size_type)priv_get_block(ptr)->m_size - AllocatedCtrlUnits)*Alignment + UsableByPreviousChunk;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::zero_free_memory()
 {
    //-----------------------
@@ -784,7 +805,8 @@ inline void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::zero_free_m
    }
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 void* rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    priv_expand_both_sides(boost::interprocess::allocation_type command
                          ,size_type min_size
@@ -927,7 +949,8 @@ void* rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    return 0;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    deallocate_many(typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::multiallocation_chain chain)
 {
@@ -937,7 +960,8 @@ inline void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    algo_impl_t::deallocate_many(this, boost::move(chain));
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 std::pair<void *, bool> rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    priv_allocate(boost::interprocess::allocation_type command
                 ,size_type limit_size
@@ -1001,7 +1025,8 @@ std::pair<void *, bool> rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>:
    return return_type(static_cast<void*>(0), false);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline
 typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
    rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_get_block(const void *ptr)
@@ -1011,13 +1036,15 @@ typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
          (reinterpret_cast<const char*>(ptr) - AllocatedCtrlBytes));
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline
 void *rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
       priv_get_user_buffer(const typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *block)
 {  return const_cast<char*>(reinterpret_cast<const char*>(block) + AllocatedCtrlBytes);   }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 inline typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::size_type
 rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    priv_get_total_units(size_type userbytes)
@@ -1029,7 +1056,8 @@ rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    return units;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 bool rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    priv_expand (void *ptr
                ,const size_type min_size
@@ -1138,7 +1166,8 @@ bool rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::
    return true;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment> inline
 typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
    rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_prev_block
       (typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *ptr)
@@ -1150,7 +1179,8 @@ typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
 
 
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment> inline
 typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
    rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_end_block
       (typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *first_segment_block)
@@ -1167,7 +1197,8 @@ typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
    return end_block;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment> inline
 typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
    rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_first_block
       (typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *end_segment_block)
@@ -1185,7 +1216,8 @@ typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
 }
 
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment> inline
 typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
    rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_next_block
       (typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *ptr)
@@ -1194,7 +1226,8 @@ typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *
       (reinterpret_cast<char*>(ptr) + ptr->m_size*Alignment);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment> inline
 bool rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_is_allocated_block
       (typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *block)
 {
@@ -1214,7 +1247,8 @@ bool rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_is_allocated_
    return allocated;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment> inline
 bool rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_is_prev_allocated
       (typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *block)
 {
@@ -1236,7 +1270,8 @@ bool rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_is_prev_alloc
    }
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment> inline
 void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_mark_as_allocated_block
       (typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *block)
 {
@@ -1245,7 +1280,8 @@ void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_mark_as_alloc
       (reinterpret_cast<char*>(block)+ block->m_size*Alignment)->m_prev_allocated = 1;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment> inline
 void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_mark_as_free_block
       (typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl *block)
 {
@@ -1255,7 +1291,8 @@ void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_mark_as_free_
    next_block->m_prev_size = block->m_size;
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment> inline
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment> inline
 void* rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_check_and_allocate
    (size_type nunits
    ,typename rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::block_ctrl* block
@@ -1327,7 +1364,8 @@ void* rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_check_and_al
    return priv_get_user_buffer(block);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::deallocate(void* addr)
 {
    if(!addr)   return;
@@ -1337,7 +1375,8 @@ void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::deallocate(void* a
    return this->priv_deallocate(addr);
 }
 
-template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+//RKS:template<class MutexFamily, class VoidPointer, std::size_t MemAlignment>
+template<class MutexFamily, class VoidPointer, uint64_t MemAlignment>
 void rbtree_best_fit<MutexFamily, VoidPointer, MemAlignment>::priv_deallocate(void* addr)
 {
    if(!addr)   return;
