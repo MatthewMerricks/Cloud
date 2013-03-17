@@ -1,29 +1,57 @@
 /*
- * FileSystemObjects.table.sql
- * Cloud Windows
- *
- * Created By DavidBruck.
- * Copyright (c) Cloud.com. All rights reserved.
- */
-CREATE TABLE [FileSystemObjects]
+ 9FileSystemObjects.table.sql
+ Cloud Windows
+
+ Created By DavidBruck.
+ Copyright (c) Cloud.com. All rights reserved.
+*/
+
+CREATE TABLE FileSystemObjects
 (
-	[FileSystemObjectId] bigint IDENTITY(1, 1) NOT NULL,
-	[Path] ntext /*CE Limitation: COLLATE Latin1_General_CS_AS*/ NOT NULL /*CE Limitation: CHECK ([Path] <> '')*/,
-	[LastTime] datetime/*CE Limitation: 2*/ NULL, --the greater of the LastAccessedTimeUtc and LastModifiedTimeUtc
-	[CreationTime] datetime/*CE Limitation: 2*/ NULL, --CreationTimeUtc
-	[IsFolder] bit NOT NULL, --1 for folders (empty or not empty), 0 for files
-	[Size] bigint NULL, --set only for files
-	[TargetPath] ntext /*CE Limitation: COLLATE Latin1_General_CS_AS*/ NULL /*CE Limitation: CHECK([TargetPath] <> '')*/,
-	[PathChecksum] /*CE Limitation: AS CHECKSUM([Path])*//*Begin CE Only*/int NOT NULL/*End CE Only*/,
-	[Revision] nvarchar(128) /*CE Limitation: COLLATE Latin1_General_CS_AS*/ NULL /*CE Limitation: CHECK ([Revision] <> '')*/,
-	[StorageKey] ntext /*CE Limitation: COLLATE Latin1_General_CS_AS*/ NULL /*CE Limitation: CHECK ([StorageKey] <> '')*/,
-	[SyncCounter] bigint NULL,
-	[ServerLinked] bit NOT NULL,
-	[EventId] bigint NULL,
-	PRIMARY KEY ([FileSystemObjectId], [ServerLinked]),
-	CONSTRAINT [FK_SyncCounter_SyncCounter] FOREIGN KEY ([SyncCounter]) REFERENCES [Syncs] ([SyncCounter]),
-	CONSTRAINT [FK_EventId_EventId] FOREIGN KEY ([EventId]) REFERENCES [Events] ([EventId])/*CE Limitation: ,
-	CONSTRAINT [PK_FileSystemObjects] PRIMARY KEY CLUSTERED ([FileSystemObjectId] ASC)*//*CE Limitation: ,
-	CONSTRAINT [CHK_FileSystemObjects_SizeSet] CHECK (([IsFolder] = 1 AND [Size] IS NULL) OR ([IsFolder] = 0 AND [Size] IS NOT NULL))*//*CE Limitation: ,
-	CONSTRAINT [CHK_FileSystemObjects_TargetPathForFilesOnly] CHECK ([IsFolder] = 0 OR ([IsFolder] = 1 AND [TargetPath] IS NULL))*/
-)
+    FileSystemObjectId INTEGER NOT NULL,
+    Name TEXT NOT NULL CONSTRAINT CHK_FileSystemObjects_Name_TEXT
+      CHECK (TYPEOF(Name) = 'text' AND Name <> ''),
+    ParentFolderId INTEGER,
+    LastTimeUTCTicks INTEGER CONSTRAINT CHK_FileSystemObjects_LastTimeUTCTicks_INTEGER
+      CHECK (LastTimeUTCTicks IS NULL OR TYPEOF(LastTimeUTCTicks) = 'integer'),
+    CreationTimeUTCTicks INTEGER CONSTRAINT CHK_FileSystemObjects_CreationTimeUTCTicks_INTEGER
+      CHECK (CreationTimeUTCTicks IS NULL OR TYPEOF(CreationTimeUTCTicks) = 'integer'),
+    IsFolder INTEGER NOT NULL CONSTRAINT CHK_FileSystemObjects_IsFolder_Boolean
+      CHECK (IsFolder = 0 OR IsFolder = 1),
+    Size INTEGER CONSTRAINT CHK_FileSystemObjects_Size_INTEGER
+      CHECK (Size IS NULL OR TYPEOF(Size) = 'integer'),
+    Revision TEXT CONSTRAINT CHK_FileSystemObjects_Revision_TEXT
+      CHECK (Revision IS NULL OR TYPEOF(Revision) = 'text'),
+    StorageKey TEXT CONSTRAINT CHK_FileSystemObjects_StorageKey_TEXT
+      CHECK (StorageKey IS NULL OR TYPEOF(StorageKey) = 'text'),
+    ServerName TEXT CONSTRAINT CHK_FileSystemObjects_ServerName_TEXT
+      CHECK (ServerName IS NULL OR (TYPEOF(ServerName) = 'text' AND ServerName <> '')),
+    EventId INTEGER,
+    IsShare INTEGER CONSTRAINT CHK_FileSystemObjects_IsShare_Boolean
+      CHECK (IsShare IS NULL OR IsShare = 0 OR IsShare = 1),
+    MD5 BLOB CONSTRAINT CHK_FileSystemObjects_MD5_Hash
+      CHECK (MD5 IS NULL OR (TYPEOF(MD5) = 'blob' AND LENGTH(MD5) = 16)),
+    Version INTEGER CONSTRAINT CHK_FileSystemObjects_Version_INTEGER
+      CHECK (Version IS NULL OR TYPEOF(Version) = 'integer'),
+    ServerUid TEXT CONSTRAINT CHK_FileSystemObjects_ServerUid_TEXT
+      CHECK (ServerUid IS NULL OR TYPEOF(ServerUid) = 'text'),
+    Pending INTEGER NOT NULL CONSTRAINT CHK_FileSystemObjects_Pending_Boolean
+      CHECK (Pending = 0 OR Pending = 1),
+    SyncCounter INTEGER,
+    MimeType TEXT CONSTRAINT CHK_FileSystemObjects_MimeType_TEXT
+      CHECK (MimeType IS NULL OR TYPEOF(MimeType) = 'text'),
+    Permissions INTEGER CONSTRAINT CHK_FileSystemObjects_Permissions_INTEGER
+      CHECK (Permissions IS NULL OR TYPEOF(Permissions) = 'integer'),
+    EventTimeUTCTicks INTEGER NOT NULL CONSTRAINT CHK_FileSystemObjects_EventTimeUTCTicks_INTEGER
+      CHECK (TYPEOF(EventTimeUTCTicks) = 'integer'),
+    PRIMARY KEY (FileSystemObjectId ASC),
+    CONSTRAINT FK_FileSystemObjects_ParentFolderId__FileSystemObjects_FileSystemObjectId
+      FOREIGN KEY (ParentFolderId)
+      REFERENCES FileSystemObjects (FileSystemObjectId),
+    CONSTRAINT FK_FileSystemObjects_EventId__Events_EventId
+      FOREIGN KEY (EventId)
+      REFERENCES Events (EventId),
+    CONSTRAINT FK_FileSystemObjects_SyncCounter__Syncs_SyncCounter
+      FOREIGN KEY (SyncCounter)
+      REFERENCES Syncs (SyncCounter)
+);

@@ -29,15 +29,16 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using Cloud.SQLIndexer.Model;
+using System.Windows;
+using System.Security.Principal;
 
 namespace Cloud.Static
 {
     extern alias SimpleJsonBase;
-    using System.ComponentModel;
-    using System.Runtime.InteropServices;
-    using Cloud.SQLIndexer.Model;
-    using System.Windows;
-    using System.Security.Principal;
+
     /// <summary>
     /// Class containing commonly usable static helper methods
     /// </summary>

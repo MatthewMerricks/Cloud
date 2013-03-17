@@ -474,7 +474,7 @@ namespace Cloud
 
                 if (!SyncBox.TryReserveForActiveSync())
                 {
-                    const string modificationError = "syncBox cannot be modifying server SyncBox via public API calls (i.e. DeleteSyncBox or UpdateSyncBoxQuota)";
+                    const string modificationError = "syncBox is already in use in active syncing or it is modifying server SyncBox via public API calls (i.e. DeleteSyncBox)";
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", modificationError);
                     Status = CLSyncStartStatus.ErrorInProcessOfModification;
                     return new ArgumentException(modificationError);

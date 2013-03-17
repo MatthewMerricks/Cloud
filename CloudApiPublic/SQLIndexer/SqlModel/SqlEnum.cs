@@ -16,10 +16,10 @@ namespace Cloud.SQLIndexer.SqlModel
     internal class SqlEnum
     {
         [SqlAccess.Property]
-        public int EnumId { get; set; }
+        public long EnumId { get; set; }
 
         [SqlAccess.Property]
-        public int EnumCategoryId { get; set; }
+        public long EnumCategoryId { get; set; }
 
         [SqlAccess.Property]
         public string Name { get; set; }

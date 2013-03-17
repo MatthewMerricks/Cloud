@@ -16,13 +16,10 @@ namespace Cloud.SQLIndexer.SqlModel
     internal class Sync
     {
         [SqlAccess.Property]
-        public string SyncId { get; set; }
-
-        [SqlAccess.Property]
         public long SyncCounter { get; set; }
 
         [SqlAccess.Property]
-        public string RootPath { get; set; }
+        public string SID { get; set; }
 
         [SqlAccess.Property(true)]
         public FileSystemObject FileSystemObject { get; set; }

@@ -1,0 +1,15 @@
+﻿<Window x:Class="SQLiteHelpers.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <Canvas>
+        <TextBox x:Name="FilePathBox" HorizontalAlignment="Left" Height="40" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="403" Canvas.Left="10" Canvas.Top="81" AcceptsReturn="True" />
+        <Label x:Name="FilePathLabel" Content="Path to database file (index.db):" HorizontalAlignment="Left" Margin="10,50,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="FilePathButton" Content="Browse..." HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" RenderTransformOrigin="0.027,-1.455" Canvas.Left="418" Canvas.Top="81" Click="FilePathButton_Click"/>
+        <Label x:Name="TitleLabel" Content="SQLite Helpers" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="EncryptButton" Content="Encrypt" Canvas.Left="103" Canvas.Top="126" Width="75" Click="EncryptButton_Click"/>
+        <Button x:Name="DecryptButton" Content="Decrypt" Canvas.Left="183" Canvas.Top="126" Width="75" Click="DecryptButton_Click"/>
+        <Button x:Name="StatusButton" Content="Check Status" Canvas.Left="10" Canvas.Top="126" Width="88" Click="StatusButton_Click"/>
+        <TextBlock x:Name="StatusBlock" Canvas.Left="10" TextWrapping="Wrap" Text="Waiting for action..." Canvas.Top="153"/>
+    </Canvas>
+</Window>

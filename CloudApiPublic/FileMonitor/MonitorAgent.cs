@@ -1648,7 +1648,7 @@ namespace Cloud.FileMonitor
             {
                 List<FileChange> removeFromSql = new List<FileChange>();
 
-                Indexer.CELocker.EnterWriteLock();
+                Indexer.ExternalSQLLocker.EnterWriteLock();
                 try
                 {
                     PulledChanges = new HashSet<FileChangeWithDependencies>();
@@ -1747,7 +1747,7 @@ namespace Cloud.FileMonitor
                         }
                     }
 
-                    Indexer.CELocker.ExitWriteLock();
+                    Indexer.ExternalSQLLocker.ExitWriteLock();
                 }
             }
             catch (Exception ex)

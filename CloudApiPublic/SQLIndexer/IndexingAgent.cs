@@ -15,7 +15,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
-using System.Data.SqlServerCe;
 using System.Globalization;
 using Cloud.Model;
 using Cloud.Static;
@@ -26,6 +25,7 @@ using SqlSync = Cloud.SQLIndexer.SqlModel.Sync;
 using Cloud.Interfaces;
 using Cloud.Support;
 using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.SQLProxies;
 
 namespace Cloud.SQLIndexer
 {
@@ -37,31 +37,21 @@ namespace Cloud.SQLIndexer
         private string indexedPath = null;
         private readonly ICLSyncSettingsAdvanced _syncSettings = null;
 
-        #region SQL CE
+        #region SQLite
         private string indexDBLocation;
         private const string indexDBPassword = "Q29weXJpZ2h0Q2xvdWQuY29tQ3JlYXRlZEJ5RGF2aWRCcnVjaw=="; // <-- if you change this password, you will likely break all clients with older databases
-        private static string getDecodedIndexDBPassword()
-        {
-            byte[] decodeChars = Convert.FromBase64String(indexDBPassword);
-            return Encoding.ASCII.GetString(decodeChars);
-        }
-        private const string connectionStringFormatter = "data source={0};password={1};lcid=1033;case sensitive=TRUE;default lock timeout=300000"; // 1033 is Locale ID for English - United States
-        private static string buildConnectionString(string indexDBLocation)
-        {
-            return string.Format(connectionStringFormatter, indexDBLocation, getDecodedIndexDBPassword());
-        }
         private const string indexScriptsResourceFolder = ".SQLIndexer.IndexDBScripts.";
 
-        public readonly ReaderWriterLockSlim CELocker = new ReaderWriterLockSlim();
+        public readonly ReaderWriterLockSlim ExternalSQLLocker = new ReaderWriterLockSlim();
         #endregion
 
         // store dictionaries to convert between the FileChangetype enumeration and its integer value in the database,
         // will be filled in during startup
-        private static Dictionary<int, FileChangeType> changeEnums = null;
-        private static Dictionary<FileChangeType, int> changeEnumsBackward = null;
+        private static Dictionary<long, FileChangeType> changeEnums = null;
+        private static Dictionary<FileChangeType, long> changeEnumsBackward = null;
 
         // category in SQL that represents the Enumeration type FileChangeType
-        private static int changeCategoryId = 0;
+        private static long changeCategoryId = 0;
         // locker for reading/writing the change enumerations
         private static object changeEnumsLocker = new object();
         #endregion
@@ -95,179 +85,9 @@ namespace Cloud.SQLIndexer
                 return ex;
             }
 
-            // Fill in change enumerations if they have not been filled in yet
             try
             {
-                lock (changeEnumsLocker)
-                {
-                    if (changeEnums == null)
-                    {
-                        bool needToMakeDB = true;
-
-                        if (File.Exists(newAgent.indexDBLocation))
-                        {
-                            try
-                            {
-                                using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(newAgent.indexDBLocation)))
-                                {
-                                    indexDB.Open();
-
-                                    int versionBeforeUpdate;
-                                    using (SqlCeCommand versionCommand = indexDB.CreateCommand())
-                                    {
-                                        versionCommand.CommandText = "SELECT [Version].[Version] FROM [Version] WHERE [Version].[TrueKey] = 1";
-                                        versionBeforeUpdate = Helpers.ConvertTo<int>(versionCommand.ExecuteScalar());
-                                    }
-
-                                    if (versionBeforeUpdate == 0)
-                                    {
-                                        int newVersion = 1;
-
-                                        foreach (KeyValuePair<int, IMigration> currentDBMigration in MigrationList.GetMigrationsAfterVersion(versionBeforeUpdate))
-                                        {
-                                            currentDBMigration.Value.Apply(indexDB, getDecodedIndexDBPassword());
-
-                                            newVersion = currentDBMigration.Key;
-                                        }
-
-                                        using (SqlCeCommand updateVersionCommand = indexDB.CreateCommand())
-                                        {
-                                            updateVersionCommand.CommandText = "UPDATE [Version] SET [Version].[Version] = " + newVersion.ToString() + " WHERE [Version].[TrueKey] = 1";
-                                            updateVersionCommand.ExecuteNonQuery();
-                                        }
-                                    }
-                                }
-
-                                needToMakeDB = false;
-                            }
-                            catch
-                            {
-                                File.Delete(newAgent.indexDBLocation);
-                            }
-                        }
-
-                        if (needToMakeDB)
-                        {
-                            FileInfo indexDBInfo = new FileInfo(newAgent.indexDBLocation);
-                            if (!indexDBInfo.Directory.Exists)
-                            {
-                                indexDBInfo.Directory.Create();
-                            }
-                            
-                            System.Reflection.Assembly indexingAssembly = System.Reflection.Assembly.GetAssembly(typeof(IndexingAgent));
-
-                            List<KeyValuePair<int, string>> indexDBScripts = new List<KeyValuePair<int, string>>();
-
-                            string scriptDirectory = indexingAssembly.GetName().Name + indexScriptsResourceFolder;
-
-                            Encoding ansiEncoding = Encoding.GetEncoding(1252); //ANSI saved from NotePad on a US-EN Windows machine
-
-                            foreach (string currentScriptName in indexingAssembly.GetManifestResourceNames()
-                                .Where(resourceName => resourceName.StartsWith(scriptDirectory)))
-                            {
-                                if (!string.IsNullOrWhiteSpace(currentScriptName)
-                                    && currentScriptName.Length >= 5 // length of 1+-digit number plus ".sql" file extension
-                                    && currentScriptName.EndsWith(".sql", StringComparison.InvariantCultureIgnoreCase))
-                                {
-                                    int numChars = 0;
-                                    for (int numberCharIndex = scriptDirectory.Length; numberCharIndex < currentScriptName.Length; numberCharIndex++)
-                                    {
-                                        if (!char.IsDigit(currentScriptName[numberCharIndex]))
-                                        {
-                                            numChars = numberCharIndex - scriptDirectory.Length;
-                                            break;
-                                        }
-                                    }
-                                    if (numChars > 0)
-                                    {
-                                        string nameNumberPortion = currentScriptName.Substring(scriptDirectory.Length, numChars);
-                                        int nameNumber;
-                                        if (int.TryParse(nameNumberPortion, out nameNumber))
-                                        {
-                                            using (Stream resourceStream = indexingAssembly.GetManifestResourceStream(currentScriptName))
-                                            {
-                                                using (StreamReader resourceReader = new StreamReader(resourceStream, ansiEncoding))
-                                                {
-                                                    indexDBScripts.Add(new KeyValuePair<int, string>(nameNumber, resourceReader.ReadToEnd()));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            using (SqlCeEngine ceEngine = new SqlCeEngine(buildConnectionString(newAgent.indexDBLocation)))
-                            {
-                                ceEngine.CreateDatabase();
-                            }
-
-                            SqlCeConnection creationConnection = null;
-
-                            try
-                            {
-                                creationConnection = new SqlCeConnection(buildConnectionString(newAgent.indexDBLocation));
-                                creationConnection.Open();
-
-                                foreach (string indexDBScript in indexDBScripts.OrderBy(scriptPair => scriptPair.Key).Select(scriptPair => scriptPair.Value))
-                                {
-                                    SqlCeCommand scriptCommand = creationConnection.CreateCommand();
-                                    try
-                                    {
-                                        scriptCommand.CommandText = Helpers.DecryptString(indexDBScript, getDecodedIndexDBPassword());
-                                        scriptCommand.ExecuteNonQuery();
-                                    }
-                                    finally
-                                    {
-                                        scriptCommand.Dispose();
-                                    }
-                                }
-                            }
-                            finally
-                            {
-                                if (creationConnection != null)
-                                {
-                                    creationConnection.Dispose();
-                                }
-                            }
-                        }
-
-                        int changeEnumsCount = System.Enum.GetNames(typeof(FileChangeType)).Length;
-                        changeEnums = new Dictionary<int, FileChangeType>(changeEnumsCount);
-                        changeEnumsBackward = new Dictionary<FileChangeType, int>(changeEnumsCount);
-
-                        using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(newAgent.indexDBLocation)))
-                        {
-                            int storeCategoryId = -1;
-                            foreach (EnumCategory currentCategory in SqlAccessor<EnumCategory>
-                                .SelectResultSet(indexDB,
-                                    "SELECT * FROM [EnumCategories]"))
-                            {
-                                if (currentCategory.Name == typeof(FileChangeType).Name)
-                                {
-                                    storeCategoryId = currentCategory.EnumCategoryId;
-                                }
-                            }
-
-                            foreach (SqlEnum currentChangeEnum in SqlAccessor<SqlEnum>
-                                .SelectResultSet(indexDB,
-                                    "SELECT * FROM [Enums] WHERE [Enums].[EnumCategoryId] = " + storeCategoryId.ToString()))
-                            {
-                                changeCategoryId = currentChangeEnum.EnumCategoryId;
-                                int forwardKey = currentChangeEnum.EnumId;
-                                FileChangeType forwardValue = (FileChangeType)System.Enum.Parse(typeof(FileChangeType), currentChangeEnum.Name);
-                                changeEnums.Add(forwardKey,
-                                    forwardValue);
-                                changeEnumsBackward.Add(forwardValue,
-                                    forwardKey);
-                            }
-                        }
-
-                        if (changeEnums.Count != changeEnumsCount)
-                        {
-                            throw new Exception("FileChangeType enumerations are not all found in the database");
-                        }
-                    }
-                }
+                InitializeDatabase();
             }
             catch (Exception ex)
             {
@@ -404,7 +224,7 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred retrieving the file system state, if any</returns>
         public CLError GetLastSyncStates(out FilePathDictionary<SyncedObject> syncStates)
         {
-            CELocker.EnterReadLock();
+            ExternalSQLLocker.EnterReadLock();
             try
             {
                 using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
@@ -497,14 +317,14 @@ namespace Cloud.SQLIndexer
             }
             finally
             {
-                CELocker.ExitReadLock();
+                ExternalSQLLocker.ExitReadLock();
             }
             return null;
         }
 
         public CLError GetMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata)
         {
-            CELocker.EnterReadLock();
+            ExternalSQLLocker.EnterReadLock();
             try
             {
                 if (string.IsNullOrEmpty(path))
@@ -570,7 +390,7 @@ namespace Cloud.SQLIndexer
             }
             finally
             {
-                CELocker.ExitReadLock();
+                ExternalSQLLocker.ExitReadLock();
             }
             return null;
         }
@@ -582,7 +402,7 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred filling the unprocessed events, if any</returns>
         public CLError GetPendingEvents(out List<KeyValuePair<FilePath, FileChange>> changeEvents)
         {
-            CELocker.EnterReadLock();
+            ExternalSQLLocker.EnterReadLock();
             try
             {
                 using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
@@ -636,7 +456,7 @@ namespace Cloud.SQLIndexer
             }
             finally
             {
-                CELocker.ExitReadLock();
+                ExternalSQLLocker.ExitReadLock();
             }
             return null;
         }
@@ -651,7 +471,7 @@ namespace Cloud.SQLIndexer
         {
             if (!alreadyObtainedLock)
             {
-                CELocker.EnterReadLock();
+                ExternalSQLLocker.EnterReadLock();
             }
             try
             {
@@ -754,7 +574,7 @@ namespace Cloud.SQLIndexer
             {
                 if (!alreadyObtainedLock)
                 {
-                    CELocker.ExitReadLock();
+                    ExternalSQLLocker.ExitReadLock();
                 }
             }
             return null;
@@ -767,7 +587,7 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error in removing the event, if any</returns>
         public CLError RemoveEventById(long eventId)
         {
-            CELocker.EnterReadLock();
+            ExternalSQLLocker.EnterReadLock();
             try
             {
                 using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
@@ -804,7 +624,7 @@ namespace Cloud.SQLIndexer
             }
             finally
             {
-                CELocker.ExitReadLock();
+                ExternalSQLLocker.ExitReadLock();
             }
             return null;
         }
@@ -820,7 +640,7 @@ namespace Cloud.SQLIndexer
 
             if (!alreadyObtainedLock)
             {
-                CELocker.EnterReadLock();
+                ExternalSQLLocker.EnterReadLock();
             }
             try
             {
@@ -885,7 +705,7 @@ namespace Cloud.SQLIndexer
             {
                 if (!alreadyObtainedLock)
                 {
-                    CELocker.ExitReadLock();
+                    ExternalSQLLocker.ExitReadLock();
                 }
             }
             return notFoundErrors;
@@ -925,7 +745,7 @@ namespace Cloud.SQLIndexer
                     ? new long[0]
                     : syncedEventIds.OrderBy(currentEventId => currentEventId).ToArray());
 
-                CELocker.EnterWriteLock();
+                ExternalSQLLocker.EnterWriteLock();
                 try
                 {
                     using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
@@ -1557,7 +1377,7 @@ namespace Cloud.SQLIndexer
                 }
                 finally
                 {
-                    CELocker.ExitWriteLock();
+                    ExternalSQLLocker.ExitWriteLock();
                 }
             }
             catch (Exception ex)
@@ -1575,7 +1395,7 @@ namespace Cloud.SQLIndexer
         {
             try
             {
-                CELocker.EnterWriteLock();
+                ExternalSQLLocker.EnterWriteLock();
                 try
                 {
                     using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
@@ -1633,7 +1453,7 @@ namespace Cloud.SQLIndexer
                 }
                 finally
                 {
-                    CELocker.ExitWriteLock();
+                    ExternalSQLLocker.ExitWriteLock();
                 }
             }
             catch (Exception ex)
@@ -1748,7 +1568,7 @@ namespace Cloud.SQLIndexer
                     {
                         if (!alreadyObtainedLock)
                         {
-                            CELocker.EnterReadLock();
+                            ExternalSQLLocker.EnterReadLock();
                         }
                         try
                         {
@@ -1931,7 +1751,7 @@ namespace Cloud.SQLIndexer
                         {
                             if (!alreadyObtainedLock)
                             {
-                                CELocker.ExitReadLock();
+                                ExternalSQLLocker.ExitReadLock();
                             }
                         }
                     }
@@ -1969,7 +1789,7 @@ namespace Cloud.SQLIndexer
             try
             {
                 Event currentEvent = null;              // scope outside for badging reference
-                CELocker.EnterWriteLock();
+                ExternalSQLLocker.EnterWriteLock();
                 try
                 {
                     using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
@@ -2171,7 +1991,7 @@ namespace Cloud.SQLIndexer
                 }
                 finally
                 {
-                    CELocker.ExitWriteLock();
+                    ExternalSQLLocker.ExitWriteLock();
                 }
 
                 Action<FilePath> setBadgeSynced = syncedPath =>
@@ -2219,6 +2039,7 @@ namespace Cloud.SQLIndexer
         #endregion
 
         #region private methods
+
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
@@ -2233,6 +2054,278 @@ namespace Cloud.SQLIndexer
             this.indexDBLocation = (string.IsNullOrEmpty(syncBox.CopiedSettings.DatabaseFolder)
                 ? Helpers.GetDefaultDatabasePath(syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
                 : syncBox.CopiedSettings.DatabaseFolder);
+        }
+
+        public static void InitializeDatabase()
+        {
+            FileInfo dbInfo = new FileInfo(databaseLocation);
+
+            bool deleteDB;
+            bool createDB;
+
+            if (dbInfo.Exists)
+            {
+                try
+                {
+                    using (ISQLiteConnection verifyAndUpdateConnection = CreateAndOpenCipherConnection())
+                    {
+                        CheckIntegrity(verifyAndUpdateConnection);
+
+                        int existingVersion;
+
+                        using (ISQLiteCommand getVersionCommand = verifyAndUpdateConnection.CreateCommand())
+                        {
+                            getVersionCommand.CommandText = "PRAGMA user_version;";
+                            existingVersion = Convert.ToInt32(getVersionCommand.ExecuteScalar());
+                        }
+
+                        if (existingVersion < 2)
+                        {
+                            createDB = true;
+                            deleteDB = true;
+                        }
+                        else
+                        {
+                            int newVersion = -1;
+
+                            foreach (KeyValuePair<int, IMigration> currentDBMigration in MigrationList.GetMigrationsAfterVersion(existingVersion))
+                            {
+                                currentDBMigration.Value.Apply(
+                                    verifyAndUpdateConnection,
+                                    Encoding.ASCII.GetString(
+                                        Convert.FromBase64String(indexDBPassword)));
+
+                                newVersion = currentDBMigration.Key;
+                            }
+
+                            if (newVersion > existingVersion)
+                            {
+                                using (ISQLiteCommand updateVersionCommand = verifyAndUpdateConnection.CreateCommand())
+                                {
+                                    updateVersionCommand.CommandText = "PRAGMA user_version = " + newVersion.ToString();
+                                    updateVersionCommand.ExecuteNonQuery();
+                                }
+                            }
+
+                            createDB = false;
+                            deleteDB = false;
+                        }
+                    }
+                }
+                catch (SQLiteExceptionBase ex)
+                {
+                    // notify database replaced due to corruption
+                    Type failType = typeof(TestSQL); // force me to look at the line above this
+
+                    deleteDB = true;
+                    createDB = true;
+                }
+            }
+            else
+            {
+                createDB = true;
+                deleteDB = false;
+            }
+
+            if (deleteDB)
+            {
+                dbInfo.Delete();
+            }
+
+            if (createDB)
+            {
+                using (ISQLiteConnection newDBConnection = CreateAndOpenCipherConnection(enforceForeignKeyConstraints: false)) // circular reference between Events and FileSystemObjects tables
+                {
+                    // read creation scripts in here
+
+                    FileInfo indexDBInfo = new FileInfo(databaseLocation);
+                    if (!indexDBInfo.Directory.Exists)
+                    {
+                        indexDBInfo.Directory.Create();
+                    }
+
+                    System.Reflection.Assembly indexingAssembly = System.Reflection.Assembly.GetAssembly(typeof(TestSQL));
+
+                    List<KeyValuePair<int, string>> indexDBScripts = new List<KeyValuePair<int, string>>();
+
+                    Type fixNextLineBack = typeof(TestSQL);
+                    string scriptDirectory = "Cloud" + indexScriptsResourceFolder;
+                    //string scriptDirectory = indexingAssembly.GetName().Name + indexScriptsResourceFolder;
+
+                    Encoding ansiEncoding = Encoding.GetEncoding(1252); //ANSI saved from NotePad on a US-EN Windows machine
+
+                    foreach (string currentScriptName in indexingAssembly.GetManifestResourceNames()
+                        .Where(resourceName => resourceName.StartsWith(scriptDirectory)))
+                    {
+                        if (!string.IsNullOrWhiteSpace(currentScriptName)
+                            && currentScriptName.Length >= 5 // length of 1+-digit number plus ".sql" file extension
+                            && currentScriptName.EndsWith(".sql", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            int numChars = 0;
+                            for (int numberCharIndex = scriptDirectory.Length; numberCharIndex < currentScriptName.Length; numberCharIndex++)
+                            {
+                                if (!char.IsDigit(currentScriptName[numberCharIndex]))
+                                {
+                                    numChars = numberCharIndex - scriptDirectory.Length;
+                                    break;
+                                }
+                            }
+                            if (numChars > 0)
+                            {
+                                string nameNumberPortion = currentScriptName.Substring(scriptDirectory.Length, numChars);
+                                int nameNumber;
+                                if (int.TryParse(nameNumberPortion, out nameNumber))
+                                {
+                                    using (Stream resourceStream = indexingAssembly.GetManifestResourceStream(currentScriptName))
+                                    {
+                                        using (StreamReader resourceReader = new StreamReader(resourceStream, ansiEncoding))
+                                        {
+                                            indexDBScripts.Add(new KeyValuePair<int, string>(nameNumber, resourceReader.ReadToEnd()));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    using (ISQLiteConnection creationConnection = CreateAndOpenCipherConnection())
+                    {
+                        foreach (string indexDBScript in indexDBScripts.OrderBy(scriptPair => scriptPair.Key).Select(scriptPair => scriptPair.Value))
+                        {
+                            using (ISQLiteCommand scriptCommand = creationConnection.CreateCommand())
+                            {
+                                scriptCommand.CommandText = Helpers.DecryptString(indexDBScript,
+                                    Encoding.ASCII.GetString(
+                                        Convert.FromBase64String(indexDBPassword)));
+                                scriptCommand.ExecuteNonQuery();
+                            }
+                        }
+                    }
+                }
+            }
+
+            int changeEnumsCount = System.Enum.GetNames(typeof(FileChangeType)).Length;
+            changeEnums = new Dictionary<long, FileChangeType>(changeEnumsCount);
+            changeEnumsBackward = new Dictionary<FileChangeType, long>(changeEnumsCount);
+
+            using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
+            {
+                long storeCategoryId = -1;
+                foreach (EnumCategory currentCategory in SqlAccessor<EnumCategory>
+                    .SelectResultSet(indexDB,
+                        "SELECT * FROM EnumCategories WHERE Name = '" + typeof(FileChangeType).Name.Replace("'", "''") + "'"))
+                {
+                    if (storeCategoryId == -1)
+                    {
+                        storeCategoryId = currentCategory.EnumCategoryId;
+                    }
+                    else
+                    {
+                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "More than one type with name FileChangeType found");
+                    }
+                }
+
+                if (storeCategoryId == -1)
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "No EnumCategory found with name FileChangeType");
+                }
+
+                foreach (SqlEnum currentChangeEnum in SqlAccessor<SqlEnum>
+                    .SelectResultSet(indexDB,
+                        "SELECT * FROM Enums WHERE Enums.EnumCategoryId = " + storeCategoryId.ToString()))
+                {
+                    changeCategoryId = currentChangeEnum.EnumCategoryId;
+                    long forwardKey = currentChangeEnum.EnumId;
+
+                    FileChangeType forwardValue;
+                    if (!System.Enum.TryParse<FileChangeType>(currentChangeEnum.Name, out forwardValue))
+                    {
+                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Name of Enum for FileChangeType EnumCategory does not parse as a FileChangeType");
+                    }
+
+                    changeEnums.Add(forwardKey,
+                        forwardValue);
+                    changeEnumsBackward.Add(forwardValue,
+                        forwardKey);
+                }
+            }
+
+            if (changeEnums.Count != changeEnumsCount)
+            {
+                throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "FileChangeType enumerated values do not match count with names in the database");
+            }
+        }
+
+        private static void CheckIntegrity(ISQLiteConnection conn)
+        {
+            using (ISQLiteCommand integrityCheckCommand = conn.CreateCommand())
+            {
+                // it's possible integrity_check could be replaced with quick_check for faster performance if it doesn't risk missing any corruption
+                integrityCheckCommand.CommandText = "PRAGMA integrity_check(1);"; // we don't output all the corruption results, only need to grab 1
+                using (ISQLiteDataReader integrityReader = integrityCheckCommand.ExecuteReader(System.Data.CommandBehavior.SingleResult))
+                {
+                    if (integrityReader.Read())
+                    {
+                        int integrityCheckColumnOrdinal = integrityReader.GetOrdinal("integrity_check");
+                        if (integrityCheckColumnOrdinal == -1)
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Corrupt, "Result from integrity_check does not contain integrity_check column");
+                        }
+
+                        if (integrityReader.IsDBNull(integrityCheckColumnOrdinal))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Corrupt, "First result from integrity_check contains a null value");
+                        }
+
+                        string integrityCheckValue;
+                        try
+                        {
+                            integrityCheckValue = Convert.ToString(integrityReader["integrity_check"]);
+                        }
+                        catch
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Corrupt, "Value of first result from integrity_check is not convertable to String");
+                        }
+
+                        if (integrityCheckValue != "ok")
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Corrupt, "Value of first result from integrity_check indicates failure. Message: " +
+                                (string.IsNullOrWhiteSpace(integrityCheckValue) ? "{empty}" : integrityCheckValue));
+                        }
+                    }
+                    else
+                    {
+                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Corrupt, "Unable to read result of integrity_check");
+                    }
+                }
+            }
+        }
+
+        private static ISQLiteConnection CreateAndOpenCipherConnection(bool enforceForeignKeyConstraints = true)
+        {
+            const string CipherConnectionString = "Data Source=\"{0}\";Pooling=false;Synchronous=Full;UTF8Encoding=True;Foreign Keys={1}";
+
+            ISQLiteConnection cipherConn = SQLConstructors.SQLiteConnection(
+                string.Format(
+                    CipherConnectionString,
+                    databaseLocation,
+                    enforceForeignKeyConstraints.ToString()));
+
+            try
+            {
+                cipherConn.SetPassword(
+                    Encoding.ASCII.GetString(
+                        Convert.FromBase64String(indexDBPassword)));
+
+                cipherConn.Open();
+
+                return cipherConn;
+            }
+            catch
+            {
+                cipherConn.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -2558,10 +2651,9 @@ namespace Cloud.SQLIndexer
                     CLError error = new Exception("Unable to find cloud directory at path: " + currentDirectoryFullPath);
                     error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
                     _trace.writeToLog(1, "IndexingAgent: RecursiveIndexDirectory: ERROR: Exception: Msg: <{0}>.", error.errorDescription);
-                    KillMeHere();
 
-                    // Should never reach this line.
-                    return null;
+                    // root path required, blow up
+                    throw new DirectoryNotFoundException("Unable to find Cloud directory at path: " + currentDirectoryFullPath);
                 }
 
                 innerDirectories = allInnerPaths.Where(currentInnerDirectory => currentInnerDirectory.IsFolder);
@@ -2745,14 +2837,6 @@ namespace Cloud.SQLIndexer
             return filePathsFound;
         }
 
-        /// <summary>
-        /// Blow up this thread by using all of the stack.
-        /// </summary>
-        private static void KillMeHere()
-        {
-            KillMeHere();
-        }
-
         #endregion private methods
 
         #region dispose
@@ -2794,7 +2878,7 @@ namespace Cloud.SQLIndexer
                         }
                     }
                     
-                    CELocker.Dispose();
+                    ExternalSQLLocker.Dispose();
                 }
             }
         }

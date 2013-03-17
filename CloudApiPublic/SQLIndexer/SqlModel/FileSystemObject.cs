@@ -15,19 +15,20 @@ namespace Cloud.SQLIndexer.SqlModel
     [SqlAccess.Class("FileSystemObjects")]
     internal class FileSystemObject
     {
-        public static readonly string Name = (typeof(FileSystemObject)).Name;
-
         [SqlAccess.Property]
         public long FileSystemObjectId { get; set; }
 
         [SqlAccess.Property]
-        public string Path { get; set; }
+        public string Name { get; set; }
 
         [SqlAccess.Property]
-        public Nullable<DateTime> LastTime { get; set; }
+        public Nullable<long> ParentFolderId { get; set; }
 
         [SqlAccess.Property]
-        public Nullable<DateTime> CreationTime { get; set; }
+        public Nullable<long> LastTimeUTCTicks { get; set; }
+
+        [SqlAccess.Property]
+        public Nullable<long> CreationTimeUTCTicks { get; set; }
 
         [SqlAccess.Property]
         public bool IsFolder { get; set; }
@@ -36,28 +37,55 @@ namespace Cloud.SQLIndexer.SqlModel
         public Nullable<long> Size { get; set; }
 
         [SqlAccess.Property]
-        public string TargetPath { get; set; }
-
-        [SqlAccess.Property]
-        public int PathChecksum { get; set; }
-
-        [SqlAccess.Property]
         public string Revision { get; set; }
 
         [SqlAccess.Property]
         public string StorageKey { get; set; }
 
         [SqlAccess.Property]
-        public Nullable<long> SyncCounter { get; set; }
-
-        [SqlAccess.Property]
-        public bool ServerLinked { get; set; }
+        public string ServerName { get; set; }
 
         [SqlAccess.Property]
         public Nullable<long> EventId { get; set; }
 
+        [SqlAccess.Property]
+        public Nullable<bool> IsShare { get; set; }
+
+        [SqlAccess.Property]
+        public byte[] MD5 { get; set; }
+
+        [SqlAccess.Property]
+        public int Version { get; set; }
+
+        [SqlAccess.Property]
+        public string ServerUid { get; set; }
+        
+        [SqlAccess.Property]
+        public bool Pending { get; set; }
+
+        [SqlAccess.Property]
+        public Nullable<long> SyncCounter { get; set; }
+
+        [SqlAccess.Property]
+        public string MimeType { get; set; }
+
+        [SqlAccess.Property]
+        public Nullable<int> Permissions { get; set; }
+
+        [SqlAccess.Property]
+        public long EventTimeUTCTicks { get; set; }
+
+        [SqlAccess.Property(true)]
+        public FileSystemObject Parent { get; set; }
+
+        [SqlAccess.Property(true)]
+        public FileSystemObject Child { get; set; }
+
         [SqlAccess.Property(true)]
         public Event Event { get; set; }
+
+        [SqlAccess.Property(true)]
+        public Event ReversePrevious { get; set; }
 
         [SqlAccess.Property(true)]
         public Sync Sync { get; set; }

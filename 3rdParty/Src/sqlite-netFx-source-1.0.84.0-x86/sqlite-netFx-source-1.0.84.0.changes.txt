@@ -1,0 +1,284 @@
+Changes to sqlite-netFx-source-1.0.84.0 (SQLite.NET.2012.sln):
+(x86 32-bit changes are made in a copy of the whole source directory labeled with -x86)
+(x64 changes are made in a copy of the whole source direcoty labeled with -x64)
+(make sure you do ctrl-shift-s to save all after every project change and close solution and save the solution when finished with file-close solution)
+
+Configuration Manager:
+	remove Solution Platforms:
+	Any CPU, Win32, and X64
+	x64 only:
+	Change SQLite.Interop.2012 and SQLite.Interop.Static.2012 projects Platform values for all Solution Configurations from Win32 to x64
+
+SQLite.Interop.2012 -> Property Files -> sqlite3.props
+	old:
+	<SQLITE_COMMON_DEFINES>_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;SQLITE_THREADSAFE=1;SQLITE_USE_URI=1;SQLITE_ENABLE_COLUMN_METADATA=1;SQLITE_ENABLE_STAT3=1;SQLITE_ENABLE_FTS3=1;SQLITE_ENABLE_LOAD_EXTENSION=1;SQLITE_ENABLE_RTREE=1;SQLITE_SOUNDEX=1</SQLITE_COMMON_DEFINES>
+	new:
+	<SQLITE_COMMON_DEFINES>_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;SQLITE_THREADSAFE=1;SQLITE_USE_URI=1;SQLITE_ENABLE_COLUMN_METADATA=1;SQLITE_ENABLE_STAT3=1;SQLITE_ENABLE_FTS3=1;SQLITE_ENABLE_LOAD_EXTENSION=1;SQLITE_ENABLE_RTREE=1;SQLITE_SOUNDEX=1;SQLITE_DEFAULT_FOREIGN_KEYS=1</SQLITE_COMMON_DEFINES>
+
+When looking in Command Line All Options view in the project properties after the above change, I didn't see the foreign keys change until I closed and reopened the solution. So if you don't see the change do the same thing.
+
+SQLite.Interop.2012 -> Property Files -> SQLite.Interop.2012.props
+	old:
+	<INTEROP_KEY_FILE>$(ProjectDir)..\System.Data.SQLite\System.Data.SQLite.snk</INTEROP_KEY_FILE>
+	new:
+	<INTEROP_KEY_FILE>C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pfx</INTEROP_KEY_FILE>
+
+	old:
+	<INTEROP_MIXED_NAME>System.Data.SQLite</INTEROP_MIXED_NAME>
+	x86 (32-bit) new:
+	<INTEROP_MIXED_NAME>System.Data.SQLite32</INTEROP_MIXED_NAME>
+	x64 new:
+	<INTEROP_MIXED_NAME>System.Data.SQLite64</INTEROP_MIXED_NAME>
+
+SQLite.Interop.2012 -> Resource Files -> SQLite.Interop.rc  <<note: if you get an error, click Edit Code>>
+	old:
+	VALUE "ProductName", "System.Data.SQLite"
+	x86 (32-bit) new:
+	VALUE "ProductName", "System.Data.SQLite32"
+	x64 new:
+	VALUE "ProductName", "System.Data.SQLite64"
+
+SQLite.Interop.2012 project properties (change for all relevant Configurations and Platforms, i.e. (Release and Win32) for 32-bit and (Release and x64) for 64-bit)
+	Configuration Properties -> General
+		old:
+		Platform Toolset Visual Studio 2012 (v110)
+		new:
+		Platform Toolset Visual Studio 2010 (v100)
+
+	Configuration Properties -> C/C++ -> Code Generation
+		old:
+		Enable C++ Exceptions Yes /EHsc
+		new:
+		Enable C++ Exceptions Yes with SEH Exceptions (/EHa)
+
+		old:
+		Runtime Library Multi-threaded DLL (/MD)
+		new:
+		Runtime Library Multi-threaded (/MT)
+
+	Configuration Properties -> Linker -> Input
+		old:
+		Additional Dependencies $(ProjectDir)..\bin\$(ConfigurationYear)\$(Configuration)Module\bin\System.Data.SQLite.netmodule;%(AdditionalDependencies)
+		x86 (32-bit) new:
+		Additional Dependencies $(ProjectDir)..\bin\$(ConfigurationYear)\$(Configuration)Module\bin\System.Data.SQLite32.netmodule;%(AdditionalDependencies)
+		x64 new:
+		Additional Dependencies $(ProjectDir)..\bin\$(ConfigurationYear)\$(Configuration)Module\bin\System.Data.SQLite64.netmodule;%(AdditionalDependencies)
+
+	Configuration Properties -> Linker -> Advanced
+		old:
+		Key File $(INTEROP_KEY_FILE)
+		new:
+		Key File C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pub
+
+	Configuration Properties -> Build Events -> Post-Build Event
+		old:
+		Command Line "$(TargetFrameworkSDKToolsDirectory)sn.exe" -Ra "$(TargetPath)" "$(INTEROP_KEY_FILE)"
+		new:
+		Command Line START CMD /C "ECHO Re-sign the DLL. Use command from a VS2012 Comand Prompt: sn.exe -Ra "$(TargetPath)" "$(INTEROP_KEY_FILE)" && PAUSE"
+
+Close solution and reopen it, saving any changes if asked.
+
+Unload project SQLite.Interop.2012 project and edit it in xml view
+	Find all tags <PostBuildEvent> with content that calls "sn.exe" on a key file (not the ones calling xcopy)
+		For each such tag, remove ALL post build events inside and replace with one, e.g.
+			old:
+			begin xml section {
+    <PostBuildEvent>
+      <Command Condition="'$(TargetFrameworkSDKToolsDirectory)'==''">"$(FrameworkSDKDir)Bin\sn.exe" -Ra "$(TargetPath)" "$(INTEROP_KEY_FILE)"</Command>
+      <Command Condition="'$(TargetFrameworkSDKToolsDirectory)'!=''">"$(TargetFrameworkSDKToolsDirectory)sn.exe" -Ra "$(TargetPath)" "$(INTEROP_KEY_FILE)"</Command>
+    </PostBuildEvent>
+			} end xml section
+			new:
+			begin xml section {
+    <PostBuildEvent>
+      <Command>START CMD /C "ECHO Re-sign the DLL. Use command from a VS2012 Comand Prompt: sn.exe -Ra $(TargetPath) $(INTEROP_KEY_FILE) &amp;&amp; PAUSE"</Command>
+    </PostBuildEvent>
+			} end xml section
+
+Reload SQLite.Interop.2012 project
+
+System.Data.SQLite.Module.2012 project properties (change for all relevant Configurations and Platforms, i.e. (Release and Win32) for 32-bit and (Release and x64) for 64-bit)
+	Application
+		old:
+		Assembly name: System.Data.SQLite
+		x86 (32-bit) new:
+		Assembly name: System.Data.SQLite32
+		x64 new:
+		Assembly name: System.Data.SQLite64
+
+		old:
+		Target framework: .NET Framework 4.5
+		new:
+		Target framework: .NET Framework 4 Client Profile
+
+Changed the Target framework in the change above will have automatically created or changed a config file System.Data.SQLite.Module.2012 -> app.config
+	if this app.config file only contains the tag configuration -> startup -> supportedRuntime
+	then delete the app.config
+	else leave it alone
+
+Unload System.Data.SQLite.Module.2012 project and edit the project file in xml
+	Project -> PropertyGroup (where contains an inner tag with name "NetFx45")
+		remove tag <NetFx45>true</NetFx45>
+
+Reload System.Data.SQLite.Module.2012 project
+
+System.Data.SQLite.Linq.2012 project properties (change for all relevant Configurations and Platforms, i.e. (Release and Win32) for 32-bit and (Release and x64) for 64-bit)
+	Application
+		old:
+		Assembly name: System.Data.SQLite.Linq
+		x86 (32-bit) new:
+		Assembly name: System.Data.SQLite32.Linq
+		x64 new:
+		Assembly name: System.Data.SQLite64.Linq
+
+		old:
+		Target framework: .NET Framework 4.5
+		new:
+		Target framework: .NET Framework 4 Client Profile
+
+	Application -> Assembly Information...
+		old:
+		Title: System.Data.SQLite for LINQ
+		x86 (32-bit) new:
+		Title: System.Data.SQLite32 for LINQ
+		x64 (64-bit) new:
+		Title: System.Data.SQLite64 for LINQ
+
+		old:
+		Product: System.Data.SQLite
+		x86 (32-bit) new:
+		Product: System.Data.SQLite32
+		x64 new:
+		Product: System.Data.SQLite64
+
+	Signing (keep Sign the assembly checkmark checked)
+		old:
+		Choose a strong name key file: ..\System.Data.SQLite\System.Data.SQLite.snk
+		new (via dropdown -> <Browse...>):
+		Choose a strong name key file: C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pfx
+
+System.Data.SQLite64.Linq.2012 -> Properties -> Resources.resx (File Properties, do not open)
+	old:
+	Custom Tool Namespace:
+	new:
+	Custom Tool Namespace: System.Data.SQLite.Properties
+
+Unload System.Data.SQLite.Linq.2012 project and edit the project file in xml
+	Project -> PropertyGroup (where contains an inner tag with name "NetFx45")
+		remove tag <NetFx45>true</NetFx45>
+
+	Project -> ItemGroup (where contains an inner ProjectReference tag with attribute Include for "..\System.Data.SQLite\System.Data.SQLite.2012.csproj")
+		remove ProjectReference tag with attribute Include for "..\System.Data.SQLite\System.Data.SQLite.2012.csproj"
+		if containing ItemGroup is now empty, remove it as well
+
+	Project -> ItemGroup (where contains Reference tags e.g. one with attribute Include for "System")
+		x86 (32-bit) add new Reference tag:
+		begin xml section {
+    <Reference Include="System.Data.SQLite32, Version=1.0.84.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=x86">
+      <HintPath>..\bin\2012\Win32\Release\System.Data.SQLite32.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+		} end xml section
+		x64 add new Reference tag:
+		begin xml section {
+    <Reference Include="System.Data.SQLite64, Version=1.0.84.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=amd64">
+      <HintPath>..\bin\2012\x64\Release\System.Data.SQLite64.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+		} end xml section
+
+Reload System.Data.SQLite.Linq.2012 project
+
+I have found that the System.Data.SQLite.Module.2012 project no longer displays its code files or references in Visual Studio 2012 so observe the following region:
+BEGIN REGION Modify code files not in Solution Explorer in Visual Studio
+	Go to root folder in System.Data.SQLite.Module.2012 project by right clicking the project and clicking "Open Folder in File Explorer"
+		System.Data.SQLite -> AssemblyInfo.cs
+			old:
+			[assembly: AssemblyProduct("System.Data.SQLite")]
+			x86 (32-bit) new:
+			[assembly: AssemblyProduct("System.Data.SQLite32")]
+			x64 new:
+			[assembly: AssemblyProduct("System.Data.SQLite64")]
+
+			old:
+			[assembly: InternalsVisibleTo("System.Data.SQLite.Linq, PublicKey=" + System.Data.SQLite.SQLite3.PublicKey)]
+			x86 (32-bit) new:
+			[assembly: InternalsVisibleTo("System.Data.SQLite32.Linq, PublicKey=" + System.Data.SQLite.SQLite3.PublicKey)]
+			x64 new:
+			[assembly: InternalsVisibleTo("System.Data.SQLite64.Linq, PublicKey=" + System.Data.SQLite.SQLite3.PublicKey)]
+			
+			comment out line (add two preceding backslash '\' characters):
+			[assembly: AllowPartiallyTrustedCallers]
+
+		System.Data.SQLite -> SQLite3.cs
+			old:
+			begin code section {
+    internal const string PublicKey =
+        "002400000480000094000000060200000024000052534131000400000100010005a288de5687c4e1" +
+        "b621ddff5d844727418956997f475eb829429e411aff3e93f97b70de698b972640925bdd44280df0" +
+        "a25a843266973704137cbb0e7441c1fe7cae4e2440ae91ab8cde3933febcb1ac48dd33b40e13c421" +
+        "d8215c18a4349a436dd499e3c385cc683015f886f6c10bd90115eb2bd61b67750839e3a19941dc9c";
+			} end code section
+			new:
+			begin code section {
+    internal const string PublicKey =
+        "0024000004800000140100000602000000240000525341310008000001000100311414d8932a1975" +
+        "70430a48c993143584131d3cb3dd6e7d8d97f19b06069e20f54d9d2a68d140685ecaac30eecc29c9" +
+        "1e2a2dd9e0f3b4cb6eb354fd726cb888e9d8a92a5f42fe6233401039352f9e0933787adf74018c62" +
+        "0e9aab181a0adb3a898bc8c7f02e03ba5ca14f8492ee7543d8d6a9f27990a581b54ff07d79386387" +
+        "f14adac2b1fbf81d293bf5c662c60bf8812d07340e17276edd8172bf9aaa89589d7a66c0694d25f7" +
+        "7d03f130e002720a2a98e28887633492b9eb927741e62a7a92169d82ef82e7bc5d3b61cca8f3593d" +
+        "8efb9dd206fe5ee4183645eadf8010b58f44924f06177cbda03aace8abe47f49768c5879a4a307a1" +
+        "37dc53e45efb11b0";
+			} end code section
+
+		System.Data.SQLite -> SQLiteBase.cs <<note: I don't know why exposing this internal interface doesn't work when other internals are exposed successfully to the Linq project>>
+			old:
+			internal interface ISQLiteSchemaExtensions
+			new:
+			public interface ISQLiteSchemaExtensions
+
+		System.Data.SQLite -> UnsafeNativeMethods.cs
+			old:
+			private const string SQLITE_DLL = "System.Data.SQLite.dll";
+			x86 (32-bit) new:
+			private const string SQLITE_DLL = "System.Data.SQLite32.dll";
+			x64 new:
+			private const string SQLITE_DLL = "System.Data.SQLite64.dll";
+			
+END REGION Modify code files on disk instead of via the Solution Explorer in Visual Studio
+
+Rename projects:
+	old:
+	SQLite.Interop.2012
+	x86 (32-bit) new:
+	SQLite32.Interop.2012
+	x64 new:
+	SQLite64.Interop.2012
+
+	old:
+	System.Data.SQLite.Module.2012
+	x86 (32-bit) new:
+	System.Data.SQLite32.Module.2012
+	x64 new:
+	System.Data.SQLite64.Module.2012
+
+	old:
+	System.Data.SQLite.Link.2012
+	x86 (32-bit) new:
+	System.Data.SQLite.Link32.2012
+	x64 new:
+	System.Data.SQLite.Link64.2012
+
+Finally build projects in this order:
+	x86 (32-bit) order:
+	System.Data.SQLite32.Module.2012
+	SQLite32.Interop.2012
+	System.Data.SQLite32.Linq.2012
+
+	x64 order:
+	System.Data.SQLite64.Module.2012
+	SQLite64.Interop.2012
+	System.Data.SQLite64.Linq.2012
+	
+When finished, copy the output dlls, xmls, pdbs, and maps to 3rdParty bin for reusage. Also, delete the pfx file which was automatically ocopied in the SQLite.Linq source directory

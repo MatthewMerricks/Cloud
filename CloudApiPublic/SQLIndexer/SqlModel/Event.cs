@@ -19,28 +19,28 @@ namespace Cloud.SQLIndexer.SqlModel
         public long EventId { get; set; }
 
         [SqlAccess.Property]
-        public int FileChangeTypeCategoryId { get; set; }
+        public long FileChangeTypeCategoryId { get; set; }
 
         [SqlAccess.Property]
-        public int FileChangeTypeEnumId { get; set; }
+        public long FileChangeTypeEnumId { get; set; }
 
         [SqlAccess.Property]
-        public string PreviousPath { get; set; }
+        public Nullable<long> PreviousId { get; set; }
 
         [SqlAccess.Property]
         public bool SyncFrom { get; set; }
 
         [SqlAccess.Property]
-        public Nullable<Guid> GroupId { get; set; }
+        public Guid GroupId { get; set; }
 
         [SqlAccess.Property]
         public Nullable<int> GroupOrder { get; set; }
 
-        [SqlAccess.Property(true)]
-        public EnumCategory EnumCategory { get; set; }
-
         [SqlAccess.Property(Constants.SqlEnumName, true)]
         public SqlEnum SqlEnum { get; set; }
+
+        [SqlAccess.Property(true)]
+        public FileSystemObject Previous { get; set; }
 
         [SqlAccess.Property(true)]
         public FileSystemObject FileSystemObject { get; set; }

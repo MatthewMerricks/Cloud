@@ -65,10 +65,6 @@
     <Reference Include="BadgeCOMLib, Version=0.1.6.3, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
     </Reference>
-    <Reference Include="ErikEJ.SqlCe40.CSDK, Version=2.1.6.5, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-      <HintPath>..\3rdParty\bin\Release\ErikEJ.SqlCe40.CSDK.dll</HintPath>
-      <SpecificVersion>True</SpecificVersion>
-    </Reference>
     <Reference Include="Interop.Shell32, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
       <SpecificVersion>True</SpecificVersion>
@@ -107,9 +103,11 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
-      <HintPath>..\3rdParty\bin\Release\System.Data.SqlServerCe.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="System.Data.SQLite32">
+      <HintPath>..\3rdParty\bin\Release\System.Data.SQLite32.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite64">
+      <HintPath>..\3rdParty\bin\Release64\System.Data.SQLite64.dll</HintPath>
     </Reference>
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />
@@ -133,6 +131,7 @@
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
     <Compile Include="CLSync\CLSyncStartStatus.cs" />
+    <Compile Include="CompilerServices.cs" />
     <Compile Include="FileMonitor\FileMonitorMemory.cs">
       <DependentUpon>FileMonitorMemory.xsd</DependentUpon>
     </Compile>
@@ -212,6 +211,52 @@
     <Compile Include="REST\CLHttpRest.cs" />
     <Compile Include="REST\GenericAsyncResult.cs" />
     <Compile Include="REST\TransferProgress.cs" />
+    <Compile Include="SQLIndexer\SqlModel\Constants.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\EnumCategory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\Event.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\FileSystemObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\SqlAccessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\SqlEnum.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\Sync.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLProxies\32Bit\SQLiteCommand32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteConnection32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteDataReader32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteException32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteParameter32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteParameterCollection32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteTransaction32.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteCommand64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteConnection64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteDataReader64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteException64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteParameter64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteParameterCollection64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteTransaction64.cs" />
+    <Compile Include="SQLProxies\DisposableProxyObject.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteCommand.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteConnection.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteDataReader.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteException.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteParameter.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteParameterCollection.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteTransaction.cs" />
+    <Compile Include="SQLProxies\SQLConstructors.cs" />
+    <Compile Include="SQLProxies\SQLiteExceptionBase.cs" />
+    <Compile Include="SQLProxies\WrappedEnums.cs" />
     <Compile Include="Static\ItemsControlHelper.cs" />
     <Compile Include="Support\CLCopyFiles.cs" />
     <Compile Include="CLSync\CLSyncEngine.cs" />
@@ -271,21 +316,12 @@
       <DependentUpon>Resources.fr.resx</DependentUpon>
     </Compile>
     <Compile Include="SQLIndexer\IndexingAgent.cs" />
-    <Compile Include="SQLIndexer\Migrations\Migration2.cs" />
     <Compile Include="SQLIndexer\Migrations\MigrationList.cs" />
     <Compile Include="SQLIndexer\Model\FileResultRoot.cs" />
     <Compile Include="SQLIndexer\Model\FindFileResult.cs" />
     <Compile Include="SQLIndexer\Model\IFileResultParent.cs" />
     <Compile Include="SQLIndexer\Model\SafeSearchHandle.cs" />
-    <Compile Include="SQLIndexer\SqlModel\Constants.cs" />
-    <Compile Include="SQLIndexer\SqlModel\EnumCategory.cs" />
-    <Compile Include="SQLIndexer\SqlModel\Event.cs" />
-    <Compile Include="SQLIndexer\SqlModel\FileSystemObject.cs" />
-    <Compile Include="SQLIndexer\SqlModel\SqlAccessor.cs" />
-    <Compile Include="SQLIndexer\SqlModel\SqlEnum.cs" />
-    <Compile Include="SQLIndexer\SqlModel\Sync.cs" />
     <Compile Include="SQLIndexer\StringCRC.cs" />
-    <Compile Include="SQLIndexer\SyncedObject.cs" />
     <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\Helpers.cs" />
     <Compile Include="Static\MessageEvents.cs" />
@@ -321,6 +357,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.fr.resx">
@@ -339,29 +378,22 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\0Version.table.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\10FileSystemObjects_SyncCounter_ServerLinked.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\11FileSystemObjects_EventId.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_Revision.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects.PathChecksum.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14FileChangeTypesEnum1.data.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\15FileChangeTypesEnum2.data.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\16FileChangeTypesEnum3.data.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\17FileChangeTypesEnum4.data.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\18FileChangeTypesEnum5.data.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\19Events_GroupId.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\1IncompleteVersion.data.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\20CompletedVersion.data.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\3EnumCategories.table.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\5Syncs.table.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\6Syncs_SyncId.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_FileChangeTypeEnumId_FileChangeTypeCategoryId.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="WindowsSdkReleaseNotes.txt" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\10FileSystemObjects_Name.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\11FileSystemObjects_ParentFolderId.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_EventId.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects_ServerUid.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14FileSystemObjects_Pending.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\15Finalize.pragma.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\1Initialize.pragma.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\2EnumCategories.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\3AddFileChangeTypeEnumCategory.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\5AddFileChangeTypeEnumValues.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\6Syncs.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_GroupId.index.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
