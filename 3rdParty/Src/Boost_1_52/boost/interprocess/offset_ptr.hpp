@@ -692,8 +692,7 @@ struct max_pointer_plus_bits<boost::interprocess::offset_ptr<void, P, O, A>, Off
 {
    //The offset ptr can embed one bit less than the alignment since it
    //uses offset == 1 to store the null pointer.
-   //RKS:static const std::size_t value = ::boost::interprocess::ipcdetail::ls_zeros<OffsetAlignment>::value - 1;
-   static const uint64_t value = ::boost::interprocess::ipcdetail::ls_zeros<OffsetAlignment>::value - 1;
+   static const std::size_t value = ::boost::interprocess::ipcdetail::ls_zeros<OffsetAlignment>::value - 1;
 };
 
 //Predeclaration
@@ -701,7 +700,7 @@ template<class Pointer, std::size_t NumBits>
 struct pointer_plus_bits;
 
 //RKS:template<class T, class P, class O, std::size_t A, std::size_t NumBits>
-template<class T, class P, class O, uint64_t A, uint64_t NumBits>
+template<class T, class P, class O, uint64_t A, std::size_t NumBits>
 struct pointer_plus_bits<boost::interprocess::offset_ptr<T, P, O, A>, NumBits>
 {
    typedef boost::interprocess::offset_ptr<T, P, O, A>      pointer;
