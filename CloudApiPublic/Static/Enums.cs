@@ -36,6 +36,70 @@ namespace Cloud.Static
         SessionExpired = (((ulong)3000) << 32) | 2 // 3000.2
     }
 
+    /// <summary>
+    /// POSIX-style permissions as flagged enumeration
+    /// </summary>
+    [Flags]
+    public enum POSIXPermissions : int
+    {
+        /// <summary>
+        /// --- --- ---
+        /// </summary>
+        NoPermission = 0,
+        /// <summary>
+        /// --- --- --x
+        /// </summary>
+        OtherUsersExecute = 1,
+        /// <summary>
+        /// --- --- -w-
+        /// </summary>
+        OtherUsersWrite = 1 << 1,
+        /// <summary>
+        /// --- --- r--
+        /// </summary>
+        OtherUsersRead = 1 << 2,
+        /// <summary>
+        /// --- --x ---
+        /// </summary>
+        GroupExecute = 1 << 3,
+        /// <summary>
+        /// --- -w- ---
+        /// </summary>
+        GroupWrite = 1 << 4,
+        /// <summary>
+        /// --- r-- ---
+        /// </summary>
+        GroupRead = 1 << 5,
+        /// <summary>
+        /// --x --- ---
+        /// </summary>
+        OwnerExecute = 1 << 6,
+        /// <summary>
+        /// -w- --- ---
+        /// </summary>
+        OwnerWrite = 1 << 7,
+        /// <summary>
+        /// r-- --- ---
+        /// </summary>
+        OwnerRead = 1 << 8,
+
+        /// <summary>
+        /// rwx rwx rwx
+        /// </summary>
+        AllPermissions =
+            OtherUsersExecute | OtherUsersWrite | OtherUsersRead
+                | GroupExecute | GroupWrite | GroupRead
+                | OwnerExecute | OwnerWrite | OwnerRead,
+
+        /// <summary>
+        /// r-x r-x r-x
+        /// </summary>
+        ReadOnlyPermissions =
+            OtherUsersExecute | OtherUsersRead
+                | GroupExecute | GroupRead
+                | OwnerExecute | OwnerRead
+    }
+
     [Flags]
     /// <summary>
     /// Flagged enumeration used to determine running status of FileMonitor;

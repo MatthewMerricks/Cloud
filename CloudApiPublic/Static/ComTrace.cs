@@ -958,7 +958,7 @@ namespace Cloud.Static
 
                             currentArray[currentIndex] = new TraceFileChange()
                             {
-                                ServerId = currentChange.Metadata.ServerId,
+                                ServerId = currentChange.Metadata.ServerUid,
                                 EventId = currentChange.EventId,
                                 EventIdSpecified = currentChange.EventId != 0,
                                 NewPath = currentChange.NewPath.ToString(),

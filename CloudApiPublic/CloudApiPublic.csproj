@@ -103,11 +103,13 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Data.SQLite32">
+    <Reference Include="System.Data.SQLite32, Version=1.0.84.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=x86">
       <HintPath>..\3rdParty\bin\Release\System.Data.SQLite32.dll</HintPath>
+      <Aliases>global,SQL32</Aliases>
     </Reference>
-    <Reference Include="System.Data.SQLite64">
+    <Reference Include="System.Data.SQLite64, Version=1.0.84.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=AMD64">
       <HintPath>..\3rdParty\bin\Release64\System.Data.SQLite64.dll</HintPath>
+      <Aliases>global,SQL64</Aliases>
     </Reference>
     <Reference Include="System.Management" />
     <Reference Include="System.Runtime.Serialization" />
@@ -380,20 +382,25 @@
   <ItemGroup>
     <None Include="WindowsSdkReleaseNotes.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\15FileSystemObjects_EventTimeUTCTicks.index.sql" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\10FileSystemObjects_Name.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\11FileSystemObjects_ParentFolderId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_EventId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects_ServerUid.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14FileSystemObjects_Pending.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\15Finalize.pragma.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\17Finalize.pragma.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\1Initialize.pragma.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\2EnumCategories.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\3AddFileChangeTypeEnumCategory.data.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\5AddFileChangeTypeEnumValues.data.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\6Syncs.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_GroupId.index.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\16RootFolderObject.data.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

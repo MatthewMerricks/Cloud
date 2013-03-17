@@ -19,17 +19,9 @@ namespace Cloud.Model
     public sealed class FileMetadata
     {
         /// <summary>
-        /// Uid from server which uniquely represents a file or a folder regardless of where it moves
-        /// </summary>
-        public string ServerId { get; set; }
-        /// <summary>
         /// Section of comparable properties used to determine uniqueness of a file change
         /// </summary>
         public FileMetadataHashableProperties HashableProperties { get; set; }
-        /// <summary>
-        /// For files which are valid shortcuts, this is the target of the shortcut
-        /// </summary>
-        public FilePath LinkTargetPath { get; set; }
         /// <summary>
         /// Revision from server to identify file change version
         /// </summary>
@@ -39,9 +31,29 @@ namespace Cloud.Model
         /// </summary>
         public string StorageKey { get; set; }
         /// <summary>
+        /// Whether this represents a shared item
+        /// </summary>
+        public Nullable<bool> IsShare { get; set; }
+        /// <summary>
+        /// Version number for files as assigned by server
+        /// </summary>
+        public Nullable<int> Version { get; set; }
+        /// <summary>
+        /// "uid" from server which uniquely represents a file or a folder regardless of where it moves
+        /// </summary>
+        public string ServerUid { get; set; }
+        /// <summary>
         /// Mime type of a file
         /// </summary>
         public string MimeType { get; set; }
+        /// <summary>
+        /// POSIX-style access permissions
+        /// </summary>
+        public Nullable<POSIXPermissions> Permissions { get; set; }
+        /// <summary>
+        /// Time when last event occurred to this file/folder. Used to query recents.
+        /// </summary>
+        public DateTime EventTime { get; set; }
 
         internal RevisionChanger RevisionChanger { get; private set; }
 
@@ -178,7 +190,7 @@ namespace Cloud.Model
             // Now we have 1 bit from IsFolder
             // Bits filled up to bit 1 in first byte of return
 
-            // now use fast-moving seconds instead of ticks since we are dropping subseconds in communication
+            // now use fast-moving seconds instead of ticks since we are dropping subseconds in communication; subseconds will still be compared on hash conflict in the equality comparer
             long lastTimeTicksToSeconds = obj.LastTime.Ticks / 10000000L; // 10000000 is the number of ticks in a second
 
             byte[] lastTimeBytes = BitConverter.GetBytes(lastTimeTicksToSeconds);

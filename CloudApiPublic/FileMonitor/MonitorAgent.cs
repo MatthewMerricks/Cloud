@@ -1259,7 +1259,7 @@ namespace Cloud.FileMonitor
                                     new ChangeAllPathsIndexSet(this, toApply.NewPath,
                                         new FileMetadata(toApply.Metadata.RevisionChanger)
                                         {
-                                            ServerId = toApply.Metadata.ServerId,
+                                            ServerUid = toApply.Metadata.ServerUid,
                                             HashableProperties = toApply.Metadata.HashableProperties,
                                             LinkTargetPath = toApply.Metadata.LinkTargetPath,
                                             Revision = toApply.Metadata.Revision
@@ -3936,7 +3936,7 @@ namespace Cloud.FileMonitor
                 // metadata change detected
                 return new FileMetadata(previousMetadata.RevisionChanger)
                 {
-                    ServerId = previousMetadata.ServerId,
+                    ServerUid = previousMetadata.ServerUid,
                     HashableProperties = forCompare,
                     Revision = previousMetadata.Revision,
                     LinkTargetPath = targetPath
@@ -4107,7 +4107,7 @@ namespace Cloud.FileMonitor
 
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                             toChange.Metadata.Revision = previousChange.Metadata.Revision;
-                                            toChange.Metadata.ServerId = previousChange.Metadata.ServerId;
+                                            toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
                                             toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
                                         }
                                         // For files with different metadata, process as a modify

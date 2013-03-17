@@ -5899,7 +5899,7 @@ namespace Cloud.Sync
                                 EventId = currentEvent.FileChange.EventId, // this is out local identifier for the event which will be passed as the "client_reference" and returned so we can correlate the response event
                                 Metadata = new Metadata()
                                 {
-                                    ServerId = currentEvent.FileChange.Metadata.ServerId, // the unique id on the server
+                                    ServerId = currentEvent.FileChange.Metadata.ServerUid, // the unique id on the server
                                     CreatedDate = currentEvent.FileChange.Metadata.HashableProperties.CreationTime, // when the file system object was created
                                     Deleted = currentEvent.FileChange.Type == FileChangeType.Deleted, // whether or not the file system object is deleted
                                     Hash = ((Func<FileChange, string>)(innerEvent => // hash must be retrieved via function because the appropriate FileChange call has an output parameter (and requires error checking)
@@ -6231,7 +6231,7 @@ namespace Cloud.Sync
                                             throw new AggregateException("Error retrieving MD5 hash as lowercase string", hashRetrievalError.GrabExceptions());
                                         }
                                         // ser the unique server id
-                                        findServerId = nonNullPreviousFileChange.FileChange.Metadata.ServerId;
+                                        findServerId = nonNullPreviousFileChange.FileChange.Metadata.ServerUid;
                                         // set the metadata properties
                                         findHashableProperties = nonNullPreviousFileChange.FileChange.Metadata.HashableProperties;
                                         // set the shortcut target path, or null if the event is not for a shortcut file
@@ -6309,7 +6309,7 @@ namespace Cloud.Sync
                                     // set the metadata for the current FileChange (copying the RevisionChanger if a previous matched FileChange was found)
                                     currentChange.Metadata = new FileMetadata(matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.RevisionChanger) // copy previous RevisionChanger if possible
                                         {
-                                            ServerId = findServerId, // set the server unique id
+                                            ServerUid = findServerId, // set the server unique id
                                             HashableProperties = findHashableProperties, // set the metadata properties
                                             LinkTargetPath = findLinkTargetPath, // set the full path target of a shortcut file, or null for non-shortcuts
                                             Revision = findRevision, // set the file revision, or null for non-files
@@ -6544,7 +6544,7 @@ namespace Cloud.Sync
                                                                     {
                                                                         //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
-                                                                        ServerId = currentChange.Metadata.ServerId, // the unique id on the server
+                                                                        ServerUid = currentChange.Metadata.ServerUid, // the unique id on the server
                                                                         HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
                                                                             newMetadata.ModifiedDate, // last modified time for this file system object
                                                                             newMetadata.CreatedDate, // creation time for this file system object
@@ -6899,8 +6899,8 @@ namespace Cloud.Sync
                                                 || (((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath != null && currentChange.OldPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath, currentChange.OldPath)))
 
                                             // different if FileChanges have mismatching unique server ids
-                                            || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerId != null && !string.IsNullOrEmpty(currentChange.Metadata.ServerId)
-                                                && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerId != currentChange.Metadata.ServerId)
+                                            || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUid != null && !string.IsNullOrEmpty(currentChange.Metadata.ServerUid)
+                                                && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUid != currentChange.Metadata.ServerUid)
 
                                             // different if the revision is different
 
@@ -7017,7 +7017,7 @@ namespace Cloud.Sync
                                                             && currentChange.Type != FileChangeType.Deleted)
                                                         {
                                                             // clear unique server id
-                                                            currentChange.Metadata.ServerId = null;
+                                                            currentChange.Metadata.ServerUid = null;
                                                             // convert change to creation
                                                             currentChange.Type = FileChangeType.Created;
                                                             // remove old path since creation does not have one
@@ -7892,7 +7892,7 @@ namespace Cloud.Sync
                                             {
                                                 //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
-                                                ServerId = currentEvent.Metadata.ServerId, // unique id on the server
+                                                ServerUid = currentEvent.Metadata.ServerId, // unique id on the server
                                                 HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
                                                     currentEvent.Metadata.ModifiedDate, // grab the last modified time
                                                     currentEvent.Metadata.CreatedDate, // grab the time of creation
@@ -8108,7 +8108,7 @@ namespace Cloud.Sync
                                                     {
                                                         //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
-                                                        ServerId = newMetadata.ServerId, // unique id on the server
+                                                        ServerUid = newMetadata.ServerId, // unique id on the server
                                                         HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
                                                             newMetadata.ModifiedDate, // last modified time for this file system object
                                                             newMetadata.CreatedDate, // creation time for this file system object

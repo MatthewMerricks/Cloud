@@ -55,7 +55,7 @@ namespace Cloud.SQLIndexer.SqlModel
         public byte[] MD5 { get; set; }
 
         [SqlAccess.Property]
-        public int Version { get; set; }
+        public Nullable<int> Version { get; set; }
 
         [SqlAccess.Property]
         public string ServerUid { get; set; }

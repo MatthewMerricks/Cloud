@@ -1684,7 +1684,7 @@ namespace Cloud.REST
                         // check additional parameters for file or folder deletion
 
                         if (toCommunicate.NewPath == null
-                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerId))
+                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerUid))
                         {
                             throw new NullReferenceException("Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null");
                         }
@@ -1697,7 +1697,7 @@ namespace Cloud.REST
                                 ? null
                                 : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true) +
                                     (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
-                            ServerId = toCommunicate.Metadata.ServerId,
+                            ServerId = toCommunicate.Metadata.ServerUid,
                             SyncBoxId = _syncBoxId
                         };
 
@@ -1729,7 +1729,7 @@ namespace Cloud.REST
                             throw new NullReferenceException("toCommunicate Metadata HashableProperties Size cannot be null");
                         }
                         if (toCommunicate.NewPath == null
-                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerId))
+                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerUid))
                         {
                             throw new NullReferenceException("Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null");
                         }
@@ -1751,7 +1751,7 @@ namespace Cloud.REST
                                 ? null
                                 : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true)),
                             Revision = toCommunicate.Metadata.Revision,
-                            ServerId = toCommunicate.Metadata.ServerId,
+                            ServerId = toCommunicate.Metadata.ServerUid,
                             Size = toCommunicate.Metadata.HashableProperties.Size,
                             SyncBoxId = _syncBoxId
                         };
@@ -1764,7 +1764,7 @@ namespace Cloud.REST
                         // check additional parameters for file or folder move (rename)
 
                         if (toCommunicate.NewPath == null
-                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerId))
+                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerUid))
                         {
                             throw new NullReferenceException("Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null");
                         }
@@ -1783,7 +1783,7 @@ namespace Cloud.REST
                                 ? null
                                 : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true)
                                     + (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
-                            ServerId = toCommunicate.Metadata.ServerId,
+                            ServerId = toCommunicate.Metadata.ServerUid,
                             SyncBoxId = _syncBoxId
                         };
 
@@ -2005,7 +2005,7 @@ namespace Cloud.REST
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
-                if (string.IsNullOrEmpty(deletionChange.Metadata.ServerId))
+                if (string.IsNullOrEmpty(deletionChange.Metadata.ServerUid))
                 {
                     throw new NullReferenceException("deletionChange Metadata ServerId must not be null");
                 }
@@ -2018,7 +2018,7 @@ namespace Cloud.REST
                 response = Helpers.ProcessHttp<JsonContracts.Event>(new JsonContracts.FileOrFolderUndelete() // files and folders share a request content object for undelete
                     {
                         DeviceId = _copiedSettings.DeviceId, // device id
-                        ServerId = deletionChange.Metadata.ServerId, // unique id on server
+                        ServerId = deletionChange.Metadata.ServerUid, // unique id on server
                         SyncBoxId = _syncBoxId // id of sync box
                     },
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
