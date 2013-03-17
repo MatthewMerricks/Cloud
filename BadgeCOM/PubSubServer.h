@@ -161,12 +161,11 @@ public:
 
 		// Constructor
 		Subscription(GUID guidSubscriber, ULONG uSubscribingProcessId, ULONG uSubscribingThreadId, EnumEventType nEventType, 
-									offset_ptr<interprocess_semaphore, int64_t, uint64_t> pSemaphoreSubscription, const void_allocator &allocator) :
+									const void_allocator &allocator) :
                             uSignature1_(_kuSubscriptionSignature),
 							uSubscribingProcessId_(uSubscribingProcessId), 
 							uSubscribingThreadId_(uSubscribingThreadId),
 							nEventType_(nEventType),
-							pSemaphoreSubscription_(pSemaphoreSubscription),
                             guidSubscriber_(guidSubscriber),
 							fDestructed_(false),
 							fWaiting_(false),
@@ -288,6 +287,7 @@ private:
     void TraceCurrentStateOfSharedMemory(Base *pBase);
     std::string GetSharedMemoryNameWithVersion();
     std::wstring GetSharedMemoryNameWithVersionWide();
+	void Debug32BitProcess();  //@@@@@@@@@@@ DEBUG ONLY.  REMOVE.  @@@@@@@@@@@
 
 	// Private instance fields
 	std::vector<UniqueSubscription> _trackedSubscriptionIds;		// list of subscriptions created by this instance

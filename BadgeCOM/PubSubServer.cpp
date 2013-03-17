@@ -93,6 +93,9 @@ STDMETHODIMP CPubSubServer::Initialize()
 			CLTRACE(9, "PubSubServer: Initialize: sizeof(eventtype_map_guid_subscription_map): %d.", sizeof(eventtype_map_guid_subscription_map));
 			CLTRACE(9, "PubSubServer: Initialize: sizeof(subscription_vector): %d.", sizeof(subscription_vector));
 
+			//@@@@@@@@@@@@@@@@@@@@@@ DEBUG ONLY.  REMOVE @@@@@@@@@@@@@@@@@@@@@
+			Debug32BitProcess();
+
 		}
        	CLTRACE(9, "PubSubServer: Initialize: Segment: %p.", _pSegment);
     }
@@ -109,6 +112,101 @@ STDMETHODIMP CPubSubServer::Initialize()
 
 	CLTRACE(9, "PubSubServer: Initialize: Exit");
     return result;
+}
+
+void CPubSubServer::Debug32BitProcess()
+{
+    char *pszExceptionStateTracker = "Start";
+
+    try
+    {
+	    if (_pSegment == NULL)
+	    {
+		    CLTRACE(1, "PubSubServer: Debug32BitProcess: ERROR. _pSegment, FullPath and returnValue must all be non-NULL.");
+		    return;
+	    }
+
+        ULONG processId = GetCurrentProcessId();
+        ULONG threadId = GetCurrentThreadId();
+		std::vector<GUID> subscribers;
+
+	    CLTRACE(9, "PubSubServer: Debug32BitProcess: Entry.");
+        Base *pBase = NULL;
+
+
+        // Open the shared memory segment, or create it if it is not there.  This is atomic.
+        // An allocator convertible to any allocator<T, segment_manager_t> type.
+        pszExceptionStateTracker = "Call alloc_inst";
+        void_allocator alloc_inst(_pSegment->get_segment_manager());
+
+        // Construct the shared memory Base image and initiliaze it.  This is atomic.
+        pszExceptionStateTracker = "Call find_or_construct";
+		std::less<int> comparator;
+        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
+	    CLTRACE(9, "PubSubServer: Debug32BitProcess: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
+	    CLTRACE(9, "PubSubServer: Debug32BitProcess: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
+
+		// Check the signature
+		if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
+		{
+		    CLTRACE(1, "PubSubServer: Debug32BitProcess: ERROR. Base signatures don't match.");
+		    return;
+		}
+
+		pBase->mutexSharedMemory_.lock();
+			//@@@@@@@@@@@@@@@@@@@ DEBUG CODE ONLY.  REMOVE.  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+			// Loop through memory and find all of the subscription semaphore offset_ptrs.  Do this only for 32-bit processes.
+			if (sizeof(size_t) == 4)
+			{
+				try
+				{
+					// Loop through all of the event types.
+    				CLTRACE(9, "PubSubServer: Debug32BitProcess: Look for all subscription offset_ptrs.");
+					for (eventtype_map_guid_subscription_map::iterator itEventType = pBase->subscriptions_.begin(); itEventType != pBase->subscriptions_.end(); ++itEventType)
+					{
+						// Loop through all of the subscriptions for this event type.
+						for (guid_subscription_map::iterator itSubscription = itEventType->second.begin(); itSubscription != itEventType->second.end(); ++itSubscription)
+						{
+							// Check the subscription signature.
+							if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
+							{
+								CLTRACE(1, "PubSubServer: Debug32BitProcess: Bad subscription signature.");
+								throw new std::exception("Bad subscription signature");
+							}
+
+							// Get a local pointer to the semaphore offset pointer.
+							offset_ptr<interprocess_semaphore, int64_t, uint64_t> *pOffsetPtr = &itSubscription->second.pSemaphoreSubscription_;
+
+							// Get a local pointer to the interprocess_semaphore.
+							interprocess_semaphore *pSemaphore = itSubscription->second.pSemaphoreSubscription_.get();
+
+							int i = 0; 
+							int j = 0;
+							i++;
+							j = i;
+						}
+					}
+				}
+				catch (const std::exception &ex)
+				{
+					CLTRACE(1, "PubSubServer: Debug32BitProcess: Exception: %s.", ex.what());
+				}
+				catch (...)
+				{
+					CLTRACE(1, "PubSubServer: Debug32BitProcess: ERROR: C++ exception.");
+				}
+			}
+			//@@@@@@@@@@@@@@@@@@@ DEBUG CODE ONLY.  REMOVE.  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		pBase->mutexSharedMemory_.unlock();
+    }
+    catch (const std::exception &ex)
+    {
+		CLTRACE(1, "PubSubServer: Debug32BitProcess: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
+    }
+    catch (...)
+    {
+		CLTRACE(1, "PubSubServer: Debug32BitProcess: ERROR: C++ exception. Tracker: %s.", pszExceptionStateTracker);
+    }
 }
 
 /// <summary>
@@ -175,50 +273,6 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		pBase->mutexSharedMemory_.lock();
 		try
 		{
-			//@@@@@@@@@@@@@@@@@@@ DEBUG CODE ONLY.  REMOVE.  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-			// Loop through memory and find all of the subscription semaphore offset_ptrs.  Do this only for 32-bit processes.
-			if (sizeof(size_t) == 4)
-			{
-				try
-				{
-					// Loop through all of the event types.
-    				CLTRACE(9, "PubSubServer: Publish: Look for all subscription offset_ptrs.");
-					for (eventtype_map_guid_subscription_map::iterator itEventType = pBase->subscriptions_.begin(); itEventType != pBase->subscriptions_.end(); ++itEventType)
-					{
-						// Loop through all of the subscriptions for this event type.
-						for (guid_subscription_map::iterator itSubscription = itEventType->second.begin(); itSubscription != itEventType->second.end(); ++itSubscription)
-						{
-							// Check the subscription signature.
-							if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
-							{
-								CLTRACE(1, "PubSubServer: Publish: Bad subscription signature.");
-								throw new std::exception("Bad subscription signature");
-							}
-
-							// Get a local pointer to the semaphore offset pointer.
-							offset_ptr<interprocess_semaphore, int64_t, uint64_t> *pOffsetPtr = &itSubscription->second.pSemaphoreSubscription_;
-
-							// Get a local pointer to the interprocess_semaphore.
-							interprocess_semaphore *pSemaphore = itSubscription->second.pSemaphoreSubscription_.get();
-
-							int i = 0; 
-							int j = 0;
-							i++;
-							j = i;
-						}
-					}
-				}
-				catch (const std::exception &ex)
-				{
-					CLTRACE(1, "PubSubServer: Publish: Exception: %s.", ex.what());
-				}
-				catch (...)
-				{
-					CLTRACE(1, "PubSubServer: Publish: ERROR: C++ exception.");
-				}
-			}
-			//@@@@@@@@@@@@@@@@@@@ DEBUG CODE ONLY.  REMOVE.  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 			// Locate the inner map for this event type.
             pszExceptionStateTracker = "Locate inner map";
 			eventtype_map_guid_subscription_map::iterator itMapOuter = pBase->subscriptions_.find(EventType);
@@ -496,7 +550,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 				// Our specific subscription was not found.  We will need to add it.
 				// Construct a semaphore in shared memory.  The subscription will need a pointer to it.
 				pszExceptionStateTracker = "Construct subscription's semaphore";
-				offset_ptr<interprocess_semaphore, int64_t, uint64_t> opSemaphore = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
+				interprocess_semaphore *pSemaphore = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
 
 				// Locate the event type element in the outer map<EventType, map<GUID, Subscription>>.  The record may not be there.
 				CLTRACE(9, "PubSubServer: Subscribe: Our specific subscription was not found.");
@@ -507,13 +561,13 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					// The event type record was found in the outer map.  Add a pair_guid_subscription record to the inner map.
 					CLTRACE(9, "PubSubServer: Subscribe: The EventType record was found in the outer map.  Construct an inner map pair_guid_subscription and add it to the inner map.");
                     pszExceptionStateTracker = "Construct subscription's semaphore";
-					offset_ptr<interprocess_semaphore, int64_t, uint64_t> opSemaphore = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
 
                     pszExceptionStateTracker = "Add an inner map";
 					std::pair<guid_subscription_map::iterator, BOOL> retvalEmplace;
-					retvalEmplace = itMapOuter->second.emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, opSemaphore, alloc_inst)));
+					retvalEmplace = itMapOuter->second.emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, alloc_inst)));
 					retvalEmplace.first->second.fWaiting_ = true;
 					outOptrFoundSubscription = &retvalEmplace.first->second;
+					outOptrFoundSubscription->pSemaphoreSubscription_ = pSemaphore;
 				}
 				else
 				{
@@ -531,9 +585,10 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					// Add a pair_guid_subscription to the inner map just constructed.
 					CLTRACE(9, "PubSubServer: Subscribe: Construct the GUID/Subscription pair to the inner map.");
 	                pszExceptionStateTracker = "Add a guid_subscription pair to the inner map";
-					retvalEmplace = mapGuidSubscription->emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, opSemaphore, alloc_inst)));
+					retvalEmplace = mapGuidSubscription->emplace(pair_guid_subscription(guidSubscriber, Subscription(guidSubscriber, processId, threadId, EventType, alloc_inst)));
 					retvalEmplace.first->second.fWaiting_ = true;
 					outOptrFoundSubscription = &retvalEmplace.first->second;
+					outOptrFoundSubscription->pSemaphoreSubscription_ = pSemaphore;
 
 					// Then add the constructed inner map to the outer map.
 					CLTRACE(9, "PubSubServer: Subscribe: Add the constructed inner map to the outer map.");

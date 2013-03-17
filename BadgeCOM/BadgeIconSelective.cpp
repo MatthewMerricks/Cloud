@@ -33,6 +33,10 @@ CBadgeIconSelective::CBadgeIconSelective()
 		}
 		fCompletedOnce = true;
 #endif // WAIT_FOR_DEBUG
+
+#if DEBUG_ENABLE_ONLY_SYNCED_BADGING
+		return;
+#endif // DEBUG_ENABLE_ONLY_SYNCED_BADGING
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 	    // Allocate the base shell extension.
@@ -56,6 +60,12 @@ CBadgeIconSelective::~CBadgeIconSelective()
 {
     try
     {
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+#if DEBUG_ENABLE_ONLY_SYNCED_BADGING
+		return;
+#endif // DEBUG_ENABLE_ONLY_SYNCED_BADGING
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
         if (_pBaseShellExtension != NULL)
         {
             _pBaseShellExtension->~CBadgeIconBase();
@@ -81,6 +91,12 @@ STDMETHODIMP CBadgeIconSelective::GetOverlayInfo(
 	int* pIndex,
 	DWORD* pdwFlags)
 {
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+#if DEBUG_ENABLE_ONLY_SYNCED_BADGING
+		return S_OK;
+#endif // DEBUG_ENABLE_ONLY_SYNCED_BADGING
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
 	try
 	{
 		// Pass it thru to base
@@ -106,6 +122,12 @@ STDMETHODIMP CBadgeIconSelective::GetOverlayInfo(
 // returns the priority of this overlay 0 being the highest.
 STDMETHODIMP CBadgeIconSelective::GetPriority(int* pPriority)
 {
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+#if DEBUG_ENABLE_ONLY_SYNCED_BADGING
+		return S_OK;
+#endif // DEBUG_ENABLE_ONLY_SYNCED_BADGING
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
     try
     {
 		// Pass it thru to base
@@ -131,6 +153,12 @@ STDMETHODIMP CBadgeIconSelective::GetPriority(int* pPriority)
 // Returns whether the object should have this overlay or not 
 STDMETHODIMP CBadgeIconSelective::IsMemberOf(LPCWSTR pwszPath, DWORD dwAttrib)
 {
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+#if DEBUG_ENABLE_ONLY_SYNCED_BADGING
+		return S_FALSE;
+#endif // DEBUG_ENABLE_ONLY_SYNCED_BADGING
+		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
 	// Default return value is false (no icon overlay)
 	HRESULT result = S_FALSE;   // or S_OK for icon overlay
 
