@@ -77,6 +77,31 @@ namespace ipcdetail {
    #define BOOST_INTERPROCESS_OFFSET_PTR_INLINE_TO_PTR
    #define BOOST_INTERPROCESS_OFFSET_PTR_BRANCHLESS_TO_PTR
 
+   // RKS: Promote an unsigned size_t to uint64_t while extending the sign bit
+   template<int Dummy>
+   uint64_t PromoteSizeT(size_t sizeToPromote)
+   {
+	   uint64_t toReturn;
+
+	   if (sizeof(size_t) == 4)
+	   {
+		   if ((sizeToPromote & 0x80000000) != 0)
+		   {
+			   toReturn = sizeToPromote | 0xFFFFFFFF00000000ULL;
+		   }
+		   else
+		   {
+			   toReturn = (uint64_t)sizeToPromote;
+		   }
+	   }
+	   else
+	   {
+		   toReturn = sizeToPromote;
+	   }
+
+	   return toReturn;
+   }
+   
    template<int Dummy>
    #ifndef BOOST_INTERPROCESS_OFFSET_PTR_INLINE_TO_PTR
       BOOST_INTERPROCESS_NEVER_INLINE
@@ -93,11 +118,13 @@ namespace ipcdetail {
          }
          else{
             caster_t caster((void*)this_ptr);
-            return caster_t(caster.size() + offset).pointer();
+            //RKS:return caster_t(caster.size() + offset).pointer();
+            return caster_t(PromoteSizeT<0>(caster.size()) + offset).pointer();
          }
       #else
          caster_t caster((void*)this_ptr);
-         return caster_t((caster.size() + offset) & -std::size_t(offset != 1)).pointer();
+         //RKS:return caster_t((caster.size() + offset) & -std::size_t(offset != 1)).pointer();
+         return caster_t(PromoteSizeT<0>((caster.size()) + offset) & -uint64_t(offset != 1)).pointer();
       #endif
    }
 
@@ -136,7 +163,7 @@ namespace ipcdetail {
             caster_t this_caster((void*)this_ptr);
             caster_t ptr_caster((void*)ptr);
             //RKS:std::size_t offset = ptr_caster.size() - this_caster.size();
-            uint64_t offset = ptr_caster.size() - this_caster.size();
+            uint64_t offset = PromoteSizeT<0>(ptr_caster.size()) - PromoteSizeT<0>(this_caster.size());
             BOOST_ASSERT(offset != 1);
             return offset;
          }
@@ -187,7 +214,7 @@ namespace ipcdetail {
          caster_t this_caster((void*)this_ptr);
          caster_t other_caster((void*)other_ptr);
          //RKS:std::size_t offset = other_caster.size() - this_caster.size() + other_offset;
-         uint64_t offset = other_caster.size() - this_caster.size() + other_offset;
+         uint64_t offset = PromoteSizeT<0>(other_caster.size()) - PromoteSizeT<0>(this_caster.size()) + other_offset;
          BOOST_ASSERT(offset != 1);
          return offset;
       }
@@ -195,7 +222,7 @@ namespace ipcdetail {
       caster_t this_caster((void*)this_ptr);
       caster_t other_caster((void*)other_ptr);
       //RKS:std::size_t offset = (other_caster.size() - this_caster.size()) & -std::size_t(other_offset != 1);
-      uint64_t offset = (other_caster.size() - this_caster.size()) & -uint64_t(other_offset != 1);
+      uint64_t offset = (PromoteSizeT<0>(other_caster.size()) - PromoteSizeT<0>(this_caster.size())) & -uint64_t(other_offset != 1);
       offset += other_offset;
       return offset;
       #endif
@@ -687,7 +714,7 @@ template<class VoidPointer, std::size_t N>
 struct max_pointer_plus_bits;
 
 //RKS:template<std::size_t OffsetAlignment, class P, class O, std::size_t A>
-template<uint64_t OffsetAlignment, class P, class O, uint64_t A>
+template<std::size_t OffsetAlignment, class P, class O, uint64_t A>
 struct max_pointer_plus_bits<boost::interprocess::offset_ptr<void, P, O, A>, OffsetAlignment>
 {
    //The offset ptr can embed one bit less than the alignment since it
@@ -699,7 +726,6 @@ struct max_pointer_plus_bits<boost::interprocess::offset_ptr<void, P, O, A>, Off
 template<class Pointer, std::size_t NumBits>
 struct pointer_plus_bits;
 
-//RKS:template<class T, class P, class O, std::size_t A, std::size_t NumBits>
 template<class T, class P, class O, uint64_t A, std::size_t NumBits>
 struct pointer_plus_bits<boost::interprocess::offset_ptr<T, P, O, A>, NumBits>
 {
