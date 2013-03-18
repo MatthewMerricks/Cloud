@@ -944,8 +944,8 @@ rem C:\Cloud\windows-client\3rdParty\bin\Release&gt;copy BadgeCOMLib.dll ..\..\.
 
 REM ----------------------------------------------------------------
 set ErrorTracker=3
-echo tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll /company:Cloud.com /copyright:"Copyright (C ) Cloud.com. All rights reserved." /asmversion:0.1.7.0 /productversion:0.1.7.0
-tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll /company:Cloud.com /copyright:"Copyright (C ) Cloud.com. All rights reserved." /asmversion:0.1.7.0 /productversion:0.1.7.0
+echo tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll /company:Cloud.com /copyright:"Copyright (C ) Cloud.com. All rights reserved." /asmversion:0.1.8.0 /productversion:0.1.8.0
+tlbimp $(OutDir)$(TargetName).dll /out:$(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll /company:Cloud.com /copyright:"Copyright (C ) Cloud.com. All rights reserved." /asmversion:0.1.8.0 /productversion:0.1.8.0
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
