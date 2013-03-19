@@ -323,6 +323,7 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
             	        if (itProcessIdPublisherValue == itProcessItValue->second.end())
                         {
                             // We didn't find this guidPublisher.  Add it.
+	            		    CLTRACE(9, "CBadgeIconBase: OnEventAddBadgePath: Add this guidPublisher to the processId's set.");
                             itProcessItValue->second.insert(guidPublisher);
                         }
                         else

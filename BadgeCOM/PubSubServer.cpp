@@ -40,7 +40,12 @@ STDMETHODIMP CPubSubServer::Initialize()
 			segment_manager_t *segm = _pSegment->get_segment_manager();
             pszExceptionStateTracker = "Call get_address";
 			shm_base = _pSegment->get_address();
-			CLTRACE(9, "PubSubServer: Initialize: shm_base: Address in this process: %p.", shm_base);
+
+			// Get the name of this process.
+			char buffer[MAX_PATH];//always use MAX_PATH for filepaths
+			GetModuleFileNameA(NULL, buffer, sizeof(buffer));
+			CLTRACE(9, "PubSubServer: Initialize: shm_base: Address in this process: %p.  Process name: %s.", shm_base, buffer);
+
 			//BOOL fIsSane = segm->check_sanity();
 			//if (!fIsSane)
 			//{
@@ -49,53 +54,49 @@ STDMETHODIMP CPubSubServer::Initialize()
 			//}
 
 			// Trace the sizes of the shared memory types.
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(IntPtr): %d", sizeof(shm_base));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(offset_ptr<interprocess_semaphore, int64_t, uint64_t>): %d", sizeof(offset_ptr<interprocess_semaphore, int64_t, uint64_t>));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(ULONG): %d", sizeof(ULONG));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(ULONG32): %d", sizeof(ULONG32));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(ULONG64): %d", sizeof(ULONG64));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(uint64_t): %d", sizeof(uint64_t));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(BOOL): %d", sizeof(BOOL));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumEventType): %d", sizeof(EnumEventType));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumEventSubType): %d", sizeof(EnumEventSubType));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage_vector): %d", sizeof(EventMessage_vector));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumCloudAppIconBadgeType): %d", sizeof(EnumCloudAppIconBadgeType));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(GUID): %d", sizeof(GUID));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage): %d", sizeof(EventMessage));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage_vector): %d", sizeof(EventMessage_vector));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(Subscription): %d", sizeof(Subscription));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(Base): %d", sizeof(Base));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(UniqueSubscription_tag): %d", sizeof(UniqueSubscription_tag));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(size_t): %d", sizeof(size_t));
-	    	CLTRACE(9, "PubSubServer: Initialize: sizeof(interprocess_semaphore): %d", sizeof(interprocess_semaphore));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(guid_allocator): %d.", sizeof(guid_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(int_vector): %d.", sizeof(int_vector));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(int_vector_vector): %d.", sizeof(int_vector_vector));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(wchar_string): %d.", sizeof(wchar_string));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(pair_guid_subscription): %d.", sizeof(pair_guid_subscription));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(eventtype_allocator): %d.", sizeof(eventtype_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(void_allocator): %d.", sizeof(void_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(int_allocator): %d.", sizeof(int_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(int_vector_allocator): %d.", sizeof(int_vector_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(semaphore_allocator): %d.", sizeof(semaphore_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(wchar_allocator): %d.", sizeof(wchar_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage_allocator): %d.", sizeof(EventMessage_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(subscription_allocator): %d.", sizeof(subscription_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(guid_allocator): %d.", sizeof(guid_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(eventtype_allocator): %d.", sizeof(eventtype_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(pair_guid_subscription_allocator): %d.", sizeof(pair_guid_subscription_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(pair_eventtype_pair_guid_subscription_allocator): %d.", sizeof(pair_eventtype_pair_guid_subscription_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(subscription_vector_allocator): %d.", sizeof(subscription_vector_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(guid_subscription_map_allocator): %d.", sizeof(guid_subscription_map_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(eventtype_map_guid_subscription_map_allocator): %d.", sizeof(eventtype_map_guid_subscription_map_allocator));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(guid_subscription_map): %d.", sizeof(guid_subscription_map));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(pair_eventtype_pair_guid_subscription): %d.", sizeof(pair_eventtype_pair_guid_subscription));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(eventtype_map_guid_subscription_map): %d.", sizeof(eventtype_map_guid_subscription_map));
-			CLTRACE(9, "PubSubServer: Initialize: sizeof(subscription_vector): %d.", sizeof(subscription_vector));
-
-			//@@@@@@@@@@@@@@@@@@@@@@ DEBUG ONLY.  REMOVE @@@@@@@@@@@@@@@@@@@@@
-			Debug32BitProcess();
-
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(IntPtr): %d", sizeof(shm_base));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(offset_ptr<interprocess_semaphore, int64_t, uint64_t>): %d", sizeof(offset_ptr<interprocess_semaphore, int64_t, uint64_t>));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(ULONG): %d", sizeof(ULONG));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(ULONG32): %d", sizeof(ULONG32));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(ULONG64): %d", sizeof(ULONG64));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(uint64_t): %d", sizeof(uint64_t));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(BOOL): %d", sizeof(BOOL));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumEventType): %d", sizeof(EnumEventType));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumEventSubType): %d", sizeof(EnumEventSubType));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage_vector): %d", sizeof(EventMessage_vector));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(EnumCloudAppIconBadgeType): %d", sizeof(EnumCloudAppIconBadgeType));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(GUID): %d", sizeof(GUID));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage): %d", sizeof(EventMessage));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage_vector): %d", sizeof(EventMessage_vector));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(Subscription): %d", sizeof(Subscription));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(Base): %d", sizeof(Base));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(UniqueSubscription_tag): %d", sizeof(UniqueSubscription_tag));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(size_t): %d", sizeof(size_t));
+			// CLTRACE(9, "PubSubServer: Initialize: sizeof(interprocess_semaphore): %d", sizeof(interprocess_semaphore));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(guid_allocator): %d.", sizeof(guid_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(int_vector): %d.", sizeof(int_vector));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(int_vector_vector): %d.", sizeof(int_vector_vector));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(wchar_string): %d.", sizeof(wchar_string));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(pair_guid_subscription): %d.", sizeof(pair_guid_subscription));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(eventtype_allocator): %d.", sizeof(eventtype_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(void_allocator): %d.", sizeof(void_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(int_allocator): %d.", sizeof(int_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(int_vector_allocator): %d.", sizeof(int_vector_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(semaphore_allocator): %d.", sizeof(semaphore_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(wchar_allocator): %d.", sizeof(wchar_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(EventMessage_allocator): %d.", sizeof(EventMessage_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(subscription_allocator): %d.", sizeof(subscription_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(guid_allocator): %d.", sizeof(guid_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(eventtype_allocator): %d.", sizeof(eventtype_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(pair_guid_subscription_allocator): %d.", sizeof(pair_guid_subscription_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(pair_eventtype_pair_guid_subscription_allocator): %d.", sizeof(pair_eventtype_pair_guid_subscription_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(subscription_vector_allocator): %d.", sizeof(subscription_vector_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(guid_subscription_map_allocator): %d.", sizeof(guid_subscription_map_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(eventtype_map_guid_subscription_map_allocator): %d.", sizeof(eventtype_map_guid_subscription_map_allocator));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(guid_subscription_map): %d.", sizeof(guid_subscription_map));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(pair_eventtype_pair_guid_subscription): %d.", sizeof(pair_eventtype_pair_guid_subscription));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(eventtype_map_guid_subscription_map): %d.", sizeof(eventtype_map_guid_subscription_map));
+			//CLTRACE(9, "PubSubServer: Initialize: sizeof(subscription_vector): %d.", sizeof(subscription_vector));
 		}
        	CLTRACE(9, "PubSubServer: Initialize: Segment: %p.", _pSegment);
     }
@@ -112,101 +113,6 @@ STDMETHODIMP CPubSubServer::Initialize()
 
 	CLTRACE(9, "PubSubServer: Initialize: Exit");
     return result;
-}
-
-void CPubSubServer::Debug32BitProcess()
-{
-    char *pszExceptionStateTracker = "Start";
-
-    try
-    {
-	    if (_pSegment == NULL)
-	    {
-		    CLTRACE(1, "PubSubServer: Debug32BitProcess: ERROR. _pSegment, FullPath and returnValue must all be non-NULL.");
-		    return;
-	    }
-
-        ULONG processId = GetCurrentProcessId();
-        ULONG threadId = GetCurrentThreadId();
-		std::vector<GUID> subscribers;
-
-	    CLTRACE(9, "PubSubServer: Debug32BitProcess: Entry.");
-        Base *pBase = NULL;
-
-
-        // Open the shared memory segment, or create it if it is not there.  This is atomic.
-        // An allocator convertible to any allocator<T, segment_manager_t> type.
-        pszExceptionStateTracker = "Call alloc_inst";
-        void_allocator alloc_inst(_pSegment->get_segment_manager());
-
-        // Construct the shared memory Base image and initiliaze it.  This is atomic.
-        pszExceptionStateTracker = "Call find_or_construct";
-		std::less<int> comparator;
-        pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
-	    CLTRACE(9, "PubSubServer: Debug32BitProcess: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
-	    CLTRACE(9, "PubSubServer: Debug32BitProcess: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
-
-		// Check the signature
-		if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
-		{
-		    CLTRACE(1, "PubSubServer: Debug32BitProcess: ERROR. Base signatures don't match.");
-		    return;
-		}
-
-		pBase->mutexSharedMemory_.lock();
-			//@@@@@@@@@@@@@@@@@@@ DEBUG CODE ONLY.  REMOVE.  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-			// Loop through memory and find all of the subscription semaphore offset_ptrs.  Do this only for 32-bit processes.
-			if (sizeof(size_t) == 4)
-			{
-				try
-				{
-					// Loop through all of the event types.
-    				CLTRACE(9, "PubSubServer: Debug32BitProcess: Look for all subscription offset_ptrs.");
-					for (eventtype_map_guid_subscription_map::iterator itEventType = pBase->subscriptions_.begin(); itEventType != pBase->subscriptions_.end(); ++itEventType)
-					{
-						// Loop through all of the subscriptions for this event type.
-						for (guid_subscription_map::iterator itSubscription = itEventType->second.begin(); itSubscription != itEventType->second.end(); ++itSubscription)
-						{
-							// Check the subscription signature.
-							if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
-							{
-								CLTRACE(1, "PubSubServer: Debug32BitProcess: Bad subscription signature.");
-								throw new std::exception("Bad subscription signature");
-							}
-
-							// Get a local pointer to the semaphore offset pointer.
-							offset_ptr<interprocess_semaphore, int64_t, uint64_t> *pOffsetPtr = &itSubscription->second.pSemaphoreSubscription_;
-
-							// Get a local pointer to the interprocess_semaphore.
-							interprocess_semaphore *pSemaphore = itSubscription->second.pSemaphoreSubscription_.get();
-
-							int i = 0; 
-							int j = 0;
-							i++;
-							j = i;
-						}
-					}
-				}
-				catch (const std::exception &ex)
-				{
-					CLTRACE(1, "PubSubServer: Debug32BitProcess: Exception: %s.", ex.what());
-				}
-				catch (...)
-				{
-					CLTRACE(1, "PubSubServer: Debug32BitProcess: ERROR: C++ exception.");
-				}
-			}
-			//@@@@@@@@@@@@@@@@@@@ DEBUG CODE ONLY.  REMOVE.  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-		pBase->mutexSharedMemory_.unlock();
-    }
-    catch (const std::exception &ex)
-    {
-		CLTRACE(1, "PubSubServer: Debug32BitProcess: ERROR: Exception.  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
-    }
-    catch (...)
-    {
-		CLTRACE(1, "PubSubServer: Debug32BitProcess: ERROR: C++ exception. Tracker: %s.", pszExceptionStateTracker);
-    }
 }
 
 /// <summary>
@@ -249,8 +155,6 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
         pszExceptionStateTracker = "Call find_or_construct";
 		std::less<int> comparator;
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
-	    CLTRACE(9, "PubSubServer: Publish: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
-	    CLTRACE(9, "PubSubServer: Publish: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
 
 		// Check the signature
 		if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
@@ -279,17 +183,17 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 			if (itMapOuter != pBase->subscriptions_.end())
 			{
 				// We found the inner map<GUID, Subscription> for this event type.  Iterate through that map and capture the guids so we can deliver this event to all of those subscribers.
-				for (guid_subscription_map::iterator itSubscription = itMapOuter->second.begin(); itSubscription != itMapOuter->second.end(); ++itSubscription)
+				for (guid_subscription_map::iterator itGuidSubscriptionPair = itMapOuter->second.begin(); itGuidSubscriptionPair != itMapOuter->second.end(); ++itGuidSubscriptionPair)
 				{
 					// Check the subscription signature.
-					if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
+					if (itGuidSubscriptionPair->second.uSignature1_ != _kuSubscriptionSignature || itGuidSubscriptionPair->second.uSignature2_ != _kuSubscriptionSignature)
 					{
 						CLTRACE(1, "PubSubServer: Publish: Bad subscription signature.");
 						throw new std::exception("Bad subscription signature");
 					}
 
-					CLTRACE(9, "PubSubServer: Publish: Subscriber with GUID<%ls> is subscribed to this event.", CComBSTR(itSubscription->first));
-					subscribers.push_back(itSubscription->first);
+					CLTRACE(9, "PubSubServer: Publish: Subscriber with GUID<%ls> is subscribed to this event.", CComBSTR(itGuidSubscriptionPair->first));
+					subscribers.push_back(itGuidSubscriptionPair->first);
 				}
 			}
 
@@ -322,11 +226,11 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 				try
 				{
 					// Deliver this event to the subscription identified by this itGuid and the parameter EventType.
-					eventtype_map_guid_subscription_map::iterator outItEventType;
-					guid_subscription_map::iterator outItSubscription;
+					eventtype_map_guid_subscription_map::iterator outItEventType2GuidSubscriptionMap;
+					guid_subscription_map::iterator outItGuidSubscriptionPair;
 					offset_ptr<Subscription> outOptrFoundSubscription;
                     pszExceptionStateTracker = "Call FindSubscription";
-					BOOL fFoundSubscription = FindSubscription(EventType, *itGuid, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
+					BOOL fFoundSubscription = FindSubscription(EventType, *itGuid, pBase, &outItEventType2GuidSubscriptionMap, &outItGuidSubscriptionPair, &outOptrFoundSubscription);
 					if (fFoundSubscription)
 					{
 						// We found the subscription.  This is a subscriber of this event.  Is its event queue full?
@@ -340,8 +244,18 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 												outOptrFoundSubscription->nEventType_, CComBSTR(outOptrFoundSubscription->guidSubscriber_));
 			                    pszExceptionStateTracker = "Removed tracked subscription ID";
 								RemoveTrackedSubscriptionId(outOptrFoundSubscription->nEventType_, outOptrFoundSubscription->guidSubscriber_);         // remove from subscription IDs being tracked
-			                    pszExceptionStateTracker = "Erase the subscription";
-								outItEventType->second.erase(outItSubscription);
+
+								// Delete the Subscription's semaphore
+			                    pszExceptionStateTracker = "Destruct the Subscription's semaphore";
+								if (outOptrFoundSubscription->pSemaphoreSubscription_ != NULL)
+								{
+									outOptrFoundSubscription->pSemaphoreSubscription_->~interprocess_semaphore();		// destruct the semaphore
+									outOptrFoundSubscription->pSemaphoreSubscription_ = NULL;							// semaphore no longer allocated
+								}
+
+								// Delete the <GUID, Subscription> pair.
+			                    pszExceptionStateTracker = "Erase the <GUID, Subscription> pair";
+								outItEventType2GuidSubscriptionMap->second.erase(outItGuidSubscriptionPair);
 								nResult = RC_PUBLISH_AT_LEAST_ONE_EVENT_QUEUE_FULL;
 								fSubscriptionRemoved = true;
 							}
@@ -477,8 +391,6 @@ STDMETHODIMP CPubSubServer::Subscribe(
 		std::less<int> comparator;
         pBase = _pSegment->find_or_construct<Base>(_ksBaseSharedMemoryObjectName)(comparator, alloc_inst);
 	    CLTRACE(9, "PubSubServer: Subscribe: After call to find_or_construct. pBase: %p.", pBase);
-	    CLTRACE(9, "PubSubServer: Subscribe: sizeof(pBase->mutexSharedMemory_): %d", sizeof(pBase->mutexSharedMemory_));
-	    CLTRACE(9, "PubSubServer: Subscribe: sizeof(pBase->subscriptions_): %d", sizeof(pBase->subscriptions_));
 
 		// Check the signature
 		if (pBase->uSignature1_ != _kuBaseSignature || pBase->uSignature2_ != _kuBaseSignature)
@@ -492,11 +404,11 @@ STDMETHODIMP CPubSubServer::Subscribe(
 		{
 			// Look for this subscription.
 	        CLTRACE(9, "PubSubServer: Subscribe: Inside lock.");
-			eventtype_map_guid_subscription_map::iterator outItEventType;
-			guid_subscription_map::iterator outItSubscription;
+			eventtype_map_guid_subscription_map::iterator outItEventType2GuidSubscriptionMap;
+			guid_subscription_map::iterator outItGuidSubscriptionPair;
 			offset_ptr<Subscription> outOptrFoundSubscription;
             pszExceptionStateTracker = "Call FindSubscription";
-			fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
+			fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType2GuidSubscriptionMap, &outItGuidSubscriptionPair, &outOptrFoundSubscription);
 			if (fSubscriptionFound)
 			{
 				// Found our subscription.  Make sure that it has not been previously cancelled.  If so, remove the subscription.
@@ -507,8 +419,18 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					CLTRACE(9, "PubSubServer: Subscribe: Warning: Already cancelled.  Erase the subscription.");
 	                pszExceptionStateTracker = "Remove tracked subscription";
 					RemoveTrackedSubscriptionId(outOptrFoundSubscription->nEventType_, outOptrFoundSubscription->guidSubscriber_);         // remove from subscription IDs being tracked
-	                pszExceptionStateTracker = "Erase the subscription";
-					outItEventType->second.erase(outItSubscription);
+
+					// Delete the Subscription's semaphore
+			        pszExceptionStateTracker = "Destruct the Subscription's semaphore";
+					if (outOptrFoundSubscription->pSemaphoreSubscription_ != NULL)
+					{
+						outOptrFoundSubscription->pSemaphoreSubscription_->~interprocess_semaphore();		// destruct the semaphore
+						outOptrFoundSubscription->pSemaphoreSubscription_ = 0;								// semaphore no longer allocated
+					}
+
+					// Delete the <GUID, Subscription> pair.
+	                pszExceptionStateTracker = "Erase the <GUID, Subscription> pair";
+					outItEventType2GuidSubscriptionMap->second.erase(outItGuidSubscriptionPair);
 					fSubscriptionFound = false;             // itFoundSubscription not valid now
 					nResult = RC_SUBSCRIBE_CANCELLED;
 				}
@@ -627,19 +549,21 @@ STDMETHODIMP CPubSubServer::Subscribe(
 		{
 			CLTRACE(1, "PubSubServer: Subscribe: ERROR: Exception(lock, 3).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
+			fWaitRequired = false;
             nResult = RC_SUBSCRIBE_ERROR;
 		}
         catch (...)
         {
 		    CLTRACE(1, "PubSubServer: Subscribe: ERROR: C++ exception(lock, 5). Tracker: %s.", pszExceptionStateTracker);
 			pBase->mutexSharedMemory_.unlock();
+			fWaitRequired = false;
             nResult = RC_SUBSCRIBE_ERROR;
         }
 
         // Wait if we should.
-        pszExceptionStateTracker = "Wait";
         if (fWaitRequired)
         {
+	        pszExceptionStateTracker = "Wait";
             if (TimeoutMilliseconds != 0)
             {
                 // Wait for a matching event to arrive.  Use a timed wait.
@@ -674,11 +598,11 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			try
 			{
 				// The subscriptions may have moved.  Locate our subscription again.
-				eventtype_map_guid_subscription_map::iterator outItEventType;
-				guid_subscription_map::iterator outItSubscription;
+				eventtype_map_guid_subscription_map::iterator outItEventType2GuidSubscriptionMap;
+				guid_subscription_map::iterator outItGuidSubscriptionPair;
 				offset_ptr<Subscription> outOptrFoundSubscription;
                 pszExceptionStateTracker = "Call FindSubscription2";
-				fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
+				fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType2GuidSubscriptionMap, &outItGuidSubscriptionPair, &outOptrFoundSubscription);
 				if (fSubscriptionFound)
 				{
 					// We found the subscription again.
@@ -691,8 +615,16 @@ STDMETHODIMP CPubSubServer::Subscribe(
 						CLTRACE(9, "PubSubServer: Subscribe: This subscription has been cancelled.  Erase it.  Return code 'cancelled'.");
 						pszExceptionStateTracker = "Remove tracked subscription ID";
 						RemoveTrackedSubscriptionId(outOptrFoundSubscription->nEventType_, outOptrFoundSubscription->guidSubscriber_);         // remove from subscription IDs being tracked
-						pszExceptionStateTracker = "Erase the subscription";
-						outItEventType->second.erase(outItSubscription);
+
+						pszExceptionStateTracker = "Destruct the subscription's semaphore";
+						if (outOptrFoundSubscription->pSemaphoreSubscription_ != NULL)
+						{
+							outOptrFoundSubscription->pSemaphoreSubscription_->~interprocess_semaphore();		// destruct the semaphore
+							outOptrFoundSubscription->pSemaphoreSubscription_ = 0;								// semaphore no longer allocated
+						}
+
+						pszExceptionStateTracker = "Erase the <Guid, Subscription> pair";
+						outItEventType2GuidSubscriptionMap->second.erase(outItGuidSubscriptionPair);
 						nResult = RC_SUBSCRIBE_CANCELLED;
 					}
 				}
@@ -905,11 +837,11 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 		try
 		{
 			// Look for this subscription.
-			eventtype_map_guid_subscription_map::iterator outItEventType;
-			guid_subscription_map::iterator outItSubscription;
+			eventtype_map_guid_subscription_map::iterator outItEventType2GuidSubscriptionMap;
+			guid_subscription_map::iterator outItGuidSubscriptionPair;
 			offset_ptr<Subscription> outOptrFoundSubscription;
             pszExceptionStateTracker = "Call FindSubscription";
-			BOOL fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
+			BOOL fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType2GuidSubscriptionMap, &outItGuidSubscriptionPair, &outOptrFoundSubscription);
 			if (fSubscriptionFound)
 			{
 				// Found our subscription.  Post the semaphore to allow the waiting thread to fall through the wait.
@@ -946,7 +878,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 
 					// We released the lock.  The subscription might have moved.  Locate it again.
                     pszExceptionStateTracker = "Call FindSubscription2";
-					fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType, &outItSubscription, &outOptrFoundSubscription);
+					fSubscriptionFound = FindSubscription(EventType, guidSubscriber, pBase, &outItEventType2GuidSubscriptionMap, &outItGuidSubscriptionPair, &outOptrFoundSubscription);
 					if (fSubscriptionFound)
 					{
 						// We found it again, but due to a race condition, it might be a new subscription.  If so, we need to cancel it again.
@@ -983,9 +915,17 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 							pszExceptionStateTracker = "Remove the tracked subscription's ID";
 							RemoveTrackedSubscriptionId(outOptrFoundSubscription->nEventType_, outOptrFoundSubscription->guidSubscriber_);
 
+							// Delete the subscription's semaphore
+							pszExceptionStateTracker = "Delete the subscription's semaphore";
+							if (outOptrFoundSubscription->pSemaphoreSubscription_ != NULL)
+							{
+								outOptrFoundSubscription->pSemaphoreSubscription_->~interprocess_semaphore();
+								outOptrFoundSubscription->pSemaphoreSubscription_ = NULL;
+							}
+
 							// Delete the subscription itself
 							pszExceptionStateTracker = "Delete the subscription";
-							outItEventType->second.erase(outItSubscription);
+							outItEventType2GuidSubscriptionMap->second.erase(outItGuidSubscriptionPair);
 							fCancelOk = true;
 							break;
 						}
@@ -1124,6 +1064,14 @@ void CPubSubServer::DeleteSubscriptionById(Base * pBase, CPubSubServer::UniqueSu
 				CLTRACE(9, "PubSubServer: DeleteSubscriptionById: Delete subscription.  EventType: %d. GUID: %ls.", subscriptionId.eventType, CComBSTR(subscriptionId.guid));
                 RemoveTrackedSubscriptionId(subscriptionId.eventType, subscriptionId.guid);
 
+				// Delete the subscription's semaphore
+				if (itMapInner->second.pSemaphoreSubscription_ != NULL)
+				{
+					itMapInner->second.pSemaphoreSubscription_->~interprocess_semaphore();
+					itMapInner->second.pSemaphoreSubscription_ = 0;
+				}
+
+				// Delete the guid_subscription_map
 				itMapOuter->second.erase(itMapInner);
 			}
 		}
@@ -1143,8 +1091,8 @@ void CPubSubServer::DeleteSubscriptionById(Base * pBase, CPubSubServer::UniqueSu
 /// NOTE: Assumes the shared memory lock is held.
 /// </summary>
 /// <returns>BOOL: true: found the subscription.</returns>
-BOOL CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidSubscriber, Base *pBase, eventtype_map_guid_subscription_map::iterator *outItEventType,
-						guid_subscription_map::iterator *outItSubscription,	offset_ptr<Subscription> *outOptrFoundSubscription)
+BOOL CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidSubscriber, Base *pBase, eventtype_map_guid_subscription_map::iterator *outItEventType2GuidSubscriptionMap,
+						guid_subscription_map::iterator *outItGuidSubscriptionPair,	offset_ptr<Subscription> *outOptrFoundSubscription)
 {
     BOOL result = false;
  	try
@@ -1153,7 +1101,7 @@ BOOL CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidSubscribe
 		if (itMapOuter != pBase->subscriptions_.end())
 		{
 			// We found the inner map<GUID, Subscription> for this event type.  Find the subscription by GUID.
-			*outItEventType = itMapOuter;
+			*outItEventType2GuidSubscriptionMap = itMapOuter;
 			guid_subscription_map::iterator itMapInner = itMapOuter->second.find(guidSubscriber);
 			if (itMapInner != itMapOuter->second.end())
 			{
@@ -1165,7 +1113,7 @@ BOOL CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidSubscribe
 				}
 
 				CLTRACE(9, "PubSubServer: FindSubscription: Found subscription.");
-				*outItSubscription = itMapInner;
+				*outItGuidSubscriptionPair = itMapInner;
 				*outOptrFoundSubscription = &itMapInner->second;
 				result = true;
 			}
@@ -1215,7 +1163,6 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
                         itSubscription->second.fWaiting_,
                         itSubscription->second.pSemaphoreSubscription_.get()
                        );
-				CLTRACE_DUMP(&(itSubscription->second.pSemaphoreSubscription_), sizeof(itSubscription->second.pSemaphoreSubscription_), 9, "PubSubServer: TraceCurrentStateOfSharedMemory: Data in pSemaphoreSubscription offset pointer:");
 
 				// List all of the events
                 for (EventMessage_vector::iterator itEvent = itSubscription->second.events_.begin(); itEvent != itSubscription->second.events_.end(); ++itEvent)
@@ -1295,14 +1242,14 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 				CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Trace current state of shared memory.  This process ID: %lx. This thread ID: %lx", processId, threadId);
                 TraceCurrentStateOfSharedMemory(pBase);
 
-                // Loop through all of the event types.
+                // Loop through all of the event types in the map<EnumEventType, map<GUID, Subscription>>.
 				for (eventtype_map_guid_subscription_map::iterator itEventType = pBase->subscriptions_.begin(); itEventType != pBase->subscriptions_.end(); ++itEventType)
 				{
-                    // Loop through the subscriptions for this event type.  Check each of the processes.  If the process is not running, erase the subscription.
-					for (guid_subscription_map::iterator itSubscription = itEventType->second.begin(); itSubscription != itEventType->second.end(); /* iterator bumped in the body */)
+                    // Loop through the map<GUID, Subscription) for this event type.  Check each of the processes.  If the process is not running, erase the map<GUID, Subscription> item.
+					for (guid_subscription_map::iterator itPairGuidSubscription = itEventType->second.begin(); itPairGuidSubscription != itEventType->second.end(); /* iterator bumped in the body */)
 					{
 						// Check the subscription signature.
-						if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
+						if (itPairGuidSubscription->second.uSignature1_ != _kuSubscriptionSignature || itPairGuidSubscription->second.uSignature2_ != _kuSubscriptionSignature)
 						{
 							CLTRACE(1, "PubSubServer: CleanUpUnusedResources: Bad subscription signature.");
 							throw new std::exception("Bad subscription signature");
@@ -1310,22 +1257,31 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 
 						// Log this subscription
                         BOOL fBumpIterator = true;
-                        ULONG thisProcessId = (ULONG)itSubscription->second.uSubscribingProcessId_;
+                        ULONG thisProcessId = (ULONG)itPairGuidSubscription->second.uSubscribingProcessId_;
 						CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Found subscription: EventType: %d. ProcessId: %lx. ThreadId: %lx. Guid: %ls.", 
-								itSubscription->second.nEventType_, thisProcessId, 
-								itSubscription->second.uSubscribingThreadId_, CComBSTR(itSubscription->second.guidSubscriber_));
+								itPairGuidSubscription->second.nEventType_, thisProcessId, 
+								itPairGuidSubscription->second.uSubscribingThreadId_, CComBSTR(itPairGuidSubscription->second.guidSubscriber_));
 
-						// Erase the subscription if it doesn't belong to this process, and the subscription's process is not running.
+						// Erase the <GUID, Subscription> pair if it doesn't belong to this process, and the subscription's process is not running.
                         if (thisProcessId != processId && !IsProcessRunning(thisProcessId))
                         {
     						CLTRACE(9, "PubSubServer: CleanUpUnusedResources: This process is not running.  Erase the subscription.");
-                            itSubscription = itEventType->second.erase(itSubscription);
+							// Delete the Subscription's semaphore.
+							if (itPairGuidSubscription->second.pSemaphoreSubscription_ != NULL)
+							{
+								itPairGuidSubscription->second.pSemaphoreSubscription_->~interprocess_semaphore();
+								itPairGuidSubscription->second.pSemaphoreSubscription_ = NULL;
+							}
+
+							// Now delete the pair <GUID, Subscription>
+							//TODO: It is assumed that erasing the <GUID, Subscription> pair destructs the Subscription.
+                            itPairGuidSubscription = itEventType->second.erase(itPairGuidSubscription);
                             fBumpIterator = false;
                         }
 
                         if (fBumpIterator)
                         {
-                            ++itSubscription;
+                            ++itPairGuidSubscription;
                         }
 					}
 				}

@@ -171,34 +171,10 @@ public:
 							fWaiting_(false),
 							fCancelled_(false),
 							events_(allocator),
-							uSignature2_(_kuSubscriptionSignature)
-		{
-			//// The interprocess_semaphore object is marked not copyable, and this prevented compilation.  Change it to a pointer
-			//// reference to allow the object to be copied to get past the compiler error.  The actual semaphore should be allocated in
-			//// shared memory by this constructor, and it should be deallocated when this subscription is destructed.
-			//CLTRACE(9, "PubSubServer: Subscription constructor: Construct the semaphore.");
-			//pSemaphoreSubscription_ = _pSegment->construct<interprocess_semaphore>(anonymous_instance)(0);
-			//CLTRACE(9, "PubSubServer: Subscription constructor: After construct the semaphore.");
-		}	
+							uSignature2_(_kuSubscriptionSignature) {}
 
 		// Destructor
-		~Subscription()
-		{
-			//// Don't do this twice
-			//CLTRACE(9, "PubSubServer: Subscription destructor: Entry.");
-			//if (fDestructed_)
-			//{
-			//	CLTRACE(9, "PubSubServer: Subscription destructor: Already destructed the semaphore.");
-			//	return;
-			//}
-			//fDestructed_ = true;
-
-			//// Deallocate the semaphore
-			//CLTRACE(9, "PubSubServer: Subscription destructor: Destruct the semaphore. Local addr %p.", pSemaphoreSubscription_.get());
-			//pSemaphoreSubscription_->~interprocess_semaphore();
-			//pSemaphoreSubscription_ = 0;		// Indicate that it has been disposed
-			//CLTRACE(9, "PubSubServer: Subscription destructor: After destruct the semaphore.");
-		}
+		~Subscription() {}
 	};
 
  	// Define the types related to Subscription
@@ -210,7 +186,7 @@ public:
 	typedef boost::interprocess::flat_map<GUID, Subscription, GUIDPairsComparer, pair_guid_subscription_allocator>  guid_subscription_map;  // a map of GUID => Subscription
 	typedef std::pair<const EnumEventType, guid_subscription_map>								pair_eventtype_pair_guid_subscription;  // a pair(EnumEventType, pair(GUID, Subscription))
 	typedef boost::interprocess::allocator<pair_eventtype_pair_guid_subscription, segment_manager_t>  pair_eventtype_pair_guid_subscription_allocator;  // allocator for pair(EnumEventType, pair(GUID, Subscription))
-	typedef boost::interprocess::flat_map<EnumEventType, guid_subscription_map, std::less<int>, pair_eventtype_pair_guid_subscription_allocator> eventtype_map_guid_subscription_map;  // a map(EnumEventType, map<GUID, Subscription)>
+	typedef boost::interprocess::flat_map<EnumEventType, guid_subscription_map, std::less<int>, pair_eventtype_pair_guid_subscription_allocator> eventtype_map_guid_subscription_map;  // a map<EnumEventType, map<GUID, Subscription>>
 	typedef boost::interprocess::vector<Subscription, subscription_allocator>                    subscription_vector;    // a vector of Subscriptions
 	typedef boost::interprocess::allocator<subscription_vector, segment_manager_t>               subscription_vector_allocator;  // allocator for allocating a vector of Subscription.
 	typedef boost::interprocess::allocator<guid_subscription_map, segment_manager_t>			guid_subscription_map_allocator;  // allocator for allocating a map of GUID => Subscription
@@ -224,7 +200,7 @@ public:
 		// Put any required global data here.
         uint64_t            uSignature1_;                 // 0xACACACACACACACAC
 		interprocess_mutex  mutexSharedMemory_;  // lock to protect the whole Base object
-		eventtype_map_guid_subscription_map subscriptions_;      // a map of [GUID, Subscription] (the active subscriptions)
+		eventtype_map_guid_subscription_map subscriptions_;      // map<EnumEventType, map<GUID, Subscription>> (the active subscriptions by event type)
         uint64_t            uSignature2_;                 // 0xACACACACACACACAC
 
 		Base(const std::less<int> &comparator, const void_allocator &allocator)
