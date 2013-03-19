@@ -40,6 +40,7 @@ namespace bi = boost::intrusive;
 #include <functional>
 #include <iosfwd>
 #include <string>
+#include <stdint.h>   // ADDED RKS
 
 /// @endcond
 
@@ -148,9 +149,11 @@ class cached_adaptive_pool;
 //                            offset_ptr
 //////////////////////////////////////////////////////////////////////////////
 
-static const std::size_t offset_type_alignment = 0;
+//Changed RKS: static const std::size_t offset_type_alignment = 0;
+static const uint64_t offset_type_alignment = 0;
 
-template <class T, class DifferenceType = std::ptrdiff_t, class OffsetType = std::size_t, std::size_t Alignment = offset_type_alignment>
+//Changed RKS: template <class T, class DifferenceType = std::ptrdiff_t, class OffsetType = std::size_t, std::size_t Alignment = offset_type_alignment>
+template <class T, class DifferenceType = int64_t, class OffsetType = uint64_t, uint64_t Alignment = offset_type_alignment>
 class offset_ptr;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -161,7 +164,8 @@ class offset_ptr;
 template<class MutexFamily, class VoidMutex = offset_ptr<void> >
 class simple_seq_fit;
 
-template<class MutexFamily, class VoidMutex = offset_ptr<void>, std::size_t MemAlignment = 0>
+//RKS:template<class MutexFamily, class VoidMutex = offset_ptr<void>, std::size_t MemAlignment = 0>
+template<class MutexFamily, class VoidMutex = offset_ptr<void>, uint64_t MemAlignment = 0>
 class rbtree_best_fit;
 
 //////////////////////////////////////////////////////////////////////////////

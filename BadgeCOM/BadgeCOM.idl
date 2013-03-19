@@ -141,7 +141,7 @@ library BadgeCOMLib
 	    [id(3), helpstring("method Subscribe")] HRESULT(Subscribe)(
                         [in] EnumEventType EventType,
                         [in] GUID guidSubscriber,
-                        [in] LONG TimeoutMilliseconds,
+                        [in] ULONG TimeoutMilliseconds,
                         [out] EnumEventSubType *outEventSubType,
                         [out] EnumCloudAppIconBadgeType *outBadgeType,
                         [out] BSTR *outFullPath,

@@ -25,20 +25,20 @@ private:
 
 
     // Static private fields
-    static bool _fDebugging;
+    static BOOL _fDebugging;
 
     // Private fields
     CPubSubServer *_pPubSubServer;
     GUID _guidSubscriber;
     HANDLE _threadSubscribingHandle;
     HANDLE _threadWatchingHandle;
-    bool _isSubscriberThreadAlive;
+    BOOL _isSubscriberThreadAlive;
     boost::mutex _locker;
     semaphore _semWaitForSubscriptionThreadStart;
     semaphore _semWatcher;
-    bool _fRequestSubscribingThreadExit;
-    bool _fRequestWatchingThreadExit;
-    bool _fTerminating;
+    BOOL _fRequestSubscribingThreadExit;
+    BOOL _fRequestWatchingThreadExit;
+    BOOL _fTerminating;
 
 public:
     // Life cycle
@@ -56,15 +56,15 @@ public:
     // Methods
 	void Initialize();
     void PublishEventToBadgeNet(EnumEventType eventType, EnumEventSubType eventSubType, EnumCloudAppIconBadgeType badgeType, BSTR *fullPath, GUID guidPublisher);
-    bool SubscribeToBadgeNetEvents();
+    BOOL SubscribeToBadgeNetEvents();
     static void SubscribingThreadProc(LPVOID pUserState);
     static void WatchingThreadProc(LPVOID pUserState);
     static void CBadgeNetPubSubEvents::HandleWatchingThreadException(CBadgeNetPubSubEvents *pThis);
     void KillSubscribingThread();
     void KillWatchingThread();
-    bool StartSubscribingThread();
+    BOOL StartSubscribingThread();
     void StartWatchingThread();
     void RestartSubcribingThread();
-    bool IsThreadAlive(const HANDLE hThread);
+    BOOL IsThreadAlive(const HANDLE hThread);
 };
 

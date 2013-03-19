@@ -26,9 +26,11 @@ private:
     // Private constants
     static const int _knTraceLinesBeforeCheckDateChange = 100;
     static const int _knDeleteTraceFilesOlderThanDays = 10;
+	static const int _knDbgBytesInDumpLine = 16;				// number of bytes per dump line
+	static const int _knDbgMaxBufferSize = (1024*10);			// 10k is the max buffer size per line being logged.
 
     // Private static fields
-    static bool _fInstanceFlag;
+    static BOOL _fInstanceFlag;
     static Trace *_single;
 	static CRITICAL_SECTION _cs;
     volatile static long instanceInitialized;
@@ -38,7 +40,7 @@ private:
 	FILE *_streamTrace;
 	std::wstring _wsTraceFileFullPath;
 	int _nMaxPriorityToTrace;
-	bool _fTraceEnabled;
+	BOOL _fTraceEnabled;
     int _nYear;
     int _nMonth;
     int _nDay;
@@ -65,6 +67,7 @@ public:
     // Public methods.
     static Trace* getInstance();
     void write(int priority, char *szFormat, ...);
+	void writeDumpData(void *pvData, USHORT usLenData, int priority, char *szFormat, ...);
     void DetermineMaximumTraceLevel();
     STR2INT_ERROR wstr2int (int &i, WCHAR const *s, int base = 10);
     void PerhapsChangeTraceFilename();

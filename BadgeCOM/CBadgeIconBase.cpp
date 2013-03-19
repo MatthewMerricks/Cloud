@@ -34,7 +34,7 @@ CBadgeIconBase::CBadgeIconBase(int iconIndex, EnumCloudAppIconBadgeType badgeTyp
     try
     {
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-		//static bool fCompletedOnce = false;
+		//static BOOL fCompletedOnce = false;
 		//while (!fCompletedOnce)
 		//{
 		//	Sleep(100);
@@ -103,12 +103,13 @@ HRESULT CBadgeIconBase::GetOverlayInfo(
 	try
 	{
 		// Get our module's full path
-		CLTRACE(9, "CBadgeIconBase: GetOverlayInfo: Entry. Badge type: %s.", _strBaseBadgeType.c_str());
+		CLTRACE(9, "CBadgeIconBase: GetOverlayInfo: Entry. Badge type: %s. cchMax: %d.", _strBaseBadgeType.c_str(), cchMax);
 		GetModuleFileNameW(_AtlBaseModule.GetModuleInstance(), pwszIconFile, cchMax);
 
         *pIndex = _iconIndex;                       // this is the index of the icon to use (synced, syncing, ...)
 
 		*pdwFlags = ISIOI_ICONFILE | ISIOI_ICONINDEX;
+		CLTRACE(9, "CBadgeIconBase: GetOverlayInfo: Returned info: Path: <%ls>. Index: %d. pdwFlags: %lu.", pwszIconFile, *pIndex, *pdwFlags);
 	}
 	catch (const std::exception &ex)
 	{
@@ -185,6 +186,7 @@ HRESULT CBadgeIconBase::GetPriority(int* pPriority)
 	    CLTRACE(9, "CBadgeIconBase: GetPriority: Entry. Badge type: %s.", _strBaseBadgeType.c_str());
 	    // change the following to set priority between multiple overlays
 	    *pPriority = 0;
+        CLTRACE(9, "CBadgeIconBase: GetPriority: Return Priority %d.", *pPriority);
     }
     catch (const std::exception &ex)
     {
@@ -274,7 +276,7 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
                     setOfGuids.insert(guidPublisher);
 
                     // Create a dictionary with just one pair <processIdPublisher, setOfGuids>.
-                    boost::unordered_map<ULONG, boost::unordered_set<GUID>> mapProcessIdToSetOfGuids;
+                    boost::unordered_map<uint64_t, boost::unordered_set<GUID>> mapProcessIdToSetOfGuids;
                     mapProcessIdToSetOfGuids[processIdPublisher] = setOfGuids;
 
                     // Create a DATA_FOR_BADGE_PATH struct with the badgeType and the dictionary built above.
@@ -288,7 +290,7 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
                 else
                 {
         		    CLTRACE(9, "CBadgeIconBase: OnEventAddBadgePath: Found the path.");
-                    // We found this key. The value is a struct DATA_FOR_BADGE_PATH.  That has badgeType and processesThatAddedThisBadge(unordered_map<ULONG, unordered_set<GUID>>).
+                    // We found this key. The value is a struct DATA_FOR_BADGE_PATH.  That has badgeType and processesThatAddedThisBadge(unordered_map<uint64_t, unordered_set<GUID>>).
                     // Check the badgeType we found.
                     if (itPathValue->second.badgeType != _badgeType)
                     {
@@ -297,7 +299,7 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
                     }
 
                     // Find this processId in the dictionary.
-                    boost::unordered_map<ULONG, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
+                    boost::unordered_map<uint64_t, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
         	        if (itProcessItValue == itPathValue->second.processesThatAddedThisBadge.end())
 	                {
                         // We didn't find this processId.  Start building a pair to represent it.
@@ -307,7 +309,7 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
                         setOfGuids.insert(guidPublisher);
 
                         // Create a dictionary with just one pair <processIdPublisher, setOfGuids>.
-                        boost::unordered_map<ULONG, boost::unordered_set<GUID>> mapProcessIdToSetOfGuids;
+                        boost::unordered_map<uint64_t, boost::unordered_set<GUID>> mapProcessIdToSetOfGuids;
                         mapProcessIdToSetOfGuids[processIdPublisher] = setOfGuids;
 
                         // Add this pair to the dictionary.
@@ -321,6 +323,7 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
             	        if (itProcessIdPublisherValue == itProcessItValue->second.end())
                         {
                             // We didn't find this guidPublisher.  Add it.
+	            		    CLTRACE(9, "CBadgeIconBase: OnEventAddBadgePath: Add this guidPublisher to the processId's set.");
                             itProcessItValue->second.insert(guidPublisher);
                         }
                         else
@@ -353,10 +356,10 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
 /// <param name="fullPath">The full path of the item being removed.</param>
 /// <param name="processIdPublisher">The process ID that sent the event.</param>
 /// <param name="guidPublisher">The ID of the SyncBox that sent the event.</param>
-/// <returns>bool: true: This removal removed the entire path from the badging dictionary.</returns>
-bool CBadgeIconBase::OnEventRemoveBadgePath(BSTR fullPath, ULONG processIdPublisher, GUID guidPublisher)
+/// <returns>BOOL: true: This removal removed the entire path from the badging dictionary.</returns>
+BOOL CBadgeIconBase::OnEventRemoveBadgePath(BSTR fullPath, ULONG processIdPublisher, GUID guidPublisher)
 {
-    bool fToReturnRemovedEntirePath = false;
+    BOOL fToReturnRemovedEntirePath = false;
 	try
 	{
 		// Remove the item with key fullPath.
@@ -384,7 +387,7 @@ bool CBadgeIconBase::OnEventRemoveBadgePath(BSTR fullPath, ULONG processIdPublis
                 }
 
                 // Find this processId in the dictionary for this path.
-                boost::unordered_map<ULONG, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
+                boost::unordered_map<uint64_t, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
         	    if (itProcessItValue == itPathValue->second.processesThatAddedThisBadge.end())
 	            {
        		        CLTRACE(9, "CBadgeIconBase: OnEventRemoveBadgePath: Did not find the process ID.  Nothing to do.");
@@ -485,7 +488,7 @@ void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIcon
                 setOfGuids.insert(guidPublisher);
 
                 // Create a dictionary with just one pair <processIdPublisher, setOfGuids>.
-                boost::unordered_map<ULONG, boost::unordered_set<GUID>> mapProcessIdToSetOfGuids;
+                boost::unordered_map<uint64_t, boost::unordered_set<GUID>> mapProcessIdToSetOfGuids;
                 mapProcessIdToSetOfGuids[processIdPublisher] = setOfGuids;
 
                 // Create a DATA_FOR_BADGE_PATH struct with the badgeType and the dictionary built above.
@@ -499,7 +502,7 @@ void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIcon
             else
             {
         		CLTRACE(9, "CBadgeIconBase: OnEventAddSyncBoxFolderPath: Found the path.");
-                // We found this key. The value is a struct DATA_FOR_BADGE_PATH.  That has badgeType and processesThatAddedThisBadge(unordered_map<ULONG, unordered_set<GUID>>).
+                // We found this key. The value is a struct DATA_FOR_BADGE_PATH.  That has badgeType and processesThatAddedThisBadge(unordered_map<uint64_t, unordered_set<GUID>>).
                 // Check the badgeType we found.
                 if (itPathValue->second.badgeType != cloudAppBadgeNone)
                 {
@@ -508,7 +511,7 @@ void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIcon
                 }
 
                 // Find this processId in the dictionary.
-                boost::unordered_map<ULONG, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
+                boost::unordered_map<uint64_t, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
         	    if (itProcessItValue == itPathValue->second.processesThatAddedThisBadge.end())
 	            {
                     // We didn't find this processId.  Start building a pair to represent it.
@@ -518,7 +521,7 @@ void CBadgeIconBase::OnEventAddSyncBoxFolderPath(BSTR fullPath, EnumCloudAppIcon
                     setOfGuids.insert(guidPublisher);
 
                     // Create a dictionary with just one pair <processIdPublisher, setOfGuids>.
-                    boost::unordered_map<ULONG, boost::unordered_set<GUID>> mapProcessIdToSetOfGuids;
+                    boost::unordered_map<uint64_t, boost::unordered_set<GUID>> mapProcessIdToSetOfGuids;
                     mapProcessIdToSetOfGuids[processIdPublisher] = setOfGuids;
 
                     // Add this pair to the dictionary.
@@ -603,7 +606,7 @@ void CBadgeIconBase::OnEventRemoveSyncBoxFolderPath(BSTR fullPath, EnumCloudAppI
                 }
 
                 // Find this processId in the dictionary for this path.
-                boost::unordered_map<ULONG, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
+                boost::unordered_map<uint64_t, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
         	    if (itProcessItValue == itPathValue->second.processesThatAddedThisBadge.end())
 	            {
        		        CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Did not find the process ID.  Nothing to do.");
@@ -641,7 +644,7 @@ void CBadgeIconBase::OnEventRemoveSyncBoxFolderPath(BSTR fullPath, EnumCloudAppI
 
 		                        // Delete all of the keys in the badging dictionary that have this folder path as a root.
 
-                                bool fRemovedPathKey = false;
+                                BOOL fRemovedPathKey = false;
                                 boost::unordered_set<std::wstring> pathsToDelete;
                		            CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncBoxFolderPath: Find all badge paths that overlap this root path: <%ls>.", lowerCaseFullPath);
 		                        for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator it = _mapBadges.begin(); it != _mapBadges.end();  ++it)
@@ -733,24 +736,24 @@ void CBadgeIconBase::OnEventTimerTick()
 	try
 	{
         CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Entry.");
-        boost::unordered_set<ULONG> setCopyOfActiveProcesses;
+        boost::unordered_set<uint64_t> setCopyOfActiveProcesses;
         this->_mutexBadgeDatabase.lock();
         {
             // Copy the active process set into a local set that we will process at this event.
             CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Copy the active process IDs.");
-            setCopyOfActiveProcesses = boost::unordered_set<ULONG>(_setActiveProcessIds);
+            setCopyOfActiveProcesses = boost::unordered_set<uint64_t>(_setActiveProcessIds);
         }
         this->_mutexBadgeDatabase.unlock();
 
         // Loop through the copied active process list.  Clean them if the process has died.
-        bool fAtLeastOneProcessCleaned = false;
-        for (boost::unordered_set<ULONG>::iterator itProcess = setCopyOfActiveProcesses.begin(); itProcess != setCopyOfActiveProcesses.end();  ++itProcess)
+        BOOL fAtLeastOneProcessCleaned = false;
+        for (boost::unordered_set<uint64_t>::iterator itProcess = setCopyOfActiveProcesses.begin(); itProcess != setCopyOfActiveProcesses.end();  ++itProcess)
         {
-            if (!CPubSubServer::IsProcessRunning(*itProcess))
+            if (!CPubSubServer::IsProcessRunning((DWORD)*itProcess))
             {
                 CLTRACE(9, "CBadgeIconBase: OnEventTimerTick: Process ID %lx is dead.  Clean the badging database.", *itProcess);
                 fAtLeastOneProcessCleaned = true;
-                CleanBadgingDatabaseForProcessId(*itProcess);   // locks on its own
+                CleanBadgingDatabaseForProcessId((DWORD)*itProcess);   // locks on its own
             }
         }
 
@@ -789,7 +792,7 @@ void CBadgeIconBase::CleanBadgingDatabaseForProcessId(ULONG processIdPublisher)
             for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapBadges.begin(); itPathValue != _mapBadges.end();  ++itPathValue)
 		    {
 				CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Process path <%ls>. BadgeType: %d.", itPathValue->first.c_str(), itPathValue->second.badgeType);
-                boost::unordered_map<ULONG, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
+                boost::unordered_map<uint64_t, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
         	    if (itProcessItValue != itPathValue->second.processesThatAddedThisBadge.end())
 	            {
                     // We found the process here.  Remove it and free its guidPublishers.
@@ -830,7 +833,7 @@ void CBadgeIconBase::CleanBadgingDatabaseForProcessId(ULONG processIdPublisher)
             for (boost::unordered_map<std::wstring, DATA_FOR_BADGE_PATH>::iterator itPathValue = _mapRootFolders.begin(); itPathValue != _mapRootFolders.end();  ++itPathValue)
 		    {
 				CLTRACE(9, "CBadgeIconBase: CleanBadgingDatabaseForProcessId: Process path <%ls>. BadgeType: %d.", itPathValue->first.c_str(), itPathValue->second.badgeType);
-                boost::unordered_map<ULONG, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
+                boost::unordered_map<uint64_t, boost::unordered_set<GUID>>::iterator itProcessItValue = itPathValue->second.processesThatAddedThisBadge.find(processIdPublisher);
         	    if (itProcessItValue != itPathValue->second.processesThatAddedThisBadge.end())
 	            {
                     // We found the process here.  Remove it and free its guidPublishers.
@@ -926,7 +929,7 @@ void CBadgeIconBase::SubscriptionRestartThreadProc(LPVOID pUserState)
 /// </summary>
 /// <param name="testPath">The path to test.</param>
 /// <param name="testPath">The root path to test against.</param>
-bool CBadgeIconBase::IsPathInRootPath(std::wstring testPath, std::wstring rootPath)
+BOOL CBadgeIconBase::IsPathInRootPath(std::wstring testPath, std::wstring rootPath)
 {
 	if (testPath.compare(0, rootPath.size(), rootPath) == 0)
 	{

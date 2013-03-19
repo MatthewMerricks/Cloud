@@ -47,7 +47,8 @@ namespace interprocess {
 /// @cond
 namespace ipcdetail {
 
-   template<class OffsetType, std::size_t OffsetAlignment>
+   //RKS:template<class OffsetType, std::size_t OffsetAlignment>
+   template<class OffsetType, uint64_t OffsetAlignment>
    union offset_ptr_internal
    {
       explicit offset_ptr_internal(OffsetType off)
@@ -76,13 +77,39 @@ namespace ipcdetail {
    #define BOOST_INTERPROCESS_OFFSET_PTR_INLINE_TO_PTR
    #define BOOST_INTERPROCESS_OFFSET_PTR_BRANCHLESS_TO_PTR
 
+   // RKS: Promote an unsigned size_t to uint64_t while extending the sign bit
+   template<int Dummy>
+   uint64_t PromoteSizeT(size_t sizeToPromote)
+   {
+	   uint64_t toReturn;
+
+	   if (sizeof(size_t) == 4)
+	   {
+		   if ((sizeToPromote & 0x80000000) != 0)
+		   {
+			   toReturn = sizeToPromote | 0xFFFFFFFF00000000ULL;
+		   }
+		   else
+		   {
+			   toReturn = (uint64_t)sizeToPromote;
+		   }
+	   }
+	   else
+	   {
+		   toReturn = sizeToPromote;
+	   }
+
+	   return toReturn;
+   }
+   
    template<int Dummy>
    #ifndef BOOST_INTERPROCESS_OFFSET_PTR_INLINE_TO_PTR
       BOOST_INTERPROCESS_NEVER_INLINE
    #elif defined(NDEBUG)
       inline
    #endif
-   void * offset_ptr_to_raw_pointer(const volatile void *this_ptr, std::size_t offset)
+   //RKS:void * offset_ptr_to_raw_pointer(const volatile void *this_ptr, std::size_t offset)
+   void * offset_ptr_to_raw_pointer(const volatile void *this_ptr, uint64_t offset)
    {
       typedef pointer_size_t_caster<void*> caster_t;
       #ifndef BOOST_INTERPROCESS_OFFSET_PTR_BRANCHLESS_TO_PTR
@@ -91,11 +118,13 @@ namespace ipcdetail {
          }
          else{
             caster_t caster((void*)this_ptr);
-            return caster_t(caster.size() + offset).pointer();
+            //RKS:return caster_t(caster.size() + offset).pointer();
+            return caster_t(PromoteSizeT<0>(caster.size()) + offset).pointer();
          }
       #else
          caster_t caster((void*)this_ptr);
-         return caster_t((caster.size() + offset) & -std::size_t(offset != 1)).pointer();
+         //RKS:return caster_t((caster.size() + offset) & -std::size_t(offset != 1)).pointer();
+         return caster_t(PromoteSizeT<0>((caster.size()) + offset) & -uint64_t(offset != 1)).pointer();
       #endif
    }
 
@@ -121,7 +150,8 @@ namespace ipcdetail {
    #elif defined(NDEBUG)
       inline
    #endif
-   std::size_t offset_ptr_to_offset(const volatile void *ptr, const volatile void *this_ptr)
+   //RKS:std::size_t offset_ptr_to_offset(const volatile void *ptr, const volatile void *this_ptr)
+   uint64_t offset_ptr_to_offset(const volatile void *ptr, const volatile void *this_ptr)
    {
       typedef pointer_size_t_caster<void*> caster_t;
       #ifndef BOOST_INTERPROCESS_OFFSET_PTR_BRANCHLESS_TO_OFF
@@ -132,14 +162,16 @@ namespace ipcdetail {
          else{
             caster_t this_caster((void*)this_ptr);
             caster_t ptr_caster((void*)ptr);
-            std::size_t offset = ptr_caster.size() - this_caster.size();
+            //RKS:std::size_t offset = ptr_caster.size() - this_caster.size();
+            uint64_t offset = PromoteSizeT<0>(ptr_caster.size()) - PromoteSizeT<0>(this_caster.size());
             BOOST_ASSERT(offset != 1);
             return offset;
          }
       #else
          caster_t this_caster((void*)this_ptr);
          caster_t ptr_caster((void*)ptr);
-         std::size_t offset = (ptr_caster.size() - this_caster.size() - 1) & -std::size_t(ptr != 0);
+         //RKS:std::size_t offset = (ptr_caster.size() - this_caster.size() - 1) & -std::size_t(ptr != 0);
+         uint64_t offset = (ptr_caster.size() - this_caster.size() - 1) & -uint64_t(ptr != 0);
          ++offset;
          return offset;
       #endif
@@ -167,8 +199,11 @@ namespace ipcdetail {
    #elif defined(NDEBUG)
       inline
    #endif
-   std::size_t offset_ptr_to_offset_from_other
-      (const volatile void *this_ptr, const volatile void *other_ptr, std::size_t other_offset)
+   //RKS:Change to a 64-bit offset.
+   //RKS:std::size_t offset_ptr_to_offset_from_other
+   //RKS:  (const volatile void *this_ptr, const volatile void *other_ptr, std::size_t other_offset)
+   uint64_t offset_ptr_to_offset_from_other
+      (const volatile void *this_ptr, const volatile void *other_ptr, uint64_t other_offset)
    {
       typedef pointer_size_t_caster<void*> caster_t;
       #ifndef BOOST_INTERPROCESS_OFFSET_PTR_BRANCHLESS_TO_OFF_FROM_OTHER
@@ -178,14 +213,16 @@ namespace ipcdetail {
       else{
          caster_t this_caster((void*)this_ptr);
          caster_t other_caster((void*)other_ptr);
-         std::size_t offset = other_caster.size() - this_caster.size() + other_offset;
+         //RKS:std::size_t offset = other_caster.size() - this_caster.size() + other_offset;
+         uint64_t offset = PromoteSizeT<0>(other_caster.size()) - PromoteSizeT<0>(this_caster.size()) + other_offset;
          BOOST_ASSERT(offset != 1);
          return offset;
       }
       #else
       caster_t this_caster((void*)this_ptr);
       caster_t other_caster((void*)other_ptr);
-      std::size_t offset = (other_caster.size() - this_caster.size()) & -std::size_t(other_offset != 1);
+      //RKS:std::size_t offset = (other_caster.size() - this_caster.size()) & -std::size_t(other_offset != 1);
+      uint64_t offset = (PromoteSizeT<0>(other_caster.size()) - PromoteSizeT<0>(this_caster.size())) & -uint64_t(other_offset != 1);
       offset += other_offset;
       return offset;
       #endif
@@ -219,7 +256,8 @@ namespace ipcdetail {
 //!pointer and the pointee are still separated by the same offset. This feature
 //!converts offset_ptr in a smart pointer that can be placed in shared memory and
 //!memory mapped files mapped in different addresses in every process.
-template <class PointedType, class DifferenceType, class OffsetType, std::size_t OffsetAlignment>
+//RKS:template <class PointedType, class DifferenceType, class OffsetType, std::size_t OffsetAlignment>
+template <class PointedType, class DifferenceType, class OffsetType, uint64_t OffsetAlignment>
 class offset_ptr
 {
    /// @cond
@@ -302,7 +340,8 @@ class offset_ptr
 
    //!Emulates static_cast operator.
    //!Never throws.
-   template<class T2, class P2, class O2, std::size_t A2>
+   //RKS:template<class T2, class P2, class O2, std::size_t A2>
+   template<class T2, class P2, class O2, uint64_t A2>
    offset_ptr(const offset_ptr<T2, P2, O2, A2> & r, ipcdetail::static_cast_tag)
       : internal(static_cast<OffsetType>
          (ipcdetail::offset_ptr_to_offset<0>(static_cast<PointedType*>(r.get()), this)))
@@ -310,7 +349,8 @@ class offset_ptr
 
    //!Emulates const_cast operator.
    //!Never throws.
-   template<class T2, class P2, class O2, std::size_t A2>
+   //RKS:template<class T2, class P2, class O2, std::size_t A2>
+   template<class T2, class P2, class O2, uint64_t A2>
    offset_ptr(const offset_ptr<T2, P2, O2, A2> & r, ipcdetail::const_cast_tag)
       : internal(static_cast<OffsetType>
          (ipcdetail::offset_ptr_to_offset<0>(const_cast<PointedType*>(r.get()), this)))
@@ -318,7 +358,8 @@ class offset_ptr
 
    //!Emulates dynamic_cast operator.
    //!Never throws.
-   template<class T2, class P2, class O2, std::size_t A2>
+   //RKS:template<class T2, class P2, class O2, std::size_t A2>
+   template<class T2, class P2, class O2, uint64_t A2>
    offset_ptr(const offset_ptr<T2, P2, O2, A2> & r, ipcdetail::dynamic_cast_tag)
       : internal(static_cast<OffsetType>
          (ipcdetail::offset_ptr_to_offset<0>(dynamic_cast<PointedType*>(r.get()), this)))
@@ -326,7 +367,8 @@ class offset_ptr
 
    //!Emulates reinterpret_cast operator.
    //!Never throws.
-   template<class T2, class P2, class O2, std::size_t A2>
+   //RKS:template<class T2, class P2, class O2, std::size_t A2>
+   template<class T2, class P2, class O2, uint64_t A2>
    offset_ptr(const offset_ptr<T2, P2, O2, A2> & r, ipcdetail::reinterpret_cast_tag)
       : internal(static_cast<OffsetType>
       (ipcdetail::offset_ptr_to_offset<0>(reinterpret_cast<PointedType*>(r.get()), this)))
@@ -569,20 +611,23 @@ class offset_ptr
 
 //!operator<<
 //!for offset ptr
-template<class E, class T, class W, class X, class Y, std::size_t Z>
+//RKS:template<class E, class T, class W, class X, class Y, std::size_t Z>
+template<class E, class T, class W, class X, class Y, uint64_t Z>
 inline std::basic_ostream<E, T> & operator<<
    (std::basic_ostream<E, T> & os, offset_ptr<W, X, Y, Z> const & p)
 {  return os << p.get_offset();   }
 
 //!operator>>
 //!for offset ptr
-template<class E, class T, class W, class X, class Y, std::size_t Z>
+//RKS:template<class E, class T, class W, class X, class Y, std::size_t Z>
+template<class E, class T, class W, class X, class Y, uint64_t Z>
 inline std::basic_istream<E, T> & operator>>
    (std::basic_istream<E, T> & is, offset_ptr<W, X, Y, Z> & p)
 {  return is >> p.get_offset();  }
 
 //!Simulation of static_cast between pointers. Never throws.
-template<class T1, class P1, class O1, std::size_t A1, class T2, class P2, class O2, std::size_t A2>
+//RKS:template<class T1, class P1, class O1, std::size_t A1, class T2, class P2, class O2, std::size_t A2>
+template<class T1, class P1, class O1, uint64_t A1, class T2, class P2, class O2, uint64_t A2>
 inline boost::interprocess::offset_ptr<T1, P1, O1, A1>
    static_pointer_cast(const boost::interprocess::offset_ptr<T2, P2, O2, A2> & r)
 {
@@ -591,7 +636,8 @@ inline boost::interprocess::offset_ptr<T1, P1, O1, A1>
 }
 
 //!Simulation of const_cast between pointers. Never throws.
-template<class T1, class P1, class O1, std::size_t A1, class T2, class P2, class O2, std::size_t A2>
+//RKS:template<class T1, class P1, class O1, std::size_t A1, class T2, class P2, class O2, std::size_t A2>
+template<class T1, class P1, class O1, uint64_t A1, class T2, class P2, class O2, uint64_t A2>
 inline boost::interprocess::offset_ptr<T1, P1, O1, A1>
    const_pointer_cast(const boost::interprocess::offset_ptr<T2, P2, O2, A2> & r)
 {
@@ -600,7 +646,8 @@ inline boost::interprocess::offset_ptr<T1, P1, O1, A1>
 }
 
 //!Simulation of dynamic_cast between pointers. Never throws.
-template<class T1, class P1, class O1, std::size_t A1, class T2, class P2, class O2, std::size_t A2>
+//RKS:template<class T1, class P1, class O1, std::size_t A1, class T2, class P2, class O2, std::size_t A2>
+template<class T1, class P1, class O1, uint64_t A1, class T2, class P2, class O2, uint64_t A2>
 inline boost::interprocess::offset_ptr<T1, P1, O1, A1>
    dynamic_pointer_cast(const boost::interprocess::offset_ptr<T2, P2, O2, A2> & r)
 {
@@ -609,7 +656,8 @@ inline boost::interprocess::offset_ptr<T1, P1, O1, A1>
 }
 
 //!Simulation of reinterpret_cast between pointers. Never throws.
-template<class T1, class P1, class O1, std::size_t A1, class T2, class P2, class O2, std::size_t A2>
+//RKS:template<class T1, class P1, class O1, std::size_t A1, class T2, class P2, class O2, std::size_t A2>
+template<class T1, class P1, class O1, uint64_t A1, class T2, class P2, class O2, uint64_t A2>
 inline boost::interprocess::offset_ptr<T1, P1, O1, A1>
    reinterpret_pointer_cast(const boost::interprocess::offset_ptr<T2, P2, O2, A2> & r)
 {
@@ -622,14 +670,16 @@ inline boost::interprocess::offset_ptr<T1, P1, O1, A1>
 /// @cond
 
 //!has_trivial_constructor<> == true_type specialization for optimizations
-template <class T, class P, class O, std::size_t A>
+//RKS:template <class T, class P, class O, std::size_t A>
+template <class T, class P, class O, uint64_t A>
 struct has_trivial_constructor< boost::interprocess::offset_ptr<T, P, O, A> >
 {
    static const bool value = true;
 };
 
 ///has_trivial_destructor<> == true_type specialization for optimizations
-template <class T, class P, class O, std::size_t A>
+//RKS:template <class T, class P, class O, std::size_t A>
+template <class T, class P, class O, uint64_t A>
 struct has_trivial_destructor< boost::interprocess::offset_ptr<T, P, O, A> >
 {
    static const bool value = true;
@@ -640,7 +690,8 @@ namespace interprocess {
 
 //!to_raw_pointer() enables boost::mem_fn to recognize offset_ptr.
 //!Never throws.
-template <class T, class P, class O, std::size_t A>
+//RKS:template <class T, class P, class O, std::size_t A>
+template <class T, class P, class O, uint64_t A>
 inline T * to_raw_pointer(boost::interprocess::offset_ptr<T, P, O, A> const & p)
 {  return ipcdetail::to_raw_pointer(p);   }
 
@@ -662,7 +713,8 @@ namespace intrusive {
 template<class VoidPointer, std::size_t N>
 struct max_pointer_plus_bits;
 
-template<std::size_t OffsetAlignment, class P, class O, std::size_t A>
+//RKS:template<std::size_t OffsetAlignment, class P, class O, std::size_t A>
+template<std::size_t OffsetAlignment, class P, class O, uint64_t A>
 struct max_pointer_plus_bits<boost::interprocess::offset_ptr<void, P, O, A>, OffsetAlignment>
 {
    //The offset ptr can embed one bit less than the alignment since it
@@ -674,7 +726,7 @@ struct max_pointer_plus_bits<boost::interprocess::offset_ptr<void, P, O, A>, Off
 template<class Pointer, std::size_t NumBits>
 struct pointer_plus_bits;
 
-template<class T, class P, class O, std::size_t A, std::size_t NumBits>
+template<class T, class P, class O, uint64_t A, std::size_t NumBits>
 struct pointer_plus_bits<boost::interprocess::offset_ptr<T, P, O, A>, NumBits>
 {
    typedef boost::interprocess::offset_ptr<T, P, O, A>      pointer;
@@ -715,7 +767,8 @@ template<class T, class U>
 struct pointer_to_other;
 
 //Backwards compatibility with pointer_to_other
-template <class PointedType, class DifferenceType, class OffsetType, std::size_t OffsetAlignment, class U>
+//RKS:template <class PointedType, class DifferenceType, class OffsetType, std::size_t OffsetAlignment, class U>
+template <class PointedType, class DifferenceType, class OffsetType, uint64_t OffsetAlignment, class U>
 struct pointer_to_other
    < ::boost::interprocess::offset_ptr<PointedType, DifferenceType, OffsetType, OffsetAlignment>, U >
 {

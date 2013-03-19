@@ -84,7 +84,8 @@ class managed_open_or_create_impl_device_holder<true, DeviceAbstraction>
    DeviceAbstraction dev;
 };
 
-template<class DeviceAbstraction, std::size_t MemAlignment = 0, bool FileBased = true, bool StoreDevice = true>
+//RKS:template<class DeviceAbstraction, std::size_t MemAlignment = 0, bool FileBased = true, bool StoreDevice = true>
+template<class DeviceAbstraction, uint64_t MemAlignment = 0, bool FileBased = true, bool StoreDevice = true>
 class managed_open_or_create_impl
    : public managed_open_or_create_impl_device_holder<StoreDevice, DeviceAbstraction>
 {

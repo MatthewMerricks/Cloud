@@ -11,6 +11,9 @@
 
 #pragma once
 
+//#define WAIT_FOR_DEBUG 1				// define to wait at initialization for debug attach in BadgeIconFailed, etc.
+//#define DEBUG_ENABLE_ONLY_SYNCED_BADGING 1 // define to just exit at all calls except for synced badging (to simplify debugging)
+
 #ifndef STRICT
 #define STRICT
 #endif

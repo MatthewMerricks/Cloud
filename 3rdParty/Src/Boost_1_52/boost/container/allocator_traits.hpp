@@ -145,12 +145,20 @@ struct allocator_traits
             rebind_pointer<const void>)
                const_void_pointer;
       //difference_type
+      //RKS: Change to 64-bit types.
+      //typedef BOOST_INTRUSIVE_OBTAIN_TYPE_WITH_DEFAULT(boost::container::container_detail::, Alloc,
+      //   difference_type, std::ptrdiff_t)
+      //      difference_type;
       typedef BOOST_INTRUSIVE_OBTAIN_TYPE_WITH_DEFAULT(boost::container::container_detail::, Alloc,
-         difference_type, std::ptrdiff_t)
+         difference_type, int64_t)
             difference_type;
       //size_type
+      //RKS: Change to 64-bit types.
+      //typedef BOOST_INTRUSIVE_OBTAIN_TYPE_WITH_DEFAULT(boost::container::container_detail::, Alloc,
+      //   size_type, std::size_t)
+      //      size_type;
       typedef BOOST_INTRUSIVE_OBTAIN_TYPE_WITH_DEFAULT(boost::container::container_detail::, Alloc,
-         size_type, std::size_t)
+         size_type, uint64_t)
             size_type;
       //propagate_on_container_copy_assignment
       typedef BOOST_INTRUSIVE_OBTAIN_TYPE_WITH_DEFAULT(boost::container::container_detail::, Alloc,

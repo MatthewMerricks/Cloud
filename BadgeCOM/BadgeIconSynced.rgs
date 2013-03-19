@@ -13,11 +13,14 @@ HKCR
 	{
 		ForceRemove {16FDC851-D9B0-4591-B54A-9A50D58226CC} = s 'BadgeIconSynced Class'
 		{
+			ProgID = s 'BadgeCOM.BadgeIconSynced.1'
+			VersionIndependentProgID = s 'BadgeCOM.BadgeIconSynced'
 			ForceRemove Programmable
 			InprocServer32 = s '%MODULE%'
 			{
-				val ThreadingModel = s 'Both'
+				val ThreadingModel = s 'Apartment'
 			}
+			val AppID = s '%APPID%'
 			TypeLib = s '{B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1}'
 			Version = s '1.0'
 		}
