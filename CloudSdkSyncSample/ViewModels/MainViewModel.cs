@@ -846,42 +846,47 @@ namespace SampleLiveSync.ViewModels
         private void InstallBadging()
         {
             Process regsvr32Process = null;
+            Process regsvr64Process = null;
             try
             {
                 // Stop Explorer
                 StopExplorer();
 
-                // Determine the path to the proper 64- or 32-bit .dll file to register.
-                string commandArguments = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                if (IntPtr.Size == 4)
+                // 32-bit platforms will install only the 32-bit version of the BadgeCom.dll.  RegSvr32.exe will be used from C:\Windows\System32.
+                // 64-bit platforms will install both the 32-bit and the 64-bit versions of BadgeCom.dll.  For the 64-bit version, we will use regsvr32.exe from C:\Windows\System32.
+                // For the 32-bit version, we will use regsvr32.exe from C:\Windows\SysWow64.
+                // Set the directories and command arguments to use
+                string commandRegSvr32ProgramPath32Bit = String.Empty;
+                string commandRegSvr32ProgramPath64Bit = String.Empty;
+                string commandArguments32Bit = "/s \"" + Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                string commandArguments64Bit = commandArguments32Bit;
+                commandArguments32Bit += "\\x86\\BadgeCom.dll\"";
+                commandArguments64Bit += "\\amd64\\BadgeCom.dll\"";
+
+                if (Is64BitOperatingSystem())
                 {
-                    // 32-bit 
-                    commandArguments += "\\x86\\BadgeCom.dll";
+                    commandRegSvr32ProgramPath32Bit = Get32BitSystemDirectory() + "\\regsvr32.exe";
+                    commandRegSvr32ProgramPath64Bit = Environment.SystemDirectory + "\\regsvr32.exe";
                 }
                 else
                 {
-                    // 64-bit 
-                    commandArguments += "\\amd64\\BadgeCom.dll";
+                    commandRegSvr32ProgramPath32Bit = Environment.SystemDirectory + "\\regsvr32.exe";
                 }
-                commandArguments = "/s \"" + commandArguments + "\"";
 
-                // Build the command line: regsvr32 <path to the proper BadgeCom.dll>
-                string commandProgram = "regsvr32";
-
-                // Launch the process
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.CreateNoWindow = true;
-                startInfo.UseShellExecute = true;
-                startInfo.FileName = commandProgram;
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.Arguments = commandArguments;
+                // We always register the 32-bit BadgeCom.dll.
+                ProcessStartInfo startInfo32Bit = new ProcessStartInfo();
+                startInfo32Bit.CreateNoWindow = true;
+                startInfo32Bit.UseShellExecute = true;
+                startInfo32Bit.FileName = commandRegSvr32ProgramPath32Bit;
+                startInfo32Bit.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo32Bit.Arguments = commandArguments32Bit;
                 if (!SampleLiveSync.Static.Helpers.IsAdministrator())
                 {
-                    _trace.writeToLog(1, "MainViewModel: InstallBadging: Run as administrator.");
-                    startInfo.Verb = "runas";
+                    _trace.writeToLog(1, "MainViewModel: InstallBadging: Run 32-bit regsvr32 as administrator.");
+                    startInfo32Bit.Verb = "runas";
                 }
-                _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run regsvr32. Program: {0}. Arguments: {1}.", commandProgram, commandArguments);
-                regsvr32Process = Process.Start(startInfo);
+                _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run 32-bit regsvr32. Program: {0}. Arguments: {1}.", commandRegSvr32ProgramPath32Bit, commandArguments32Bit);
+                regsvr32Process = Process.Start(startInfo32Bit);
 
                 // Wait for the process to exit
                 if (regsvr32Process.WaitForExit(20000))
@@ -891,17 +896,60 @@ namespace SampleLiveSync.ViewModels
                     if (retCode != 0)
                     {
                         // Error return code
-                        CLError error = new Exception(String.Format("Error registering BadgeCom.dll.  Code: {0}.", retCode));
-                        _trace.writeToLog(1, "MainViewModel: InstallBadging: Error registering BadgeCom.dll. Code: {0}.", retCode);
-                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error registering BadgeCom.dll." });
+                        string msg = "Error registering 32-bit BadgeCom.dll.";
+                        CLError error = new Exception(String.Format("({0} Code: {1}.", msg, retCode));
+                        _trace.writeToLog(1, "MainViewModel: InstallBadging: {0} Code: {1}.", msg, retCode);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
                     }
                 }
                 else
                 {
                     // Timed out.
-                    CLError error = new Exception("Error: Timeout registering BadgeCom.dll.");
-                    _trace.writeToLog(1, "MainViewModel: InstallBadging: Error. Timeout registering BadgeCom.dll.");
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Timeout registering BadgeCom.dll." });
+                    string msg = "Error: Timeout registering 32-bit BadgeCom.dll.";
+                    CLError error = new Exception(msg);
+                    _trace.writeToLog(1, "MainViewModel: InstallBadging: " + msg);
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                }
+
+                // Register the 64-bit BadgeCom.dll if we should.
+                if (!String.IsNullOrEmpty(commandRegSvr32ProgramPath64Bit))
+                {
+                    ProcessStartInfo startInfo64Bit = new ProcessStartInfo();
+                    startInfo64Bit.CreateNoWindow = true;
+                    startInfo64Bit.UseShellExecute = true;
+                    startInfo64Bit.FileName = commandRegSvr32ProgramPath64Bit;
+                    startInfo64Bit.WindowStyle = ProcessWindowStyle.Hidden;
+                    startInfo64Bit.Arguments = commandArguments64Bit;
+                    if (!SampleLiveSync.Static.Helpers.IsAdministrator())
+                    {
+                        _trace.writeToLog(1, "MainViewModel: InstallBadging: Run 64-bit regsvr32 as administrator.");
+                        startInfo64Bit.Verb = "runas";
+                    }
+                    _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run 64-bit regsvr32. Program: {0}. Arguments: {1}.", commandRegSvr32ProgramPath64Bit, commandArguments64Bit);
+                    regsvr64Process = Process.Start(startInfo64Bit);
+
+                    // Wait for the process to exit
+                    if (regsvr64Process.WaitForExit(20000))
+                    {
+                        // Process has exited.  Get the return code.
+                        int retCode = regsvr64Process.ExitCode;
+                        if (retCode != 0)
+                        {
+                            // Error return code
+                            string msg = "Error registering 64-bit BadgeCom.dll.";
+                            CLError error = new Exception(String.Format("({0} Code: {1}.", msg, retCode));
+                            _trace.writeToLog(1, "MainViewModel: InstallBadging: {0} Code: {1}.", msg, retCode);
+                            NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                        }
+                    }
+                    else
+                    {
+                        // Timed out.
+                        string msg = "Error: Timeout registering 64-bit BadgeCom.dll.";
+                        CLError error = new Exception(msg);
+                        _trace.writeToLog(1, "MainViewModel: InstallBadging: " + msg);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                    }
                 }
             }
             catch (Exception ex)
@@ -918,6 +966,12 @@ namespace SampleLiveSync.ViewModels
                     {
                         regsvr32Process.Close();
                     }
+
+                    if (regsvr64Process != null)
+                    {
+                        regsvr64Process.Close();
+                    }
+
                 }
                 catch
                 {
@@ -934,41 +988,47 @@ namespace SampleLiveSync.ViewModels
         private void UninstallBadging()
         {
             Process regsvr32Process = null;
+            Process regsvr64Process = null;
             try
             {
                 // Stop Explorer
                 StopExplorer();
 
-                // Determine the path to the proper 64- or 32-bit .dll file to register.
-                string commandArguments = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                if (IntPtr.Size == 4)
+                // 32-bit platforms will install only the 32-bit version of the BadgeCom.dll.  RegSvr32.exe will be used from C:\Windows\System32.
+                // 64-bit platforms will install both the 32-bit and the 64-bit versions of BadgeCom.dll.  For the 64-bit version, we will use regsvr32.exe from C:\Windows\System32.
+                // For the 32-bit version, we will use regsvr32.exe from C:\Windows\SysWow64.
+                // Set the directories and command arguments to use
+                string commandRegSvr32ProgramPath32Bit = String.Empty;
+                string commandRegSvr32ProgramPath64Bit = String.Empty;
+                string commandArguments32Bit = "/u /s \"" + Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                string commandArguments64Bit = commandArguments32Bit;
+                commandArguments32Bit += "\\x86\\BadgeCom.dll\"";
+                commandArguments64Bit += "\\amd64\\BadgeCom.dll\"";
+
+                if (Is64BitOperatingSystem())
                 {
-                    // 32-bit 
-                    commandArguments += "\\x86\\BadgeCom.dll";
+                    commandRegSvr32ProgramPath32Bit = Get32BitSystemDirectory() + "\\regsvr32.exe";
+                    commandRegSvr32ProgramPath64Bit = Environment.SystemDirectory + "\\regsvr32.exe";
                 }
                 else
                 {
-                    // 64-bit 
-                    commandArguments += "\\amd64\\BadgeCom.dll";
+                    commandRegSvr32ProgramPath32Bit = Environment.SystemDirectory + "\\regsvr32.exe";
                 }
-                commandArguments = "/u /s \"" + commandArguments + "\"";
 
-                // Build the command line: regsvr32 <path to the proper BadgeCom.dll>
-                string commandProgram = "regsvr32";
-
-                // Launch the process
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.CreateNoWindow = true;
-                startInfo.UseShellExecute = true;
-                startInfo.FileName = commandProgram;
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.Arguments = commandArguments;
+                // We always register the 32-bit BadgeCom.dll.
+                ProcessStartInfo startInfo32Bit = new ProcessStartInfo();
+                startInfo32Bit.CreateNoWindow = true;
+                startInfo32Bit.UseShellExecute = true;
+                startInfo32Bit.FileName = commandRegSvr32ProgramPath32Bit;
+                startInfo32Bit.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo32Bit.Arguments = commandArguments32Bit;
                 if (!SampleLiveSync.Static.Helpers.IsAdministrator())
                 {
-                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: Run as administrator.");
-                    startInfo.Verb = "runas";
+                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: Run 32-bit regsvr32 as administrator.");
+                    startInfo32Bit.Verb = "runas";
                 }
-                regsvr32Process = Process.Start(startInfo);
+                _trace.writeToLog(1, "MainViewModel: UninstallBadging: Start process to run 32-bit regsvr32. Program: {0}. Arguments: {1}.", commandRegSvr32ProgramPath32Bit, commandArguments32Bit);
+                regsvr32Process = Process.Start(startInfo32Bit);
 
                 // Wait for the process to exit
                 if (regsvr32Process.WaitForExit(20000))
@@ -978,17 +1038,60 @@ namespace SampleLiveSync.ViewModels
                     if (retCode != 0)
                     {
                         // Error return code
-                        CLError error = new Exception(String.Format("Error unregistering BadgeCom.dll.  Code: {0}.", retCode));
-                        _trace.writeToLog(1, "MainViewModel: UninstallBadging: Error unregistering BadgeCom.dll. Code: {0}.", retCode);
-                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error unregistering BadgeCom.dll." });
+                        string msg = "Error unregistering 32-bit BadgeCom.dll.";
+                        CLError error = new Exception(String.Format("({0} Code: {1}.", msg, retCode));
+                        _trace.writeToLog(1, "MainViewModel: UninstallBadging: {0} Code: {1}.", msg, retCode);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
                     }
                 }
                 else
                 {
                     // Timed out.
-                    CLError error = new Exception("Error: Timeout unregistering BadgeCom.dll.");
-                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: Error: Timeout unregistering BadgeCom.dll.");
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Timeout unregistering BadgeCom.dll." });
+                    string msg = "Error: Timeout unregistering 32-bit BadgeCom.dll.";
+                    CLError error = new Exception(msg);
+                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: " + msg);
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                }
+
+                // Register the 64-bit BadgeCom.dll if we should.
+                if (!String.IsNullOrEmpty(commandRegSvr32ProgramPath64Bit))
+                {
+                    ProcessStartInfo startInfo64Bit = new ProcessStartInfo();
+                    startInfo64Bit.CreateNoWindow = true;
+                    startInfo64Bit.UseShellExecute = true;
+                    startInfo64Bit.FileName = commandRegSvr32ProgramPath64Bit;
+                    startInfo64Bit.WindowStyle = ProcessWindowStyle.Hidden;
+                    startInfo64Bit.Arguments = commandArguments64Bit;
+                    if (!SampleLiveSync.Static.Helpers.IsAdministrator())
+                    {
+                        _trace.writeToLog(1, "MainViewModel: UninstallBadging: Run 64-bit regsvr32 as administrator.");
+                        startInfo64Bit.Verb = "runas";
+                    }
+                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: Start process to run 64-bit regsvr32. Program: {0}. Arguments: {1}.", commandRegSvr32ProgramPath64Bit, commandArguments64Bit);
+                    regsvr64Process = Process.Start(startInfo64Bit);
+
+                    // Wait for the process to exit
+                    if (regsvr64Process.WaitForExit(20000))
+                    {
+                        // Process has exited.  Get the return code.
+                        int retCode = regsvr64Process.ExitCode;
+                        if (retCode != 0 && retCode != 5)
+                        {
+                            // Error return code
+                            string msg = "Error unregistering 64-bit BadgeCom.dll.";
+                            CLError error = new Exception(String.Format("({0} Code: {1}.", msg, retCode));
+                            _trace.writeToLog(1, "MainViewModel: UninstallBadging: {0} Code: {1}.", msg, retCode);
+                            NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                        }
+                    }
+                    else
+                    {
+                        // Timed out.
+                        string msg = "Error: Timeout unregistering 64-bit BadgeCom.dll.";
+                        CLError error = new Exception(msg);
+                        _trace.writeToLog(1, "MainViewModel: UninstallBadging: " + msg);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                    }
                 }
             }
             catch (Exception ex)
@@ -1005,6 +1108,12 @@ namespace SampleLiveSync.ViewModels
                     {
                         regsvr32Process.Close();
                     }
+
+                    if (regsvr64Process != null)
+                    {
+                        regsvr64Process.Close();
+                    }
+
                 }
                 catch
                 {
@@ -1042,7 +1151,7 @@ namespace SampleLiveSync.ViewModels
         /// <summary>
         /// Start syncing the SyncBox.
         /// </summary>
-        public void StartSyncing()
+        private void StartSyncing()
         {
             try
             {
@@ -1245,7 +1354,7 @@ namespace SampleLiveSync.ViewModels
         /// <summary>
         /// Reset the sync engine.
         /// </summary>
-        public void ResetSync()
+        private void ResetSync()
         {
             try
             {
@@ -1303,7 +1412,7 @@ namespace SampleLiveSync.ViewModels
         /// <summary>
         /// Stop syncing the SyncBox.
         /// </summary>
-        public void StopSyncing()
+        private void StopSyncing()
         {
             try
             {
@@ -1350,7 +1459,7 @@ namespace SampleLiveSync.ViewModels
         /// <summary>
         /// Exit the application.
         /// </summary>
-        public void Exit()
+        private void Exit()
         {
             try
             {
@@ -1923,9 +2032,63 @@ namespace SampleLiveSync.ViewModels
             TbUniqueDeviceIdEnabled = !isStartedStateToSet;
         }
 
-        #endregion
+        /// <summary>
+        /// The function determines whether the current operating system is a 
+        /// 64-bit operating system.
+        /// </summary>
+        /// <returns>
+        /// The function returns true if the operating system is 64-bit; 
+        /// otherwise, it returns false.
+        /// </returns>
+        /// <remarks>From: http://1code.codeplex.com/SourceControl/changeset/view/39074#842775</remarks>
+        private static bool Is64BitOperatingSystem()
+        {
+            if (IntPtr.Size == 8)  // 64-bit programs run only on Win64
+            {
+                return true;
+            }
+            else  // 32-bit programs run on both 32-bit and 64-bit Windows
+            {
+                // Detect whether the current process is a 32-bit process 
+                // running on a 64-bit system.
+                bool flag;
+                return ((DoesWin32MethodExist("kernel32.dll", "IsWow64Process") &&
+                    NativeMethod.IsWow64Process(NativeMethod.GetCurrentProcess(), out flag)) && flag);
+            }
+        }
 
-        #region Private Classes
+        /// <summary>
+        /// Get the 32-bit system directory:
+        /// On x86: %windir%\System32.
+        /// On x64: %windir%\SysWow64.
+        /// </summary>
+        /// <returns></returns>
+        private static string Get32BitSystemDirectory()
+        {
+            StringBuilder path = new StringBuilder(260);
+            NativeMethod.SHGetSpecialFolderPath(IntPtr.Zero, path, 0x0029, false);
+            return path.ToString();
+        }
+
+        /// <summary>
+        /// The function determins whether a method exists in the export 
+        /// table of a certain module.
+        /// </summary>
+        /// <param name="moduleName">The name of the module</param>
+        /// <param name="methodName">The name of the method</param>
+        /// <returns>
+        /// The function returns true if the method specified by methodName 
+        /// exists in the export table of the module specified by moduleName.
+        /// </returns>
+        private static bool DoesWin32MethodExist(string moduleName, string methodName)
+        {
+            IntPtr moduleHandle = NativeMethod.GetModuleHandle(moduleName);
+            if (moduleHandle == IntPtr.Zero)
+            {
+                return false;
+            }
+            return (NativeMethod.GetProcAddress(moduleHandle, methodName) != IntPtr.Zero);
+        }
 
         /// <summary>
         /// Used by IsExplorerRunning.

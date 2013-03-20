@@ -18,6 +18,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using System.Text;
 #endregion
 
 
@@ -709,5 +710,23 @@ namespace SampleLiveSync.Static
                 return NativeMethod.CloseHandle(base.handle);
             }
         }
+
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GetCurrentProcess();
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr GetModuleHandle(string moduleName);
+
+        [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr GetProcAddress(IntPtr hModule,
+            [MarshalAs(UnmanagedType.LPStr)]string procName);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWow64Process(IntPtr hProcess, out bool wow64Process);
+
+        [DllImport("shell32.dll")]
+        public static extern bool SHGetSpecialFolderPath(IntPtr hwndOwner, [Out]StringBuilder lpszPath, int nFolder, bool fCreate);
+
     }  // end NativeMethod
 }
