@@ -37,6 +37,7 @@ namespace SampleLiveSync.ViewModels
         RelayCommand<object> _commandShowSyncStatus;
         RelayCommand<object> _commandStartSyncing;
         RelayCommand<object> _commandStopSyncing;
+        RelayCommand<object> _commandGenerateDeviceId;
         RelayCommand<object> _commandExit;
 
         // Private fields
@@ -586,6 +587,24 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
+        /// Returns a command that generates a device ID.
+        /// </summary>
+        public ICommand CommandGenerateDeviceId
+        {
+            get
+            {
+                if (_commandGenerateDeviceId == null)
+                {
+                    _commandGenerateDeviceId = new RelayCommand<object>(
+                        param => this.GenerateDeviceId(),
+                        param => this.CanGenerateDeviceId
+                        );
+                }
+                return _commandGenerateDeviceId;
+            }
+        }
+
+        /// <summary>
         /// Returns a command that exits the application.
         /// </summary>
         public ICommand CommandExit
@@ -773,8 +792,7 @@ namespace SampleLiveSync.ViewModels
 
                 // Validate the Device ID.
                 DeviceId = DeviceId.Trim();
-                if (!String.IsNullOrEmpty(DeviceId) && 
-                    Path.GetInvalidPathChars().Any(x => DeviceId.Contains(x)))
+                if (String.IsNullOrWhiteSpace(DeviceId) || Path.GetInvalidPathChars().Any(x => DeviceId.Contains(x)))
                 {
                     NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Device ID must be specified, and it must be valid as a portion of a folder name." });
                     this.IsDeviceIdFocused = true;
@@ -1457,6 +1475,24 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
+        /// Generate a random device ID.
+        /// </summary>
+        private void GenerateDeviceId()
+        {
+            try
+            {
+                DeviceId = Environment.MachineName + Guid.NewGuid().ToString("N");
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: GenerateDeviceId: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
+            }
+        }
+
+        /// <summary>
         /// Exit the application.
         /// </summary>
         private void Exit()
@@ -1578,6 +1614,17 @@ namespace SampleLiveSync.ViewModels
         /// Returns true if the Uninstall Badging button should be active.
         /// </summary>
         private bool CanUninstallBadging
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the Generate button (generate device ID) should be active.
+        /// </summary>
+        private bool CanGenerateDeviceId
         {
             get
             {

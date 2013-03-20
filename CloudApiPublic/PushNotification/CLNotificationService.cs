@@ -320,7 +320,7 @@ namespace Cloud.PushNotification
 
                     if (_syncBox != null)
                     {
-                        syncBoxDeviceIdCombined = _syncBox.SyncBoxId.ToString() + " " + (_syncBox.CopiedSettings.DeviceId ?? string.Empty);
+                        syncBoxDeviceIdCombined = _syncBox.SyncBoxId.ToString() + " " + _syncBox.CopiedSettings.DeviceId;
                     }
                 }
 

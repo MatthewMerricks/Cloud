@@ -50,6 +50,11 @@ namespace Cloud.Interfaces
         /// Full path to the directory to be synced (do not include a trailing slash except for a drive root)
         /// </summary>
         string SyncRoot { get; }
+        /// <summary>
+        /// Device id (each SyncBox may contain multiple devices, each with a unique id within the SyncBox).
+        /// When running multiple instances of the sync engine on one machine, each combination of SyncBoxId and DeviceId used with an engine must be unique on the machine.
+        /// </summary>
+        string DeviceId { get; }
     }
 
     /// <summary>
@@ -75,10 +80,6 @@ namespace Cloud.Interfaces
         /// Full path to a folder location where the database will be stored when using a SyncBox (you must handle your own database when using SyncEngine directly); If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory.  The file will be IndexDB.sdf.
         /// </summary>
         string DatabaseFolder { get; }
-        /// <summary>
-        /// Device id (each SyncBox may contain multiple devices, each with a unique id within the SyncBox).
-        /// </summary>
-        string DeviceId { get; }
     }
 
     public interface ICLAddClientVersion

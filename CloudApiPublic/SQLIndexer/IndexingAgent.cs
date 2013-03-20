@@ -2229,6 +2229,10 @@ namespace Cloud.SQLIndexer
             {
                 throw new NullReferenceException("syncBox cannot be null");
             }
+            if (string.IsNullOrEmpty(syncBox.CopiedSettings.DeviceId))
+            {
+                throw new NullReferenceException("settings DeviceId cannot be null");
+            }
 
             this.indexDBLocation = (string.IsNullOrEmpty(syncBox.CopiedSettings.DatabaseFolder)
                 ? Helpers.GetDefaultDatabasePath(syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId) + "\\" + CLDefinitions.kSyncDatabaseFileName

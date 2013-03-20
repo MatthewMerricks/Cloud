@@ -185,6 +185,10 @@ namespace Cloud.Sync
             {
                 throw new ArgumentException("ErrorProcessingMillisecondInterval must be greater than zero");
             }
+            if (String.IsNullOrWhiteSpace(syncBox.CopiedSettings.DeviceId))
+            {
+                throw new ArgumentException("DeviceId must be specified");
+            }
             #endregion
 
             #region assign instance fields
