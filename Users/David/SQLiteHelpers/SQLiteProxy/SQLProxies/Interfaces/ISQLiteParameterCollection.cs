@@ -8,7 +8,7 @@ namespace Cloud.SQLProxies
     /// <summary>
     /// SQLite implementation of DbParameterCollection.
     /// </summary>
-    internal interface ISQLiteParameterCollection
+    public interface ISQLiteParameterCollection
     {
         /// <summary>
         /// Adds a parameter to the collection

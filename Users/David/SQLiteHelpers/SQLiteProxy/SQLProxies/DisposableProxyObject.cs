@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Cloud.SQLProxies
 {
-    internal abstract class DisposableProxyObject : IDisposable
+    public abstract class DisposableProxyObject : IDisposable
     {
         /// <summary>
         /// Implement an override for this property which gets the baseObject which implements IDisposable

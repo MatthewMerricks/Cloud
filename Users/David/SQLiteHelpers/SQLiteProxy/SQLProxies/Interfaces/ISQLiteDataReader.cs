@@ -8,7 +8,7 @@ namespace Cloud.SQLProxies
     /// <summary>
     /// SQLite implementation of DbDataReader.
     /// </summary>
-    internal interface ISQLiteDataReader : IDisposable
+    public interface ISQLiteDataReader : IDisposable
     {
         /// <summary>
         /// Indexer to retrieve data from a column given its name

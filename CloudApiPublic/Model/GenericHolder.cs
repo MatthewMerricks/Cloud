@@ -3,7 +3,7 @@
 //  Cloud Windows
 //
 //  Created by BobS.
-//  Copyright (c) Cloud.com. All rights reserved.using System;
+//  Copyright (c) Cloud.com. All rights reserved.
 //
 using System.Collections.Generic;
 using System.Linq;

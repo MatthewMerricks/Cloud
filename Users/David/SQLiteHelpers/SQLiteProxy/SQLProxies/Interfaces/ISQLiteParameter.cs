@@ -8,7 +8,7 @@ namespace Cloud.SQLProxies
     /// <summary>
     /// SQLite implementation of DbParameter.
     /// </summary>
-    internal interface ISQLiteParameter
+    public interface ISQLiteParameter
     {
         /// <summary>
         /// Gets and sets the parameter value. If no datatype was specified, the datatype

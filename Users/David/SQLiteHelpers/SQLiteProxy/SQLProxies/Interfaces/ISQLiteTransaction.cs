@@ -8,7 +8,7 @@ namespace Cloud.SQLProxies
     /// <summary>
     /// SQLite implementation of DbTransaction.
     /// </summary>
-    internal interface ISQLiteTransaction : IDisposable
+    public interface ISQLiteTransaction : IDisposable
     {
         /// <summary>
         /// Commits the current transaction.

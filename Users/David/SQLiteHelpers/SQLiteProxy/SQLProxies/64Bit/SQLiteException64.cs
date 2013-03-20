@@ -35,7 +35,7 @@ using Cloud.Model;
                     if (baseConstructorInfo.Value == null)
                     {
                         baseConstructorInfo.Value = baseExceptionConstructor = typeof(SQL64.System.Data.SQLite.SQLiteException)
-                            .GetConstructor(new[] { typeof(SQL64.System.Data.SQLite.SQLiteException), typeof(string) });
+                            .GetConstructor(new[] { typeof(SQL64.System.Data.SQLite.SQLiteErrorCode), typeof(string) });
                     }
                     else
                     {

@@ -10,7 +10,7 @@ namespace Cloud.SQLProxies
     /// <summary>
     /// SQLite implementation of DbCommand.
     /// </summary>
-    internal interface ISQLiteCommand : IDisposable
+    public interface ISQLiteCommand : IDisposable
     {
         /// <summary>
         /// The SQL command text associated with the command

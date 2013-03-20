@@ -87,13 +87,6 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <returns>Yield-returned converted database results as current generic type</returns>
         public static IEnumerable<T> SelectResultSet(ISQLiteConnection connection, string select, IEnumerable<string> includes = null, ISQLiteTransaction transaction = null)
         {
-            Type deleteTheFollowingComments = typeof(SQLiteProxy.TestSQL);
-            //SELECT Enums.EnumId AS [Enums.EnumId], Enums.EnumCategoryId AS [Enums.EnumCategoryId], Enums.Name AS [Enums.Name], EnumCategories.EnumCategoryId AS [EnumCategories.EnumCategoryId], EnumCategories.Name AS [EnumCategories.Name]
-            //FROM Enums
-            //LEFT OUTER JOIN EnumCategories ON Enums.EnumCategoryId = EnumCategories.EnumCategoryId
-            //WHERE Enums.Name = 'Created'
-            //AND EnumCategories.Name = 'FileChangeType'
-
             // grab the function that takes the values out of the current database row to produce the current generic type
             Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>> currentParser = GetResultParser(string.Empty,
                     includes == null ? new string[0] : ((includes as string[]) ?? includes.ToArray())).Value;

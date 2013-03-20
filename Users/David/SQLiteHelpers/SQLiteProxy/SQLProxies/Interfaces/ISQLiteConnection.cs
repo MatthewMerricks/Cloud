@@ -37,7 +37,7 @@ namespace Cloud.SQLProxies
     /// in the connection pool N 100 Default IsolationLevel The default transaciton
     /// isolation level N Serializable
     /// </remarks>
-    internal interface ISQLiteConnection : IDisposable
+    public interface ISQLiteConnection : IDisposable
     {
         /// <summary>
         /// Change the password (or assign a password) to an open database.

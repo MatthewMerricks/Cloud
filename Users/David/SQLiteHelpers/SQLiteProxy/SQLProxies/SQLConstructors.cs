@@ -8,7 +8,7 @@ namespace Cloud.SQLProxies
     /// <summary>
     /// Constructors for all proxied-SQLite classes
     /// </summary>
-    internal static class SQLConstructors
+    public static class SQLConstructors
     {
         /// <summary>
         /// Initializes the connection with the specified connection string

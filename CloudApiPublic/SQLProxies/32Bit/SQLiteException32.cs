@@ -43,7 +43,7 @@ namespace Cloud.SQLProxies
                     if (baseConstructorInfo.Value == null)
                     {
                         baseConstructorInfo.Value = baseExceptionConstructor = typeof(SQL32.System.Data.SQLite.SQLiteException)
-                            .GetConstructor(new[] { typeof(SQL32.System.Data.SQLite.SQLiteException), typeof(string) });
+                            .GetConstructor(new[] { typeof(SQL32.System.Data.SQLite.SQLiteErrorCode), typeof(string) });
                     }
                     else
                     {
