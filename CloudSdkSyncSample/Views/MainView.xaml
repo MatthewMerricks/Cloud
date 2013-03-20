@@ -23,7 +23,7 @@
             <ColumnDefinition Width="40"/>
         </Grid.ColumnDefinitions>
         <GroupBox Header="Settings" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1">
-            <StackPanel Orientation="Vertical" Margin="5,8,5,5">
+            <StackPanel Orientation="Vertical" Margin="5,3,5,5">
                 <!-- SyncBox Folder -->
                 <Grid>
                     <Label Content="SyncBox _Folder:" Target="{Binding ElementName=tbSyncBoxFolder}"/>
@@ -61,7 +61,7 @@
                         ToolTip="Paste the token from your Cloud DashBoard."/>
                 
                 <!-- Button over Unique Device ID -->
-                <StackPanel Orientation="Horizontal" Margin="0,8,0
+                <StackPanel Orientation="Horizontal" Margin="0,3,0
                             ,0" HorizontalAlignment="Right" >
                     <Button x:Name="cmdGenerateDeviceId" HorizontalAlignment="Right" Width="50" FontSize="10"
                             Height="20" Command="{Binding Path=CommandGenerateDeviceId, Mode=OneTime}" 

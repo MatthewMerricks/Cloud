@@ -6055,6 +6055,12 @@ namespace Cloud.Sync
 
                     // create a list for events duplicated between Sync From and Sync To
                     List<int> duplicatedEvents = new List<int>();
+
+                    // Create a Dictionary to relate SyncTo conflict events to possible corresponding SyncFrom events.
+                    //RKSCHANGE: Begin
+                    Dictionary<Event, Event> syncFromRelatedEventToSyncToConflictEvent = new Dictionary<Event, Event>();
+                    //RKSCHANGE: End
+
                     // if there are events in the response to process, then loop through all events looking for duplicates between Sync From and Sync To
                     if (deserializedResponse.Events.Length > 0)
                     {
@@ -6062,8 +6068,13 @@ namespace Cloud.Sync
 
                         // create a list for the indexes of events for Sync From
                         List<int> fromEvents = new List<int>();
+
                         // create a list for the paths of events for Sync To (excluding events with a "download" status)
-                        HashSet<FilePath> eventsByPath = new HashSet<FilePath>(FilePathComparer.Instance);
+                        //RKSCHANGE: Begin
+                        //HashSet<FilePath> eventsByPath = new HashSet<FilePath>(FilePathComparer.Instance);
+                        Dictionary<FilePath, int> syncToEventsByPathToEventIndex = new Dictionary<FilePath, int>(FilePathComparer.Instance);
+                        //RKSCHANGE: End
+
                         // loop for all the indexes in the response events
                         for (int currentEventIndex = 0; currentEventIndex < deserializedResponse.Events.Length; currentEventIndex++)
                         {
@@ -6088,8 +6099,19 @@ namespace Cloud.Sync
                                     // else if there is a status set (Sync To) and the event is not a download, then add to eventsByPath (Sync To events)
                                     else if (currentEvent.Header.Status != CLDefinitions.CLEventTypeDownload) // exception for download when looking for dependencies since we actually want the Sync From event
                                     {
+                                        //RKSCHANGE: Begin
                                         // add the file path to eventsByPath (Sync To paths) from either the original change (rename events only) or produce it from the root folder path plus the metadata path
-                                        eventsByPath.Add((currentEvent.Metadata == null
+                                        //eventsByPath.Add((currentEvent.Metadata == null
+
+                                        //    // if the current event does not have metadata (a sign of a rename event??), then find the original change sent to the server which matches by event id and use its file path
+                                        //    ? toCommunicate.First(currentToCommunicate => (currentEvent.EventId != null || currentEvent.Header.EventId != null) && currentToCommunicate.FileChange.EventId == (long)(currentEvent.EventId ?? currentEvent.Header.EventId))
+                                        //        .FileChange.NewPath
+
+                                        //    // else if the current event does have metadata (non-rename events), then build the path from the root path plus the metadata path
+                                        //    : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
+                                        //        (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')));
+
+                                        syncToEventsByPathToEventIndex[(currentEvent.Metadata == null
 
                                             // if the current event does not have metadata (a sign of a rename event??), then find the original change sent to the server which matches by event id and use its file path
                                             ? toCommunicate.First(currentToCommunicate => (currentEvent.EventId != null || currentEvent.Header.EventId != null) && currentToCommunicate.FileChange.EventId == (long)(currentEvent.EventId ?? currentEvent.Header.EventId))
@@ -6097,7 +6119,8 @@ namespace Cloud.Sync
 
                                             // else if the current event does have metadata (non-rename events), then build the path from the root path plus the metadata path
                                             : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
-                                                (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')));
+                                                (currentEvent.Metadata.RelativePathWithoutEnclosingSlashes ?? currentEvent.Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'))] = currentEventIndex;
+                                        //RKSCHANGE: End
                                     }
                                 }
                             }
@@ -6107,21 +6130,53 @@ namespace Cloud.Sync
                         }
 
                         // loop through the indexes of From Events
-                        foreach (int currentEventIndex in fromEvents)
+                        foreach (int currentSyncFromEventIndex in fromEvents)
                         {
                             // try/catch check if the Sync From event is duplicated from a Sync To event, failing silently
                             try
                             {
-                                // if the current Sync From event's path is found in the paths for Sync To events, then add the current Sync From event index as duplicate
-                                if (eventsByPath.Contains(
+                                //RKSCHANGE: Begin
+                                //// if the current Sync From event's path is found in the paths for Sync To events, then add the current Sync From event index as duplicate
+                                //if (eventsByPath.Contains(
+
+                                //    // append Sync From event relative path to the root path to build the full path for comparison
+                                //    (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
+                                //    (deserializedResponse.Events[currentEventIndex].Metadata.RelativePathWithoutEnclosingSlashes ?? deserializedResponse.Events[currentEventIndex].Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')))
+                                //{
+                                //    // Test specifically if the matched sync from and sync to is for a "conflict" status Sync To
+                                //    // still wish to ignore SyncFrom via next line below, but also add key\value pair to a dictionary mapping Sync To conflict events to their Sync From matches
+                                //    // from event is duplicate, add its index to duplicates
+                                //
+                                //    duplicatedEvents.Add(currentEventIndex);
+                                //}
+
+                                // If the current Sync From event's path is found in the paths for Sync To events, then add the current Sync From event index as duplicate
+                                int outIndex;
+                                if (syncToEventsByPathToEventIndex.TryGetValue(
 
                                     // append Sync From event relative path to the root path to build the full path for comparison
                                     (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" +
-                                    (deserializedResponse.Events[currentEventIndex].Metadata.RelativePathWithoutEnclosingSlashes ?? deserializedResponse.Events[currentEventIndex].Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\')))
+                                    (deserializedResponse.Events[currentSyncFromEventIndex].Metadata.RelativePathWithoutEnclosingSlashes ?? deserializedResponse.Events[currentSyncFromEventIndex].Metadata.RelativeToPathWithoutEnclosingSlashes).Replace('/', '\\'),
+
+                                    // the output index from TryGetValue
+                                    out outIndex))
                                 {
+                                    // Test specifically if the matched sync from and sync to is for a "conflict" status Sync To.
+                                    // We still wish to ignore SyncFrom by adding it to duplicatedEvents below, but we also add the SyncTo(conflict)/SyncFrom events to a dictionary to track this pair of 
+                                    // related events for later conflict processing.
+                                    Event syncToConflictEvent = deserializedResponse.Events[outIndex];
+                                    if (syncToConflictEvent.Header.Status == CLDefinitions.CLEventTypeConflict)
+                                    {
+                                        // This SyncFrom Event is related to a SyncTo conflict.  Add it to a dictionary that will track the SyncFrom event for
+                                        // later handling in the conflict processing.  The SyncFrom event will be added to the duplicate event list so it will 
+                                        // be ignored in normal processing.  We will handle it specially in the conflict processing.
+                                        syncFromRelatedEventToSyncToConflictEvent[deserializedResponse.Events[currentSyncFromEventIndex]] = syncToConflictEvent;
+                                    }
+
                                     // from event is duplicate, add its index to duplicates
-                                    duplicatedEvents.Add(currentEventIndex);
+                                    duplicatedEvents.Add(currentSyncFromEventIndex);
                                 }
+                                //RKSCHANGE: End
                             }
                             catch
                             {
@@ -6154,6 +6209,17 @@ namespace Cloud.Sync
                     // create a dictionary mapping event id to changes which were moved as dependencies under new pseudo-Sync From changes (i.e. conflict)
                     Dictionary<long, PossiblyStreamableFileChange[]> changesConvertedToDependencies = new Dictionary<long, PossiblyStreamableFileChange[]>();
 
+                    //RKSCHANGE: Begin
+                    // Loop through Dictionary<Event, Event> of SyncFrom events related to matching SyncTo conflict events and build FileChange objects for the SyncFrom Events.
+                    // Rebuild a new Dictionary<Event, FileChange> from the SyncTo conflict events and the SyncFrom matching FileChanges.
+                    // Build Sync From FileChange via same or similar logic to below, but don't process it
+                    foreach (KeyValuePair<Event, Event> pairSyncToConflictEventToSyncFromRelatedEvent in syncFromRelatedEventToSyncToConflictEvent)
+                    {
+
+                    }
+
+                    //RKSCHANGE: End
+
                     // loop for all the indexes in the response events
                     for (int currentEventIndex = 0; currentEventIndex < deserializedResponse.Events.Length; currentEventIndex++)
                     {
@@ -6180,6 +6246,16 @@ namespace Cloud.Sync
                         {
                             // grab the current event by index
                             Event currentEvent = deserializedResponse.Events[currentEventIndex];
+
+                            //RKSCHANGE: Begin
+                            // Determine whether this event is a SyncFrom event related to a matching SyncTo conflict event.
+                            bool fIsSyncFromEventRelatedToSyncToConflictEvent = false;
+                            Event outRelatedSyncToConflictEvent;
+                            if (syncFromRelatedEventToSyncToConflictEvent.TryGetValue(currentEvent, out outRelatedSyncToConflictEvent))
+                            {
+                                fIsSyncFromEventRelatedToSyncToConflictEvent = true;
+                            }
+                            //RKSCHANGE: End
 
                             if (currentEvent.Metadata == null || (currentEvent.Metadata.RelativePath ?? currentEvent.Metadata.RelativeToPath) != "/") // special event on SID "0" for root folder
                             {
@@ -7185,7 +7261,8 @@ namespace Cloud.Sync
                                                                 foreach (string currentSibling in Directory.EnumerateFiles(innerOriginalConflictPath.Parent.ToString()))
                                                                 {
                                                                     // if the sibling has the same exact file name (including extension) then increment the number found to 1 if it hasn't already been incremented
-                                                                    if (currentSibling.Equals(mainName + extension, StringComparison.InvariantCultureIgnoreCase))
+                                                                    string currentSiblingFileNameExt = Path.GetFileName(currentSibling);
+                                                                    if (currentSiblingFileNameExt.Equals(mainName + extension, StringComparison.InvariantCultureIgnoreCase))
                                                                     {
                                                                         // if number has not already been incremented, then increment to 1
                                                                         if (highestNumFound == 0)
@@ -7195,12 +7272,12 @@ namespace Cloud.Sync
                                                                     }
                                                                     // else if the sibling does not have the same exact file name but is named based on the name with an incrementor "Z (XXX).YYY",
                                                                     // then try to pull out the number value of the incrementor to use and use it as the highest number if greatest found so far
-                                                                    else if (currentSibling.StartsWith(mainName + " (", StringComparison.InvariantCultureIgnoreCase) // "Z (..."
-                                                                        && currentSibling.EndsWith(")" + extension, StringComparison.InvariantCultureIgnoreCase)) // "...).YYY"
+                                                                    else if (currentSiblingFileNameExt.StartsWith(mainName + " (", StringComparison.InvariantCultureIgnoreCase) // "Z (..."
+                                                                        && currentSiblingFileNameExt.EndsWith(")" + extension, StringComparison.InvariantCultureIgnoreCase)) // "...).YYY"
                                                                     {
                                                                         // pull out the portion of the name between the parenteses
-                                                                        string siblingNumberPortion = currentSibling.Substring(mainName.Length + 2,
-                                                                            currentSibling.Length - mainName.Length - extension.Length - 3);
+                                                                        string siblingNumberPortion = currentSiblingFileNameExt.Substring(mainName.Length + 2,
+                                                                            currentSiblingFileNameExt.Length - mainName.Length - extension.Length - 3);
                                                                         // declare an int for the parsed number
                                                                         int siblingNumberParsed;
                                                                         // try to parse the portion of the name pulled out as an int and if successful, then see if it's the highest number found so far to set
@@ -7216,7 +7293,7 @@ namespace Cloud.Sync
 
                                                                 // return with the incremented name (or stay at the max int value and return with a true as well if the highest number is at int.MaxValue and a new incrementor needs to be added)
                                                                 return new KeyValuePair<bool, string>(highestNumFound == int.MaxValue,
-                                                                    mainName + " (" + (highestNumFound == int.MaxValue ? highestNumFound : highestNumFound + 1).ToString() + ")");
+                                                                    mainName + " CONFLICT " + syncBox.CopiedSettings.FriendlyName + " (" + (highestNumFound == int.MaxValue ? highestNumFound : highestNumFound + 1).ToString() + ")");
                                                             };
 
                                                             // declare a string for the main name portion of the file name (before the last extension)
@@ -7283,8 +7360,34 @@ namespace Cloud.Sync
                                                             {
                                                                 FileChange oldPathDownload = null;
 
+                                                                // This scenario is best described by the following sequence of events:
+                                                                //   o Two devices properly synced.
+                                                                //   o Stop syncing both devices.
+                                                                //   o Modify the same-named file on both devices:
+                                                                //     . Host1: File.txt  Add: "Modified on Host1", and make sure that there was no previous version of the file that matched the result.
+                                                                //     . Host2: File.txt  Add: "Modified on Host2", ditto.
+                                                                //   o Start syncing Host2, and immediately start syncing Host1.
+                                                                //   o Assume that the database was not cleared, and SyncBoxId and DeviceId are unchanged.
+                                                                //   o Host2 will send a modify_file, and we assume that event reaches the server first.
+                                                                //   o The server will respond to Host2 with an "upload" status.
+                                                                //   o Host1 will send a modify_file to the server.
+                                                                //   o The server will respond to Host1 with a "conflict" status.
+                                                                //   o Host1 should rename its existing file on the disk to filename 'CONFLICT'.ext.
+                                                                //   o Host1 should send a create_file event to the server with the 'CONFLICT' file.
+                                                                //   o Host1 should download the latest version of the original file from the server.  That will be the 
+
+                                                                
+                                                                //We will rename the original file on our disk to the 'CONFLICT' name.  That file will be uploaded to the server
+
+                                                                // as a new file.  Then we need to download the latest version of the original file from the server.
                                                                 try
                                                                 {
+
+                                                                    // RKSTODO: If Sync To conflict change (query by Event, not by FileChange) has a mapping to a Sync From FileChange,
+                                                                    // then do not create a pseudo Download FileChange for the old location, instead set oldPathDownload equal to the Sync From FileChange
+                                                                    // otherwise, query the server for the latest metadata for that file, if the latest metadata is not stored, then also grab all file versions by "uid" (JsonContracts.Metadata instance property ServerId) and use the latest version which is stored
+                                                                    // If at least one of the file's previous versions was stored, then create a new FileChangeWithDependencies to download at the old path with the old metadata and store it as oldPathDownload
+
                                                                     FileMetadata oldPathMetadata;
                                                                     CLError oldPathMetadataError = syncData.getMetadataByPathAndRevision(
                                                                         originalConflictPath.ToString(),
@@ -7436,6 +7539,12 @@ namespace Cloud.Sync
                                                                     }
                                                                 }
 
+                                                                // TODO: investigate combining all merges to SQL so they are processed transactionally so we don't need to do manual rollbacks
+                                                                // It's not so simple: syncData.mergeToSql allows deletes, updates, AND inserts; if the logical ordering of these events are important (in this case they are)
+                                                                // the ordering is currently lost because SQLIndexer IndexingAgent processes Deletes then Updates then Adds
+                                                                // Best solution would be to extend the IndexingAgent's mergeToSql method so that it lets us pass in a transaction which we can maintain locally here (wrap with using statement to ensure disposal)
+                                                                // we would want to pass back an opaque interface where we cannot directly access the database here (for the transaction\connection combination)
+
                                                                 // remove the previous conflict change from the event source database, storing any error that occurred
                                                                 CLError removalOfPreviousChange = syncData.mergeToSql(new[] { new FileChangeMerge(null, currentChange) });
                                                                 // if an error occurred removing the previous conflict change, then rethrow the error
@@ -7476,6 +7585,8 @@ namespace Cloud.Sync
 
                                                                     throw new AggregateException("Error adding a new creation FileChange at the new conflict path", addModifiedConflictAsCreate.GrabExceptions());
                                                                 }
+
+                                                                // RKSTODO: if oldPathDownload is not null, try to merge it to SQL, if there was an error in adding oldPathDownload to SQL, then rollback other previous SQL modifies
 
                                                                 // store the succesfully created rename change with the modified conflict change as the current change to process
                                                                 currentChange = reparentConflict;
