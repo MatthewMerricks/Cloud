@@ -1261,7 +1261,6 @@ namespace Cloud.FileMonitor
                                         {
                                             ServerUid = toApply.Metadata.ServerUid,
                                             HashableProperties = toApply.Metadata.HashableProperties,
-                                            LinkTargetPath = toApply.Metadata.LinkTargetPath,
                                             Revision = toApply.Metadata.Revision
                                         });
                                     break;
@@ -3261,8 +3260,7 @@ namespace Cloud.FileMonitor
                                                     isFolder,
                                                     lastTime,
                                                     creationTime,
-                                                    fileLength,
-                                                    null);
+                                                    fileLength);
                                                 // if new metadata came back after comparison, queue file change for modify
                                                 if (newMetadata != null)
                                                 {
@@ -3423,8 +3421,7 @@ namespace Cloud.FileMonitor
                                                     isFolder,
                                                     lastTime,
                                                     creationTime,
-                                                    fileLength,
-                                                    null);
+                                                    fileLength);
                                                 // if new metadata came back after comparison, queue file change for modify
                                                 if (newMetadata != null)
                                                 {
@@ -3595,8 +3592,7 @@ namespace Cloud.FileMonitor
                                             isFolder,
                                             lastTime,
                                             creationTime,
-                                            fileLength,
-                                            null);
+                                            fileLength);
 
                                         //// wouldn't remove and adding cause data to be lost which should have been moved over?
                                         //
@@ -3704,8 +3700,7 @@ namespace Cloud.FileMonitor
                                                     isFolder,
                                                     lastTime,
                                                     creationTime,
-                                                    fileLength,
-                                                    null);
+                                                    fileLength);
                                                 // if new metadata came back after comparison, queue file change for modify
                                                 if (newMetadata != null)
                                                 {
@@ -3917,8 +3912,7 @@ namespace Cloud.FileMonitor
             bool isFolder,
             DateTime lastTime,
             DateTime creationTime,
-            Nullable<long> size,
-            FilePath targetPath)
+            Nullable<long> size)
         {
             // Segment out the properties that are used for comparison (before recalculating the MD5)
             FileMetadataHashableProperties forCompare = new FileMetadataHashableProperties(isFolder,
@@ -3927,19 +3921,14 @@ namespace Cloud.FileMonitor
                     size);
 
             // If metadata hashable properties differ at all, new metadata will be created and returned
-            if (!FileMetadataHashableComparer.Default.Equals(previousMetadata.HashableProperties,
-                forCompare)
-                || (previousMetadata.LinkTargetPath == null && targetPath != null)
-                || (previousMetadata.LinkTargetPath != null && targetPath == null)
-                || (previousMetadata.LinkTargetPath != null && targetPath != null && !FilePathComparer.Instance.Equals(previousMetadata.LinkTargetPath, targetPath)))
+            if (!FileMetadataHashableComparer.Default.Equals(previousMetadata.HashableProperties, forCompare))
             {
                 // metadata change detected
                 return new FileMetadata(previousMetadata.RevisionChanger)
                 {
                     ServerUid = previousMetadata.ServerUid,
                     HashableProperties = forCompare,
-                    Revision = previousMetadata.Revision,
-                    LinkTargetPath = targetPath
+                    Revision = previousMetadata.Revision
                 };
             }
             return null;

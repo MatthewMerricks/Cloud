@@ -204,7 +204,7 @@ namespace SQLiteHelpers
 
             SetButtonsState(enabled: true);
         }
-        public static System.Windows.Forms.IWin32Window GetIWin32Window(Visual visual)
+        private static System.Windows.Forms.IWin32Window GetIWin32Window(Visual visual)
         {
             HwndSource source = PresentationSource.FromVisual(visual) as HwndSource;
             return new OldWindow(source.Handle);

@@ -1,5 +1,5 @@
 /*
- 17Finalize.pragma.sql
+ 24Finalize.pragma.sql
  Cloud Windows
 
  Created By DavidBruck.

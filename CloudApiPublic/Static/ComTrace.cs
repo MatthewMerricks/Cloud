@@ -973,7 +973,6 @@ namespace Cloud.Static
                                 SizeSpecified = currentChange.Metadata.HashableProperties.Size != null,
                                 IsSyncFrom = IsSyncFromBySyncDirection(currentChange.Direction),
                                 MD5 = PullMD5(currentChange),
-                                LinkTargetPath = (currentChange.Metadata.LinkTargetPath == null ? null : currentChange.Metadata.LinkTargetPath.ToString()),
                                 Revision = currentChange.Metadata.Revision,
                                 StorageKey = currentChange.Metadata.StorageKey,
                                 Dependencies = innerTraceArray

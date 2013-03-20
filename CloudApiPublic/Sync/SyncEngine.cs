@@ -5874,7 +5874,7 @@ namespace Cloud.Sync
                                                     : getArgumentException(true, currentEvent.FileChange.Type, null))))) // the only FileChangeTypes recognized are created/deleted/renamed/modified
 
                                     // File events (isFolder is not true and the file does not have a shortcut target path)
-                                    : (currentEvent.FileChange.Metadata.LinkTargetPath == null
+                                    : (/* override as true since LinkTargetPath was temporarily removed due to database complexity in removing all paths */ true //currentEvent.FileChange.Metadata.LinkTargetPath == null
                                         ? (currentEvent.FileChange.Type == FileChangeType.Created
                                             ? CLDefinitions.CLEventTypeAddFile
                                             : (currentEvent.FileChange.Type == FileChangeType.Deleted
@@ -5894,7 +5894,7 @@ namespace Cloud.Sync
                                                     ? CLDefinitions.CLEventTypeModifyLink
                                                     : (currentEvent.FileChange.Type == FileChangeType.Renamed
                                                         ? CLDefinitions.CLEventTypeRenameLink
-                                                        : getArgumentException(false, currentEvent.FileChange.Type, currentEvent.FileChange.Metadata.LinkTargetPath))))))), // the only FileChangeTypes recognized are created/deleted/renamed/modified
+                                                        : getArgumentException(false, currentEvent.FileChange.Type, "Place LinkTargetPath here" /*currentEvent.FileChange.Metadata.LinkTargetPath*/))))))), // the only FileChangeTypes recognized are created/deleted/renamed/modified
 
                                 EventId = currentEvent.FileChange.EventId, // this is out local identifier for the event which will be passed as the "client_reference" and returned so we can correlate the response event
                                 Metadata = new Metadata()
@@ -5937,9 +5937,6 @@ namespace Cloud.Sync
                                     Size = currentEvent.FileChange.Metadata.HashableProperties.Size, // the file size (or null for folders)
                                     StorageKey = currentEvent.FileChange.Metadata.StorageKey, // the server location for storage of this file (or null for a folder); probably not read
                                     Version = "1.0", // I do not know what value should be placed here
-                                    TargetPath = (currentEvent.FileChange.Metadata.LinkTargetPath == null
-                                        ? null // null for a null shortcut target path
-                                        : currentEvent.FileChange.Metadata.LinkTargetPath.GetRelativePath((syncBox.CopiedSettings.SyncRoot ?? string.Empty), true)), // for a shortcut pointing to a place within the root, this is a path relative to the root with slashes switched for the NewPath; otherwise this is the actual shortcut target path
                                     MimeType = currentEvent.FileChange.Metadata.MimeType // never retrieved from Windows
                                 }
                             }).ToArray(), // selected into a new array
@@ -6199,8 +6196,6 @@ namespace Cloud.Sync
                                     string findServerId;
                                     // Metadata properties for the event
                                     FileMetadataHashableProperties findHashableProperties;
-                                    // full path for the target of a shortcut for the event
-                                    FilePath findLinkTargetPath;
                                     // storage key for a file event
                                     string findStorageKey;
                                     // revision for a file event
@@ -6234,8 +6229,6 @@ namespace Cloud.Sync
                                         findServerId = nonNullPreviousFileChange.FileChange.Metadata.ServerUid;
                                         // set the metadata properties
                                         findHashableProperties = nonNullPreviousFileChange.FileChange.Metadata.HashableProperties;
-                                        // set the shortcut target path, or null if the event is not for a shortcut file
-                                        findLinkTargetPath = nonNullPreviousFileChange.FileChange.Metadata.LinkTargetPath;
                                         // set the storage key, or null if the event is not for a file
                                         findStorageKey = nonNullPreviousFileChange.FileChange.Metadata.StorageKey;
                                         // set the revision, or null if the event is not for a file
@@ -6262,9 +6255,6 @@ namespace Cloud.Sync
                                             currentEvent.Metadata.ModifiedDate, // the last time the file system object was modified
                                             currentEvent.Metadata.CreatedDate, // the time the file system object was created
                                             currentEvent.Metadata.Size); // the size of a file or null for non-files
-                                        findLinkTargetPath = (string.IsNullOrEmpty(currentEvent.Metadata.TargetPath)
-                                            ? null // if the current event has no shortcut target path, then set the target path as null
-                                            : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")); // else if the current event has a shortcut path, then create the shortcut path by appending a relative path to the root
                                         // set the revision from the current file, or null for non-files
                                         findRevision = currentEvent.Metadata.Revision;
                                         // set the storage key from the current file, or null for non-files
@@ -6311,7 +6301,6 @@ namespace Cloud.Sync
                                         {
                                             ServerUid = findServerId, // set the server unique id
                                             HashableProperties = findHashableProperties, // set the metadata properties
-                                            LinkTargetPath = findLinkTargetPath, // set the full path target of a shortcut file, or null for non-shortcuts
                                             Revision = findRevision, // set the file revision, or null for non-files
                                             StorageKey = findStorageKey, // set the storage key, or null for non-files
                                             MimeType = findMimeType // never set on Windows
@@ -6551,9 +6540,6 @@ namespace Cloud.Sync
                                                                             newMetadata.Size), // file size or null for folders
                                                                         Revision = newMetadata.Revision, // file revision or null for folders
                                                                         StorageKey = newMetadata.StorageKey, // file storage key or null for folders
-                                                                        LinkTargetPath = (newMetadata.TargetPath == null
-                                                                            ? null // if server metadata does not have a shortcut file target path, then use null
-                                                                            : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
                                                                         MimeType = newMetadata.MimeType // never set on Windows
                                                                     }
                                                                 },
@@ -6911,10 +6897,6 @@ namespace Cloud.Sync
                                                 && (((PossiblyStreamableFileChange)matchedChange).FileChange.Direction != currentChange.Direction // different by direction of the change (being Sync To or Sync From)
                                                     || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.Size != currentChange.Metadata.HashableProperties.Size // different by file size
                                                     || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.StorageKey != currentChange.Metadata.StorageKey // different by storage key
-
-                                                    // different by shortcut file target path:
-                                                    || !((((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath == null && currentChange.Metadata.LinkTargetPath == null)
-                                                        || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath != null && currentChange.Metadata.LinkTargetPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.LinkTargetPath, currentChange.Metadata.LinkTargetPath)))
 
                                                     || !(sameCreationTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.CreationTime, currentChange.Metadata.HashableProperties.CreationTime)) // different by creation time; compare within 1 second since communication drops subseconds
                                                     || !(sameLastTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.LastTime, currentChange.Metadata.HashableProperties.LastTime)))); // different by last modified time; compare within 1 second since communication drops subseconds
@@ -7362,8 +7344,7 @@ namespace Cloud.Sync
                                                                         Direction = SyncDirection.From, // rename the file locally (Sync From)
                                                                         Metadata = new FileMetadata()
                                                                         {
-                                                                            HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
-                                                                            LinkTargetPath = currentChange.Metadata.LinkTargetPath // copy shortcut target path from the conflicted file
+                                                                            HashableProperties = currentChange.Metadata.HashableProperties // copy metadata from the conflicted file
                                                                         },
                                                                         NewPath = currentChange.NewPath, // use the new conflict path as the rename destination
                                                                         OldPath = originalConflictPath, // use the location of the current conflicted file as move from location
@@ -7899,9 +7880,6 @@ namespace Cloud.Sync
                                                     currentEvent.Metadata.Size), // grab the file size, or null for non-files
                                                 Revision = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
                                                 StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
-                                                LinkTargetPath = (currentEvent.Metadata.TargetPath == null
-                                                    ? null // if current event is a folder or a file which is not a shortcut, then there is no shortcut target path
-                                                    : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + currentEvent.Metadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else if the current event is a shortcut file, then grab the shortcut path
                                                 MimeType = currentEvent.Metadata.MimeType // never set on Windows
                                             }
                                         },
@@ -8115,9 +8093,6 @@ namespace Cloud.Sync
                                                             newMetadata.Size), // file size or null for folders
                                                         Revision = newMetadata.Revision, // file revision or null for folders
                                                         StorageKey = newMetadata.StorageKey, // file storage key or null for folders
-                                                        LinkTargetPath = (newMetadata.TargetPath == null
-                                                            ? null // if server metadata does not have a shortcut file target path, then use null
-                                                            : (syncBox.CopiedSettings.SyncRoot ?? string.Empty) + "\\" + newMetadata.TargetPathWithoutEnclosingSlashes.Replace("/", "\\")), // else server metadata has a shortcut file target path so build a full path by appending the root folder
                                                         MimeType = newMetadata.MimeType // never set on Windows
                                                     }
                                                 },

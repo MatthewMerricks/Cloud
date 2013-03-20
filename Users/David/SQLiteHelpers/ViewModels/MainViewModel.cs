@@ -213,11 +213,11 @@ namespace SQLiteHelpers.ViewModels
                 {
                     using (ISQLiteConnection creationConnection = CreateAndOpenCipherconnection(encrypted: true, dbLocation: filePath))
                     {
-                        foreach (string indexDBScript in indexDBScripts.OrderBy(scriptPair => scriptPair.Key).Select(scriptPair => scriptPair.Value))
+                        foreach (KeyValuePair<int, string> indexDBScript in indexDBScripts.OrderBy(scriptPair => scriptPair.Key))
                         {
                             using (ISQLiteCommand scriptCommand = creationConnection.CreateCommand())
                             {
-                                scriptCommand.CommandText = indexDBScript;
+                                scriptCommand.CommandText = indexDBScript.Value;
                                 scriptCommand.ExecuteNonQuery();
                             }
                         }
@@ -244,7 +244,7 @@ namespace SQLiteHelpers.ViewModels
                 {
                     lastTestStarted = "CreateRootObject started";
 
-                    string rootPath = "C:\\Z";
+                    string rootPath = "N:\\Q";
 
                     using (ISQLiteConnection indexDB = CreateAndOpenCipherconnection(encrypted: true, dbLocation: filePath))
                     {
@@ -285,6 +285,29 @@ namespace SQLiteHelpers.ViewModels
 
                     using (ISQLiteConnection indexDB = CreateAndOpenCipherconnection(encrypted: true, dbLocation: filePath))
                     {
+                        //// I don't think you can even set recursive_triggers ON, after trying the code below and checking the set value on the same connection it hadn't changed
+                        //
+                        //#region PRAGMA set recursive triggers ON
+                        //System.Windows.MessageBox.Show("Temporary fix to test triggers (setting recursive_triggers to 1). Needs to be defaulted in System.Data.SQLite library creation. Afterwards, remove this message box and the proceeding PRAGMA to set the value (but keep the PRAGMA to check to see if it's set).");
+                        //using (ISQLiteCommand setRecursiveTriggersCommand = indexDB.CreateCommand())
+                        //{
+                        //    setRecursiveTriggersCommand.CommandText = "PRAGMA recusive_triggers = 1;"; // also tried "ON" (without the quotes)
+                        //    setRecursiveTriggersCommand.ExecuteNonQuery();
+                        //}
+                        //#endregion
+
+                        using (ISQLiteCommand pragmaRecursiveTriggersCommand = indexDB.CreateCommand())
+                        {
+                            pragmaRecursiveTriggersCommand.CommandText = "PRAGMA recursive_triggers;";
+
+                            bool recursiveTriggers = Convert.ToBoolean(pragmaRecursiveTriggersCommand.ExecuteScalar());
+
+                            if (!recursiveTriggers)
+                            {
+                                throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Cannot test recursive triggers with SQLite setting recursive_triggers being 0 (false)");
+                            }
+                        }
+
                         FileSystemObject rootObject = SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
                             "SELECT * FROM FileSystemObjects WHERE FileSystemObjects.ParentFolderId IS NULL")
                             .Single();
@@ -293,7 +316,7 @@ namespace SQLiteHelpers.ViewModels
                             {
                                 EventTimeUTCTicks = DateTime.UtcNow.Ticks,
                                 IsFolder = true,
-                                Name = "A",
+                                Name = "D",
                                 ParentFolderId = rootObject.FileSystemObjectId,
                                 Pending = false
                             };
@@ -306,7 +329,7 @@ namespace SQLiteHelpers.ViewModels
                             {
                                 EventTimeUTCTicks = DateTime.UtcNow.Ticks,
                                 IsFolder = false,
-                                Name = "b.txt",
+                                Name = "e.txt",
                                 ParentFolderId = innerFolder.FileSystemObjectId,
                                 Pending = false
                             };
@@ -315,7 +338,7 @@ namespace SQLiteHelpers.ViewModels
                             indexDB,
                             innerFile);
 
-                        rootObject.Name += "Y";
+                        rootObject.Name += "M";
 
                         SqlAccessor<FileSystemObject>.UpdateRow(
                             indexDB,
@@ -338,7 +361,17 @@ namespace SQLiteHelpers.ViewModels
 
                         if (innerFile.CalculatedFullPath != (rootObject.Name + "\\" + innerFolder.Name + "\\" + innerFile.Name))
                         {
-                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Updating root folder path did not propagate down at least 2 levels deep");
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Updating root folder path did not propagate down at least 2 levels deep, recursive triggers might be turned off");
+                        }
+
+                        if (!SqlAccessor<FileSystemObject>.DeleteRow(indexDB, rootObject))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to delete root object. It should be deletable even if it has children via delete triggers");
+                        }
+
+                        if (SqlAccessor<FileSystemObject>.SelectResultSet(indexDB, "SELECT * FROM FileSystemObjects").Count() != 0)
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Delete triggers should have caused everything from the root object down to be deleted in FileSystemObjects, but something remains");
                         }
                     }
 

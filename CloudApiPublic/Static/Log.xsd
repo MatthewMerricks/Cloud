@@ -177,7 +177,6 @@
         </xs:annotation>
       </xs:element>
       <xs:element name="MD5" minOccurs="0" maxOccurs="1" type="xs:string" />
-      <xs:element name="LinkTargetPath" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="Revision" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="StorageKey" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="Dependencies" minOccurs="0" maxOccurs="1">

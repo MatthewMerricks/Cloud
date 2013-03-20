@@ -44,6 +44,8 @@ CREATE TABLE FileSystemObjects
       CHECK (Permissions IS NULL OR TYPEOF(Permissions) = 'integer'),
     EventTimeUTCTicks INTEGER NOT NULL CONSTRAINT CHK_FileSystemObjects_EventTimeUTCTicks_INTEGER
       CHECK (TYPEOF(EventTimeUTCTicks) = 'integer'),
+    CalculatedFullPath TEXT CONSTRAINT CHK_FileSystemObjects_CalculatedFullPath_TEXT
+      CHECK (CalculatedFullPath IS NULL OR TYPEOF(CalculatedFullPath) = 'text'),
     PRIMARY KEY (FileSystemObjectId ASC),
     CONSTRAINT FK_FileSystemObjects_ParentFolderId__FileSystemObjects_FileSystemObjectId
       FOREIGN KEY (ParentFolderId)

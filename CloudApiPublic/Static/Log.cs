@@ -178,8 +178,6 @@ namespace Cloud.Static
 
         private string mD5Field;
 
-        private string linkTargetPathField;
-
         private string revisionField;
 
         private string storageKeyField;
@@ -382,19 +380,6 @@ namespace Cloud.Static
             set
             {
                 this.mD5Field = value;
-            }
-        }
-
-        /// <remarks/>
-        public string LinkTargetPath
-        {
-            get
-            {
-                return this.linkTargetPathField;
-            }
-            set
-            {
-                this.linkTargetPathField = value;
             }
         }
 
