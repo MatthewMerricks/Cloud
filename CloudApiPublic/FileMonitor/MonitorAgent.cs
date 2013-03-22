@@ -515,6 +515,7 @@ namespace Cloud.FileMonitor
         /// </summary>
         private bool IsInitialIndex = true;
         private readonly CLSyncBox _syncBox;
+        private readonly long MaxUploadFileSize;
         #endregion
 
         #region memory debug
@@ -679,11 +680,13 @@ namespace Cloud.FileMonitor
             out SyncEngine syncEngine,
             bool debugMemory,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
-            bool logProcessing = false)
+            bool logProcessing = false,
+            long MaxUploadFileSize = FileConstants.MaxUploadFileSize)
         {
+
             try
             {
-                newAgent = new MonitorAgent(indexer, syncBox, debugMemory, DependencyDebugging);
+                newAgent = new MonitorAgent(indexer, syncBox, debugMemory, DependencyDebugging, MaxUploadFileSize);
             }
             catch (Exception ex)
             {
@@ -786,7 +789,7 @@ namespace Cloud.FileMonitor
             return null;
         }
 
-        private MonitorAgent(IndexingAgent Indexer, CLSyncBox syncBox, bool debugMemory, bool DependencyDebugging)
+        private MonitorAgent(IndexingAgent Indexer, CLSyncBox syncBox, bool debugMemory, bool DependencyDebugging, long MaxUploadFileSize) 
         {
             // check input parameters
 
@@ -803,6 +806,7 @@ namespace Cloud.FileMonitor
             {
                 throw new NullReferenceException("Indexer cannot be null");
             }
+            this.MaxUploadFileSize = MaxUploadFileSize;
             this._syncBox = syncBox;
             this.Indexer = Indexer;
             this._syncData = new SyncData(this, Indexer);
@@ -2327,6 +2331,24 @@ namespace Cloud.FileMonitor
                                             {
                                                 try
                                                 {
+
+                                                    if (MaxUploadFileSize != -1) // there is a max upload file size threshold
+                                                    {
+                                                        long fileSize = new FileInfo(CurrentDependencyTree.DependencyFileChange.NewPath.ToString()).Length;
+
+                                                        CurrentDependencyTree.DependencyFileChange.FileIsTooBig = (MaxUploadFileSize < fileSize);
+
+                                                        if (CurrentDependencyTree.DependencyFileChange.FileIsTooBig)
+                                                        {
+                                                            String maxUploadFileSizeText = MaxUploadFileSize > (1024 * 1024) ? String.Format("{0}M", MaxUploadFileSize / (1024 * 1024)) :
+                                                                                            MaxUploadFileSize > 1024 ? String.Format("{0}K", MaxUploadFileSize / 1024) :
+                                                                                            String.Format("{0} bytes", MaxUploadFileSize);
+                                                            throw new AggregateException(String.Format("Files bigger than {0} are not yet supported; File: {1}, Size: {2}",
+                                                                                                        MaxUploadFileSize, CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), fileSize));
+                                                        }
+                                                    }
+
+
                                                     try
                                                     {
                                                         OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);

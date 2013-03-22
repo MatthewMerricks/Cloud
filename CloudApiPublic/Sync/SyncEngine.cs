@@ -185,6 +185,10 @@ namespace Cloud.Sync
             {
                 throw new ArgumentException("ErrorProcessingMillisecondInterval must be greater than zero");
             }
+            if (FailedOutRetryMillisecondInterval <= 0)
+            {
+                throw new ArgumentException("FailedOutRetryMillisecondInterval must be greater than zero");
+            }
             #endregion
 
             #region assign instance fields
@@ -216,6 +220,7 @@ namespace Cloud.Sync
             this.ErrorProcessingMillisecondInterval = ErrorProcessingMillisecondInterval;
             this.MaxNumberOfServerConnectionFailures = MaxNumberConnectionFailures;
             this.DependencyDebugging = DependencyDebugging;
+            this.FailedOutRetryMillisecondInterval = FailedOutRetryMillisecondInterval;
 
             // 12 is Default Connection Limit (6 up/6 down)
             ServicePointManager.DefaultConnectionLimit = CLDefinitions.MaxNumberOfConcurrentDownloads + CLDefinitions.MaxNumberOfConcurrentUploads;
@@ -3596,6 +3601,7 @@ namespace Cloud.Sync
                                                 {
                                                     currentLevelChange.NotFoundForStreamCounter = 0;
                                                     currentLevelChange.FailureCounter = 0;
+                                                    currentLevelChange.FileIsTooBig = false;
 
                                                     FileChangeWithDependencies castChange = currentLevelChange as FileChangeWithDependencies;
                                                     if (castChange != null
@@ -3612,9 +3618,11 @@ namespace Cloud.Sync
                                                 }
                                             };
 
+
                                             // if there is a failed out change to add, then reset its failure counters recursively and add the change to the list of those failed out
-                                            if (errorToQueue.FileChange != null
-                                                && errorToQueue.FileChange.NotFoundForStreamCounter < MaxNumberOfNotFounds)
+                                            if (errorToQueue.FileChange != null && 
+                                                ((errorToQueue.FileChange.NotFoundForStreamCounter < MaxNumberOfNotFounds) 
+                                                 || errorToQueue.FileChange.FileIsTooBig))
                                             {
                                                 recurseResetCounters(errorToQueue.FileChange, recurseResetCounters);
 
@@ -8588,7 +8596,9 @@ namespace Cloud.Sync
 
         // helper method which returns whether FileChange should still be added to FailureQueue for retrying;
         // in the process if the change is found to not need to continue then it should be removed/handled appropriately
-        private static bool ContinueToRetry(PossiblyPreexistingFileChangeInError toRetry, ISyncDataObject syncData, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, out IEnumerable<FileChange> NotFoundDependenciesToTry)
+        private static bool ContinueToRetry(PossiblyPreexistingFileChangeInError toRetry, ISyncDataObject syncData, 
+                                            byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds,
+                                            out IEnumerable<FileChange> NotFoundDependenciesToTry)
         {
             // if the current FileChange was marked as a preexisting error then this is not a new error to count, then return true so it can be reprocessed
             if (toRetry.IsPreexisting)
@@ -8624,7 +8634,9 @@ namespace Cloud.Sync
 
                 // if the current failure count is less than the max number allowed and the current not found count is less than the max number allowed, then return true to continue reprocessing
                 if (toRetry.FileChange.FailureCounter < MaxNumberOfFailureRetries
-                    && toRetry.FileChange.NotFoundForStreamCounter < MaxNumberOfNotFounds)
+                    && toRetry.FileChange.NotFoundForStreamCounter < MaxNumberOfNotFounds
+                    && !(toRetry.FileChange.Direction == SyncDirection.To // uploading
+                            && toRetry.FileChange.FileIsTooBig)) 
                 {
                     // did not cancel out this FileChange as one which exceeded the max count of NotFound attempts, so there were no relavent dependencies
                     NotFoundDependenciesToTry = null;
