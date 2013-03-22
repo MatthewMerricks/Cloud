@@ -163,6 +163,14 @@ namespace Cloud
                 }
             }
 
+            public string DeviceId
+            {
+                get
+                {
+                    return null;
+                }
+            }
+
             public static readonly NullSyncRoot Instance = new NullSyncRoot();
 
             private NullSyncRoot() { }

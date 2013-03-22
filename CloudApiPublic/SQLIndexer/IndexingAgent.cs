@@ -1688,57 +1688,120 @@ namespace Cloud.SQLIndexer
                             throw new NullReferenceException("currentMergeToFrom.MergeTo cannot have null Metadata");
                         }
 
-                        // Define field for the event id that needs updating in the database,
-                        // defaulting to none
-                        Nullable<long> eventIdToUpdate = null;
+                        ////possibilities for old event:
+                        ////none,
+                        ////not in database, <-- causes old to be ignored (acts like none)
+                        ////exists in database
+                        //
+                        //
+                        ////possibilities for new event:
+                        ////none,
+                        ////not in database, (new event)
+                        ////exists in database
+                        //
+                        //
+                        ////mutually exclusive:
+                        ////none and none
+                        //
+                        //
+                        ////if there is an old exists and a new none, then delete old row
+                        //
+                        ////if old does not exists and a new none, do nothing (already not in database)
+                        //
+                        ////if old none
+                        ////    if new not in database, add new to database
+                        ////    else if new in database, update new
+                        //
+                        ////if there is an old exists and new not in database, update old row with new data
+                        //
+                        ////if there is an old exists and new in database and neither match, delete new row and update old row with new data
+                        //
+                        ////if there is an old exists and new in database and they do match by row primary key (EventId), update new in database
+                        //
+                        ////(ignore old:)
+                        ////if old does not exist and new new not in database, add new to database
+                        //
+                        ////(ignore old:)
+                        ////if old does not exist and new exists in database, update new in database
 
-                        // If the mergedEvent already has an id (exists in database),
-                        // then the database event will be updated at the mergedEvent id;
-                        // also, if the oldEvent exists in the database, it needs to be removed
-                        if (currentMergeToFrom.MergeTo == null
-                            || currentMergeToFrom.MergeTo.EventId > 0)
+
+                        // byte definitions:
+                        // 0 = null
+                        // 1 = not in database (EventId == 0)
+                        // 2 = exists in database (EventId > 0)
+
+                        byte oldEventState = (currentMergeToFrom.MergeFrom == null
+                            ? (byte)0
+                            : (currentMergeToFrom.MergeFrom.EventId > 0
+                                ? (byte)2
+                                : (byte)1));
+
+                        byte newEventState = (currentMergeToFrom.MergeTo == null
+                            ? (byte)0
+                            : (currentMergeToFrom.MergeTo.EventId > 0
+                                ? (byte)2
+                                : (byte)1));
+
+                        switch (oldEventState)
                         {
-                            if (currentMergeToFrom.MergeTo != null
-                                && currentMergeToFrom.MergeTo.EventId > 0
-                                // added the following condition in case both events to merge together share a single database event
-                                // which should not be removed
-                                && (currentMergeToFrom.MergeTo == null || currentMergeToFrom.MergeTo.EventId != currentMergeToFrom.MergeTo.EventId))
-                            {
-                                toDelete.Add(currentMergeToFrom.MergeTo.EventId);
-                            }
+                            // old event is null or not null but does not already exist in database
+                            case (byte)0:
+                            case (byte)1: // <-- not in database treated like null for old event
+                                switch (newEventState)
+                                {
+                                    // 0 for new event is only possible if old event was 1 (null and null are mutually excluded via exceptions above)
+                                    case (byte)0:
+                                        // already not in database, do nothing
+                                        break;
 
-                            // If the mergedEvent it null and the oldEvent is set with a valid eventId,
-                            // then save only the deletion of the oldEvent and continue to next iteration
-                            if (currentMergeToFrom.MergeTo == null)
-                            {
-                                continue;
-                            }
+                                    case (byte)1:
+                                        // nothing to delete for the old row since it never existed in database;
+                                        // new row doesn't exist in database so it will be added
+                                        toAdd.Add(currentMergeToFrom.MergeTo);
+                                        break;
 
-                            eventIdToUpdate = currentMergeToFrom.MergeTo.EventId;
-                        }
-                        // Else if the mergedEvent does not have an id in the database
-                        // and the oldEvent exists and has an id in the database,
-                        // then the database event will be updated at the oldEvent id
-                        // and the event id should be moved to the mergedEvent
-                        else if (currentMergeToFrom.MergeFrom != null
-                            && currentMergeToFrom.MergeFrom.EventId > 0)
-                        {
-                            currentMergeToFrom.MergeTo.EventId = currentMergeToFrom.MergeFrom.EventId;
+                                    default: //case (byte)2:
+                                        // nothing to delete for old row since it never existeed in database;
+                                        // new row exists in database so update it
+                                        toUpdate[currentMergeToFrom.MergeTo.EventId] = currentMergeToFrom.MergeTo;
+                                        break;
+                                }
+                                break;
 
-                            eventIdToUpdate = currentMergeToFrom.MergeTo.EventId;
-                        }
+                            // old event already exists in database
+                            default: //case (byte)2:
+                                switch (newEventState)
+                                {
+                                    case (byte)0:
+                                        // old row exists in database but merging it into nothingness, simply delete old row
+                                        toDelete.Add(currentMergeToFrom.MergeFrom.EventId);
+                                        break;
 
-                        // If an id for the database event already exists,
-                        // then update the object in the database with the latest properties from mergedEvent
-                        if (eventIdToUpdate != null)
-                        {
-                            toUpdate[(long)eventIdToUpdate] = currentMergeToFrom.MergeTo;
-                        }
-                        // Else the database event does not already exist,
-                        // then add it
-                        else
-                        {
-                            toAdd.Add(currentMergeToFrom.MergeTo);
+                                    case (byte)1:
+                                        // old row exists in database and needs to be updated with latest metadata which is not in an existing new row
+                                        currentMergeToFrom.MergeTo.EventId = currentMergeToFrom.MergeFrom.EventId; // replace merge to event id with the one from the sync from
+                                        toUpdate[currentMergeToFrom.MergeTo.EventId] = currentMergeToFrom.MergeTo;
+                                        break;
+
+                                    default: //case (byte)2:
+                                        // old row exists in database and a new row exists
+
+                                        // if the rows match, then update the new row only
+                                        if (currentMergeToFrom.MergeFrom.EventId == currentMergeToFrom.MergeTo.EventId)
+                                        {
+                                            toUpdate[currentMergeToFrom.MergeTo.EventId] = currentMergeToFrom.MergeTo;
+                                        }
+                                        // else if the rows do not match, then delete the new row, and put the new metadata in the old row (prefers keeping lowest EventId in database for dependency hierarchy reasons)
+                                        else
+                                        {
+                                            toDelete.Add(currentMergeToFrom.MergeTo.EventId);
+
+                                            currentMergeToFrom.MergeTo.EventId = currentMergeToFrom.MergeFrom.EventId; // replace merge to event id with the one from the sync from
+                                            toUpdate[currentMergeToFrom.MergeTo.EventId] = currentMergeToFrom.MergeTo;
+                                        }
+                                        break;
+                                }
+                                break;
                         }
                     }
 
@@ -2228,6 +2291,10 @@ namespace Cloud.SQLIndexer
             if (syncBox == null)
             {
                 throw new NullReferenceException("syncBox cannot be null");
+            }
+            if (string.IsNullOrEmpty(syncBox.CopiedSettings.DeviceId))
+            {
+                throw new NullReferenceException("settings DeviceId cannot be null");
             }
 
             this.indexDBLocation = (string.IsNullOrEmpty(syncBox.CopiedSettings.DatabaseFolder)

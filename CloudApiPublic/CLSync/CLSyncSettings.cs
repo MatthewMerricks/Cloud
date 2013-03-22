@@ -32,13 +32,25 @@ namespace Cloud
         private readonly string _syncRoot = null;
 
         /// <summary>
+        /// The ID of this device, unique within the SyncBox.
+        /// </summary>
+        public string DeviceId
+        {
+            get
+            {
+                return _deviceId;
+            }
+        }
+        private readonly string _deviceId;
+
+        /// <summary>
         /// Creates a simple implementation of ICLSyncSettings with only SyncRoot
         /// </summary>
         /// <param name="syncRoot">Full path to the directory to be synced (do not include a trailing slash except for a drive root)</param>
-        public CLSyncSettings(
-                    string syncRoot)
+        public CLSyncSettings(string syncRoot, string deviceId)
         {
             this._syncRoot = syncRoot;
+            this._deviceId = deviceId;
         }
     }
 
@@ -185,7 +197,7 @@ namespace Cloud
                 null,
                 true,
                 0,
-                Environment.MachineName + Guid.NewGuid().ToString("N"),
+                null,
                 true,
                 null,
                 "SimpleClient01",
@@ -207,7 +219,7 @@ namespace Cloud
                 null,
                 true,
                 0,
-                Environment.MachineName + Guid.NewGuid().ToString("N"),
+                null,
                 true,
                 null,
                 "SimpleClient01",
@@ -259,7 +271,7 @@ namespace Cloud
                 toCopy.TraceLocation,
                 toCopy.TraceExcludeAuthorization,
                 toCopy.TraceLevel,
-                String.IsNullOrWhiteSpace(toCopy.DeviceId) ? Environment.MachineName + Guid.NewGuid().ToString("N") : toCopy.DeviceId,
+                toCopy.DeviceId,
                 toCopy.BadgingEnabled,
                 toCopy.TempDownloadFolderFullPath,
                 toCopy.ClientVersion,

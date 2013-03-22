@@ -8,7 +8,7 @@
 /// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS and Android, etc.).
 ///
 /// An application can have a SyncBox which can have multiple devices. The ID of a device should be unique within a particular SyncBox.
-/// A physical computer (e.g., a local Windows Machine) may have multiple SyncBoxes running under multiple applications in different or possibly overlapping local directories.
+/// A physical computer (e.g., a local Windows Machine) may have multiple SyncBoxes running under multiple applications in different or possibly overlapping local directories.  Each of the SyncBoxId-DeviceId pairs must be unique on a given machine.
 ///
 /// In desktop environments, a SyncBox is tied to a particular local disk directory.  e.g., on Windows, "C:\\Users\\<UserName>\\<YourSyncBoxName>".
 ///
@@ -41,7 +41,8 @@
 ///            
 ///             // create the minimal settings using just the path to the folder
 ///             CLSyncSettings syncSettings = new CLSyncSettings(
-///                 syncRoot: "<Full path of the folder to sync>");
+///                 syncRoot: "<Full path of the folder to sync>",
+///					deviceId: "<device name unique in the SyncBox>");
 ///
 ///             CLSyncBox syncBox; // declare sync box
 ///             CLSyncBoxCreationStatus syncBoxStatus; // declare status enumeration
@@ -141,7 +142,8 @@
 /// - Token:  Paste this session token from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this token from a secure location.
 /// \note If the Token field is specified, then the Key, Secret and Token form a temporary session credential.  Otherwise, the Key and Secret form the permanent credential of your app.
 /// - SyncBox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the SyncBox.  It represents a folder that will be synced across all of your devices, and to Cloud.
-/// - (Optional) Unique Device ID: Choose a unique name (within this SyncBox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If you do not specify the device ID, it will default to a unique ID.
+/// - Unique Device ID: Choose a unique name (within this SyncBox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If multiple sync engines are running on this machine, then each engine's
+/// pair of SyncBoxId-DeviceId must be unique on the machine.
 /// .
 /// 
 /// Buttons:
@@ -171,7 +173,7 @@
 /// public enum TraceType : int
 /// {
 ///     /// <summary>
-///     /// No general trace (errors are handled seperately)
+///     /// No general trace (errors are handled separately)
 ///     /// </summary>
 ///     NotEnabled = 0x00,
 ///     /// <summary>
@@ -226,24 +228,39 @@
 /// See the example below:
 /// \image html SampleAppBadgingExample.jpg "Explorer Sync Badges"
 ///
-/// The badging support is provided by modules in Cloud.dll and in BadgeCom.dll.  Badging support will be activated if BadgeCom.dll is registered as a shell extension, and if Badging Enabled has been selected.  If badgning is not enabled, syncing will occur normally.
+/// The badging support is provided by modules in Cloud.dll and in BadgeCom.dll.  Badging support will be activated if BadgeCom.dll is registered as a shell extension, and if Badging Enabled has been selected.  If badging is not enabled, syncing will occur normally.
 ///
 /// Because BadgeCom.dll is a shell extension, it requires special installation support.  When installing this DLL, you must perform the following steps:
 /// - Stop all Explorer processes
-/// - Run "regsvr32 <installation path>\\BadgeCom.dll"
+///		+ On a 64-bit platform
+///			- Run "C:\Windows\System32\regsvr32.exe <installation path>\\CloudSdk\\amd64\\BadgeCom.dll"
+///			- Run "C:\Windows\SysWow64\regsvr32.exe <installation path>\\CloudSdk\\x86\\BadgeCom.dll"
+///			.
+///		+ On a 32-bit platform
+///			- Run "C:\Windows\SysWow64\regsvr32.exe <installation path>\\CloudSdk\\x86\\BadgeCom.dll"
+///			.
+///		.
 /// - Restart Explorer
 /// .
 ///
 /// Uninstalling BadgeCom.dll involves the following steps:
 /// - Stop all Explorer processes
-/// - Run "regsvr32 /u <installation path>\\BadgeCom.dll"
+///		+ On a 64-bit platform
+///			- Run "C:\Windows\System32\regsvr32.exe /u <installation path>\\CloudSdk\\amd64\\BadgeCom.dll"
+///			- Run "C:\Windows\SysWow64\regsvr32.exe /u <installation path>\\CloudSdk\\x86\\BadgeCom.dll"
+///			.
+///		+ On a 32-bit platform
+///			- Run "C:\Windows\SysWow64\regsvr32.exe /u <installation path>\\CloudSdk\\x86\\BadgeCom.dll"
+///			.
+///		.
 /// - Restart Explorer
-/// - Delete the file BadgeCom.dll
 /// .
 ///
-/// A problem may occur when you attempt to delete the BadgeCom.dll file in the last step above.  You may find that the file is still locked because other processes that use Explorer may have BadgeCom.dll loaded.
+/// BadgeCom.dll should be treated as a shared resource and you should consider not unregistering or deleting the file during the uninstall process.  Other developer's applications may have registered the same version of the file.
+/// If you decide to delete the file,  
+/// a problem may occur when you attempt the delete operation.  You may find that the file is still locked because other processes that use Explorer may have BadgeCom.dll loaded.
 /// You can use Restart Manager (http://msdn.microsoft.com/en-us/magazine/cc163450.aspx) to request that the process unload BadgeCom.dll.  If that doesn't work, you can ask the user to close the process that has the file locked.  Failing that, you can kill
-/// the process (with the user's permission).  Then the file can be deleted.
+/// the process (with the user's permission).  Then the file can be deleted.  As a last resort, you could request the user to reboot the system.
 /// \subsection sampleapp-startingsync-subsec Starting Sync
 /// Here are the steps used to start sync.  Refer to MainViewModel:StartSyncing().
 /// - Verify settings:  Sample code can be found in MainViewModel:SaveSettings().  If the settings are incorrect, the sync functions will return errors.
@@ -351,7 +368,7 @@
 /// - ListFilesUploading
 /// - ListMessages
 /// .\n
-/// An IEventMessageReceiver implementation requires subscribing in \link Cloud.Static.MessageEvents Cloud.Static.MessageEvents \endlink for each SyncBox\Device combination.
+/// An IEventMessageReceiver implementation requires subscribing in \link Cloud.Static.MessageEvents Cloud.Static.MessageEvents \endlink for each SyncBox\DeviceId combination.
 /// Also, you may unsubscribe when you no longer which to receive event callbacks.
 ///
 /// The ListFilesDownloading and ListFilesUploading collections expose the following properties:

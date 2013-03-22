@@ -864,6 +864,11 @@ namespace Cloud.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
+                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
+                {
+                    throw new NullReferenceException("settings DeviceId cannot be null");
+                }
+
 
                 // build the location of the metadata retrieval method on the server dynamically
                 string serverMethodPath =
@@ -872,12 +877,8 @@ namespace Cloud.REST
                     {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString()),
-
-                        (string.IsNullOrEmpty(_copiedSettings.DeviceId)
-                            ? new KeyValuePair<string, string>()
-                            :
-                                // query string parameter for the device id, needs to be escaped since it's client-defined
-                                new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId)))
+                        // query string parameter for the device id, needs to be escaped since it's client-defined
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId))
                     });
 
                 // run the HTTP communication
