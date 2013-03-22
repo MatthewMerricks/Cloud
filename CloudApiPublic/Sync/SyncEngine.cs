@@ -7567,13 +7567,15 @@ namespace Cloud.Sync
                                                                 // define a starting point for the name search iteration
                                                                 KeyValuePair<bool, string> mainNameIteration = new KeyValuePair<bool, string>(
                                                                     true, // needs to iterate the first time
-                                                                    findMainName); // starting name to search
+                                                                    //RKSCHANGE:findMainName); // starting name to search
+                                                                    findMainName + deviceAppend); // starting name to search
 
                                                                 // continue while the input or return value has the flag to continue
                                                                 while (mainNameIteration.Key)
                                                                 {
                                                                     // set the latest calculated name by the function which finds the next available name to use, if true is returned for the return Key, then a deeper name has to be searched again
-                                                                    mainNameIteration = getNextName(originalConflictPath, findExtension, mainNameIteration.Value);
+                                                                    //RKSCHANGE:mainNameIteration = getNextName(originalConflictPath, findExtension, mainNameIteration.Value);
+                                                                    mainNameIteration = getNextName(originalConflictPath + deviceAppend, findExtension, mainNameIteration.Value);
                                                                 }
 
                                                                 // take out the final calculated, available name for the conflict
@@ -7608,6 +7610,7 @@ namespace Cloud.Sync
                                                                     FileChangeWithDependencies outRelatedSyncToConflictFileChange;
                                                                     if (syncToConflictEventToSyncFromRelatedFileChange.TryGetValue(currentEvent, out outRelatedSyncToConflictFileChange))
                                                                     {
+                                                                        // We
                                                                         oldPathDownload = outRelatedSyncToConflictFileChange;
                                                                     }
                                                                     else
@@ -7722,59 +7725,6 @@ namespace Cloud.Sync
                                                                                     innerFindRevision,
                                                                                     innerFindStorageKey,
                                                                                     innerFindMimeType);
-                                                                            }
-                                                                        }
-                                                                    }
-
-                                                                    FileMetadata oldPathMetadata;
-                                                                    CLError oldPathMetadataError = syncData.getMetadataByPathAndRevision(
-                                                                        originalConflictPath.ToString(),
-                                                                        /* revision */ null,
-                                                                        out oldPathMetadata);
-
-                                                                    if (oldPathMetadataError == null
-                                                                        && oldPathMetadata != null)
-                                                                    {
-                                                                        if (string.IsNullOrEmpty(oldPathMetadata.Revision))
-                                                                        {
-                                                                            JsonContracts.Metadata oldPathMetadataRevision;
-                                                                            CLHttpRestStatus oldPathMetadataRevisionStatus;
-                                                                            CLError oldPathMetadataRevisionError = httpRestClient.GetMetadata(
-                                                                                originalConflictPath,
-                                                                                /* isFolder */ false,
-                                                                                HttpTimeoutMilliseconds,
-                                                                                out oldPathMetadataRevisionStatus,
-                                                                                out oldPathMetadataRevision);
-
-                                                                            if (oldPathMetadataRevisionStatus == CLHttpRestStatus.Success
-                                                                                && oldPathMetadataRevision != null
-                                                                                && oldPathMetadataRevision.Deleted != true)
-                                                                            {
-                                                                                oldPathMetadata.Revision = oldPathMetadataRevision.Revision;
-                                                                            }
-                                                                        }
-
-                                                                        if (!string.IsNullOrEmpty(oldPathMetadata.Revision))
-                                                                        {
-                                                                            FileChangeWithDependencies oldPathDownloadNoDependencies;
-                                                                            CLError oldPathDownloadNoDependenciesError = FileChangeWithDependencies.CreateAndInitialize(
-                                                                                new FileChange(DelayCompletedLocker: null, fileDownloadMoveLocker: new object())
-                                                                                {
-                                                                                    Direction = SyncDirection.From,
-                                                                                    Metadata = oldPathMetadata,
-                                                                                    NewPath = originalConflictPath.Copy(),
-                                                                                    Type = FileChangeType.Created
-                                                                                }, /* initialDependencies */ null,
-                                                                                out oldPathDownloadNoDependencies,
-                                                                                fileDownloadMoveLocker: new object()); // Sync From file create is always a file download, so create its download locker
-
-                                                                            if (oldPathDownloadNoDependenciesError == null)
-                                                                            {
-                                                                                CLError oldPathDownloadToSqlError = syncData.mergeToSql(new[] { new FileChangeMerge(oldPathDownloadNoDependencies) });
-                                                                                if (oldPathDownloadToSqlError == null)
-                                                                                {
-                                                                                    oldPathDownload = oldPathDownloadNoDependencies;
-                                                                                }
                                                                             }
                                                                         }
                                                                     }
