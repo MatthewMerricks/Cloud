@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows;   //&&&&&& DEBUG REMOVE
 
 namespace Cloud
 {
@@ -201,6 +202,69 @@ namespace Cloud
                 status = CLSyncBoxCreationStatus.ErrorCreatingRestClient;
                 throw new NullReferenceException(nullRestClient);
             }
+
+            //@@@@@@@@@@@@@@@@@@@@@@@ DEBUG TEST ONLY REMOVE
+
+            MessageBox.Show("Test code only.  Remove this.");
+
+            // Register a user and device, and receive a session and access_token.
+            JsonContracts.UserRegistrationRequest userRegistration = new JsonContracts.UserRegistrationRequest()
+            {
+                EMail = "Test7Bob@cloud.com",
+                FirstName = "Bob",
+                LastName = "Stevens",
+                Password = "password"
+            };
+            JsonContracts.DeviceRequest deviceRequest = new JsonContracts.DeviceRequest()
+            {
+                FriendlyName = this._copiedSettings.DeviceId
+            };
+            JsonContracts.LinkDeviceFirstTimeRequest request = new JsonContracts.LinkDeviceFirstTimeRequest()
+            {
+                Device = deviceRequest,
+                Key = this._credential.Key,
+                Secret = this._credential.Secret,
+                User = userRegistration
+            };
+            JsonContracts.LinkDeviceFirstTimeResponse response;
+            CLHttpRestStatus innerStatus;
+            CLError errorFromLinkDeviceFirstTime = _httpRestClient.LinkDeviceFirstTime(request, 5000, out innerStatus, out response);
+            if (errorFromLinkDeviceFirstTime != null)
+            {
+                _trace.writeToLog(1, "CLSyncBox: Construction: ERROR: Msg: {0}. Code: {1}.", errorFromLinkDeviceFirstTime.errorDescription, ((int)errorFromLinkDeviceFirstTime.code).ToString());
+            }
+
+            // Unlink the device just registered.
+            JsonContracts.UnlinkDeviceRequest unlinkRequest = new JsonContracts.UnlinkDeviceRequest()
+            {
+                 AccessToken = response.AccessToken
+            };
+            JsonContracts.UnlinkDeviceResponse unlinkResponse;
+            CLError errorFromUnlinkDevice = _httpRestClient.UnlinkDevice(unlinkRequest, 5000, out innerStatus, out unlinkResponse);
+            if (errorFromUnlinkDevice != null)
+            {
+                _trace.writeToLog(1, "CLSyncBox: Construction: ERROR: Msg: {0}. Code: {1}.", errorFromUnlinkDevice.errorDescription, ((int)errorFromUnlinkDevice.code).ToString());
+            }
+
+            // Login with an existing account.
+            JsonContracts.LinkDeviceRequest linkRequest = new JsonContracts.LinkDeviceRequest()
+            {
+                  Device = deviceRequest,
+                  EMail = "bob@cloud.com",
+                  Password = "cardinal",
+                  Key = this._credential.Key,
+                  Secret = this._credential.Secret
+            };
+            JsonContracts.LinkDeviceResponse linkResponse;
+            CLError errorFromLinkDevice = _httpRestClient.LinkDevice(linkRequest, 5000, out innerStatus, out linkResponse);
+            if (errorFromLinkDevice != null)
+            {
+                _trace.writeToLog(1, "CLSyncBox: Construction: ERROR: Msg: {0}. Code: {1}.", errorFromLinkDevice.errorDescription, ((int)errorFromLinkDevice.code).ToString());
+            }
+
+
+            //@@@@@@@@@@@@@@@@@@@@@@@ DEBUG TEST ONLY REMOVE
+
         }
 
         #region forwarded rest http calls

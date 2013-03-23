@@ -714,6 +714,160 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _syncBoxDeleteSerializer = null;
         private static readonly object SyncBoxDeleteSerializerLocker = new object();
+
+        public static DataContractJsonSerializer UserRegistrationRequestSerializer
+        {
+            get
+            {
+                lock (UserRegistrationRequestSerializerLocker)
+                {
+                    return _userRegistrationRequestSerializer
+                        ?? (_userRegistrationRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.UserRegistrationRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _userRegistrationRequestSerializer = null;
+        private static readonly object UserRegistrationRequestSerializerLocker = new object();
+
+        public static DataContractJsonSerializer UserRegistrationResponseSerializer
+        {
+            get
+            {
+                lock (UserRegistrationResponseSerializerLocker)
+                {
+                    return _userRegistrationResponseSerializer
+                        ?? (_userRegistrationResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.UserRegistrationResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _userRegistrationResponseSerializer = null;
+        private static readonly object UserRegistrationResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer DeviceRequestSerializer
+        {
+            get
+            {
+                lock (DeviceRequestSerializerLocker)
+                {
+                    return _deviceRequestSerializer
+                        ?? (_deviceRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.DeviceRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _deviceRequestSerializer = null;
+        private static readonly object DeviceRequestSerializerLocker = new object();
+
+        public static DataContractJsonSerializer DeviceResponseSerializer
+        {
+            get
+            {
+                lock (DeviceResponseSerializerLocker)
+                {
+                    return _deviceResponseSerializer
+                        ?? (_deviceResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.DeviceResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _deviceResponseSerializer = null;
+        private static readonly object DeviceResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer LinkDeviceFirstTimeRequestSerializer
+        {
+            get
+            {
+                lock (LinkDeviceFirstTimeRequestSerializerLocker)
+                {
+                    return _linkDeviceFirstTimeRequestSerializer
+                        ?? (_linkDeviceFirstTimeRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.LinkDeviceFirstTimeRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _linkDeviceFirstTimeRequestSerializer = null;
+        private static readonly object LinkDeviceFirstTimeRequestSerializerLocker = new object();
+
+        public static DataContractJsonSerializer LinkDeviceFirstTimeResponseSerializer
+        {
+            get
+            {
+                lock (LinkDeviceFirstTimeResponseSerializerLocker)
+                {
+                    return _linkDeviceFirstTimeResponseSerializer
+                        ?? (_linkDeviceFirstTimeResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.LinkDeviceFirstTimeResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _linkDeviceFirstTimeResponseSerializer = null;
+        private static readonly object LinkDeviceFirstTimeResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncBoxAuthResponseSerializer
+        {
+            get
+            {
+                lock (SyncBoxAuthResponseSerializerLocker)
+                {
+                    return _syncBoxAuthResponseSerializer
+                        ?? (_syncBoxAuthResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncBoxAuthResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncBoxAuthResponseSerializer = null;
+        private static readonly object SyncBoxAuthResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer LinkDeviceRequestSerializer
+        {
+            get
+            {
+                lock (LinkDeviceRequestSerializerLocker)
+                {
+                    return _linkDeviceRequestSerializer
+                        ?? (_linkDeviceRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.LinkDeviceRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _linkDeviceRequestSerializer = null;
+        private static readonly object LinkDeviceRequestSerializerLocker = new object();
+
+        public static DataContractJsonSerializer LinkDeviceResponseSerializer
+        {
+            get
+            {
+                lock (LinkDeviceResponseSerializerLocker)
+                {
+                    return _linkDeviceResponseSerializer
+                        ?? (_linkDeviceResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.LinkDeviceResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _linkDeviceResponseSerializer = null;
+        private static readonly object LinkDeviceResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer UnlinkDeviceRequestSerializer
+        {
+            get
+            {
+                lock (UnlinkDeviceRequestSerializerLocker)
+                {
+                    return _unlinkDeviceRequestSerializer
+                        ?? (_unlinkDeviceRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.UnlinkDeviceRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _unlinkDeviceRequestSerializer = null;
+        private static readonly object UnlinkDeviceRequestSerializerLocker = new object();
+
+        public static DataContractJsonSerializer UnlinkDeviceResponseSerializer
+        {
+            get
+            {
+                lock (UnlinkDeviceResponseSerializerLocker)
+                {
+                    return _unlinkDeviceResponseSerializer
+                        ?? (_unlinkDeviceResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.UnlinkDeviceResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _unlinkDeviceResponseSerializer = null;
+        private static readonly object UnlinkDeviceResponseSerializerLocker = new object();
         #endregion
     }
 }

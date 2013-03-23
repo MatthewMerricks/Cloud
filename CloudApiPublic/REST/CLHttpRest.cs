@@ -6206,6 +6206,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     ref status, // reference to update the output success/failure status for the communication
+    
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
                     _syncBoxId); // pass the unique id of the sync box on the server
@@ -6262,6 +6263,153 @@ namespace Cloud.REST
             catch (Exception ex)
             {
                 response = Helpers.DefaultForType<JsonContracts.PushResponse>();
+                return ex;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Registers a user, links a device and creates a SyncBox, all at the same time.
+        /// </summary>
+        /// <param name="request">The parameters to send to the server.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        public CLError LinkDeviceFirstTime(LinkDeviceFirstTimeRequest request, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.LinkDeviceFirstTimeResponse response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+
+            // try/catch to process the sync_to request, on catch return the error
+            try
+            {
+                // check input parameters
+                if (request == null)
+                {
+                    throw new ArgumentException("pushRequest must not be null");
+                }
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = Helpers.ProcessHttp<JsonContracts.LinkDeviceFirstTimeResponse>(
+                    request, // object to write as request content to the server
+                    CLDefinitions.HttpPrefix + CLDefinitions.CloudAppSubDomainPrefix + CLDefinitions.Domain, // base domain is the registration server
+                    CLDefinitions.MethodPathAuthDeviceLinkFirstTime, // path to /device/link/first_time
+                    Helpers.requestMethod.post, // sync_to is a post
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status, // reference to update the output success/failure status for the communication
+                    _copiedSettings, // pass the copied settings
+                    _credential, // pass the key/secret
+                    null); // no unique id of the sync box on the server
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.LinkDeviceFirstTimeResponse>();
+                return ex;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Links a device (logs in).
+        /// </summary>
+        /// <param name="request">The parameters to send to the server.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        public CLError LinkDevice(LinkDeviceRequest request, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.LinkDeviceResponse response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+
+            // try/catch to process the sync_to request, on catch return the error
+            try
+            {
+                // check input parameters
+                if (request == null)
+                {
+                    throw new ArgumentException("pushRequest must not be null");
+                }
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = Helpers.ProcessHttp<JsonContracts.LinkDeviceResponse>(
+                    request, // object to write as request content to the server
+                    CLDefinitions.HttpPrefix + CLDefinitions.CloudAppSubDomainPrefix + CLDefinitions.Domain, // base domain is the registration server
+                    CLDefinitions.MethodPathAuthDeviceLink, // path to /device/link
+                    Helpers.requestMethod.post, // sync_to is a post
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status, // reference to update the output success/failure status for the communication
+                    _copiedSettings, // pass the copied settings
+                    _credential, // pass the key/secret
+                    null); // no unique id of the sync box on the server
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.LinkDeviceResponse>();
+                return ex;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Unlinks a device (logs out).
+        /// </summary>
+        /// <param name="request">The parameters to send to the server.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        public CLError UnlinkDevice(UnlinkDeviceRequest request, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.UnlinkDeviceResponse response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+
+            // try/catch to process the sync_to request, on catch return the error
+            try
+            {
+                // check input parameters
+                if (request == null)
+                {
+                    throw new ArgumentException("pushRequest must not be null");
+                }
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = Helpers.ProcessHttp<JsonContracts.UnlinkDeviceResponse>(
+                    request, // object to write as request content to the server
+                    CLDefinitions.HttpPrefix + CLDefinitions.CloudAppSubDomainPrefix + CLDefinitions.Domain, // base domain is the registration server
+                    CLDefinitions.MethodPathAuthDeviceUnlink, // path to /device/unlink
+                    Helpers.requestMethod.post, // sync_to is a post
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status, // reference to update the output success/failure status for the communication
+                    _copiedSettings, // pass the copied settings
+                    _credential, // pass the key/secret
+                    null); // no unique id of the sync box on the server
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.UnlinkDeviceResponse>();
                 return ex;
             }
 

@@ -1927,6 +1927,11 @@ namespace Cloud.Static
             { typeof(JsonContracts.SessionCreateAllRequest), JsonContractHelpers.SessionCreateAllRequestSerializer },
             { typeof(JsonContracts.SessionDeleteRequest), JsonContractHelpers.SessionDeleteRequestSerializer },
             { typeof(JsonContracts.NotificationUnsubscribeRequest), JsonContractHelpers.NotificationUnsubscribeRequestSerializer },
+            { typeof(JsonContracts.UserRegistrationRequest), JsonContractHelpers.UserRegistrationRequestSerializer },
+            { typeof(JsonContracts.DeviceRequest), JsonContractHelpers.DeviceRequestSerializer },
+            { typeof(JsonContracts.LinkDeviceFirstTimeRequest), JsonContractHelpers.LinkDeviceFirstTimeRequestSerializer},
+            { typeof(JsonContracts.LinkDeviceRequest), JsonContractHelpers.LinkDeviceRequestSerializer},
+            { typeof(JsonContracts.UnlinkDeviceRequest), JsonContractHelpers.UnlinkDeviceRequestSerializer},
             #endregion
         };
 
@@ -1962,6 +1967,12 @@ namespace Cloud.Static
             { typeof(JsonContracts.SessionShowResponse), JsonContractHelpers.SessionShowSerializer },
             { typeof(JsonContracts.SessionDeleteResponse), JsonContractHelpers.SessionDeleteSerializer },
             { typeof(JsonContracts.NotificationUnsubscribeResponse), JsonContractHelpers.NotificationUnsubscribeResponseSerializer },
+            { typeof(JsonContracts.UserRegistrationResponse), JsonContractHelpers.UserRegistrationResponseSerializer},
+            { typeof(JsonContracts.DeviceResponse), JsonContractHelpers.DeviceResponseSerializer},
+            { typeof(JsonContracts.LinkDeviceFirstTimeResponse), JsonContractHelpers.LinkDeviceFirstTimeResponseSerializer},
+            { typeof(JsonContracts.SyncBoxAuthResponse), JsonContractHelpers.SyncBoxAuthResponseSerializer},
+            { typeof(JsonContracts.LinkDeviceResponse), JsonContractHelpers.LinkDeviceResponseSerializer},
+            { typeof(JsonContracts.UnlinkDeviceResponse), JsonContractHelpers.UnlinkDeviceResponseSerializer},
             #endregion
         };
         #endregion

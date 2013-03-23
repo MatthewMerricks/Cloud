@@ -754,6 +754,16 @@ EXCLUDE_SYMBOLS        = Cloud::Interfaces::ISyncDataObject \
                          Cloud::REST::CLHttpRest \
                          Cloud::JsonContracts::Event \
                          Cloud::JsonContracts::Header \
+                         Cloud::JsonContracts::UserRegistrationRequest \
+                         Cloud::JsonContracts::UserRegistrationResponse \
+                         Cloud::JsonContracts::DeviceRequest \
+                         Cloud::JsonContracts::DeviceResponse \
+                         Cloud::JsonContracts::LinkDeviceFirstTimeRequest \
+                         Cloud::JsonContracts::LinkDeviceFirstTimeResponse \
+                         Cloud::JsonContracts::SyncBoxAuthResponse \
+                         Cloud::JsonContracts::LinkDeviceRequest \
+                         Cloud::JsonContracts::LinkDeviceResponse \
+                         Cloud::JsonContracts::UnlinkDeviceRequest \
                          Cloud::Static::ComTrace
 						 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
