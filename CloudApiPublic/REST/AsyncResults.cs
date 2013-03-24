@@ -340,6 +340,36 @@ namespace Cloud.REST
             : base(Error, Status, Result) { }
     }
 
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class LinkDeviceFirstTimeResult : BaseCLHttpRestResult<JsonContracts.LinkDeviceFirstTimeResponse>
+    {
+        // construct with all readonly properties
+        internal LinkDeviceFirstTimeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.LinkDeviceFirstTimeResponse Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class LinkDeviceResult : BaseCLHttpRestResult<JsonContracts.LinkDeviceResponse>
+    {
+        // construct with all readonly properties
+        internal LinkDeviceResult(CLError Error, CLHttpRestStatus Status, JsonContracts.LinkDeviceResponse Result)
+            : base(Error, Status, Result) { }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class UnlinkDeviceResult : BaseCLHttpRestResult<JsonContracts.UnlinkDeviceResponse>
+    {
+        // construct with all readonly properties
+        internal UnlinkDeviceResult(CLError Error, CLHttpRestStatus Status, JsonContracts.UnlinkDeviceResponse Result)
+            : base(Error, Status, Result) { }
+    }
+
     #region UpdateSyncBoxQuota (deprecated)
     ///// <summary>
     ///// Holds result properties
