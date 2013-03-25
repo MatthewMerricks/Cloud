@@ -100,137 +100,137 @@ namespace Cloud.SQLIndexer
             {
                 lock (changeEnumsLocker)
                 {
-                    if (changeEnums == null)
+                    bool needToMakeDB = true;
+
+                    if (File.Exists(newAgent.indexDBLocation))
                     {
-                        bool needToMakeDB = true;
-
-                        if (File.Exists(newAgent.indexDBLocation))
+                        try
                         {
-                            try
+                            using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(newAgent.indexDBLocation)))
                             {
-                                using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(newAgent.indexDBLocation)))
+                                indexDB.Open();
+
+                                int versionBeforeUpdate;
+                                using (SqlCeCommand versionCommand = indexDB.CreateCommand())
                                 {
-                                    indexDB.Open();
-
-                                    int versionBeforeUpdate;
-                                    using (SqlCeCommand versionCommand = indexDB.CreateCommand())
-                                    {
-                                        versionCommand.CommandText = "SELECT [Version].[Version] FROM [Version] WHERE [Version].[TrueKey] = 1";
-                                        versionBeforeUpdate = Helpers.ConvertTo<int>(versionCommand.ExecuteScalar());
-                                    }
-
-                                    if (versionBeforeUpdate == 0)
-                                    {
-                                        int newVersion = 1;
-
-                                        foreach (KeyValuePair<int, IMigration> currentDBMigration in MigrationList.GetMigrationsAfterVersion(versionBeforeUpdate))
-                                        {
-                                            currentDBMigration.Value.Apply(indexDB, getDecodedIndexDBPassword());
-
-                                            newVersion = currentDBMigration.Key;
-                                        }
-
-                                        using (SqlCeCommand updateVersionCommand = indexDB.CreateCommand())
-                                        {
-                                            updateVersionCommand.CommandText = "UPDATE [Version] SET [Version].[Version] = " + newVersion.ToString() + " WHERE [Version].[TrueKey] = 1";
-                                            updateVersionCommand.ExecuteNonQuery();
-                                        }
-                                    }
+                                    versionCommand.CommandText = "SELECT [Version].[Version] FROM [Version] WHERE [Version].[TrueKey] = 1";
+                                    versionBeforeUpdate = Helpers.ConvertTo<int>(versionCommand.ExecuteScalar());
                                 }
 
-                                needToMakeDB = false;
-                            }
-                            catch
-                            {
-                                File.Delete(newAgent.indexDBLocation);
-                            }
-                        }
-
-                        if (needToMakeDB)
-                        {
-                            FileInfo indexDBInfo = new FileInfo(newAgent.indexDBLocation);
-                            if (!indexDBInfo.Directory.Exists)
-                            {
-                                indexDBInfo.Directory.Create();
-                            }
-                            
-                            System.Reflection.Assembly indexingAssembly = System.Reflection.Assembly.GetAssembly(typeof(IndexingAgent));
-
-                            List<KeyValuePair<int, string>> indexDBScripts = new List<KeyValuePair<int, string>>();
-
-                            string scriptDirectory = indexingAssembly.GetName().Name + indexScriptsResourceFolder;
-
-                            Encoding ansiEncoding = Encoding.GetEncoding(1252); //ANSI saved from NotePad on a US-EN Windows machine
-
-                            foreach (string currentScriptName in indexingAssembly.GetManifestResourceNames()
-                                .Where(resourceName => resourceName.StartsWith(scriptDirectory)))
-                            {
-                                if (!string.IsNullOrWhiteSpace(currentScriptName)
-                                    && currentScriptName.Length >= 5 // length of 1+-digit number plus ".sql" file extension
-                                    && currentScriptName.EndsWith(".sql", StringComparison.InvariantCultureIgnoreCase))
+                                if (versionBeforeUpdate == 0)
                                 {
-                                    int numChars = 0;
-                                    for (int numberCharIndex = scriptDirectory.Length; numberCharIndex < currentScriptName.Length; numberCharIndex++)
+                                    int newVersion = 1;
+
+                                    foreach (KeyValuePair<int, IMigration> currentDBMigration in MigrationList.GetMigrationsAfterVersion(versionBeforeUpdate))
                                     {
-                                        if (!char.IsDigit(currentScriptName[numberCharIndex]))
-                                        {
-                                            numChars = numberCharIndex - scriptDirectory.Length;
-                                            break;
-                                        }
+                                        currentDBMigration.Value.Apply(indexDB, getDecodedIndexDBPassword());
+
+                                        newVersion = currentDBMigration.Key;
                                     }
-                                    if (numChars > 0)
+
+                                    using (SqlCeCommand updateVersionCommand = indexDB.CreateCommand())
                                     {
-                                        string nameNumberPortion = currentScriptName.Substring(scriptDirectory.Length, numChars);
-                                        int nameNumber;
-                                        if (int.TryParse(nameNumberPortion, out nameNumber))
+                                        updateVersionCommand.CommandText = "UPDATE [Version] SET [Version].[Version] = " + newVersion.ToString() + " WHERE [Version].[TrueKey] = 1";
+                                        updateVersionCommand.ExecuteNonQuery();
+                                    }
+                                }
+                            }
+
+                            needToMakeDB = false;
+                        }
+                        catch
+                        {
+                            File.Delete(newAgent.indexDBLocation);
+                        }
+                    }
+
+                    if (needToMakeDB)
+                    {
+                        FileInfo indexDBInfo = new FileInfo(newAgent.indexDBLocation);
+                        if (!indexDBInfo.Directory.Exists)
+                        {
+                            indexDBInfo.Directory.Create();
+                        }
+                            
+                        System.Reflection.Assembly indexingAssembly = System.Reflection.Assembly.GetAssembly(typeof(IndexingAgent));
+
+                        List<KeyValuePair<int, string>> indexDBScripts = new List<KeyValuePair<int, string>>();
+
+                        string scriptDirectory = indexingAssembly.GetName().Name + indexScriptsResourceFolder;
+
+                        Encoding ansiEncoding = Encoding.GetEncoding(1252); //ANSI saved from NotePad on a US-EN Windows machine
+
+                        foreach (string currentScriptName in indexingAssembly.GetManifestResourceNames()
+                            .Where(resourceName => resourceName.StartsWith(scriptDirectory)))
+                        {
+                            if (!string.IsNullOrWhiteSpace(currentScriptName)
+                                && currentScriptName.Length >= 5 // length of 1+-digit number plus ".sql" file extension
+                                && currentScriptName.EndsWith(".sql", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                int numChars = 0;
+                                for (int numberCharIndex = scriptDirectory.Length; numberCharIndex < currentScriptName.Length; numberCharIndex++)
+                                {
+                                    if (!char.IsDigit(currentScriptName[numberCharIndex]))
+                                    {
+                                        numChars = numberCharIndex - scriptDirectory.Length;
+                                        break;
+                                    }
+                                }
+                                if (numChars > 0)
+                                {
+                                    string nameNumberPortion = currentScriptName.Substring(scriptDirectory.Length, numChars);
+                                    int nameNumber;
+                                    if (int.TryParse(nameNumberPortion, out nameNumber))
+                                    {
+                                        using (Stream resourceStream = indexingAssembly.GetManifestResourceStream(currentScriptName))
                                         {
-                                            using (Stream resourceStream = indexingAssembly.GetManifestResourceStream(currentScriptName))
+                                            using (StreamReader resourceReader = new StreamReader(resourceStream, ansiEncoding))
                                             {
-                                                using (StreamReader resourceReader = new StreamReader(resourceStream, ansiEncoding))
-                                                {
-                                                    indexDBScripts.Add(new KeyValuePair<int, string>(nameNumber, resourceReader.ReadToEnd()));
-                                                }
+                                                indexDBScripts.Add(new KeyValuePair<int, string>(nameNumber, resourceReader.ReadToEnd()));
                                             }
                                         }
                                     }
                                 }
                             }
+                        }
 
-                            using (SqlCeEngine ceEngine = new SqlCeEngine(buildConnectionString(newAgent.indexDBLocation)))
+                        using (SqlCeEngine ceEngine = new SqlCeEngine(buildConnectionString(newAgent.indexDBLocation)))
+                        {
+                            ceEngine.CreateDatabase();
+                        }
+
+                        SqlCeConnection creationConnection = null;
+
+                        try
+                        {
+                            creationConnection = new SqlCeConnection(buildConnectionString(newAgent.indexDBLocation));
+                            creationConnection.Open();
+
+                            foreach (string indexDBScript in indexDBScripts.OrderBy(scriptPair => scriptPair.Key).Select(scriptPair => scriptPair.Value))
                             {
-                                ceEngine.CreateDatabase();
-                            }
-
-                            SqlCeConnection creationConnection = null;
-
-                            try
-                            {
-                                creationConnection = new SqlCeConnection(buildConnectionString(newAgent.indexDBLocation));
-                                creationConnection.Open();
-
-                                foreach (string indexDBScript in indexDBScripts.OrderBy(scriptPair => scriptPair.Key).Select(scriptPair => scriptPair.Value))
+                                SqlCeCommand scriptCommand = creationConnection.CreateCommand();
+                                try
                                 {
-                                    SqlCeCommand scriptCommand = creationConnection.CreateCommand();
-                                    try
-                                    {
-                                        scriptCommand.CommandText = Helpers.DecryptString(indexDBScript, getDecodedIndexDBPassword());
-                                        scriptCommand.ExecuteNonQuery();
-                                    }
-                                    finally
-                                    {
-                                        scriptCommand.Dispose();
-                                    }
+                                    scriptCommand.CommandText = Helpers.DecryptString(indexDBScript, getDecodedIndexDBPassword());
+                                    scriptCommand.ExecuteNonQuery();
                                 }
-                            }
-                            finally
-                            {
-                                if (creationConnection != null)
+                                finally
                                 {
-                                    creationConnection.Dispose();
+                                    scriptCommand.Dispose();
                                 }
                             }
                         }
+                        finally
+                        {
+                            if (creationConnection != null)
+                            {
+                                creationConnection.Dispose();
+                            }
+                        }
+                    }
 
+                    if (changeEnums == null)
+                    {
                         int changeEnumsCount = System.Enum.GetNames(typeof(FileChangeType)).Length;
                         changeEnums = new Dictionary<int, FileChangeType>(changeEnumsCount);
                         changeEnumsBackward = new Dictionary<FileChangeType, int>(changeEnumsCount);

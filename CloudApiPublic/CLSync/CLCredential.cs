@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Net;
 
 namespace Cloud
 {
@@ -1930,6 +1931,7 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">The settings to use.</param>
         /// <returns>Returns any error that occurred during communication, or null.</returns>
+        /// <remarks>400 Bad Request is accepted without error.  Check for this code.  It generally means the account already exits.</remarks>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError LinkDeviceFirstTime(
                     JsonContracts.LinkDeviceFirstTimeRequest request, 
@@ -1963,6 +1965,14 @@ namespace Cloud
                 request.Key = this.Key;
                 request.Secret = this.Secret;
 
+                // Note the 400 Bad Request.  Must check this.
+                HashSet<HttpStatusCode> httpStatusCodesAccepted = new HashSet<HttpStatusCode>(new[]
+                {
+                    HttpStatusCode.OK,
+                    HttpStatusCode.Accepted,
+                    HttpStatusCode.BadRequest
+                });
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.LinkDeviceFirstTimeResponse>(
                     request, // object to write as request content to the server
@@ -1971,7 +1981,7 @@ namespace Cloud
                     Helpers.requestMethod.post, // sync_to is a post
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
-                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    httpStatusCodesAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes.
                     ref status, // reference to update the output success/failure status for the communication
                     copiedSettings, // pass the copied settings
                     this, // pass the key/secret
