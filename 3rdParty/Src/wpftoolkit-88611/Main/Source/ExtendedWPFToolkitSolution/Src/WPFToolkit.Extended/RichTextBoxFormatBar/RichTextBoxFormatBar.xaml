@@ -193,7 +193,7 @@
                               </Grid.ColumnDefinitions>
 
                               <Grid>
-                                 <Image Source="/WPFToolkit.Extended;component/RichTextBoxFormatBar/Images/FontColorPicker16.png" Width="16" Height="16" />
+                                 <Image Source="/WPFToolkit.Extended.CAPP;component/RichTextBoxFormatBar/Images/FontColorPicker16.png" Width="16" Height="16" />
                                  <Rectangle Grid.Row="1"
                                             Height="4"
                                             Margin="0,12,0,0"
@@ -288,7 +288,7 @@
                               </Grid.ColumnDefinitions>
 
                               <Grid>
-                                 <Image Source="/WPFToolkit.Extended;component/RichTextBoxFormatBar/Images/TextHighlightColorPicker16.png" Width="16" Height="16" />
+                                 <Image Source="/WPFToolkit.Extended.CAPP;component/RichTextBoxFormatBar/Images/TextHighlightColorPicker16.png" Width="16" Height="16" />
                                  <Rectangle Grid.Row="1"
                                             Height="4"
                                             Margin="0,12,0,0"
@@ -394,7 +394,7 @@
                              CommandTarget="{Binding ElementName=_window, Path=Target}"
                              Click="Bullets_Clicked"
                              ToolTip="Bullets">
-                  <Image Source="/WPFToolkit.Extended;component/RichTextBoxFormatBar/Images/Bullets16.png" />
+                    <Image Source="/WPFToolkit.Extended.CAPP;component/RichTextBoxFormatBar/Images/Bullets16.png" />
                </ToggleButton>
 
                <ToggleButton x:Name="_btnNumbers"
@@ -403,7 +403,7 @@
                              CommandTarget="{Binding ElementName=_window, Path=Target}"
                              Click="Numbers_Clicked"
                              ToolTip="Numbering">
-                  <Image Source="/WPFToolkit.Extended;component/RichTextBoxFormatBar/Images/Numbering16.png" />
+                    <Image Source="/WPFToolkit.Extended.CAPP;component/RichTextBoxFormatBar/Images/Numbering16.png" />
                </ToggleButton>
 
             </StackPanel>
@@ -414,21 +414,21 @@
                              Command="EditingCommands.ToggleBold"
                              CommandTarget="{Binding ElementName=_window, Path=Target}"
                              ToolTip="Bold">
-                  <Image Source="/WPFToolkit.Extended;component/RichTextBoxFormatBar/Images/Bold16.png" />
+                    <Image Source="/WPFToolkit.Extended.CAPP;component/RichTextBoxFormatBar/Images/Bold16.png" />
                </ToggleButton>
                <ToggleButton x:Name="_btnItalic"
                              Style="{StaticResource FormatBarToggleButtonStyle}"
                              Command="{x:Static EditingCommands.ToggleItalic}"
                              CommandTarget="{Binding ElementName=_window, Path=Target}"
                              ToolTip="Italic">
-                  <Image Source="/WPFToolkit.Extended;component/RichTextBoxFormatBar/Images/Italic16.png" />
+                    <Image Source="/WPFToolkit.Extended.CAPP;component/RichTextBoxFormatBar/Images/Italic16.png" />
                </ToggleButton>
                <ToggleButton x:Name="_btnUnderline"
                              Style="{StaticResource FormatBarToggleButtonStyle}"
                              Command="{x:Static EditingCommands.ToggleUnderline}"
                              CommandTarget="{Binding ElementName=_window, Path=Target}"
                              ToolTip="Underline">
-                  <Image Source="/WPFToolkit.Extended;component/RichTextBoxFormatBar/Images/Underline16.png" />
+                   <Image Source="/WPFToolkit.Extended.CAPP;component/RichTextBoxFormatBar/Images/Underline16.png" />
                </ToggleButton>
 
                <Separator />
@@ -438,21 +438,21 @@
                             Command="{x:Static EditingCommands.AlignLeft}"
                             CommandTarget="{Binding ElementName=_window, Path=Target}"
                             ToolTip="Align Left">
-                  <Image Source="/WPFToolkit.Extended;component/RichTextBoxFormatBar/Images/LeftAlign16.png" />
+                    <Image Source="/WPFToolkit.Extended.CAPP;component/RichTextBoxFormatBar/Images/LeftAlign16.png" />
                </RadioButton>
                <RadioButton x:Name="_btnAlignCenter"
                             Style="{StaticResource FormatBarToggleButtonStyle}"
                             Command="{x:Static EditingCommands.AlignCenter}"
                             CommandTarget="{Binding ElementName=_window, Path=Target}"
                             ToolTip="Align Center">
-                  <Image Source="/WPFToolkit.Extended;component/RichTextBoxFormatBar/Images/CenterAlign16.png" />
+                    <Image Source="/WPFToolkit.Extended.CAPP;component/RichTextBoxFormatBar/Images/CenterAlign16.png" />
                </RadioButton>
                <RadioButton x:Name="_btnAlignRight"
                             Style="{StaticResource FormatBarToggleButtonStyle}"
                             Command="{x:Static EditingCommands.AlignRight}"
                             CommandTarget="{Binding ElementName=_window, Path=Target}"
                             ToolTip="Align Right">
-                  <Image Source="/WPFToolkit.Extended;component/RichTextBoxFormatBar/Images/RightAlign16.png" />
+                    <Image Source="/WPFToolkit.Extended.CAPP;component/RichTextBoxFormatBar/Images/RightAlign16.png" />
                </RadioButton>
 
                <Separator />
