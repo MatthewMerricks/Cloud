@@ -43,6 +43,10 @@ namespace Cloud.Model
         /// </summary>
         public string ServerUid { get; set; }
         /// <summary>
+        /// "uid" of the parent folder which uniquely identifies it on the server
+        /// </summary>
+        internal string ParentFolderServerUid { get; set; }
+        /// <summary>
         /// Mime type of a file
         /// </summary>
         public string MimeType { get; set; }

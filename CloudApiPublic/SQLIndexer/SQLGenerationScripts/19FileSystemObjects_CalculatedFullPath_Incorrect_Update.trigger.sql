@@ -1,5 +1,5 @@
 /*
- 18FileSystemObjects_CalculatedFullPath_Incorrect_Update.trigger.sql
+ 19FileSystemObjects_CalculatedFullPath_Incorrect_Update.trigger.sql
  Cloud Windows
 
  Created By DavidBruck.
@@ -23,7 +23,7 @@ WHEN
         WHERE Parent.FileSystemObjectId = NEW.ParentFolderId
         UNION SELECT ''
       )
-      ORDER BY ParentName == ''
+      ORDER BY ParentName = ''
       LIMIT 1
     ) || NEW.Name))
 BEGIN

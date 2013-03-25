@@ -135,6 +135,100 @@ namespace Cloud.Static
                 new Type[] { typeof(Type) },
                 null);
 
+        /// <summary>
+        /// Creates an empty list using a typed instance as template. It does not matter if the input is null; regardless, the list will be created empty.
+        /// </summary>
+        public static List<T> CreateEmptyListFromTemplate<T>(T template) where T : class
+        {
+            return new List<T>();
+        }
+
+        /// <summary>
+        /// Attempts to create a FilePathDictionary and returns any associated error creating it using a typed instance as templace. It does not matter if the input is null; regardless, the dictionary will be created empty.
+        /// </summary>
+        internal static KeyValuePair<FilePathDictionary<T>, CLError> CreateEmptyFilePathDictionaryFromTemplate<T>(
+            FilePath rootPath,
+            T template,
+            Action<FilePath, T, FilePath> recursiveDeleteCallback = null,
+            Action<FilePath, FilePath, T, FilePath, FilePath> recursiveRenameCallback = null,
+            T valueAtFolder = null) where T : class
+        {
+            FilePathDictionary<T> toReturnKey;
+            CLError toReturnValue = FilePathDictionary<T>.CreateAndInitialize(
+                rootPath,
+                out toReturnKey,
+                recursiveDeleteCallback,
+                recursiveRenameCallback,
+                valueAtFolder);
+
+            return new KeyValuePair<FilePathDictionary<T>, CLError>(toReturnKey, toReturnValue);
+        }
+
+        /// <summary>
+        /// Calls TryGetValue on an IDictionary of generic type, or simply returns no object with no success on null dictionary input. Returns both whether it was successful and the value.
+        /// </summary>
+        public static DictionaryTryGetValueResult<TValue> DictionaryTryGetValue<TKey, TValue>(IDictionary<TKey, TValue> dict, TKey search)
+        {
+            if (dict == null)
+            {
+                return new DictionaryTryGetValueResult<TValue>(success: false, value: Helpers.DefaultForType<TValue>());
+            }
+
+            TValue toReturnValue;
+            bool toReturnSuccess = dict.TryGetValue(search, out toReturnValue);
+
+            return new DictionaryTryGetValueResult<TValue>(success: toReturnSuccess, value: toReturnValue);
+        }
+        /// <summary>
+        /// Holds whether a call to a IDictionary TryGetValue was succesful and also the output value. Do not use the public, default constructor.
+        /// </summary>
+        public struct DictionaryTryGetValueResult<TValue>
+        {
+            public bool Success
+            {
+                get
+                {
+                    if (!_isValid)
+                    {
+                        throw new ArgumentException("Cannot retrieve property values on an invalid DictionaryTryGetValueResult");
+                    }
+
+                    return _success;
+                }
+            }
+            private readonly bool _success;
+
+            public TValue Value
+            {
+                get
+                {
+                    if (!_isValid)
+                    {
+                        throw new ArgumentException("Cannot retrieve property values on an invalid DictionaryTryGetValueResult");
+                    }
+
+                    return _value;
+                }
+            }
+            private readonly TValue _value;
+
+            public bool IsValid
+            {
+                get
+                {
+                    return _isValid;
+                }
+            }
+            private readonly bool _isValid;
+
+            internal DictionaryTryGetValueResult(bool success, TValue value)
+            {
+                this._success = success;
+                this._value = value;
+                this._isValid = true;
+            }
+        }
+
         //private static readonly char[] ValidDateTimeStringChars = new char[]
         //{
         //    '0',

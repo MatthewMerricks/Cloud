@@ -36,13 +36,13 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property]
         public Nullable<int> GroupOrder { get; set; }
 
-        [SqlAccess.Property(Constants.SqlEnumName, true)]
+        [SqlAccess.Property(Constants.SqlEnumName, SqlAccess.FieldType.JoinedTable)]
         public SqlEnum SqlEnum { get; set; }
 
-        [SqlAccess.Property(true)]
+        [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
         public FileSystemObject Previous { get; set; }
 
-        [SqlAccess.Property(true)]
+        [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
         public FileSystemObject FileSystemObject { get; set; }
     }
 }

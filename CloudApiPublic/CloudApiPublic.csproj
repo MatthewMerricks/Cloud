@@ -213,6 +213,7 @@
     <Compile Include="REST\CLHttpRest.cs" />
     <Compile Include="REST\GenericAsyncResult.cs" />
     <Compile Include="REST\TransferProgress.cs" />
+    <Compile Include="SQLIndexer\Model\SQLTransactionalBase.cs" />
     <Compile Include="SQLIndexer\SqlModel\Constants.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -391,7 +392,7 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_EventId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects_ServerUid.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14FileSystemObjects_Pending.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\17Finalize.pragma.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\25Finalize.pragma.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\1Initialize.pragma.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\2EnumCategories.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\3AddFileChangeTypeEnumCategory.data.sql" />
@@ -400,7 +401,17 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_GroupId.index.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\16RootFolderObject.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\17FileSystemObjects_ParentFolderId_Update.trigger.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\16FileSystemObjects_CalculatedFullPath.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\18FileSystemObjects_Name_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\19FileSystemObjects_CalculatedFullPath_Incorrect_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\20FileSystemObjects_CalculatedFullPath_Correct_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\21FileSystemObjects_Incorrect_Insert.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\22FileSystemObjects_Correct_Insert.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\23FileSystemObjects_Before_Delete.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\24FileSystemObjects_After_Delete.trigger.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

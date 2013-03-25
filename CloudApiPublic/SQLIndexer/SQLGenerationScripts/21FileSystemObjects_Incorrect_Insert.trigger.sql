@@ -1,5 +1,5 @@
 /*
- 20FileSystemObjects_Incorrect_Insert.trigger.sql
+ 21FileSystemObjects_Incorrect_Insert.trigger.sql
  Cloud Windows
 
  Created By DavidBruck.
@@ -22,7 +22,7 @@ WHEN
         WHERE Parent.FileSystemObjectId = NEW.ParentFolderId
         UNION SELECT ''
       )
-      ORDER BY ParentName == ''
+      ORDER BY ParentName = ''
       LIMIT 1
     ) || NEW.Name)
 BEGIN
@@ -47,7 +47,7 @@ BEGIN
         WHERE Parent.FileSystemObjectId = NEW.ParentFolderId
         UNION SELECT ''
       )
-      ORDER BY ParentName == ''
+      ORDER BY ParentName = ''
       LIMIT 1
     ) || Name)
   WHERE FileSystemObjects.FileSystemObjectId = NEW.FileSystemObjectId;

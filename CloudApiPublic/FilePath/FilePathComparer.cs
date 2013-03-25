@@ -20,10 +20,34 @@ namespace Cloud.Model
         /// <returns>Returns true for equality, otherwise false</returns>
         public override bool Equals(FilePath x, FilePath y)
         {
+            if (x == null)
+            {
+                if (y == null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
             return RecursiveEqualityCheck(x, y, false);
         }
         public bool CaseInsensitiveEquals(FilePath x, FilePath y)
         {
+            if (x == null)
+            {
+                if (y == null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
             return RecursiveEqualityCheck(x, y, true);
         }
         private static bool RecursiveEqualityCheck(FilePath x, FilePath y, bool insensitiveNameSearch)

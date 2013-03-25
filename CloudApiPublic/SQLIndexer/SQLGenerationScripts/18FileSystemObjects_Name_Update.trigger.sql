@@ -1,23 +1,21 @@
 /*
- 16FileSystemObjects_ParentFolderId_Update.trigger.sql
+ 18FileSystemObjects_Name_Update.trigger.sql
  Cloud Windows
 
  Created By DavidBruck.
  Copyright (c) Cloud.com. All rights reserved.
 */
 
-CREATE TRIGGER TGR_FileSystemObjects_ParentFolderId_Update
-AFTER UPDATE OF ParentFolderId
+CREATE TRIGGER TGR_FileSystemObjects_Name_Update
+AFTER UPDATE OF Name
 ON FileSystemObjects
 FOR EACH ROW
 WHEN
-  (OLD.ParentFolderId IS NULL AND NEW.ParentFolderId IS NOT NULL)
-  OR (OLD.ParentFolderId IS NOT NULL AND NEW.ParentFolderId IS NULL)
-  OR OLD.ParentFolderId <> NEW.ParentFolderId
+  OLD.Name <> NEW.Name
 BEGIN
   --INSERT INTO Trace (String, IsError)
   --VALUES (
-  --  'trigger: ParentFolderId Update begin body.'
+  --  'trigger: Name Update begin body.'
   --    || ' Fields that won''t change: '
   --    || 'ParentFolderId = '
   --    || (CASE WHEN NEW.ParentFolderId IS NULL THEN 'NULL' ELSE NEW.ParentFolderId END)
@@ -39,14 +37,14 @@ BEGIN
       WHERE Parent.FileSystemObjectId = NEW.ParentFolderId
       UNION SELECT ''
     )
-    ORDER BY ParentName == ''
+    ORDER BY ParentName = ''
     LIMIT 1
   ) || Name
   WHERE FileSystemObjectId = NEW.FileSystemObjectId;
 
   --INSERT INTO Trace (String, IsError)
   --VALUES (
-  --  'trigger: ParentFolderId Update end body. After update fields: CalculatedFullPath = '
+  --  'trigger: Name Update end body. After update fields: CalculatedFullPath = '
   --    || (
   --        SELECT UpdatedRowPath
   --        FROM

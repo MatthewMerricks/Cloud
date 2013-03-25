@@ -42,8 +42,6 @@ namespace Cloud.SQLIndexer
         private readonly string indexDBLocation;
         private const string indexDBPassword = "Q29weXJpZ2h0Q2xvdWQuY29tQ3JlYXRlZEJ5RGF2aWRCcnVjaw=="; // <-- if you change this password, you will likely break all clients with older databases
         private const string indexScriptsResourceFolder = ".SQLIndexer.IndexDBScripts.";
-
-        public readonly ReaderWriterLockSlim ExternalSQLLocker = new ReaderWriterLockSlim();
         #endregion
 
         // store dictionaries to convert between the FileChangetype enumeration and its integer value in the database,
@@ -474,118 +472,432 @@ namespace Cloud.SQLIndexer
         /// </summary>
         /// <param name="newEvents">Change to add</param>
         /// <returns>Returns error that occurred when adding the event to database, if any</returns>
-        public CLError AddEvents(IEnumerable<FileChange> newEvents, bool alreadyObtainedLock = false)
+        public CLError AddEvents(IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction = null)
         {
-            throw new NotImplementedException("5");
-            //if (!alreadyObtainedLock)
-            //{
-            //    ExternalSQLLocker.EnterReadLock();
-            //}
-            //try
-            //{
-            //    // Ensure input parameter is set
-            //    if (newEvents == null)
-            //    {
-            //        throw new NullReferenceException("newEvents cannot be null");
-            //    }
-            //    if (newEvents.Any(newEvent => newEvent.Metadata == null))
-            //    {
-            //        throw new NullReferenceException("The Metadata property of every newEvent cannot be null");
-            //    }
+            CLError toReturn = null;
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            if (existingTransaction != null
+                && castTransaction == null)
+            {
+                try
+                {
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+                }
+                catch (Exception ex)
+                {
+                    toReturn += ex;
+                }
+            }
 
-            //    List<Event> eventsToAdd = new List<Event>();
-            //    Guid eventGroup = Guid.NewGuid();
-            //    int eventCounter = 0;
-            //    Dictionary<int, KeyValuePair<FileChange, GenericHolder<long>>> orderToChange = new Dictionary<int, KeyValuePair<FileChange, GenericHolder<long>>>();
+            bool inputTransactionSet = castTransaction != null;
+            try
+            {
+                // Ensure input parameter is set
+                if (newEvents == null)
+                {
+                    throw new NullReferenceException("newEvents cannot be null");
+                }
 
-            //    // If change is marked for adding to SQL,
-            //    // then process database addition
-            //    foreach (FileChange newEvent in newEvents.Where(newEvent => newEvent.EventId == 0 || !newEvent.DoNotAddToSQLIndex))
-            //    {
-            //        string newPathString = newEvent.NewPath.ToString();
+                FileChange[] newEventsArray;
+                {
+                    List<FileChange> newEventsList = new List<FileChange>();
+                    foreach (FileChange currentEvent in newEvents)
+                    {
+                        if (currentEvent.Metadata == null)
+                        {
+                            throw new NullReferenceException("The Metadata property of every newEvent cannot be null");
+                        }
 
-            //        eventCounter++;
-            //        orderToChange.Add(eventCounter, new KeyValuePair<FileChange, GenericHolder<long>>(newEvent, new GenericHolder<long>()));
+                        newEventsList.Add(currentEvent);
+                    }
+                    newEventsArray = newEventsList.ToArray();
+                }
 
-            //        // Define the new event to add for the unprocessed change
-            //        eventsToAdd.Add(new Event()
-            //        {
-            //            FileChangeTypeCategoryId = changeCategoryId,
-            //            FileChangeTypeEnumId = changeEnumsBackward[newEvent.Type],
-            //            FileSystemObject = new FileSystemObject()
-            //            {
-            //                // TODO: add server id
-            //                CreationTime = newEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
-            //                    ? (Nullable<DateTime>)null
-            //                    : newEvent.Metadata.HashableProperties.CreationTime,
-            //                IsFolder = newEvent.Metadata.HashableProperties.IsFolder,
-            //                LastTime = newEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
-            //                    ? (Nullable<DateTime>)null
-            //                    : newEvent.Metadata.HashableProperties.LastTime,
-            //                Path = newPathString,
-            //                Size = newEvent.Metadata.HashableProperties.Size,
-            //                Revision = newEvent.Metadata.Revision,
-            //                StorageKey = newEvent.Metadata.StorageKey,
-            //                TargetPath = (newEvent.Metadata.LinkTargetPath == null ? null : newEvent.Metadata.LinkTargetPath.ToString()),
-            //                SyncCounter = null,
-            //                ServerLinked = false,
+                if (castTransaction == null)
+                {
+                    ISQLiteConnection indexDB;
+                    castTransaction = new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                }
 
-            //                // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
-            //                PathChecksum = StringCRC.Crc(newPathString)
-            //            },
-            //            PreviousPath = (newEvent.OldPath == null
-            //                ? null
-            //                : newEvent.OldPath.ToString()),
-            //            GroupId = eventGroup,
-            //            GroupOrder = eventCounter,
-            //            SyncFrom = (newEvent.Direction == SyncDirection.From)
-            //        });
-            //    }
+                int lastHighestChangeIndex;
+                int currentChangeIndex = 0;
 
-            //    if (eventsToAdd.Count > 0)
-            //    {
-            //        using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
-            //        {
-            //            SqlAccessor<Event>.InsertRows(indexDB, eventsToAdd);
-            //        }
+                // template is only used to define the type structure needed to add a FileChange to the database
+                // the values from this specific object instance are never copied anywhere and are never read
+                var batchedItemTemplate = new
+                    {
+                        change = (FileChange)null, // force FileChange type
+                        parentFolderId = 0L, // force signed 64-bit integer type
+                        previousId = (Nullable<long>)null // force nullable of signed 64-bit integer type
+                    };
 
-            //        using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
-            //        {
-            //            Dictionary<int, long> groupOrderToId = new Dictionary<int, long>();
-            //            foreach (Event createdEvent in SqlAccessor<Event>.SelectResultSet(indexDB,
-            //                "SELECT * FROM [Events] WHERE [Events].[GroupId] = '" + eventGroup.ToString() + "'"))
-            //            {
-            //                groupOrderToId.Add((int)createdEvent.GroupOrder, createdEvent.EventId);
-            //            }
+                //// template is only used to define the type structure needed to track paths as the result of FileChanges;
+                //// the values from this specific object instance are never copied anywhere and are never read
+                //var batchedPathTrackingValueTemplate = new
+                //    {
+                //        previousPath = (FilePath)null, // force FilePath type; null value will represent that the object had not already existed in the database (such as on a create event in the same batch)
+                //        objectId = 0L // force signed 64-bit integer type
+                //    };
 
-            //            Func<Event, FileSystemObject> setIdAndGrabObject = currentEvent =>
-            //                {
-            //                    currentEvent.FileSystemObject.EventId = orderToChange[(int)currentEvent.GroupOrder].Value.Value = groupOrderToId[(int)currentEvent.GroupOrder];
-            //                    return currentEvent.FileSystemObject;
-            //                };
+                FilePath indexedPathObject = indexedPath;
 
-            //            SqlAccessor<FileSystemObject>.InsertRows(indexDB, eventsToAdd.Select(setIdAndGrabObject));
-            //        }
+                do
+                {
+                    lastHighestChangeIndex = currentChangeIndex;
 
-            //        foreach (KeyValuePair<FileChange, GenericHolder<long>> currentAddedEvent in orderToChange.Values)
-            //        {
-            //            currentAddedEvent.Key.EventId = currentAddedEvent.Value.Value;
-            //            MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentAddedEvent.Key, null));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentAddedEvent.Key, null)
-            //        }
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    return ex;
-            //}
-            //finally
-            //{
-            //    if (!alreadyObtainedLock)
-            //    {
-            //        ExternalSQLLocker.ExitReadLock();
-            //    }
-            //}
-            //return null;
+                    var currentBatchToAddList = Helpers.CreateEmptyListFromTemplate(batchedItemTemplate);
+                    FilePathDictionary<object> currentBatchTrackPathChanges;
+                    CLError createCurrentBatchTrackPathChangesError = FilePathDictionary<object>.CreateAndInitialize(
+                        indexedPathObject,
+                        out currentBatchTrackPathChanges);
+                    //var currentBatchTrackPathChangesPair = Helpers.CreateEmptyFilePathDictionaryFromTemplate(
+                    //    indexedPathObject,
+                    //    batchedPathTrackingValueTemplate);
+
+                    if (createCurrentBatchTrackPathChangesError != null)
+                    {
+                        throw new AggregateException("Unable to make a FilePathDictionary with current indexedPath", createCurrentBatchTrackPathChangesError.GrabExceptions());
+                    }
+                    //if (currentBatchTrackPathChangesPair.Value != null)
+                    //{
+                    //    throw new AggregateException("Unable to make a FilePathDictionary from anonymous type template batchedPathTrackingValueTemplate with current indexedPath", currentBatchTrackPathChangesPair.Value.GrabExceptions());
+                    //}
+
+                    //var currentBatchTrackPathChanges = currentBatchTrackPathChangesPair.Key;
+
+                    for (/* currentChangeIndex defined above */ ; currentChangeIndex < newEventsArray.Length; currentChangeIndex++)
+                    {
+                        try
+                        {
+                            FileChange currentObjectToBatch = newEventsArray[currentChangeIndex];
+
+                            if (currentObjectToBatch.DoNotAddToSQLIndex) // skip adding current event since it was marked DoNotAddToSQLIndex
+                            {
+                                continue;
+                            }
+
+                            long parentFolderId;
+                            Nullable<long> previousId;
+
+                            const string objectIdByPathSelect =
+                                "SELECT FileSystemObjects.FileSystemObjectId " +
+                                    "FROM FileSystemObjects " +
+                                    "WHERE CalculatedFullPath = ? " + // <-- parameter 1
+                                    "ORDER BY " +
+                                    "CASE WHEN FileSystemObjects.EventId IS NULL " +
+                                    "THEN 0 " +
+                                    "ELSE FileSystemObjects.EventId " +
+                                    "END DESC " +
+                                    "LIMIT 1";
+
+                            const string missingParentErrorMessage =
+                                "Unable to add a new FileSystemObject without a parent folder ID";
+
+                            const string missingPreviousErrorMessage =
+                                "Unable to add a rename Event without a previous ID";
+
+                            bool foundExistingPathInSearch = false;
+                            //long searchResultObjectId = 0;
+                            //FilePath searchResultPreviousPath = null;
+
+                            FilePath currentObjectParentPathSearch = currentObjectToBatch.NewPath.Parent;
+                            while (!FilePathComparer.Instance.Equals(currentObjectParentPathSearch, indexedPathObject))
+                            {
+                                var pathSearchResult = Helpers.DictionaryTryGetValue(currentBatchTrackPathChanges, currentObjectParentPathSearch);
+
+                                if (pathSearchResult.Success)
+                                {
+                                    foundExistingPathInSearch = true;
+                                    //searchResultObjectId = pathSearchResult.Value.objectId;
+                                    //searchResultPreviousPath = pathSearchResult.Value.previousPath;
+
+                                    break;
+                                }
+
+                                currentObjectParentPathSearch = currentObjectParentPathSearch.Parent;
+                            }
+
+                            if (foundExistingPathInSearch)
+                            {
+                                // existing event along the current change's parent paths has not yet been committed to database so we break this batch until the previous batch is added
+                                break;
+
+                                //if (searchResultPreviousPath == null)
+                                //{
+                                //    // existing event along the current change's parent paths has not yet been committed to database so we break this batch until the previous batch is added
+                                //    break;
+                                //}
+                                //else if (FilePathComparer.Instance.Equals(currentObjectParentPathSearch, currentObjectToBatch.NewPath.Parent))
+                                //{
+                                //    parentFolderId = (long)searchResultObjectId;
+                                //}
+                                //else
+                                //{
+                                //    FilePath renamedNewPathParent = currentObjectToBatch.NewPath.Parent.Copy();
+                                //    FilePath.ApplyRename(renamedNewPathParent, currentObjectParentPathSearch, searchResultPreviousPath);
+
+                                //    if (!SqlAccessor<object>.TrySelectScalar<long>(
+                                //        castTransaction.sqlConnection,
+                                //        objectIdByPathSelect,
+                                //        out parentFolderId,
+                                //        castTransaction.sqlTransaction,
+                                //        selectParameters: new[] { (object)renamedNewPathParent }))
+                                //    {
+                                //        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingParentErrorMessage);
+                                //    }
+                                //}
+                            }
+                            else if (!SqlAccessor<object>.TrySelectScalar<long>(
+                                castTransaction.sqlConnection,
+                                objectIdByPathSelect,
+                                out parentFolderId,
+                                castTransaction.sqlTransaction,
+                                selectParameters: new[] { (object)currentObjectToBatch.NewPath.Parent.ToString() }))
+                            {
+                                throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingParentErrorMessage);
+                            }
+
+                            if (currentObjectToBatch.OldPath == null)
+                            {
+                                previousId = null;
+                            }
+                            else
+                            {
+                                foundExistingPathInSearch = false;
+                                //searchResultObjectId = 0;
+                                //searchResultPreviousPath = null;
+
+                                currentObjectParentPathSearch = currentObjectToBatch.OldPath;
+                                while (!FilePathComparer.Instance.Equals(currentObjectParentPathSearch, indexedPathObject))
+                                {
+                                    var pathSearchResult = Helpers.DictionaryTryGetValue(currentBatchTrackPathChanges, currentObjectParentPathSearch);
+
+                                    if (pathSearchResult.Success)
+                                    {
+                                        foundExistingPathInSearch = true;
+                                        //searchResultObjectId = pathSearchResult.Value.objectId;
+                                        //searchResultPreviousPath = pathSearchResult.Value.previousPath;
+
+                                        break;
+                                    }
+
+                                    currentObjectParentPathSearch = currentObjectParentPathSearch.Parent;
+                                }
+
+                                long previousIdNotNull;
+
+                                if (foundExistingPathInSearch)
+                                {
+                                    // existing event along the current change's previous path and its parents has not yet been committed to database so we break this batch until the previous batch is added
+                                    break;
+
+                                    //if (searchResultPreviousPath == null)
+                                    //{
+                                    //    // existing event along the current change's previous path and its parents has not yet been committed to database so we break this batch until the previous batch is added
+                                    //    break;
+                                    //}
+                                    //else if (FilePathComparer.Instance.Equals(currentObjectParentPathSearch, currentObjectToBatch.OldPath))
+                                    //{
+                                    //    previousId = searchResultObjectId;
+                                    //}
+                                    //else
+                                    //{
+                                    //    FilePath renamedNewPathParent = currentObjectToBatch.OldPath.Copy();
+                                    //    FilePath.ApplyRename(renamedNewPathParent, currentObjectParentPathSearch, searchResultPreviousPath);
+
+                                    //    if (!SqlAccessor<object>.TrySelectScalar<long>(
+                                    //        castTransaction.sqlConnection,
+                                    //        objectIdByPathSelect,
+                                    //        out previousIdNotNull,
+                                    //        castTransaction.sqlTransaction,
+                                    //        selectParameters: new[] { (object)renamedNewPathParent }))
+                                    //    {
+                                    //        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingPreviousErrorMessage);
+                                    //    }
+
+                                    //    previousId = previousIdNotNull;
+                                    //}
+                                }
+                                else if (!SqlAccessor<object>.TrySelectScalar<long>(
+                                    castTransaction.sqlConnection,
+                                    objectIdByPathSelect,
+                                    out previousIdNotNull,
+                                    castTransaction.sqlTransaction,
+                                    selectParameters: new[] { (object)currentObjectToBatch.OldPath.ToString() }))
+                                {
+                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingPreviousErrorMessage);
+                                }
+                                else
+                                {
+                                    previousId = previousIdNotNull;
+                                }
+                            }
+
+                            currentBatchToAddList.Add(new
+                            {
+                                change = currentObjectToBatch,
+                                parentFolderId = parentFolderId,
+                                previousId = previousId
+                            });
+
+                            switch (currentObjectToBatch.Type)
+                            {
+                                case FileChangeType.Created:
+                                    currentBatchTrackPathChanges.Add(
+                                        currentObjectToBatch.NewPath,
+                                        new object());
+                                        //new
+                                        //{
+                                        //    previousPath = (FilePath)null,
+                                        //    objectId = 0L
+                                        //});
+                                    break;
+
+                                case FileChangeType.Deleted:
+                                    currentBatchTrackPathChanges.Remove(currentObjectToBatch.NewPath);
+                                    break;
+
+                                case FileChangeType.Renamed:
+                                    var existingRenamePair = Helpers.DictionaryTryGetValue(currentBatchTrackPathChanges, currentObjectToBatch.OldPath);
+
+                                    currentBatchTrackPathChanges.Rename(currentObjectToBatch.OldPath, currentObjectToBatch.NewPath);
+
+                                    if (!existingRenamePair.Success)
+                                    {
+                                        currentBatchTrackPathChanges.Add(
+                                            currentObjectToBatch.NewPath,
+                                            new object());
+                                            //new
+                                            //{
+                                            //    previousPath = currentObjectToBatch.OldPath,
+                                            //    objectId = ?? <-- this is where I realized there is nothing to track forward through renames except the path key in the dictionary
+                                            //});
+                                    }
+                                    break;
+
+                                //case FileChangeType.Modified: // <-- don't do anything with modified since it doesn't affect the FileSystemObjectId at any path
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            toReturn += ex;
+                        }
+                    }
+
+                    List<Event> eventsToAdd = new List<Event>();
+                    Guid eventGroup = Guid.NewGuid();
+                    int eventCounter = 0;
+                    Dictionary<int, KeyValuePair<FileChange, GenericHolder<long>>> orderToChange = new Dictionary<int, KeyValuePair<FileChange, GenericHolder<long>>>();
+
+                    // If change is marked for adding to SQL,
+                    // then process database addition
+                    foreach (var newEvent in currentBatchToAddList)
+                    {
+                        eventCounter++;
+                        orderToChange.Add(eventCounter, new KeyValuePair<FileChange, GenericHolder<long>>(newEvent.change, new GenericHolder<long>()));
+
+                        DateTime storeCreationTimeUTC;
+                        DateTime storeLastTimeUTC;
+
+                        byte[] getMD5;
+                        CLError getMD5Error = newEvent.change.GetMD5Bytes(out getMD5);
+                        if (getMD5Error != null)
+                        {
+                            throw new AggregateException("Error getting MD5 from newEvent change", getMD5Error.GrabExceptions());
+                        }
+
+                        // Define the new event to add for the unprocessed change
+                        eventsToAdd.Add(new Event()
+                        {
+                            FileChangeTypeCategoryId = changeCategoryId,
+                            FileChangeTypeEnumId = changeEnumsBackward[newEvent.change.Type],
+                            FileSystemObject = new FileSystemObject()
+                            {
+                                CreationTimeUTCTicks = ((newEvent.change.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                        || (storeCreationTimeUTC = newEvent.change.Metadata.HashableProperties.CreationTime.ToUniversalTime()).Ticks == FileConstants.InvalidUtcTimeTicks)
+                                    ? (Nullable<long>)0
+                                    : storeCreationTimeUTC.Ticks),
+                                EventTimeUTCTicks = DateTime.UtcNow.Ticks,
+                                IsFolder = newEvent.change.Metadata.HashableProperties.IsFolder,
+                                IsShare = newEvent.change.Metadata.IsShare,
+                                LastTimeUTCTicks = ((newEvent.change.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                        || (storeLastTimeUTC = newEvent.change.Metadata.HashableProperties.LastTime.ToUniversalTime()).Ticks == FileConstants.InvalidUtcTimeTicks)
+                                    ? (Nullable<long>)0
+                                    : storeLastTimeUTC.Ticks),
+                                MD5 = getMD5,
+                                MimeType = newEvent.change.Metadata.MimeType,
+                                Name = newEvent.change.NewPath.Name,
+                                ParentFolderId = newEvent.parentFolderId,
+                                Pending = true,
+                                Permissions = (newEvent.change.Metadata.Permissions == null ? (Nullable<int>)null : (int)((POSIXPermissions)newEvent.change.Metadata.Permissions)),
+                                Revision = newEvent.change.Metadata.Revision,
+                                //ServerName = newEvent.change.ServerPath // <-- need to add server paths to FileChange
+                                ServerUid = newEvent.change.Metadata.ServerUid,
+                                Size = newEvent.change.Metadata.HashableProperties.Size,
+                                StorageKey = newEvent.change.Metadata.StorageKey,
+                                Version = newEvent.change.Metadata.Version
+                            },
+                            GroupId = eventGroup,
+                            GroupOrder = eventCounter,
+                            PreviousId = newEvent.previousId,
+                            SyncFrom = (newEvent.change.Direction == SyncDirection.From)
+                        });
+                    }
+
+                    if (eventsToAdd.Count > 0)
+                    {
+                        SqlAccessor<Event>.InsertRows(
+                            castTransaction.sqlConnection,
+                            eventsToAdd,
+                            transaction: castTransaction.sqlTransaction);
+
+                        Dictionary<int, long> groupOrderToId = new Dictionary<int, long>();
+                        foreach (Event createdEvent in SqlAccessor<Event>.SelectResultSet(
+                            castTransaction.sqlConnection,
+                            "SELECT * FROM Events WHERE Events.GroupId = ?",
+                            transaction: castTransaction.sqlTransaction,
+                            selectParameters: new[] { (object)eventGroup }))
+                        {
+                            groupOrderToId.Add((int)createdEvent.GroupOrder, createdEvent.EventId);
+                        }
+
+                        Func<Event, FileSystemObject> setIdAndGrabObject = currentEvent =>
+                            {
+                                currentEvent.FileSystemObject.EventId = orderToChange[(int)currentEvent.GroupOrder].Value.Value = groupOrderToId[(int)currentEvent.GroupOrder];
+                                return currentEvent.FileSystemObject;
+                            };
+
+                        SqlAccessor<FileSystemObject>.InsertRows(
+                            castTransaction.sqlConnection,
+                            eventsToAdd.Select(setIdAndGrabObject),
+                            transaction: castTransaction.sqlTransaction);
+
+                        foreach (KeyValuePair<FileChange, GenericHolder<long>> currentAddedEvent in orderToChange.Values)
+                        {
+                            currentAddedEvent.Key.EventId = currentAddedEvent.Value.Value;
+                            MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentAddedEvent.Key, null));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentAddedEvent.Key, null)
+                        }
+                    }
+                }
+                while (currentChangeIndex != lastHighestChangeIndex);
+            }
+            catch (Exception ex)
+            {
+                toReturn += ex;
+            }
+            finally
+            {
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+
+                    castTransaction.Dispose();
+                }
+            }
+            return toReturn;
         }
 
         /// <summary>
@@ -593,49 +905,71 @@ namespace Cloud.SQLIndexer
         /// </summary>
         /// <param name="eventId">Id of event to remove</param>
         /// <returns>Returns an error in removing the event, if any</returns>
-        public CLError RemoveEventById(long eventId)
+        public CLError RemoveEventById(long eventId, SQLTransactionalBase existingTransaction = null)
         {
-            throw new NotImplementedException("6");
-            //ExternalSQLLocker.EnterReadLock();
-            //try
-            //{
-            //    using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
-            //    {
-            //        // Find the existing object for the given id
-            //        FileSystemObject toDelete = SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
-            //            "SELECT TOP 1 * FROM [FileSystemObjects] WHERE [FileSystemObjects].[EventId] = " + eventId.ToString())
-            //            .SingleOrDefault();
+            CLError toReturn = null;
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            if (existingTransaction != null
+                && castTransaction == null)
+            {
+                try
+                {
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+                }
+                catch (Exception ex)
+                {
+                    toReturn += ex;
+                }
+            }
 
-            //        Func<Exception> notFoundException = () => new Exception("Event not found to delete");
+            bool inputTransactionSet = castTransaction != null;
+            try
+            {
+                if (castTransaction == null)
+                {
+                    ISQLiteConnection indexDB;
+                    castTransaction = new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                }
 
-            //        // Throw exception if an existing event does not exist
-            //        if (toDelete == null)
-            //        {
-            //            throw notFoundException();
-            //        }
+                Func<Exception> notFoundException = () => new Exception("Event not found to delete");
 
-            //        // Remove the found event from the database
-            //        if (!SqlAccessor<FileSystemObject>.DeleteRow(indexDB,
-            //                toDelete)
-            //            || !SqlAccessor<Event>.DeleteRow(indexDB,
-            //                new Event()
-            //                {
-            //                    EventId = eventId
-            //                }))
-            //        {
-            //            throw notFoundException();
-            //        }
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    return ex;
-            //}
-            //finally
-            //{
-            //    ExternalSQLLocker.ExitReadLock();
-            //}
-            //return null;
+                // Find the existing object for the given id
+                long toDeleteId;
+                if (!SqlAccessor<object>.TrySelectScalar<long>(
+                    castTransaction.sqlConnection,
+                    "SELECT FileSystemObjects.FileSystemObjectId WHERE FileSystemObjects.EventId = ? LIMIT 1", // <-- parameter 1
+                    out toDeleteId,
+                    castTransaction.sqlTransaction,
+                    new[] { (object)eventId }))
+                {
+                    throw notFoundException();
+                }
+
+                if (!SqlAccessor<FileSystemObject>.DeleteRow(
+                    castTransaction.sqlConnection,
+                    new FileSystemObject() { FileSystemObjectId = toDeleteId },
+                    castTransaction.sqlTransaction))
+                {
+                    throw notFoundException();
+                }
+            }
+            catch (Exception ex)
+            {
+                toReturn += ex;
+            }
+            finally
+            {
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+
+                    castTransaction.Dispose();
+                }
+            }
+            return toReturn;
         }
 
         /// <summary>
@@ -1480,348 +1814,391 @@ namespace Cloud.SQLIndexer
         /// Method to merge event into database,
         /// used when events are modified or replaced with new events
         /// </summary>
-        /// <param name="mergedEvent">Event with latest file or folder metadata, pass null to only delete the old event</param>
-        /// <param name="eventToRemove">Previous event to set if an old event is being replaced in the process</param>
         /// <returns>Returns an error from merging the events, if any</returns>
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, bool alreadyObtainedLock = false)
+        public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null)
         {
             CLError toReturn = null;
-            if (mergeToFroms != null)
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            if (existingTransaction != null
+                && castTransaction == null)
             {
                 try
                 {
-                    List<FileChange> toAdd = new List<FileChange>();
-                    Dictionary<long, FileChange> toUpdate = new Dictionary<long, FileChange>();
-                    HashSet<long> toDelete = new HashSet<long>();
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+                }
+                catch (Exception ex)
+                {
+                    toReturn += ex;
+                }
+            }
 
-                    foreach (FileChangeMerge currentMergeToFrom in mergeToFroms)
+            bool inputTransactionSet = castTransaction != null;
+            try
+            {
+                if (mergeToFroms != null)
+                {
+                    HashSet<long> updatedIds = new HashSet<long>();
+                    HashSet<long> deletedIds = new HashSet<long>();
+
+                    foreach (FileChangeMerge currentMerge in mergeToFroms)
                     {
-                        // Continue to next iteration if boolean set indicating not to add to SQL
-                        if (currentMergeToFrom.MergeTo != null
-                            && currentMergeToFrom.MergeTo.DoNotAddToSQLIndex
-                            && currentMergeToFrom.MergeTo.EventId != 0)
+                        try
                         {
-                            MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
-                            continue;
-                        }
-
-                        // Ensure input variables have proper references set
-                        if (currentMergeToFrom.MergeTo == null)
-                        {
-                            // null merge events are only valid if there is an oldEvent to remove
-                            if (currentMergeToFrom.MergeFrom == null)
+                            // Continue to next iteration if boolean set indicating not to add to SQL
+                            if (currentMerge.MergeTo != null
+                                && currentMerge.MergeTo.DoNotAddToSQLIndex
+                                && currentMerge.MergeTo.EventId != 0)
                             {
-                                throw new NullReferenceException("currentMergeToFrom.MergeTo cannot be null");
-                            }
-                        }
-                        else if (currentMergeToFrom.MergeTo.Metadata == null)
-                        {
-                            throw new NullReferenceException("currentMergeToFrom.MergeTo cannot have null Metadata");
-                        }
-                        else if (currentMergeToFrom.MergeTo.NewPath == null)
-                        {
-                            throw new NullReferenceException("currentMergeToFrom.MergeTo cannot have null NewPath");
-                        }
-
-                        // Define field for the event id that needs updating in the database,
-                        // defaulting to none
-                        Nullable<long> eventIdToUpdate = null;
-
-                        // If the mergedEvent already has an id (exists in database),
-                        // then the database event will be updated at the mergedEvent id;
-                        // also, if the oldEvent exists in the database, it needs to be removed
-                        if (currentMergeToFrom.MergeTo == null
-                            || currentMergeToFrom.MergeTo.EventId > 0)
-                        {
-                            if (currentMergeToFrom.MergeTo != null
-                                && currentMergeToFrom.MergeTo.EventId > 0
-                                // added the following condition in case both events to merge together share a single database event
-                                // which should not be removed
-                                && (currentMergeToFrom.MergeTo == null || currentMergeToFrom.MergeTo.EventId != currentMergeToFrom.MergeTo.EventId))
-                            {
-                                toDelete.Add(currentMergeToFrom.MergeTo.EventId);
-                            }
-
-                            // If the mergedEvent it null and the oldEvent is set with a valid eventId,
-                            // then save only the deletion of the oldEvent and continue to next iteration
-                            if (currentMergeToFrom.MergeTo == null)
-                            {
+                                MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMerge.MergeTo, currentMerge.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
                                 continue;
                             }
 
-                            eventIdToUpdate = currentMergeToFrom.MergeTo.EventId;
-                        }
-                        // Else if the mergedEvent does not have an id in the database
-                        // and the oldEvent exists and has an id in the database,
-                        // then the database event will be updated at the oldEvent id
-                        // and the event id should be moved to the mergedEvent
-                        else if (currentMergeToFrom.MergeFrom != null
-                            && currentMergeToFrom.MergeFrom.EventId > 0)
-                        {
-                            currentMergeToFrom.MergeTo.EventId = currentMergeToFrom.MergeFrom.EventId;
-
-                            eventIdToUpdate = currentMergeToFrom.MergeTo.EventId;
-                        }
-
-                        // If an id for the database event already exists,
-                        // then update the object in the database with the latest properties from mergedEvent
-                        if (eventIdToUpdate != null)
-                        {
-                            toUpdate[(long)eventIdToUpdate] = currentMergeToFrom.MergeTo;
-                        }
-                        // Else the database event does not already exist,
-                        // then add it
-                        else
-                        {
-                            toAdd.Add(currentMergeToFrom.MergeTo);
-                        }
-                    }
-
-                    if (toAdd.Count > 0
-                        || toUpdate.Count > 0
-                        || toDelete.Count > 0)
-                    {
-                        if (!alreadyObtainedLock)
-                        {
-                            ExternalSQLLocker.EnterReadLock();
-                        }
-                        try
-                        {
-                            using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
+                            // Ensure input variables have proper references set
+                            if (currentMerge.MergeTo == null)
                             {
-                                if (toDelete.Count > 0)
+                                // null merge events are only valid if there is an oldEvent to remove
+                                if (currentMerge.MergeFrom == null)
                                 {
-                                    CLError deleteErrors = RemoveEventsByIds(toDelete, true);
-
-                                    if (deleteErrors != null)
-                                    {
-                                        toReturn += new AggregateException("Error deleting some events", deleteErrors.GrabExceptions());
-                                    }
+                                    throw new NullReferenceException("currentMerge.MergeTo cannot be null");
                                 }
+                            }
+                            else if (currentMerge.MergeTo.Metadata == null)
+                            {
+                                throw new NullReferenceException("currentMerge.MergeTo cannot have null Metadata");
+                            }
+                            else if (currentMerge.MergeTo.NewPath == null)
+                            {
+                                throw new NullReferenceException("currentMerge.MergeTo cannot have null NewPath");
+                            }
 
-                                if (toUpdate.Count > 0
-                                    || toAdd.Count > 0)
-                                {
-                                    // find all relevent files and folders directly under the root which are equal to any of the current paths or contained within current paths (will be all of them)
-                                    // grab all their FileSystemObjectIds and store them with the paths
-                                    // repeat for all inner levels until all ids are found for all levels
+                            if (castTransaction == null)
+                            {
+                                ISQLiteConnection indexDB;
+                                castTransaction = new SQLTransactionalImplementation(
+                                    indexDB = CreateAndOpenCipherConnection(),
+                                    indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                            }
 
-                                    // two FileSystemObjectIds could represent each path, so have to build all combination of all paths down to the paths we're searching and search until the output links to the event id,
-                                    // or if the event id is not known then create a new FileSystemObject with a parent FileSystemObject that has the most recent EventId
+                            FileChange toUpdate;
+                            FileChange toAdd;
+                            long toDelete;
 
-                                    FilePath rootPathObject = indexedPath;
+                            ////possibilities for old event:
+                            ////none,
+                            ////not in database, <-- causes old to be ignored (acts like none)
+                            ////exists in database
+                            //
+                            //
+                            ////possibilities for new event:
+                            ////none,
+                            ////not in database, (new event)
+                            ////exists in database
+                            //
+                            //
+                            ////mutually exclusive:
+                            ////none and none
+                            //
+                            //
+                            ////if there is an old exists and a new none, then delete old row
+                            //
+                            ////if old does not exists and a new none, do nothing (already not in database)
+                            //
+                            ////if old none
+                            ////    if new not in database, add new to database
+                            ////    else if new in database, update new
+                            //
+                            ////if there is an old exists and new not in database, update old row with new data
+                            //
+                            ////if there is an old exists and new in database and neither match, delete new row and update old row with new data
+                            //
+                            ////if there is an old exists and new in database and they do match by row primary key (EventId), update new in database
+                            //
+                            ////(ignore old:)
+                            ////if old does not exist and new new not in database, add new to database
+                            //
+                            ////(ignore old:)
+                            ////if old does not exist and new exists in database, update new in database
 
-                                    HashSet<FileChange> changesLeftToFind = new HashSet<FileChange>(
-                                        toUpdate.Values
-                                            .Concat(toAdd));
 
-                                    Dictionary<FilePath, long[]> lastPathsFound = new Dictionary<FilePath, long[]>(FilePathComparer.Instance)
+                            // byte definitions:
+                            // 0 = null
+                            // 1 = not in database (EventId == 0)
+                            // 2 = exists in database (EventId > 0)
+
+                            byte oldEventState = (currentMerge.MergeFrom == null
+                                ? (byte)0
+                                : (currentMerge.MergeFrom.EventId > 0
+                                    ? (byte)2
+                                    : (byte)1));
+
+                            byte newEventState = (currentMerge.MergeTo == null
+                                ? (byte)0
+                                : (currentMerge.MergeTo.EventId > 0
+                                    ? (byte)2
+                                    : (byte)1));
+
+                            switch (oldEventState)
+                            {
+                                // old event is null or not null but does not already exist in database
+                                case (byte)0:
+                                case (byte)1: // <-- not in database treated like null for old event
+                                    switch (newEventState)
                                     {
-                                        { rootPathObject, new[] { rootFileSystemObjectId } }
-                                    };
+                                        // 0 for new event is only possible if old event was 1 (null and null are mutually excluded via exceptions above)
+                                        case (byte)0:
+                                            // already not in database, do nothing
+                                            toAdd = null;
+                                            toUpdate = null;
+                                            toDelete = 0;
+                                            break;
 
-                                    bool continueSearching;
-                                    do
+                                        case (byte)1:
+                                            // nothing to delete for the old row since it never existed in database;
+                                            // new row doesn't exist in database so it will be added
+                                            toAdd = currentMerge.MergeTo;
+                                            toUpdate = null;
+                                            toDelete = 0;
+                                            break;
+
+                                        default: //case (byte)2:
+                                            // nothing to delete for old row since it never existeed in database;
+                                            // new row exists in database so update it
+                                            toAdd = null;
+                                            toUpdate = currentMerge.MergeTo;
+                                            toDelete = 0;
+                                            break;
+                                    }
+                                    break;
+
+                                // old event already exists in database
+                                default: //case (byte)2:
+                                    switch (newEventState)
                                     {
-                                        continueSearching = false;
+                                        case (byte)0:
+                                            // old row exists in database but merging it into nothingness, simply delete old row
+                                            toAdd = null;
+                                            toUpdate = null;
+                                            toDelete = currentMerge.MergeFrom.EventId;
+                                            break;
 
-                                        List<long> idsToSearch = new List<long>();
+                                        case (byte)1:
+                                            // old row exists in database and needs to be updated with latest metadata which is not in an existing new row
+                                            currentMerge.MergeTo.EventId = currentMerge.MergeFrom.EventId; // replace merge to event id with the one from the sync from
 
-                                        foreach (FileChange changeLeftToFind in changesLeftToFind)
-                                        {
-                                            long[] idsForPath;
-                                            if (lastPathsFound.TryGetValue(changeLeftToFind.NewPath.Parent, out idsForPath))
+                                            toAdd = null;
+                                            toUpdate = currentMerge.MergeTo;
+                                            toDelete = 0;
+                                            break;
+
+                                        default: //case (byte)2:
+                                            // old row exists in database and a new row exists
+
+                                            // if the rows match, then update the new row only
+                                            if (currentMerge.MergeFrom.EventId == currentMerge.MergeTo.EventId)
                                             {
-                                                continueSearching = true;
-
-                                                idsToSearch.AddRange(idsForPath);
-
-                                                //changesUnderCurrentPath.Add(
+                                                toAdd = null;
+                                                toUpdate = currentMerge.MergeTo;
+                                                toDelete = 0;
                                             }
-
-                                            if (firstSearch && FilePathComparer.Instance.Equals(changeLeftToFind.NewPath.Parent, rootPathObject))
-                                            {
-                                                changesUnderCurrentPath.Add(new KeyValuePair<FileChange, long>(changeLeftToFind, rootFileSystemObjectId));
-                                            }
+                                            // else if the rows do not match, then delete the new row, and put the new metadata in the old row (prefers keeping lowest EventId in database for dependency hierarchy reasons)
                                             else
                                             {
+                                                // set toDelete first since the event Id at the reference we are grabbing is going to be changed in between setting toDelete and toUpdate
 
+                                                toDelete = currentMerge.MergeTo.EventId;
+
+                                                currentMerge.MergeTo.EventId = currentMerge.MergeFrom.EventId; // replace merge to event id with the one from the sync from
+
+                                                toAdd = null;
+                                                toUpdate = currentMerge.MergeTo;
                                             }
-                                        }
+                                            break;
                                     }
-                                    while (continueSearching);
-                                }
+                                    break;
+                            }
 
-                                if (toUpdate.Count > 0)
-                                {
-                                    Dictionary<long, KeyValuePair<FileChange, GenericHolder<bool>>> findOriginal = toUpdate.ToDictionary(currentToUpdate => currentToUpdate.Key,
-                                        currentToUpdate => new KeyValuePair<FileChange, GenericHolder<bool>>(currentToUpdate.Value, new GenericHolder<bool>(false)));
+                            if (toDelete > 0)
+                            {
+                                RemoveEventById(toDelete, castTransaction);
 
-                                    // If any event is not found to update, then it can be added via identity insert to its provided event id key, this list stores those keys
-                                    HashSet<long> missingKeys = new HashSet<long>();
+                                deletedIds.Add(toDelete);
+                            }
 
-                                    // Find the existing event for the given id
-                                    Event[] toModify = SqlAccessor<Event>.SelectResultSet(indexDB,
+                            if (toUpdate != null)
+                            {
+                                FileSystemObject existingRow = SqlAccessor<FileSystemObject>.SelectResultSet(
+                                        castTransaction.sqlConnection,
                                         "SELECT " +
-                                        SqlAccessor<Event>.GetSelectColumns() + ", " +
-                                        SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) + " " +
-                                        "FROM [Events] " +
-                                        "INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
-                                        "WHERE [Events].[EventId] IN (" +
-                                        string.Join(", ", findOriginal.Keys.Select(currentToUpdate => currentToUpdate.ToString()).ToArray()) + ")",
-                                        new string[]
-                                    {
-                                        FileSystemObject.Name
-                                    }).ToArray();
-
-                                    // Record exception if an existing event does not exist
-                                    if (toModify == null
-                                        || !toModify.Any())
-                                    {
-                                        foreach (long missingEventId in findOriginal.Keys)
+                                            SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                                            SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
+                                            SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") +
+                                            " FROM FileSystemObjects" +
+                                            " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
+                                            " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
+                                            " WHERE Events.EventId = ?" + // <-- parameter 1
+                                            " AND FileSystemObjects.ParentFolderId IS NOT NULL" +
+                                            " LIMIT 1",
+                                        new[]
                                         {
-                                            missingKeys.Add(missingEventId);
+                                            "Event",
+                                            "Event.Previous"
+                                        },
+                                        castTransaction.sqlTransaction,
+                                        new[] { (object)((long)toUpdate.EventId) })
+                                    .SingleOrDefault();
 
-                                            //toReturn += new Exception("Unable to find event with id " + missingEventId.ToString() + " to update");
+                                if (existingRow == null)
+                                {
+                                    // couldn't find existing row to update, add a new one instead (will overwrite the EventId)
+                                    toAdd = toUpdate;
+                                }
+                                else
+                                {
+                                    if (existingRow.ParentFolderId == null)
+                                    {
+                                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing FileSystemObject to update did not have a parent folder");
+                                    }
+
+                                    long toUpdateParentFolderId;
+                                    Nullable<long> toUpdatePreviousId;
+
+                                    FilePath previousRowPath = existingRow.CalculatedFullPath;
+                                    if (previousRowPath != null
+                                        && FilePathComparer.Instance.Equals(previousRowPath.Parent, toUpdate.NewPath.Parent))
+                                    {
+                                        toUpdateParentFolderId = (long)existingRow.ParentFolderId;
+                                    }
+                                    else if (!SqlAccessor<object>.TrySelectScalar<long>(
+                                        castTransaction.sqlConnection,
+                                        "SELECT FileSystemObjects.FileSystemObjectId " +
+                                            "FROM FileSystemObjects " +
+                                            "WHERE CalculatedFullPath = ? " + // <-- parameter 1
+                                            "ORDER BY " +
+                                            "CASE WHEN FileSystemObjects.EventId IS NULL " +
+                                            "THEN 0 " +
+                                            "ELSE FileSystemObjects.EventId " +
+                                            "END DESC " +
+                                            "LIMIT 1",
+                                        out toUpdateParentFolderId,
+                                        castTransaction.sqlTransaction,
+                                        selectParameters: new[] { (object)toUpdate.NewPath.Parent.ToString() }))
+                                    {
+                                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject with path of parent folder to use as containing folder");
+                                    }
+
+                                    if (toUpdate.OldPath == null)
+                                    {
+                                        toUpdatePreviousId = null;
+                                    }
+                                    else if (existingRow.Event.Previous == null
+                                        || !FilePathComparer.Instance.Equals(existingRow.Event.Previous.CalculatedFullPath, toUpdate.OldPath))
+                                    {
+                                        long previousIdNotNull;
+
+                                        if (!SqlAccessor<object>.TrySelectScalar<long>(
+                                            castTransaction.sqlConnection,
+                                            "SELECT FileSystemObjects.FileSystemObjectId " +
+                                                "FROM FileSystemObjects " +
+                                                "WHERE CalculatedFullPath = ? " + // <-- parameter 1
+                                                "ORDER BY " +
+                                                "CASE WHEN FileSystemObjects.EventId IS NULL " +
+                                                "THEN 0 " +
+                                                "ELSE FileSystemObjects.EventId " +
+                                                "END DESC " +
+                                                "LIMIT 1",
+                                            result: out previousIdNotNull,
+                                            transaction: castTransaction.sqlTransaction,
+                                            selectParameters: new[] { (object)toUpdate.OldPath.ToString() }))
+                                        {
+                                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject with old path of toUpdate before rename\\move operation");
                                         }
+
+                                        toUpdatePreviousId = previousIdNotNull;
                                     }
                                     else
                                     {
-                                        foreach (Event currentToModify in toModify)
-                                        {
-                                            KeyValuePair<FileChange, GenericHolder<bool>> mergedPair = findOriginal[currentToModify.EventId];
-                                            mergedPair.Value.Value = true;
-                                            FileChange mergedEvent = mergedPair.Key;
-
-                                            // Update database object with latest event properties
-                                            // TODO: add server id
-                                            currentToModify.FileChangeTypeEnumId = changeEnumsBackward[mergedEvent.Type];
-                                            currentToModify.PreviousPath = (mergedEvent.OldPath == null
-                                                ? null
-                                                : mergedEvent.OldPath.ToString());
-                                            currentToModify.FileSystemObject.CreationTime = (mergedEvent.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                                ? (Nullable<DateTime>)null
-                                                : mergedEvent.Metadata.HashableProperties.CreationTime);
-                                            currentToModify.FileSystemObject.IsFolder = mergedEvent.Metadata.HashableProperties.IsFolder;
-                                            currentToModify.FileSystemObject.LastTime = (mergedEvent.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                                ? (Nullable<DateTime>)null
-                                                : mergedEvent.Metadata.HashableProperties.LastTime);
-                                            currentToModify.FileSystemObject.Path = mergedEvent.NewPath.ToString();
-                                            currentToModify.FileSystemObject.Size = mergedEvent.Metadata.HashableProperties.Size;
-                                            currentToModify.FileSystemObject.TargetPath = (mergedEvent.Metadata.LinkTargetPath == null ? null : mergedEvent.Metadata.LinkTargetPath.ToString());
-                                            currentToModify.FileSystemObject.Revision = mergedEvent.Metadata.Revision;
-                                            currentToModify.FileSystemObject.StorageKey = mergedEvent.Metadata.StorageKey;
-                                        }
-
-                                        foreach (KeyValuePair<FileChange, GenericHolder<bool>> mergedPair in findOriginal.Values)
-                                        {
-                                            if (!mergedPair.Value.Value)
-                                            {
-                                                missingKeys.Add(mergedPair.Key.EventId);
-
-                                                //toReturn += new Exception("Unable to find event with id " + mergedPair.Key.EventId.ToString() + " to update");
-                                            }
-                                        }
-
-                                        IEnumerable<int> unableToFindIndexes;
-
-                                        SqlAccessor<Event>.UpdateRows(indexDB,
-                                            toModify,
-                                            out unableToFindIndexes);
-
-                                        if (unableToFindIndexes != null
-                                            && unableToFindIndexes.Any())
-                                        {
-                                            foreach (long missingEventId in
-                                                unableToFindIndexes.Select(currentUnableToFind => toModify[currentUnableToFind].EventId)
-                                                    .Distinct())// Possible to get back multiple Event objects with the same EventId if two or more FileSystemObjects have the same EventId (which is an error)
-                                            {
-                                                missingKeys.Add(missingEventId);
-
-                                                //toReturn += new Exception("Unable to find event with id " + missingEventId.ToString() + " to update");
-                                            }
-                                        }
-
-                                        SqlAccessor<FileSystemObject>.UpdateRows(indexDB,
-                                            toModify.Select(currentToModify => currentToModify.FileSystemObject),
-                                            out unableToFindIndexes);
-
-                                        if (unableToFindIndexes != null)
-                                        {
-                                            foreach (FileSystemObject currentMissingFileSystemObject in unableToFindIndexes.Select(currentUnableToFind => toModify[currentUnableToFind].FileSystemObject))
-                                            {
-                                                if (currentMissingFileSystemObject.EventId == null || !missingKeys.Contains((long)currentMissingFileSystemObject.EventId))
-                                                {
-                                                    toReturn += new Exception("Unable to find file system object with id " + currentMissingFileSystemObject.FileSystemObjectId.ToString() + " to update");
-                                                }
-                                            }
-                                        }
+                                        toUpdatePreviousId = existingRow.Event.PreviousId;
                                     }
 
-                                    if (missingKeys.Count > 0)
+                                    #region update fields in FileSystemObject
+                                    if (toUpdate.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks)
                                     {
-                                        Event[] identityInsertChanges = missingKeys.Select(currentMissingKey => findOriginal[currentMissingKey].Key)
-                                            .Select(identityInsertChange => new KeyValuePair<FileChange, string>(identityInsertChange, identityInsertChange.NewPath.ToString()))
-                                            .Select(identityInsertChange => new Event()
-                                            {
-                                                EventId = identityInsertChange.Key.EventId,
-                                                FileChangeTypeCategoryId = changeCategoryId,
-                                                FileChangeTypeEnumId = changeEnumsBackward[identityInsertChange.Key.Type],
-                                                FileSystemObject = new FileSystemObject()
-                                                {
-                                                    // TODO: add server id
-                                                    EventId = identityInsertChange.Key.EventId,
-                                                    CreationTime = identityInsertChange.Key.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                                        ? (Nullable<DateTime>)null
-                                                        : identityInsertChange.Key.Metadata.HashableProperties.CreationTime,
-                                                    IsFolder = identityInsertChange.Key.Metadata.HashableProperties.IsFolder,
-                                                    LastTime = identityInsertChange.Key.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                                        ? (Nullable<DateTime>)null
-                                                        : identityInsertChange.Key.Metadata.HashableProperties.LastTime,
-                                                    Path = identityInsertChange.Value,
-                                                    Size = identityInsertChange.Key.Metadata.HashableProperties.Size,
-                                                    Revision = identityInsertChange.Key.Metadata.Revision,
-                                                    StorageKey = identityInsertChange.Key.Metadata.StorageKey,
-                                                    TargetPath = (identityInsertChange.Key.Metadata.LinkTargetPath == null ? null : identityInsertChange.Key.Metadata.LinkTargetPath.ToString()),
-                                                    SyncCounter = null,
-                                                    ServerLinked = false,
+                                        existingRow.CreationTimeUTCTicks = null;
+                                    }
+                                    else
+                                    {
+                                        DateTime creationTimeUTC = toUpdate.Metadata.HashableProperties.CreationTime.ToUniversalTime();
 
-                                                    // SQL CE does not support computed columns, so no "AS CHECKSUM(Path)"
-                                                    PathChecksum = StringCRC.Crc(identityInsertChange.Value)
-                                                },
-                                                PreviousPath = (identityInsertChange.Key.OldPath == null
-                                                    ? null
-                                                    : identityInsertChange.Key.OldPath.ToString()),
-                                                SyncFrom = (identityInsertChange.Key.Direction == SyncDirection.From)
-                                            }).ToArray();
+                                        existingRow.CreationTimeUTCTicks = (creationTimeUTC.Ticks == FileConstants.InvalidUtcTimeTicks
+                                            ? (Nullable<long>)null
+                                            : creationTimeUTC.Ticks);
+                                    }
+                                    existingRow.EventTimeUTCTicks = DateTime.UtcNow.Ticks;
+                                    existingRow.IsFolder = toUpdate.Metadata.HashableProperties.IsFolder;
+                                    existingRow.IsShare = toUpdate.Metadata.IsShare;
+                                    if (toUpdate.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks)
+                                    {
+                                        existingRow.LastTimeUTCTicks = null;
+                                    }
+                                    else
+                                    {
+                                        DateTime lastTimeUTC = toUpdate.Metadata.HashableProperties.LastTime.ToUniversalTime();
 
-                                        SqlAccessor<Event>.InsertRows(indexDB,
-                                            identityInsertChanges,
-                                            identityInsert: true);
+                                        existingRow.LastTimeUTCTicks = (lastTimeUTC.Ticks == FileConstants.InvalidUtcTimeTicks
+                                            ? (Nullable<long>)null
+                                            : lastTimeUTC.Ticks);
+                                    }
+                                    byte[] getMD5;
+                                    CLError getMD5Error = toUpdate.GetMD5Bytes(out getMD5);
+                                    if (getMD5Error != null)
+                                    {
+                                        throw new AggregateException("Error retrieving MD5 bytes from toUpdate", getMD5Error.GrabExceptions());
+                                    }
+                                    existingRow.MD5 = getMD5;
+                                    existingRow.MimeType = toUpdate.Metadata.MimeType;
+                                    existingRow.Name = toUpdate.NewPath.Name;
+                                    existingRow.ParentFolderId = toUpdateParentFolderId;
+                                    //existingRow.Pending = true; // <-- true on insert, no need to update here
+                                    existingRow.Permissions = (toUpdate.Metadata.Permissions == null
+                                        ? (Nullable<int>)null
+                                        : (int)((POSIXPermissions)toUpdate.Metadata.Permissions));
+                                    existingRow.Revision = toUpdate.Metadata.Revision;
+                                    //existingRow.ServerName // <-- add support for server name
+                                    existingRow.ServerUid = toUpdate.Metadata.ServerUid;
+                                    existingRow.Size = toUpdate.Metadata.HashableProperties.Size;
+                                    existingRow.StorageKey = toUpdate.Metadata.StorageKey;
+                                    existingRow.Version = toUpdate.Metadata.Version;
+                                    #endregion
 
-                                        SqlAccessor<FileSystemObject>.InsertRows(indexDB,
-                                            identityInsertChanges.Select(identityInsertChange => identityInsertChange.FileSystemObject));
+                                    #region update fields in Event
+                                    //existingRow.Event.FileChangeTypeCategoryId = changeCategoryId; // <-- changeCategoryId on insert, no need to update here
+                                    existingRow.Event.FileChangeTypeEnumId = changeEnumsBackward[toUpdate.Type];
+                                    existingRow.Event.PreviousId = toUpdatePreviousId;
+                                    existingRow.Event.SyncFrom = (toUpdate.Direction == SyncDirection.From);
+                                    #endregion
+
+                                    if (!SqlAccessor<Event>.UpdateRow(castTransaction.sqlConnection, existingRow.Event, castTransaction.sqlTransaction))
+                                    {
+                                        toAdd = toUpdate;
+                                    }
+                                    if (!SqlAccessor<FileSystemObject>.UpdateRow(castTransaction.sqlConnection, existingRow, castTransaction.sqlTransaction))
+                                    {
+                                        toAdd = toUpdate;
                                     }
                                 }
 
-                                if (toAdd.Count > 0)
-                                {
-                                    CLError addError = AddEvents(toAdd, true);
+                                updatedIds.Add(toUpdate.EventId);
+                            }
 
-                                    if (addError != null)
-                                    {
-                                        toReturn += new AggregateException("Error in adding events", addError.GrabExceptions());
-                                    }
-                                }
+                            if (toAdd != null)
+                            {
+                                AddEvents(new[] { toAdd }, castTransaction);
                             }
                         }
-                        finally
+                        catch (Exception ex)
                         {
-                            if (!alreadyObtainedLock)
-                            {
-                                ExternalSQLLocker.ExitReadLock();
-                            }
+                            toReturn += ex;
                         }
                     }
 
@@ -1830,16 +2207,26 @@ namespace Cloud.SQLIndexer
                         // If mergedEvent was not processed in AddEvents,
                         // then process badging (AddEvents processes badging for the rest)
                         if (currentMergeToFrom.MergeTo == null
-                            || toUpdate.ContainsKey(currentMergeToFrom.MergeTo.EventId)
-                            || toDelete.Contains(currentMergeToFrom.MergeTo.EventId))
+                            || updatedIds.Contains(currentMergeToFrom.MergeTo.EventId)
+                            || deletedIds.Contains(currentMergeToFrom.MergeTo.EventId))
                         {
                             MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
                         }
                     }
                 }
-                catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                toReturn += ex;
+            }
+            finally
+            {
+                if (!inputTransactionSet
+                    && castTransaction != null)
                 {
-                    toReturn += ex;
+                    castTransaction.Commit();
+
+                    castTransaction.Dispose();
                 }
             }
             return toReturn;
@@ -2153,6 +2540,9 @@ namespace Cloud.SQLIndexer
 
                         if (existingVersion < 2)
                         {
+                            // database was never finalized (version is changed from 1 to [current database version] via the last initialization script, which identifies successful creation)
+                            // the very first implementation of this database will be version 2 so we can compare on less than 2
+
                             createDB = true;
                             deleteDB = true;
                         }
@@ -2492,297 +2882,130 @@ namespace Cloud.SQLIndexer
                     LastSyncLocker.ExitWriteLock();
                 }
 
-                // Create mappings so we can find the previous paths for rename events
-                Dictionary<long, FilePath> objectIdsToFullPath = new Dictionary<long, FilePath>();
+                Dictionary<long, string> objectIdsToFullPath = new Dictionary<long, string>();
+                SortedDictionary<KeyValuePair<bool, long>, FileSystemObject> sortedFileSystemObjects = new SortedDictionary<KeyValuePair<bool, long>, FileSystemObject>(pendingThenIdComparer.Instance);
 
-                // Pull all non-pending objects to use as starting index before calculating changes to apply
-                // Store as dictionary by ParentFolderId so that full paths can be rebuilt from the root to the deepest inner directories and files
-
-                FileSystemObject rootFolderObject = null;
-                Dictionary<long, List<FileSystemObject>> parentIdsToObjects = new Dictionary<long, List<FileSystemObject>>();
-
-                // Loop through non-pendings
-                foreach (FileSystemObject currentNonPending in SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
-                    "SELECT * FROM FileSystemObjects WHERE FileSystemObjects.Pending = 0"))
+                foreach (FileSystemObject combinedPendingNonPending in SqlAccessor<FileSystemObject>.SelectResultSet(
+                    indexDB,
+                    "SELECT " +
+                        SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event") + ", " +
+                        SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents") +
+                        " FROM FileSystemObjects" +
+                        " LEFT OUTER JOIN Events ON " +
+                        "(" +
+                        "  FileSystemObjects.EventId = Events.EventId" +
+                        "  AND FileSystemObjects.Pending = 1" +
+                        ")" +
+                        " LEFT OUTER JOIN FileSystemObjects Parents ON " +
+                        "(" +
+                        "  FileSystemObjects.ParentFolderId = Parents.FileSystemObjectId" +
+                        "  AND FileSystemObjects.Pending = 1" +
+                        ")",
+                    new[] { "Event", "Parent" }))
                 {
-                    if (currentNonPending.ParentFolderId == null)
+                    if (combinedPendingNonPending.ParentFolderId == null)
                     {
-                        if (rootFolderObject != null)
+                        // set the root metadata
+                        combinedIndexPlusChanges[null] = indexPaths[null] = new FileMetadata()
                         {
-                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "More than one non-pending FileSystemObject found with a null ParentFolderId. This should represent at most one single root folder object.");
-                        }
-
-                        rootFileSystemObjectId = (rootFolderObject = currentNonPending).FileSystemObjectId;
+                            EventTime = new DateTime(0, DateTimeKind.Utc),
+                            HashableProperties = new FileMetadataHashableProperties(
+                                isFolder: true,
+                                lastTime: null,
+                                creationTime: null,
+                                size: null),
+                            ServerUid = combinedPendingNonPending.ServerUid
+                        };
                     }
                     else
                     {
-                        List<FileSystemObject> existingObjectsAtParentId;
-                        if (!parentIdsToObjects.TryGetValue((long)currentNonPending.ParentFolderId, out existingObjectsAtParentId))
-                        {
-                            parentIdsToObjects.Add((long)currentNonPending.ParentFolderId, existingObjectsAtParentId = new List<FileSystemObject>());
-                        }
-
-                        existingObjectsAtParentId.Add(currentNonPending);
+                        objectIdsToFullPath.Add(combinedPendingNonPending.FileSystemObjectId, combinedPendingNonPending.CalculatedFullPath);
+                        sortedFileSystemObjects.Add(
+                            new KeyValuePair<bool, long>(combinedPendingNonPending.Pending, combinedPendingNonPending.FileSystemObjectId),
+                                combinedPendingNonPending);
                     }
                 }
-
-                if (rootFolderObject == null)
-                {
-                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "FileSystemObject with a null ParentFolderId not found as not pending");
-                }
-
-                // set the root metadata
-                combinedIndexPlusChanges[null] = indexPaths[null] = new FileMetadata()
-                {
-                    EventTime = new DateTime(rootFolderObject.EventTimeUTCTicks, DateTimeKind.Utc),
-                    HashableProperties = new FileMetadataHashableProperties(
-                        isFolder: rootFolderObject.IsFolder,
-                        lastTime: null,
-                        creationTime: null,
-                        size: null),
-                    ServerUid = rootFolderObject.ServerUid
-                };
-
-                // no reason to store the path of the root object in objectIdsToFullPath since a rename's PreviousId should never point to the root
-
-                BuildIndex_navigatePathsFromRoot navigatePathsFromRoot =
-                    delegate (Dictionary<long, List<FileSystemObject>> innerExistingObjects,
-                        FilePath parentPath,
-                        long parentId,
-                        FilePathDictionary<FileMetadata> innerIndexPaths,
-                        FilePathDictionary<FileMetadata> innerCombinedIndexPlusChanges,
-                        Dictionary<long, FilePath> innerObjectIdsToFullPath,
-                        BuildIndex_navigatePathsFromRoot thisAction)
-                    {
-                        List<FileSystemObject> currentChildren;
-                        if (innerExistingObjects.TryGetValue(parentId, out currentChildren))
-                        {
-                            foreach (FileSystemObject currentChild in currentChildren)
-                            {
-                                FileMetadata currentToAdd = new FileMetadata()
-                                {
-                                    EventTime = new DateTime(currentChild.EventTimeUTCTicks, DateTimeKind.Utc),
-                                    HashableProperties = new FileMetadataHashableProperties(
-                                        isFolder: currentChild.IsFolder,
-                                        lastTime: (currentChild.LastTimeUTCTicks == null
-                                            ? (Nullable<DateTime>)null
-                                            : new DateTime((long)currentChild.LastTimeUTCTicks, DateTimeKind.Utc)),
-                                        creationTime: (currentChild.CreationTimeUTCTicks == null
-                                            ? (Nullable<DateTime>)null
-                                            : new DateTime((long)currentChild.CreationTimeUTCTicks, DateTimeKind.Utc)),
-                                        size: currentChild.Size),
-                                    IsShare = currentChild.IsShare,
-                                    MimeType = currentChild.MimeType,
-                                    Permissions = (currentChild.Permissions == null ? (Nullable<POSIXPermissions>)null : (POSIXPermissions)((int)currentChild.Permissions)),
-                                    Revision = currentChild.Revision,
-                                    ServerUid = currentChild.ServerUid,
-                                    StorageKey = currentChild.StorageKey,
-                                    Version = currentChild.Version
-                                };
-
-                                FilePath currentPath = new FilePath(currentChild.Name, parentPath.Copy());
-                                indexPaths.Add(currentPath, currentToAdd);
-                                combinedIndexPlusChanges.Add(currentPath, currentToAdd);
-
-                                innerObjectIdsToFullPath[currentChild.FileSystemObjectId] = currentPath;
-
-                                thisAction(
-                                    innerExistingObjects: innerExistingObjects,
-                                    parentPath: currentPath,
-                                    parentId: currentChild.FileSystemObjectId,
-                                    innerIndexPaths: innerIndexPaths,
-                                    innerCombinedIndexPlusChanges: innerCombinedIndexPlusChanges,
-                                    innerObjectIdsToFullPath: innerObjectIdsToFullPath,
-                                    thisAction: thisAction);
-                            }
-                        }
-                    };
-
-                navigatePathsFromRoot(
-                    innerExistingObjects: parentIdsToObjects,
-                    parentPath: baseComparePath,
-                    parentId: rootFolderObject.FileSystemObjectId,
-                    innerIndexPaths: indexPaths,
-                    innerCombinedIndexPlusChanges: combinedIndexPlusChanges,
-                    innerObjectIdsToFullPath: objectIdsToFullPath,
-                    thisAction: navigatePathsFromRoot);
-
-                Dictionary<long, List<Event>> parentIdsToEvents = new Dictionary<long, List<Event>>();
-
-                // Loop through pendings
-                foreach (Event currentPending in SqlAccessor<Event>.SelectResultSet(
-                    indexDB,
-                    "SELECT " +
-                    SqlAccessor<Event>.GetSelectColumns() + ", " +
-                    SqlAccessor<FileSystemObject>.GetSelectColumns(Constants.FileSystemObjectName) +
-                    " FROM Events" +
-                    " INNER JOIN FileSystemObjects ON Events.EventId = FileSystemObjects.EventId" +
-                    " WHERE FileSystemObjects.Pending = 1" +
-                    " AND FileSystemObjects.ParentFolderId IS NOT NULL"))
-                {
-                    if (currentPending.FileSystemObject == null)
-                    {
-                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Query should have been an inner join on FileSystemObjects, but a row was joined without it");
-                    }
-                    if (currentPending.FileSystemObject.ParentFolderId == null)
-                    {
-                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Query should have excluded null ParentFolderIds, but one exists anyways");
-                    }
-
-                    List<Event> existingEventsAtParentId;
-                    if (!parentIdsToEvents.TryGetValue((long)currentPending.FileSystemObject.ParentFolderId, out existingEventsAtParentId))
-                    {
-                        parentIdsToEvents.Add((long)currentPending.FileSystemObject.ParentFolderId, existingEventsAtParentId = new List<Event>());
-                    }
-
-                    existingEventsAtParentId.Add(currentPending);
-                }
-
-                BuildIndex_navigateEventsFromRoot navigateEventsFromRoot =
-                    delegate(Dictionary<long, List<FileSystemObject>> innerExistingObjects,
-                        Dictionary<long, List<Event>> innerPendingEvents,
-                        FilePath parentPath,
-                        long parentId,
-                        List<FileChange> innerPendingsWithSyncCounter,
-                        List<FileChange> innerPendingsWithoutSyncCounter,
-                        Dictionary<long, FilePath> innerObjectIdsToFullPath,
-                        List<KeyValuePair<FileChange, long>> innerRenameChangesToPreviousId,
-                        BuildIndex_navigateEventsFromRoot thisAction)
-                    {
-                        List<Event> pendingsAtParentId;
-                        if (innerPendingEvents.TryGetValue(parentId, out pendingsAtParentId))
-                        {
-                            foreach (Event currentChild in pendingsAtParentId)
-                            {
-                                // already checked that each event has a FileSystemObject
-
-                                FilePath currentPath = new FilePath(currentChild.FileSystemObject.Name, parentPath.Copy());
-
-                                FileChange currentChange = new FileChange()
-                                {
-                                    Direction = (currentChild.SyncFrom ? SyncDirection.From : SyncDirection.To),
-                                    EventId = currentChild.EventId,
-                                    Metadata = new FileMetadata()
-                                        {
-                                            EventTime = new DateTime(currentChild.FileSystemObject.EventTimeUTCTicks, DateTimeKind.Utc),
-                                            HashableProperties = new FileMetadataHashableProperties(
-                                                isFolder: currentChild.FileSystemObject.IsFolder,
-                                                lastTime: (currentChild.FileSystemObject.LastTimeUTCTicks == null
-                                                    ? (Nullable<DateTime>)null
-                                                    : new DateTime((long)currentChild.FileSystemObject.LastTimeUTCTicks, DateTimeKind.Utc)),
-                                                creationTime: (currentChild.FileSystemObject.CreationTimeUTCTicks == null
-                                                    ? (Nullable<DateTime>)null
-                                                    : new DateTime((long)currentChild.FileSystemObject.CreationTimeUTCTicks, DateTimeKind.Utc)),
-                                                size: currentChild.FileSystemObject.Size),
-                                            IsShare = currentChild.FileSystemObject.IsShare,
-                                            MimeType = currentChild.FileSystemObject.MimeType,
-                                            Permissions = (currentChild.FileSystemObject.Permissions == null ? (Nullable<POSIXPermissions>)null : (POSIXPermissions)((int)currentChild.FileSystemObject.Permissions)),
-                                            Revision = currentChild.FileSystemObject.Revision,
-                                            ServerUid = currentChild.FileSystemObject.ServerUid,
-                                            StorageKey = currentChild.FileSystemObject.StorageKey,
-                                            Version = currentChild.FileSystemObject.Version
-                                        },
-                                    NewPath = currentPath,
-                                    /* OldPath will get set afterwards via innerRenameChangesToPreviousId */
-                                    Type = changeEnums[currentChild.FileChangeTypeEnumId]
-                                };
-
-                                if (currentChild.FileSystemObject.MD5 != null)
-                                {
-                                    CLError setCurrentChangeMD5Error = currentChange.SetMD5(currentChild.FileSystemObject.MD5);
-                                    if (setCurrentChangeMD5Error != null)
-                                    {
-                                        throw new AggregateException("Error setting currentChange MD5", setCurrentChangeMD5Error.GrabExceptions());
-                                    }
-                                }
-
-                                (currentChild.FileSystemObject.SyncCounter == null
-                                        ? innerPendingsWithoutSyncCounter
-                                        : innerPendingsWithSyncCounter)
-                                    .Add(currentChange);
-
-                                if (currentChild.PreviousId != null)
-                                {
-                                    innerRenameChangesToPreviousId.Add(new KeyValuePair<FileChange, long>(currentChange, (long)currentChild.PreviousId));
-                                }
-
-                                innerObjectIdsToFullPath[currentChild.FileSystemObject.FileSystemObjectId] = currentPath;
-
-                                thisAction(
-                                    innerExistingObjects: innerExistingObjects,
-                                    innerPendingEvents: innerPendingEvents,
-                                    parentPath: currentPath,
-                                    parentId: currentChild.FileSystemObject.FileSystemObjectId,
-                                    innerPendingsWithSyncCounter: innerPendingsWithSyncCounter,
-                                    innerPendingsWithoutSyncCounter: innerPendingsWithoutSyncCounter,
-                                    innerObjectIdsToFullPath: innerObjectIdsToFullPath,
-                                    innerRenameChangesToPreviousId: innerRenameChangesToPreviousId,
-                                    thisAction: thisAction);
-                            }
-                        }
-
-                        List<FileSystemObject> existingsAtParentId;
-                        if (innerExistingObjects.TryGetValue(parentId, out existingsAtParentId))
-                        {
-                            foreach (FileSystemObject currentChild in existingsAtParentId)
-                            {
-                                FilePath currentPath = new FilePath(currentChild.Name, parentPath.Copy());
-
-                                thisAction(
-                                    innerExistingObjects: innerExistingObjects,
-                                    innerPendingEvents: innerPendingEvents,
-                                    parentPath: currentPath,
-                                    parentId: currentChild.FileSystemObjectId,
-                                    innerPendingsWithSyncCounter: innerPendingsWithSyncCounter,
-                                    innerPendingsWithoutSyncCounter: innerPendingsWithoutSyncCounter,
-                                    innerObjectIdsToFullPath: innerObjectIdsToFullPath,
-                                    innerRenameChangesToPreviousId: innerRenameChangesToPreviousId,
-                                    thisAction: thisAction);
-                            }
-                        }
-                    };
 
                 List<FileChange> pendingsWithSyncCounter = new List<FileChange>();
                 List<FileChange> pendingsWithoutSyncCounter = new List<FileChange>();
-                List<KeyValuePair<FileChange, long>> renameChangesToPreviousId = new List<KeyValuePair<FileChange, long>>();
 
-                navigateEventsFromRoot(
-                    innerExistingObjects: parentIdsToObjects,
-                    innerPendingEvents: parentIdsToEvents,
-                    parentPath: baseComparePath,
-                    parentId: rootFolderObject.FileSystemObjectId,
-                    innerPendingsWithSyncCounter: pendingsWithSyncCounter,
-                    innerPendingsWithoutSyncCounter: pendingsWithoutSyncCounter,
-                    innerObjectIdsToFullPath: objectIdsToFullPath,
-                    innerRenameChangesToPreviousId: renameChangesToPreviousId,
-                    thisAction: navigateEventsFromRoot);
-
-                foreach (KeyValuePair<FileChange, long> renameToPreviousId in renameChangesToPreviousId)
+                foreach (KeyValuePair<KeyValuePair<bool, long>, FileSystemObject> currentObject in sortedFileSystemObjects)
                 {
-                    FilePath pullPathById;
-                    if (objectIdsToFullPath.TryGetValue(renameToPreviousId.Value, out pullPathById))
+                    if (currentObject.Key.Key) // true for pending
                     {
-                        renameToPreviousId.Key.OldPath = pullPathById.Copy();
+                        FileChange currentChange = new FileChange()
+                        {
+                            Direction = (currentObject.Value.Event.SyncFrom ? SyncDirection.From : SyncDirection.To),
+                            EventId = currentObject.Value.Event.EventId,
+                            Metadata = new FileMetadata()
+                                {
+                                    EventTime = new DateTime(currentObject.Value.EventTimeUTCTicks, DateTimeKind.Utc),
+                                    HashableProperties = new FileMetadataHashableProperties(
+                                        isFolder: currentObject.Value.IsFolder,
+                                        lastTime: (currentObject.Value.LastTimeUTCTicks == null
+                                            ? (Nullable<DateTime>)null
+                                            : new DateTime((long)currentObject.Value.LastTimeUTCTicks, DateTimeKind.Utc)),
+                                        creationTime: (currentObject.Value.CreationTimeUTCTicks == null
+                                            ? (Nullable<DateTime>)null
+                                            : new DateTime((long)currentObject.Value.CreationTimeUTCTicks, DateTimeKind.Utc)),
+                                        size: currentObject.Value.Size),
+                                    IsShare = currentObject.Value.IsShare,
+                                    MimeType = currentObject.Value.MimeType,
+                                    Permissions = (currentObject.Value.Permissions == null ? (Nullable<POSIXPermissions>)null : (POSIXPermissions)((int)currentObject.Value.Permissions)),
+                                    Revision = currentObject.Value.Revision,
+                                    ServerUid = currentObject.Value.ServerUid,
+                                    ParentFolderServerUid = (currentObject.Value.Parent == null ? null : currentObject.Value.Parent.ServerUid),
+                                    StorageKey = currentObject.Value.StorageKey,
+                                    Version = currentObject.Value.Version
+                                },
+                            NewPath = currentObject.Value.CalculatedFullPath,
+                            OldPath = (currentObject.Value.Event.PreviousId == null
+                                ? null
+                                : objectIdsToFullPath[(long)currentObject.Value.Event.PreviousId]),
+                            Type = changeEnums[currentObject.Value.Event.FileChangeTypeEnumId]
+                        };
+
+                        CLError setCurrentChangeMD5Error = currentChange.SetMD5(currentObject.Value.MD5);
+                        if (setCurrentChangeMD5Error != null)
+                        {
+                            throw new AggregateException("Error setting currentChange MD5", setCurrentChangeMD5Error.GrabExceptions());
+                        }
+
+                        (currentObject.Value.SyncCounter == null
+                                ? pendingsWithoutSyncCounter
+                                : pendingsWithSyncCounter)
+                            .Add(currentChange);
+                    }
+                    else
+                    {
+                        FileMetadata currentToAdd = new FileMetadata()
+                        {
+                            EventTime = new DateTime(currentObject.Value.EventTimeUTCTicks, DateTimeKind.Utc),
+                            HashableProperties = new FileMetadataHashableProperties(
+                                isFolder: currentObject.Value.IsFolder,
+                                lastTime: (currentObject.Value.LastTimeUTCTicks == null
+                                    ? (Nullable<DateTime>)null
+                                    : new DateTime((long)currentObject.Value.LastTimeUTCTicks, DateTimeKind.Utc)),
+                                creationTime: (currentObject.Value.CreationTimeUTCTicks == null
+                                    ? (Nullable<DateTime>)null
+                                    : new DateTime((long)currentObject.Value.CreationTimeUTCTicks, DateTimeKind.Utc)),
+                                size: currentObject.Value.Size),
+                            IsShare = currentObject.Value.IsShare,
+                            MimeType = currentObject.Value.MimeType,
+                            Permissions = (currentObject.Value.Permissions == null ? (Nullable<POSIXPermissions>)null : (POSIXPermissions)((int)currentObject.Value.Permissions)),
+                            Revision = currentObject.Value.Revision,
+                            ServerUid = currentObject.Value.ServerUid,
+                            ParentFolderServerUid = (currentObject.Value.Parent == null ? null : currentObject.Value.Parent.ServerUid),
+                            StorageKey = currentObject.Value.StorageKey,
+                            Version = currentObject.Value.Version
+                        };
+
+                        FilePath currentPath = currentObject.Value.CalculatedFullPath;
+                        indexPaths.Add(currentPath, currentToAdd);
+                        combinedIndexPlusChanges.Add(currentPath, currentToAdd);
                     }
                 }
-
-                Comparison<FileChange> eventIdAscending = new Comparison<FileChange>(delegate(FileChange first, FileChange second)
-                    {
-                        if (first.EventId > second.EventId)
-                        {
-                            return 1;
-                        }
-
-                        if (first.EventId < second.EventId)
-                        {
-                            return -1;
-                        }
-
-                        return 0;
-                    });
-
-                pendingsWithSyncCounter.Sort(eventIdAscending);
-                pendingsWithoutSyncCounter.Sort(eventIdAscending);
 
                 // Create a list for pending changes which need to be processed
                 List<FileChange> changeList = new List<FileChange>();
@@ -2878,13 +3101,25 @@ namespace Cloud.SQLIndexer
                         .Except(recursedIndexes,
                             StringComparer.InvariantCulture))
                 {
-                    // For the path that existed previously in the index but is no longer found on disc, process as a deletion
                     FilePath deletedPathObject = deletedPath;
+
+                    FileMetadata parentFolderMetadata;
+                    string parentFolderServerUid;
+                    if (combinedIndexPlusChanges.TryGetValue(deletedPathObject.Parent, out parentFolderMetadata))
+                    {
+                        parentFolderServerUid = parentFolderMetadata.ServerUid;
+                    }
+                    else
+                    {
+                        parentFolderServerUid = null;
+                    }
+
+                    // For the path that existed previously in the index but is no longer found on disc, process as a deletion
                     possibleDeletions.Add(new FileChange()
                     {
                         NewPath = deletedPath,
                         Type = FileChangeType.Deleted,
-                        Metadata = indexPaths[deletedPath],
+                        Metadata = indexPaths[deletedPathObject],
                         Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                     });
                     pathDeletions.Remove(deletedPath);
@@ -2929,16 +3164,35 @@ namespace Cloud.SQLIndexer
             }
         }
         /// <summary>
-        /// Used to navigate through a dictionary of parent ids to FileSystemObjects recursively to get full path at each node from the root to the deepest inner folder or file
+        /// bool in KeyValuePair Key should be true for pending, the long Value should be the FileSystemObjectId;
+        /// use in a SortedList or SortedDictionary should give all non-pendings first then all pendings; within each group, they are ascending sorted by id
         /// </summary>
-        /// <param name="innerExistingObjects">Dictionary mapping parent ids to FileSystemObjects under that parent</param>
-        /// <param name="parentPath">Full path corresponding to the current parent to search under</param>
-        /// <param name="parentId">Id of the current parent to search under (used as the key to the innerExistingObject dictionary)</param>
-        /// <param name="innerIndexPaths">First dictionary to store the built FileMetadata objects by the path recurse-built from the root</param>
-        /// <param name="innerCombinedIndexPlusChanges">Second dictionary to store the built FileMetadata objects by the path recurse-built from the root</param>
-        /// <param name="thisAction">The same delegate which will be called for recursion</param>
-        private delegate void BuildIndex_navigatePathsFromRoot(Dictionary<long, List<FileSystemObject>> innerExistingObjects, FilePath parentPath, long parentId, FilePathDictionary<FileMetadata> innerIndexPaths, FilePathDictionary<FileMetadata> innerCombinedIndexPlusChanges, Dictionary<long, FilePath> innerObjectIdsToFullPath, BuildIndex_navigatePathsFromRoot thisAction);
-        private delegate void BuildIndex_navigateEventsFromRoot(Dictionary<long, List<FileSystemObject>> innerExistingObjects, Dictionary<long, List<Event>> innerPendingEvents, FilePath parentPath, long parentId, List<FileChange> innerPendingsWithSyncCounter, List<FileChange> innerPendingsWithoutSyncCounter, Dictionary<long, FilePath> innerObjectIdsToFullPath, List<KeyValuePair<FileChange, long>> innerRenameChangesToPreviousId, BuildIndex_navigateEventsFromRoot thisAction);
+        private class pendingThenIdComparer : IComparer<KeyValuePair<bool, long>>
+        {
+            public static pendingThenIdComparer Instance = new pendingThenIdComparer();
+
+            private pendingThenIdComparer() { }
+
+            int IComparer<KeyValuePair<bool, long>>.Compare(KeyValuePair<bool, long> x, KeyValuePair<bool, long> y)
+            {
+                if (x.Key == y.Key)
+                {
+                    return (x.Value == y.Value
+                        ? 0
+                        : (x.Value > y.Value
+                            ? 1
+                            : -1));
+                }
+                else if (x.Key)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return -1;
+                }
+            }
+        }
 
         // Define comparer to use locally for file/folder metadata
         private static FileMetadataHashableComparer fileComparer = new FileMetadataHashableComparer();
@@ -3049,9 +3303,21 @@ namespace Cloud.SQLIndexer
                     if (hierarchyError == null
                         && existingHierarchy == null)
                     {
+                        FileMetadata parentFolderMetadata;
+                        string parentFolderServerUid;
+                        if (combinedIndexPlusChanges.TryGetValue(subDirectoryPathObject.Parent, out parentFolderMetadata))
+                        {
+                            parentFolderServerUid = parentFolderMetadata.ServerUid;
+                        }
+                        else
+                        {
+                            parentFolderServerUid = null;
+                        }
+
                         FileMetadata newDirectoryMetadata = new FileMetadata()
                             {
-                                HashableProperties = compareProperties
+                                HashableProperties = compareProperties,
+                                ParentFolderServerUid = parentFolderServerUid
                             };
 
                         changeList.Add(new FileChange()
@@ -3101,11 +3367,23 @@ namespace Cloud.SQLIndexer
                         // If the file has changed (different metadata), then process a file modification change
                         if (!fileComparer.Equals(compareProperties, existingFileMetadata.HashableProperties))
                         {
+                            FileMetadata parentFolderMetadata;
+                            string parentFolderServerUid;
+                            if (combinedIndexPlusChanges.TryGetValue(currentFilePathObject.Parent, out parentFolderMetadata))
+                            {
+                                parentFolderServerUid = parentFolderMetadata.ServerUid;
+                            }
+                            else
+                            {
+                                parentFolderServerUid = null;
+                            }
+
                             FileMetadata modifiedMetadata = new FileMetadata()
                                 {
                                     ServerUid = existingFileMetadata.ServerUid,
                                     HashableProperties = compareProperties,
-                                    Revision = existingFileMetadata.Revision/*,
+                                    Revision = existingFileMetadata.Revision,
+                                    ParentFolderServerUid = parentFolderServerUid/*,
                                     StorageKey = existingFileMetadata.StorageKey*/ // DO NOT copy StorageKey because this metadata is for a modified change which would therefore require a new StorageKey
                                 };
 
@@ -3123,9 +3401,21 @@ namespace Cloud.SQLIndexer
                     // else if index doesn't contain the current path, then the file has been created
                     else
                     {
+                        FileMetadata parentFolderMetadata;
+                        string parentFolderServerUid;
+                        if (combinedIndexPlusChanges.TryGetValue(currentFilePathObject.Parent, out parentFolderMetadata))
+                        {
+                            parentFolderServerUid = parentFolderMetadata.ServerUid;
+                        }
+                        else
+                        {
+                            parentFolderServerUid = null;
+                        }
+
                         FileMetadata fileCreatedMetadata = new FileMetadata()
                             {
-                                HashableProperties = compareProperties//,
+                                HashableProperties = compareProperties,
+                                ParentFolderServerUid = parentFolderServerUid//,
                                 //LinkTargetPath = //Todo: needs to read target path
                             };
 
@@ -3241,6 +3531,116 @@ namespace Cloud.SQLIndexer
                     ExternalSQLLocker.Dispose();
                 }
             }
+        }
+        #endregion
+
+        #region SQLTransactionalBase implementation
+        private sealed class SQLTransactionalImplementation : SQLTransactionalBase
+        {
+            public readonly ISQLiteConnection sqlConnection;
+            public readonly ISQLiteTransaction sqlTransaction;
+
+            private readonly GenericHolder<bool> transactionCommitted;
+
+            public SQLTransactionalImplementation(ISQLiteConnection sqlConnection, ISQLiteTransaction sqlTransaction)
+            {
+                this.sqlConnection = sqlConnection;
+                this.sqlTransaction = sqlTransaction;
+                if (sqlTransaction != null)
+                {
+                    transactionCommitted = new GenericHolder<bool>(false);
+                }
+            }
+
+            #region SQLTransactionalBase overrides
+            public override void Commit()
+            {
+                base.CheckDisposed();
+
+                if (sqlTransaction != null)
+                {
+                    lock (transactionCommitted)
+                    {
+                        if (transactionCommitted.Value)
+                        {
+                            throw new NotSupportedException("Cannot commit same database transaction more than once");
+                        }
+
+                        sqlTransaction.Commit();
+
+                        transactionCommitted.Value = true;
+                    }
+                }
+            }
+
+            protected override bool _disposed
+            {
+                get
+                {
+                    return _localDisposed;
+                }
+            }
+            private bool _localDisposed = false;
+
+            protected override void Dispose(bool disposing)
+            {
+                // Check to see if Dispose has already been called. 
+                if (!this._localDisposed)
+                {
+                    // If disposing equals true, dispose all managed 
+                    // and unmanaged resources. 
+                    if (disposing)
+                    {
+                        // Dispose managed resources.
+                        if (sqlTransaction != null)
+                        {
+                            lock (transactionCommitted)
+                            {
+                                if (!transactionCommitted.Value)
+                                {
+                                    try
+                                    {
+                                        sqlTransaction.Rollback();
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+                            }
+
+                            try
+                            {
+                                sqlTransaction.Dispose();
+                            }
+                            catch
+                            {
+                            }
+                        }
+
+                        if (sqlConnection != null)
+                        {
+                            try
+                            {
+                                sqlConnection.Dispose();
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+
+                    // Call the appropriate methods to clean up 
+                    // unmanaged resources here. 
+                    // If disposing is false, 
+                    // only the following code is executed.
+
+                    /* [ My code here ] */
+
+                    // Note disposing has been done.
+                    this._localDisposed = true;
+                }
+            }
+            #endregion
         }
         #endregion
     }

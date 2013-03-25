@@ -78,6 +78,48 @@ namespace Cloud.SQLIndexer.SqlModel
         #endregion
 
         #region public static methods
+        public static bool TrySelectScalar<TKey>(ISQLiteConnection connection, string select, out TKey result, ISQLiteTransaction transaction = null, object[] selectParameters = null)
+        {
+            using (ISQLiteCommand scalarCommand = connection.CreateCommand())
+            {
+                scalarCommand.CommandText = select;
+                
+                if (selectParameters != null)
+                {
+                    foreach (object selectParameter in selectParameters)
+                    {
+                        ISQLiteParameter currentParameter = scalarCommand.CreateParameter();
+                        scalarCommand.Parameters.Add(currentParameter);
+
+                        if (selectParameter is Guid)
+                        {
+                            currentParameter.Value = ((Guid)selectParameter).ToByteArray();
+                        }
+                        else
+                        {
+                            currentParameter.Value = selectParameter;
+                        }
+                    }
+                }
+
+                if (transaction != null)
+                {
+                    scalarCommand.Transaction = transaction;
+                }
+
+                object responseObject = scalarCommand.ExecuteScalar();
+
+                if (responseObject == null)
+                {
+                    result = Helpers.DefaultForType<TKey>();
+                    return false;
+                }
+
+                result = Helpers.ConvertTo<TKey>(responseObject);
+                return true;
+            }
+        }
+
         /// <summary>
         /// Gets a single result set by provided select statement and yield returns records converted to the current generic type
         /// </summary>
@@ -85,15 +127,8 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="select">Select statement</param>
         /// <param name="includes">List of joined children with dot syntax for multiple levels deep</param>
         /// <returns>Yield-returned converted database results as current generic type</returns>
-        public static IEnumerable<T> SelectResultSet(ISQLiteConnection connection, string select, IEnumerable<string> includes = null, ISQLiteTransaction transaction = null)
+        public static IEnumerable<T> SelectResultSet(ISQLiteConnection connection, string select, IEnumerable<string> includes = null, ISQLiteTransaction transaction = null, object[] selectParameters = null)
         {
-            Type deleteTheFollowingComments = typeof(SQLiteProxy.TestSQL);
-            //SELECT Enums.EnumId AS [Enums.EnumId], Enums.EnumCategoryId AS [Enums.EnumCategoryId], Enums.Name AS [Enums.Name], EnumCategories.EnumCategoryId AS [EnumCategories.EnumCategoryId], EnumCategories.Name AS [EnumCategories.Name]
-            //FROM Enums
-            //LEFT OUTER JOIN EnumCategories ON Enums.EnumCategoryId = EnumCategories.EnumCategoryId
-            //WHERE Enums.Name = 'Created'
-            //AND EnumCategories.Name = 'FileChangeType'
-
             // grab the function that takes the values out of the current database row to produce the current generic type
             Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>> currentParser = GetResultParser(string.Empty,
                     includes == null ? new string[0] : ((includes as string[]) ?? includes.ToArray())).Value;
@@ -104,6 +139,24 @@ namespace Cloud.SQLIndexer.SqlModel
             {
                 // set command to run as select statement
                 selectCommand.CommandText = select;
+
+                if (selectParameters != null)
+                {
+                    foreach (object selectParameter in selectParameters)
+                    {
+                        ISQLiteParameter currentParameter = selectCommand.CreateParameter();
+                        selectCommand.Parameters.Add(currentParameter);
+
+                        if (selectParameter is Guid)
+                        {
+                            currentParameter.Value = ((Guid)selectParameter).ToByteArray();
+                        }
+                        else
+                        {
+                            currentParameter.Value = selectParameter;
+                        }
+                    }
+                }
 
                 if (transaction != null)
                 {
@@ -376,13 +429,11 @@ namespace Cloud.SQLIndexer.SqlModel
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="toUpdate">Object corresponding to row to update</param>
-        /// <param name="searchCaseSensitive">Whether to search the row's primary key via a case-sensitive search</param>
-        /// <param name="updateCaseSensitive">Whether to check for a column's difference to update by case-sensitive comparison</param>
         /// <returns>Returns whether the row was found to be updated</returns>
-        public static bool UpdateRow(ISQLiteConnection connection, T toUpdate, bool searchCaseSensitive = true, bool updateCaseSensitive = true, ISQLiteTransaction transaction = null)
+        public static bool UpdateRow(ISQLiteConnection connection, T toUpdate, ISQLiteTransaction transaction = null)
         {
             IEnumerable<int> unableToFindIndexes;
-            UpdateRows(connection, new T[] { toUpdate }, out unableToFindIndexes, searchCaseSensitive, updateCaseSensitive, transaction);
+            UpdateRows(connection, new T[] { toUpdate }, out unableToFindIndexes, transaction);
             return !(unableToFindIndexes ?? Enumerable.Empty<int>()).Any();
         }
 
@@ -392,9 +443,7 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="connection">Database connection</param>
         /// <param name="toUpdate">List of objects corresponding to rows to update</param>
         /// <param name="unableToFindIndexes">(output) List of indexes that were not found to update correlating to the index in the list of objects to update</param>
-        /// <param name="searchCaseSensitive">Whether to search the row's primary key via a case-sensitive search</param>
-        /// <param name="updateCaseSensitive">Whether to check for a column's difference to update by case-sensitive comparison</param>
-        public static void UpdateRows(ISQLiteConnection connection, IEnumerable<T> toUpdate, out IEnumerable<int> unableToFindIndexes, bool searchCaseSensitive = true, bool updateCaseSensitive = true, ISQLiteTransaction transaction = null)
+        public static void UpdateRows(ISQLiteConnection connection, IEnumerable<T> toUpdate, out IEnumerable<int> unableToFindIndexes, ISQLiteTransaction transaction = null)
         {
             // if there are no rows to update,
             // then there were no indexes that weren't found, return
@@ -535,10 +584,10 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="toDelete">Object to delete from database</param>
         /// <param name="caseSensitive">Whether the primary key will be searched as case-sensitive</param>
         /// <returns>Returns whether the row was deleted</returns>
-        public static bool DeleteRow(ISQLiteConnection connection, T toDelete, bool caseSensitive = true, ISQLiteTransaction transaction = null)
+        public static bool DeleteRow(ISQLiteConnection connection, T toDelete, ISQLiteTransaction transaction = null)
         {
             IEnumerable<int> unableToFindIndexes;
-            DeleteRows(connection, new T[] { toDelete }, out unableToFindIndexes, caseSensitive, transaction);
+            DeleteRows(connection, new T[] { toDelete }, out unableToFindIndexes, transaction);
             return !(unableToFindIndexes ?? Enumerable.Empty<int>()).Any();
         }
 
@@ -549,7 +598,7 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="toDelete">List of objects to delete</param>
         /// <param name="unableToFindIndexes">(output) List of indexes that were not found to delete correlating to the index in the list of objects to delete</param>
         /// <param name="caseSensitive">Whether the primary key will be searched as case-sensitive</param>
-        public static void DeleteRows(ISQLiteConnection connection, IEnumerable<T> toDelete, out IEnumerable<int> unableToFindIndexes, bool caseSensitive = true, ISQLiteTransaction transaction = null)
+        public static void DeleteRows(ISQLiteConnection connection, IEnumerable<T> toDelete, out IEnumerable<int> unableToFindIndexes, ISQLiteTransaction transaction = null)
         {
             // if there are no rows to delete,
             // then there were no indexes that weren't found, return
