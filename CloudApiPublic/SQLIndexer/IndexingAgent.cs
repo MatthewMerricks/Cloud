@@ -1932,19 +1932,6 @@ namespace Cloud.SQLIndexer
 
                                 if (storeLastMerge != null)
                                 {
-                                    //if (lastInsert)
-                                    //{
-                                    //    rootFileSystemObjectId = SqlAccessor<FileSystemObject>.InsertRow<long>
-                                    //        (creationConnection,
-                                    //            new FileSystemObject()
-                                    //            {
-                                    //                EventTimeUTCTicks = 0, // never need to show the root folder in recents, so it should have the oldest event time
-                                    //                IsFolder = true,
-                                    //                Name = syncRoot,
-                                    //                Pending = false
-                                    //            });
-                                    //}
-
                                     FileChangeMerge currentMerge = (FileChangeMerge)storeLastMerge;
 
                                     try
@@ -2175,6 +2162,12 @@ namespace Cloud.SQLIndexer
                                     if (finalMergeEvent)
                                     {
                                         actionOrder.Add((byte)0);
+                                    }
+
+                                    // possible to have both a delete and an update if the rows are being merged
+                                    if (toUpdate != null)
+                                    {
+                                        actionOrder.Add((byte)2);
                                     }
                                 }
                                 else if (toAdd != null)
@@ -3647,6 +3640,7 @@ namespace Cloud.SQLIndexer
             {
                 if (outermostMethodCall)
                 {
+                    // TODO: may not wish to cause the entire SDK to halt here, instead this should only halt the current engine
                     MessageEvents.FireNewEventMessage(
                         "Unable to scan files/folders in Cloud folder. Location not accessible:" + Environment.NewLine + ex.Message,
                         EventMessageLevel.Important,
@@ -3739,8 +3733,6 @@ namespace Cloud.SQLIndexer
                             changeEnumsBackward = null;
                         }
                     }
-                    
-                    ExternalSQLLocker.Dispose();
                 }
             }
         }

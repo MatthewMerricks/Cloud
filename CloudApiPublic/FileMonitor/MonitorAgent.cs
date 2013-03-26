@@ -26,6 +26,7 @@ using JsonContracts = Cloud.JsonContracts;
 using Cloud.Sync;
 using Cloud.REST;
 using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.SQLIndexer.Model;
 
 /// <summary>
 /// Monitor a local file system folder as a SyncBox.
@@ -1646,106 +1647,108 @@ namespace Cloud.FileMonitor
             {
                 List<FileChange> removeFromSql = new List<FileChange>();
 
-                Indexer.ExternalSQLLocker.EnterWriteLock();
-                try
+                using (SQLTransactionalBase sqlTran = Indexer.GetNewTransaction())
                 {
-                    PulledChanges = new HashSet<FileChangeWithDependencies>();
-
-                    for (int outerChangeIndex = 0; outerChangeIndex < dependencyChanges.Length; outerChangeIndex++)
+                    try
                     {
-                        KeyValuePair<FileChangeSource, FileChangeWithDependencies> OuterChangePair = dependencyChanges[outerChangeIndex];
-                        FileChangeWithDependencies OuterFileChange = OuterChangePair.Value;
+                        PulledChanges = new HashSet<FileChangeWithDependencies>();
 
-                        if (OuterChangePair.Key != FileChangeSource.QueuedChanges
-                            && !PulledChanges.Contains(OuterFileChange))
+                        for (int outerChangeIndex = 0; outerChangeIndex < dependencyChanges.Length; outerChangeIndex++)
                         {
-                            for (int innerChangeIndex = outerChangeIndex + 1; innerChangeIndex < dependencyChanges.Length; innerChangeIndex++)
+                            KeyValuePair<FileChangeSource, FileChangeWithDependencies> OuterChangePair = dependencyChanges[outerChangeIndex];
+                            FileChangeWithDependencies OuterFileChange = OuterChangePair.Value;
+
+                            if (OuterChangePair.Key != FileChangeSource.QueuedChanges
+                                && !PulledChanges.Contains(OuterFileChange))
                             {
-                                FileChangeWithDependencies InnerFileChange = dependencyChanges[innerChangeIndex].Value;
-
-                                if (!PulledChanges.Contains(InnerFileChange))
+                                for (int innerChangeIndex = outerChangeIndex + 1; innerChangeIndex < dependencyChanges.Length; innerChangeIndex++)
                                 {
-                                    List<FileChangeWithDependencies> DisposeChanges;
-                                    bool ContinueProcessing;
+                                    FileChangeWithDependencies InnerFileChange = dependencyChanges[innerChangeIndex].Value;
 
-                                    switch (InnerFileChange.Type)
+                                    if (!PulledChanges.Contains(InnerFileChange))
                                     {
-                                        case FileChangeType.Created:
-                                        case FileChangeType.Modified:
-                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges);
-                                            DisposeChanges = null;
-                                            ContinueProcessing = true;
-                                            if (creationModificationCheckError != null)
-                                            {
-                                                toReturn += new AggregateException("Error in CreationModificationDependencyCheck", creationModificationCheckError.GrabExceptions());
-                                            }
-                                            break;
-                                        case FileChangeType.Renamed:
-                                            CLError renameCheckError = RenameDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing);
-                                            if (renameCheckError != null)
-                                            {
-                                                toReturn += new AggregateException("Error in RenameDependencyCheck", renameCheckError.GrabExceptions());
-                                            }
-                                            break;
-                                        case FileChangeType.Deleted:
-                                            CLError deleteCheckError = DeleteDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing);
-                                            if (deleteCheckError != null)
-                                            {
-                                                toReturn += new AggregateException("Error in DeleteDependencyCheck", deleteCheckError.GrabExceptions());
-                                            }
-                                            break;
-                                        default:
-                                            throw new InvalidOperationException("Unknown FileChangeType for InnerFileChange: " + InnerFileChange.Type.ToString());
-                                    }
+                                        List<FileChangeWithDependencies> DisposeChanges;
+                                        bool ContinueProcessing;
 
-                                    if (DisposeChanges != null)
-                                    {
-                                        foreach (FileChangeWithDependencies CurrentDisposal in DisposeChanges)
+                                        switch (InnerFileChange.Type)
                                         {
-                                            KeyValuePair<FileChange, FileChangeSource> CurrentOriginalMapping;
-                                            if (OriginalFileChangeMappings != null
-                                                && OriginalFileChangeMappings.TryGetValue(CurrentDisposal, out CurrentOriginalMapping))
-                                            {
-                                                CurrentOriginalMapping.Key.Dispose();
-                                                if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges
-                                                    && RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds))
+                                            case FileChangeType.Created:
+                                            case FileChangeType.Modified:
+                                                CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges);
+                                                DisposeChanges = null;
+                                                ContinueProcessing = true;
+                                                if (creationModificationCheckError != null)
                                                 {
-                                                    removeFromSql.Add(CurrentDisposal);
+                                                    toReturn += new AggregateException("Error in CreationModificationDependencyCheck", creationModificationCheckError.GrabExceptions());
+                                                }
+                                                break;
+                                            case FileChangeType.Renamed:
+                                                CLError renameCheckError = RenameDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran);
+                                                if (renameCheckError != null)
+                                                {
+                                                    toReturn += new AggregateException("Error in RenameDependencyCheck", renameCheckError.GrabExceptions());
+                                                }
+                                                break;
+                                            case FileChangeType.Deleted:
+                                                CLError deleteCheckError = DeleteDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing);
+                                                if (deleteCheckError != null)
+                                                {
+                                                    toReturn += new AggregateException("Error in DeleteDependencyCheck", deleteCheckError.GrabExceptions());
+                                                }
+                                                break;
+                                            default:
+                                                throw new InvalidOperationException("Unknown FileChangeType for InnerFileChange: " + InnerFileChange.Type.ToString());
+                                        }
+
+                                        if (DisposeChanges != null)
+                                        {
+                                            foreach (FileChangeWithDependencies CurrentDisposal in DisposeChanges)
+                                            {
+                                                KeyValuePair<FileChange, FileChangeSource> CurrentOriginalMapping;
+                                                if (OriginalFileChangeMappings != null
+                                                    && OriginalFileChangeMappings.TryGetValue(CurrentDisposal, out CurrentOriginalMapping))
+                                                {
+                                                    CurrentOriginalMapping.Key.Dispose();
+                                                    if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges
+                                                        && RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds))
+                                                    {
+                                                        removeFromSql.Add(CurrentDisposal);
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
 
-                                    if (!ContinueProcessing)
-                                    {
-                                        break;
+                                        if (!ContinueProcessing)
+                                        {
+                                            break;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                finally
-                {
-                    if (removeFromSql.Count > 0)
+                    finally
                     {
-                        try
+                        if (removeFromSql.Count > 0)
                         {
-                            CLError updateSQLError = Indexer.MergeEventsIntoDatabase(
-                                removeFromSql.Select(currentToRemove => new FileChangeMerge(null, currentToRemove)),
-                                true);
-                            if (updateSQLError != null)
+                            try
                             {
-                                toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
+                                CLError updateSQLError = Indexer.MergeEventsIntoDatabase(
+                                    removeFromSql.Select(currentToRemove => new FileChangeMerge(null, currentToRemove)),
+                                    sqlTran);
+                                if (updateSQLError != null)
+                                {
+                                    toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                toReturn += new Exception("Error updating SQL", ex);
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            toReturn += new Exception("Error updating SQL", ex);
-                        }
-                    }
 
-                    Indexer.ExternalSQLLocker.ExitWriteLock();
+                        sqlTran.Commit();
+                    }
                 }
             }
             catch (Exception ex)
@@ -1783,7 +1786,7 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        private CLError RenameDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing)
+        private CLError RenameDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing, SQLTransactionalBase sqlTran)
         {
             CLError toReturn = null;
             try
@@ -1842,7 +1845,7 @@ namespace Cloud.FileMonitor
                                 if (FilePathComparer.Instance.Equals(CurrentEarlierChange.NewPath, LaterChange.OldPath))
                                 {
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
-                                    CLError updateSqlError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange, null)), true);
+                                    CLError updateSqlError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange, null)), sqlTran);
                                     if (updateSqlError != null)
                                     {
                                         toReturn += new AggregateException("Error updating SQL after replacing NewPath", updateSqlError.GrabExceptions());
@@ -1887,7 +1890,7 @@ namespace Cloud.FileMonitor
                                         if (FilePathComparer.Instance.Equals(renamedOverlap, LaterChange.OldPath))
                                         {
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
-                                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange, null)), true);
+                                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange, null)), sqlTran);
                                             if (replacePathPortionError != null)
                                             {
                                                 toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
