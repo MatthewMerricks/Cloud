@@ -1525,10 +1525,7 @@ namespace Cloud
 
                 // Build the query string.
                 string query = Helpers.QueryStringBuilder(
-                    new[]
-                    {
-                        new KeyValuePair<string, string>(CLDefinitions.RESTRequestSession_KeyId, Uri.EscapeDataString(key))
-                    });
+                    Helpers.EnumerateSingleItem(new KeyValuePair<string, string>(CLDefinitions.RESTRequestSession_KeyId, Uri.EscapeDataString(key))));
 
                 response = Helpers.ProcessHttp<JsonContracts.SessionShowResponse>(
                     null,

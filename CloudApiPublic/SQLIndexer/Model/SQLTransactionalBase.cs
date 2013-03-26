@@ -15,14 +15,17 @@ using System.Text;
 namespace Cloud.SQLIndexer.Model
 {
     /// <summary>
-    /// Must be implemented internal to IndexingAgent alone
+    /// Meant to be implemented as a private class within any class which contains database-access code
     /// </summary>
-    internal abstract class SQLTransactionalBase : IDisposable
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public abstract class SQLTransactionalBase : IDisposable
     {
         /// <summary>
         /// Commits the current transaction.
         /// </summary>
         public abstract void Commit();
+
+        internal protected SQLTransactionalBase() { }
 
         #region IDisposable members
         protected void CheckDisposed([CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null)

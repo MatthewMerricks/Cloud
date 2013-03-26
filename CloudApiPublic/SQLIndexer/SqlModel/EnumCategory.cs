@@ -22,7 +22,7 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property]
         public string Name { get; set; }
 
-        [SqlAccess.Property(Constants.SqlEnumName, true)]
+        [SqlAccess.Property(Constants.SqlEnumName, SqlAccess.FieldType.JoinedTable)]
         public SqlEnum SqlEnum { get; set; }
     }
 }

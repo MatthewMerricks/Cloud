@@ -24,10 +24,10 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property]
         public string Name { get; set; }
 
-        [SqlAccess.Property(true)]
+        [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
         public EnumCategory EnumCategory { get; set; }
 
-        [SqlAccess.Property(true)]
+        [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
         public Event Event { get; set; }
     }
 }

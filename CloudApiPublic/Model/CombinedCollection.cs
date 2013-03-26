@@ -105,23 +105,37 @@ namespace Cloud.Model
             int storeCount = this.Count;
             int collectionOneCount = this.collectionOne.Count;
             IEnumerator<T> collectionOneEnumerator = this.collectionOne.GetEnumerator();
-            IEnumerator<T> collectionTwoEnumerator = this.collectionTwo.GetEnumerator();
-            int currentIndex = 0;
-            while (currentIndex < storeCount)
+            try
             {
-                T toReturn;
-                if (currentIndex < collectionOneCount)
+                IEnumerator<T> collectionTwoEnumerator = this.collectionTwo.GetEnumerator();
+                try
                 {
-                    collectionOneEnumerator.MoveNext();
-                    toReturn = collectionOneEnumerator.Current;
+                    int currentIndex = 0;
+                    while (currentIndex < storeCount)
+                    {
+                        T toReturn;
+                        if (currentIndex < collectionOneCount)
+                        {
+                            collectionOneEnumerator.MoveNext();
+                            toReturn = collectionOneEnumerator.Current;
+                        }
+                        else
+                        {
+                            collectionTwoEnumerator.MoveNext();
+                            toReturn = collectionTwoEnumerator.Current;
+                        }
+                        currentIndex++;
+                        yield return toReturn;
+                    }
                 }
-                else
+                finally
                 {
-                    collectionTwoEnumerator.MoveNext();
-                    toReturn = collectionTwoEnumerator.Current;
+                    collectionTwoEnumerator.Dispose();
                 }
-                currentIndex++;
-                yield return toReturn;
+            }
+            finally
+            {
+                collectionOneEnumerator.Dispose();
             }
         }
         #region IEnumerable<T> members

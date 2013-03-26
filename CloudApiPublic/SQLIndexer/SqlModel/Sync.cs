@@ -21,7 +21,7 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property]
         public string SID { get; set; }
 
-        [SqlAccess.Property(true)]
+        [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
         public FileSystemObject FileSystemObject { get; set; }
     }
 }

@@ -433,6 +433,7 @@ namespace Cloud.Static
             }
             ms.Position = 0;
             inputStream.Close();
+
             return ms;
         }
 
@@ -453,6 +454,21 @@ namespace Cloud.Static
         }
 
         /// <summary>
+        /// Extension to return an enumerable created for an instance's type which will enumerate and only return the input instance, if any
+        /// </summary>
+        public static IEnumerable<T> EnumerateSingleItem<T>(T toEnumerate)
+        {
+            if (toEnumerate == null)
+            {
+                yield break;
+            }
+            else
+            {
+                yield return toEnumerate;
+            }
+        }
+
+        /// <summary>
         /// Builds the query string portion for a url by pairs of keys to values, keys and values must already be url-encoded
         /// </summary>
         /// <param name="queryStrings">Pairs of keys and values for query string</param>
@@ -465,22 +481,24 @@ namespace Cloud.Static
             }
 
             StringBuilder toReturn = null;
-            IEnumerator<KeyValuePair<string, string>> queryEnumerator = queryStrings.GetEnumerator();
-            while (queryEnumerator.MoveNext())
+            using (IEnumerator<KeyValuePair<string, string>> queryEnumerator = queryStrings.GetEnumerator())
             {
-                if (queryEnumerator.Current.Key != null
-                    || queryEnumerator.Current.Value != null)
+                while (queryEnumerator.MoveNext())
                 {
-                    if (toReturn == null)
+                    if (queryEnumerator.Current.Key != null
+                        || queryEnumerator.Current.Value != null)
                     {
-                        toReturn = new StringBuilder("?");
-                    }
-                    else
-                    {
-                        toReturn.Append("&");
-                    }
+                        if (toReturn == null)
+                        {
+                            toReturn = new StringBuilder("?");
+                        }
+                        else
+                        {
+                            toReturn.Append("&");
+                        }
 
-                    toReturn.Append(queryEnumerator.Current.Key + "=" + queryEnumerator.Current.Value);
+                        toReturn.Append(queryEnumerator.Current.Key + "=" + queryEnumerator.Current.Value);
+                    }
                 }
             }
 

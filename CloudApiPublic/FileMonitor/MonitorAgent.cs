@@ -230,7 +230,7 @@ namespace Cloud.FileMonitor
                     //        }
                     //        else
                     //        {
-                    //            Agent.FolderCreationTimeUtcTicksToPath.Add(newHashablesUtcTicks, new[] { NewPath });
+                    //            Agent.FolderCreationTimeUtcTicksToPath.Add(newHashablesUtcTicks, Helpers.EnumerateSingleItem(NewPath));
                     //        }
                     //    }
                     //    break;
@@ -1005,7 +1005,7 @@ namespace Cloud.FileMonitor
                                                 actualCreationTime,
                                                 /* size */ null);
 
-                                            CLError updateCreationTimeError = SyncData.mergeToSql(new[] { new FileChangeMerge(toApply) });
+                                            CLError updateCreationTimeError = SyncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(toApply)));
                                             if (updateCreationTimeError != null)
                                             {
                                                 try
@@ -1071,7 +1071,6 @@ namespace Cloud.FileMonitor
                                         bool deleteHappened;
                                         if (toApply.Metadata.HashableProperties.IsFolder)
                                         {
-
                                             try
                                             {
                                                 Directory.Delete(toApply.NewPath.ToString(), true);
@@ -1843,7 +1842,7 @@ namespace Cloud.FileMonitor
                                 if (FilePathComparer.Instance.Equals(CurrentEarlierChange.NewPath, LaterChange.OldPath))
                                 {
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
-                                    CLError updateSqlError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentEarlierChange, null) }, true);
+                                    CLError updateSqlError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange, null)), true);
                                     if (updateSqlError != null)
                                     {
                                         toReturn += new AggregateException("Error updating SQL after replacing NewPath", updateSqlError.GrabExceptions());
@@ -1888,7 +1887,7 @@ namespace Cloud.FileMonitor
                                         if (FilePathComparer.Instance.Equals(renamedOverlap, LaterChange.OldPath))
                                         {
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
-                                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentEarlierChange, null) }, true);
+                                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange, null)), true);
                                             if (replacePathPortionError != null)
                                             {
                                                 toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
@@ -2003,7 +2002,7 @@ namespace Cloud.FileMonitor
                             if (FilePathComparer.Instance.Equals(renamedOverlap, CurrentEarlierChange.NewPath))
                             {
                                 renamedOverlapChild.Parent = CurrentEarlierChange.OldPath;
-                                CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(LaterChange, null) });
+                                CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange, null)));
                                 if (replacePathPortionError != null)
                                 {
                                     toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
@@ -2382,7 +2381,7 @@ namespace Cloud.FileMonitor
                                                                 newCreationTime,
                                                                 countFileSize);
 
-                                                            CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentDependencyTree.DependencyFileChange, null) });
+                                                            CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentDependencyTree.DependencyFileChange, null)));
                                                             if (writeNewMetadataError != null)
                                                             {
                                                                 throw new AggregateException("Error writing updated file upload metadata to SQL", writeNewMetadataError.GrabExceptions());

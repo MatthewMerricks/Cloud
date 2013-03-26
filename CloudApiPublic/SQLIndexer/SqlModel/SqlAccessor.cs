@@ -9,6 +9,7 @@ using Cloud.Model;
 using Cloud.SQLProxies;
 using Cloud.Static;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -78,7 +79,7 @@ namespace Cloud.SQLIndexer.SqlModel
         #endregion
 
         #region public static methods
-        public static bool TrySelectScalar<TKey>(ISQLiteConnection connection, string select, out TKey result, ISQLiteTransaction transaction = null, object[] selectParameters = null)
+        public static bool TrySelectScalar<TKey>(ISQLiteConnection connection, string select, out TKey result, ISQLiteTransaction transaction = null, IEnumerable selectParameters = null)
         {
             using (ISQLiteCommand scalarCommand = connection.CreateCommand())
             {
@@ -127,7 +128,7 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="select">Select statement</param>
         /// <param name="includes">List of joined children with dot syntax for multiple levels deep</param>
         /// <returns>Yield-returned converted database results as current generic type</returns>
-        public static IEnumerable<T> SelectResultSet(ISQLiteConnection connection, string select, IEnumerable<string> includes = null, ISQLiteTransaction transaction = null, object[] selectParameters = null)
+        public static IEnumerable<T> SelectResultSet(ISQLiteConnection connection, string select, IEnumerable<string> includes = null, ISQLiteTransaction transaction = null, IEnumerable selectParameters = null)
         {
             // grab the function that takes the values out of the current database row to produce the current generic type
             Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>> currentParser = GetResultParser(string.Empty,
@@ -283,45 +284,47 @@ namespace Cloud.SQLIndexer.SqlModel
                     insertCommand.CommandText = insertStringBuilder.ToString();
 
                     T storeLast = null;
-                    IEnumerator<T> insertEnumerator = toInsert.GetEnumerator();
-                    bool lastInsert;
-                    while (!(lastInsert = !insertEnumerator.MoveNext()) || storeLast != null)
+                    using (IEnumerator<T> insertEnumerator = toInsert.GetEnumerator())
                     {
-                        if (storeLast != null)
+                        bool lastInsert;
+                        while (!(lastInsert = !insertEnumerator.MoveNext()) || storeLast != null)
                         {
-                            if (lastInsert && returnLastIdentity)
+                            if (storeLast != null)
                             {
-                                insertCommand.CommandText += ";SELECT last_insert_rowid()";
-                            }
-
-                            // Add a new row to the DataTable with all insertable column values set
-                            foreach (KeyValuePair<ISQLiteParameter, PropertyInfo> currentParam in paramPairs)
-                            {
-                                object valueToSet = currentParam.Value.GetValue(storeLast, index: null);
-
-                                if (valueToSet is Guid)
+                                if (lastInsert && returnLastIdentity)
                                 {
-                                    currentParam.Key.Value = ((Guid)valueToSet).ToByteArray();
+                                    insertCommand.CommandText += ";SELECT last_insert_rowid()";
+                                }
+
+                                // Add a new row to the DataTable with all insertable column values set
+                                foreach (KeyValuePair<ISQLiteParameter, PropertyInfo> currentParam in paramPairs)
+                                {
+                                    object valueToSet = currentParam.Value.GetValue(storeLast, index: null);
+
+                                    if (valueToSet is Guid)
+                                    {
+                                        currentParam.Key.Value = ((Guid)valueToSet).ToByteArray();
+                                    }
+                                    else
+                                    {
+                                        currentParam.Key.Value = valueToSet;
+                                    }
+                                }
+
+                                if (lastInsert && returnLastIdentity)
+                                {
+                                    toReturn = Helpers.ConvertTo<TKey>(insertCommand.ExecuteScalar());
                                 }
                                 else
                                 {
-                                    currentParam.Key.Value = valueToSet;
+                                    insertCommand.ExecuteNonQuery();
                                 }
                             }
 
-                            if (lastInsert && returnLastIdentity)
-                            {
-                                toReturn = Helpers.ConvertTo<TKey>(insertCommand.ExecuteScalar());
-                            }
-                            else
-                            {
-                                insertCommand.ExecuteNonQuery();
-                            }
+                            storeLast = (lastInsert
+                                ? null
+                                : insertEnumerator.Current);
                         }
-
-                        storeLast = (lastInsert
-                            ? null
-                            : insertEnumerator.Current);
                     }
                 }
             }

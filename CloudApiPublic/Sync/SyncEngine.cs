@@ -1729,7 +1729,7 @@ namespace Cloud.Sync
 
                                             (fireMessageException == null
                                                 ? getAllPendingsError.GrabExceptions()
-                                                : getAllPendingsError.GrabExceptions().Concat(new[] { fireMessageException })));
+                                                : getAllPendingsError.GrabExceptions().Concat(Helpers.EnumerateSingleItem(fireMessageException))));
                                     }
 
                                     innerPendingStorageKeys.Value = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
@@ -1819,7 +1819,7 @@ namespace Cloud.Sync
                                     // advanced trace, InitialRunFileTransfer
                                     if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                     {
-                                        ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.InitialRunFileTransfer, new[] { topLevelChange.FileChange });
+                                        ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.InitialRunFileTransfer, Helpers.EnumerateSingleItem(topLevelChange.FileChange));
                                     }
 
                                     byte[] existingFileMD5;
@@ -6337,10 +6337,9 @@ namespace Cloud.Sync
                                             else
                                             {
                                                 innerIncompleteChangesList.Add(innerCurrentChange.EventId,
-                                                    new List<PossiblyStreamableAndPossiblyChangedFileChange>(new[]
-                                                            {
-                                                                addChange
-                                                            }));
+                                                    new List<PossiblyStreamableAndPossiblyChangedFileChange>(Helpers.EnumerateSingleItem(
+                                                            addChange
+                                                        )));
                                             }
                                         };
 
@@ -6375,13 +6374,12 @@ namespace Cloud.Sync
 
                                                     // search the already visited Sync From rename events by the current event's previous path for when multiple rename events in a communication batch keep moving the metadata forward
                                                     (alreadyVisitedRenames.TryGetValue(currentChange.OldPath, out foundOldPathMetadataOnly)
-                                                        ? new[]
-                                                            {
+                                                        ? Helpers.EnumerateSingleItem(
                                                                 new FileChange() // if a match is found, then include the found result
                                                                 {
                                                                     Metadata = foundOldPathMetadataOnly, // metadata to move forward
                                                                 }
-                                                            }
+                                                            )
                                                         : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
                                                     // search the current UpDownEvents for one matching the current event's previous path (comparing against the UpDownEvent's NewPath)
@@ -6553,7 +6551,7 @@ namespace Cloud.Sync
                                                             alreadyVisitedRenames[newPathCreation.NewPath.Copy()] = newPathCreation.Metadata;
 
                                                             // merge the creation of the new FileChange for a pseudo Sync From creation event with the event source database, storing any error that occurs
-                                                            CLError newPathCreationError = syncData.mergeToSql(new[] { new FileChangeMerge(newPathCreation, currentChange) });
+                                                            CLError newPathCreationError = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(newPathCreation, currentChange)));
                                                             // if an error occurred merging the new FileChange with the event source database, then rethrow the error
                                                             if (newPathCreationError != null)
                                                             {
@@ -6706,7 +6704,7 @@ namespace Cloud.Sync
                                                                                     CLDefinitions.CLEventTypeUploading
                                                                                 }).Contains(postDuplicateChangeResult.Header.Status))
                                                                             {
-                                                                                CLError mergeDuplicateChange = syncData.mergeToSql(new[] { new FileChangeMerge(duplicateChange) });
+                                                                                CLError mergeDuplicateChange = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(duplicateChange)));
                                                                                 if (mergeDuplicateChange != null)
                                                                                 {
                                                                                     throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.errorDescription, mergeDuplicateChange.GrabExceptions());
@@ -7307,7 +7305,7 @@ namespace Cloud.Sync
 
                                                                             if (oldPathDownloadNoDependenciesError == null)
                                                                             {
-                                                                                CLError oldPathDownloadToSqlError = syncData.mergeToSql(new[] { new FileChangeMerge(oldPathDownloadNoDependencies) });
+                                                                                CLError oldPathDownloadToSqlError = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(oldPathDownloadNoDependencies)));
                                                                                 if (oldPathDownloadToSqlError == null)
                                                                                 {
                                                                                     oldPathDownload = oldPathDownloadNoDependencies;
@@ -7351,8 +7349,8 @@ namespace Cloud.Sync
                                                                         Type = FileChangeType.Renamed // this operation is a move
                                                                     },
                                                                     (oldPathDownload == null
-                                                                        ? new[] { currentChange }  // add the creation at the new location as a dependency to the rename
-                                                                        : new[] { oldPathDownload, currentChange }), // in addition to the create at the new location in the line above, also download the original copy of the file to the old path
+                                                                        ? Helpers.EnumerateSingleItem(currentChange)  // add the creation at the new location as a dependency to the rename
+                                                                        : (IEnumerable<FileChange>)new[] { oldPathDownload, currentChange }), // in addition to the create at the new location in the line above, also download the original copy of the file to the old path
                                                                     out reparentConflict); // output the new rename change
                                                                 // if an error occurred creating the FileChange for the rename operation, rethrow the error
                                                                 if (reparentCreateError != null)
@@ -7422,13 +7420,13 @@ namespace Cloud.Sync
                                                                 }
 
                                                                 // add the local rename change to the event source database, storing any error that occurred
-                                                                CLError addRenameToConflictPath = syncData.mergeToSql(new[] { new FileChangeMerge(reparentConflict) });
+                                                                CLError addRenameToConflictPath = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(reparentConflict)));
                                                                 // if there was an error adding the local rename change, then readd the reverted conflict change to the event source database and rethrow the error
                                                                 if (addRenameToConflictPath != null)
                                                                 {
                                                                     currentChange.Type = storeType;
                                                                     currentChange.NewPath = storePath;
-                                                                    syncData.mergeToSql(new[] { new FileChangeMerge(currentChange) });
+                                                                    syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(currentChange)));
 
                                                                     throw new AggregateException("Error adding a rename FileChange for a conflicted file", addRenameToConflictPath.GrabExceptions());
                                                                 }
@@ -7439,17 +7437,17 @@ namespace Cloud.Sync
                                                                 currentChange.EventId = 0;
 
                                                                 // write the original conflict as a file creation to upload to the server to the event source database, storing any error that occurred
-                                                                CLError addModifiedConflictAsCreate = syncData.mergeToSql(new FileChangeMerge[] { new FileChangeMerge(currentChange) });
+                                                                CLError addModifiedConflictAsCreate = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(currentChange)));
 
                                                                 // if an error occurred writing the original conflict as a file creation, then remove the added rename change and readd the reverted conflict change to the event source database and rethrow the error
                                                                 if (addModifiedConflictAsCreate != null)
                                                                 {
-                                                                    syncData.mergeToSql(new[] { new FileChangeMerge(null, reparentConflict) });
+                                                                    syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(null, reparentConflict)));
                                                                     currentChange.EventId = storeEventId;
                                                                     currentChange.Type = storeType;
                                                                     currentChange.NewPath = storePath;
 
-                                                                    syncData.mergeToSql(new[] { new FileChangeMerge(currentChange) });
+                                                                    syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(currentChange)));
 
                                                                     throw new AggregateException("Error adding a new creation FileChange at the new conflict path", addModifiedConflictAsCreate.GrabExceptions());
                                                                 }
@@ -7943,20 +7941,20 @@ namespace Cloud.Sync
 
                                         // search the already visited Sync From rename events by the current event's previous path for when multiple rename events in a communication batch keep moving the metadata forward
                                         (alreadyVisitedRenames.TryGetValue(currentChange.OldPath, out foundOldPathMetadataOnly)
-                                            ? new[] { new FileChange() // if a match is found, then include the found result
+                                            ? Helpers.EnumerateSingleItem(new FileChange() // if a match is found, then include the found result
                                                 {
                                                     Metadata = foundOldPathMetadataOnly, // metadata to move forward
-                                                }}
+                                                })
                                             : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
                                         // search the current UpDownEvents for one matching the current event's previous path (comparing against the UpDownEvent's NewPath)
                                         .Concat(((getRunningUpDownChangesDict().TryGetValue(currentChange.OldPath, out foundOldPath)
-                                            ? new[] { foundOldPath } // if a match is found, then include the found result
+                                            ? Helpers.EnumerateSingleItem(foundOldPath) // if a match is found, then include the found result
                                             : Enumerable.Empty<FileChange>())) // else if a match is not found, then use an empty enumeration
 
                                             // then search the current failures for the one matching the current event's previous path (comparing against the failed event's NewPath)
                                             .Concat(getFailuresDict().TryGetValue(currentChange.OldPath, out foundOldPath)
-                                                ? new[] { foundOldPath } // if a match is found, then include the found result
+                                                ? Helpers.EnumerateSingleItem(foundOldPath) // if a match is found, then include the found result
                                                 : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
                                             // order the results descending by EventId so the first match will be the latest event
@@ -8106,7 +8104,7 @@ namespace Cloud.Sync
                                             currentChange.DoNotAddToSQLIndex = false;
 
                                             // merge the creation of the new FileChange for a pseudo Sync From creation event with the event source database, storing any error that occurs
-                                            CLError newPathCreationError = syncData.mergeToSql(new[] { new FileChangeMerge(newPathCreation, currentChange) });
+                                            CLError newPathCreationError = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(newPathCreation, currentChange)));
                                             // if an error occurred merging the new FileChange with the event source database, then rethrow the error
                                             if (newPathCreationError != null)
                                             {
@@ -8233,7 +8231,7 @@ namespace Cloud.Sync
                                                                     CLDefinitions.CLEventTypeUploading
                                                                 }).Contains(postDuplicateChangeResult.Header.Status))
                                                             {
-                                                                CLError mergeDuplicateChange = syncData.mergeToSql(new[] { new FileChangeMerge(duplicateChange) });
+                                                                CLError mergeDuplicateChange = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(duplicateChange)));
                                                                 if (mergeDuplicateChange != null)
                                                                 {
                                                                     throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.errorDescription, mergeDuplicateChange.GrabExceptions());
@@ -8251,13 +8249,12 @@ namespace Cloud.Sync
                                                                     CLDefinitions.CLEventTypeUploading
                                                                 }).Contains(postDuplicateChangeResult.Header.Status))
                                                             {
-                                                                incompleteChanges = incompleteChanges.Concat(new[]
-                                                                    {
+                                                                incompleteChanges = incompleteChanges.Concat(Helpers.EnumerateSingleItem(
                                                                         new PossiblyStreamableAndPossiblyChangedFileChange(
                                                                             /*Changed*/ true,
                                                                             duplicateChange,
                                                                             uploadStreamForDuplication)
-                                                                    });
+                                                                    ));
 
                                                                 uploadStreamForDuplication = null; // prevents disposal on finally since the Stream will now be sent off for async processing
                                                             }
@@ -8618,7 +8615,7 @@ namespace Cloud.Sync
                     toRetry.FileChange.DoNotAddToSQLIndex = false;
 
                     // remove the cancelled out event from the event source database
-                    syncData.mergeToSql(new[] { new FileChangeMerge(null, toRetry.FileChange) });
+                    syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(null, toRetry.FileChange)));
 
                     FileChangeWithDependencies castNotFound = toRetry.FileChange as FileChangeWithDependencies;
                     if (castNotFound != null

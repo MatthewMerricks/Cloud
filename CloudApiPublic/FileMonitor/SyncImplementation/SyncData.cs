@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Cloud.SQLIndexer.Model;
 
 namespace Cloud.FileMonitor.SyncImplementation
 {
@@ -98,9 +99,17 @@ namespace Cloud.FileMonitor.SyncImplementation
         /// <param name="mergeToFroms">The file change events to merge.</param>
         /// <param name="alreadyObtainedLock">true: The indexer lock has already been obtainte.  Default: false.</param>
         /// <returns>An error or null.</returns>
-        public CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms)
+        public CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null)
         {
-            return Indexer.MergeEventsIntoDatabase(mergeToFroms, false);
+            return Indexer.MergeEventsIntoDatabase(mergeToFroms, existingTransaction);
+        }
+
+        /// <summary>
+        /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
+        /// </summary>
+        public SQLTransactionalBase GetNewTransaction()
+        {
+            return Indexer.GetNewTransaction();
         }
 
         /// <summary>

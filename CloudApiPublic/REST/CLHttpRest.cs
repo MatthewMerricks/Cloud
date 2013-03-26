@@ -519,11 +519,10 @@ namespace Cloud.REST
                 // build the location of the metadata retrieval method on the server dynamically
                 string serverMethodPath =
                     CLDefinitions.MethodPathDownload + // download method path
-                    Helpers.QueryStringBuilder(new[] // add SyncBoxId for file download
-                    {
+                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem( // add SyncBoxId for file download
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
-                    });
+                    ));
 
                 // prepare the downloadParams before the Helpers.ProcessHttp because it does additional parameter checks first
                 Helpers.downloadParams currentDownload = new Helpers.downloadParams( // this is a special communication method and requires passing download parameters
@@ -3012,11 +3011,10 @@ namespace Cloud.REST
                 // build the location of the pictures retrieval method on the server dynamically
                 string serverMethodPath =
                     CLDefinitions.MethodPathGetPictures + // path for getting pictures
-                    Helpers.QueryStringBuilder(new[]
-                    {
+                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
-                    });
+                    ));
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Pictures>(
@@ -3206,11 +3204,10 @@ namespace Cloud.REST
                 // build the location of the videos retrieval method on the server dynamically
                 string serverMethodPath =
                     CLDefinitions.MethodPathGetVideos + // path for getting videos
-                    Helpers.QueryStringBuilder(new[]
-                    {
+                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
-                    });
+                    ));
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Videos>(
@@ -3400,11 +3397,10 @@ namespace Cloud.REST
                 // build the location of the audios retrieval method on the server dynamically
                 string serverMethodPath =
                     CLDefinitions.MethodPathGetAudios + // path for getting audios
-                    Helpers.QueryStringBuilder(new[]
-                    {
+                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
-                    });
+                    ));
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Audios>(
@@ -3594,11 +3590,10 @@ namespace Cloud.REST
                 // build the location of the archives retrieval method on the server dynamically
                 string serverMethodPath =
                     CLDefinitions.MethodPathGetArchives + // path for getting archives
-                    Helpers.QueryStringBuilder(new[]
-                    {
+                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
-                    });
+                    ));
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Archives>(
@@ -3788,11 +3783,10 @@ namespace Cloud.REST
                 // build the location of the recents retrieval method on the server dynamically
                 string serverMethodPath =
                     CLDefinitions.MethodPathGetRecents + // path for getting recents
-                    Helpers.QueryStringBuilder(new[]
-                    {
+                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString()),
-                    });
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
+                    ));
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Recents>(
@@ -3982,11 +3976,10 @@ namespace Cloud.REST
                 // build the location of the sync box usage retrieval method on the server dynamically
                 string serverMethodPath =
                     CLDefinitions.MethodPathSyncBoxUsage + // path for getting sync box usage
-                    Helpers.QueryStringBuilder(new[]
-                    {
+                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
-                    });
+                    ));
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.SyncBoxUsage>(

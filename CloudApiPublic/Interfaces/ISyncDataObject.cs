@@ -6,6 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Cloud.Model;
+using Cloud.SQLIndexer.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,11 +57,16 @@ namespace Cloud.Interfaces
             List<FileChange> failedOutChanges = null);
 
         /// <summary>
+        /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
+        /// </summary>
+        SQLTransactionalBase GetNewTransaction();
+
+        /// <summary>
         /// Callback from SyncEngine for updating database with changes to FileChanges
         /// </summary>
         /// <param name="mergeToFroms">Enumerable of FileChanges to merge into database</param>
         /// <returns>Should return any error that occurred while updating the database, should not throw the exception</returns>
-        CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms);
+        CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null);
 
         /// <summary>
         /// Callback from SyncEngine for adding reprocessing failures or previously dependent FileChanges to queue for next SyncEngine Run
