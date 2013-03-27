@@ -45,6 +45,25 @@ namespace Cloud.Static
     {
         private static CLTrace _trace = CLTrace.Instance;
 
+        /// <summary>
+        /// User callback function to request new credentials.
+        /// </summary>
+        /// <param name="userState"></param>
+        /// <returns></returns>
+        public delegate CLCredential ReplaceExpiredCredential(object userState);
+
+        internal delegate CLCredential GetCurrentCredentialDelegate();
+        internal delegate void SetCurrentCredentialDelegate(CLCredential credential);
+
+        internal sealed class RequestNewCredentialInfo
+        {
+            public Dictionary<int, EnumRequestNewCredentialStates> ProcessingStateByThreadId { get; set; }
+            public ReplaceExpiredCredential GetNewCredentialCallback { get; set; }
+            public object GetNewCredentialCallbackUserState { get; set; }
+            public GetCurrentCredentialDelegate GetCurrentCredential { get; set; }
+            public SetCurrentCredentialDelegate SetCurrentCredential { get; set; }
+        }
+
         // not using ReaderWriterLockSlim because this is a static context, and the Slim version is IDisposable
         public static bool AllHaltedOnUnrecoverableError
         {
@@ -2021,7 +2040,8 @@ namespace Cloud.Static
             ref CLHttpRestStatus status, // reference to the successful/failed state of communication
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredential Credential, // contains key/secret for authorization
-            Nullable<long> SyncBoxId) // unique id for the sync box on the server
+            Nullable<long> SyncBoxId, // unique id for the sync box on the server
+            RequestNewCredentialInfo RequestNewCredentialInfo = null)
         {
             return ProcessHttp<object>(requestContent,
                 serverUrl,
@@ -2033,14 +2053,95 @@ namespace Cloud.Static
                 ref status,
                 CopiedSettings,
                 Credential,
-                SyncBoxId);
+                SyncBoxId,
+                RequestNewCredentialInfo);
         }
         
+        /// <summary>
+        /// HTTP REST routine helper method which handles temporary credential extension and retries of the original request.
+        /// T should be the type of the JSON contract object which an be deserialized from the return response of the server if any, otherwise use string/object type which will be filled in as the entire string response
+        /// </summary>
+        internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+            string serverUrl, // the server URL
+            string serverMethodPath, // the server method path
+            requestMethod method, // type of HTTP method (get vs. put vs. post)
+            int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
+            uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
+            HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
+            ref CLHttpRestStatus status, // reference to the successful/failed state of communication
+            ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
+            CLCredential Credential, // contains key/secret for authorization
+            Nullable<long> SyncBoxId,  // unique id for the sync box on the server
+            RequestNewCredentialInfo RequestNewCredentialInfo = null)
+            where T : class // restrict T to an object type to allow default null return
+        {
+           //if RequestNewCredentialInfo not null
+           //  validate all of the RequestNewCredentialInfo properties and throw if not validated
+           //  lock on ProcessingStateByThreadId dictionary
+           //    add <this threadId, RequestNewCredential_NotSet> to ProcessingStateByThreadId
+           //    get the credential via the callbacks
+           //  endlock on ProcessingStateByThreadId dictionary
+           //endif RequestNewCredentialInfo not null
+           //call the original processHttp
+           //if RequestNewCredentialInfo not null
+           //  lock on ProcessingStateByThreadId dictionary
+           //    get this thread's value entry in ProcessingStateByThreadId
+           //    set the value to a local variable localOperation
+           //    remove this thread's entry from the ProcessingStateByThreadId dictionary
+           //    if the result.Status is 401 and the error code represents an expired token
+           //      if localOperation is RequestNewCredential_NotSet
+           //        try
+           //        {
+           //          CLCredential newCredential;
+           //          CLCredential newCredential = GetNewCredentialCallback(UserState);
+           //        }
+           //        catch
+           //        {
+           //           set error occurred
+           //        }
+           //        if error occurred
+           //          set localOperation to RequestNewCredential_BubbleResult
+           //          loop through the ProcessingStateByThreadId dictionary and reset all of the values to RequestNewCredential_BubbleResult
+           //          ; exit.  The original 401 code will bubble up.
+           //        else no error occurred
+           //          set localOperation to RequestNewCredential_Retry
+           //          loop through the ProcessingStateByThreadId dictionary and reset all of the values to RequestNewCredential_Retry
+           //        endelse no error occurred
+           //      else localOperation is not RequestNewCredential_BubbleResult
+           //        ; do nothing here
+           //      endelse localOperation is not RequestNewCredential_BubbleResult
+           //    else the result.Status is not 401 or the error code does not represent an expired token
+           //      ; do nothing here
+           //    endelse the result.Status is not 401 or the error code does not represent an expired token
+           //  endlock on ProcessingStateByThreadId dictionary
+           //  if localOperation is RequestNewCredential_Retry
+           //    retry the original processHttp operation
+           //  endif localOperation is RequestNewCredential_Retry
+           //endif RequestNewCredentialInfo not null
+
+
+            //Thread.CurrentThread.ManagedThreadId
+            //CLHttpRestStatus.NotAuthorizedExpiredCredentials;
+
+            //&&&&&
+            return ProcessHttpInner<T>(requestContent,
+                serverUrl,
+                serverMethodPath,
+                method,
+                timeoutMilliseconds,
+                uploadDownload,
+                validStatusCodes,
+                ref status,
+                CopiedSettings,
+                Credential,
+                SyncBoxId);
+        }
+
         /// <summary>
         /// main HTTP REST routine helper method which processes the actual communication
         /// T should be the type of the JSON contract object which an be deserialized from the return response of the server if any, otherwise use string/object type which will be filled in as the entire string response
         /// </summary>
-        internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+        internal static T ProcessHttpInner<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
             string serverUrl, // the server URL
             string serverMethodPath, // the server method path
             requestMethod method, // type of HTTP method (get vs. put vs. post)
