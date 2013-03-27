@@ -1888,412 +1888,387 @@ namespace Cloud.SQLIndexer
         /// used when events are modified or replaced with new events
         /// </summary>
         /// <returns>Returns an error from merging the events, if any</returns>
-        [MethodImpl(MethodImplOptions.Synchronized)]
         public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null)
         {
-            CLError toReturn = null;
-            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
-            if (existingTransaction != null
-                && castTransaction == null)
+            // no point trying to perform multiple simultaneous merges since they will block each other via the SQLite transaction
+            lock (MergeEventsLocker)
             {
+                CLError toReturn = null;
+                SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+                if (existingTransaction != null
+                    && castTransaction == null)
+                {
+                    try
+                    {
+                        throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+                    }
+                    catch (Exception ex)
+                    {
+                        toReturn += ex;
+                    }
+                }
+
+                bool inputTransactionSet = castTransaction != null;
                 try
                 {
-                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
-                }
-                catch (Exception ex)
-                {
-                    toReturn += ex;
-                }
-            }
-
-            bool inputTransactionSet = castTransaction != null;
-            try
-            {
-                if (mergeToFroms != null)
-                {
-                    HashSet<long> updatedIds = new HashSet<long>();
-                    HashSet<long> deletedIds = new HashSet<long>();
-
-                    List<FileChange> toAddList = new List<FileChange>();
-                    List<long> toDeleteList = new List<long>();
-
-                    // special enumerator processing so we can know when we're processing the last item since we cannot simply queue its item for batch accumulation
-                    Nullable<FileChangeMerge> storeLastMerge = null;
-                    using (IEnumerator<FileChangeMerge> mergeEnumerator = mergeToFroms.GetEnumerator())
+                    if (mergeToFroms != null)
                     {
-                        bool finalMergeEvent;
-                        while (!(finalMergeEvent = !mergeEnumerator.MoveNext()) || storeLastMerge != null)
+                        HashSet<long> updatedIds = new HashSet<long>();
+                        HashSet<long> deletedIds = new HashSet<long>();
+
+                        List<FileChange> toAddList = new List<FileChange>();
+                        List<long> toDeleteList = new List<long>();
+
+                        // special enumerator processing so we can know when we're processing the last item since we cannot simply queue its item for batch accumulation
+                        Nullable<FileChangeMerge> storeLastMerge = null;
+                        using (IEnumerator<FileChangeMerge> mergeEnumerator = mergeToFroms.GetEnumerator())
                         {
-                            try
+                            bool finalMergeEvent;
+                            while (!(finalMergeEvent = !mergeEnumerator.MoveNext()) || storeLastMerge != null)
                             {
-                                FileChange toAdd;
-                                long toDelete;
-                                FileChange toUpdate;
-
-                                if (storeLastMerge != null)
+                                try
                                 {
-                                    FileChangeMerge currentMerge = (FileChangeMerge)storeLastMerge;
+                                    FileChange toAdd;
+                                    long toDelete;
+                                    FileChange toUpdate;
 
-                                    try
+                                    if (storeLastMerge != null)
                                     {
-                                        // Continue to next iteration if boolean set indicating not to add to SQL
-                                        if (currentMerge.MergeTo != null
-                                            && currentMerge.MergeTo.DoNotAddToSQLIndex
-                                            && currentMerge.MergeTo.EventId != 0)
-                                        {
-                                            MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMerge.MergeTo, currentMerge.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
-                                            continue;
-                                        }
+                                        FileChangeMerge currentMerge = (FileChangeMerge)storeLastMerge;
 
-                                        // Ensure input variables have proper references set
-                                        if (currentMerge.MergeTo == null)
+                                        try
                                         {
-                                            // null merge events are only valid if there is an oldEvent to remove
-                                            if (currentMerge.MergeFrom == null)
+                                            // Continue to next iteration if boolean set indicating not to add to SQL
+                                            if (currentMerge.MergeTo != null
+                                                && currentMerge.MergeTo.DoNotAddToSQLIndex
+                                                && currentMerge.MergeTo.EventId != 0)
                                             {
-                                                throw new NullReferenceException("currentMerge.MergeTo cannot be null");
+                                                MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMerge.MergeTo, currentMerge.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
+                                                continue;
                                             }
-                                        }
-                                        else if (currentMerge.MergeTo.Metadata == null)
-                                        {
-                                            throw new NullReferenceException("currentMerge.MergeTo cannot have null Metadata");
-                                        }
-                                        else if (currentMerge.MergeTo.NewPath == null)
-                                        {
-                                            throw new NullReferenceException("currentMerge.MergeTo cannot have null NewPath");
-                                        }
 
-                                        if (castTransaction == null)
-                                        {
-                                            ISQLiteConnection indexDB;
-                                            castTransaction = new SQLTransactionalImplementation(
-                                                indexDB = CreateAndOpenCipherConnection(),
-                                                indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
-                                        }
-
-                                        ////possibilities for old event:
-                                        ////none,
-                                        ////not in database, <-- causes old to be ignored (acts like none)
-                                        ////exists in database
-                                        //
-                                        //
-                                        ////possibilities for new event:
-                                        ////none,
-                                        ////not in database, (new event)
-                                        ////exists in database
-                                        //
-                                        //
-                                        ////mutually exclusive:
-                                        ////none and none
-                                        //
-                                        //
-                                        ////if there is an old exists and a new none, then delete old row
-                                        //
-                                        ////if old does not exists and a new none, do nothing (already not in database)
-                                        //
-                                        ////if old none
-                                        ////    if new not in database, add new to database
-                                        ////    else if new in database, update new
-                                        //
-                                        ////if there is an old exists and new not in database, update old row with new data
-                                        //
-                                        ////if there is an old exists and new in database and neither match, delete new row and update old row with new data
-                                        //
-                                        ////if there is an old exists and new in database and they do match by row primary key (EventId), update new in database
-                                        //
-                                        ////(ignore old:)
-                                        ////if old does not exist and new new not in database, add new to database
-                                        //
-                                        ////(ignore old:)
-                                        ////if old does not exist and new exists in database, update new in database
-
-
-                                        // byte definitions:
-                                        // 0 = null
-                                        // 1 = not in database (EventId == 0)
-                                        // 2 = exists in database (EventId > 0)
-
-                                        byte oldEventState = (currentMerge.MergeFrom == null
-                                            ? (byte)0
-                                            : (currentMerge.MergeFrom.EventId > 0
-                                                ? (byte)2
-                                                : (byte)1));
-
-                                        byte newEventState = (currentMerge.MergeTo == null
-                                            ? (byte)0
-                                            : (currentMerge.MergeTo.EventId > 0
-                                                ? (byte)2
-                                                : (byte)1));
-
-                                        switch (oldEventState)
-                                        {
-                                            // old event is null or not null but does not already exist in database
-                                            case (byte)0:
-                                            case (byte)1: // <-- not in database treated like null for old event
-                                                switch (newEventState)
+                                            // Ensure input variables have proper references set
+                                            if (currentMerge.MergeTo == null)
+                                            {
+                                                // null merge events are only valid if there is an oldEvent to remove
+                                                if (currentMerge.MergeFrom == null)
                                                 {
-                                                    // 0 for new event is only possible if old event was 1 (null and null are mutually excluded via exceptions above)
-                                                    case (byte)0:
-                                                        // already not in database, do nothing
-                                                        toAdd = null;
-                                                        toUpdate = null;
-                                                        toDelete = 0;
-                                                        break;
-
-                                                    case (byte)1:
-                                                        // nothing to delete for the old row since it never existed in database;
-                                                        // new row doesn't exist in database so it will be added
-                                                        toAdd = currentMerge.MergeTo;
-                                                        toUpdate = null;
-                                                        toDelete = 0;
-                                                        break;
-
-                                                    default: //case (byte)2:
-                                                        // nothing to delete for old row since it never existeed in database;
-                                                        // new row exists in database so update it
-                                                        toAdd = null;
-                                                        toUpdate = currentMerge.MergeTo;
-                                                        toDelete = 0;
-                                                        break;
+                                                    throw new NullReferenceException("currentMerge.MergeTo cannot be null");
                                                 }
-                                                break;
+                                            }
+                                            else if (currentMerge.MergeTo.Metadata == null)
+                                            {
+                                                throw new NullReferenceException("currentMerge.MergeTo cannot have null Metadata");
+                                            }
+                                            else if (currentMerge.MergeTo.NewPath == null)
+                                            {
+                                                throw new NullReferenceException("currentMerge.MergeTo cannot have null NewPath");
+                                            }
 
-                                            // old event already exists in database
-                                            default: //case (byte)2:
-                                                switch (newEventState)
-                                                {
-                                                    case (byte)0:
-                                                        // old row exists in database but merging it into nothingness, simply delete old row
-                                                        toAdd = null;
-                                                        toUpdate = null;
-                                                        toDelete = currentMerge.MergeFrom.EventId;
-                                                        break;
+                                            if (castTransaction == null)
+                                            {
+                                                ISQLiteConnection indexDB;
+                                                castTransaction = new SQLTransactionalImplementation(
+                                                    indexDB = CreateAndOpenCipherConnection(),
+                                                    indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                                            }
 
-                                                    case (byte)1:
-                                                        // old row exists in database and needs to be updated with latest metadata which is not in an existing new row
-                                                        currentMerge.MergeTo.EventId = currentMerge.MergeFrom.EventId; // replace merge to event id with the one from the sync from
+                                            ////possibilities for old event:
+                                            ////none,
+                                            ////not in database, <-- causes old to be ignored (acts like none)
+                                            ////exists in database
+                                            //
+                                            //
+                                            ////possibilities for new event:
+                                            ////none,
+                                            ////not in database, (new event)
+                                            ////exists in database
+                                            //
+                                            //
+                                            ////mutually exclusive:
+                                            ////none and none
+                                            //
+                                            //
+                                            ////if there is an old exists and a new none, then delete old row
+                                            //
+                                            ////if old does not exists and a new none, do nothing (already not in database)
+                                            //
+                                            ////if old none
+                                            ////    if new not in database, add new to database
+                                            ////    else if new in database, update new
+                                            //
+                                            ////if there is an old exists and new not in database, update old row with new data
+                                            //
+                                            ////if there is an old exists and new in database and neither match, delete new row and update old row with new data
+                                            //
+                                            ////if there is an old exists and new in database and they do match by row primary key (EventId), update new in database
+                                            //
+                                            ////(ignore old:)
+                                            ////if old does not exist and new new not in database, add new to database
+                                            //
+                                            ////(ignore old:)
+                                            ////if old does not exist and new exists in database, update new in database
 
-                                                        toAdd = null;
-                                                        toUpdate = currentMerge.MergeTo;
-                                                        toDelete = 0;
-                                                        break;
 
-                                                    default: //case (byte)2:
-                                                        // old row exists in database and a new row exists
+                                            // byte definitions:
+                                            // 0 = null
+                                            // 1 = not in database (EventId == 0)
+                                            // 2 = exists in database (EventId > 0)
 
-                                                        // if the rows match, then update the new row only
-                                                        if (currentMerge.MergeFrom.EventId == currentMerge.MergeTo.EventId)
-                                                        {
+                                            byte oldEventState = (currentMerge.MergeFrom == null
+                                                ? (byte)0
+                                                : (currentMerge.MergeFrom.EventId > 0
+                                                    ? (byte)2
+                                                    : (byte)1));
+
+                                            byte newEventState = (currentMerge.MergeTo == null
+                                                ? (byte)0
+                                                : (currentMerge.MergeTo.EventId > 0
+                                                    ? (byte)2
+                                                    : (byte)1));
+
+                                            switch (oldEventState)
+                                            {
+                                                // old event is null or not null but does not already exist in database
+                                                case (byte)0:
+                                                case (byte)1: // <-- not in database treated like null for old event
+                                                    switch (newEventState)
+                                                    {
+                                                        // 0 for new event is only possible if old event was 1 (null and null are mutually excluded via exceptions above)
+                                                        case (byte)0:
+                                                            // already not in database, do nothing
+                                                            toAdd = null;
+                                                            toUpdate = null;
+                                                            toDelete = 0;
+                                                            break;
+
+                                                        case (byte)1:
+                                                            // nothing to delete for the old row since it never existed in database;
+                                                            // new row doesn't exist in database so it will be added
+                                                            toAdd = currentMerge.MergeTo;
+                                                            toUpdate = null;
+                                                            toDelete = 0;
+                                                            break;
+
+                                                        default: //case (byte)2:
+                                                            // nothing to delete for old row since it never existeed in database;
+                                                            // new row exists in database so update it
                                                             toAdd = null;
                                                             toUpdate = currentMerge.MergeTo;
                                                             toDelete = 0;
-                                                        }
-                                                        // else if the rows do not match, then delete the new row, and put the new metadata in the old row (prefers keeping lowest EventId in database for dependency hierarchy reasons)
-                                                        else
-                                                        {
-                                                            // set toDelete first since the event Id at the reference we are grabbing is going to be changed in between setting toDelete and toUpdate
+                                                            break;
+                                                    }
+                                                    break;
 
-                                                            toDelete = currentMerge.MergeTo.EventId;
+                                                // old event already exists in database
+                                                default: //case (byte)2:
+                                                    switch (newEventState)
+                                                    {
+                                                        case (byte)0:
+                                                            // old row exists in database but merging it into nothingness, simply delete old row
+                                                            toAdd = null;
+                                                            toUpdate = null;
+                                                            toDelete = currentMerge.MergeFrom.EventId;
+                                                            break;
 
+                                                        case (byte)1:
+                                                            // old row exists in database and needs to be updated with latest metadata which is not in an existing new row
                                                             currentMerge.MergeTo.EventId = currentMerge.MergeFrom.EventId; // replace merge to event id with the one from the sync from
 
                                                             toAdd = null;
                                                             toUpdate = currentMerge.MergeTo;
-                                                        }
-                                                        break;
-                                                }
-                                                break;
+                                                            toDelete = 0;
+                                                            break;
+
+                                                        default: //case (byte)2:
+                                                            // old row exists in database and a new row exists
+
+                                                            // if the rows match, then update the new row only
+                                                            if (currentMerge.MergeFrom.EventId == currentMerge.MergeTo.EventId)
+                                                            {
+                                                                toAdd = null;
+                                                                toUpdate = currentMerge.MergeTo;
+                                                                toDelete = 0;
+                                                            }
+                                                            // else if the rows do not match, then delete the new row, and put the new metadata in the old row (prefers keeping lowest EventId in database for dependency hierarchy reasons)
+                                                            else
+                                                            {
+                                                                // set toDelete first since the event Id at the reference we are grabbing is going to be changed in between setting toDelete and toUpdate
+
+                                                                toDelete = currentMerge.MergeTo.EventId;
+
+                                                                currentMerge.MergeTo.EventId = currentMerge.MergeFrom.EventId; // replace merge to event id with the one from the sync from
+
+                                                                toAdd = null;
+                                                                toUpdate = currentMerge.MergeTo;
+                                                            }
+                                                            break;
+                                                    }
+                                                    break;
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            toDelete = 0;
+                                            toUpdate = null;
+                                            toAdd = null;
+
+                                            toReturn += ex;
                                         }
                                     }
-                                    catch (Exception ex)
+                                    else
                                     {
                                         toDelete = 0;
                                         toUpdate = null;
                                         toAdd = null;
-
-                                        toReturn += ex;
-                                    }
-                                }
-                                else
-                                {
-                                    toDelete = 0;
-                                    toUpdate = null;
-                                    toAdd = null;
-                                }
-
-                                // determine if a previous batch has finished, if there will be no more events (process any existing batch as final), or if there is an update to process immediately,
-                                // and create an action priority to perform operations by the original event order
-
-                                // changeType byte enum:
-                                // 0 = deletion action
-                                // 1 = addition action
-                                // 2 = update action
-
-                                List<byte> actionOrder = new List<byte>();
-
-                                if (toDeleteList.Count > 0)
-                                {
-                                    // if the current event cannot be appended to the delete list, then the delete list must process first
-                                    if (toUpdate != null
-                                        || toAdd != null)
-                                    {
-                                        actionOrder.Add((byte)0);
-                                    }
-                                }
-
-                                if (toAddList.Count > 0)
-                                {
-                                    // if the current event cannot be appended to the add list, then the add list must process first
-                                    if (toDelete > 0
-                                        || toUpdate != null)
-                                    {
-                                        actionOrder.Add((byte)1);
-                                    }
-                                }
-
-                                // process the current event; deletes and adds will be added to a batch to process, but update is processed by itself
-                                if (toDelete > 0)
-                                {
-                                    deletedIds.Add(toDelete);
-
-                                    toDeleteList.Add(toDelete);
-
-                                    // if last event, process what's in the delete batch now
-                                    if (finalMergeEvent)
-                                    {
-                                        actionOrder.Add((byte)0);
                                     }
 
-                                    // possible to have both a delete and an update if the rows are being merged
-                                    if (toUpdate != null)
+                                    // determine if a previous batch has finished, if there will be no more events (process any existing batch as final), or if there is an update to process immediately,
+                                    // and create an action priority to perform operations by the original event order
+
+                                    // changeType byte enum:
+                                    // 0 = deletion action
+                                    // 1 = addition action
+                                    // 2 = update action
+
+                                    List<byte> actionOrder = new List<byte>();
+
+                                    if (toDeleteList.Count > 0)
                                     {
+                                        // if the current event cannot be appended to the delete list, then the delete list must process first
+                                        if (toUpdate != null
+                                            || toAdd != null)
+                                        {
+                                            actionOrder.Add((byte)0);
+                                        }
+                                    }
+
+                                    if (toAddList.Count > 0)
+                                    {
+                                        // if the current event cannot be appended to the add list, then the add list must process first
+                                        if (toDelete > 0
+                                            || toUpdate != null)
+                                        {
+                                            actionOrder.Add((byte)1);
+                                        }
+                                    }
+
+                                    // process the current event; deletes and adds will be added to a batch to process, but update is processed by itself
+                                    if (toDelete > 0)
+                                    {
+                                        deletedIds.Add(toDelete);
+
+                                        toDeleteList.Add(toDelete);
+
+                                        // if last event, process what's in the delete batch now
+                                        if (finalMergeEvent)
+                                        {
+                                            actionOrder.Add((byte)0);
+                                        }
+
+                                        // possible to have both a delete and an update if the rows are being merged
+                                        if (toUpdate != null)
+                                        {
+                                            actionOrder.Add((byte)2);
+                                        }
+                                    }
+                                    else if (toAdd != null)
+                                    {
+                                        toAddList.Add(toAdd);
+
+                                        // if last event, process what's in the add batch now
+                                        if (finalMergeEvent)
+                                        {
+                                            actionOrder.Add((byte)1);
+                                        }
+                                    }
+                                    else if (toUpdate != null)
+                                    {
+                                        // always process every update one at a time
                                         actionOrder.Add((byte)2);
                                     }
-                                }
-                                else if (toAdd != null)
-                                {
-                                    toAddList.Add(toAdd);
 
-                                    // if last event, process what's in the add batch now
-                                    if (finalMergeEvent)
+                                    foreach (byte currentAction in actionOrder)
                                     {
-                                        actionOrder.Add((byte)1);
-                                    }
-                                }
-                                else if (toUpdate != null)
-                                {
-                                    // always process every update one at a time
-                                    actionOrder.Add((byte)2);
-                                }
+                                        switch (currentAction)
+                                        {
+                                            // action is delete
+                                            case (byte)0:
+                                                CLError removeBatchError = RemoveEventsByIds(toDeleteList, castTransaction);
 
-                                foreach (byte currentAction in actionOrder)
-                                {
-                                    switch (currentAction)
-                                    {
-                                        // action is delete
-                                        case (byte)0:
-                                            CLError removeBatchError = RemoveEventsByIds(toDeleteList, castTransaction);
+                                                if (removeBatchError != null)
+                                                {
+                                                    toReturn += new AggregateException("One or more errors occurred removing a batch of events by ids", removeBatchError.GrabExceptions());
+                                                }
 
-                                            if (removeBatchError != null)
-                                            {
-                                                toReturn += new AggregateException("One or more errors occurred removing a batch of events by ids", removeBatchError.GrabExceptions());
-                                            }
+                                                // no point wasting effort to clear the list for future batches if there will be no future batches
+                                                if (!finalMergeEvent)
+                                                {
+                                                    toDeleteList.Clear();
+                                                }
+                                                break;
 
-                                            // no point wasting effort to clear the list for future batches if there will be no future batches
-                                            if (!finalMergeEvent)
-                                            {
-                                                toDeleteList.Clear();
-                                            }
-                                            break;
+                                            // action is add
+                                            case (byte)1:
+                                                CLError addBatchError = AddEvents(toAddList, castTransaction);
 
-                                        // action is add
-                                        case (byte)1:
-                                            CLError addBatchError = AddEvents(toAddList, castTransaction);
+                                                if (addBatchError != null)
+                                                {
+                                                    toReturn += new AggregateException("One or more errors occurred adding a batch of new events");
+                                                }
 
-                                            if (addBatchError != null)
-                                            {
-                                                toReturn += new AggregateException("One or more errors occurred adding a batch of new events");
-                                            }
+                                                // no point wasting effort to clear the list for future batches if there will be no future batches
+                                                if (!finalMergeEvent)
+                                                {
+                                                    toAddList.Clear();
+                                                }
+                                                break;
 
-                                            // no point wasting effort to clear the list for future batches if there will be no future batches
-                                            if (!finalMergeEvent)
-                                            {
-                                                toAddList.Clear();
-                                            }
-                                            break;
-
-                                        // action is update
-                                        default: //case (byte)2:
-                                            FileSystemObject existingRow = SqlAccessor<FileSystemObject>.SelectResultSet(
-                                                    castTransaction.sqlConnection,
-                                                    "SELECT " +
-                                                        SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-                                                        SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
-                                                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") +
-                                                        " FROM FileSystemObjects" +
-                                                        " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
-                                                        " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
-                                                        " WHERE Events.EventId = ?" + // <-- parameter 1
-                                                        " AND FileSystemObjects.ParentFolderId IS NOT NULL" +
-                                                        " LIMIT 1",
-                                                    new[]
+                                            // action is update
+                                            default: //case (byte)2:
+                                                FileSystemObject existingRow = SqlAccessor<FileSystemObject>.SelectResultSet(
+                                                        castTransaction.sqlConnection,
+                                                        "SELECT " +
+                                                            SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                                                            SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
+                                                            SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") +
+                                                            " FROM FileSystemObjects" +
+                                                            " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
+                                                            " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
+                                                            " WHERE Events.EventId = ?" + // <-- parameter 1
+                                                            " AND FileSystemObjects.ParentFolderId IS NOT NULL" +
+                                                            " LIMIT 1",
+                                                        new[]
                                                         {
                                                             "Event",
                                                             "Event.Previous"
                                                         },
-                                                    castTransaction.sqlTransaction,
-                                                    Helpers.EnumerateSingleItem((long)toUpdate.EventId))
-                                                .SingleOrDefault();
+                                                        castTransaction.sqlTransaction,
+                                                        Helpers.EnumerateSingleItem((long)toUpdate.EventId))
+                                                    .SingleOrDefault();
 
-                                            if (existingRow == null)
-                                            {
-                                                // couldn't find existing row to update, add a new one instead (will overwrite the EventId)
-                                                toAdd = toUpdate;
-                                            }
-                                            else
-                                            {
-                                                if (existingRow.ParentFolderId == null)
+                                                if (existingRow == null)
                                                 {
-                                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing FileSystemObject to update did not have a parent folder");
+                                                    // couldn't find existing row to update, add a new one instead (will overwrite the EventId)
+                                                    toAdd = toUpdate;
                                                 }
-
-                                                long toUpdateParentFolderId;
-                                                Nullable<long> toUpdatePreviousId;
-
-                                                FilePath previousRowPath = existingRow.CalculatedFullPath;
-                                                if (previousRowPath != null
-                                                    && FilePathComparer.Instance.Equals(previousRowPath.Parent, toUpdate.NewPath.Parent))
+                                                else
                                                 {
-                                                    toUpdateParentFolderId = (long)existingRow.ParentFolderId;
-                                                }
-                                                else if (!SqlAccessor<object>.TrySelectScalar<long>(
-                                                    castTransaction.sqlConnection,
-                                                    "SELECT FileSystemObjects.FileSystemObjectId " +
-                                                        "FROM FileSystemObjects " +
-                                                        "WHERE CalculatedFullPath = ? " + // <-- parameter 1
-                                                        "ORDER BY " +
-                                                        "CASE WHEN FileSystemObjects.EventId IS NULL " +
-                                                        "THEN 0 " +
-                                                        "ELSE FileSystemObjects.EventId " +
-                                                        "END DESC " +
-                                                        "LIMIT 1",
-                                                    out toUpdateParentFolderId,
-                                                    castTransaction.sqlTransaction,
-                                                    selectParameters: Helpers.EnumerateSingleItem(toUpdate.NewPath.Parent.ToString())))
-                                                {
-                                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject with path of parent folder to use as containing folder");
-                                                }
+                                                    if (existingRow.ParentFolderId == null)
+                                                    {
+                                                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing FileSystemObject to update did not have a parent folder");
+                                                    }
 
-                                                if (toUpdate.OldPath == null)
-                                                {
-                                                    toUpdatePreviousId = null;
-                                                }
-                                                else if (existingRow.Event.Previous == null
-                                                    || !FilePathComparer.Instance.Equals(existingRow.Event.Previous.CalculatedFullPath, toUpdate.OldPath))
-                                                {
-                                                    long previousIdNotNull;
+                                                    long toUpdateParentFolderId;
+                                                    Nullable<long> toUpdatePreviousId;
 
-                                                    if (!SqlAccessor<object>.TrySelectScalar<long>(
+                                                    FilePath previousRowPath = existingRow.CalculatedFullPath;
+                                                    if (previousRowPath != null
+                                                        && FilePathComparer.Instance.Equals(previousRowPath.Parent, toUpdate.NewPath.Parent))
+                                                    {
+                                                        toUpdateParentFolderId = (long)existingRow.ParentFolderId;
+                                                    }
+                                                    else if (!SqlAccessor<object>.TrySelectScalar<long>(
                                                         castTransaction.sqlConnection,
                                                         "SELECT FileSystemObjects.FileSystemObjectId " +
                                                             "FROM FileSystemObjects " +
@@ -2304,132 +2279,161 @@ namespace Cloud.SQLIndexer
                                                             "ELSE FileSystemObjects.EventId " +
                                                             "END DESC " +
                                                             "LIMIT 1",
-                                                        result: out previousIdNotNull,
-                                                        transaction: castTransaction.sqlTransaction,
-                                                        selectParameters: Helpers.EnumerateSingleItem(toUpdate.OldPath.ToString())))
+                                                        out toUpdateParentFolderId,
+                                                        castTransaction.sqlTransaction,
+                                                        selectParameters: Helpers.EnumerateSingleItem(toUpdate.NewPath.Parent.ToString())))
                                                     {
-                                                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject with old path of toUpdate before rename\\move operation");
+                                                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject with path of parent folder to use as containing folder");
                                                     }
 
-                                                    toUpdatePreviousId = previousIdNotNull;
-                                                }
-                                                else
-                                                {
-                                                    toUpdatePreviousId = existingRow.Event.PreviousId;
+                                                    if (toUpdate.OldPath == null)
+                                                    {
+                                                        toUpdatePreviousId = null;
+                                                    }
+                                                    else if (existingRow.Event.Previous == null
+                                                        || !FilePathComparer.Instance.Equals(existingRow.Event.Previous.CalculatedFullPath, toUpdate.OldPath))
+                                                    {
+                                                        long previousIdNotNull;
+
+                                                        if (!SqlAccessor<object>.TrySelectScalar<long>(
+                                                            castTransaction.sqlConnection,
+                                                            "SELECT FileSystemObjects.FileSystemObjectId " +
+                                                                "FROM FileSystemObjects " +
+                                                                "WHERE CalculatedFullPath = ? " + // <-- parameter 1
+                                                                "ORDER BY " +
+                                                                "CASE WHEN FileSystemObjects.EventId IS NULL " +
+                                                                "THEN 0 " +
+                                                                "ELSE FileSystemObjects.EventId " +
+                                                                "END DESC " +
+                                                                "LIMIT 1",
+                                                            result: out previousIdNotNull,
+                                                            transaction: castTransaction.sqlTransaction,
+                                                            selectParameters: Helpers.EnumerateSingleItem(toUpdate.OldPath.ToString())))
+                                                        {
+                                                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject with old path of toUpdate before rename\\move operation");
+                                                        }
+
+                                                        toUpdatePreviousId = previousIdNotNull;
+                                                    }
+                                                    else
+                                                    {
+                                                        toUpdatePreviousId = existingRow.Event.PreviousId;
+                                                    }
+
+                                                    #region update fields in FileSystemObject
+                                                    if (toUpdate.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks)
+                                                    {
+                                                        existingRow.CreationTimeUTCTicks = null;
+                                                    }
+                                                    else
+                                                    {
+                                                        DateTime creationTimeUTC = toUpdate.Metadata.HashableProperties.CreationTime.ToUniversalTime();
+
+                                                        existingRow.CreationTimeUTCTicks = (creationTimeUTC.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                            ? (Nullable<long>)null
+                                                            : creationTimeUTC.Ticks);
+                                                    }
+                                                    existingRow.EventTimeUTCTicks = DateTime.UtcNow.Ticks;
+                                                    existingRow.IsFolder = toUpdate.Metadata.HashableProperties.IsFolder;
+                                                    existingRow.IsShare = toUpdate.Metadata.IsShare;
+                                                    if (toUpdate.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks)
+                                                    {
+                                                        existingRow.LastTimeUTCTicks = null;
+                                                    }
+                                                    else
+                                                    {
+                                                        DateTime lastTimeUTC = toUpdate.Metadata.HashableProperties.LastTime.ToUniversalTime();
+
+                                                        existingRow.LastTimeUTCTicks = (lastTimeUTC.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                            ? (Nullable<long>)null
+                                                            : lastTimeUTC.Ticks);
+                                                    }
+                                                    byte[] getMD5;
+                                                    CLError getMD5Error = toUpdate.GetMD5Bytes(out getMD5);
+                                                    if (getMD5Error != null)
+                                                    {
+                                                        throw new AggregateException("Error retrieving MD5 bytes from toUpdate", getMD5Error.GrabExceptions());
+                                                    }
+                                                    existingRow.MD5 = getMD5;
+                                                    existingRow.MimeType = toUpdate.Metadata.MimeType;
+                                                    existingRow.Name = toUpdate.NewPath.Name;
+                                                    existingRow.ParentFolderId = toUpdateParentFolderId;
+                                                    //existingRow.Pending = true; // <-- true on insert, no need to update here
+                                                    existingRow.Permissions = (toUpdate.Metadata.Permissions == null
+                                                        ? (Nullable<int>)null
+                                                        : (int)((POSIXPermissions)toUpdate.Metadata.Permissions));
+                                                    existingRow.Revision = toUpdate.Metadata.Revision;
+                                                    //existingRow.ServerName // <-- add support for server name
+                                                    existingRow.ServerUid = toUpdate.Metadata.ServerUid;
+                                                    existingRow.Size = toUpdate.Metadata.HashableProperties.Size;
+                                                    existingRow.StorageKey = toUpdate.Metadata.StorageKey;
+                                                    existingRow.Version = toUpdate.Metadata.Version;
+                                                    #endregion
+
+                                                    #region update fields in Event
+                                                    //existingRow.Event.FileChangeTypeCategoryId = changeCategoryId; // <-- changeCategoryId on insert, no need to update here
+                                                    existingRow.Event.FileChangeTypeEnumId = changeEnumsBackward[toUpdate.Type];
+                                                    existingRow.Event.PreviousId = toUpdatePreviousId;
+                                                    existingRow.Event.SyncFrom = (toUpdate.Direction == SyncDirection.From);
+                                                    #endregion
+
+                                                    if (!SqlAccessor<Event>.UpdateRow(castTransaction.sqlConnection, existingRow.Event, castTransaction.sqlTransaction))
+                                                    {
+                                                        toAdd = toUpdate;
+                                                    }
+                                                    if (!SqlAccessor<FileSystemObject>.UpdateRow(castTransaction.sqlConnection, existingRow, castTransaction.sqlTransaction))
+                                                    {
+                                                        toAdd = toUpdate;
+                                                    }
                                                 }
 
-                                                #region update fields in FileSystemObject
-                                                if (toUpdate.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks)
-                                                {
-                                                    existingRow.CreationTimeUTCTicks = null;
-                                                }
-                                                else
-                                                {
-                                                    DateTime creationTimeUTC = toUpdate.Metadata.HashableProperties.CreationTime.ToUniversalTime();
-
-                                                    existingRow.CreationTimeUTCTicks = (creationTimeUTC.Ticks == FileConstants.InvalidUtcTimeTicks
-                                                        ? (Nullable<long>)null
-                                                        : creationTimeUTC.Ticks);
-                                                }
-                                                existingRow.EventTimeUTCTicks = DateTime.UtcNow.Ticks;
-                                                existingRow.IsFolder = toUpdate.Metadata.HashableProperties.IsFolder;
-                                                existingRow.IsShare = toUpdate.Metadata.IsShare;
-                                                if (toUpdate.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks)
-                                                {
-                                                    existingRow.LastTimeUTCTicks = null;
-                                                }
-                                                else
-                                                {
-                                                    DateTime lastTimeUTC = toUpdate.Metadata.HashableProperties.LastTime.ToUniversalTime();
-
-                                                    existingRow.LastTimeUTCTicks = (lastTimeUTC.Ticks == FileConstants.InvalidUtcTimeTicks
-                                                        ? (Nullable<long>)null
-                                                        : lastTimeUTC.Ticks);
-                                                }
-                                                byte[] getMD5;
-                                                CLError getMD5Error = toUpdate.GetMD5Bytes(out getMD5);
-                                                if (getMD5Error != null)
-                                                {
-                                                    throw new AggregateException("Error retrieving MD5 bytes from toUpdate", getMD5Error.GrabExceptions());
-                                                }
-                                                existingRow.MD5 = getMD5;
-                                                existingRow.MimeType = toUpdate.Metadata.MimeType;
-                                                existingRow.Name = toUpdate.NewPath.Name;
-                                                existingRow.ParentFolderId = toUpdateParentFolderId;
-                                                //existingRow.Pending = true; // <-- true on insert, no need to update here
-                                                existingRow.Permissions = (toUpdate.Metadata.Permissions == null
-                                                    ? (Nullable<int>)null
-                                                    : (int)((POSIXPermissions)toUpdate.Metadata.Permissions));
-                                                existingRow.Revision = toUpdate.Metadata.Revision;
-                                                //existingRow.ServerName // <-- add support for server name
-                                                existingRow.ServerUid = toUpdate.Metadata.ServerUid;
-                                                existingRow.Size = toUpdate.Metadata.HashableProperties.Size;
-                                                existingRow.StorageKey = toUpdate.Metadata.StorageKey;
-                                                existingRow.Version = toUpdate.Metadata.Version;
-                                                #endregion
-
-                                                #region update fields in Event
-                                                //existingRow.Event.FileChangeTypeCategoryId = changeCategoryId; // <-- changeCategoryId on insert, no need to update here
-                                                existingRow.Event.FileChangeTypeEnumId = changeEnumsBackward[toUpdate.Type];
-                                                existingRow.Event.PreviousId = toUpdatePreviousId;
-                                                existingRow.Event.SyncFrom = (toUpdate.Direction == SyncDirection.From);
-                                                #endregion
-
-                                                if (!SqlAccessor<Event>.UpdateRow(castTransaction.sqlConnection, existingRow.Event, castTransaction.sqlTransaction))
-                                                {
-                                                    toAdd = toUpdate;
-                                                }
-                                                if (!SqlAccessor<FileSystemObject>.UpdateRow(castTransaction.sqlConnection, existingRow, castTransaction.sqlTransaction))
-                                                {
-                                                    toAdd = toUpdate;
-                                                }
-                                            }
-
-                                            updatedIds.Add(toUpdate.EventId);
-                                            break;
+                                                updatedIds.Add(toUpdate.EventId);
+                                                break;
+                                        }
                                     }
+
+                                    storeLastMerge = (finalMergeEvent
+                                        ? (Nullable<FileChangeMerge>)null
+                                        : mergeEnumerator.Current);
                                 }
-
-                                storeLastMerge = (finalMergeEvent
-                                    ? (Nullable<FileChangeMerge>)null
-                                    : mergeEnumerator.Current);
-                            }
-                            catch (Exception ex)
-                            {
-                                toReturn += ex;
+                                catch (Exception ex)
+                                {
+                                    toReturn += ex;
+                                }
                             }
                         }
-                    }
 
-                    foreach (FileChangeMerge currentMergeToFrom in mergeToFroms)
-                    {
-                        // If mergedEvent was not processed in AddEvents,
-                        // then process badging (AddEvents processes badging for the rest)
-                        if (currentMergeToFrom.MergeTo == null
-                            || updatedIds.Contains(currentMergeToFrom.MergeTo.EventId)
-                            || deletedIds.Contains(currentMergeToFrom.MergeTo.EventId))
+                        foreach (FileChangeMerge currentMergeToFrom in mergeToFroms)
                         {
-                            MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
+                            // If mergedEvent was not processed in AddEvents,
+                            // then process badging (AddEvents processes badging for the rest)
+                            if (currentMergeToFrom.MergeTo == null
+                                || updatedIds.Contains(currentMergeToFrom.MergeTo.EventId)
+                                || deletedIds.Contains(currentMergeToFrom.MergeTo.EventId))
+                            {
+                                MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
+                            }
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                toReturn += ex;
-            }
-            finally
-            {
-                if (!inputTransactionSet
-                    && castTransaction != null)
+                catch (Exception ex)
                 {
-                    castTransaction.Commit();
-
-                    castTransaction.Dispose();
+                    toReturn += ex;
                 }
+                finally
+                {
+                    if (!inputTransactionSet
+                        && castTransaction != null)
+                    {
+                        castTransaction.Commit();
+
+                        castTransaction.Dispose();
+                    }
+                }
+                return toReturn;
             }
-            return toReturn;
         }
+        private readonly object MergeEventsLocker = new object();
 
         /// <summary>
         /// Includes an event in the last set of sync states,
@@ -3372,7 +3376,7 @@ namespace Cloud.SQLIndexer
         /// bool in KeyValuePair Key should be true for pending, the long Value should be the FileSystemObjectId;
         /// use in a SortedList or SortedDictionary should give all non-pendings first then all pendings; within each group, they are ascending sorted by id
         /// </summary>
-        private class pendingThenIdComparer : IComparer<KeyValuePair<bool, long>>
+        private sealed class pendingThenIdComparer : IComparer<KeyValuePair<bool, long>>
         {
             public static pendingThenIdComparer Instance = new pendingThenIdComparer();
 

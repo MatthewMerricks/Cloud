@@ -4336,20 +4336,26 @@ namespace Cloud.FileMonitor
                         {
                             if (NeedsMergeToSql.Count == 0)
                             {
-                                return MergingToSql = false;
+                                return (MergingToSql = false); // set and return false
                             }
                             return true;
                         }
                     };
 
+                FileChange senderToAdd;
                 if (sender == null
                     || sender.Type != FileChangeType.Renamed
-                    || sender.NewPath == null
+                    || sender.NewPath == null // shouldn't be a case here
                     || sender.OldPath == null
                     || !FilePathComparer.Instance.Equals(sender.OldPath, sender.NewPath)) // check for same path rename, only other events should be processed
                 {
-                    mergeBatch.Add(sender);
-                    mergeAll.Add(sender);
+                    senderToAdd = sender;
+                    //mergeBatch.Add(sender);
+                    //mergeAll.Add(sender);
+                }
+                else
+                {
+                    senderToAdd = null;
                 }
 
                 Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object> recurseHierarchyAndAddSyncFromsToHashSet =
@@ -4413,6 +4419,16 @@ namespace Cloud.FileMonitor
                         && upDownsWrapped.Key != null)
                     {
                         FilePathDictionary<List<FileChange>> upDowns = upDownsWrapped.Key;
+
+                        // add the stored change for the current call to this method, must be added to then end of the batch;
+                        // before, it was being added to the beginning which was out of order
+                        if (senderToAdd != null)
+                        {
+                            mergeBatch.Add(senderToAdd);
+                            mergeAll.Add(senderToAdd);
+
+                            senderToAdd = null;
+                        }
 
                         foreach (FileChange currentMerge in mergeBatch)
                         {
@@ -4490,6 +4506,8 @@ namespace Cloud.FileMonitor
                         // forces logging even if the setting is turned off in the severe case since a message box had to appear
                         mergeError.LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
 
+                        // errors may be more common now that our database is hierarchichal and simple event ordering problems could throw an error adding to database (file before parent folder),
+                        // TODO: better error recovery instead of halting whole SDK
                         MessageEvents.FireNewEventMessage(
                             "An error occurred adding a file system event to the database:" + Environment.NewLine +
                                 string.Join(Environment.NewLine,

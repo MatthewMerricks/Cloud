@@ -728,6 +728,13 @@ namespace Cloud.Static
                 return null;
             }
 
+            if (newType == typeof(Guid)
+                && toConvert is byte[]
+                && ((byte[])toConvert).Length == 16)
+            {
+                return new Guid((byte[])toConvert);
+            }
+
             return Convert.ChangeType(toConvert, Nullable.GetUnderlyingType(newType) ?? newType);
         }
 

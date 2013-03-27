@@ -1202,158 +1202,221 @@ namespace Cloud.Sync
         /// <returns>Returns any error that occurred while processing</returns>
         public CLError Run(bool respondingToPushNotification)
         {
-            // lock to prevent multiple simultaneous syncing on the current SyncEngine
-            lock (RunLocker)
+            // declare error which will be aggregated with exceptions and returned
+            GenericHolder<CLError> toReturn = new GenericHolder<CLError>();
+
+            #region local delegates with corresponding data holders
+
+            #region any data shared between local delegates goes here
+
+            Guid commonRunThreadId = Guid.NewGuid();
+
+            // errorsToQueue will have all changes to process (format KeyValuePair<KeyValuePair<[whether error was pulled from existing failures], [error change]>, [filestream for error]>),
+            // items will be ignored as their successfulEventId is added
+            GenericHolder<List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>> commonErrorsToQueue = new GenericHolder<List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>>(null);
+            // list of completed events which will be recorded as a batch at the end to the database, used to filter out errors from being logged and requeued
+            List<long> commonSuccessfulEventIds = new List<long>();
+            // declare the enumeration of FileChanges which were dependent on completed changes to process again
+            GenericHolder<IEnumerable<FileChange>> commonThingsThatWereDependenciesToQueue = new GenericHolder<IEnumerable<FileChange>>(null);
+
+            // null-coallesce the download temp path
+            string commonTempDownloadsFolder;
+            try
             {
-                // check for halted engine to return error
-                if (CheckForMaxCommunicationFailuresHalt())
-                {
-                    return new ObjectDisposedException("SyncEngine already halted from server connection failure");
-                }
+                commonTempDownloadsFolder = String.IsNullOrWhiteSpace(syncBox.CopiedSettings.TempDownloadFolderFullPath) ? DefaultTempDownloadsPath : syncBox.CopiedSettings.TempDownloadFolderFullPath;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
 
-                lock (CredentialErrorDetected)
-                {
-                    switch (CredentialErrorDetected.Value)
+            #endregion
+
+            var checkHaltsAndErrorsData = new
+            {
+                commonThisEngine = this
+            };
+            var checkHaltsAndErrors = DelegateAndDataHolder.Create(
+                checkHaltsAndErrorsData,
+                (Data, errorToAccumulate) =>
                     {
-                        case CredentialErrorType.ExpiredCredentials:
-                            return new ObjectDisposedException("SyncEngine already halted from an expired token");
+                        // check for halted engine to return error
+                        if (Data.commonThisEngine.CheckForMaxCommunicationFailuresHalt())
+                        {
+                            return new ObjectDisposedException("SyncEngine already halted from server connection failure");
+                        }
 
-                        case CredentialErrorType.OtherError:
-                            return new ObjectDisposedException("SyncEngine already halted from authorization credentials error");
+                        lock (Data.commonThisEngine.CredentialErrorDetected)
+                        {
+                            switch (Data.commonThisEngine.CredentialErrorDetected.Value)
+                            {
+                                case CredentialErrorType.ExpiredCredentials:
+                                    return new ObjectDisposedException("SyncEngine already halted from an expired token");
 
-                        case CredentialErrorType.NoError:
-                            break;
+                                case CredentialErrorType.OtherError:
+                                    return new ObjectDisposedException("SyncEngine already halted from authorization credentials error");
 
-                        default:
-                            return new InvalidOperationException("SyncEngine credential error value is of unknown type: " + CredentialErrorDetected.Value.ToString());
-                    }
-                }
+                                case CredentialErrorType.NoError:
+                                    return null;
 
-                // if internet is not connected, no point to try sync, so make sure sync is requeued and send the informational message
-                if (!InternetConnected)
-                {
-                    try
+                                default:
+                                    return new InvalidOperationException("SyncEngine credential error value is of unknown type: " + Data.commonThisEngine.CredentialErrorDetected.Value.ToString());
+                            }
+                        }
+                    },
+                toReturn);
+
+            var getIsShutdownData = new
+            {
+                commonThisEngine = this
+            };
+            var getIsShutdown = DelegateAndDataHolder.Create(
+                getIsShutdownData,
+                (Data, errorToAccumulate) =>
                     {
                         // check for Sync shutdown
-                        Monitor.Enter(FullShutdownToken);
+                        Monitor.Enter(Data.commonThisEngine.FullShutdownToken);
                         try
                         {
-                            if (FullShutdownToken.Token.IsCancellationRequested)
-                            {
-                                throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
-                            }
+                            return Data.commonThisEngine.FullShutdownToken.Token.IsCancellationRequested;
                         }
                         finally
                         {
-                            Monitor.Exit(FullShutdownToken);
+                            Monitor.Exit(Data.commonThisEngine.FullShutdownToken);
                         }
+                    },
+                toReturn);
 
-                        // lock on timer for access to failure queue
-                        lock (FailureTimer.TimerRunningLocker)
+            var checkInternetConnectionData = new
+            {
+                commonThisEngine = this,
+                isShutdown = getIsShutdown
+            };
+            var checkInternetConnection = DelegateAndDataHolder.Create(
+                checkInternetConnectionData,
+                (Data, errorToAccumulate) =>
+                    {
+                        // if internet is not connected, no point to try sync, so make sure sync is requeued and send the informational message
+                        if (!InternetConnected) // static, cannot use thisEngine reference
                         {
-                            if (FailedChangesQueue.Count == 0)
+                            try
                             {
-                                FailedChangesQueue.Enqueue(null);
+                                if (Data.isShutdown.Process())
+                                {
+                                    throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
+                                }
 
-                                FailureTimer.StartTimerIfNotRunning();
+                                // lock on timer for access to failure queue
+                                lock (Data.commonThisEngine.FailureTimer.TimerRunningLocker)
+                                {
+                                    if (Data.commonThisEngine.FailedChangesQueue.Count == 0)
+                                    {
+                                        Data.commonThisEngine.FailedChangesQueue.Enqueue(null);
+
+                                        Data.commonThisEngine.FailureTimer.StartTimerIfNotRunning();
+                                    }
+                                }
+
+                                MessageEvents.FireNewEventMessage(
+                                    "No internet connection detected. Retrying Sync after a short delay.",
+                                    SyncBoxId: Data.commonThisEngine.syncBox.SyncBoxId,
+                                    DeviceId: Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
+
+                                return new GenericHolder<Exception>(null);
+                            }
+                            catch (Exception ex)
+                            {
+                                return new GenericHolder<Exception>(ex);
                             }
                         }
-
-                        MessageEvents.FireNewEventMessage(
-                            "No internet connection detected. Retrying Sync after a short delay.",
-                            SyncBoxId: syncBox.SyncBoxId,
-                            DeviceId: syncBox.CopiedSettings.DeviceId);
 
                         return null;
-                    }
-                    catch (Exception ex)
+                    },
+                toReturn);
+            
+            var stopOnFullHaltOrStartupData = new
+            {
+                commonThisEngine = this,
+                commonRunThreadId = commonRunThreadId
+            };
+            var stopOnFullHaltOrStartup = DelegateAndDataHolder.Create(
+                stopOnFullHaltOrStartupData,
+                (Data, errorToAccumulate) =>
                     {
-                        return ex;
-                    }
-                }
-
-                Guid runThreadId = Guid.NewGuid();
-
-                // declare error which will be aggregated with exceptions and returned
-                CLError toReturn = null;
-                // declare a string which provides better line-range information for the last state when an error is logged
-                string syncStatus = "Sync Run entered";
-                // errorsToQueue will have all changes to process (format KeyValuePair<KeyValuePair<[whether error was pulled from existing failures], [error change]>, [filestream for error]>),
-                // items will be ignored as their successfulEventId is added
-                List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> errorsToQueue = null;
-                // list of completed events which will be recorded as a batch at the end to the database, used to filter out errors from being logged and requeued
-                List<long> successfulEventIds = new List<long>();
-                // declare the enumeration of FileChanges which were dependent on completed changes to process again
-                IEnumerable<FileChange> thingsThatWereDependenciesToQueue = null;
-                // try/catch for primary sync logic, exception is aggregated to return
-                try
-                {
-                    if (Helpers.AllHaltedOnUnrecoverableError)
-                    {
-                        throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
-                    }
-
-                    SyncStillRunning(runThreadId);
-
-                    // status message
-                    MessageEvents.FireNewEventMessage(
-                        Message: "Started checking for sync changes to process",
-                        Error: null,
-                        SyncBoxId: syncBox.SyncBoxId,
-                        DeviceId: syncBox.CopiedSettings.DeviceId);
-
-                    // check for Sync shutdown
-                    Monitor.Enter(FullShutdownToken);
-                    try
-                    {
-                        if (FullShutdownToken.Token.IsCancellationRequested)
+                        try
                         {
-                            throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
-                        }
-                    }
-                    finally
-                    {
-                        Monitor.Exit(FullShutdownToken);
-                    }
-
-                    // Startup download temp folder
-                    // Bool to store whether download temp folder is marked for cleaning, defaulting to false
-                    bool tempNeedsCleaning = false;
-
-                    // null-coallesce the download temp path
-                    string TempDownloadsFolder = String.IsNullOrWhiteSpace(syncBox.CopiedSettings.TempDownloadFolderFullPath) ? DefaultTempDownloadsPath : syncBox.CopiedSettings.TempDownloadFolderFullPath;
-
-                    // Lock for reading/writing to whether startup occurred
-                    lock (TempDownloadsCleanedLocker)
-                    {
-                        // Check global bool to see if startup has occurred
-                        if (!TempDownloadsCleaned.Contains(TempDownloadsFolder))
-                        {
-                            // Create directory if needed otherwise mark for cleaning
-                            if (!Directory.Exists(TempDownloadsFolder))
+                            if (Helpers.AllHaltedOnUnrecoverableError)
                             {
-                                Directory.CreateDirectory(TempDownloadsFolder);
-                            }
-                            else
-                            {
-                                tempNeedsCleaning = true;
+                                throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
                             }
 
-                            // Startup taken care of
-                            TempDownloadsCleaned.Add(TempDownloadsFolder);
+                            Data.commonThisEngine.SyncStillRunning(Data.commonRunThreadId);
+
+                            // status message
+                            MessageEvents.FireNewEventMessage(
+                                Message: "Started checking for sync changes to process",
+                                Error: null,
+                                SyncBoxId: Data.commonThisEngine.syncBox.SyncBoxId,
+                                DeviceId: Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
                         }
-                    }
-                    // If download temp folder was marked for cleaning
-                    if (tempNeedsCleaning)
+                        catch (Exception ex)
+                        {
+                            return ex;
+                        }
+                        return null;
+                    },
+                toReturn);
+
+            var checkTempNeedsCleaningData = new
+            {
+                commonTempDownloadsFolder = commonTempDownloadsFolder
+            };
+            var checkTempNeedsCleaning = DelegateAndDataHolder.Create(
+                checkTempNeedsCleaningData,
+                (Data, errorToAccumulate) =>
+                    {
+                        // Lock for reading/writing to whether startup occurred
+                        lock (TempDownloadsCleanedLocker)
+                        {
+                            // Check global bool to see if startup has occurred
+                            if (!TempDownloadsCleaned.Contains(Data.commonTempDownloadsFolder))
+                            {
+                                // Create directory if needed otherwise mark for cleaning
+                                if (!Directory.Exists(Data.commonTempDownloadsFolder))
+                                {
+                                    Directory.CreateDirectory(Data.commonTempDownloadsFolder);
+                                }
+                                else
+                                {
+                                    //download temp folder is marked for cleaning
+                                    return true;
+                                }
+
+                                // Startup taken care of
+                                TempDownloadsCleaned.Add(Data.commonTempDownloadsFolder);
+                            }
+                        }
+
+                        return false;
+                    },
+                toReturn);
+
+            var cleanTempDownloadsData = new
+            {
+                commonTempDownloadsFolder = commonTempDownloadsFolder
+            };
+            var cleanTempDownloads = DelegateAndDataHolder.Create(
+                cleanTempDownloadsData,
+                (Data, errorToAccumulate) =>
                     {
                         // Declare the map of file size to download ids
                         Dictionary<long, List<DownloadIdAndMD5>> currentDownloads;
                         // Lock for reading/writing to list of temp downloads
                         lock (TempDownloads)
                         {
-                            if (!TempDownloads.TryGetValue(TempDownloadsFolder, out currentDownloads))
+                            if (!TempDownloads.TryGetValue(Data.commonTempDownloadsFolder, out currentDownloads))
                             {
-                                TempDownloads.Add(TempDownloadsFolder,
+                                TempDownloads.Add(Data.commonTempDownloadsFolder,
                                     currentDownloads = new Dictionary<long, List<DownloadIdAndMD5>>());
                             }
                         }
@@ -1361,7 +1424,7 @@ namespace Cloud.Sync
                         lock (currentDownloads)
                         {
                             // Loop through files in temp download folder
-                            DirectoryInfo tempDownloadsFolderInfo = new DirectoryInfo(TempDownloadsFolder);
+                            DirectoryInfo tempDownloadsFolderInfo = new DirectoryInfo(Data.commonTempDownloadsFolder);
                             foreach (FileInfo currentTempFile in tempDownloadsFolderInfo.GetFiles())
                             {
                                 // If temp download file name is appropriate for a [guid].ToString()
@@ -1387,6 +1450,54 @@ namespace Cloud.Sync
                                 }
                             }
                         }
+                    },
+                toReturn);
+
+            #endregion
+
+            // lock to prevent multiple simultaneous syncing on the current SyncEngine
+            lock (RunLocker)
+            {
+                var initialHaltException = checkHaltsAndErrors.Process();
+                if (initialHaltException != null)
+                {
+                    return initialHaltException;
+                }
+
+                var disconnectedException = checkInternetConnection.Process();
+                if (disconnectedException != null)
+                {
+                    return disconnectedException.Value;
+                }
+
+                // declare a string which provides better line-range information for the last state when an error is logged
+                string syncStatus = "Sync Run entered";
+
+                // try/catch for primary sync logic, exception is aggregated to return
+                try
+                {
+                    var startingUpException = stopOnFullHaltOrStartup.Process();
+                    if (startingUpException != null)
+                    {
+                        return startingUpException;
+                    }
+
+                    if (getIsShutdown.Process())
+                    {
+                        try
+                        {
+                            throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
+                        }
+                        catch (Exception ex)
+                        {
+                            return ex;
+                        }
+                    }
+                    
+                    // If download temp folder was marked for cleaning
+                    if (checkTempNeedsCleaning.Process())
+                    {
+                        cleanTempDownloads.Process();
                     }
 
                     syncStatus = "Sync Run temp download files cleaned";
