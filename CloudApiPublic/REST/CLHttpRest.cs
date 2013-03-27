@@ -42,12 +42,12 @@ namespace Cloud.REST
 
         #region Private helper functions
 
-        private CLCredential GetCurrentCredential()
+        private CLCredential GetCurrentCredentialCallback()
         {
             return _credential;
         }
 
-        private void SetCurrentCredential(CLCredential credential)
+        private void SetCurrentCredentialCallback(CLCredential credential)
         {
             Credential = credential;
         }
@@ -587,8 +587,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -940,8 +940,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -1269,8 +1269,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -1485,8 +1485,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -1902,8 +1902,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -2134,8 +2134,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -2469,8 +2469,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -2672,8 +2672,8 @@ namespace Cloud.REST
                 //        ProcessingStateByThreadId = _processingStateByThreadId,
                 //        GetNewCredentialCallback = _getNewCredentialCallback,
                 //        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                //        GetCurrentCredential = GetCurrentCredential,
-                //        SetCurrentCredential = SetCurrentCredential,
+                //        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                //        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                 //    };
                 //}
 
@@ -2981,8 +2981,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -3198,8 +3198,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -3407,8 +3407,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -3616,8 +3616,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -3825,8 +3825,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -4034,8 +4034,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -4243,8 +4243,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -4465,8 +4465,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -4721,8 +4721,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -4925,8 +4925,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -5243,8 +5243,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -5514,8 +5514,8 @@ namespace Cloud.REST
                 //        ProcessingStateByThreadId = _processingStateByThreadId,
                 //        GetNewCredentialCallback = _getNewCredentialCallback,
                 //        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                //        GetCurrentCredential = GetCurrentCredential,
-                //        SetCurrentCredential = SetCurrentCredential,
+                //        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                //        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                 //    };
                 //}
 
@@ -5789,8 +5789,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -6064,8 +6064,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -6328,8 +6328,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -6533,8 +6533,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -6600,8 +6600,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 
@@ -6665,8 +6665,8 @@ namespace Cloud.REST
                         ProcessingStateByThreadId = _processingStateByThreadId,
                         GetNewCredentialCallback = _getNewCredentialCallback,
                         GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
-                        GetCurrentCredential = GetCurrentCredential,
-                        SetCurrentCredential = SetCurrentCredential,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
                     };
                 }
 

@@ -591,7 +591,7 @@ namespace Cloud.Static
         public const string RESTResponseSession_ExpiresAt = "expires_at";
         public const string RESTResponseSession_Key = "key";
         public const string RESTResponseSession_Secret = "secret";
-        public const string RESTResponseSession_Token = "session_token";
+        public const string RESTResponseSession_Token = "token";
         public const string RESTResponseSession_SyncBoxIds = "sync_box_ids";
         public const string RESTResponseSession_AllowAll = "allow_all";
         public const string RESTResponseSession_Sessions = "sessions";

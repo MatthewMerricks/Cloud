@@ -1970,6 +1970,7 @@ namespace Cloud
                 {
                     HttpStatusCode.OK,
                     HttpStatusCode.Accepted,
+                    HttpStatusCode.Created,
                     HttpStatusCode.BadRequest
                 });
 
