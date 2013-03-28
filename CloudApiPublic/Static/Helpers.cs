@@ -358,6 +358,220 @@ namespace Cloud.Static
         }
 
         /// <summary>
+        /// compares two hashes
+        /// </summary>
+        public static bool IsEqualHashes(byte[] left, byte[] right)
+        {
+            if (left == right)
+            {
+                return true;
+            } 
+            
+            if (left == null || right == null) 
+            {
+                return false; // one is null but not both
+            }
+            
+            if (left.Length != right.Length)
+            {
+                return false; // not equal in length
+            }
+
+            bool isEqual = (NativeMethods.memcmp(left, right, new UIntPtr((uint)left.Length)) == 0);
+            return isEqual;
+        }
+
+        /// <summary>
+        /// Helper class to accumulate hashes; 
+        /// A hash over all the bytes in the input stream and optional intermediate hashes of blocks of max bytes are calculated simultaneously;
+        /// The resulting hashes array can be retrieved after Finalize is called;
+        /// </summary>
+        /// <example>
+        ///     Md5Hasher hasher = new Md5Hasher();   // no intermediate hashes
+        ///     
+        ///     Md5Hasher hasher = new Md5Hasher(maxBytesToHash);   // intermediate hashes for each maxBytesToHash bytes in the input stream
+        ///     hasher.OnIntermediateHash = (byte[] hash, int index) => {...};
+        ///     
+        ///     while ((bytesRead = stream.Read(buffer, 0, buffer.Length) != 0) 
+        ///     {
+        ///         hashes.Update(buffer, bytesRead);
+        ///     }
+        ///     byte[] hash = hasher.Hash;
+        ///     byte[][] hashes = hasher.IntermediateHashes; // null if no intermediate hashes
+        /// </example>
+        public class Md5Hasher : IDisposable
+        {
+            private bool _disposed = false;
+
+            private MD5 _totalMd5;
+
+            private int _maxBytesToHash;
+            private MD5 _md5;
+            private int _bytesHashed;
+            private List<byte[]> _hashes;
+
+            private byte[] _hash;
+            private byte[][] _intermediateHashes;
+
+            public delegate void IntermediateHashDelegate(byte[] hash, int index);
+
+            /// <summary>
+            ///  notification on each intermediate hash calculated
+            /// </summary>
+            public event IntermediateHashDelegate OnIntermediateHash;
+
+            /// <summary>
+            ///  total hash of the stream
+            /// </summary>
+            public byte[] Hash
+            {
+                get { return _hash; }      
+            }
+            /// <summary>
+            ///  intermediate hashes of the stream
+            /// </summary>
+            public byte[][] IntermediateHashes
+            {
+                get { return _intermediateHashes; }      
+            }
+
+            /// <summary>
+            /// constructs a hasher for the whole stream only;
+            /// </summary>
+            public Md5Hasher()
+            {
+                Init_(0);
+            }
+
+            ~Md5Hasher()
+            {
+                Dispose(false);
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+                GC.SuppressFinalize(this);
+            }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!_disposed)
+                {
+                    if (disposing)
+                    {
+                        _totalMd5.Dispose();
+                        _totalMd5 = null;
+
+                        _md5.Dispose();
+                        _md5 = null;
+
+                        _hashes.Clear();
+                        _hashes = null;
+
+                        _hash = null;
+                        _intermediateHashes = null;
+                    }
+
+                    _bytesHashed = 0;
+
+                    _disposed = true;
+                }
+            }
+
+            /// <summary>
+            /// constructs a hasher for the whole stream and intermediate hashes for every maxBytesToHash in the input stream
+            /// </summary>
+            public Md5Hasher(int maxBytesToHash)
+            {
+                Init_(maxBytesToHash);
+            }
+
+            private void Init_(int maxBytesToHash)
+            {
+                _totalMd5 = MD5.Create(); 
+
+                _maxBytesToHash = maxBytesToHash;
+                _md5 = null;
+                _bytesHashed = 0;
+                _hashes = null;
+
+                _hash = null;
+                _intermediateHashes = null;
+            }
+
+            /// <summary>
+            /// feeds data to hash;
+            /// calling Update after Finalize is undefined;
+            /// </summary>
+            public void Update(byte[] buffer, int bytesRead)
+            {
+                if (_totalMd5 == null) {
+                    // assert: Update() should not be called after Finalize()/Dispose()
+                    const string assertMessage = "_totalMd5 cannot be null";
+                    MessageEvents.FireNewEventMessage(assertMessage,
+                        EventMessageLevel.Important,
+                        new Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo());
+                    throw new NullReferenceException(assertMessage);
+                }
+
+                _totalMd5.TransformBlock(buffer, 0, bytesRead, buffer, 0);
+                UpdateIntermediateHashes_(buffer, bytesRead);
+            }
+
+            private void UpdateIntermediateHashes_(byte[] buffer, int bytesRead)
+            {
+                if (_maxBytesToHash <= 0)
+                {
+                    return; // no intermediate hashes
+                }
+
+                for (int totalBytesWritten = 0, bytesWritten = 0; totalBytesWritten < bytesRead; totalBytesWritten += bytesWritten)
+                {
+                    if (_md5 == null)
+                    {
+                        _md5 = MD5.Create();
+                    }
+                    bytesWritten = Math.Min(_maxBytesToHash - _bytesHashed, bytesRead - totalBytesWritten);
+                    _md5.TransformBlock(buffer, totalBytesWritten, bytesWritten, buffer, totalBytesWritten);
+                    _bytesHashed += bytesWritten;
+                    if (_bytesHashed == _maxBytesToHash)
+                    {
+                        _md5.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+
+                        byte[] hash = _md5.Hash;
+
+                        if (_hashes == null)
+                        {
+                            _hashes = new List<byte[]>();
+                        }
+                        if (OnIntermediateHash != null)
+                        {
+                            OnIntermediateHash(hash, _hashes.Count);
+                        }
+                        _hashes.Add(hash);
+
+                        _md5.Dispose();
+                        _md5 = null;
+                        _bytesHashed = 0;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// finalizes hashing and releases resources
+            /// </summary>
+            public void FinalizeHashes()
+            {
+                _totalMd5.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+                _hash = _totalMd5.Hash;
+
+                _intermediateHashes = _hashes == null || _hashes.Count == 0 ? null : _hashes.ToArray();
+            }
+
+        }
+
+        /// <summary>
         /// Builds the query string portion for a url by pairs of keys to values, keys and values must already be url-encoded
         /// </summary>
         /// <param name="queryStrings">Pairs of keys and values for query string</param>
@@ -2309,78 +2523,124 @@ namespace Cloud.Static
                             uploadDownload.ACallback(uploadDownload.AResult);
                         }
 
-                        // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file and store the read byte count
-                        while ((bytesRead = ((uploadParams)uploadDownload).Stream.Read(uploadBuffer, 0, uploadBuffer.Length)) != 0)
+                        Helpers.Md5Hasher hasher;
+
+                        if (((uploadParams)uploadDownload).UploadStreamContext == null)
                         {
-                            // write the buffer from the file to the upload stream
-                            httpRequestStream.Write(uploadBuffer, 0, bytesRead);
-                            // add the number of bytes read on the current buffer transfer to the total bytes uploaded
-                            totalBytesUploaded += bytesRead;
-
-                            // check for sync shutdown
-                            if (uploadDownload.ShutdownToken != null)
+                            hasher = null; // won't check intermediate hashes
+                        }
+                        else
+                        {
+                            hasher = new Helpers.Md5Hasher(FileConstants.MaxUploadIntermediateHashBytesSize);
+                            hasher.OnIntermediateHash += (byte[] hash, int index) =>
                             {
-                                Monitor.Enter(uploadDownload.ShutdownToken);
-                                try
+                                byte[][] intermediateHashes = ((uploadParams)uploadDownload).UploadStreamContext.IntermediateHashes;
+                                bool intermediateHashesMismatch = (intermediateHashes.Length <= index);
+                                if (!intermediateHashesMismatch)
                                 {
-                                    if (uploadDownload.ShutdownToken.Token.IsCancellationRequested)
-                                    {
-                                        status = CLHttpRestStatus.Cancelled;
-                                        return null;
-                                    }
+                                    intermediateHashesMismatch = !Helpers.IsEqualHashes(hash, intermediateHashes[index]);
                                 }
-                                finally
+                                if (intermediateHashesMismatch)
                                 {
-                                    Monitor.Exit(uploadDownload.ShutdownToken);
+                                    throw new HashMismatchException("intermediate hash does not match; file has been edited;");
                                 }
-                            }
-
-                            if (uploadDownload.ProgressHolder != null)
-                            {
-                                lock (uploadDownload.ProgressHolder)
-                                {
-                                    uploadDownload.ProgressHolder.Value = new TransferProgress(
-                                        totalBytesUploaded,
-                                        storeSizeForStatus);
-                                }
-                            }
-
-                            if (uploadDownload.ACallback != null)
-                            {
-                                uploadDownload.ACallback(uploadDownload.AResult);
-                            }
-
-                            // fire event callbacks for status change on uploading
-                            uploadDownload.StatusCallback(new CLStatusFileTransferUpdateParameters(
-                                    transferStartTime, // time of upload start
-                                    storeSizeForStatus, // total size of file
-                                    uploadDownload.RelativePathForStatus, // relative path of file
-                                    totalBytesUploaded), // bytes uploaded so far
-                                uploadDownload.ChangeToTransfer, // the source of the event (the event itself)
-                                SyncBoxId, // pass in sync box id to allow filtering
-                                CopiedSettings.DeviceId); // pass in device id to allow filtering
-
-                            if (uploadDownload.StatusUpdate != null
-                                && uploadDownload.StatusUpdateId != null)
-                            {
-                                try
-                                {
-                                    uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
-                                        uploadDownload.ChangeToTransfer.EventId,
-                                        uploadDownload.ChangeToTransfer.Direction,
-                                        uploadDownload.RelativePathForStatus,
-                                        totalBytesUploaded,
-                                        (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
-                                        false);
-                                }
-                                catch
-                                {
-                                }
-                            }
+                            };
                         }
 
-                        // upload is finished so stream can be disposed
-                        ((uploadParams)uploadDownload).DisposeStream();
+                        try
+                        {
+                            // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file and store the read byte count
+                            while ((bytesRead = ((uploadParams)uploadDownload).Stream.Read(uploadBuffer, 0, uploadBuffer.Length)) != 0)
+                            {
+                                if (hasher != null)
+                                {
+                                    hasher.Update(uploadBuffer, bytesRead);
+                                }
+
+                                // write the buffer from the file to the upload stream
+                                httpRequestStream.Write(uploadBuffer, 0, bytesRead);
+                                // add the number of bytes read on the current buffer transfer to the total bytes uploaded
+                                totalBytesUploaded += bytesRead;
+
+                                // check for sync shutdown
+                                if (uploadDownload.ShutdownToken != null)
+                                {
+                                    Monitor.Enter(uploadDownload.ShutdownToken);
+                                    try
+                                    {
+                                        if (uploadDownload.ShutdownToken.Token.IsCancellationRequested)
+                                        {
+                                            status = CLHttpRestStatus.Cancelled;
+                                            return null;
+                                        }
+                                    }
+                                    finally
+                                    {
+                                        Monitor.Exit(uploadDownload.ShutdownToken);
+                                    }
+                                }
+
+                                if (uploadDownload.ProgressHolder != null)
+                                {
+                                    lock (uploadDownload.ProgressHolder)
+                                    {
+                                        uploadDownload.ProgressHolder.Value = new TransferProgress(
+                                            totalBytesUploaded,
+                                            storeSizeForStatus);
+                                    }
+                                }
+
+                                if (uploadDownload.ACallback != null)
+                                {
+                                    uploadDownload.ACallback(uploadDownload.AResult);
+                                }
+
+                                // fire event callbacks for status change on uploading
+                                uploadDownload.StatusCallback(new CLStatusFileTransferUpdateParameters(
+                                        transferStartTime, // time of upload start
+                                        storeSizeForStatus, // total size of file
+                                        uploadDownload.RelativePathForStatus, // relative path of file
+                                        totalBytesUploaded), // bytes uploaded so far
+                                    uploadDownload.ChangeToTransfer, // the source of the event (the event itself)
+                                    SyncBoxId, // pass in sync box id to allow filtering
+                                    CopiedSettings.DeviceId); // pass in device id to allow filtering
+
+                                if (uploadDownload.StatusUpdate != null
+                                    && uploadDownload.StatusUpdateId != null)
+                                {
+                                    try
+                                    {
+                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                            uploadDownload.ChangeToTransfer.EventId,
+                                            uploadDownload.ChangeToTransfer.Direction,
+                                            uploadDownload.RelativePathForStatus,
+                                            totalBytesUploaded,
+                                            (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
+                                            false);
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+                            }
+
+                            if (hasher != null)
+                            {
+                                // check the final hash
+                                hasher.FinalizeHashes();
+                                if (!Helpers.IsEqualHashes(hasher.Hash, ((uploadParams)uploadDownload).UploadStreamContext.Hash))
+                                {
+                                    throw new HashMismatchException("final hash does not match; file has been edited;");
+                                }
+                            }
+
+                        }
+                        finally
+                        {
+                            // upload is finished so stream can be disposed
+                            ((uploadParams)uploadDownload).DisposeStreamContext();
+                        }
+
                     }
                     // else if the communication is a file download, write the request stream content from the serialized download request object
                     else
@@ -3798,31 +4058,47 @@ namespace Cloud.Static
             {
                 get
                 {
-                    return (_streamDisposed
+                    return (_streamContextDisposed
                         ? null
-                        : _stream);
+                        : (_streamContext == null ? null : _streamContext.Stream));
                 }
             }
-            private readonly Stream _stream;
+
+            public StreamContext StreamContext
+            {
+                get
+                {
+                    return _streamContext;
+                }
+            }
+            private readonly StreamContext _streamContext;
+
+            public UploadStreamContext UploadStreamContext
+            {
+                get
+                {
+                    return _streamContext as UploadStreamContext;
+                }
+            }
 
             /// <summary>
             /// Disposes Stream for the upload if it was not already disposed and marks that it was disposed; not thread-safe disposal checking
             /// </summary>
-            public void DisposeStream()
+            public void DisposeStreamContext()
             {
-                if (!_streamDisposed)
+                if (!_streamContextDisposed)
                 {
                     try
                     {
-                        _stream.Dispose();
+                        _streamContext.Dispose();
                     }
                     catch
                     {
                     }
-                    _streamDisposed = true;
+                    _streamContextDisposed = true;
                 }
             }
-            private bool _streamDisposed = false;
+            private bool _streamContextDisposed = false;
 
             /// <summary>
             /// MD5 hash lowercase hexadecimal string for the entire upload content
@@ -3847,12 +4123,12 @@ namespace Cloud.Static
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadParams(Stream Stream, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
+            public uploadParams(StreamContext StreamContext, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
                 : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 
-                if (Stream == null)
+                if (StreamContext == null)
                 {
                     throw new Exception("Stream cannot be null");
                 }
@@ -3878,7 +4154,7 @@ namespace Cloud.Static
 
                 // set the readonly field for the public property by all the parameters which were not passed to the abstract base class
 
-                this._stream = Stream;
+                this._streamContext = StreamContext;
             }
         }
 

@@ -93,9 +93,18 @@ namespace Cloud.REST
     /// </summary>
     public sealed class UploadFileResult : BaseCLHttpRestResult<string>
     {
+        public bool HashMismatchFound {
+            get { return _hashMismatchFound; }
+        }
+
+        private bool _hashMismatchFound;
+
         // construct with all readonly properties
-        internal UploadFileResult(CLError Error, CLHttpRestStatus Status, string Result)
-            : base(Error, Status, Result) { }
+        internal UploadFileResult(CLError Error, CLHttpRestStatus Status, string Result, bool hashMismatchFound)
+            : base(Error, Status, Result) 
+        {
+            _hashMismatchFound = hashMismatchFound;
+        }
     }
 
     /// <summary>

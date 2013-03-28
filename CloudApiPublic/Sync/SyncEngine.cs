@@ -1550,7 +1550,7 @@ namespace Cloud.Sync
 
                         // set errors to queue here with all processed changes and all failed changes so they can be added to failure queue on exception
                         errorsToQueue = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>(outputChanges
-                            .Select(currentOutputChange => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(false, currentOutputChange.FileChange, currentOutputChange.Stream))
+                            .Select(currentOutputChange => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(false, currentOutputChange.FileChange, currentOutputChange.StreamContext))
                             .Concat(outputChangesInError.Select(currentChangeInError => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(currentChangeInError.IsPreexisting, currentChangeInError.FileChange, null))));
 
                         // errorsToQueue now contains all errors previously in the failure queue (with bool true for being existing errors)
@@ -1672,7 +1672,7 @@ namespace Cloud.Sync
 
                                 // search for the FileChange in the errors by FileChange equality and Stream equality
                                 Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> foundErrorToRemove = innerErrorsToQueue
-                                    .Where(findErrorToQueue => findErrorToQueue.FileChange == innerTopLevelChange.FileChange && findErrorToQueue.Stream == innerTopLevelChange.Stream)
+                                    .Where(findErrorToQueue => findErrorToQueue.FileChange == innerTopLevelChange.FileChange && findErrorToQueue.StreamContext == innerTopLevelChange.StreamContext)
                                     .Select(findErrorToQueue => (Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>)findErrorToQueue)
                                     .FirstOrDefault();
                                 // if a matching error was found, then remove it from the errors
@@ -2042,11 +2042,11 @@ namespace Cloud.Sync
                                                     preprocessedEventIds,
                                                     preprocessedEvents);
 
-                                                if (topLevelChange.Stream != null)
+                                                if (topLevelChange.StreamContext != null)
                                                 {
                                                     try
                                                     {
-                                                        topLevelChange.Stream.Dispose();
+                                                        topLevelChange.StreamContext.Dispose();
                                                     }
                                                     catch
                                                     {
@@ -2215,7 +2215,7 @@ namespace Cloud.Sync
 
                                             // search for the FileChange in the errors by FileChange equality and Stream equality
                                             Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> foundErrorToRemove = errorsToQueue
-                                                .Where(findErrorToQueue => findErrorToQueue.FileChange == topLevelChange.FileChange && findErrorToQueue.Stream == topLevelChange.Stream)
+                                                .Where(findErrorToQueue => findErrorToQueue.FileChange == topLevelChange.FileChange && findErrorToQueue.StreamContext == topLevelChange.StreamContext)
                                                 .Select(findErrorToQueue => (Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>)findErrorToQueue)
                                                 .FirstOrDefault();
                                             // if a matching error was found, then remove it from the errors
@@ -2398,7 +2398,7 @@ namespace Cloud.Sync
                         errorsToQueue = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>(changesForCommunication
                             .Select(currentChangeForCommunication => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(false,
                                 currentChangeForCommunication.FileChange,
-                                currentChangeForCommunication.Stream)));
+                                currentChangeForCommunication.StreamContext)));
 
                         // errorToQueue is now defined as the changesForCommunication
                         // (all the previous errors that correspond to FileChanges which will not continue onto communication were added back to the failure queue)
@@ -2684,7 +2684,7 @@ namespace Cloud.Sync
 
                                                 // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
                                                 (incompleteChanges ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
-                                                    .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.Stream))
+                                                    .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.StreamContext))
                                                     .Concat(uploadFilesWithoutStreams),
 
                                                 // second pass the enumerable of errors from the changes which had an error during communication and the changes that were in the queue for reprocessing
@@ -2762,7 +2762,7 @@ namespace Cloud.Sync
                                         // (because that means the changes are file uploads without FileStreams and cannot be processed now)
 
                                         errorsToQueue = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>((outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>())
-                                            .Select(currentOutputChange => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(false, currentOutputChange.FileChange, currentOutputChange.Stream)));
+                                            .Select(currentOutputChange => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(false, currentOutputChange.FileChange, currentOutputChange.StreamContext)));
 
                                         // errorsToQueue now contains the outputChanges from after communication and dependency assignment
                                         // (errors from communication and dependency assignment will be added immediately to failure queue
@@ -3060,7 +3060,7 @@ namespace Cloud.Sync
 
                                     // search for the FileChange in the errors by FileChange equality and Stream equality
                                     Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> foundErrorToRemove = errorsToQueue
-                                        .Where(findErrorToQueue => findErrorToQueue.FileChange == asyncTask.FileChange.FileChange && findErrorToQueue.Stream == asyncTask.FileChange.Stream)
+                                        .Where(findErrorToQueue => findErrorToQueue.FileChange == asyncTask.FileChange.FileChange && findErrorToQueue.StreamContext == asyncTask.FileChange.StreamContext)
                                         .Select(findErrorToQueue => (Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>)findErrorToQueue)
                                         .FirstOrDefault();
                                     // if a matching error was found, then remove it from the errors
@@ -3901,7 +3901,7 @@ namespace Cloud.Sync
                                 FileToUpload = toComplete.FileChange,
                                 SyncData = syncData,
                                 SyncBox = syncBox,
-                                UploadStream = toComplete.Stream,
+                                StreamContext = toComplete.StreamContext,
                                 ShutdownToken = FullShutdownToken,
                                 HttpTimeoutMilliseconds = HttpTimeoutMilliseconds,
                                 MaxNumberOfFailureRetries = MaxNumberOfFailureRetries,
@@ -4032,7 +4032,7 @@ namespace Cloud.Sync
                         throw new NullReferenceException("UploadTaskState must contain FileToDownload");
                     }
 
-                    if (castState.UploadStream == null)
+                    if (castState.StreamContext == null)
                     {
                         throw new NullReferenceException("UploadTaskState must contain UploadStream");
                     }
@@ -4080,12 +4080,14 @@ namespace Cloud.Sync
                     // declare the status for performing a rest communication
                     CLHttpRestStatus uploadStatus;
                     string uploadMessage;
+                    bool hashMismatchFound;
                     // upload the file using the REST client, storing any error that occurs
-                    CLError uploadError = castState.RestClient.UploadFile(castState.UploadStream, // stream for upload
+                    CLError uploadError = castState.RestClient.UploadFile(castState.StreamContext, // stream for upload
                         castState.FileToUpload, // upload change
                         (int)castState.HttpTimeoutMilliseconds, // milliseconds before communication timeout (does not apply to the amount of time it takes to actually upload the file)
                         out uploadStatus, // output the status of communication
                         out uploadMessage,
+                        out hashMismatchFound,
                         castState.ShutdownToken, // pass in the shutdown token for the optional parameter so it can be cancelled
                         castState.StatusUpdate,
                         castState.ThreadId);
@@ -4116,6 +4118,45 @@ namespace Cloud.Sync
                     // if an error occurred while uploading the file, rethrow the error
                     if (uploadError != null)
                     {
+                        if (hashMismatchFound)
+                        {
+                            CLError mergeDeletionError = castState.SyncData.mergeToSql(new[] { new FileChangeMerge(MergeTo: null, MergeFrom: castState.FileToUpload) });
+                            if (mergeDeletionError == null)
+                            {
+                                // clear status
+                                //
+                                if (castState != null
+                                    && castState.FileToUpload != null
+                                    && castState.FileToUpload.NewPath != null
+                                    && castState.SyncBox != null
+                                    && castState.FileToUpload.Metadata != null
+                                    && castState.StatusUpdate != null
+                                    && castState.FileToUpload.Metadata.HashableProperties.Size != null)
+                                {
+                                    castState.StatusUpdate(
+                                        castState.ThreadId, // threadId
+                                        castState.FileToUpload.EventId, // eventId
+                                        SyncDirection.To, // direction
+                                        castState.FileToUpload.NewPath.GetRelativePath(castState.SyncBox.CopiedSettings.SyncRoot, false), // relativePath
+                                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
+                                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // totalByteSize
+                                        true); // error occurred
+                                }
+
+                                // notify observers
+                                //
+                                MessageEvents.FireNewEventMessage(
+                                    "Change to file detected while uploading. Upload will restart with latest data.",
+                                    EventMessageLevel.Regular,
+                                    new GeneralErrorInfo(),
+                                    castState.SyncBox.SyncBoxId,
+                                    castState.SyncBox.CopiedSettings.DeviceId);
+
+                                // return without EventId so that "ContinueWith"s will not mark the event complete in the database, nor increment the download count
+                                return new EventIdAndCompletionProcessor(0, null, null);
+                            }
+                        }
+
                         throw new AggregateException("An error occurred uploading a file: " + uploadError.errorDescription, uploadError.GrabExceptions());
                     }
 
@@ -4243,7 +4284,7 @@ namespace Cloud.Sync
                             (byte)castState.MaxNumberOfNotFounds, // how many not found errors can occur before presuming the event was cancelled out
                             castState.FailureTimer, // timer for failure queue
                             new PossiblyStreamableFileChange(castState.FileToUpload, // event which failed
-                                castState.UploadStream, // upload stream for failed event
+                                castState.StreamContext, // upload stream for failed event
                                 ignoreStreamException: true), // ignore stream exception because we set the reference castState.UploadStream to null when it is normally disposed
                             castState.SyncData, // event source for updating when needed
                             castState.SyncBox), // settings for tracing or logging errors
@@ -4274,11 +4315,11 @@ namespace Cloud.Sync
             try
             {
                 // if the cleanup data has a stream, then dispose the stream
-                if (exceptionState.FileChange.Stream != null)
+                if (exceptionState.FileChange.StreamContext != null)
                 {
                     try
                     {
-                        exceptionState.FileChange.Stream.Dispose();
+                        exceptionState.FileChange.StreamContext.Dispose();
                     }
                     catch
                     {
@@ -5196,7 +5237,7 @@ namespace Cloud.Sync
             public Guid ThreadId { get; set; }
             public FileTransferStatusUpdateDelegate StatusUpdate { get; set; }
             public FileChange FileToUpload { get; set; }
-            public Stream UploadStream { get; set; }
+            public StreamContext StreamContext { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public ISyncDataObject SyncData { get; set; }
             public CLSyncBox SyncBox { get; set; }
@@ -5855,7 +5896,7 @@ namespace Cloud.Sync
                         // if a matched change was set, then use the Stream from the previous FileChange as the current Stream
                         if (matchedChange != null)
                         {
-                            return ((PossiblyStreamableFileChange)matchedChange).Stream; // currentStream
+                            return ((PossiblyStreamableFileChange)matchedChange).StreamContext; // currentStream
                         }
 
                         return null;
@@ -6441,7 +6482,7 @@ namespace Cloud.Sync
                     // create a dictionary mapping event id to changes in error
                     Dictionary<long, PossiblyStreamableAndPossiblyChangedFileChangeWithError[]> changesInErrorList = new Dictionary<long, PossiblyStreamableAndPossiblyChangedFileChangeWithError[]>();
                     // create a hashset for storing Streams which are synchronously disposed because they are not needed
-                    HashSet<Stream> completedStreams = new HashSet<Stream>();
+                    HashSet<StreamContext> completedStreams = new HashSet<StreamContext>();
 
                     // declare a dictionary for already visited Sync From renames so if metadata was found for a rename in an event then later renames can carry forward the metadata
                     FilePathDictionary<FileMetadata> alreadyVisitedRenames;
@@ -6548,7 +6589,7 @@ namespace Cloud.Sync
                                 // define the current FileChange, defaulting to null
                                 FileChangeWithDependencies currentChange = null;
                                 // define the current Stream, defaulting to null
-                                Stream currentStream = null;
+                                StreamContext currentStreamContext = null;
                                 // define a string for storing an event's revision which will be used to replace a Sync To event revision upon certain conflict conditions
                                 string previousRevisionOnConflictException = null;
 
@@ -6630,7 +6671,7 @@ namespace Cloud.Sync
                                         previousRevisionOnConflictException = storePart3Output;
                                     }
 
-                                    Stream storePart4Output = implementationConvertSyncToEventToFileChangePart4(
+                                    StreamContext storePart4Output = implementationConvertSyncToEventToFileChangePart4(
                                         currentChange,
                                         matchedChange,
                                         findServerId,
@@ -6641,19 +6682,19 @@ namespace Cloud.Sync
                                         findMimeType);
                                     if (storePart4Output != null)
                                     {
-                                        currentStream = storePart4Output;
+                                        currentStreamContext = storePart4Output;
                                     }
 
                                     // define a bool for whether the current event is a rename but no metadata was found amongst current FileChanges nor in the last sync states in the database
                                     bool notFoundRename = false;
 
                                     // define an action to add the current FileChange to the list of incomplete changes, including any Stream and whether or not the FileChange requires updating the event source database
-                                    Action<Dictionary<long, List<PossiblyStreamableAndPossiblyChangedFileChange>>, FileChangeWithDependencies, Stream, bool> AddToIncompleteChanges = (innerIncompleteChangesList, innerCurrentChange, innerCurrentStream, innerMetadataIsDifferent) =>
+                                    Action<Dictionary<long, List<PossiblyStreamableAndPossiblyChangedFileChange>>, FileChangeWithDependencies, StreamContext, bool> AddToIncompleteChanges = (innerIncompleteChangesList, innerCurrentChange, innerCurrentStreamContext, innerMetadataIsDifferent) =>
                                         {
                                             // wrap the current change for adding to the incomplete changes list
                                             PossiblyStreamableAndPossiblyChangedFileChange addChange = new PossiblyStreamableAndPossiblyChangedFileChange(innerMetadataIsDifferent,
                                                 innerCurrentChange,
-                                                innerCurrentStream);
+                                                innerCurrentStreamContext);
 
                                             if ((innerCurrentChange.Type == FileChangeType.Created || innerCurrentChange.Type == FileChangeType.Modified) && string.IsNullOrEmpty(innerCurrentChange.Metadata.StorageKey))
                                             {
@@ -6933,6 +6974,7 @@ namespace Cloud.Sync
                                                             if (currentChange.OldPath != null)
                                                             {
                                                                 FileStream uploadStreamForDuplication = null;
+                                                                //todel:byte[][] intermediateHashesForDuplication = null;
                                                                 try
                                                                 {
                                                                     string oldPathString = currentChange.OldPath.ToString();
@@ -6943,11 +6985,11 @@ namespace Cloud.Sync
 
                                                                         if (fileExists)
                                                                         {
-                                                                            uploadStreamForDuplication = new FileStream(oldPathString, FileMode.Open, FileAccess.Read, FileShare.Read);
+                                                                            uploadStreamForDuplication = new FileStream(oldPathString, FileMode.Open, FileAccess.Read, FileShare.Read); // this still locks since it is an edge case for conflicts only
 
                                                                             long duplicateSize = 0;
                                                                             byte[] duplicateHash;
-                                                                            MD5 duplicateHasher = MD5.Create();
+                                                                            Helpers.Md5Hasher duplicateHasher = new Helpers.Md5Hasher();
 
                                                                             try
                                                                             {
@@ -6957,11 +6999,12 @@ namespace Cloud.Sync
                                                                                 while ((fileReadBytes = uploadStreamForDuplication.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
                                                                                 {
                                                                                     duplicateSize += fileReadBytes;
-                                                                                    duplicateHasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                                                                    duplicateHasher.Update(fileBuffer, fileReadBytes);
                                                                                 }
 
-                                                                                duplicateHasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+                                                                                duplicateHasher.FinalizeHashes();
                                                                                 duplicateHash = duplicateHasher.Hash;
+                                                                                //todel:intermediateHashesForDuplication = duplicateHasher.IntermediateHashes;
                                                                             }
                                                                             finally
                                                                             {
@@ -7068,7 +7111,7 @@ namespace Cloud.Sync
                                                                                     throw new AggregateException("Error copying duplicate file change for upload processing: " + createCopyDuplicateChange.errorDescription, createCopyDuplicateChange.GrabExceptions());
                                                                                 }
 
-                                                                                AddToIncompleteChanges(incompleteChangesList, copyDuplicateChange, uploadStreamForDuplication, /* different metadata since this is new */true);
+                                                                                AddToIncompleteChanges(incompleteChangesList, copyDuplicateChange, new StreamContext(uploadStreamForDuplication), /* different metadata since this is new */true);
 
                                                                                 uploadStreamForDuplication = null; // prevents disposal on finally since the Stream will now be sent off for async processing
                                                                             }
@@ -7309,7 +7352,7 @@ namespace Cloud.Sync
                                         {
                                             case SyncDirection.From:
                                                 // Sync From only requires adding the current change to the incomplete changes list (all Sync From changes are processed)
-                                                AddToIncompleteChanges(incompleteChangesList, currentChange, currentStream, metadataIsDifferent);
+                                                AddToIncompleteChanges(incompleteChangesList, currentChange, currentStreamContext, metadataIsDifferent);
                                                 break;
 
                                             case SyncDirection.To:
@@ -7322,7 +7365,7 @@ namespace Cloud.Sync
                                                         // Todo: need optimization to prevent uploading two identical files from the same client, the first of each storage key that gets uploaded will autocomplete all other events with the same storage key
 
                                                         // Sync To event did not complete with communication since it still requires a file upload so add it to incomplete changes list
-                                                        AddToIncompleteChanges(incompleteChangesList, currentChange, currentStream, metadataIsDifferent);
+                                                        AddToIncompleteChanges(incompleteChangesList, currentChange, currentStreamContext, metadataIsDifferent);
                                                         break;
 
                                                     // group not found (a possible error case) with the immediately completed cases since "not_found" for a deletion requires no more action and can be presumed completed successfully
@@ -7355,7 +7398,7 @@ namespace Cloud.Sync
                                                             // wrap the modified current change so it can be added to the changes in error list
                                                             PossiblyStreamableAndPossiblyChangedFileChangeWithError notFoundChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(true, // type was converted so database needs to be updated
                                                                 currentChange, // the modified current change
-                                                                currentStream, // any stream that needs to be disposed for the current change
+                                                                currentStreamContext, // any stream that needs to be disposed for the current change
 
                                                                 // calculate dynamic exception message for the "not_found" status
                                                                 new Exception(CLDefinitions.CLEventTypeNotFound + " " +
@@ -7395,15 +7438,15 @@ namespace Cloud.Sync
                                                                 currentChange); // the current change
 
                                                             // if there is a Stream for the current change, then add it to the list of completed streams and dispose it
-                                                            if (currentStream != null)
+                                                            if (currentStreamContext != null)
                                                             {
                                                                 // add current stream to list of completed streams
-                                                                completedStreams.Add(currentStream);
+                                                                completedStreams.Add(currentStreamContext);
 
                                                                 // try/catch to dispose the current stream, failing silently
                                                                 try
                                                                 {
-                                                                    currentStream.Dispose();
+                                                                    currentStreamContext.Dispose();
                                                                 }
                                                                 catch
                                                                 {
@@ -7792,11 +7835,11 @@ namespace Cloud.Sync
                                                                 {
                                                                     // if the current change had a stream (which it should for file uploads),
                                                                     // then it needs to be disposed because it is now a dependency which needs to go through sync to recommunicate for a new storage key
-                                                                    if (currentStream != null)
+                                                                    if (currentStreamContext != null)
                                                                     {
                                                                         try
                                                                         {
-                                                                            currentStream.Dispose();
+                                                                            currentStreamContext.Dispose();
                                                                         }
                                                                         catch
                                                                         {
@@ -7806,7 +7849,7 @@ namespace Cloud.Sync
                                                                     // wrap the current event so it can be added to the converted dependencies list
                                                                     PossiblyStreamableFileChange dependencyHidden = new PossiblyStreamableFileChange(
                                                                         currentChange, // current event
-                                                                        currentStream, // current stream, or null if it had not existed
+                                                                        currentStreamContext, // current stream, or null if it had not existed; NOTE: although it is disposed the currentStream is used in identity checks later
                                                                         true); // this change will be added to errors anyways, so invalid nullability of the Stream is not important for reprocessing
 
                                                                     // declare array for grabbing converted dependencies for current event id
@@ -7932,7 +7975,7 @@ namespace Cloud.Sync
                                                         // wrap the conflict change so it can be added to the changes in error
                                                         PossiblyStreamableAndPossiblyChangedFileChangeWithError addErrorChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(metadataIsDifferent, // whether the event source database needs to be updated for the conflict change
                                                             currentChange, // the conflict change itself
-                                                            currentStream, // any stream belonging to the conflict change
+                                                            currentStreamContext, // any stream belonging to the conflict change
 
                                                             // dynamic conflict message for the exception from the conflict state, the original change action, and the conflict id and path; also add any inner exception from processing failures
                                                             new Exception(CLDefinitions.CLEventTypeConflict + " " +
@@ -7992,7 +8035,7 @@ namespace Cloud.Sync
                                     // wrap the current FileChange so it can be added to the changes in error
                                     PossiblyStreamableAndPossiblyChangedFileChangeWithError addErrorChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(currentChange != null, // update database if a change exists
                                         currentChange, // the current change in error
-                                        currentStream, // any stream for the current change
+                                        currentStreamContext, // any stream for the current change
                                         ex); // the error itself
 
                                     // if a change in error already exists for the current event id, then expand the array of errors at this event id with the created FileChange
@@ -8042,10 +8085,10 @@ namespace Cloud.Sync
                             // event id was found in the incomplete events
                             foundEventId = true;
                             // if the current event has a stream, then check the current event id incompletes for the same stream
-                            if (currentOriginalChangeToFind.Stream != null)
+                            if (currentOriginalChangeToFind.StreamContext != null)
                             {
                                 // if the current event id incompletes contains the current stream, then mark the stream as found
-                                if (tryGetIncompletes.Any(currentIncomplete => currentIncomplete.Stream == currentOriginalChangeToFind.Stream))
+                                if (tryGetIncompletes.Any(currentIncomplete => currentIncomplete.StreamContext == currentOriginalChangeToFind.StreamContext))
                                 {
                                     foundMatchedStream = true;
                                 }
@@ -8068,10 +8111,10 @@ namespace Cloud.Sync
                             foundEventId = true;
 
                             // if the current event has a stream, then check the streams from completed events for the current stream
-                            if (currentOriginalChangeToFind.Stream != null)
+                            if (currentOriginalChangeToFind.StreamContext != null)
                             {
                                 // if the streams from completed events contain the current stream, then mark the stream as found
-                                if (completedStreams.Contains(currentOriginalChangeToFind.Stream))
+                                if (completedStreams.Contains(currentOriginalChangeToFind.StreamContext))
                                 {
                                     foundMatchedStream = true;
                                 }
@@ -8094,10 +8137,10 @@ namespace Cloud.Sync
                             foundEventId = true;
 
                             // if the current event has a stream, then check the streams from the events in error for the current stream
-                            if (currentOriginalChangeToFind.Stream != null)
+                            if (currentOriginalChangeToFind.StreamContext != null)
                             {
                                 // if the streams from events in error contain the current stream, then mark the stream as found
-                                if (tryGetErrors.Any(currentError => currentError.Stream == currentOriginalChangeToFind.Stream))
+                                if (tryGetErrors.Any(currentError => currentError.StreamContext == currentOriginalChangeToFind.StreamContext))
                                 {
                                     foundMatchedStream = true;
                                 }
@@ -8120,10 +8163,10 @@ namespace Cloud.Sync
                             foundEventId = true;
 
                             // if the current event has a stream, then check the streams from the events in error for the current stream
-                            if (currentOriginalChangeToFind.Stream != null)
+                            if (currentOriginalChangeToFind.StreamContext != null)
                             {
                                 // if the streams from events in error contain the current stream, then mark the stream as found
-                                if (tryGetConvertedDependencies.Any(currentConvertedDependency => currentConvertedDependency.Stream == currentOriginalChangeToFind.Stream))
+                                if (tryGetConvertedDependencies.Any(currentConvertedDependency => currentConvertedDependency.StreamContext == currentOriginalChangeToFind.StreamContext))
                                 {
                                     foundMatchedStream = true;
                                 }
@@ -8143,17 +8186,17 @@ namespace Cloud.Sync
                             // wrap the current change so it can be added to the changes in error (since it was not found)
                             missingEventOrStream = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(false, // event did not come back from the server, so it must not have changed and thus requires no update
                                 currentOriginalChangeToFind.FileChange, // the current missing change
-                                currentOriginalChangeToFind.Stream, // any stream for the current missing change
+                                currentOriginalChangeToFind.StreamContext, // any stream for the current missing change
                                 new Exception("Found unmatched FileChange in communicationArray in output lists")); // message that the current event was not found
                         }
                         // else if the current event had a stream but it was not found, then add the current stream for a new change in error
-                        else if (currentOriginalChangeToFind.Stream != null
+                        else if (currentOriginalChangeToFind.StreamContext != null
                             && !foundMatchedStream)
                         {
                             // wrap the current stream so it can be added to the changes in error (since it was not found)
                             missingEventOrStream = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(false, // no event in this error, so cannot be added to the event source database
                                 null, // do not copy FileChange since it already exists in a list
-                                currentOriginalChangeToFind.Stream, // the missing stream
+                                currentOriginalChangeToFind.StreamContext, // the missing stream
                                 new Exception("Found unmatched Stream in communicationArray in output lists")); // message that the current stream was not found
                         }
 
@@ -8717,7 +8760,7 @@ namespace Cloud.Sync
                                                                         new PossiblyStreamableAndPossiblyChangedFileChange(
                                                                             /*Changed*/ true,
                                                                             duplicateChange,
-                                                                            uploadStreamForDuplication)
+                                                                            new StreamContext(uploadStreamForDuplication))
                                                                     });
 
                                                                 uploadStreamForDuplication = null; // prevents disposal on finally since the Stream will now be sent off for async processing
@@ -8824,14 +8867,14 @@ namespace Cloud.Sync
                                             new PossiblyStreamableAndPossiblyChangedFileChangeWithError(
                                                 Changed: true, // always changed in Sync From
                                                 FileChange: currentChange,
-                                                Stream: null,
+                                                StreamContext: null,
                                                 Error: new NullReferenceException("Metadata.StorageKey must not be null for uploads or downloads")));
 
                                         renameOrDownloadStorageKeyNotFounds.Add(
                                             new PossiblyStreamableAndPossiblyChangedFileChange(
                                                 Changed: true, // always changed in Sync From
                                                 FileChange: currentChange,
-                                                Stream: null));
+                                                StreamContext: null));
                                     }
                                     break;
 
@@ -8936,7 +8979,7 @@ namespace Cloud.Sync
             FileChangeWithDependencies currentChange,
             IEnumerable<PossiblyStreamableFileChange> toCommunicate,
             out Nullable<PossiblyStreamableFileChange> matchedChange);
-        private delegate Stream convertSyncToEventToFileChangePart4(
+        private delegate StreamContext convertSyncToEventToFileChangePart4(
             FileChangeWithDependencies currentChange,
             Nullable<PossiblyStreamableFileChange> matchedChange,
             string findServerId,

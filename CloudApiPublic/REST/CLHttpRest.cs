@@ -609,7 +609,7 @@ namespace Cloud.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, Stream, FileChange, int, CancellationTokenSource> castState = state as Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, Stream, FileChange, int, CancellationTokenSource>;
+                Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, StreamContext, FileChange, int, CancellationTokenSource> castState = state as Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, StreamContext, FileChange, int, CancellationTokenSource>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -641,6 +641,7 @@ namespace Cloud.REST
                         CLHttpRestStatus status;
                         // declare the output message for upload
                         string message;
+                        bool hashMismatchFound;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = UploadFile(
                             castState.Item3,
@@ -648,6 +649,7 @@ namespace Cloud.REST
                             castState.Item5,
                             out status,
                             out message,
+                            out hashMismatchFound,
                             castState.Item6,
                             castState.Item2,
                             castState.Item1,
@@ -660,7 +662,8 @@ namespace Cloud.REST
                         {
                             castState.Item1.Complete(new UploadFileResult(processError,
                                 status,
-                                message),
+                                message,
+                                hashMismatchFound),
                                 sCompleted: false);
                         }
                     }
@@ -795,19 +798,21 @@ namespace Cloud.REST
         /// <param name="message">(output) upload response message</param>
         /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UploadFile(Stream uploadStream,
+        public CLError UploadFile(StreamContext streamContext,
             FileChange changeToUpload,
             int timeoutMilliseconds,
             out CLHttpRestStatus status,
             out string message,
+            out bool hashMismatchFound,
             CancellationTokenSource shutdownToken = null)
         {
             return UploadFile(
-                uploadStream,
+                streamContext,
                 changeToUpload,
                 timeoutMilliseconds,
                 out status,
                 out message,
+                out hashMismatchFound,
                 shutdownToken,
                 null,
                 null,
@@ -817,21 +822,23 @@ namespace Cloud.REST
         }
 
         // internal version with added action for status update
-        internal CLError UploadFile(Stream uploadStream,
+        internal CLError UploadFile(StreamContext streamContext,
             FileChange changeToUpload,
             int timeoutMilliseconds,
             out CLHttpRestStatus status,
             out string message,
+            out bool hashMismatchFound,
             CancellationTokenSource shutdownToken,
             FileTransferStatusUpdateDelegate statusUpdate,
             Guid statusUpdateId)
         {
             return UploadFile(
-                uploadStream,
+                streamContext,
                 changeToUpload,
                 timeoutMilliseconds,
                 out status,
                 out message,
+                out hashMismatchFound,
                 shutdownToken,
                 null,
                 null,
@@ -841,11 +848,12 @@ namespace Cloud.REST
         }
 
         // private helper for UploadFile which takes additional parameters we don't wish to expose; does the actual processing
-        private CLError UploadFile(Stream uploadStream,
+        private CLError UploadFile(StreamContext streamContext,
             FileChange changeToUpload,
             int timeoutMilliseconds,
             out CLHttpRestStatus status,
             out string message,
+            out bool hashMismatchFound,
             CancellationTokenSource shutdownToken,
             AsyncCallback aCallback,
             IAsyncResult aResult,
@@ -888,7 +896,7 @@ namespace Cloud.REST
                     Helpers.requestMethod.put, // upload is a put
                     timeoutMilliseconds, // time before communication timeout (does not restrict time for the actual file upload)
                     new Cloud.Static.Helpers.uploadParams( // this is a special communication method and requires passing upload parameters
-                        uploadStream, // stream for file to upload
+                        streamContext, // stream for file to upload
                         Helpers.HandleUploadDownloadStatus, // private event handler to relay status change events
                         changeToUpload, // the FileChange describing the upload
                         shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
@@ -903,9 +911,12 @@ namespace Cloud.REST
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
                     _syncBoxId); // pass the unique id of the sync box on the server
+                hashMismatchFound = false;
             }
             catch (Exception ex)
             {
+                hashMismatchFound = (ex is HashMismatchException);
+
                 message = Helpers.DefaultForType<string>();
                 return ex;
             }

@@ -79,13 +79,19 @@ namespace Cloud.Sync.Model
 
         public EventIdAndCompletionProcessor(long EventId, ISyncDataObject syncData, ICLSyncSettingsAdvanced syncSettings, string TempDownloadFolderPath = null)
         {
-            if (syncData == null)
+            if (EventId != 0)
             {
-                throw new NullReferenceException("syncData cannot be null");
-            }
-            if (syncSettings == null)
-            {
-                throw new NullReferenceException("syncSettings cannot be null");
+                // syncData and syncSetting must be valid if EventId is valid
+                //
+
+                if (syncData == null)
+                {
+                    throw new NullReferenceException("syncData cannot be null");
+                }
+                if (syncSettings == null)
+                {
+                    throw new NullReferenceException("syncSettings cannot be null");
+                }
             }
 
             this._eventId = EventId;

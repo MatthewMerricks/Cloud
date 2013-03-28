@@ -754,7 +754,9 @@ EXCLUDE_SYMBOLS        = Cloud::Interfaces::ISyncDataObject \
                          Cloud::REST::CLHttpRest \
                          Cloud::JsonContracts::Event \
                          Cloud::JsonContracts::Header \
-                         Cloud::Static::ComTrace
+                         Cloud::Static::ComTrace \
+						 Cloud::Model::StreamContext \
+						 Cloud::Model::UploadStreamContext
 						 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see

@@ -37,10 +37,22 @@ namespace Cloud.Sync.Model
                 {
                     throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableAndPossiblyChangedFileChange");
                 }
-                return _stream;
+                return _streamContext == null ? null : _streamContext.Stream;
             }
         }
-        private Stream _stream;
+
+        public StreamContext StreamContext
+        {
+            get
+            {
+                if (!_isValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableAndPossiblyChangedFileChange");
+                }
+                return _streamContext;
+            }
+        }
+        private StreamContext _streamContext;
 
         public bool Changed
         {
@@ -64,7 +76,7 @@ namespace Cloud.Sync.Model
         }
         private bool _isValid;
 
-        public PossiblyStreamableAndPossiblyChangedFileChange(bool Changed, FileChange FileChange, Stream Stream)
+        public PossiblyStreamableAndPossiblyChangedFileChange(bool Changed, FileChange FileChange, StreamContext StreamContext)
         {
             if (FileChange == null)
             {
@@ -73,7 +85,7 @@ namespace Cloud.Sync.Model
 
             this._fileChange = FileChange;
             this._changed = Changed;
-            this._stream = Stream;
+            this._streamContext = StreamContext;
             this._isValid = true;
         }
     }

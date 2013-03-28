@@ -14,6 +14,80 @@ using System.Text;
 namespace Cloud.Model
 {
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public class StreamContext : IDisposable
+    {
+        private bool _disposed = false;
+
+        private Stream _stream;
+
+        public Stream Stream 
+        {
+            get { return _stream; }
+        }
+
+        public StreamContext(Stream stream) 
+        {
+            _stream = stream;
+        }
+
+        ~StreamContext()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose() 
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    if (_stream != null)
+                    {
+                        _stream.Dispose();
+                        _stream = null;
+                    }
+                }
+                _disposed = true;
+            }
+        }
+    }
+
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public sealed class UploadStreamContext : StreamContext {
+        private byte[][] _intermediateHashes;
+        private byte[] _hash;
+        private Nullable<long> _fileSize;
+
+        public byte[][] IntermediateHashes
+        {
+            get { return _intermediateHashes; }
+        }
+        public byte[] Hash
+        {
+            get { return _hash; }
+        }
+        public Nullable<long> FileSize
+        {
+            get { return _fileSize; }
+        }
+
+        public UploadStreamContext(Stream stream, byte[][] intermediateHashes = null, byte[] hash = null, Nullable<long> fileSize = null) 
+            : base(stream)
+        {
+            _intermediateHashes = intermediateHashes;
+            _hash = hash;
+            _fileSize = fileSize;
+        }
+
+    }
+
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public struct PossiblyStreamableFileChange
     {
         public FileChange FileChange
@@ -37,11 +111,24 @@ namespace Cloud.Model
                 {
                     throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableFileChange");
                 }
-                return _stream;
+                return _streamContext == null ? null : _streamContext.Stream;
             }
         }
-        private Stream _stream;
 
+        public StreamContext StreamContext
+        {
+            get
+            {
+                if (!_isValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableFileChange");
+                }
+                return _streamContext;
+            }
+        }
+        private StreamContext _streamContext;
+        
+        
         public bool IsValid
         {
             get
@@ -51,7 +138,7 @@ namespace Cloud.Model
         }
         private bool _isValid;
 
-        public PossiblyStreamableFileChange(FileChange FileChange, Stream Stream, bool ignoreStreamException = false)
+        public PossiblyStreamableFileChange(FileChange FileChange, StreamContext streamContext, bool ignoreStreamException = false)
         {
             if (FileChange == null)
             {
@@ -66,17 +153,17 @@ namespace Cloud.Model
                         || FileChange.Type == Static.FileChangeType.Modified))
                 {
                     if (!(FileChange is FileChangeWithDependencies)
-                        && Stream == null)
+                        && streamContext == null)
                     {
                         throw new NullReferenceException("Stream cannot be null when FileChange is meant to be uploaded to server (file creations and modifications)");
                     }
                 }
-                else if (Stream != null)
+                else if (streamContext != null)
                 {
                     Exception disposalError = null;
                     try
                     {
-                        Stream.Dispose();
+                        streamContext.Dispose();
                     }
                     catch (Exception ex)
                     {
@@ -91,7 +178,7 @@ namespace Cloud.Model
             }
 
             this._fileChange = FileChange;
-            this._stream = Stream;
+            this._streamContext = streamContext;
             this._isValid = true;
         }
     }

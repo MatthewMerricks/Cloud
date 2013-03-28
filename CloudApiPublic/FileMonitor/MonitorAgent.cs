@@ -2044,11 +2044,11 @@ namespace Cloud.FileMonitor
             try
             {
                 HashSet<FileChangeWithDependencies> PulledChanges;
-                Func<PossiblyStreamableFileChange, Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, Stream>>, FileChangeWithDependencies> convertChange = (inputChange, streamMappings) =>
+                Func<PossiblyStreamableFileChange, Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>>, FileChangeWithDependencies> convertChange = (inputChange, streamMappings) =>
                     {
                         if (inputChange.FileChange is FileChangeWithDependencies)
                         {
-                            streamMappings[(FileChangeWithDependencies)inputChange.FileChange] = new KeyValuePair<GenericHolder<bool>, Stream>(new GenericHolder<bool>(false), inputChange.Stream);
+                            streamMappings[(FileChangeWithDependencies)inputChange.FileChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
                             return (FileChangeWithDependencies)inputChange.FileChange;
                         }
 
@@ -2062,10 +2062,10 @@ namespace Cloud.FileMonitor
                         {
                             throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
                         }
-                        streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>, Stream>(new GenericHolder<bool>(false), inputChange.Stream);
+                        streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
                         return outputChange;
                     };
-                Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, Stream>> originalFileStreams = new Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, Stream>>();
+                Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>> originalFileStreams = new Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>>();
                 KeyValuePair<FileChangeSource, FileChangeWithDependencies>[] assignmentsWithDependencies = toAssign
                     .Select(currentToAssign => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.ProcessingChanges, convertChange(currentToAssign, originalFileStreams)))
                     .Concat(currentFailures.Select(currentFailure => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailureQueue, convertChange(new PossiblyStreamableFileChange(currentFailure, null), originalFileStreams))))
@@ -2096,11 +2096,11 @@ namespace Cloud.FileMonitor
                         }
                         else
                         {
-                            KeyValuePair<GenericHolder<bool>, Stream> originalStream;
-                            if (originalFileStreams.TryGetValue(currentAssignment.Value, out originalStream))
+                            KeyValuePair<GenericHolder<bool>, StreamContext> originalStreamContext;
+                            if (originalFileStreams.TryGetValue(currentAssignment.Value, out originalStreamContext))
                             {
-                                originalStream.Key.Value = true;
-                                outputChangeList.Add(new PossiblyStreamableFileChange(currentAssignment.Value, originalStream.Value));
+                                originalStreamContext.Key.Value = true;
+                                outputChangeList.Add(new PossiblyStreamableFileChange(currentAssignment.Value, originalStreamContext.Value));
                             }
                             else
                             {
@@ -2110,7 +2110,7 @@ namespace Cloud.FileMonitor
                     }
                 }
 
-                foreach (KeyValuePair<GenericHolder<bool>, Stream> streamValue in originalFileStreams.Values)
+                foreach (KeyValuePair<GenericHolder<bool>, StreamContext> streamValue in originalFileStreams.Values)
                 {
                     if (streamValue.Key.Value == false
                         && streamValue.Value != null)
@@ -2322,6 +2322,10 @@ namespace Cloud.FileMonitor
                                         if (nonFailedOutChangeFound)
                                         {
                                             FileStream OutputStream = null;
+                                            byte[][] intermediateHashes = null;
+                                            byte[] newMD5Bytes = null;
+                                            Nullable<long> fileSize = null;
+
                                             bool CurrentFailed = false;
                                             if (CurrentDependencyTree.DependencyFileChange.Metadata != null
                                                 && !CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.IsFolder
@@ -2332,10 +2336,10 @@ namespace Cloud.FileMonitor
                                                 try
                                                 {
 
+                                                    fileSize = new FileInfo(CurrentDependencyTree.DependencyFileChange.NewPath.ToString()).Length;
+
                                                     if (MaxUploadFileSize != -1) // there is a max upload file size threshold
                                                     {
-                                                        long fileSize = new FileInfo(CurrentDependencyTree.DependencyFileChange.NewPath.ToString()).Length;
-
                                                         CurrentDependencyTree.DependencyFileChange.FileIsTooBig = (MaxUploadFileSize < fileSize);
 
                                                         if (CurrentDependencyTree.DependencyFileChange.FileIsTooBig)
@@ -2351,7 +2355,7 @@ namespace Cloud.FileMonitor
 
                                                     try
                                                     {
-                                                        OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
+                                                        OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write);
                                                     }
                                                     catch (FileNotFoundException)
                                                     {
@@ -2365,7 +2369,7 @@ namespace Cloud.FileMonitor
                                                         throw new AggregateException("Error retrieving previousMD5Bytes", retrieveMD5Error.GrabExceptions());
                                                     }
 
-                                                    MD5 md5Hasher = MD5.Create();
+                                                    Helpers.Md5Hasher hasher = new Helpers.Md5Hasher(FileConstants.MaxUploadIntermediateHashBytesSize);
 
                                                     try
                                                     {
@@ -2376,11 +2380,13 @@ namespace Cloud.FileMonitor
                                                         while ((fileReadBytes = OutputStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
                                                         {
                                                             countFileSize += fileReadBytes;
-                                                            md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+
+                                                            hasher.Update(fileBuffer, fileReadBytes);
                                                         }
 
-                                                        md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
-                                                        byte[] newMD5Bytes = md5Hasher.Hash;
+                                                        hasher.FinalizeHashes();
+                                                        newMD5Bytes = hasher.Hash;
+                                                        intermediateHashes = hasher.IntermediateHashes;
 
                                                         string pathString = CurrentDependencyTree.DependencyFileChange.NewPath.ToString();
                                                         FileInfo uploadInfo = new FileInfo(pathString);
@@ -2391,8 +2397,7 @@ namespace Cloud.FileMonitor
                                                             || newWriteTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.LastTime) != 0 // or last write time changed
                                                             || CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size == null // or previous size was not set
                                                             || ((long)CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size) == countFileSize // or size changed
-                                                            || !((previousMD5Bytes == null && newMD5Bytes == null)
-                                                                || (previousMD5Bytes != null && newMD5Bytes != null && previousMD5Bytes.Length == newMD5Bytes.Length && NativeMethods.memcmp(previousMD5Bytes, newMD5Bytes, new UIntPtr((uint)previousMD5Bytes.Length)) == 0))) // or md5 changed
+                                                            || !Helpers.IsEqualHashes(previousMD5Bytes, newMD5Bytes))
                                                         {
                                                             CLError setMD5Error = CurrentDependencyTree.DependencyFileChange.SetMD5(newMD5Bytes);
                                                             if (setMD5Error != null)
@@ -2425,7 +2430,7 @@ namespace Cloud.FileMonitor
                                                         {
                                                         }
 
-                                                        md5Hasher.Dispose();
+                                                        hasher.Dispose();
                                                     }
                                                 }
                                                 catch (Exception ex)
@@ -2441,7 +2446,7 @@ namespace Cloud.FileMonitor
                                             }
                                             else
                                             {
-                                                OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, OutputStream));
+                                                OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, new UploadStreamContext(OutputStream, intermediateHashes, newMD5Bytes, fileSize)));
                                             }
                                         }
                                         else/* if (failedOutChanges != null)*/ // not necessary to check for null failed out changes list since if it was null this else condition could never be reached
