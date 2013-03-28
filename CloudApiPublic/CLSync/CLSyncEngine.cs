@@ -995,8 +995,11 @@ namespace Cloud
                             {
                                 if (NetworkMonitoredEngines.Count == 0)
                                 {
-                                    NetworkMonitor.Instance.NetworkChanged -= NetworkChanged;
-                                    NetworkMonitor.Instance.StopNetworkMonitor();
+                                    if (NetworkMonitor.Instance != null)
+                                    {
+                                        NetworkMonitor.Instance.NetworkChanged -= NetworkChanged;
+                                        NetworkMonitor.Instance.StopNetworkMonitor();
+                                    }
                                 }
                             }
                         }
