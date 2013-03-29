@@ -2147,7 +2147,9 @@ namespace Cloud.FileMonitor
         /// <returns>Returns error(s) that occurred finalizing the FileChange array, if any</returns>
         internal CLError GrabPreprocessedChanges(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
+            out int outputChangesCount,
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
+            out int outputChangesInErrorCount,
             out bool nullChangeFound,
             List<FileChange> failedOutChanges)
         {
@@ -2461,14 +2463,18 @@ namespace Cloud.FileMonitor
                         }
 
                         outputChanges = OutputChangesList;
+                        outputChangesCount = OutputChangesList.Count;
                         outputChangesInError = OutputFailuresList;
+                        outputChangesInErrorCount = outputChangesInErrorCount = OutputFailuresList.Count;
                     }
                 }
             }
             catch (Exception ex)
             {
                 outputChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableFileChange>>();
+                outputChangesCount = Helpers.DefaultForType<int>();
                 outputChangesInError = Helpers.DefaultForType<IEnumerable<PossiblyPreexistingFileChangeInError>>();
+                outputChangesInErrorCount = Helpers.DefaultForType<int>();
                 nullChangeFound = false;
                 toReturn += ex;
             }

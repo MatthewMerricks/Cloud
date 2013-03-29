@@ -52,7 +52,9 @@ namespace Cloud.Interfaces
         /// <returns>Should return any error that occured while grabbing events, should not throw the exception</returns>
         CLError grabChangesFromFileSystemMonitor(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
+            out int outputChangesCount,
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
+            out int outputChangesInErrorCount,
             out bool nullChangeFound,
             List<FileChange> failedOutChanges = null);
 

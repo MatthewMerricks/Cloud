@@ -27,7 +27,7 @@ namespace Cloud.Sync.Model
                 return _eventId;
             }
         }
-        private long _eventId;
+        private readonly long _eventId;
 
         public ISyncDataObject SyncData
         {
@@ -40,7 +40,7 @@ namespace Cloud.Sync.Model
                 return _syncData;
             }
         }
-        private ISyncDataObject _syncData;
+        private readonly ISyncDataObject _syncData;
 
         public ICLSyncSettingsAdvanced SyncSettings
         {
@@ -53,7 +53,7 @@ namespace Cloud.Sync.Model
                 return _syncSettings;
             }
         }
-        private ICLSyncSettingsAdvanced _syncSettings;
+        private readonly ICLSyncSettingsAdvanced _syncSettings;
 
         public string TempDownloadFolderPath
         {
@@ -66,7 +66,20 @@ namespace Cloud.Sync.Model
                 return _tempDownloadFolderPath;
             }
         }
-        private string _tempDownloadFolderPath;
+        private readonly string _tempDownloadFolderPath;
+
+        public long SyncBoxId
+        {
+            get
+            {
+                if (!_isValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid EventIdAndCompletionProcessor");
+                }
+                return _syncBoxId;
+            }
+        }
+        private readonly long _syncBoxId;
 
         public bool IsValid
         {
@@ -75,9 +88,9 @@ namespace Cloud.Sync.Model
                 return _isValid;
             }
         }
-        private bool _isValid;
+        private readonly bool _isValid;
 
-        public EventIdAndCompletionProcessor(long EventId, ISyncDataObject syncData, ICLSyncSettingsAdvanced syncSettings, string TempDownloadFolderPath = null)
+        public EventIdAndCompletionProcessor(long EventId, ISyncDataObject syncData, ICLSyncSettingsAdvanced syncSettings, long SyncBoxId, string TempDownloadFolderPath = null)
         {
             if (syncData == null)
             {
@@ -91,6 +104,7 @@ namespace Cloud.Sync.Model
             this._eventId = EventId;
             this._syncData = syncData;
             this._syncSettings = syncSettings;
+            this._syncBoxId = SyncBoxId;
             this._isValid = true;
             this._tempDownloadFolderPath = TempDownloadFolderPath;
         }

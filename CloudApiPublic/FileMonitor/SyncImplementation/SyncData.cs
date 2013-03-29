@@ -82,13 +82,17 @@ namespace Cloud.FileMonitor.SyncImplementation
         /// <returns>An error or null.</returns>
         public CLError grabChangesFromFileSystemMonitor(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
+            out int outputChangesCount,
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
+            out int outputChangesInErrorCount,
             out bool nullChangeFound,
             List<FileChange> failedOutChanges = null)
         {
             return Monitor.GrabPreprocessedChanges(initialFailures,
                 out outputChanges,
+                out outputChangesCount,
                 out outputChangesInError,
+                out outputChangesInErrorCount,
                 out nullChangeFound,
                 failedOutChanges);
         }
