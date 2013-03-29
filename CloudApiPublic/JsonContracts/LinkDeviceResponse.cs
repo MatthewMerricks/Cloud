@@ -38,7 +38,7 @@ namespace Cloud.JsonContracts
         public Session Session { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseLinkDevice_Device, IsRequired = false)]
-        public DeviceRequest Device { get; set; }
+        public DeviceResponse Device { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseLinkDevice_AccessToken, IsRequired = false)]
         public string AccessToken { get; set; }
