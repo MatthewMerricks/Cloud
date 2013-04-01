@@ -55,3 +55,9 @@ Deprecating an ond API
   o 1 result object in CloudApiPublic\Rest\AsyncRequests.cs
   o May/may not be in JsonContracts, or contract helps, or helpers dictionaries.
   o See GetUsedBytes
+
+Exposing an internal member as public while hiding it from Intellisense and documentation:
+ o Make the member or class public.
+ o Add the attribute to the member or class: [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+ o Add the "CloudApiPublic::Static::ComTrace" to the Exclude_Symbols in doxyfile.  Exact capitalization is required.  Never a trailing "\" on the last item.
+

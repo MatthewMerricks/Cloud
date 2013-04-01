@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows;   //&&&&&& DEBUG REMOVE
 
 namespace Cloud
 {
@@ -201,6 +202,7 @@ namespace Cloud
                 status = CLSyncBoxCreationStatus.ErrorCreatingRestClient;
                 throw new NullReferenceException(nullRestClient);
             }
+
         }
 
         #region forwarded rest http calls

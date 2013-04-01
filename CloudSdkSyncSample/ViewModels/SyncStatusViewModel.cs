@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
+using Cloud.Model;
 
 namespace SampleLiveSync.ViewModels
 {
@@ -194,7 +195,12 @@ namespace SampleLiveSync.ViewModels
             {
                 // Set the overall sync status
                 CLSyncCurrentStatus currentStatus;
-                syncEngine.GetEngineCurrentStatus(out currentStatus);
+                CLError errorFromGetEngineCurrentStatus = syncEngine.GetEngineCurrentStatus(out currentStatus);
+                if (errorFromGetEngineCurrentStatus != null || currentStatus == null)
+                {
+                    return;
+                }
+
                 if (currentStatus.CurrentState == CLSyncCurrentState.Idle)
                 {
                     SyncStatus = SyncStates.Synced;

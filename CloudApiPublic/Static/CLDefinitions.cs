@@ -34,8 +34,10 @@ namespace Cloud.Static
         // Define the subdomain
 #if URL_API
         public const string SubDomainPrefix = "api.";
+        public const string CloudAppSubDomainPrefix = "cloudapp.";
 #else
         public const string SubDomainPrefix = "";
+        public const string CloudAppSubDomainPrefix = "cloudapp";
 #endif  // !URL_API
 
         // Define the version
@@ -170,6 +172,12 @@ namespace Cloud.Static
         public const string MethodPathAuthListSessions = VersionPrefix + "/auth/session/list";                          // POST
         public const string MethodPathAuthShowSession = VersionPrefix + "/auth/session/show";                           // GET
         public const string MethodPathAuthDeleteSession = VersionPrefix + "/auth/session/delete";                       // POST
+        //public const string MethodPathAuthDeviceLink = VersionPrefix + "/device/link";                                // POST
+        //public const string MethodPathAuthDeviceLinkFirstTime = VersionPrefix + "/device/link/first_time";            // POST
+        //public const string MethodPathAuthDeviceUnlink = VersionPrefix + "/device/unlink";                            // POST
+        public const string MethodPathAuthDeviceLink = "/device/link";                                                  // POST
+        public const string MethodPathAuthDeviceLinkFirstTime = "/device/link/first_time";                              // POST
+        public const string MethodPathAuthDeviceUnlink = "/device/unlink";                                              // POST
         #endregion
 #else
         public const string MethodPathSyncFrom = "/1/sync/from_cloud";                                  // POST
@@ -583,7 +591,7 @@ namespace Cloud.Static
         public const string RESTResponseSession_ExpiresAt = "expires_at";
         public const string RESTResponseSession_Key = "key";
         public const string RESTResponseSession_Secret = "secret";
-        public const string RESTResponseSession_Token = "session_token";
+        public const string RESTResponseSession_Token = "token";
         public const string RESTResponseSession_SyncBoxIds = "sync_box_ids";
         public const string RESTResponseSession_AllowAll = "allow_all";
         public const string RESTResponseSession_Sessions = "sessions";
@@ -594,6 +602,59 @@ namespace Cloud.Static
         public const string RESTRequestSession_SyncBoxIdsAll = "all";
         public const string RESTRequestSession_KeyId = "key_id";
         public const string RESTRequestSession_Key = "key";
+
+        // REST UserRegistration Request
+        public const string RESTRequestUserRegistration_FirstName = "first_name";
+        public const string RESTRequestUserRegistration_LastName = "last_name";
+        public const string RESTRequestUserRegistration_EMail = "email";
+        public const string RESTRequestUserRegistration_Password = "password";
+
+        // REST UserRegistration Response
+        public const string RESTResponseUserRegistration_Id = "id";
+        public const string RESTResponseUserRegistration_FirstName = "first_name";
+        public const string RESTResponseUserRegistration_LastName = "last_name";
+        public const string RESTResponseUserRegistration_EMail = "email";
+
+        // REST Device Request
+        public const string RESTRequestDevice_FriendlyName = "friendly_name";
+
+        // REST Device Response
+        public const string RESTResponseDevice_DeviceUuid = "device_uuid";
+        public const string RESTResponseDevice_FriendlyName = "friendly_name";
+
+        // REST Link Device First-Time Request  (POST /device/link/first_time)
+        public const string RESTRequestLinkDeviceFirstTime_User = "user";
+        public const string RESTRequestLinkDeviceFirstTime_Key = "client_id";
+        public const string RESTRequestLinkDeviceFirstTime_Secret = "client_secret";
+        public const string RESTRequestLinkDeviceFirstTime_Device = "device";
+
+        // REST Link Device First-Time Response  (POST /device/link/first_time)
+        public const string RESTResponseLinkDeviceFirstTime_User = "user";
+        public const string RESTResponseLinkDeviceFirstTime_SyncBox = "sync_box";
+        public const string RESTResponseLinkDeviceFirstTime_Session = "session";
+        public const string RESTResponseLinkDeviceFirstTime_Device = "device";
+        public const string RESTResponseLinkDeviceFirstTime_AccessToken = "access_token";
+
+        // REST Link Device Request  (POST /device/link)
+        public const string RESTRequestLinkDevice_EMail = "email";
+        public const string RESTRequestLinkDevice_Password = "password";
+        public const string RESTRequestLinkDevice_Key = "client_id";
+        public const string RESTRequestLinkDevice_Secret = "client_secret";
+        public const string RESTRequestLinkDevice_Device = "device";
+
+        // REST Link Device Response  (POST /device/link)
+        public const string RESTResponseLinkDevice_User = "user";
+        public const string RESTResponseLinkDevice_SyncBox = "sync_box";
+        public const string RESTResponseLinkDevice_Session = "session";
+        public const string RESTResponseLinkDevice_Device = "device";
+        public const string RESTResponseLinkDevice_AccessToken = "access_token";
+
+        // REST SyncBox Auth Reponse
+        public const string RESTResponseSyncBoxAuth_Id = "id";
+        public const string RESTResponseSyncBoxAuth_FriendlyName = "friendly_name";
+
+        // REST Unlink Device Request
+        public const string RESTRequestUnlinkDevice_AccessToken = "access_token";
 
         // Response message texts which should be replaced with actual code numbers when the server updates
         public const string MessageTextExpiredCredentials = "User Session Credentials are expired";

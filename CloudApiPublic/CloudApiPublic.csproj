@@ -147,6 +147,17 @@
     <Compile Include="JsonContracts\AuthenticationErrorMessage.cs" />
     <Compile Include="JsonContracts\AuthenticationErrorResponse.cs" />
     <Compile Include="JsonContracts\ContainsMetadataDictionaryAttribute.cs" />
+    <Compile Include="JsonContracts\UnlinkDeviceResponse.cs" />
+    <Compile Include="JsonContracts\UnlinkDeviceRequest.cs" />
+    <Compile Include="JsonContracts\LinkDeviceResponse.cs" />
+    <Compile Include="JsonContracts\LinkDeviceRequest.cs" />
+    <Compile Include="JsonContracts\SyncBoxAuthResponse.cs" />
+    <Compile Include="JsonContracts\LinkDeviceFirstTimeResponse.cs" />
+    <Compile Include="JsonContracts\LinkDeviceFirstTimeRequest.cs" />
+    <Compile Include="JsonContracts\DeviceResponse.cs" />
+    <Compile Include="JsonContracts\DeviceRequest.cs" />
+    <Compile Include="JsonContracts\UserRegistrationResponse.cs" />
+    <Compile Include="JsonContracts\UserRegistrationRequest.cs" />
     <Compile Include="JsonContracts\NotificationUnsubscribeResponse.cs" />
     <Compile Include="JsonContracts\NotificationUnsubscribeRequest.cs" />
     <Compile Include="JsonContracts\SessionDeleteResponse.cs" />

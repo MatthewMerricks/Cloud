@@ -32,7 +32,7 @@ namespace Xceed.Wpf.Toolkit.PropertyGrid.Converters
     {
       BaseValueSource bvs = ( BaseValueSource )value;
 
-      string uriPrefix = "/WPFToolkit.Extended;component/PropertyGrid/Images/";
+      string uriPrefix = "/WPFToolkit.Extended.CAPP;component/PropertyGrid/Images/";
       string imageName = "AdvancedProperties11";
 
       switch( bvs )

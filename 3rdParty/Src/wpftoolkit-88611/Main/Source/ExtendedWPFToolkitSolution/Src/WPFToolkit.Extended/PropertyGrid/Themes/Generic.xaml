@@ -373,15 +373,15 @@
                </Border>
                <ControlTemplate.Triggers>
                   <DataTrigger Binding="{Binding IsDataBound, RelativeSource={RelativeSource Self}}" Value="True">
-                     <Setter TargetName="_optionsImage" Property="Source" Value="/WPFToolkit.Extended;component/PropertyGrid/Images/Database11.png" />
+                     <Setter TargetName="_optionsImage" Property="Source" Value="/WPFToolkit.Extended.CAPP;component/PropertyGrid/Images/Database11.png" />
                      <Setter TargetName="_optionsImage" Property="ToolTip" Value="Databinding" />
                   </DataTrigger>
                   <DataTrigger Binding="{Binding IsDynamicResource, RelativeSource={RelativeSource Self}}" Value="True">
-                     <Setter TargetName="_optionsImage" Property="Source" Value="/WPFToolkit.Extended;component/PropertyGrid/Images/Resource11.png" />
+                     <Setter TargetName="_optionsImage" Property="Source" Value="/WPFToolkit.Extended.CAPP;component/PropertyGrid/Images/Resource11.png" />
                      <Setter TargetName="_optionsImage" Property="ToolTip" Value="Resource" />
                   </DataTrigger>
                   <DataTrigger Binding="{Binding HasResourceApplied, RelativeSource={RelativeSource Self}}" Value="True">
-                     <Setter TargetName="_optionsImage" Property="Source" Value="/WPFToolkit.Extended;component/PropertyGrid/Images/Resource11.png" />
+                     <Setter TargetName="_optionsImage" Property="Source" Value="/WPFToolkit.Extended.CAPP;component/PropertyGrid/Images/Resource11.png" />
                      <Setter TargetName="_optionsImage" Property="ToolTip" Value="Resource" />
                   </DataTrigger>
                   <Trigger Property="IsMouseOver" Value="True">
@@ -431,13 +431,13 @@
                                            VerticalAlignment="Center"
                                            Style="{StaticResource OptionsToggleButtonStyle}"
                                            ToolTip="Categorized">
-                                 <Image Source="/WPFToolkit.Extended;component/PropertyGrid/Images/Categorize16.png" Width="16" Height="16" />
+                                    <Image Source="/WPFToolkit.Extended.CAPP;component/PropertyGrid/Images/Categorize16.png" Width="16" Height="16" />
                               </RadioButton>
                               <RadioButton IsChecked="{Binding IsCategorized, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource InverseBoolConverter}, Mode=OneWay}"
                                            VerticalAlignment="Center"
                                            Style="{StaticResource OptionsToggleButtonStyle}"
                                            ToolTip="Alphabetical">
-                                 <Image Source="/WPFToolkit.Extended;component/PropertyGrid/Images/SortAscending16.png" Width="16" Height="16" />
+                                    <Image Source="/WPFToolkit.Extended.CAPP;component/PropertyGrid/Images/SortAscending16.png" Width="16" Height="16" />
                               </RadioButton>
                            </StackPanel>
                         </Grid>
@@ -469,7 +469,7 @@
                                       Command="commands:PropertyGridCommands.ClearFilter"
                                       Style="{StaticResource ClearFilterButtonStyle}"
                                       HorizontalAlignment="Left">
-                                 <Image Source="/WPFToolkit.Extended;component/PropertyGrid/Images/ClearFilter16.png" Width="16" Height="16" />
+                                    <Image Source="/WPFToolkit.Extended.CAPP;component/PropertyGrid/Images/ClearFilter16.png" Width="16" Height="16" />
                               </Button>
                            </Grid>
                         </Border>

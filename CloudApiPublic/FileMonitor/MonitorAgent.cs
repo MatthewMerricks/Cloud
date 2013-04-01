@@ -3226,7 +3226,8 @@ namespace Cloud.FileMonitor
                                             | FileAttributes.Offline // ignore offline files (data is not available on them)
                                             | FileAttributes.System // ignore system files
                                             | FileAttributes.Temporary)) // ignore temporary files
-                                    && (isFolder ? true : !FileIsShortcut(file)))) // allow change if it is a folder or if it is a file that is not a shortcut
+                                    //RKSCHANGE:&& (isFolder ? true : !FileIsShortcut(file)))) // allow change if it is a folder or if it is a file that is not a shortcut
+                                    ))
                             {
                                 DateTime lastTime;
                                 DateTime creationTime;
