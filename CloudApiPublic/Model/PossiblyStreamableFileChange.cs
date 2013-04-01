@@ -27,6 +27,10 @@ namespace Cloud.Model
 
         public StreamContext(Stream stream) 
         {
+            if (stream == null)
+            {
+                throw new NullReferenceException("stream cannot be null");
+            }
             _stream = stream;
         }
 

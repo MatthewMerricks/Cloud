@@ -2355,7 +2355,7 @@ namespace Cloud.FileMonitor
 
                                                     try
                                                     {
-                                                        OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write);
+                                                        OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
                                                     }
                                                     catch (FileNotFoundException)
                                                     {
@@ -2446,7 +2446,7 @@ namespace Cloud.FileMonitor
                                             }
                                             else
                                             {
-                                                OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, new UploadStreamContext(OutputStream, intermediateHashes, newMD5Bytes, fileSize)));
+                                                OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, ((OutputStream == null) ? null : new StreamContext(OutputStream))));
                                             }
                                         }
                                         else/* if (failedOutChanges != null)*/ // not necessary to check for null failed out changes list since if it was null this else condition could never be reached

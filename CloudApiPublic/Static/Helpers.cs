@@ -479,14 +479,41 @@ namespace Cloud.Static
                 {
                     if (disposing)
                     {
-                        _totalMd5.Dispose();
-                        _totalMd5 = null;
+                        if (_totalMd5 != null)
+                        {
+                            try
+                            {
+                                _totalMd5.Dispose();
+                            }
+                            catch
+                            {
+                            }
+                            _totalMd5 = null;
+                        }
 
-                        _md5.Dispose();
-                        _md5 = null;
+                        if (_md5 != null)
+                        {
+                            try
+                            {
+                                _md5.Dispose();
+                            }
+                            catch
+                            {
+                            }
+                            _md5 = null;
+                        }
 
-                        _hashes.Clear();
-                        _hashes = null;
+                        if (_hashes != null)
+                        {
+                            try
+                            {
+                                _hashes.Clear();
+                            }
+                            catch
+                            {
+                            }
+                            _hashes = null;
+                        }
 
                         _hash = null;
                         _intermediateHashes = null;
