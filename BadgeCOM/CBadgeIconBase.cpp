@@ -31,6 +31,7 @@ CBadgeIconBase::CBadgeIconBase()
 /// </Summary>
 CBadgeIconBase::CBadgeIconBase(int iconIndex, EnumCloudAppIconBadgeType badgeType)
 {
+
     try
     {
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -42,9 +43,14 @@ CBadgeIconBase::CBadgeIconBase(int iconIndex, EnumCloudAppIconBadgeType badgeTyp
 		//fCompletedOnce = true;
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
+		// Get the process name so we can trace it.
+		CHAR szOutProcessName[MAX_PATH] = "<unknown>";
+		DWORD dwOutProcessId = 0;
+		GetCurrentProcessNameAndProcessId(szOutProcessName, sizeof(szOutProcessName), &dwOutProcessId);
+
 	    // Allocate the PubSubEvents system, subscribe to events, and send an initialization event to BadgeNet.
         _strBaseBadgeType = BadgeTypeToString(badgeType);
-		CLTRACE(9, "CBadgeIconBase: CBadgeIconBase: Entry. Start the subscription threads. Badge type: %s.", _strBaseBadgeType.c_str());
+		CLTRACE(9, "CBadgeIconBase: CBadgeIconBase: Entry. Start the subscription threads. Badge type: %s. ProcessId: %lu. ProcessName: %s.", _strBaseBadgeType.c_str(), dwOutProcessId, szOutProcessName);
         _fIsInitialized = false;
         _iconIndex = iconIndex;
         _badgeType = badgeType;
@@ -1017,4 +1023,65 @@ char *CBadgeIconBase::BadgeTypeToString(EnumCloudAppIconBadgeType badgeType)
             return "UnknownBadgeType";
     }
 }
+
+/// <summary>
+/// Get the current process name and process ID.
+/// <param name="badgeType">The type of the badge to convert.</param>
+/// </summary>
+/// <returns>(char *) A pointer to the string equivalent of badgeType.</returns>
+int CBadgeIconBase::GetCurrentProcessNameAndProcessId(CHAR *szOutProcessName, int nOutProcessNameBufferSize, DWORD *dwOutProcessId)
+{
+	bool fProcessHandleAllocated = false;
+	HANDLE hProcess;
+	int nToReturn = 0;
+	try
+	{
+		// Check the parameters
+		if (szOutProcessName == NULL)
+		{
+			throw new std::exception("szOutProcessName must not be null");
+		}
+		if (dwOutProcessId == NULL)
+		{
+			throw new std::exception("dwOutProcessId must not be null");
+		}
+
+		// Get the current process ID
+		*dwOutProcessId = GetCurrentProcessId();
+
+		// Get a handle to the process.
+		hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, *dwOutProcessId);
+
+		// Get the process name.
+		if (NULL != hProcess )
+		{
+			HMODULE hMod;
+			DWORD cbNeeded;
+
+			fProcessHandleAllocated = true;
+			if ( EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
+			{
+				GetModuleBaseNameA(hProcess, hMod, szOutProcessName, nOutProcessNameBufferSize);
+			}
+		}
+	}
+	catch (const std::exception &ex)
+	{
+		nToReturn = -1;
+		CLTRACE(1, "CBadgeIconBase: GetCurrentProcessNameAndProcessId: ERROR: Exception.  Message: %s.", ex.what());
+	}
+    catch (...)
+    {
+		nToReturn = -2;
+		CLTRACE(1, "CBadgeIconBase: GetCurrentProcessNameAndProcessId: ERROR: C++ exception.");
+    }
+
+	if (fProcessHandleAllocated)
+	{
+		CloseHandle( hProcess );
+	}
+
+	return nToReturn;
+}
+
 

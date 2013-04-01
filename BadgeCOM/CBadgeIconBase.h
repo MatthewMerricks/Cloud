@@ -18,6 +18,8 @@
 #include <sstream>
 #include "lmcons.h"
 #include "Trace.h"
+#include <tchar.h>
+#include <psapi.h>
 
 using namespace ATL;
 
@@ -74,4 +76,5 @@ private:
     static void InitializeBadgeNetPubSubEventsThreadProc(LPVOID pUserState);
     static char *BadgeTypeToString(EnumCloudAppIconBadgeType badgeType);
     void CleanBadgingDatabaseForProcessId(ULONG processIdPublisher);
+	int GetCurrentProcessNameAndProcessId(CHAR *szOutProcessName, int nOutProcessNameBufferSize, DWORD *dwOutProcessId);
 };
