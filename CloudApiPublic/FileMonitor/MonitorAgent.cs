@@ -2324,7 +2324,9 @@ namespace Cloud.FileMonitor
                                             FileStream OutputStream = null;
                                             byte[][] intermediateHashes = null;
                                             byte[] newMD5Bytes = null;
-                                            Nullable<long> fileSize = null;
+
+                                            // Note: file size can change during hashing since the file is open with share write 
+                                            Nullable<long> finalFileSize = null; 
 
                                             bool CurrentFailed = false;
                                             if (CurrentDependencyTree.DependencyFileChange.Metadata != null
@@ -2335,12 +2337,12 @@ namespace Cloud.FileMonitor
                                             {
                                                 try
                                                 {
-
-                                                    fileSize = new FileInfo(CurrentDependencyTree.DependencyFileChange.NewPath.ToString()).Length;
-
                                                     if (MaxUploadFileSize != -1) // there is a max upload file size threshold
                                                     {
-                                                        CurrentDependencyTree.DependencyFileChange.FileIsTooBig = (MaxUploadFileSize < fileSize);
+                                                        // Note: file size can change during hashing since the file is open with share write
+                                                        long initialFileSize = new FileInfo(CurrentDependencyTree.DependencyFileChange.NewPath.ToString()).Length;
+
+                                                        CurrentDependencyTree.DependencyFileChange.FileIsTooBig = (MaxUploadFileSize < initialFileSize);
 
                                                         if (CurrentDependencyTree.DependencyFileChange.FileIsTooBig)
                                                         {
@@ -2348,7 +2350,7 @@ namespace Cloud.FileMonitor
                                                                                             MaxUploadFileSize > 1024 ? String.Format("{0}K", MaxUploadFileSize / 1024) :
                                                                                             String.Format("{0} bytes", MaxUploadFileSize);
                                                             throw new AggregateException(String.Format("Files bigger than {0} are not yet supported; File: {1}, Size: {2}",
-                                                                                                        MaxUploadFileSize, CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), fileSize));
+                                                                                                        MaxUploadFileSize, CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), initialFileSize));
                                                         }
                                                     }
 
@@ -2369,7 +2371,7 @@ namespace Cloud.FileMonitor
                                                         throw new AggregateException("Error retrieving previousMD5Bytes", retrieveMD5Error.GrabExceptions());
                                                     }
 
-                                                    Helpers.Md5Hasher hasher = new Helpers.Md5Hasher(FileConstants.MaxUploadIntermediateHashBytesSize);
+                                                    Model.Md5Hasher hasher = new Model.Md5Hasher(FileConstants.MaxUploadIntermediateHashBytesSize);
 
                                                     try
                                                     {
@@ -2387,6 +2389,7 @@ namespace Cloud.FileMonitor
                                                         hasher.FinalizeHashes();
                                                         newMD5Bytes = hasher.Hash;
                                                         intermediateHashes = hasher.IntermediateHashes;
+                                                        finalFileSize = countFileSize; // file size as counted through a successfull hashing
 
                                                         string pathString = CurrentDependencyTree.DependencyFileChange.NewPath.ToString();
                                                         FileInfo uploadInfo = new FileInfo(pathString);
@@ -2446,7 +2449,7 @@ namespace Cloud.FileMonitor
                                             }
                                             else
                                             {
-                                                OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, new UploadStreamContext(OutputStream, intermediateHashes, newMD5Bytes, fileSize)));
+                                                OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, UploadStreamContext.Create(OutputStream, intermediateHashes, newMD5Bytes, finalFileSize)));
                                             }
                                         }
                                         else/* if (failedOutChanges != null)*/ // not necessary to check for null failed out changes list since if it was null this else condition could never be reached

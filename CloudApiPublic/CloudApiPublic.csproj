@@ -204,8 +204,13 @@
     <Compile Include="Model\EventMessages\SuccessfulUploadsIncrementedMessage.cs" />
     <Compile Include="Model\EventMessages\UploadingCountMessage.cs" />
     <Compile Include="Model\EventMessages\UploadProgressMessage.cs" />
+    <Compile Include="Model\HashedStreamReaderAdapter.cs" />
     <Compile Include="Model\HashMismatchException.cs" />
+    <Compile Include="Model\Md5Hasher.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
+    <Compile Include="Model\StreamContext.cs" />
+    <Compile Include="Model\StreamReaderAdapter.cs" />
+    <Compile Include="Model\UploadStreamContext.cs" />
     <Compile Include="PushNotification\CLNotificationManualPollingEngine.cs" />
     <Compile Include="REST\AsyncResults.cs" />
     <Compile Include="PushNotification\CLNotificationSseEngine.cs" />

@@ -6974,7 +6974,6 @@ namespace Cloud.Sync
                                                             if (currentChange.OldPath != null)
                                                             {
                                                                 FileStream uploadStreamForDuplication = null;
-                                                                //todel:byte[][] intermediateHashesForDuplication = null;
                                                                 try
                                                                 {
                                                                     string oldPathString = currentChange.OldPath.ToString();
@@ -6989,7 +6988,7 @@ namespace Cloud.Sync
 
                                                                             long duplicateSize = 0;
                                                                             byte[] duplicateHash;
-                                                                            Helpers.Md5Hasher duplicateHasher = new Helpers.Md5Hasher();
+                                                                            Md5Hasher duplicateHasher = new Md5Hasher();
 
                                                                             try
                                                                             {
@@ -7004,7 +7003,6 @@ namespace Cloud.Sync
 
                                                                                 duplicateHasher.FinalizeHashes();
                                                                                 duplicateHash = duplicateHasher.Hash;
-                                                                                //todel:intermediateHashesForDuplication = duplicateHasher.IntermediateHashes;
                                                                             }
                                                                             finally
                                                                             {
@@ -7111,7 +7109,7 @@ namespace Cloud.Sync
                                                                                     throw new AggregateException("Error copying duplicate file change for upload processing: " + createCopyDuplicateChange.errorDescription, createCopyDuplicateChange.GrabExceptions());
                                                                                 }
 
-                                                                                AddToIncompleteChanges(incompleteChangesList, copyDuplicateChange, new StreamContext(uploadStreamForDuplication), /* different metadata since this is new */true);
+                                                                                AddToIncompleteChanges(incompleteChangesList, copyDuplicateChange, StreamContext.Create(uploadStreamForDuplication), /* different metadata since this is new */true);
 
                                                                                 uploadStreamForDuplication = null; // prevents disposal on finally since the Stream will now be sent off for async processing
                                                                             }
@@ -8760,7 +8758,7 @@ namespace Cloud.Sync
                                                                         new PossiblyStreamableAndPossiblyChangedFileChange(
                                                                             /*Changed*/ true,
                                                                             duplicateChange,
-                                                                            new StreamContext(uploadStreamForDuplication))
+                                                                            StreamContext.Create(uploadStreamForDuplication))
                                                                     });
 
                                                                 uploadStreamForDuplication = null; // prevents disposal on finally since the Stream will now be sent off for async processing
