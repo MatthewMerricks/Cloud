@@ -42,7 +42,7 @@
 ///             // create the minimal settings using just the path to the folder
 ///             CLSyncSettings syncSettings = new CLSyncSettings(
 ///                 syncRoot: "<Full path of the folder to sync>",
-///					deviceId: "<device name unique in the SyncBox>");
+///                 deviceId: "<device name unique in the SyncBox>");
 ///
 ///             CLSyncBox syncBox; // declare sync box
 ///             CLSyncBoxCreationStatus syncBoxStatus; // declare status enumeration
@@ -143,7 +143,7 @@
 /// \note If the Token field is specified, then the Key, Secret and Token form a temporary session credential.  Otherwise, the Key and Secret form the permanent credential of your app.
 /// - SyncBox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the SyncBox.  It represents a folder that will be synced across all of your devices, and to Cloud.
 /// - Unique Device ID: Choose a unique name (within this SyncBox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If multiple sync engines are running on this machine, then each engine's
-/// pair of SyncBoxId-DeviceId must be unique on the machine.
+/// pair of SyncBoxId-DeviceId must be unique on the machine.  You may click the Generate button to generate a unique DeviceId that includes the computer name.
 /// .
 /// 
 /// Buttons:
@@ -278,6 +278,29 @@
 ///You can pass any interface that is derived from ICLSyncSettings as the 5th parameter.  The sample app passes an implementation of ICLSyncSettingsAdvanced because it is demonstrating how to use ALL of the settings (ICLSettingsAdvanced (which includes ICLAddTraceSettings and ICLSyncSettings).
 ///
 ///In fact, you can pass a very simple parameter here if all you want to pass is the SyncBox path.  In that case, just pass “new CLSyncSettings(‘full path of the SyncBox’)”.
+/// \subsection sampleapp-sessiontokenexpiration-subsec Session Token Expiration
+/// A CLCredential may be created with an app key and secret, or with a session key, secret and temporary token.  All HTTP REST calls to the server check the credential.  Therefore, when using a temporary credential token, it is normal for any of the HTTP REST requests to fail with a
+/// 401 NotAuthorized status.  When this occurs, the application must allocate a new temporary session key, secret and token via the server, and use that information to create a new CLCredential.
+/// \code
+/// CloudApiPublic.CLSyncEngine.GetEngineCurrentStatus can now be used to determine if the engine halted due to expired credentials:
+///     public CLError GetEngineCurrentStatus(out CLSyncCurrentStatus status);
+/// 
+/// CloudApiPublic.Static.CLSyncCurrentState has a new flagged enumeration value (HaltedOnExpiredCredentials):
+///     Idle
+///     CommunicatingChanges
+///     UploadingFiles
+///     DownloadingFiles
+///     HaltedOnConnectionFailure
+///     HaltedOnExpiredCredentials
+/// \endcode
+/// 
+/// Look for the HaltedOnExpiredCredentials flag.  Handling when this status is found should be as follows:
+/// \par
+/// If the enumeration has one and only one flag and that flag is HaltedOnExpiredCredentials then a client can stop the engine, grab a new credential from the server, and restart the engine with the new credential.
+/// \par
+/// However, if the enumeration also has an activity flag such as CommuncatingChanges, UploadingFiles, or DownloadingFiles, then the client should wait until a subsequent 
+/// callback from the System.Threading.WaitCallback passed as optional input parameter StatusUpdated when the CloudApiPublic.CLSyncEngine was last started. The reason is because we do not wish to cancel a large file transfer in progress.
+/// 
 /// \subsection sampleapp-sqlceinstallation-subsec Installation Issues Involving SQL CE
 /// When you write your own app using the SDK, you will need to provide an installer that will install the required SQL CE V4.0 along with your app.
 ///

@@ -32,6 +32,28 @@ namespace Cloud.REST
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class CLHttpRest
     {
+        #region Private fields
+
+        private Dictionary<int, EnumRequestNewCredentialStates> _processingStateByThreadId = new Dictionary<int, EnumRequestNewCredentialStates>();
+        private Helpers.ReplaceExpiredCredential _getNewCredentialCallback = null;
+        private object _getNewCredentialCallbackUserState = null;
+
+        #endregion
+
+        #region Private helper functions
+
+        private CLCredential GetCurrentCredentialCallback()
+        {
+            return _credential;
+        }
+
+        private void SetCurrentCredentialCallback(CLCredential credential)
+        {
+            Credential = credential;
+        }
+
+        #endregion
+
         public bool IsModifyingSyncBoxViaPublicAPICalls
         {
             get
@@ -81,8 +103,12 @@ namespace Cloud.REST
             {
                 return _credential;
             }
+            private set
+            {
+                _credential = value;
+            }
         }
-        private readonly CLCredential _credential;
+        private CLCredential _credential;
 
         /// <summary>
         /// The unique ID of this SyncBox assigned by Cloud
@@ -96,8 +122,12 @@ namespace Cloud.REST
         }
         private readonly long _syncBoxId;
 
+        #endregion
+
         // private constructor requiring settings to copy and store for the life of this http client
-        private CLHttpRest(CLCredential credential, long syncBoxId, ICLSyncSettings settings)
+        private CLHttpRest(CLCredential credential, long syncBoxId, ICLSyncSettings settings,
+                                Helpers.ReplaceExpiredCredential getNewCredentialCallback,
+                                object getNewCredentialCallbackUserState)
         {
             if (credential == null)
             {
@@ -125,6 +155,9 @@ namespace Cloud.REST
 
 
             }
+
+            _getNewCredentialCallback = getNewCredentialCallback;
+            _getNewCredentialCallbackUserState = getNewCredentialCallbackUserState;
         }
 
         /// <summary>
@@ -135,11 +168,14 @@ namespace Cloud.REST
         /// <param name="client">(output) Created CLHttpRest client</param>
         /// <param name="settings">(optional) Additional settings to override some defaulted parameters</param>
         /// <returns>Returns any error creating the CLHttpRest client, if any</returns>
-        internal static CLError CreateAndInitialize(CLCredential credential, long syncBoxId, out CLHttpRest client, ICLSyncSettings settings = null)
+        internal static CLError CreateAndInitialize(CLCredential credential, long syncBoxId, out CLHttpRest client, 
+                    ICLSyncSettings settings = null,
+                    Helpers.ReplaceExpiredCredential getNewCredentialCallback = null,
+                    object getNewCredentialCallbackUserState = null)
         {
             try
             {
-                client = new CLHttpRest(credential, syncBoxId, settings);
+                client = new CLHttpRest(credential, syncBoxId, settings, getNewCredentialCallback, getNewCredentialCallbackUserState);
             }
             catch (Exception ex)
             {
@@ -148,7 +184,6 @@ namespace Cloud.REST
             }
             return null;
         }
-        #endregion
 
         #region public API calls
         #region DownloadFile
@@ -543,6 +578,20 @@ namespace Cloud.REST
                     beforeDownload, // optional callback fired before download starts
                     beforeDownloadState); // userstate passed when firing download start callback
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the actual communication
                 Helpers.ProcessHttp(
                     new Download() // JSON contract to serialize
@@ -558,7 +607,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -889,6 +939,20 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId))
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication
                 message = Helpers.ProcessHttp<string>(null, // the stream inside the upload parameter object is the request content, so no JSON contract object
                     CLDefinitions.CLUploadDownloadServerURL,  // Server URL
@@ -910,7 +974,9 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
+
                 hashMismatchFound = false;
             }
             catch (Exception ex)
@@ -1206,6 +1272,20 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Metadata>(
                     null, // HTTP Get method does not have content
@@ -1218,7 +1298,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -1407,6 +1488,20 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.PendingResponse>(
                     null, // HTTP Get method does not have content
@@ -1419,7 +1514,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -1809,6 +1905,20 @@ namespace Cloud.REST
                         throw new ArgumentException("toCommunicate Type is an unknown FileChangeType: " + toCommunicate.Type.ToString());
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Event>(requestContent, // dynamic type of request content based on method path
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
@@ -1820,7 +1930,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -2026,6 +2137,20 @@ namespace Cloud.REST
                     throw new NullReferenceException("settings DeviceId cannot be null");
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Event>(new JsonContracts.FileOrFolderUndelete() // files and folders share a request content object for undelete
                     {
@@ -2044,7 +2169,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -2346,6 +2472,20 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.FileVersion[]>(null, // get file versions has no request content
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
@@ -2357,7 +2497,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -2534,7 +2675,21 @@ namespace Cloud.REST
         //            throw new NullReferenceException("settings DeviceId cannot be null");
         //        }
 
-        //        // run the HTTP communication and store the response object to the output parameter
+                //// If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                //Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                //if (_getNewCredentialCallback != null)
+                //{
+                //    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                //    {
+                //        ProcessingStateByThreadId = _processingStateByThreadId,
+                //        GetNewCredentialCallback = _getNewCredentialCallback,
+                //        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                //        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                //        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                //    };
+                //}
+
+        // run the HTTP communication and store the response object to the output parameter
         //        response = Helpers.ProcessHttp<JsonContracts.UsedBytes>(null, // getting used bytes requires no request content
         //            CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
         //            CLDefinitions.MethodPathGetUsedBytes + // path to get used bytes
@@ -2550,7 +2705,8 @@ namespace Cloud.REST
         //            ref status, // reference to update the output success/failure status for the communication
         //            _copiedSettings, // pass the copied settings
         //            _credential, // pass the key/secret
-        //            _syncBoxId); // pass the unique id of the sync box on the server
+        //            _syncBoxId, // pass the unique id of the sync box on the server
+        //            requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
         //    }
         //    catch (Exception ex)
         //    {
@@ -2828,6 +2984,20 @@ namespace Cloud.REST
                     throw new NullReferenceException("settings DeviceId cannot be null");
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Event>(new JsonContracts.FileCopy() // object for file copy
                     {
@@ -2848,7 +3018,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -3030,6 +3201,20 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Pictures>(
                     null, // HTTP Get method does not have content
@@ -3042,7 +3227,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -3224,6 +3410,20 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Videos>(
                     null, // HTTP Get method does not have content
@@ -3236,7 +3436,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -3418,6 +3619,20 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Audios>(
                     null, // HTTP Get method does not have content
@@ -3430,7 +3645,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -3612,6 +3828,20 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Archives>(
                     null, // HTTP Get method does not have content
@@ -3624,7 +3854,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -3806,6 +4037,20 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString()),
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Recents>(
                     null, // HTTP Get method does not have content
@@ -3818,7 +4063,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -4000,6 +4246,20 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBoxId.ToString())
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.SyncBoxUsage>(
                     null, // HTTP Get method does not have content
@@ -4012,7 +4272,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -4207,6 +4468,20 @@ namespace Cloud.REST
                             : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(hierarchyRoot.GetRelativePath(_copiedSettings.SyncRoot, true) + "/"))) // query string parameter for optional path with escaped value
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.Folders>(
                     null, // HTTP Get method does not have content
@@ -4219,7 +4494,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -4448,6 +4724,20 @@ namespace Cloud.REST
                             : new KeyValuePair<string, string>()) // do not add extra query string parameter if parameter is already the default
                     });
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.FolderContents>(
                     null, // HTTP Get method does not have content
@@ -4460,7 +4750,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -4637,6 +4928,20 @@ namespace Cloud.REST
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 response = Helpers.ProcessHttp<JsonContracts.PendingResponse>(new JsonContracts.PurgePending() // json contract object for purge pending method
                     {
                         DeviceId = _copiedSettings.DeviceId,
@@ -4651,7 +4956,8 @@ namespace Cloud.REST
                     ref status, // reference to update output status
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -4940,6 +5246,20 @@ namespace Cloud.REST
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 response = Helpers.ProcessHttp<JsonContracts.SyncBoxHolder>(new JsonContracts.SyncBoxMetadata() // json contract object for extended sync box metadata
                     {
                         Id = SyncBoxId,
@@ -4954,7 +5274,8 @@ namespace Cloud.REST
                     ref status, // reference to update output status
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -5196,6 +5517,20 @@ namespace Cloud.REST
         //            throw new ArgumentException("quotaSize must be greater than zero");
         //        }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                //Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                //if (_getNewCredentialCallback != null)
+                //{
+                //    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                //    {
+                //        ProcessingStateByThreadId = _processingStateByThreadId,
+                //        GetNewCredentialCallback = _getNewCredentialCallback,
+                //        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                //        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                //        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                //    };
+                //}
+
         //        response = Helpers.ProcessHttp<JsonContracts.SyncBoxHolder>(new JsonContracts.SyncBoxQuota() // json contract object for sync box storage quota
         //        {
         //            Id = SyncBoxId,
@@ -5210,7 +5545,8 @@ namespace Cloud.REST
         //            ref status, // reference to update output status
         //            _copiedSettings, // pass the copied settings
         //            _credential, // pass the key/secret
-        //            _syncBoxId); // pass the unique id of the sync box on the server
+        //            _syncBoxId, // pass the unique id of the sync box on the server
+        //            requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
         //    }
         //    catch (Exception ex)
         //    {
@@ -5456,6 +5792,20 @@ namespace Cloud.REST
                     throw new ArgumentException("planId must not be zero");
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 response = Helpers.ProcessHttp<JsonContracts.SyncBoxUpdatePlanResponse>(new JsonContracts.SyncBoxUpdatePlanRequest() // json contract object for sync box update plan request
                 {
                     SyncBoxId = SyncBoxId,
@@ -5470,7 +5820,8 @@ namespace Cloud.REST
                     ref status, // reference to update output status
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -5716,6 +6067,20 @@ namespace Cloud.REST
                     throw new ArgumentException("friendlyName must be specified");
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 response = Helpers.ProcessHttp<JsonContracts.SyncBoxHolder>(new JsonContracts.SyncBoxUpdateRequest() // json contract object for sync box update request
                 {
                     SyncBoxId = SyncBoxId,
@@ -5724,16 +6089,17 @@ namespace Cloud.REST
                         FriendlyName = friendlyName
                     }
                 },
-                    CLDefinitions.CLPlatformAuthServerURL, // Platform server URL
-                    CLDefinitions.MethodPathAuthSyncBoxUpdate, // sync box update
-                    Helpers.requestMethod.post, // sync box update is a post operation
-                    timeoutMilliseconds, // set the timeout for the operation
-                    null, // not an upload or download
-                    Helpers.HttpStatusesOkAccepted, // sync box update should give OK or Accepted
-                    ref status, // reference to update output status
-                    _copiedSettings, // pass the copied settings
-                    _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                CLDefinitions.CLPlatformAuthServerURL, // Platform server URL
+                CLDefinitions.MethodPathAuthSyncBoxUpdate, // sync box update
+                Helpers.requestMethod.post, // sync box update is a post operation
+                timeoutMilliseconds, // set the timeout for the operation
+                null, // not an upload or download
+                Helpers.HttpStatusesOkAccepted, // sync box update should give OK or Accepted
+                ref status, // reference to update output status
+                _copiedSettings, // pass the copied settings
+                _credential, // pass the key/secret
+                _syncBoxId, // pass the unique id of the sync box on the server
+                requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -5965,6 +6331,20 @@ namespace Cloud.REST
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 response = Helpers.ProcessHttp<JsonContracts.SyncBoxHolder>(new JsonContracts.SyncBoxIdOnly() // json contract object for deleting sync boxes
                     {
                         Id = SyncBoxId
@@ -5978,7 +6358,8 @@ namespace Cloud.REST
                     ref status, // reference to update output status
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -6155,6 +6536,20 @@ namespace Cloud.REST
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 response = Helpers.ProcessHttp<JsonContracts.SyncBoxHolder>(new JsonContracts.SyncBoxIdOnly() // json contract object for purge pending method
                     {
                         Id = SyncBoxId
@@ -6168,7 +6563,8 @@ namespace Cloud.REST
                     ref status, // reference to update output status
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -6207,6 +6603,20 @@ namespace Cloud.REST
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.To>(
                     syncToRequest, // object for request content
@@ -6219,7 +6629,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {
@@ -6256,6 +6667,20 @@ namespace Cloud.REST
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = null;
+                if (_getNewCredentialCallback != null)
+                {
+                    requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                    {
+                        ProcessingStateByThreadId = _processingStateByThreadId,
+                        GetNewCredentialCallback = _getNewCredentialCallback,
+                        GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                        GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                        SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                    };
+                }
+
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.PushResponse>(
                     pushRequest, // object to write as request content to the server
@@ -6268,7 +6693,8 @@ namespace Cloud.REST
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret
-                    _syncBoxId); // pass the unique id of the sync box on the server
+                    _syncBoxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialInfo);   // pass the optional parameters to support temporary token reallocation.
             }
             catch (Exception ex)
             {

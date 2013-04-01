@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Net;
 
 namespace Cloud
 {
@@ -1769,7 +1770,666 @@ namespace Cloud
         }
         #endregion
 
+        #region LinkDeviceFirstTime
+
+        /// <summary>
+        /// Asynchronously starts a request to create an account with a device and a new SyncBox.
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="request">The request.  Note: It is not necessary to set Key and Secret.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public IAsyncResult BeginLinkDeviceFirstTime(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            JsonContracts.LinkDeviceFirstTimeRequest request,
+            ICLCredentialSettings settings = null)
+        {
+            // create the asynchronous result to return
+            GenericAsyncResult<LinkDeviceFirstTimeResult> toReturn = new GenericAsyncResult<LinkDeviceFirstTimeResult>(
+                aCallback,
+                aState);
+
+            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+            Tuple<GenericAsyncResult<LinkDeviceFirstTimeResult>, int, ICLCredentialSettings> asyncParams =
+                new Tuple<GenericAsyncResult<LinkDeviceFirstTimeResult>, int, ICLCredentialSettings>(
+                    toReturn,
+                    timeoutMilliseconds,
+                    settings);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ParameterizedThreadStart(state =>
+            {
+                // try cast the state as the object with all the input parameters
+                Tuple<GenericAsyncResult<LinkDeviceFirstTimeResult>, int, ICLCredentialSettings> castState = 
+                            state as Tuple<GenericAsyncResult<LinkDeviceFirstTimeResult>, int, ICLCredentialSettings>;
+                // if the try cast failed, then show a message box for this unrecoverable error
+                if (castState == null)
+                {
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
+                }
+                // else if the try cast did not fail, then start processing with the input parameters
+                else
+                {
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLHttpRestStatus status;
+                        // declare the specific type of result for this operation
+                        JsonContracts.LinkDeviceFirstTimeResponse result;
+                        // run the download of the file with the passed parameters, storing any error that occurs
+                        CLError processError = LinkDeviceFirstTime(
+                            request,
+                            castState.Item2,
+                            out status,
+                            out result,
+                            castState.Item3);
+
+                        // if there was an asynchronous result in the parameters, then complete it with a new result object
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.Complete(
+                                new LinkDeviceFirstTimeResult(
+                                    processError, // any error that may have occurred during processing
+                                    status, // the output status of communication
+                                    result), // the specific type of result for this operation
+                                    sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // if there was an asynchronous result in the parameters, then pass through the exception to it
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.HandleException(
+                                ex, // the exception which was not handled correctly by the CLError wrapping
+                                sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                }
+            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+
+            // return the asynchronous result
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Finishes creating a new user account on the server with a device and new syncbox, if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting listing the sessions</param>
+        /// <param name="result">(output) The result from listing the sessions</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public CLError EndLinkDeviceFirstTime(IAsyncResult aResult, out LinkDeviceFirstTimeResult result)
+        {
+            // declare the specific type of asynchronous result for session listing
+            GenericAsyncResult<LinkDeviceFirstTimeResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the type for session listing and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type for listing sessions
+                castAResult = aResult as GenericAsyncResult<LinkDeviceFirstTimeResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<LinkDeviceFirstTimeResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Registers a user, links a device and creates a SyncBox, all at the same time.
+        /// </summary>
+        /// <param name="request">The parameters to send to the server.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="settings">The settings to use.</param>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        /// <remarks>400 Bad Request is accepted without error.  Check for this code.  It generally means the account already exits.</remarks>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public CLError LinkDeviceFirstTime(
+                    JsonContracts.LinkDeviceFirstTimeRequest request, 
+                    int timeoutMilliseconds, 
+                    out CLHttpRestStatus status, 
+                    out JsonContracts.LinkDeviceFirstTimeResponse response,
+                    ICLCredentialSettings settings = null)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+
+            // try/catch to process the sync_to request, on catch return the error
+            try
+            {
+                // check input parameters
+                if (request == null)
+                {
+                    throw new ArgumentException("pushRequest must not be null");
+                }
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // copy settings so they don't change while processing; this also defaults some values
+                ICLSyncSettingsAdvanced copiedSettings = (settings == null
+                    ? NullSyncRoot.Instance.CopySettings()
+                    : settings.CopySettings());
+
+                // Set the Key and Secret from this credential.
+                request.Key = this.Key;
+                request.Secret = this.Secret;
+
+                // Note the 400 Bad Request.  Must check this.
+                HashSet<HttpStatusCode> httpStatusCodesAccepted = new HashSet<HttpStatusCode>(new[]
+                {
+                    HttpStatusCode.OK,
+                    HttpStatusCode.Accepted,
+                    HttpStatusCode.Created,
+                    HttpStatusCode.BadRequest
+                });
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = Helpers.ProcessHttp<JsonContracts.LinkDeviceFirstTimeResponse>(
+                    request, // object to write as request content to the server
+                    CLDefinitions.HttpPrefix + CLDefinitions.CloudAppSubDomainPrefix + CLDefinitions.Domain, // base domain is the registration server
+                    CLDefinitions.MethodPathAuthDeviceLinkFirstTime, // path to /device/link/first_time
+                    Helpers.requestMethod.post, // sync_to is a post
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    httpStatusCodesAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes.
+                    ref status, // reference to update the output success/failure status for the communication
+                    copiedSettings, // pass the copied settings
+                    this, // pass the key/secret
+                    null); // no unique id of the sync box on the server
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.LinkDeviceFirstTimeResponse>();
+                return ex;
+            }
+
+            return null;
+        }
         #endregion
+
+        #region LinkDevice
+
+        /// <summary>
+        /// Asynchronously starts a request to log in to an account with a device.
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="request">The request.  Note: It is not necessary to set Key or Secret.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public IAsyncResult BeginLinkDevice(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            JsonContracts.LinkDeviceRequest request,
+            ICLCredentialSettings settings = null)
+        {
+            // create the asynchronous result to return
+            GenericAsyncResult<LinkDeviceResult> toReturn = new GenericAsyncResult<LinkDeviceResult>(
+                aCallback,
+                aState);
+
+            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+            Tuple<GenericAsyncResult<LinkDeviceResult>, int, ICLCredentialSettings> asyncParams =
+                new Tuple<GenericAsyncResult<LinkDeviceResult>, int, ICLCredentialSettings>(
+                    toReturn,
+                    timeoutMilliseconds,
+                    settings);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ParameterizedThreadStart(state =>
+            {
+                // try cast the state as the object with all the input parameters
+                Tuple<GenericAsyncResult<LinkDeviceResult>, int, ICLCredentialSettings> castState =
+                            state as Tuple<GenericAsyncResult<LinkDeviceResult>, int, ICLCredentialSettings>;
+                // if the try cast failed, then show a message box for this unrecoverable error
+                if (castState == null)
+                {
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
+                }
+                // else if the try cast did not fail, then start processing with the input parameters
+                else
+                {
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLHttpRestStatus status;
+                        // declare the specific type of result for this operation
+                        JsonContracts.LinkDeviceResponse result;
+                        // run the download of the file with the passed parameters, storing any error that occurs
+                        CLError processError = LinkDevice(
+                            request,
+                            castState.Item2,
+                            out status,
+                            out result,
+                            castState.Item3);
+
+                        // if there was an asynchronous result in the parameters, then complete it with a new result object
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.Complete(
+                                new LinkDeviceResult(
+                                    processError, // any error that may have occurred during processing
+                                    status, // the output status of communication
+                                    result), // the specific type of result for this operation
+                                    sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // if there was an asynchronous result in the parameters, then pass through the exception to it
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.HandleException(
+                                ex, // the exception which was not handled correctly by the CLError wrapping
+                                sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                }
+            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+
+            // return the asynchronous result
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Finishes loggin into an account with a device, if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting listing the sessions</param>
+        /// <param name="result">(output) The result from listing the sessions</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public CLError EndLinkDevice(IAsyncResult aResult, out LinkDeviceResult result)
+        {
+            // declare the specific type of asynchronous result for session listing
+            GenericAsyncResult<LinkDeviceResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the type for session listing and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type for listing sessions
+                castAResult = aResult as GenericAsyncResult<LinkDeviceResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<LinkDeviceResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Links a device (logs in).
+        /// </summary>
+        /// <param name="request">The parameters to send to the server.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="settings">The settings to use.</param>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public CLError LinkDevice(
+                    JsonContracts.LinkDeviceRequest request, 
+                    int timeoutMilliseconds, 
+                    out CLHttpRestStatus status, 
+                    out JsonContracts.LinkDeviceResponse response,
+                    ICLCredentialSettings settings = null)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+
+            // try/catch to process the sync_to request, on catch return the error
+            try
+            {
+                // check input parameters
+                if (request == null)
+                {
+                    throw new ArgumentException("pushRequest must not be null");
+                }
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // copy settings so they don't change while processing; this also defaults some values
+                ICLSyncSettingsAdvanced copiedSettings = (settings == null
+                    ? NullSyncRoot.Instance.CopySettings()
+                    : settings.CopySettings());
+
+                // Set the Key and Secret from this credential.
+                request.Key = this.Key;
+                request.Secret = this.Secret;
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = Helpers.ProcessHttp<JsonContracts.LinkDeviceResponse>(
+                    request, // object to write as request content to the server
+                    CLDefinitions.HttpPrefix + CLDefinitions.CloudAppSubDomainPrefix + CLDefinitions.Domain, // base domain is the registration server
+                    CLDefinitions.MethodPathAuthDeviceLink, // path to /device/link
+                    Helpers.requestMethod.post, // sync_to is a post
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status, // reference to update the output success/failure status for the communication
+                    copiedSettings, // pass the copied settings
+                    this, // pass the key/secret
+                    null); // no unique id of the sync box on the server
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.LinkDeviceResponse>();
+                return ex;
+            }
+
+            return null;
+        }
+        #endregion
+
+        #region UnlinkDevice
+
+        /// <summary>
+        /// Asynchronously starts a request to unlink a device (and log out of the user account).
+        /// </summary>
+        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="request">The request.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public IAsyncResult BeginUnlinkDevice(AsyncCallback aCallback,
+            object aState,
+            int timeoutMilliseconds,
+            JsonContracts.UnlinkDeviceRequest request,
+            ICLCredentialSettings settings = null)
+        {
+            // create the asynchronous result to return
+            GenericAsyncResult<UnlinkDeviceResult> toReturn = new GenericAsyncResult<UnlinkDeviceResult>(
+                aCallback,
+                aState);
+
+            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+            Tuple<GenericAsyncResult<UnlinkDeviceResult>, int, ICLCredentialSettings> asyncParams =
+                new Tuple<GenericAsyncResult<UnlinkDeviceResult>, int, ICLCredentialSettings>(
+                    toReturn,
+                    timeoutMilliseconds,
+                    settings);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ParameterizedThreadStart(state =>
+            {
+                // try cast the state as the object with all the input parameters
+                Tuple<GenericAsyncResult<UnlinkDeviceResult>, int, ICLCredentialSettings> castState =
+                            state as Tuple<GenericAsyncResult<UnlinkDeviceResult>, int, ICLCredentialSettings>;
+                // if the try cast failed, then show a message box for this unrecoverable error
+                if (castState == null)
+                {
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
+                }
+                // else if the try cast did not fail, then start processing with the input parameters
+                else
+                {
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLHttpRestStatus status;
+                        // declare the specific type of result for this operation
+                        JsonContracts.UnlinkDeviceResponse result;
+                        // run the download of the file with the passed parameters, storing any error that occurs
+                        CLError processError = UnlinkDevice(
+                            request,
+                            castState.Item2,
+                            out status,
+                            out result,
+                            castState.Item3);
+
+                        // if there was an asynchronous result in the parameters, then complete it with a new result object
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.Complete(
+                                new UnlinkDeviceResult(
+                                    processError, // any error that may have occurred during processing
+                                    status, // the output status of communication
+                                    result), // the specific type of result for this operation
+                                    sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // if there was an asynchronous result in the parameters, then pass through the exception to it
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.HandleException(
+                                ex, // the exception which was not handled correctly by the CLError wrapping
+                                sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                }
+            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+
+            // return the asynchronous result
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Finishes logging out of an account (and unlinking the device), if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting listing the sessions</param>
+        /// <param name="result">(output) The result from listing the sessions</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public CLError EndUnlinkDevice(IAsyncResult aResult, out UnlinkDeviceResult result)
+        {
+            // declare the specific type of asynchronous result for session listing
+            GenericAsyncResult<UnlinkDeviceResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the type for session listing and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type for listing sessions
+                castAResult = aResult as GenericAsyncResult<UnlinkDeviceResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<UnlinkDeviceResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Unlinks a device (logs out).
+        /// </summary>
+        /// <param name="request">The parameters to send to the server.</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="settings">The settings to use.</param>
+        /// <returns>Returns any error that occurred during communication, or null.</returns>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public CLError UnlinkDevice(
+                    JsonContracts.UnlinkDeviceRequest request, 
+                    int timeoutMilliseconds, 
+                    out CLHttpRestStatus status, 
+                    out JsonContracts.UnlinkDeviceResponse response,
+                    ICLCredentialSettings settings = null)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+
+            // try/catch to process the sync_to request, on catch return the error
+            try
+            {
+                // check input parameters
+                if (request == null)
+                {
+                    throw new ArgumentException("pushRequest must not be null");
+                }
+                if (!(timeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // copy settings so they don't change while processing; this also defaults some values
+                ICLSyncSettingsAdvanced copiedSettings = (settings == null
+                    ? NullSyncRoot.Instance.CopySettings()
+                    : settings.CopySettings());
+
+                // run the HTTP communication and store the response object to the output parameter
+                response = Helpers.ProcessHttp<JsonContracts.UnlinkDeviceResponse>(
+                    request, // object to write as request content to the server
+                    CLDefinitions.HttpPrefix + CLDefinitions.CloudAppSubDomainPrefix + CLDefinitions.Domain, // base domain is the registration server
+                    CLDefinitions.MethodPathAuthDeviceUnlink, // path to /device/unlink
+                    Helpers.requestMethod.post, // sync_to is a post
+                    timeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status, // reference to update the output success/failure status for the communication
+                    copiedSettings, // pass the copied settings
+                    this, // pass the key/secret
+                    null); // no unique id of the sync box on the server
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.UnlinkDeviceResponse>();
+                return ex;
+            }
+
+            return null;
+        }
+        #endregion  // Unlink Device
+        #endregion  // public authorization HTTP API calls
     }
     /// <summary>
     /// Status of creation of <see cref="CLCredential"/>

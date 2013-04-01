@@ -45,6 +45,25 @@ namespace Cloud.Static
     {
         private static CLTrace _trace = CLTrace.Instance;
 
+        /// <summary>
+        /// User callback function to request new credentials.
+        /// </summary>
+        /// <param name="userState"></param>
+        /// <returns></returns>
+        public delegate CLCredential ReplaceExpiredCredential(object userState);
+
+        internal delegate CLCredential GetCurrentCredentialDelegate();
+        internal delegate void SetCurrentCredentialDelegate(CLCredential credential);
+
+        internal sealed class RequestNewCredentialInfo
+        {
+            public Dictionary<int, EnumRequestNewCredentialStates> ProcessingStateByThreadId { get; set; }
+            public ReplaceExpiredCredential GetNewCredentialCallback { get; set; }
+            public object GetNewCredentialCallbackUserState { get; set; }
+            public GetCurrentCredentialDelegate GetCurrentCredentialCallback { get; set; }
+            public SetCurrentCredentialDelegate SetCurrentCredentialCallback { get; set; }
+        }
+
         // not using ReaderWriterLockSlim because this is a static context, and the Slim version is IDisposable
         public static bool AllHaltedOnUnrecoverableError
         {
@@ -1316,7 +1335,7 @@ namespace Cloud.Static
                             {
                                 OnNewTraceFile(logWriter, finalLocation, SyncBoxId, UserDeviceId);
                                 //logWriter.Write(LogXmlStart(finalLocation,
-                                //    "UDid: {" + UserDeviceId + "}, UUid: {" + UniqueUserId + "}"));
+                                //    "DeviceUuid: {" + UserDeviceId + "}, SyncBoxId: {" + UniqueUserId + "}"));
                             }
                         }
                         catch
@@ -1951,6 +1970,11 @@ namespace Cloud.Static
             { typeof(JsonContracts.SessionCreateAllRequest), JsonContractHelpers.SessionCreateAllRequestSerializer },
             { typeof(JsonContracts.SessionDeleteRequest), JsonContractHelpers.SessionDeleteRequestSerializer },
             { typeof(JsonContracts.NotificationUnsubscribeRequest), JsonContractHelpers.NotificationUnsubscribeRequestSerializer },
+            { typeof(JsonContracts.UserRegistrationRequest), JsonContractHelpers.UserRegistrationRequestSerializer },
+            { typeof(JsonContracts.DeviceRequest), JsonContractHelpers.DeviceRequestSerializer },
+            { typeof(JsonContracts.LinkDeviceFirstTimeRequest), JsonContractHelpers.LinkDeviceFirstTimeRequestSerializer},
+            { typeof(JsonContracts.LinkDeviceRequest), JsonContractHelpers.LinkDeviceRequestSerializer},
+            { typeof(JsonContracts.UnlinkDeviceRequest), JsonContractHelpers.UnlinkDeviceRequestSerializer},
             #endregion
         };
 
@@ -1986,6 +2010,12 @@ namespace Cloud.Static
             { typeof(JsonContracts.SessionShowResponse), JsonContractHelpers.SessionShowSerializer },
             { typeof(JsonContracts.SessionDeleteResponse), JsonContractHelpers.SessionDeleteSerializer },
             { typeof(JsonContracts.NotificationUnsubscribeResponse), JsonContractHelpers.NotificationUnsubscribeResponseSerializer },
+            { typeof(JsonContracts.UserRegistrationResponse), JsonContractHelpers.UserRegistrationResponseSerializer},
+            { typeof(JsonContracts.DeviceResponse), JsonContractHelpers.DeviceResponseSerializer},
+            { typeof(JsonContracts.LinkDeviceFirstTimeResponse), JsonContractHelpers.LinkDeviceFirstTimeResponseSerializer},
+            { typeof(JsonContracts.SyncBoxAuthResponse), JsonContractHelpers.SyncBoxAuthResponseSerializer},
+            { typeof(JsonContracts.LinkDeviceResponse), JsonContractHelpers.LinkDeviceResponseSerializer},
+            { typeof(JsonContracts.UnlinkDeviceResponse), JsonContractHelpers.UnlinkDeviceResponseSerializer},
             #endregion
         };
         #endregion
@@ -2034,7 +2064,8 @@ namespace Cloud.Static
             ref CLHttpRestStatus status, // reference to the successful/failed state of communication
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredential Credential, // contains key/secret for authorization
-            Nullable<long> SyncBoxId) // unique id for the sync box on the server
+            Nullable<long> SyncBoxId, // unique id for the sync box on the server
+            RequestNewCredentialInfo RequestNewCredentialInfo = null)
         {
             return ProcessHttp<object>(requestContent,
                 serverUrl,
@@ -2046,14 +2077,162 @@ namespace Cloud.Static
                 ref status,
                 CopiedSettings,
                 Credential,
-                SyncBoxId);
+                SyncBoxId,
+                RequestNewCredentialInfo);
         }
         
+        /// <summary>
+        /// HTTP REST routine helper method which handles temporary credential extension and retries of the original request.
+        /// T should be the type of the JSON contract object which an be deserialized from the return response of the server if any, otherwise use string/object type which will be filled in as the entire string response
+        /// </summary>
+        internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+            string serverUrl, // the server URL
+            string serverMethodPath, // the server method path
+            requestMethod method, // type of HTTP method (get vs. put vs. post)
+            int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
+            uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
+            HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
+            ref CLHttpRestStatus status, // reference to the successful/failed state of communication
+            ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
+            CLCredential Credential, // contains key/secret for authorization
+            Nullable<long> SyncBoxId,  // unique id for the sync box on the server
+            RequestNewCredentialInfo RequestNewCredentialInfo = null)
+            where T : class // restrict T to an object type to allow default null return
+        {
+            // Part 1 of the "request new credential" processing.  This processing is invoked when temporary token credentials time out.
+            // In Part 1, we validate the caller's extra parameters, and we add this thread to a dictionary provided by the caller.
+            // The information added to the dictionary will be used in parrt 2 below.
+            int threadId = Thread.CurrentThread.ManagedThreadId;
+            if (RequestNewCredentialInfo != null)
+            {
+                // The caller wants to handle requests for new a new temporary credential.  Validate the parameters.
+                if (RequestNewCredentialInfo.GetCurrentCredentialCallback == null)
+                {
+                    throw new ArgumentNullException("The GetCurrentCredentialCallback must not be null");
+                }
+                if (RequestNewCredentialInfo.GetNewCredentialCallback == null)
+                {
+                    throw new ArgumentNullException("The GetNewCredentialCallback must not be null");
+                }
+                if (RequestNewCredentialInfo.SetCurrentCredentialCallback == null)
+                {
+                    throw new ArgumentNullException("The SetNewCredentialCallback must not be null");
+                }
+                if (RequestNewCredentialInfo.ProcessingStateByThreadId == null)
+                {
+                    throw new ArgumentNullException("The ProcessingStateByThreadId must not be null");
+                }
+
+                lock (RequestNewCredentialInfo.ProcessingStateByThreadId)
+                {
+                    // Get the current credential under the lock.  It may have changed.
+                    Credential = RequestNewCredentialInfo.GetCurrentCredentialCallback();
+
+                    // Add this thread to the dictionary provided by the caller.
+                    RequestNewCredentialInfo.ProcessingStateByThreadId[threadId] = EnumRequestNewCredentialStates.RequestNewCredential_NotSet;
+                }
+            }
+
+            // Now call the original core processHttp.
+            T toReturn = ProcessHttpInner<T>(requestContent,
+                        serverUrl,
+                        serverMethodPath,
+                        method,
+                        timeoutMilliseconds,
+                        uploadDownload,
+                        validStatusCodes,
+                        ref status,
+                        CopiedSettings,
+                        Credential,
+                        SyncBoxId);
+
+            // Part 2 of the "request new credential" processing.  This processing is invoked when temporary token credentials time out.
+            // Here we watch for the "token expired" error.  We will ask the caller for a new temporary credential 
+            if (RequestNewCredentialInfo != null)
+            {
+                EnumRequestNewCredentialStates localThreadState;
+
+                lock (RequestNewCredentialInfo.ProcessingStateByThreadId)
+                {
+
+                    // Get this thread's value entry in ProcessingStateByThreadId
+                    localThreadState = RequestNewCredentialInfo.ProcessingStateByThreadId[threadId];
+
+                    // Remove this thread's entry from the ProcessingStateByThreadId dictionary
+                    RequestNewCredentialInfo.ProcessingStateByThreadId.Remove(threadId);
+
+                    // Special handling if this is a 401 NotAuthorized code with the "expired credentials" error enumeration.
+                    if (status == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
+                    {
+                        // If this thread's state is RequestNewCredential_NotSet, then this thread is the first in under the
+                        // lock to handle this expired credential.
+                        if (localThreadState == EnumRequestNewCredentialStates.RequestNewCredential_NotSet)
+                        {
+                            // We will call back to the caller to have them go off to a server and produce new credentials.
+                            bool fErrorOccured = false;
+                            try
+                            {
+                                // Call back to the caller to get a new credential
+                                Credential = RequestNewCredentialInfo.GetNewCredentialCallback(RequestNewCredentialInfo.GetNewCredentialCallbackUserState);
+
+                                // Set the credential back to the caller.
+                                RequestNewCredentialInfo.SetCurrentCredentialCallback(Credential);
+                            }
+                            catch (Exception ex)
+                            {
+                                CLTrace.Instance.writeToLog(1, "Helpers: ProcessHttp<>: ERROR. Exception from GetNewCredentialCallback.  Msg: <{0}>.", ex.Message);
+                                fErrorOccured = true;
+                            }
+
+                            // If an error occurred, we will bubble the original 401 status back to the caller.  We will also tell all other threads
+                            // to bubble their statuses back to the caller as well.
+                            EnumRequestNewCredentialStates newStateToSet;
+                            if (fErrorOccured)
+                            {
+                                newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_BubbleResult;
+                            }
+                            // Otherwise, we retrieved a new credential successfully.  We will retry ourselves, and we will tell all other threads to retry as well.
+                            else
+                            {
+                                newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_Retry;
+                            }
+
+                            // Set this new state for everyone.
+                            localThreadState = newStateToSet;
+                            foreach (KeyValuePair<int, EnumRequestNewCredentialStates> pair in RequestNewCredentialInfo.ProcessingStateByThreadId)
+                            {
+                                RequestNewCredentialInfo.ProcessingStateByThreadId[pair.Key] = newStateToSet;
+                            }
+                        }
+                    }
+                }
+
+                // Here we will retry the original operation if we decided to do that under the lock.
+                if (localThreadState == EnumRequestNewCredentialStates.RequestNewCredential_Retry)
+                {
+                    // Retry the original operation.
+                    toReturn = ProcessHttpInner<T>(requestContent,
+                                serverUrl,
+                                serverMethodPath,
+                                method,
+                                timeoutMilliseconds,
+                                uploadDownload,
+                                validStatusCodes,
+                                ref status,
+                                CopiedSettings,
+                                Credential,
+                                SyncBoxId);
+                }
+            }
+
+            return toReturn;
+        }
+
         /// <summary>
         /// main HTTP REST routine helper method which processes the actual communication
         /// T should be the type of the JSON contract object which an be deserialized from the return response of the server if any, otherwise use string/object type which will be filled in as the entire string response
         /// </summary>
-        internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+        internal static T ProcessHttpInner<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
             string serverUrl, // the server URL
             string serverMethodPath, // the server method path
             requestMethod method, // type of HTTP method (get vs. put vs. post)
@@ -2412,6 +2591,7 @@ namespace Cloud.Static
                                     }
                                 }
                             }
+
                         }
                         finally
                         {

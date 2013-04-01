@@ -201,6 +201,7 @@ namespace Cloud
                 status = CLSyncBoxCreationStatus.ErrorCreatingRestClient;
                 throw new NullReferenceException(nullRestClient);
             }
+
         }
 
         #region forwarded rest http calls

@@ -341,7 +341,10 @@ namespace Cloud.PushNotification
                 try
                 {
                     boxedResponse = sseRequest.GetResponse();   // sends the request and blocks for the response
-                    _resourcesToCleanUp.Add(boxedResponse);
+                    lock (_locker)
+                    {
+                        _resourcesToCleanUp.Add(boxedResponse);
+                    }
                     response = (HttpWebResponse)boxedResponse;
                 }
                 catch (ThreadAbortException)
@@ -355,7 +358,10 @@ namespace Cloud.PushNotification
                         if (ex.Response != null)
                         {
                             boxedResponse = ex.Response;
-                            _resourcesToCleanUp.Add(boxedResponse);
+                            lock (_locker)
+                            {
+                                _resourcesToCleanUp.Add(boxedResponse);
+                            }
                             response = (HttpWebResponse)boxedResponse;
                             storeWebEx = ex;
 
@@ -384,7 +390,10 @@ namespace Cloud.PushNotification
                         {
                             using (receiveStream = response.GetResponseStream())
                             {
-                                _resourcesToCleanUp.Add(receiveStream);
+                                lock (_locker)
+                                {
+                                    _resourcesToCleanUp.Add(receiveStream);
+                                }
                                 _delegateCancelEngineTimeout();
 
                                 StreamReader readStream = null;
@@ -426,7 +435,10 @@ namespace Cloud.PushNotification
                                         _delegateCancelEngineTimeout();
                                         if (readStream != null)
                                         {
-                                            _resourcesToCleanUp.Remove(readStream);
+                                            lock (_locker)
+                                            {
+                                                _resourcesToCleanUp.Remove(readStream);
+                                            }
                                         }
                                     }
                                 }
@@ -443,7 +455,10 @@ namespace Cloud.PushNotification
                                 _delegateCancelEngineTimeout();
                                 if (receiveStream != null)
                                 {
-                                    _resourcesToCleanUp.Remove(receiveStream);
+                                    lock (_locker)
+                                    {
+                                        _resourcesToCleanUp.Remove(receiveStream);
+                                    }
                                 }
                             }
                         }
@@ -550,24 +565,28 @@ namespace Cloud.PushNotification
             {
                 if (!wasThreadAborted)
                 {
-                    _delegateCancelEngineTimeout();
-                    if (boxedResponse != null)
-                    {
-                        try
+                        _delegateCancelEngineTimeout();
+                        if (boxedResponse != null)
                         {
-                            ((IDisposable)boxedResponse).Dispose();
+                            try
+                            {
+                                ((IDisposable)boxedResponse).Dispose();
+                            }
+                            catch (ThreadAbortException)
+                            {
+                                wasThreadAborted = true;
+                            }
+                            catch
+                            {
+                            }
+
+                            lock (_locker)
+                            {
+                                _resourcesToCleanUp.Remove(boxedResponse);
+                            }
+                            boxedResponse = null;
+                            response = null;
                         }
-                        catch (ThreadAbortException)
-                        {
-                            wasThreadAborted = true;
-                        }
-                        catch
-                        {
-                        }
-                        _resourcesToCleanUp.Remove(boxedResponse);
-                        boxedResponse = null;
-                        response = null;
-                    }
                 }
             }
 
@@ -776,19 +795,22 @@ namespace Cloud.PushNotification
                     }
 
                     // Clean up any resources left over.
-                    foreach (IDisposable toDispose in _resourcesToCleanUp)
+                    lock (_locker)
                     {
-                        try
+                        foreach (IDisposable toDispose in _resourcesToCleanUp)
                         {
-                            _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Clean up resource: {0}.", toDispose.ToString());
-                            toDispose.Dispose();
+                            try
+                            {
+                                _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Clean up resource: {0}.", toDispose.ToString());
+                                toDispose.Dispose();
+                            }
+                            catch
+                            {
+                            }
                         }
-                        catch
-                        {
-                        }
-                    }
 
-                    _resourcesToCleanUp.Clear();
+                        _resourcesToCleanUp.Clear();
+                    }
                 }
                 else
                 {

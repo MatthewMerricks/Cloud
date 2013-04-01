@@ -47,46 +47,46 @@ namespace SampleLiveSync.Static
         /// 3) Use CreateProcessAsUser to create a new process using the handle to 
         ///    the medium integrity access token.
         /// </remarks>
-        internal static void CreateMediumIntegrityProcess(string commandLine, NativeMethod.CreateProcessFlags creationFlags)
+        internal static void CreateMediumIntegrityProcess(string commandLine, NativeMethods.CreateProcessFlags creationFlags)
         {
-            NativeMethod.SafeTokenHandle hToken = null;
-            NativeMethod.SafeTokenHandle hNewToken = null;
+            NativeMethods.SafeTokenHandle hToken = null;
+            NativeMethods.SafeTokenHandle hNewToken = null;
             IntPtr pIntegritySid = IntPtr.Zero;
             int cbTokenInfo = 0;
             IntPtr pTokenInfo = IntPtr.Zero;
-            NativeMethod.STARTUPINFO si = new NativeMethod.STARTUPINFO();
-            NativeMethod.PROCESS_INFORMATION pi = new NativeMethod.PROCESS_INFORMATION();
+            NativeMethods.STARTUPINFO si = new NativeMethods.STARTUPINFO();
+            NativeMethods.PROCESS_INFORMATION pi = new NativeMethods.PROCESS_INFORMATION();
 
             try
             {
                 // Open the primary access token of the process.
-                if (!NativeMethod.OpenProcessToken(Process.GetCurrentProcess().Handle,
-                    NativeMethod.TOKEN_DUPLICATE | NativeMethod.TOKEN_ADJUST_DEFAULT |
-                    NativeMethod.TOKEN_QUERY | NativeMethod.TOKEN_ASSIGN_PRIMARY,
+                if (!NativeMethods.OpenProcessToken(Process.GetCurrentProcess().Handle,
+                    NativeMethods.TOKEN_DUPLICATE | NativeMethods.TOKEN_ADJUST_DEFAULT |
+                    NativeMethods.TOKEN_QUERY | NativeMethods.TOKEN_ASSIGN_PRIMARY,
                     out hToken))
                 {
                     throw new Win32Exception();
                 }
 
                 // Duplicate the primary token of the current process.
-                if (!NativeMethod.DuplicateTokenEx(hToken, 0, IntPtr.Zero,
-                    NativeMethod.SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
-                    NativeMethod.TOKEN_TYPE.TokenPrimary, out hNewToken))
+                if (!NativeMethods.DuplicateTokenEx(hToken, 0, IntPtr.Zero,
+                    NativeMethods.SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
+                    NativeMethods.TOKEN_TYPE.TokenPrimary, out hNewToken))
                 {
                     throw new Win32Exception();
                 }
 
                 // Create the low integrity SID.
-                if (!NativeMethod.AllocateAndInitializeSid(
-                    ref NativeMethod.SECURITY_MANDATORY_LABEL_AUTHORITY, 1,
-                    NativeMethod.SECURITY_MANDATORY_MEDIUM_RID,
+                if (!NativeMethods.AllocateAndInitializeSid(
+                    ref NativeMethods.SECURITY_MANDATORY_LABEL_AUTHORITY, 1,
+                    NativeMethods.SECURITY_MANDATORY_MEDIUM_RID,
                     0, 0, 0, 0, 0, 0, 0, out pIntegritySid))
                 {
                     throw new Win32Exception();
                 }
 
-                NativeMethod.TOKEN_MANDATORY_LABEL tml;
-                tml.Label.Attributes = NativeMethod.SE_GROUP_INTEGRITY;
+                NativeMethods.TOKEN_MANDATORY_LABEL tml;
+                tml.Label.Attributes = NativeMethods.SE_GROUP_INTEGRITY;
                 tml.Label.Sid = pIntegritySid;
 
                 // Marshal the TOKEN_MANDATORY_LABEL struct to the native memory.
@@ -95,16 +95,16 @@ namespace SampleLiveSync.Static
                 Marshal.StructureToPtr(tml, pTokenInfo, false);
 
                 // Set the integrity level in the access token to low.
-                if (!NativeMethod.SetTokenInformation(hNewToken,
-                    NativeMethod.TOKEN_INFORMATION_CLASS.TokenIntegrityLevel, pTokenInfo,
-                    cbTokenInfo + NativeMethod.GetLengthSid(pIntegritySid)))
+                if (!NativeMethods.SetTokenInformation(hNewToken,
+                    NativeMethods.TOKEN_INFORMATION_CLASS.TokenIntegrityLevel, pTokenInfo,
+                    cbTokenInfo + NativeMethods.GetLengthSid(pIntegritySid)))
                 {
                     throw new Win32Exception();
                 }
 
                 // Create the new process at the Low integrity level.
                 si.cb = Marshal.SizeOf(si);
-                if (!NativeMethod.CreateProcessAsUser(hNewToken, null, commandLine,
+                if (!NativeMethods.CreateProcessAsUser(hNewToken, null, commandLine,
                     IntPtr.Zero, IntPtr.Zero, false, (uint)creationFlags, IntPtr.Zero, null, ref si,
                     out pi))
                 {
@@ -126,7 +126,7 @@ namespace SampleLiveSync.Static
                 }
                 if (pIntegritySid != IntPtr.Zero)
                 {
-                    NativeMethod.FreeSid(pIntegritySid);
+                    NativeMethods.FreeSid(pIntegritySid);
                     pIntegritySid = IntPtr.Zero;
                 }
                 if (pTokenInfo != IntPtr.Zero)
@@ -137,12 +137,12 @@ namespace SampleLiveSync.Static
                 }
                 if (pi.hProcess != IntPtr.Zero)
                 {
-                    NativeMethod.CloseHandle(pi.hProcess);
+                    NativeMethods.CloseHandle(pi.hProcess);
                     pi.hProcess = IntPtr.Zero;
                 }
                 if (pi.hThread != IntPtr.Zero)
                 {
-                    NativeMethod.CloseHandle(pi.hThread);
+                    NativeMethods.CloseHandle(pi.hThread);
                     pi.hThread = IntPtr.Zero;
                 }
             }
@@ -185,7 +185,7 @@ namespace SampleLiveSync.Static
                 try
                 {
                     var token = identity.Token;
-                    var result = SampleLiveSync.Static.NativeMethod.GetTokenInformation(token, SampleLiveSync.Static.NativeMethod.TokenInformationClass.TokenElevationType, tokenInformation, tokenInfLength, out tokenInfLength);
+                    var result = SampleLiveSync.Static.NativeMethods.GetTokenInformation(token, SampleLiveSync.Static.NativeMethods.TokenInformationClass.TokenElevationType, tokenInformation, tokenInfLength, out tokenInfLength);
 
                     if (!result)
                     {
@@ -193,19 +193,19 @@ namespace SampleLiveSync.Static
                         throw new InvalidOperationException("Couldn't get token information", exception);
                     }
 
-                    var elevationType = (SampleLiveSync.Static.NativeMethod.TokenElevationType)Marshal.ReadInt32(tokenInformation);
+                    var elevationType = (SampleLiveSync.Static.NativeMethods.TokenElevationType)Marshal.ReadInt32(tokenInformation);
 
                     switch (elevationType)
                     {
-                        case SampleLiveSync.Static.NativeMethod.TokenElevationType.TokenElevationTypeDefault:
+                        case SampleLiveSync.Static.NativeMethods.TokenElevationType.TokenElevationTypeDefault:
                             // TokenElevationTypeDefault - User is not using a split token, so they cannot elevate.
                             _trace.writeToLog(9, "Helpers: IsAdministrator: User is not using a split token, so they cannot elevate.  Return false.");
                             return false;
-                        case SampleLiveSync.Static.NativeMethod.TokenElevationType.TokenElevationTypeFull:
+                        case SampleLiveSync.Static.NativeMethods.TokenElevationType.TokenElevationTypeFull:
                             // TokenElevationTypeFull - User has a split token, and the process is running elevated. Assuming they're an administrator.
                             _trace.writeToLog(9, "Helpers: IsAdministrator: User has a split token, and the process is running elevated. Assuming they're an administrator. Return true.");
                             return true;
-                        case SampleLiveSync.Static.NativeMethod.TokenElevationType.TokenElevationTypeLimited:
+                        case SampleLiveSync.Static.NativeMethods.TokenElevationType.TokenElevationTypeLimited:
                             // TokenElevationTypeLimited - User has a split token, but the process is not running elevated. Assuming they're an administrator.
                             _trace.writeToLog(9, "Helpers: IsAdministrator: IsInRole User has a split token, but the process is not running elevated. Return false.");
                             return false;

@@ -1947,7 +1947,7 @@ namespace SampleLiveSync.ViewModels
                 {
                     string commandLine = "\"" + commandLocation + "\" /c " + explorerLocation;
                     _trace.writeToLog(9, "MainViewModel: StartExplorer: Create medium integrity process. Command line: <{0}>.", commandLine);
-                    SampleLiveSync.Static.Helpers.CreateMediumIntegrityProcess(commandLine, NativeMethod.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
+                    SampleLiveSync.Static.Helpers.CreateMediumIntegrityProcess(commandLine, NativeMethods.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
                 }
                 else
                 {
@@ -2100,7 +2100,7 @@ namespace SampleLiveSync.ViewModels
                 // running on a 64-bit system.
                 bool flag;
                 return ((DoesWin32MethodExist("kernel32.dll", "IsWow64Process") &&
-                    NativeMethod.IsWow64Process(NativeMethod.GetCurrentProcess(), out flag)) && flag);
+                    NativeMethods.IsWow64Process(NativeMethods.GetCurrentProcess(), out flag)) && flag);
             }
         }
 
@@ -2113,7 +2113,7 @@ namespace SampleLiveSync.ViewModels
         private static string Get32BitSystemDirectory()
         {
             StringBuilder path = new StringBuilder(260);
-            NativeMethod.SHGetSpecialFolderPath(IntPtr.Zero, path, 0x0029, false);
+            NativeMethods.SHGetSpecialFolderPath(IntPtr.Zero, path, 0x0029, false);
             return path.ToString();
         }
 
@@ -2129,12 +2129,12 @@ namespace SampleLiveSync.ViewModels
         /// </returns>
         private static bool DoesWin32MethodExist(string moduleName, string methodName)
         {
-            IntPtr moduleHandle = NativeMethod.GetModuleHandle(moduleName);
+            IntPtr moduleHandle = NativeMethods.GetModuleHandle(moduleName);
             if (moduleHandle == IntPtr.Zero)
             {
                 return false;
             }
-            return (NativeMethod.GetProcAddress(moduleHandle, methodName) != IntPtr.Zero);
+            return (NativeMethods.GetProcAddress(moduleHandle, methodName) != IntPtr.Zero);
         }
 
         /// <summary>

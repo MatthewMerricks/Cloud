@@ -43,7 +43,7 @@
                               <ContentPresenter />
                            </ControlTemplate>
                         </Button.Template>
-                        <Image Source="/WPFToolkit.Extended;component/TokenizedTextBox/Images/delete8.png" Width="8" Height="8" />
+                        <Image Source="/WPFToolkit.Extended.CAPP;component/TokenizedTextBox/Images/delete8.png" Width="8" Height="8" />
                      </Button>
                   </StackPanel>
                </Border>
