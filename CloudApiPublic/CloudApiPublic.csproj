@@ -62,7 +62,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BadgeCOMLib, Version=0.1.8.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="BadgeCOMLib, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
