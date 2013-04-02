@@ -2357,7 +2357,7 @@ namespace Cloud.FileMonitor
 
                                                     try
                                                     {
-                                                        OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write);
+                                                        OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write | FileShare.Delete);
                                                     }
                                                     catch (FileNotFoundException)
                                                     {
