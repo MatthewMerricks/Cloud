@@ -1233,7 +1233,7 @@ namespace Cloud.Sync
             GenericHolder<IEnumerable<FileChange>> changesToTrace = new GenericHolder<IEnumerable<FileChange>>(null);
 
             // Define field where top level hierarchy changes to process will be stored
-            GenericHolder<IEnumerable<PossiblyStreamableFileChange>> commonOutputChanges;
+            GenericHolder<IEnumerable<PossiblyStreamableFileChange>> commonOutputChanges = new GenericHolder<IEnumerable<PossiblyStreamableFileChange>>(null);
 
             // null-coallesce the download temp path
             string commonTempDownloadsFolder;
@@ -2694,13 +2694,13 @@ namespace Cloud.Sync
                     {
                         lock (Data.commonThisEngine.CredentialErrorDetected)
                         {
-                            Data.commonThisEngine.CredentialErrorDetected.Value = credentialsError;
+                            Data.commonThisEngine.CredentialErrorDetected.Value = Data.commonCredentialsError.Value ?? CredentialErrorType.OtherError;
                         }
 
                         try
                         {
                             string errorMessage;
-                            switch (credentialsError)
+                            switch (Data.commonCredentialsError.Value ?? CredentialErrorType.OtherError)
                             {
                                 case CredentialErrorType.ExpiredCredentials:
                                     errorMessage = "SyncEngine halted after credentials expired";
@@ -2712,14 +2712,15 @@ namespace Cloud.Sync
 
                                 //case CredentialErrorType.NoError: // should not happen since we already checked for no error
                                 default:
-                                    errorMessage = "SyncEngine halted after unknown credentials error: " + credentialsError.ToString();
+                                    errorMessage = "SyncEngine halted after unknown credentials error: " + ((CredentialErrorType)Data.commonCredentialsError.Value).ToString();
                                     break;
                             }
 
                             MessageEvents.FireNewEventMessage(
                                 errorMessage,
                                 EventMessageLevel.Important,
-                                /*Error*/new HaltSyncEngineOnAuthenticationFailureErrorInfo(credentialsError == CredentialErrorType.ExpiredCredentials),
+                                /*Error*/new HaltSyncEngineOnAuthenticationFailureErrorInfo(TokenExpired:
+                                    Data.commonCredentialsError.Value != null && ((CredentialErrorType)Data.commonCredentialsError.Value) == CredentialErrorType.ExpiredCredentials),
                                 Data.commonThisEngine.syncBox.SyncBoxId,
                                 Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
                         }
@@ -4466,7 +4467,7 @@ namespace Cloud.Sync
                     {
                         if (castState.ShutdownToken.Token.IsCancellationRequested)
                         {
-                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings);
+                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.SyncBox.SyncBoxId);
                         }
                     }
                     finally
@@ -4604,7 +4605,7 @@ namespace Cloud.Sync
                         DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
 
                     // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
-                    return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncBox.CopiedSettings);
+                    return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncBox.CopiedSettings, castState.SyncBox.SyncBoxId);
                 }
                 catch
                 {
@@ -4647,7 +4648,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.FileToUpload == null)
                 {
@@ -4656,7 +4657,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.SyncData == null)
                 {
@@ -4665,7 +4666,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.SyncBox == null)
                 {
@@ -4674,7 +4675,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.MaxNumberOfFailureRetries == null)
                 {
@@ -4683,7 +4684,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.MaxNumberOfNotFounds == null)
                 {
@@ -4692,7 +4693,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.FailedChangesQueue == null)
                 {
@@ -4701,7 +4702,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
 
                 // else if none of the unrecoverable errors occurred, then wrap the error to execute for cleanup on garbage collection and rethrow it
@@ -4983,7 +4984,7 @@ namespace Cloud.Sync
                 {
                     if (castState.ShutdownToken.Token.IsCancellationRequested)
                     {
-                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.TempDownloadFolderPath);
+                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.SyncBox.SyncBoxId, castState.TempDownloadFolderPath);
                     }
                 }
                 finally
@@ -5096,6 +5097,7 @@ namespace Cloud.Sync
                     return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // id of succesful event
                         castState.SyncData, // event source for notifying completion
                         castState.SyncBox.CopiedSettings, // settings for tracing and error logging
+                        castState.SyncBox.SyncBoxId,
                         castState.TempDownloadFolderPath); // path to the folder containing temp downloads
                 }
 
@@ -5156,7 +5158,7 @@ namespace Cloud.Sync
                 if (downloadStatus == CLHttpRestStatus.Cancelled
                     && castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread
                 {
-                    return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.TempDownloadFolderPath);
+                    return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.SyncBox.SyncBoxId, castState.TempDownloadFolderPath);
                 }
 
                 // if the download was not a success throw an error
@@ -5179,6 +5181,7 @@ namespace Cloud.Sync
                 return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
                     castState.SyncData, // event source to handle callback for completing the event
                     castState.SyncBox.CopiedSettings, // settings for tracing and logging errors
+                    castState.SyncBox.SyncBoxId,
                     castState.TempDownloadFolderPath); // location of folder for temp downloads
             }
             catch (Exception ex)
@@ -5253,7 +5256,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.FileToDownload == null)
                 {
@@ -5262,7 +5265,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.SyncData == null)
                 {
@@ -5271,7 +5274,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.SyncBox == null)
                 {
@@ -5280,7 +5283,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.MaxNumberOfFailureRetries == null)
                 {
@@ -5289,7 +5292,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.MaxNumberOfNotFounds == null)
                 {
@@ -5298,7 +5301,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
                 else if (castState.FailedChangesQueue == null)
                 {
@@ -5307,7 +5310,7 @@ namespace Cloud.Sync
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
-                    return new EventIdAndCompletionProcessor(0, null, null);
+                    return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
 
                 // else if none of the unrecoverable errors occurred, then wrap the error to execute for cleanup on garbage collection and rethrow it
