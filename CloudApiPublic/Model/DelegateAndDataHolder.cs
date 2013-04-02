@@ -15,7 +15,14 @@ namespace Cloud.Model
 {
     internal sealed class DelegateAndDataHolder<TData, TReturn> : DelegateAndDataHolder
     {
-        public override TData Data
+        public TData TypedData
+        {
+            get
+            {
+                return _data;
+            }
+        }
+        public override object Data
         {
             get
             {
@@ -27,7 +34,11 @@ namespace Cloud.Model
         private readonly DelegateForHolder<TData, TReturn> delegateToWrap;
         private readonly GenericHolder<CLError> errorToAccumulate;
 
-        public override TReturn Process()
+        public override object Process()
+        {
+            return TypedProcess();
+        }
+        public TReturn TypedProcess()
         {
             if (delegateToWrap == null)
             {
@@ -47,7 +58,14 @@ namespace Cloud.Model
 
     internal sealed class DelegateAndDataHolderVoid<TData> : DelegateAndDataHolder
     {
-        public override TData Data
+        public TData TypedData
+        {
+            get
+            {
+                return _data;
+            }
+        }
+        public override object Data
         {
             get
             {
@@ -91,6 +109,16 @@ namespace Cloud.Model
         public static DelegateAndDataHolderVoid<TData> Create<TData>(TData data, DelegateForHolderVoid<TData> delegateToWrap, GenericHolder<CLError> errorToAccumulate)
         {
             return new DelegateAndDataHolderVoid<TData>(data, delegateToWrap, errorToAccumulate);
+        }
+
+        public static DelegateAndDataHolder<TData, TReturn> GetNullOfType<TData, TReturn>(DelegateAndDataHolder<TData, TReturn> toNullify)
+        {
+            return null;
+        }
+
+        public static DelegateAndDataHolderVoid<TData> GetNullOfType<TData>(DelegateAndDataHolderVoid<TData> toNullify)
+        {
+            return null;
         }
     }
     internal delegate TReturn DelegateForHolder<TData, TReturn>(TData data, GenericHolder<CLError> errorToAccumulate);

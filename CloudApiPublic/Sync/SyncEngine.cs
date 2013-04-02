@@ -1202,12 +1202,13 @@ namespace Cloud.Sync
         /// <returns>Returns any error that occurred while processing</returns>
         public CLError Run(bool respondingToPushNotification)
         {
+            #region local data including common fields for delegates
+
             // declare error which will be aggregated with exceptions and returned
             GenericHolder<CLError> toReturn = new GenericHolder<CLError>();
 
-            #region local delegates with corresponding data holders
-
-            #region any data for local delegates goes here
+            // declare a string which provides better line-range information for the last state when an error is logged
+            string syncStatus;
 
             GenericHolder<bool> commonRespondingToPushNotification = new GenericHolder<bool>(respondingToPushNotification);
 
@@ -1225,6 +1226,7 @@ namespace Cloud.Sync
             // Field is for dequeued changes from the failure queue which exclude null changes
             // field is also used for changes that are immediately in error upon retrieval from FileSystem (including all items currently in failure queue)
             GenericHolder<IEnumerable<PossiblyPreexistingFileChangeInError>> commonDequeuedFailuresExcludingNulls = new GenericHolder<IEnumerable<PossiblyPreexistingFileChangeInError>>(null);
+            GenericHolder<bool> commonNullErrorFoundInFailureQueue = new GenericHolder<bool>(false);
             GenericHolder<FileChange[]> commonDequeuedFailuresIncludingNulls = new GenericHolder<FileChange[]>(null);
 
             GenericHolder<Nullable<FileChangeFlowEntryPositionInFlow>> positionInChangeFlow = new GenericHolder<Nullable<FileChangeFlowEntryPositionInFlow>>(null);
@@ -1244,7 +1246,45 @@ namespace Cloud.Sync
                 return ex;
             }
 
+            // declare bool for whether an exception (not converted as CLError) was thrown when retrieving events to process
+            bool errorGrabbingChanges = false;
+
+            // storage for changes which were synchronously processed (not file uploads/downloads)
+            GenericHolder<IList<FileChange>> commonSynchronouslyProcessed = new GenericHolder<IList<FileChange>>(null);
+            // storage for changes which were asynchronously processed (only file uploads/downloads)
+            GenericHolder<IList<FileChange>> commonAsynchronouslyProcessed = new GenericHolder<IList<FileChange>>(null);
+
+            GenericHolder<List<PossiblyStreamableFileChange>> commonPreprocessedEvents = new GenericHolder<List<PossiblyStreamableFileChange>>(null);
+
+            GenericHolder<HashSet<long>> commonSyncFromInitialDownloadMetadataErrors = new GenericHolder<HashSet<long>>(null);
+
+            PossiblyStreamableFileChange[] changesForCommunication;
+
+            // Declare enumerable for changes completed during communication (i.e. client sends up that a local folder was created and the server responds with a success status)
+            IEnumerable<PossiblyChangedFileChange> completedChanges;
+            // Declare enumerable for changes which still need to be completed (i.e. the server sends down that a new folder needs to be created, or client sends up that a local file was created and the server responds with an upload status)
+            IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange> incompleteChanges;
+            // Declare enumerable for the changes which had errors for requeueing
+            IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError> changesInError;
+            // Declare string for the newest sync id from the server
+            string newSyncId;
+
+            GenericHolder<Exception> commonCommunicationException = new GenericHolder<Exception>(null);
+
+            GenericHolder<IEnumerable<PossiblyChangedFileChange>> commonCompletedChanges = new GenericHolder<IEnumerable<PossiblyChangedFileChange>>(null);
+            GenericHolder<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>> commonIncompleteChanges = new GenericHolder<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>(null);
+            GenericHolder<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>> commonChangesInError = new GenericHolder<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>(null);
+
+            GenericHolder<string> commonNewSyncId = new GenericHolder<string>(null);
+
+            CredentialErrorType credentialsError;
+            GenericHolder<Nullable<CredentialErrorType>> commonCredentialsError = new GenericHolder<Nullable<CredentialErrorType>>(null);
+
+            GenericHolder<IEnumerable<FileChange>> commonTopLevelErrors = new GenericHolder<IEnumerable<FileChange>>(null);
+
             #endregion
+
+            #region local delegates with corresponding data holders
 
             #region checkHaltsAndErrors
 
@@ -1312,7 +1352,8 @@ namespace Cloud.Sync
             var checkInternetConnection = DelegateAndDataHolder.Create(
                 new
                 {
-                    commonThisEngine = this
+                    commonThisEngine = this,
+                    getIsShutdown = getIsShutdown
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1321,7 +1362,7 @@ namespace Cloud.Sync
                     {
                         try
                         {
-                            if (Data.getIsShutdown.Process())
+                            if (Data.getIsShutdown.TypedProcess())
                             {
                                 throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
                             }
@@ -1566,7 +1607,7 @@ namespace Cloud.Sync
                         throw new NullReferenceException("commonPositionInChangFlow not set for this trace operation");
                     }
 
-                    // advanced trace, SyncRunInitialErrors
+                    // advanced trace
                     if ((Data.commonThisEngine.syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
                         ComTrace.LogFileChangeFlow(
@@ -1599,7 +1640,7 @@ namespace Cloud.Sync
                     commonDequeuedFailuresExcludingNulls = commonDequeuedFailuresExcludingNulls,
                     verifyUnderFailureTimerLock = verifyUnderFailureTimerLock,
                     commonOutputChanges = commonOutputChanges,
-                    nullErrorFoundInFailureQueue = new GenericHolder<bool>(false),
+                    commonNullErrorFoundInFailureQueue = commonNullErrorFoundInFailureQueue,
                     commonRespondingToPushNotification = commonRespondingToPushNotification
                 },
                 (Data, errorToAccumulate) =>
@@ -1643,7 +1684,7 @@ namespace Cloud.Sync
                         }
 
                         // if there was a null change, then communication should occur regardless of other changes since we cannot communicate a null change on a SyncTo (will cause a SyncFrom if no other changes)
-                        if ((nullChangeFoundInFileSystemMonitor || Data.nullErrorFoundInFailureQueue.Value)
+                        if ((nullChangeFoundInFileSystemMonitor || Data.commonNullErrorFoundInFailureQueue.Value)
                             && !Data.commonRespondingToPushNotification.Value)
                         {
                             // marks for push notification which will always cause communication to occur even for no SyncTo changes (via SyncFrom)
@@ -1725,13 +1766,541 @@ namespace Cloud.Sync
 
             #endregion
 
+            #region doesPreprocessingNeedToRepeatForDependencies
+
+            // function which reinserts dependencies into topLevelChanges in sorted order and returns true for reprocessing
+            var doesPreprocessingNeedToRepeatForDependencies = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
+                    commonErrorsToQueue = commonErrorsToQueue,
+                    commonOutputChanges = commonOutputChanges,
+                    commonSyncFromInitialDownloadMetadataErrors = commonSyncFromInitialDownloadMetadataErrors
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // if there are no dependencies to reprocess, then return false
+                    if (Data.commonThingsThatWereDependenciesToQueue.Value == null)
+                    {
+                        // return false to stop preprocessing
+                        return false;
+                    }
+
+                    // create a list to store dependencies that cannot be processed since they were file uploads (and only highest level changes for file upload had streams);
+                    // also contains FileChanges for initial load condition where a metadata query was not successful
+                    List<FileChange> uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers = new List<FileChange>();
+
+                    // loop through dependencies to either add to the list of errors (since they will be preprocessed) or to the list of unprocessable changes (requiring streams)
+                    foreach (FileChange currentDependency in Data.commonThingsThatWereDependenciesToQueue.Value)
+                    {
+                        // events must have an id
+                        if (currentDependency.EventId == 0)
+                        {
+                            throw new ArgumentException("Cannot communicate FileChange without EventId");
+                        }
+
+                        // these conditions ensure that no file uploads without FileStreams are processed in the current batch
+                        // if all conditions are met, then the file change can be processed and should be added to the list of errors
+                        if (currentDependency.Metadata == null // cannot process without metadata
+                            || currentDependency.Metadata.HashableProperties.IsFolder // folders don't require streams
+                            || currentDependency.Type == FileChangeType.Deleted // deleted files don't require streams
+                            || currentDependency.Type == FileChangeType.Renamed // renamed files don't require streams
+                            || (currentDependency.Direction == SyncDirection.From // files for download don't need upload streams
+                                && !Data.commonSyncFromInitialDownloadMetadataErrors.Value.Contains(currentDependency.EventId)))
+                        {
+                            Data.commonErrorsToQueue.Value.Add(new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(true, currentDependency, null));
+                        }
+                        // else if any condition was not met, then the file change was missing a stream and cannot be processed, add to that list
+                        else
+                        {
+                            uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers.Add(currentDependency);
+                        }
+                    }
+
+                    // if all the dependencies are not processable, return false to stop preprocessing
+                    if (Enumerable.SequenceEqual(Data.commonThingsThatWereDependenciesToQueue.Value, uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers))
+                    {
+                        return false;
+                    }
+
+                    // replace changes to process with previous changes except already preprocessed changes and then add in dependencies which were processable
+                    Data.commonOutputChanges.Value = Data.commonOutputChanges.Value // previous changes.Except(preprocessedEvents) // exclude already preprocessed events
+                        .Concat(Data.commonThingsThatWereDependenciesToQueue.Value // add dependencies from preprocessed events (see next line for condition)
+                            .Except(uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers) // which are themselves processable
+                            .Select(currentDependencyToQueue => new PossiblyStreamableFileChange(currentDependencyToQueue, null))); // all the processable dependencies are non-streamable
+
+                    // the only dependencies not in the the output list (to process) are the non-processable changes which are now the thingsThatWereDependenciesToQueue
+                    Data.commonThingsThatWereDependenciesToQueue.Value = uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers;
+
+                    // return true to continue preprocessing
+                    return true;
+                },
+                toReturn);
+
+            #endregion
+
+            #region onCompletionOfSynchronousPreprocessedEvent
+
+            var onCompletionOfSynchronousPreprocessedEvent = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonErrorsToQueue = commonErrorsToQueue,
+                    commonSuccessfulEventIds = commonSuccessfulEventIds,
+                    commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
+                    commonSynchronouslyPreprocessed = commonSynchronouslyProcessed,
+                    topLevelChange = new GenericHolder<PossiblyStreamableFileChange>(new PossiblyStreamableFileChange()), // <-- default constructed PossiblyStreamableFileChange is invalid, must be replaced before property getters fire
+                    preprocessedEventIds = new GenericHolder<HashSet<long>>(null),
+                    commonPreprocessedEvents = commonPreprocessedEvents
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // add successful id in order to not preprocess the same event again
+                    Data.preprocessedEventIds.Value.Add(Data.topLevelChange.Value.FileChange.EventId);
+                    // add event as preprocessed so it will be excluded from changes to communicate
+                    Data.commonPreprocessedEvents.Value.Add(Data.topLevelChange.Value);
+
+                    // add change to synchronous list
+                    Data.commonSynchronouslyPreprocessed.Value.Add(Data.topLevelChange.Value.FileChange);
+
+                    // add successful id for completed event
+                    Data.commonSuccessfulEventIds.Add(Data.topLevelChange.Value.FileChange.EventId);
+
+                    // search for the FileChange in the errors by FileChange equality and Stream equality
+                    Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> foundErrorToRemove = Data.commonErrorsToQueue.Value
+                        .Where(findErrorToQueue => findErrorToQueue.FileChange == Data.topLevelChange.Value.FileChange && findErrorToQueue.Stream == Data.topLevelChange.Value.Stream)
+                        .Select(findErrorToQueue => (Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>)findErrorToQueue)
+                        .FirstOrDefault();
+                    // if a matching error was found, then remove it from the errors
+                    if (foundErrorToRemove != null)
+                    {
+                        Data.commonErrorsToQueue.Value.Remove((PossiblyStreamableAndPossiblyPreexistingErrorFileChange)foundErrorToRemove);
+                    }
+
+                    // try to cast the successful change as one with dependencies
+                    FileChangeWithDependencies changeWithDependencies = Data.topLevelChange.Value.FileChange as FileChangeWithDependencies;
+                    // if change was one with dependencies and has a dependency, then concatenate the dependencies into thingsThatWereDependenciesToQueue
+                    if (changeWithDependencies != null
+                        && changeWithDependencies.DependenciesCount > 0)
+                    {
+                        if (Data.commonThingsThatWereDependenciesToQueue.Value == null)
+                        {
+                            Data.commonThingsThatWereDependenciesToQueue.Value = changeWithDependencies.Dependencies;
+                        }
+                        else
+                        {
+                            Data.commonThingsThatWereDependenciesToQueue.Value = Data.commonThingsThatWereDependenciesToQueue.Value.Concat(changeWithDependencies.Dependencies);
+                        }
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region fillPendingStorageKeysForPendingUploadsAndReturnValue
+
+            var fillPendingStorageKeysForPendingUploadsAndReturnValue = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    pendingStorageKeys = new GenericHolder<HashSet<string>>(null)
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    if (Data.pendingStorageKeys.Value == null)
+                    {
+                        CLHttpRestStatus getAllPendingsStatus;
+                        JsonContracts.PendingResponse getAllPendingsResult;
+                        CLError getAllPendingsError = Data.commonThisEngine.httpRestClient.GetAllPending(
+                            Data.commonThisEngine.HttpTimeoutMilliseconds,
+                            out getAllPendingsStatus,
+                            out getAllPendingsResult);
+
+                        if (getAllPendingsStatus != CLHttpRestStatus.Success)
+                        {
+                            const string pendingsErrorString = "Unable to query pending files for comparison with preexisting uploads";
+
+                            Exception fireMessageException = null;
+
+                            try
+                            {
+                                MessageEvents.FireNewEventMessage(
+                                    pendingsErrorString,
+                                    EventMessageLevel.Important,
+                                    /*Error*/ new GeneralErrorInfo(),
+                                    Data.commonThisEngine.syncBox.SyncBoxId,
+                                    Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
+                            }
+                            catch (Exception ex)
+                            {
+                                fireMessageException = ex;
+                            }
+
+                            throw new AggregateException(pendingsErrorString,
+
+                                (fireMessageException == null
+                                    ? getAllPendingsError.GrabExceptions()
+                                    : getAllPendingsError.GrabExceptions().Concat(Helpers.EnumerateSingleItem(fireMessageException))));
+                        }
+
+                        Data.pendingStorageKeys.Value = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+
+                        if (getAllPendingsResult != null)
+                        {
+                            foreach (JsonContracts.Metadata pendingMetadata in (getAllPendingsResult.Files ?? Enumerable.Empty<JsonContracts.Metadata>()))
+                            {
+                                if (!string.IsNullOrEmpty(pendingMetadata.StorageKey))
+                                {
+                                    Data.pendingStorageKeys.Value.Add(pendingMetadata.StorageKey);
+                                }
+                            }
+                        }
+                    }
+
+                    return Data.pendingStorageKeys.Value;
+                },
+                toReturn);
+
+            #endregion
+
+            #region notifyOnConfirmMetadataForInitialUploadOrDownload
+
+            var notifyOnConfirmMetadataForInitialUploadOrDownload = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    confirmingMetadataForPreexistingUploadDownloads = new GenericHolder<bool>(false),
+                    unhandledPreexistingUploadDownloadEventMessage = new GenericHolder<bool>(false)
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    if (!Data.confirmingMetadataForPreexistingUploadDownloads.Value)
+                    {
+                        try
+                        {
+                            Data.confirmingMetadataForPreexistingUploadDownloads.Value = EventHandledLevel.IsHandled ==
+                                MessageEvents.FireNewEventMessage(
+                                    "At least one preexisting upload or download was found on startup, confirming metadata before processing" +
+                                        (Data.unhandledPreexistingUploadDownloadEventMessage.Value
+                                            ? "; Handle message event to prevent duplicate messages"
+                                            : string.Empty),
+                                    EventMessageLevel.Regular,
+                                    SyncBoxId: Data.commonThisEngine.syncBox.SyncBoxId,
+                                    DeviceId: Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
+
+                            Data.unhandledPreexistingUploadDownloadEventMessage.Value = !Data.confirmingMetadataForPreexistingUploadDownloads.Value;
+                        }
+                        catch (Exception ex)
+                        {
+                            errorToAccumulate.Value += ex;
+                        }
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred
+
+            var verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    existingFilePath = new GenericHolder<string>(null),
+                    topLevelChange = new GenericHolder<PossiblyStreamableFileChange>(new PossiblyStreamableFileChange()), // <-- default constructed PossiblyStreamableFileChange is invalid, must be replaced before property getters fire
+                    existingFileMD5Error = new GenericHolder<CLError>(null),
+                    existingFileMD5 = new GenericHolder<byte[]>(null),
+                    onCompletionOfSynchronousPreprocessedEvent = onCompletionOfSynchronousPreprocessedEvent,
+                    notifyOnConfirmMetadataForInitialUploadOrDownload = notifyOnConfirmMetadataForInitialUploadOrDownload,
+                    commonPreprocessedEvents = commonPreprocessedEvents,
+                    commonSyncFromInitialDownloadMetadataErrors = commonSyncFromInitialDownloadMetadataErrors,
+                    initialMetadataFailuresAsInnerDependencies = new GenericHolder<List<FileChange>>(null)
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // TODO: remove all references of System.IO in this engine, should be a callback to the event source (FileMonitor)
+
+                    // compare metadata with disk first
+
+                    FileInfo existingFile = new FileInfo(Data.existingFilePath.Value);
+                    bool matchingFileFound;
+                    if (Data.existingFileMD5Error.Value == null
+                        && Data.existingFileMD5.Value != null
+                        && existingFile.Exists
+                        && (Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                            || Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
+                            || Helpers.DateTimesWithinOneSecond(Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.CreationTime, existingFile.CreationTimeUtc))
+                        && (Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                            || Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.LastTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
+                            || Helpers.DateTimesWithinOneSecond(Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.LastTime, existingFile.LastWriteTimeUtc))
+                        && Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.Size != null
+                        && ((long)Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.Size) == existingFile.Length)
+                    {
+                        // create MD5 to calculate hash
+                        MD5 md5Hasher = MD5.Create();
+
+                        // define buffer for reading the file
+                        byte[] fileBuffer = new byte[FileConstants.BufferSize];
+                        // declare int for storying how many bytes were read on each buffer transfer
+                        int fileReadBytes;
+
+                        try
+                        {
+                            // open a file read stream for reading the hash at the existing temp file location
+                            using (FileStream verifyTempDownloadStream = new FileStream(Data.existingFilePath.Value,
+                                FileMode.Open,
+                                FileAccess.Read,
+                                FileShare.Read))
+                            {
+                                // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file
+                                while ((fileReadBytes = verifyTempDownloadStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
+                                {
+                                    // add the buffer block to the hash calculation
+                                    md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+                                }
+
+                                // transform one final empty block to complete the hash calculation
+                                md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
+
+                                // if the existing file has an identical hash, then use the existing file for the current download
+                                matchingFileFound = NativeMethods.memcmp(Data.existingFileMD5.Value, md5Hasher.Hash, new UIntPtr((uint)md5Hasher.Hash.Length)) == 0; // matching hash
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            errorToAccumulate.Value += new Exception("Error comparing MD5 hashes from topLevelChange FileChange with the file at its path on disk", ex);
+                            matchingFileFound = false;
+                        }
+                    }
+                    else
+                    {
+                        matchingFileFound = false;
+                    }
+
+                    if (matchingFileFound)
+                    {
+                        Data.onCompletionOfSynchronousPreprocessedEvent.TypedData.topLevelChange.Value = Data.topLevelChange.Value;
+                        Data.onCompletionOfSynchronousPreprocessedEvent.Process();
+                    }
+                    else
+                    {
+                        Data.notifyOnConfirmMetadataForInitialUploadOrDownload.Process();
+
+                        CLHttpRestStatus latestMetadataStatus;
+                        JsonContracts.Metadata latestMetadataResult;
+                        CLError latestMetadataError = Data.commonThisEngine.httpRestClient.GetMetadata(
+                            Data.topLevelChange.Value.FileChange.NewPath,
+                            /* isFolder */ false,
+                            Data.commonThisEngine.HttpTimeoutMilliseconds,
+                            out latestMetadataStatus,
+                            out latestMetadataResult);
+
+                        if (latestMetadataStatus != CLHttpRestStatus.Success
+                            && latestMetadataStatus != CLHttpRestStatus.NoContent)
+                        {
+                            const string fileMetadataErrorString = "Errors occurred finding latest metadata for a preexisting download";
+
+                            errorToAccumulate.Value += new AggregateException(fileMetadataErrorString,
+                                latestMetadataError.GrabExceptions());
+
+                            try
+                            {
+                                MessageEvents.FireNewEventMessage(
+                                    fileMetadataErrorString,
+                                    EventMessageLevel.Regular,
+                                    /*Error*/new GeneralErrorInfo(),
+                                    Data.commonThisEngine.syncBox.SyncBoxId,
+                                    Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
+                            }
+                            catch (Exception ex)
+                            {
+                                errorToAccumulate.Value += ex;
+                            }
+                        }
+
+                        bool markDownloadError = false;
+
+                        if (latestMetadataStatus == CLHttpRestStatus.Success
+                            && latestMetadataResult != null)
+                        {
+                            CLHttpRestStatus fileVersionStatus;
+                            JsonContracts.FileVersion[] fileVersionResult;
+                            CLError fileVersionError = Data.commonThisEngine.httpRestClient.GetFileVersions(
+                                latestMetadataResult.ServerId,
+                                Data.commonThisEngine.HttpTimeoutMilliseconds,
+                                out fileVersionStatus,
+                                out fileVersionResult);
+
+                            if (fileVersionStatus != CLHttpRestStatus.Success
+                                && fileVersionStatus != CLHttpRestStatus.NoContent)
+                            {
+                                const string fileVersionsErrorString = "Errors occurred finding previous versions for a preexisting download";
+
+                                errorToAccumulate.Value += new AggregateException(fileVersionsErrorString,
+                                    fileVersionError.GrabExceptions());
+
+                                try
+                                {
+                                    MessageEvents.FireNewEventMessage(
+                                        fileVersionsErrorString,
+                                        EventMessageLevel.Regular,
+                                        /*Error*/new GeneralErrorInfo(),
+                                        Data.commonThisEngine.syncBox.SyncBoxId,
+                                        Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
+                                }
+                                catch (Exception ex)
+                                {
+                                    errorToAccumulate.Value += ex;
+                                }
+                            }
+
+                            JsonContracts.FileVersion latestNonPendingVersion;
+                            byte[] latestNonPendingHash;
+                            if (fileVersionResult == null
+                                || (latestNonPendingVersion = (fileVersionResult
+                                    .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
+                                    .FirstOrDefault(fileVersion =>
+                                        fileVersion.IsNotPending != false
+                                            && fileVersion.IsDeleted != true))) == null
+                                || (latestNonPendingHash = Helpers.ParseHexadecimalStringToByteArray(latestNonPendingVersion.FileHash)) == null
+                                || Data.existingFileMD5.Value == null
+                                || NativeMethods.memcmp(Data.existingFileMD5.Value, latestNonPendingHash, new UIntPtr((uint)Data.existingFileMD5.Value.Length)) != 0
+                                || Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.Size != latestNonPendingVersion.FileSize)
+                            {
+                                markDownloadError = true;
+                            }
+                        }
+                        else
+                        {
+                            markDownloadError = true;
+                        }
+
+                        if (markDownloadError)
+                        {
+                            Data.commonPreprocessedEvents.Value.Add(Data.topLevelChange.Value);
+
+                            Data.commonSyncFromInitialDownloadMetadataErrors.Value.Add(Data.topLevelChange.Value.FileChange.EventId);
+
+                            Data.initialMetadataFailuresAsInnerDependencies.Value.Add(Data.topLevelChange.Value.FileChange);
+
+                            return true; // return true for error occurred
+                        }
+                    }
+
+                    return false; // return false for no error occurred
+                },
+                toReturn);
+
+            #endregion
+
+            #region finalizeAndStartAsyncTask
+
+            var finalizeAndStartAsyncTask = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    asyncTask = new GenericHolder<PossiblyStreamableFileChangeWithUploadDownloadTask>(new PossiblyStreamableFileChangeWithUploadDownloadTask()),
+                    commonErrorsToQueue = commonErrorsToQueue,
+                    commonAsynchronouslyProcessed = commonAsynchronouslyProcessed
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // switch on async task direction to either increment downloaded or uploaded count
+                    switch (Data.asyncTask.Value.Task.Direction)
+                    {
+                        case SyncDirection.From:
+                            // direction for downloads
+                            Data.asyncTask.Value.Task.Task.ContinueWith(eventCompletion =>
+                            {
+                                // if event id is valid, then increment downloaded count
+                                if (eventCompletion.Result.EventId != 0)
+                                {
+                                    MessageEvents.IncrementDownloadedCount(
+                                        incrementAmount: 1,
+                                        SyncBoxId: eventCompletion.Result.SyncBoxId,
+                                        DeviceId: eventCompletion.Result.SyncSettings.DeviceId);
+                                }
+                            }, TaskContinuationOptions.NotOnFaulted); // only increment count when not faulted
+                            break;
+
+                        case SyncDirection.To:
+                            // direction for uploads
+                            Data.asyncTask.Value.Task.Task.ContinueWith(eventCompletion =>
+                            {
+                                // if event id is valid, then increment uploaded count
+                                if (eventCompletion.Result.EventId != 0)
+                                {
+                                    MessageEvents.IncrementUploadedCount(
+                                        incrementAmount: 1,
+                                        SyncBoxId: eventCompletion.Result.SyncBoxId,
+                                        DeviceId: eventCompletion.Result.SyncSettings.DeviceId);
+                                }
+                            }, TaskContinuationOptions.NotOnFaulted); // only increment count when not faulted
+                            break;
+
+                        default:
+                            // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
+                            throw new NotSupportedException("Unknown SyncDirection: " + Data.asyncTask.Value.Task.Direction.ToString());
+                    }
+
+                    // add continuation task for recording the completed event into the database
+                    Data.asyncTask.Value.Task.Task.ContinueWith(eventCompletion =>
+                    {
+                        // if the completed task had a valid id, then record completion into the database
+                        if (eventCompletion.Result.EventId != 0)
+                        {
+                            // record completion into the database, storing any error that occurs
+                            CLError sqlCompleteError = eventCompletion.Result.SyncData.completeSingleEvent(eventCompletion.Result.EventId);
+                            // if an error occurred storing the completion, then log it
+                            if (sqlCompleteError != null)
+                            {
+                                sqlCompleteError.LogErrors(eventCompletion.Result.SyncSettings.TraceLocation, eventCompletion.Result.SyncSettings.LogErrors);
+                            }
+                        }
+                    }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
+
+                    // attach the current FileChange's UpDownEvent handler to the local UpDownEvent
+                    Data.commonThisEngine.AddFileChangeToUpDownEvent(Data.asyncTask.Value.FileChange.FileChange);
+
+                    Data.commonThisEngine.FileTransferQueued(Data.asyncTask.Value.Task.ThreadId,
+                        Data.asyncTask.Value.FileChange.FileChange.EventId,
+                        Data.asyncTask.Value.Task.Direction,
+                        Data.asyncTask.Value.FileChange.FileChange.NewPath.GetRelativePath(Data.commonThisEngine.syncBox.CopiedSettings.SyncRoot, false),
+                        (long)Data.asyncTask.Value.FileChange.FileChange.Metadata.HashableProperties.Size);
+
+                    // try/catch to start the async task, or removing the UpDownEvent handler and rethrowing on exception
+                    try
+                    {
+                        // start async task on the HttpScheduler
+                        Data.asyncTask.Value.Task.Task.Start(
+                            HttpScheduler.GetSchedulerByDirection(Data.asyncTask.Value.Task.Direction, Data.commonThisEngine.syncBox.CopiedSettings)); // retrieve HttpScheduler by direction and settings (upload and download are on seperate queues, and settings are used for error logging)
+
+                        // add task as asynchronously processed
+                        Data.commonAsynchronouslyProcessed.Value.Add(Data.asyncTask.Value.FileChange.FileChange);
+                    }
+                    catch
+                    {
+                        // remove UpDownEvent handler on exception
+                        Data.commonThisEngine.RemoveFileChangeFromUpDownEvent(Data.asyncTask.Value.FileChange.FileChange);
+
+                        // rethrow
+                        throw;
+                    }
+                    
+                    // remove the FileChange in the errors by FileChange equality and Stream equality
+                    Data.commonErrorsToQueue.Value.RemoveAll(findErrorToQueue =>
+                        findErrorToQueue.FileChange == Data.asyncTask.Value.FileChange.FileChange
+                            && findErrorToQueue.Stream == Data.asyncTask.Value.FileChange.Stream);
+                },
+                toReturn);
+
+            #endregion
+
             #region preprocessExistingEventsAndReturnWhetherShutdown
 
             var preprocessExistingEventsAndReturnWhetherShutdown = DelegateAndDataHolder.Create(
                 new
                 {
                     commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
-                    commonErrorsToQueue = commonErrorsToQueue,
                     commonOutputChanges = commonOutputChanges,
                     commonThisEngine = this,
                     commonRunThreadId = commonRunThreadId,
@@ -1740,8 +2309,16 @@ namespace Cloud.Sync
                     oneLineChangeFlowTrace = oneLineChangeFlowTrace,
                     positionInChangeFlow = positionInChangeFlow,
                     changesToTrace = changesToTrace,
-                    commonSuccessfulEventIds = commonSuccessfulEventIds,
-                    commonTempDownloadsFolder = commonTempDownloadsFolder
+                    commonTempDownloadsFolder = commonTempDownloadsFolder,
+                    commonSynchronouslyProcessed = commonSynchronouslyProcessed,
+                    commonAsynchronouslyProcessed = commonAsynchronouslyProcessed,
+                    commonPreprocessedEvents = commonPreprocessedEvents,
+                    commonSyncFromInitialDownloadMetadataErrors = commonSyncFromInitialDownloadMetadataErrors,
+                    doesPreprocessingNeedToRepeatForDependencies = doesPreprocessingNeedToRepeatForDependencies,
+                    onCompletionOfSynchronousPreprocessedEvent = onCompletionOfSynchronousPreprocessedEvent,
+                    notifyOnConfirmMetadataForInitialUploadOrDownload = notifyOnConfirmMetadataForInitialUploadOrDownload,
+                    verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred = verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred,
+                    finalizeAndStartAsyncTask = finalizeAndStartAsyncTask
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1749,68 +2326,10 @@ namespace Cloud.Sync
                     // leave changes that did not complete in the errorsToQueue list so they will be added to the failure queue later;
                     // pull out inner dependencies and append to the enumerable thingsThatWereDependenciesToQueue;
                     // repeat this process with inner dependencies
-                    List<PossiblyStreamableFileChange> preprocessedEvents = new List<PossiblyStreamableFileChange>();
-                    HashSet<long> syncFromInitialDownloadMetadataErrors = new HashSet<long>();
-                    HashSet<long> preprocessedEventIds = new HashSet<long>();
-                    // function which reinserts dependencies into topLevelChanges in sorted order and returns true for reprocessing
-                    Func<bool> reprocessForDependencies = () =>
-                    {
-                        // if there are no dependencies to reprocess, then return false
-                        if (Data.commonThingsThatWereDependenciesToQueue.Value == null)
-                        {
-                            // return false to stop preprocessing
-                            return false;
-                        }
-
-                        // create a list to store dependencies that cannot be processed since they were file uploads (and only highest level changes for file upload had streams);
-                        // also contains FileChanges for initial load condition where a metadata query was not successful
-                        List<FileChange> uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers = new List<FileChange>();
-
-                        // loop through dependencies to either add to the list of errors (since they will be preprocessed) or to the list of unprocessable changes (requiring streams)
-                        foreach (FileChange currentDependency in Data.commonThingsThatWereDependenciesToQueue.Value)
-                        {
-                            // events must have an id
-                            if (currentDependency.EventId == 0)
-                            {
-                                throw new ArgumentException("Cannot communicate FileChange without EventId");
-                            }
-
-                            // these conditions ensure that no file uploads without FileStreams are processed in the current batch
-                            // if all conditions are met, then the file change can be processed and should be added to the list of errors
-                            if (currentDependency.Metadata == null // cannot process without metadata
-                                || currentDependency.Metadata.HashableProperties.IsFolder // folders don't require streams
-                                || currentDependency.Type == FileChangeType.Deleted // deleted files don't require streams
-                                || currentDependency.Type == FileChangeType.Renamed // renamed files don't require streams
-                                || (currentDependency.Direction == SyncDirection.From // files for download don't need upload streams
-                                    && !syncFromInitialDownloadMetadataErrors.Contains(currentDependency.EventId)))
-                            {
-                                Data.commonErrorsToQueue.Value.Add(new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(true, currentDependency, null));
-                            }
-                            // else if any condition was not met, then the file change was missing a stream and cannot be processed, add to that list
-                            else
-                            {
-                                uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers.Add(currentDependency);
-                            }
-                        }
-
-                        // if all the dependencies are not processable, return false to stop preprocessing
-                        if (Enumerable.SequenceEqual(Data.commonThingsThatWereDependenciesToQueue.Value, uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers))
-                        {
-                            return false;
-                        }
-                        
-                        // replace changes to process with previous changes except already preprocessed changes and then add in dependencies which were processable
-                        Data.commonOutputChanges.Value = Data.commonOutputChanges.Value // previous changes.Except(preprocessedEvents) // exclude already preprocessed events
-                            .Concat(Data.commonThingsThatWereDependenciesToQueue.Value // add dependencies from preprocessed events (see next line for condition)
-                                .Except(uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers) // which are themselves processable
-                                .Select(currentDependencyToQueue => new PossiblyStreamableFileChange(currentDependencyToQueue, null))); // all the processable dependencies are non-streamable
-
-                        // the only dependencies not in the the output list (to process) are the non-processable changes which are now the thingsThatWereDependenciesToQueue
-                        Data.commonThingsThatWereDependenciesToQueue.Value = uploadDependenciesWithoutStreamsAndFailedMetadataFileTransfers;
-
-                        // return true to continue preprocessing
-                        return true;
-                    };
+                    Data.commonPreprocessedEvents.Value = new List<PossiblyStreamableFileChange>();
+                    Data.commonSyncFromInitialDownloadMetadataErrors.Value = new HashSet<long>();
+                    HashSet<long> preprocessedEventIds;
+                    Data.onCompletionOfSynchronousPreprocessedEvent.TypedData.preprocessedEventIds.Value = preprocessedEventIds = new HashSet<long>();
 
                     // after each time reprocessForDependencies runs,
                     // outputChanges will then equal all of the FileChanges it used to contain except for FileChanges which were previously preprocessed;
@@ -1821,145 +2340,9 @@ namespace Cloud.Sync
                     // and who themselves can be processed (are not file uploads which are missing FileStreams)
 
                     // create list to store changes which were synchronously preprocessed (not file uploads/downloads)
-                    List<FileChange> synchronouslyPreprocessed = new List<FileChange>();
+                    Data.commonSynchronouslyProcessed.Value = new List<FileChange>();
                     // create list to store changes which were asynchronously preprocessed (only file uploads/downloads)
-                    List<FileChange> asynchronouslyPreprocessed = new List<FileChange>();
-
-                    Func<List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>, List<long>, IEnumerable<FileChange>, List<FileChange>, PossiblyStreamableFileChange, Nullable<long>, HashSet<long>, List<PossiblyStreamableFileChange>, IEnumerable<FileChange>> onSynchronousCompletion =
-                        (innerErrorsToQueue, innerSuccessfulEventIds, innerThingsThatWereDependenciesToQueue, innerSynchronouslyPreprocessed, innerTopLevelChange, innerSuccessfulEventId, innerPreprocessedEventIds, innerPreprocessedEvents) =>
-                        {
-                            // add successful id in order to not preprocess the same event again
-                            innerPreprocessedEventIds.Add((long)innerSuccessfulEventId);
-                            // add event as preprocessed so it will be excluded from changes to communicate
-                            innerPreprocessedEvents.Add(innerTopLevelChange);
-
-                            // add change to synchronous list
-                            innerSynchronouslyPreprocessed.Add(innerTopLevelChange.FileChange);
-
-                            // add successful id for completed event
-                            innerSuccessfulEventIds.Add((long)innerSuccessfulEventId);
-
-                            // search for the FileChange in the errors by FileChange equality and Stream equality
-                            Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> foundErrorToRemove = innerErrorsToQueue
-                                .Where(findErrorToQueue => findErrorToQueue.FileChange == innerTopLevelChange.FileChange && findErrorToQueue.Stream == innerTopLevelChange.Stream)
-                                .Select(findErrorToQueue => (Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>)findErrorToQueue)
-                                .FirstOrDefault();
-                            // if a matching error was found, then remove it from the errors
-                            if (foundErrorToRemove != null)
-                            {
-                                innerErrorsToQueue.Remove((PossiblyStreamableAndPossiblyPreexistingErrorFileChange)foundErrorToRemove);
-                            }
-
-                            // try to cast the successful change as one with dependencies
-                            FileChangeWithDependencies changeWithDependencies = innerTopLevelChange.FileChange as FileChangeWithDependencies;
-                            // if change was one with dependencies and has a dependency, then concatenate the dependencies into thingsThatWereDependenciesToQueue
-                            if (changeWithDependencies != null
-                                && changeWithDependencies.DependenciesCount > 0)
-                            {
-                                if (innerThingsThatWereDependenciesToQueue == null)
-                                {
-                                    innerThingsThatWereDependenciesToQueue = changeWithDependencies.Dependencies;
-                                }
-                                else
-                                {
-                                    innerThingsThatWereDependenciesToQueue = innerThingsThatWereDependenciesToQueue.Concat(changeWithDependencies.Dependencies);
-                                }
-                            }
-
-                            return innerThingsThatWereDependenciesToQueue;
-                        };
-
-                    GenericHolder<HashSet<string>> pendingStorageKeys = new GenericHolder<HashSet<string>>(null);
-
-                    Func<GenericHolder<HashSet<string>>, HashSet<string>> getPendingStorageKeys =
-                        innerPendingStorageKeys =>
-                        {
-                            if (innerPendingStorageKeys.Value == null)
-                            {
-                                CLHttpRestStatus getAllPendingsStatus;
-                                JsonContracts.PendingResponse getAllPendingsResult;
-                                CLError getAllPendingsError = Data.commonThisEngine.httpRestClient.GetAllPending(
-                                    Data.commonThisEngine.HttpTimeoutMilliseconds,
-                                    out getAllPendingsStatus,
-                                    out getAllPendingsResult);
-
-                                if (getAllPendingsStatus != CLHttpRestStatus.Success)
-                                {
-                                    const string pendingsErrorString = "Unable to query pending files for comparison with preexisting uploads";
-
-                                    Exception fireMessageException = null;
-
-                                    try
-                                    {
-                                        MessageEvents.FireNewEventMessage(
-                                            pendingsErrorString,
-                                            EventMessageLevel.Important,
-                                            /*Error*/ new GeneralErrorInfo(),
-                                            Data.commonThisEngine.syncBox.SyncBoxId,
-                                            Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        fireMessageException = ex;
-                                    }
-
-                                    throw new AggregateException(pendingsErrorString,
-
-                                        (fireMessageException == null
-                                            ? getAllPendingsError.GrabExceptions()
-                                            : getAllPendingsError.GrabExceptions().Concat(Helpers.EnumerateSingleItem(fireMessageException))));
-                                }
-
-                                innerPendingStorageKeys.Value = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-
-                                if (getAllPendingsResult != null)
-                                {
-                                    foreach (JsonContracts.Metadata pendingMetadata in (getAllPendingsResult.Files ?? Enumerable.Empty<JsonContracts.Metadata>()))
-                                    {
-                                        if (!string.IsNullOrEmpty(pendingMetadata.StorageKey))
-                                        {
-                                            innerPendingStorageKeys.Value.Add(pendingMetadata.StorageKey);
-                                        }
-                                    }
-                                }
-                            }
-                            return innerPendingStorageKeys.Value;
-                        };
-
-                    Func<CLError, bool, bool, KeyValuePair<CLError, KeyValuePair<bool, bool>>> notifyOnConfirmMetadata =
-                        (innerToReturn, innerConfirmingMetadataForPreexistingUploadDownloads, innerUnhandledPreexistingUploadDownloadEventMessage) =>
-                        {
-                            if (!innerConfirmingMetadataForPreexistingUploadDownloads)
-                            {
-                                try
-                                {
-                                    innerConfirmingMetadataForPreexistingUploadDownloads = EventHandledLevel.IsHandled ==
-                                        MessageEvents.FireNewEventMessage(
-                                            "At least one preexisting upload or download was found on startup, confirming metadata before processing" +
-                                                (innerUnhandledPreexistingUploadDownloadEventMessage
-                                                    ? "; Handle message event to prevent duplicate messages"
-                                                    : string.Empty),
-                                            EventMessageLevel.Regular,
-                                            SyncBoxId: Data.commonThisEngine.syncBox.SyncBoxId,
-                                            DeviceId: Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
-
-                                    innerUnhandledPreexistingUploadDownloadEventMessage = !innerConfirmingMetadataForPreexistingUploadDownloads;
-                                }
-                                catch (Exception ex)
-                                {
-                                    innerToReturn += ex;
-                                }
-                            }
-
-                            return new KeyValuePair<CLError, KeyValuePair<bool, bool>>(
-                                innerToReturn,
-                                new KeyValuePair<bool, bool>(
-                                    innerConfirmingMetadataForPreexistingUploadDownloads,
-                                    innerUnhandledPreexistingUploadDownloadEventMessage));
-                        };
-
-                    bool confirmingMetadataForPreexistingUploadDownloads = false;
-                    bool unhandledPreexistingUploadDownloadEventMessage = false;
+                    Data.commonAsynchronouslyProcessed.Value = new List<FileChange>();
 
                     // process once then repeat if it needs to reprocess for dependencies
                     do
@@ -1971,7 +2354,7 @@ namespace Cloud.Sync
                         {
                             Data.commonThisEngine.SyncStillRunning(Data.commonRunThreadId);
 
-                            if (Data.getIsShutdown.Process())
+                            if (Data.getIsShutdown.TypedProcess())
                             {
                                 return true; // true for shutdown; should cause outer to return toReturn.Value
                             }
@@ -1999,205 +2382,27 @@ namespace Cloud.Sync
                                 switch (topLevelChange.FileChange.Direction)
                                 {
                                     case SyncDirection.From:
-                                        // TODO: remove all references of System.IO in this engine, should be a callback to the event source (FileMonitor)
+                                        Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedData.existingFileMD5.Value = existingFileMD5;
+                                        Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedData.existingFileMD5Error.Value = existingFileMD5Error;
+                                        Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedData.existingFilePath.Value = existingFilePath;
+                                        Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedData.initialMetadataFailuresAsInnerDependencies.Value = initialMetadataFailuresAsInnerDependencies;
+                                        Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedData.topLevelChange.Value = topLevelChange;
 
-                                        // compare metadata with disk first
-
-                                        FileInfo existingFile = new FileInfo(existingFilePath);
-                                        bool matchingFileFound;
-                                        if (existingFileMD5Error == null
-                                            && existingFileMD5 != null
-                                            && existingFile.Exists
-                                            && (topLevelChange.FileChange.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                                || topLevelChange.FileChange.Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
-                                                || Helpers.DateTimesWithinOneSecond(topLevelChange.FileChange.Metadata.HashableProperties.CreationTime, existingFile.CreationTimeUtc))
-                                            && (topLevelChange.FileChange.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
-                                                || topLevelChange.FileChange.Metadata.HashableProperties.LastTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
-                                                || Helpers.DateTimesWithinOneSecond(topLevelChange.FileChange.Metadata.HashableProperties.LastTime, existingFile.LastWriteTimeUtc))
-                                            && topLevelChange.FileChange.Metadata.HashableProperties.Size != null
-                                            && ((long)topLevelChange.FileChange.Metadata.HashableProperties.Size) == existingFile.Length)
+                                        if (Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedProcess())
                                         {
-                                            // create MD5 to calculate hash
-                                            MD5 md5Hasher = MD5.Create();
-
-                                            // define buffer for reading the file
-                                            byte[] fileBuffer = new byte[FileConstants.BufferSize];
-                                            // declare int for storying how many bytes were read on each buffer transfer
-                                            int fileReadBytes;
-
-                                            try
-                                            {
-                                                // open a file read stream for reading the hash at the existing temp file location
-                                                using (FileStream verifyTempDownloadStream = new FileStream(existingFilePath,
-                                                    FileMode.Open,
-                                                    FileAccess.Read,
-                                                    FileShare.Read))
-                                                {
-                                                    // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file
-                                                    while ((fileReadBytes = verifyTempDownloadStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
-                                                    {
-                                                        // add the buffer block to the hash calculation
-                                                        md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
-                                                    }
-
-                                                    // transform one final empty block to complete the hash calculation
-                                                    md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
-
-                                                    // if the existing file has an identical hash, then use the existing file for the current download
-                                                    matchingFileFound = NativeMethods.memcmp(existingFileMD5, md5Hasher.Hash, new UIntPtr((uint)md5Hasher.Hash.Length)) == 0; // matching hash
-                                                }
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                errorToAccumulate.Value += new Exception("Error comparing MD5 hashes from topLevelChange FileChange with the file at its path on disk", ex);
-                                                matchingFileFound = false;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            matchingFileFound = false;
-                                        }
-
-                                        if (matchingFileFound)
-                                        {
-                                            Data.commonThingsThatWereDependenciesToQueue.Value = onSynchronousCompletion(
-                                                Data.commonErrorsToQueue.Value,
-                                                Data.commonSuccessfulEventIds,
-                                                Data.commonThingsThatWereDependenciesToQueue.Value,
-                                                synchronouslyPreprocessed,
-                                                topLevelChange,
-                                                topLevelChange.FileChange.EventId,
-                                                preprocessedEventIds,
-                                                preprocessedEvents);
-                                        }
-                                        else
-                                        {
-                                            KeyValuePair<CLError, KeyValuePair<bool, bool>> notifyMetadataResultDown = notifyOnConfirmMetadata(errorToAccumulate.Value, confirmingMetadataForPreexistingUploadDownloads, unhandledPreexistingUploadDownloadEventMessage);
-                                            errorToAccumulate.Value = notifyMetadataResultDown.Key;
-                                            confirmingMetadataForPreexistingUploadDownloads = notifyMetadataResultDown.Value.Key;
-                                            unhandledPreexistingUploadDownloadEventMessage = notifyMetadataResultDown.Value.Value;
-
-                                            CLHttpRestStatus latestMetadataStatus;
-                                            JsonContracts.Metadata latestMetadataResult;
-                                            CLError latestMetadataError = Data.commonThisEngine.httpRestClient.GetMetadata(
-                                                topLevelChange.FileChange.NewPath,
-                                                /* isFolder */ false,
-                                                Data.commonThisEngine.HttpTimeoutMilliseconds,
-                                                out latestMetadataStatus,
-                                                out latestMetadataResult);
-
-                                            if (latestMetadataStatus != CLHttpRestStatus.Success
-                                                && latestMetadataStatus != CLHttpRestStatus.NoContent)
-                                            {
-                                                const string fileMetadataErrorString = "Errors occurred finding latest metadata for a preexisting download";
-
-                                                errorToAccumulate.Value += new AggregateException(fileMetadataErrorString,
-                                                    latestMetadataError.GrabExceptions());
-
-                                                try
-                                                {
-                                                    MessageEvents.FireNewEventMessage(
-                                                        fileMetadataErrorString,
-                                                        EventMessageLevel.Regular,
-                                                        /*Error*/new GeneralErrorInfo(),
-                                                        Data.commonThisEngine.syncBox.SyncBoxId,
-                                                        Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
-                                                }
-                                                catch (Exception ex)
-                                                {
-                                                    errorToAccumulate.Value += ex;
-                                                }
-                                            }
-
-                                            bool markDownloadError = false;
-
-                                            if (latestMetadataStatus == CLHttpRestStatus.Success
-                                                && latestMetadataResult != null)
-                                            {
-                                                CLHttpRestStatus fileVersionStatus;
-                                                JsonContracts.FileVersion[] fileVersionResult;
-                                                CLError fileVersionError = Data.commonThisEngine.httpRestClient.GetFileVersions(
-                                                    latestMetadataResult.ServerId,
-                                                    Data.commonThisEngine.HttpTimeoutMilliseconds,
-                                                    out fileVersionStatus,
-                                                    out fileVersionResult);
-
-                                                if (fileVersionStatus != CLHttpRestStatus.Success
-                                                    && fileVersionStatus != CLHttpRestStatus.NoContent)
-                                                {
-                                                    const string fileVersionsErrorString = "Errors occurred finding previous versions for a preexisting download";
-
-                                                    errorToAccumulate.Value += new AggregateException(fileVersionsErrorString,
-                                                        fileVersionError.GrabExceptions());
-
-                                                    try
-                                                    {
-                                                        MessageEvents.FireNewEventMessage(
-                                                            fileVersionsErrorString,
-                                                            EventMessageLevel.Regular,
-                                                            /*Error*/new GeneralErrorInfo(),
-                                                            Data.commonThisEngine.syncBox.SyncBoxId,
-                                                            Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
-                                                    }
-                                                    catch (Exception ex)
-                                                    {
-                                                        errorToAccumulate.Value += ex;
-                                                    }
-                                                }
-
-                                                JsonContracts.FileVersion latestNonPendingVersion;
-                                                byte[] latestNonPendingHash;
-                                                if (fileVersionResult == null
-                                                    || (latestNonPendingVersion = (fileVersionResult
-                                                        .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
-                                                        .FirstOrDefault(fileVersion =>
-                                                            fileVersion.IsNotPending != false
-                                                                && fileVersion.IsDeleted != true))) == null
-                                                    || (latestNonPendingHash = Helpers.ParseHexadecimalStringToByteArray(latestNonPendingVersion.FileHash)) == null
-                                                    || existingFileMD5 == null
-                                                    || NativeMethods.memcmp(existingFileMD5, latestNonPendingHash, new UIntPtr((uint)existingFileMD5.Length)) != 0
-                                                    || topLevelChange.FileChange.Metadata.HashableProperties.Size != latestNonPendingVersion.FileSize)
-                                                {
-                                                    markDownloadError = true;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                markDownloadError = true;
-                                            }
-
-                                            if (markDownloadError)
-                                            {
-                                                preprocessedEvents.Add(topLevelChange);
-
-                                                syncFromInitialDownloadMetadataErrors.Add(topLevelChange.FileChange.EventId);
-
-                                                initialMetadataFailuresAsInnerDependencies.Add(topLevelChange.FileChange);
-
-                                                initialUploadDownloadMetadataError = true;
-                                            }
+                                            initialUploadDownloadMetadataError = true;
                                         }
                                         break;
 
                                     case SyncDirection.To:
-                                        KeyValuePair<CLError, KeyValuePair<bool, bool>> notifyMetadataResultUp = notifyOnConfirmMetadata(errorToAccumulate.Value, confirmingMetadataForPreexistingUploadDownloads, unhandledPreexistingUploadDownloadEventMessage);
-                                        errorToAccumulate.Value = notifyMetadataResultUp.Key;
-                                        confirmingMetadataForPreexistingUploadDownloads = notifyMetadataResultUp.Value.Key;
-                                        unhandledPreexistingUploadDownloadEventMessage = notifyMetadataResultUp.Value.Value;
+                                        Data.notifyOnConfirmMetadataForInitialUploadOrDownload.Process();
 
-                                        HashSet<string> pendings = getPendingStorageKeys(pendingStorageKeys);
+                                        HashSet<string> pendings = fillPendingStorageKeysForPendingUploadsAndReturnValue.TypedProcess();
 
                                         if (!pendings.Contains(topLevelChange.FileChange.Metadata.StorageKey))
                                         {
-                                            commonThingsThatWereDependenciesToQueue.Value = onSynchronousCompletion(
-                                                commonErrorsToQueue.Value,
-                                                commonSuccessfulEventIds,
-                                                commonThingsThatWereDependenciesToQueue.Value,
-                                                synchronouslyPreprocessed,
-                                                topLevelChange,
-                                                topLevelChange.FileChange.EventId,
-                                                preprocessedEventIds,
-                                                preprocessedEvents);
+                                            Data.onCompletionOfSynchronousPreprocessedEvent.TypedData.topLevelChange.Value = topLevelChange;
+                                            Data.onCompletionOfSynchronousPreprocessedEvent.Process();
 
                                             if (topLevelChange.Stream != null)
                                             {
@@ -2244,15 +2449,8 @@ namespace Cloud.Sync
                                 if (successfulEventId != null
                                     && (long)successfulEventId > 0)
                                 {
-                                    commonThingsThatWereDependenciesToQueue.Value = onSynchronousCompletion(
-                                        Data.commonErrorsToQueue.Value,
-                                        Data.commonSuccessfulEventIds,
-                                        Data.commonThingsThatWereDependenciesToQueue.Value,
-                                        synchronouslyPreprocessed,
-                                        topLevelChange,
-                                        successfulEventId,
-                                        preprocessedEventIds,
-                                        preprocessedEvents);
+                                    Data.onCompletionOfSynchronousPreprocessedEvent.TypedData.topLevelChange.Value = topLevelChange;
+                                    Data.onCompletionOfSynchronousPreprocessedEvent.Process();
                                 }
                                 // else if there was not a valid successful event id, then process for errors or async tasks
                                 else
@@ -2260,7 +2458,7 @@ namespace Cloud.Sync
                                     // the following two additions to preprocessed lists are only within this else statement because onSynchronousCompletion also adds to these lists above
 
                                     // add current change to list of those preprocessed
-                                    preprocessedEvents.Add(topLevelChange);
+                                    Data.commonPreprocessedEvents.Value.Add(topLevelChange);
                                     // add current change id to list of those preprocessed
                                     preprocessedEventIds.Add(topLevelChange.FileChange.EventId);
 
@@ -2273,113 +2471,11 @@ namespace Cloud.Sync
                                     // if there was an async task to perform, then process starting it
                                     if (asyncTask != null)
                                     {
-                                        // cast task as non-null
-                                        AsyncUploadDownloadTask nonNullTask = (AsyncUploadDownloadTask)asyncTask;
-
-                                        // switch on direction of the current task to add appropriate continuation task for incrementing uploaded/downloaded count
-                                        switch (nonNullTask.Direction)
-                                        {
-                                            case SyncDirection.From:
-                                                // direction for downloads
-
-                                                // add continuation task for incrementing downloaded count
-                                                nonNullTask.Task.ContinueWith(eventCompletion =>
-                                                {
-                                                    // if the completed task had a valid id, then increment downloaded
-                                                    if (eventCompletion.Result.EventId != 0)
-                                                    {
-                                                        MessageEvents.IncrementDownloadedCount(
-                                                            incrementAmount: 1,
-                                                            SyncBoxId: eventCompletion.Result.SyncBoxId,
-                                                            DeviceId: eventCompletion.Result.SyncSettings.DeviceId);
-                                                    }
-                                                }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
-                                                break;
-
-                                            case SyncDirection.To:
-                                                // direction for uploads
-
-                                                // add continuation task for incrementing uploaded count
-                                                nonNullTask.Task.ContinueWith(eventCompletion =>
-                                                {
-                                                    // if the completed task had a valid id, then increment uploaded
-                                                    if (eventCompletion.Result.EventId != 0)
-                                                    {
-                                                        MessageEvents.IncrementUploadedCount(
-                                                            incrementAmount: 1,
-                                                            SyncBoxId: eventCompletion.Result.SyncBoxId,
-                                                            DeviceId: eventCompletion.Result.SyncSettings.DeviceId);
-                                                    }
-                                                }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
-                                                break;
-
-                                            default:
-                                                // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
-                                                throw new NotSupportedException("Unknown SyncDirection: " + asyncTask.Value.ToString());
-                                        }
-
-                                        // add continuation task for recording the completed event into the database
-                                        nonNullTask.Task.ContinueWith(completeState =>
-                                        {
-                                            // if the completed task had a valid id, then record completion into the database
-                                            if (completeState.Result.EventId != 0)
-                                            {
-                                                // record completion into the database, storing any error that occurs
-                                                CLError sqlCompleteError = completeState.Result.SyncData.completeSingleEvent(completeState.Result.EventId);
-                                                // if an error occurred storing the completion, then log it
-                                                if (sqlCompleteError != null)
-                                                {
-                                                    sqlCompleteError.LogErrors(completeState.Result.SyncSettings.TraceLocation,
-                                                        completeState.Result.SyncSettings.LogErrors);
-                                                }
-                                            }
-                                        }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
-
-                                        // attach the current FileChange's UpDownEvent handler to the local UpDownEvent
-                                        Data.commonThisEngine.AddFileChangeToUpDownEvent(topLevelChange.FileChange);
-
-                                        // lock on local UpDownEvent locker for modification of local UpDownEvent
-                                        lock (Data.commonThisEngine.UpDownEventLocker)
-                                        {
-                                            // Add the current FileChange's UpDown handler to the local UpDownEvent so the upload or download can be checked for revision comparison with synchronous tasks
-                                            Data.commonThisEngine.UpDownEvent += topLevelChange.FileChange.FileChange_UpDown;
-                                        }
-
-                                        Data.commonThisEngine.FileTransferQueued(nonNullTask.ThreadId,
-                                            topLevelChange.FileChange.EventId,
-                                            nonNullTask.Direction,
-                                            topLevelChange.FileChange.NewPath.GetRelativePath(Data.commonThisEngine.syncBox.CopiedSettings.SyncRoot, false),
-                                            (long)topLevelChange.FileChange.Metadata.HashableProperties.Size);
-
-                                        // try/catch to start the async task, or removing the UpDownEvent handler and rethrowing on exception
-                                        try
-                                        {
-                                            // start async task on the HttpScheduler
-                                            nonNullTask.Task.Start(
-                                                HttpScheduler.GetSchedulerByDirection(nonNullTask.Direction, Data.commonThisEngine.syncBox.CopiedSettings)); // retrieve HttpScheduler by direction and settings (upload and download are on seperate queues, and settings are used for error logging)
-
-                                            // add task as asynchronously processed
-                                            asynchronouslyPreprocessed.Add(topLevelChange.FileChange);
-                                        }
-                                        catch
-                                        {
-                                            // remove UpDownEvent handler on exception
-                                            Data.commonThisEngine.RemoveFileChangeFromUpDownEvent(topLevelChange.FileChange);
-
-                                            // rethrow
-                                            throw;
-                                        }
-
-                                        // search for the FileChange in the errors by FileChange equality and Stream equality
-                                        Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> foundErrorToRemove = Data.commonErrorsToQueue.Value
-                                            .Where(findErrorToQueue => findErrorToQueue.FileChange == topLevelChange.FileChange && findErrorToQueue.Stream == topLevelChange.Stream)
-                                            .Select(findErrorToQueue => (Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>)findErrorToQueue)
-                                            .FirstOrDefault();
-                                        // if a matching error was found, then remove it from the errors
-                                        if (foundErrorToRemove != null)
-                                        {
-                                            Data.commonErrorsToQueue.Value.Remove((PossiblyStreamableAndPossiblyPreexistingErrorFileChange)foundErrorToRemove);
-                                        }
+                                        Data.finalizeAndStartAsyncTask.TypedData.asyncTask.Value =
+                                            new PossiblyStreamableFileChangeWithUploadDownloadTask(
+                                                topLevelChange,
+                                                (AsyncUploadDownloadTask)asyncTask);
+                                        Data.finalizeAndStartAsyncTask.Process();
                                     }
                                 }
                             }
@@ -2398,7 +2494,7 @@ namespace Cloud.Sync
                         }
                     }
                     // run function which reinserts dependencies into topLevelChanges in sorted order and loops when true is returned for reprocessing
-                    while (reprocessForDependencies());
+                    while (Data.doesPreprocessingNeedToRepeatForDependencies.TypedProcess());
 
                     return false; // false for not shutdown
                 },
@@ -2406,34 +2502,1000 @@ namespace Cloud.Sync
 
             #endregion
 
+            #region onBatchProcessedSendStatusMessages
+
+            var onBatchProcessedSendStatusMessages = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    commonSynchronouslyProcessed = commonSynchronouslyProcessed,
+                    commonAsynchronouslyProcessed = commonAsynchronouslyProcessed
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    if (Data.commonSynchronouslyProcessed.Value.Count != 0)
+                    {
+                        int syncToCount = Data.commonSynchronouslyProcessed.Value.Count(syncProcess => syncProcess.Direction == SyncDirection.To);
+                        int syncFromCount = Data.commonSynchronouslyProcessed.Value.Count - syncToCount;
+
+                        MessageEvents.FireNewEventMessage(
+                            (syncToCount == 0
+                                ? string.Empty
+                                : syncToCount.ToString() +
+                                    " change" + (syncToCount == 1 ? string.Empty : "s") + " synced to server" +
+                                    (syncFromCount == 0
+                                        ? string.Empty
+                                        : " and ")) +
+                                (syncFromCount == 0
+                                    ? string.Empty
+                                    : syncFromCount.ToString() +
+                                        " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
+                            EventMessageLevel.Important,
+                            SyncBoxId: syncBox.SyncBoxId,
+                            DeviceId: syncBox.CopiedSettings.DeviceId);
+                    }
+                    if (Data.commonAsynchronouslyProcessed.Value.Count != 0)
+                    {
+                        int syncToCount = Data.commonAsynchronouslyProcessed.Value.Count(syncProcess => syncProcess.Direction == SyncDirection.To);
+                        int syncFromCount = Data.commonAsynchronouslyProcessed.Value.Count - syncToCount;
+
+                        MessageEvents.FireNewEventMessage(
+                            (syncToCount == 0
+                                ? string.Empty
+                                : syncToCount.ToString() +
+                                    " file" + (syncToCount == 1 ? string.Empty : "s") + " queued for upload" +
+                                    (syncFromCount == 0
+                                        ? string.Empty
+                                        : " and ")) +
+                                (syncFromCount == 0
+                                    ? string.Empty
+                                    : syncFromCount.ToString() +
+                                        " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
+                            EventMessageLevel.Important,
+                            SyncBoxId: Data.commonThisEngine.syncBox.SyncBoxId,
+                            DeviceId: Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region buildChangesForCommunicationArrayAndSetErrorsToQueueToRemainingChanges
+
+            var buildChangesForCommunicationArrayAndSetErrorsToQueueToRemainingChanges = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    commonOutputChanges = commonOutputChanges,
+                    commonPreprocessedEvents = commonPreprocessedEvents,
+                    traceChangesEnumerableWithFlowState = traceChangesEnumerableWithFlowState,
+                    oneLineChangeFlowTrace = oneLineChangeFlowTrace,
+                    positionInChangeFlow = positionInChangeFlow,
+                    changesToTrace = changesToTrace,
+                    commonErrorsToQueue = commonErrorsToQueue,
+                    commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
+                    commonSuccessfulEventIds = commonSuccessfulEventIds,
+                    queuedFailures = new GenericHolder<IEnumerable<FileChange>>(null)
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // store changes not already processed as a new array
+                    PossiblyStreamableFileChange[] innerChangesForCommunication;
+
+                    List<PossiblyStreamableFileChange> normalSyncToCommuncationChanges = null;
+                    List<PossiblyStreamableFileChange> changesNotForCommunication = null;
+                    HashSet<FileChange> changesInCommunicationOrDequeuedDependencies = new HashSet<FileChange>();
+
+                    foreach (PossiblyStreamableFileChange currentOutputChange in Data.commonOutputChanges.Value.Except(Data.commonPreprocessedEvents.Value))
+                    {
+                        try
+                        {
+                            switch (currentOutputChange.FileChange.Direction)
+                            {
+                                case SyncDirection.From:
+                                    if (changesNotForCommunication == null)
+                                    {
+                                        changesNotForCommunication = new List<PossiblyStreamableFileChange>();
+                                    }
+
+                                    changesNotForCommunication.Add(currentOutputChange);
+                                    break;
+
+                                case SyncDirection.To:
+                                    if (normalSyncToCommuncationChanges == null)
+                                    {
+                                        normalSyncToCommuncationChanges = new List<PossiblyStreamableFileChange>();
+                                    }
+
+                                    normalSyncToCommuncationChanges.Add(currentOutputChange);
+
+                                    changesInCommunicationOrDequeuedDependencies.Add(currentOutputChange.FileChange);
+                                    break;
+
+                                default:
+                                    throw new NotSupportedException("Unknown currentOutputChange FileChange Direction: " + currentOutputChange.FileChange.Direction.ToString());
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            errorToAccumulate.Value += ex;
+                        }
+                    }
+
+                    if (normalSyncToCommuncationChanges == null)
+                    {
+                        innerChangesForCommunication = new PossiblyStreamableFileChange[0];
+                    }
+                    else
+                    {
+                        innerChangesForCommunication = normalSyncToCommuncationChanges.ToArray();
+                    }
+
+                    if (changesNotForCommunication != null)
+                    {
+                        // for advanced trace, SyncRunErrorSyncFromForCommunication
+                        Data.oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunErrorSyncFromForCommunication, changesNotForCommunication.Select(currentChangeNotForCommunication => currentChangeNotForCommunication.FileChange), Data.traceChangesEnumerableWithFlowState, Data.positionInChangeFlow, Data.changesToTrace);
+                    }
+
+                    // outputChanges is not used again,
+                    // it is redefined after communication and after reassigning dependencies
+
+                    if (Data.commonThingsThatWereDependenciesToQueue.Value != null)
+                    {
+                        foreach (FileChange thingThatWasADependency in Data.commonThingsThatWereDependenciesToQueue.Value)
+                        {
+                            changesInCommunicationOrDequeuedDependencies.Add(thingThatWasADependency);
+                        }
+                    }
+
+                    // store the current errors which will not be making it to the next step (communication) to an array
+                    PossiblyStreamableAndPossiblyPreexistingErrorFileChange[] errorsToRequeue = Data.commonErrorsToQueue.Value
+                        .Where(currentErrorToQueue => !changesInCommunicationOrDequeuedDependencies.Contains(currentErrorToQueue.FileChange))
+                        .ToArray();
+
+                    // declare the enumerable of failures for the log
+                    IEnumerable<FileChange> failuresBeforeCommunicationToLog;
+
+                    // add errors to failure queue (which will exclude changes which were succesfully completed)
+                    Data.commonThisEngine.RequeueFailures(
+                        new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>(errorsToRequeue), // all communication errors and some completed events
+                        Data.commonSuccessfulEventIds, // completed event ids, used to filter errors to just errors
+                        errorToAccumulate, // return error to aggregate with more errors
+                        out failuresBeforeCommunicationToLog); // output the enumerable of failures for the log
+
+                    Data.queuedFailures.Value = failuresBeforeCommunicationToLog;
+
+                    // redefine the errors enumeration by all the changes which will be used in the next step (communication)
+                    Data.commonErrorsToQueue.Value = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>(
+                        innerChangesForCommunication
+                            .Select(currentChangeForCommunication => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(
+                                false,
+                                currentChangeForCommunication.FileChange,
+                                currentChangeForCommunication.Stream)));
+
+                    return innerChangesForCommunication;
+                },
+                toReturn);
+
+            #endregion
+
+            #region handleCredentialsErrorIfAny
+
+            var handleCredentialsErrorIfAny = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    commonCredentialsError = commonCredentialsError
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    if (Data.commonCredentialsError.Value == null
+                        || ((CredentialErrorType)Data.commonCredentialsError.Value) != CredentialErrorType.NoError)
+                    {
+                        lock (Data.commonThisEngine.CredentialErrorDetected)
+                        {
+                            Data.commonThisEngine.CredentialErrorDetected.Value = credentialsError;
+                        }
+
+                        try
+                        {
+                            string errorMessage;
+                            switch (credentialsError)
+                            {
+                                case CredentialErrorType.ExpiredCredentials:
+                                    errorMessage = "SyncEngine halted after credentials expired";
+                                    break;
+
+                                case CredentialErrorType.OtherError:
+                                    errorMessage = "SyncEngine halted after failing to authenticate";
+                                    break;
+
+                                //case CredentialErrorType.NoError: // should not happen since we already checked for no error
+                                default:
+                                    errorMessage = "SyncEngine halted after unknown credentials error: " + credentialsError.ToString();
+                                    break;
+                            }
+
+                            MessageEvents.FireNewEventMessage(
+                                errorMessage,
+                                EventMessageLevel.Important,
+                                /*Error*/new HaltSyncEngineOnAuthenticationFailureErrorInfo(credentialsError == CredentialErrorType.ExpiredCredentials),
+                                Data.commonThisEngine.syncBox.SyncBoxId,
+                                Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
+                        }
+                        catch (Exception ex)
+                        {
+                            errorToAccumulate.Value += ex;
+                        }
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region completeSyncIfNotContinueToProcessing
+
+            var completeSyncIfNotContinueToProcessing = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    commonCommunicationException = commonCommunicationException,
+                    commonNewSyncId = commonNewSyncId,
+                    commonSuccessfulEventIds = commonSuccessfulEventIds
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // if either an exception occurred in communication or there were no changes to sync (no new sync id returned),
+                    // then the normal post-communication processing will not occur which includes moving synchronously completed pre-processing changes to a completed state,
+                    // so do that here now
+                    if (Data.commonCommunicationException.Value != null
+                        || Data.commonNewSyncId.Value == null)
+                    {
+                        if (Data.commonSuccessfulEventIds.Count > 0)
+                        {
+                            // declare long to store incrementing count of syncs
+                            long syncCounter;
+
+                            // Write new Sync point to database with successful events
+                            CLError recordSyncError = Data.commonThisEngine.syncData.completeSyncSql(
+                                Data.commonThisEngine.syncData.getLastSyncId, // communication did not run, so use last sync id
+                                Data.commonSuccessfulEventIds, // enumerable of event ids which have been completed
+                                out syncCounter, // output incremented count of syncs
+                                (Data.commonThisEngine.syncBox.CopiedSettings.SyncRoot ?? string.Empty)); // pass current cloud root
+
+                            // if there was an error recording a new Sync, then append the exception to the return error
+                            if (recordSyncError != null)
+                            {
+                                errorToAccumulate.Value += recordSyncError.GrabFirstException();
+                            }
+                            else
+                            {
+                                Data.commonThisEngine.RunLocker.Value = true;
+                            }
+                        }
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region pullSuccessIdsFromCompletedChangesAndPullOutDependencies
+
+            var pullSuccessIdsFromCompletedChangesAndPullOutDependencies = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonCompletedChanges = commonCompletedChanges,
+                    commonSuccessfulEventIds = commonSuccessfulEventIds,
+                    commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // loop through completed changes
+                    foreach (PossiblyChangedFileChange currentCompletedChange in Data.commonCompletedChanges.Value)
+                    {
+                        // add id of completed changes to list
+                        Data.commonSuccessfulEventIds.Add(currentCompletedChange.FileChange.EventId);
+
+                        // try casting the completed change to one with dependencies
+                        FileChangeWithDependencies castCurrentCompletedChange = currentCompletedChange.FileChange as FileChangeWithDependencies;
+                        // if the completed change is one with dependencies with a count greater than zero, then concatenate the dependencies to all dependencies to requeue
+                        if (castCurrentCompletedChange != null
+                            && castCurrentCompletedChange.DependenciesCount > 0)
+                        {
+                            if (Data.commonThingsThatWereDependenciesToQueue.Value == null)
+                            {
+                                Data.commonThingsThatWereDependenciesToQueue.Value  = castCurrentCompletedChange.Dependencies;
+                            }
+                            else
+                            {
+                                Data.commonThingsThatWereDependenciesToQueue.Value  = Data.commonThingsThatWereDependenciesToQueue.Value .Concat(castCurrentCompletedChange.Dependencies);
+                            }
+                        }
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region mergePostCommunicationChangesToSQL
+
+            var mergePostCommunicationChangesToSQL = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    commonCompletedChanges = commonCompletedChanges,
+                    commonIncompleteChanges = commonIncompleteChanges,
+                    commonChangesInError = commonChangesInError
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // Merge in server values into DB (storage key, revision, etc) and add new Sync From events
+                    CLError communicatedChangesToSqlError = Data.commonThisEngine.syncData.mergeToSql(
+
+                        // concatenate together all the groups of changes (before filtering by whether or not the sql change is needed)
+                        (Data.commonCompletedChanges.Value ?? Enumerable.Empty<PossiblyChangedFileChange>()) // changes completed during communication
+                        .Concat((Data.commonIncompleteChanges.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>()) // concatenate changes that still need to be performed
+                            .Select(currentIncompleteChange => new PossiblyChangedFileChange(currentIncompleteChange.Changed, currentIncompleteChange.FileChange))) // reselect into same format
+                        .Concat((Data.commonChangesInError.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>()) // concatenate changes that were in error during communication (i.e. conflicts)
+                            .Select(currentChangeInError => new PossiblyChangedFileChange(currentChangeInError.Changed, currentChangeInError.FileChange))) // reselect into same format
+
+                        // filter to only merge events into sql which have been marked as changed
+                        .Where(currentMerge => currentMerge.Changed)
+
+                        // reselect filtered changes into FileChangeMerge
+                        .Select(currentMerge => //setToAddToSQL(new FileChangeMerge(currentMerge.FileChange))));
+                            {
+                                currentMerge.FileChange.DoNotAddToSQLIndex = false;
+                                return new FileChangeMerge(currentMerge.FileChange);
+                            }));
+
+                    // failing to merge communicated changes into SQL is a serious error and will cause changes to be lost if the sync id is updated in the database later;
+                    // because this may be at least partially unrecoverable, if there was an error, then show the message
+                    if (communicatedChangesToSqlError != null)
+                    {
+                        MessageEvents.FireNewEventMessage(
+                            "syncData.mergeToSql returned an error after communicating changes: " + communicatedChangesToSqlError.errorDescription,
+                            EventMessageLevel.Important,
+                            new HaltAllOfCloudSDKErrorInfo());
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region appendPostCommunicationErrorsToReturn
+
+            var appendPostCommunicationErrorsToReturn = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonChangesInError = commonChangesInError
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // if there were changes in error during communication, then loop through them to add their streams and exceptions to the return error
+                    if (Data.commonChangesInError.Value != null)
+                    {
+                        // loop through the changes in error during communication to add their streams and exceptions to the return error
+                        foreach (PossiblyStreamableAndPossiblyChangedFileChangeWithError grabException in Data.commonChangesInError.Value)
+                        {
+                            errorToAccumulate.Value += grabException.Stream;
+                            errorToAccumulate.Value += grabException.Error;
+                        }
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region dequeueFailuresIncludingNulls
+
+            var dequeueFailuresIncludingNulls = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    verifyUnderFailureTimerLock = verifyUnderFailureTimerLock,
+                    commonDequeuedFailuresIncludingNulls = commonDequeuedFailuresIncludingNulls
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    Data.verifyUnderFailureTimerLock.Process();
+
+                    // Initialize and fill an array of FileChanges dequeued from the failure queue
+                    Data.commonDequeuedFailuresIncludingNulls.Value = new FileChange[Data.commonThisEngine.FailedChangesQueue.Count];
+                    for (int currentQueueIndex = 0; currentQueueIndex < Data.commonDequeuedFailuresIncludingNulls.Value.Length; currentQueueIndex++)
+                    {
+                        Data.commonDequeuedFailuresIncludingNulls.Value[currentQueueIndex] = Data.commonThisEngine.FailedChangesQueue.Dequeue();
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region assignDependenciesAfterCommunication
+
+            var assignDependenciesAfterCommunication = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    verifyUnderFailureTimerLock = verifyUnderFailureTimerLock,
+                    commonTopLevelErrors = commonTopLevelErrors,
+                    commonNullErrorFoundInFailureQueue = commonNullErrorFoundInFailureQueue,
+                    commonSuccessfulEventIds = commonSuccessfulEventIds,
+                    commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
+                    commonIncompleteChanges = commonIncompleteChanges,
+                    commonChangesInError = commonChangesInError,
+                    commonDequeuedFailuresIncludingNulls = commonDequeuedFailuresIncludingNulls,
+                    commonOutputChanges = commonOutputChanges,
+                    commonErrorsToQueue = commonErrorsToQueue,
+                    traceChangesEnumerableWithFlowState = traceChangesEnumerableWithFlowState,
+                    oneLineChangeFlowTrace = oneLineChangeFlowTrace,
+                    positionInChangeFlow = positionInChangeFlow,
+                    changesToTrace = changesToTrace
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    Data.verifyUnderFailureTimerLock.Process();
+
+                    Data.commonNullErrorFoundInFailureQueue.Value = false;
+
+                    // Define a boolean to store whether an error was requeued, defaulting to false
+                    bool atLeastOneErrorAdded = false;
+
+                    // Try/finally to reassign dependencies (between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared)
+                    // On finally, if an error was requeued, start the failure queue timer
+                    try
+                    {
+                        // Try/catch to reassign dependencies (between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared)
+                        // On catch, requeue changes which were dequeued from the error queue and rethrow the exception
+                        try
+                        {
+                            // Sort list of successully completed event ids so it can be used for binary search
+                            Data.commonSuccessfulEventIds.Sort();
+
+                            // Create a list of file upload changes which cannot be processed because they are missing streams
+                            List<PossiblyStreamableFileChange> uploadFilesWithoutStreams = new List<PossiblyStreamableFileChange>(
+                                (Data.commonThingsThatWereDependenciesToQueue.Value ?? Enumerable.Empty<FileChange>())
+                                    .Select(uploadFileWithoutStream => new PossiblyStreamableFileChange(uploadFileWithoutStream, null))); // reselected to appropriate format
+
+                            CLError postCommunicationDependencyError;
+
+                            //Func<FileChange, GenericHolder<bool>, bool> checkForNullAndMark = (toCheck, nullFound) =>
+                            //{
+                            //    if (toCheck == null)
+                            //    {
+                            //        nullErrorFound.Value = true;
+                            //        return false;
+                            //    }
+
+                            //    return true;
+                            //};
+
+                            lock (Data.commonThisEngine.FailedOutTimer.TimerRunningLocker)
+                            {
+                                bool previousFailedOutChange = Data.commonThisEngine.FailedOutChanges.Count > 0;
+
+                                // Declare enumerable for errors to set after dependency calculations
+                                // (will be top level a.k.a. not have any dependencies)
+                                IEnumerable<FileChange> topLevelErrors;
+
+                                IEnumerable<PossiblyStreamableFileChange> outputChanges;
+
+                                // Assign dependencies through a callback to the event source,
+                                // between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared;
+                                // Store any error returned
+                                postCommunicationDependencyError = Data.commonThisEngine.syncData.dependencyAssignment(
+
+                                    // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
+                                    (Data.commonIncompleteChanges.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
+                                        .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.Stream))
+                                        .Concat(uploadFilesWithoutStreams),
+
+                                    // second pass the enumerable of errors from the changes which had an error during communication and the changes that were in the queue for reprocessing
+                                    Data.commonDequeuedFailuresIncludingNulls.Value
+
+                                        // filter for non-nulls, also if a null is found then mark it
+                                        .Where(dequeuedFailure =>
+                                            {
+                                                if (dequeuedFailure == null)
+                                                {
+                                                    Data.commonNullErrorFoundInFailureQueue.Value = true;
+                                                    return false;
+                                                }
+                                                return true;
+                                            })
+                                        .Concat((Data.commonChangesInError.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
+                                        .Select(currentChangeInError => currentChangeInError.FileChange)
+                                        .Where(currentChangeInError => currentChangeInError != null)),// FileChange could be null for errors if there was an exeption but no FileChange was built
+
+                                    // output changes to process
+                                    out outputChanges,
+
+                                    // output changes to put into failure queue for reprocessing
+                                    out topLevelErrors);
+
+                                Data.commonOutputChanges.Value = outputChanges;
+                                Data.commonTopLevelErrors.Value = topLevelErrors;
+
+                                if (previousFailedOutChange
+                                    && Data.commonThisEngine.FailedOutChanges.Count == 0)
+                                {
+                                    Data.commonThisEngine.FailedOutTimer.TriggerTimerCompletionImmediately();
+                                }
+                            }
+
+                            // if there was an error assigning dependencies, then rethrow exception for null outputs or aggregate error to return and continue for non-null outputs
+                            if (postCommunicationDependencyError != null)
+                            {
+                                // if either output is null, then rethrow the exception
+                                if (Data.commonOutputChanges.Value == null
+                                    || Data.commonTopLevelErrors.Value == null)
+                                {
+                                    throw new AggregateException("Error on dependencyAssignment and outputs are not set", postCommunicationDependencyError.GrabExceptions());
+                                }
+                                // else if both outputs were not null, then aggregate the exception to the return error
+                                else
+                                {
+                                    errorToAccumulate.Value += new AggregateException("Error on dependencyAssignment", postCommunicationDependencyError.GrabExceptions());
+                                }
+                            }
+
+                            // outputChanges now contains the dependency-assigned changes left to process after communication (from incompleteChanges)
+
+                            // if there were any changes to process, then set redefine the thingsThatWereDependenciesToQueue and outputChanges appropriately
+                            if (Data.commonOutputChanges.Value != null)
+                            {
+                                // if there were any file changes which could not be uploaded due to a missing stream,
+                                // then assign thingsThatWereDependenciesToQueue by processing changes which were changes that could not be processed
+                                if (uploadFilesWithoutStreams.Count > 0)
+                                {
+                                    Data.commonThingsThatWereDependenciesToQueue.Value = Data.commonOutputChanges.Value
+                                        .Select(outputChange => outputChange.FileChange)
+                                        .Intersect(Data.commonThingsThatWereDependenciesToQueue.Value);
+                                }
+
+                                // if the enumerable of dependency changes to requeue has been cleared out (exists but contains nothing), then redefine to null
+                                if (Data.commonThingsThatWereDependenciesToQueue.Value != null
+                                    && !Data.commonThingsThatWereDependenciesToQueue.Value.Any())
+                                {
+                                    Data.commonThingsThatWereDependenciesToQueue.Value = null;
+                                }
+
+                                // if the resulting enumerable of dependency changes to requeue remains, then set the processing changes to the changes not in that enumerable
+                                if (Data.commonThingsThatWereDependenciesToQueue.Value != null)
+                                {
+                                    Data.commonOutputChanges.Value = Data.commonOutputChanges.Value.Where(outputChange => !Data.commonThingsThatWereDependenciesToQueue.Value.Contains(outputChange.FileChange));
+                                }
+                            }
+
+                            // For advanced trace, DependencyAssignmentOutputChanges and DependencyAssignmentTopLevelErrors
+                            Data.oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, Data.commonOutputChanges.Value.Select(outputChange => outputChange.FileChange), Data.traceChangesEnumerableWithFlowState, Data.positionInChangeFlow, Data.changesToTrace);
+                            Data.oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, Data.commonTopLevelErrors.Value, Data.traceChangesEnumerableWithFlowState, Data.positionInChangeFlow, Data.changesToTrace);
+
+                            // outputChanges now excludes any FileChanges which overlapped with the existing list of thingsThatWereDependenciesToQueue
+                            // (because that means the changes are file uploads without FileStreams and cannot be processed now)
+
+                            Data.commonErrorsToQueue.Value = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>((Data.commonOutputChanges.Value ?? Enumerable.Empty<PossiblyStreamableFileChange>())
+                                .Select(currentOutputChange => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(false, currentOutputChange.FileChange, currentOutputChange.Stream)));
+
+                            // errorsToQueue now contains the outputChanges from after communication and dependency assignment
+                            // (errors from communication and dependency assignment will be added immediately to failure queue
+
+                            // Loop through errors returned from reassigning dependencies to requeue for failure processing
+                            foreach (FileChange currentTopLevelError in Data.commonTopLevelErrors.Value ?? Enumerable.Empty<FileChange>())
+                            {
+                                // Requeue change for failure processing
+                                Data.commonThisEngine.FailedChangesQueue.Enqueue(currentTopLevelError);
+
+                                // Mark that a change was queued for failure processing
+                                atLeastOneErrorAdded = true;
+                            }
+                        }
+                        catch
+                        {
+                            // On error of assigning dependencies,
+                            // put all the original failure queue items back in the failure queue;
+                            // finally, rethrow the exception
+                            for (int currentQueueIndex = 0; currentQueueIndex < Data.commonDequeuedFailuresIncludingNulls.Value.Length; currentQueueIndex++)
+                            {
+                                Data.commonThisEngine.FailedChangesQueue.Enqueue(Data.commonDequeuedFailuresIncludingNulls.Value[currentQueueIndex]);
+
+                                atLeastOneErrorAdded = true;
+                            }
+                            throw;
+                        }
+                    }
+                    finally
+                    {
+                        // No matter what, if even one change had been requeued to the failure queue, then start the failure queue timer
+                        if (atLeastOneErrorAdded)
+                        {
+                            Data.commonThisEngine.FailureTimer.StartTimerIfNotRunning();
+                        }
+                        else if (Data.commonNullErrorFoundInFailureQueue.Value)
+                        {
+                            Data.commonThisEngine.FailedChangesQueue.Enqueue(null);
+                            Data.commonThisEngine.FailureTimer.StartTimerIfNotRunning();
+                        }
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region completeSynchronousChangesAfterCommunicationAndReturnRemainingAsynchronousTasks
+
+            var completeSynchronousChangesAfterCommunicationAndReturnRemainingAsynchronousTasks = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    commonSynchronouslyProcessed = commonSynchronouslyProcessed,
+                    commonOutputChanges = commonOutputChanges,
+                    commonSuccessfulEventIds = commonSuccessfulEventIds,
+                    commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
+                    commonTempDownloadsFolder = commonTempDownloadsFolder
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    List<PossiblyStreamableFileChangeWithUploadDownloadTask> asyncTasksToRun = new List<PossiblyStreamableFileChangeWithUploadDownloadTask>();
+                    
+                    // Create a new list for changes which can be performed synchronously
+                    Data.commonSynchronouslyProcessed.Value = new List<FileChange>();
+
+                    // Synchronously complete all local operations without dependencies (exclude file upload/download) and record successful events;
+                    // If a completed event has dependencies, stick them on the end of the current batch;
+                    // If an event fails to complete, leave it on errorsToQueue so it will be added to the failure queue later
+                    foreach (PossiblyStreamableFileChange topLevelChange in Data.commonOutputChanges.Value)
+                    {
+                        // Declare event id for a successfully performed synchronous change
+                        Nullable<long> successfulEventId;
+                        // Declare Task for uploading or downloading files to perform asynchronously
+                        Nullable<AsyncUploadDownloadTask> asyncTask;
+
+                        // run private method which handles performing the action of a single FileChange, storing any exceptions thrown (which are caught and returned)
+                        Exception completionException = Data.commonThisEngine.CompleteFileChange(
+                            topLevelChange, // change to perform
+                            Data.commonThisEngine.FailureTimer, // timer for failure queue
+                            out successfulEventId, // output successful event id or null
+                            out asyncTask, // out async upload or download task to perform or null
+                            Data.commonTempDownloadsFolder); // full path location of folder to store temp file downloads
+
+                        // if there was a non-null and valid event id output as succesful,
+                        // then add to synchronous list, add to success list, remove from errors, and check and concatenate any dependent FileChanges
+                        if (successfulEventId != null
+                            && (long)successfulEventId > 0)
+                        {
+                            // add change to synchronous list
+                            Data.commonSynchronouslyProcessed.Value.Add(topLevelChange.FileChange);
+
+                            // add successful id for completed event
+                            Data.commonSuccessfulEventIds.Add((long)successfulEventId);
+
+                            // try to cast the successful change as one with dependencies
+                            FileChangeWithDependencies changeWithDependencies = topLevelChange.FileChange as FileChangeWithDependencies;
+                            // if change was one with dependencies and has a dependency, then concatenate the dependencies into thingsThatWereDependenciesToQueue
+                            if (changeWithDependencies != null
+                                && changeWithDependencies.DependenciesCount > 0)
+                            {
+                                if (Data.commonThingsThatWereDependenciesToQueue.Value == null)
+                                {
+                                    Data.commonThingsThatWereDependenciesToQueue.Value = changeWithDependencies.Dependencies;
+                                }
+                                else
+                                {
+                                    Data.commonThingsThatWereDependenciesToQueue.Value = Data.commonThingsThatWereDependenciesToQueue.Value.Concat(changeWithDependencies.Dependencies);
+                                }
+                            }
+                        }
+                        // else if there was not a valid successful event id, then process for errors or async tasks
+                        else
+                        {
+                            // if there was an exception, aggregate into returned error
+                            if (completionException != null)
+                            {
+                                errorToAccumulate.Value += completionException;
+                            }
+
+                            // if there was an async task to perform, then add it to list to start
+                            if (asyncTask != null)
+                            {
+                                // add task to list to start
+                                asyncTasksToRun.Add(new PossiblyStreamableFileChangeWithUploadDownloadTask(topLevelChange,
+                                    (AsyncUploadDownloadTask)asyncTask));
+                            }
+                        }
+                    }
+
+                    return asyncTasksToRun;
+                },
+                toReturn);
+
+            #endregion
+
+            #region completeSyncToSQL
+
+            var completeSyncToSQL = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    commonNewSyncId = commonNewSyncId,
+                    commonSuccessfulEventIds = commonSuccessfulEventIds
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // declare long to store incrementing count of syncs
+                    long syncCounter;
+
+                    // Write new Sync point to database with successful events
+                    CLError recordSyncError = Data.commonThisEngine.syncData.completeSyncSql(
+                        Data.commonNewSyncId.Value, // New Sync ID provided by server
+                        Data.commonSuccessfulEventIds, // enumerable of event ids which have been completed
+                        out syncCounter, // output incremented count of syncs
+                        (Data.commonThisEngine.syncBox.CopiedSettings.SyncRoot ?? string.Empty)); // pass current cloud root
+
+                    // if there was an error recording a new Sync, then append the exception to the return error
+                    if (recordSyncError != null)
+                    {
+                        errorToAccumulate.Value += recordSyncError.GrabFirstException();
+                    }
+                    else
+                    {
+                        Data.commonThisEngine.RunLocker.Value = true;
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region startAndReturnPostCommunicationAsynchronousChanges
+
+            var startAndReturnPostCommunicationAsynchronousChanges = DelegateAndDataHolder.Create(
+                new
+                {
+                    asyncTasksToRun = new GenericHolder<List<PossiblyStreamableFileChangeWithUploadDownloadTask>>(null),
+                    commonAsynchronouslyProcessed = commonAsynchronouslyProcessed,
+                    finalizeAndStartAsyncTask = finalizeAndStartAsyncTask
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    Data.commonAsynchronouslyProcessed.Value = new List<FileChange>();
+
+                    // Asynchronously fire off all remaining upload/download operations without dependencies
+                    foreach (PossiblyStreamableFileChangeWithUploadDownloadTask asyncTask in Data.asyncTasksToRun.Value)
+                    {
+                        // try/catch to process async task, on catch append exception to return
+                        try
+                        {
+                            Data.finalizeAndStartAsyncTask.TypedData.asyncTask.Value = asyncTask;
+                            Data.finalizeAndStartAsyncTask.Process();
+                        }
+                        catch (Exception ex)
+                        {
+                            // append exception to return error
+                            errorToAccumulate.Value += ex;
+                        }
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region sendFinishedMessage
+
+            var sendFinishedMessage = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    MessageEvents.FireNewEventMessage(
+                        "Finished processing sync changes",
+                        EventMessageLevel.Minor,
+                        SyncBoxId: Data.commonThisEngine.syncBox.SyncBoxId,
+                        DeviceId: Data.commonThisEngine.syncBox.CopiedSettings.DeviceId);
+                },
+                toReturn);
+
+            #endregion
+
+            #region addDependenciesBackToProcessingQueue
+
+            var addDependenciesBackToProcessingQueue = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // if there were dependencies to queue, then process adding them back to the event source to come back on next sync
+                    if (Data.commonThingsThatWereDependenciesToQueue.Value != null)
+                    {
+                        // try/catch to add dependencies to processing queue in event source to come back on next sync, on catch add dependencies to failure queue
+                        try
+                        {
+                            // add all dependencies to the top of the processing queue in the order they were discovered;
+                            // if there are any errors in queueing, add the changes to the failure queue instead;
+                            // also if there are any errors, add them to the returned aggregated errors
+                            GenericHolder<List<FileChange>> queueingErrors = new GenericHolder<List<FileChange>>();
+                            // add dependencies to top of queue for next sync run when it calls back to event source
+                            CLError queueingError = Data.commonThisEngine.syncData.addChangesToProcessingQueue(Data.commonThingsThatWereDependenciesToQueue.Value, /* add to top */ true, queueingErrors);
+                            // if an error list was set, then add failed changes to failure queue
+                            if (queueingErrors.Value != null)
+                            {
+                                // lock on failure queue timer to modify failure queue
+                                lock (Data.commonThisEngine.FailureTimer.TimerRunningLocker)
+                                {
+                                    // define bool for whether at least one failure was added
+                                    bool atLeastOneFailureAdded = false;
+
+                                    // loop through changes failed to add to processing queue
+                                    foreach (FileChange currentQueueingError in queueingErrors.Value)
+                                    {
+                                        // enqueue current failed change to failure queue
+                                        Data.commonThisEngine.FailedChangesQueue.Enqueue(currentQueueingError);
+
+                                        // mark that a failure was added
+                                        atLeastOneFailureAdded = true;
+                                    }
+
+                                    // if at least one failure was added, then start the failure queue timer
+                                    if (atLeastOneFailureAdded)
+                                    {
+                                        Data.commonThisEngine.FailureTimer.StartTimerIfNotRunning();
+                                    }
+                                }
+                            }
+                            // if there was an error queueing dependencies to processing queue in event source, then aggregate error to return error
+                            if (queueingError != null)
+                            {
+                                errorToAccumulate.Value += new AggregateException("Error adding dependencies to processing queue after sync", queueingError.GrabExceptions());
+                            }
+                        }
+                        // on catch, add dependencies to failure queue
+                        catch (Exception ex)
+                        {
+                            // on serious error in queueing changes,
+                            // instead add them all to the failure queue add add the error to the returned aggregate errors
+
+                            // lock on failure queue timer to modify failure queue
+                            lock (Data.commonThisEngine.FailureTimer.TimerRunningLocker)
+                            {
+                                // define bool for whether at least one failure was added
+                                bool atLeastOneFailureAdded = false;
+
+                                // loop through changes failed to add to processing queue
+                                foreach (FileChange currentQueueingError in Data.commonThingsThatWereDependenciesToQueue.Value)
+                                {
+                                    // enqueue current failed change to failure queue
+                                    Data.commonThisEngine.FailedChangesQueue.Enqueue(currentQueueingError);
+
+                                    // mark that a failure was added
+                                    atLeastOneFailureAdded = true;
+                                }
+
+                                // if at least one failure was added, then start the failure queue timer
+                                if (atLeastOneFailureAdded)
+                                {
+                                    Data.commonThisEngine.FailureTimer.StartTimerIfNotRunning();
+                                }
+                            }
+                            // append exception to return error
+                            errorToAccumulate.Value += ex;
+                        }
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #region requeueFinalFailures
+
+            var requeueFinalFailures = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    commonErrorsToQueue = commonErrorsToQueue,
+                    commonSuccessfulEventIds = commonSuccessfulEventIds
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    IEnumerable<FileChange> syncRunEndFailuresToLog;
+
+                    // add errors to failure queue (which will exclude changes which were succesfully completed)
+                    Data.commonThisEngine.RequeueFailures(Data.commonErrorsToQueue.Value, // all errors and some completed events
+                        Data.commonSuccessfulEventIds, // completed event ids, used to filter errors to just errors
+                        errorToAccumulate, // return error to aggregate with more errors
+                        out syncRunEndFailuresToLog); // output enumerable of errors to log
+
+                    return syncRunEndFailuresToLog;
+                },
+                toReturn);
+
+            #endregion
+
+            #region disposeErrorStreamsAndLogErrors
+
+            var disposeErrorStreamsAndLogErrors = DelegateAndDataHolder.Create(
+                new
+                {
+                    commonThisEngine = this,
+                    syncStatus = new GenericHolder<string>(null)
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // if the output error aggregate contains any errors,
+                    // then add the sync status (to notify position in case of catastrophic failure),
+                    // dispose all FileStreams,
+                    // and log all errors
+                    if (errorToAccumulate != null)
+                    {
+                        // add latest sync status to error so it will appear in error log
+                        errorToAccumulate.Value.errorInfo.Add(CLError.ErrorInfo_Sync_Run_Status, Data.syncStatus.Value);
+                        // dequeue all Streams from the return error and dispose them, storing any error that occurs
+                        CLError disposalError = errorToAccumulate.Value.DequeueStreams().DisposeAllStreams();
+                        // if there was an error disposing streams, then aggregate all errors to return error
+                        if (disposalError != null)
+                        {
+                            foreach (Exception disposalException in disposalError.GrabExceptions())
+                            {
+                                errorToAccumulate.Value += disposalException;
+                            }
+                        }
+
+                        // define boolean to store whether the only content of the return error are streams to dispose, defaulting to true
+                        bool onlyErrorIsFileStream = true;
+                        // loop through all exceptions in the return error
+                        foreach (Exception errorException in errorToAccumulate.Value.GrabExceptions())
+                        {
+                            // if the current exception is not the exception added when a stream is added to the return error without an exception,
+                            // then mark that a non-stream content was found in the return error and stop checking
+                            if (errorException.Message != CLError.StreamFirstMessage)
+                            {
+                                onlyErrorIsFileStream = false;
+                                break;
+                            }
+                        }
+                        // if there was any error content besides streams to dispose, then log the errors
+                        if (!onlyErrorIsFileStream)
+                        {
+                            errorToAccumulate.Value.LogErrors(Data.commonThisEngine.syncBox.CopiedSettings.TraceLocation, Data.commonThisEngine.syncBox.CopiedSettings.LogErrors);
+                        }
+                    }
+                },
+                toReturn);
+
+            #endregion
+
+            #endregion
+
             // lock to prevent multiple simultaneous syncing on the current SyncEngine
             lock (RunLocker)
             {
-                var initialHaltException = checkHaltsAndErrors.Process();
+                var initialHaltException = checkHaltsAndErrors.TypedProcess();
                 if (initialHaltException != null)
                 {
                     return initialHaltException;
                 }
 
-                var disconnectedException = checkInternetConnection.Process();
+                var disconnectedException = checkInternetConnection.TypedProcess();
                 if (disconnectedException != null)
                 {
                     return disconnectedException.Value;
                 }
 
-                // declare a string which provides better line-range information for the last state when an error is logged
-                string syncStatus = "Sync Run entered";
+                syncStatus = "Sync Run entered";
 
                 // try/catch for primary sync logic, exception is aggregated to return
                 try
                 {
-                    var startingUpException = stopOnFullHaltOrStartup.Process();
+                    var startingUpException = stopOnFullHaltOrStartup.TypedProcess();
                     if (startingUpException != null)
                     {
                         return startingUpException;
                     }
 
-                    if (getIsShutdown.Process())
+                    if (getIsShutdown.TypedProcess())
                     {
                         try
                         {
@@ -2448,7 +3510,7 @@ namespace Cloud.Sync
                     SyncStillRunning(commonRunThreadId);
 
                     // If download temp folder was marked for cleaning
-                    if (checkTempNeedsCleaning.Process())
+                    if (checkTempNeedsCleaning.TypedProcess())
                     {
                         cleanTempDownloads.Process();
                     }
@@ -2457,13 +3519,10 @@ namespace Cloud.Sync
 
                     SyncStillRunning(commonRunThreadId);
 
-                    if (getIsShutdown.Process())
+                    if (getIsShutdown.TypedProcess())
                     {
                         return toReturn.Value;
                     }
-
-                    // declare bool for whether an exception (not converted as CLError) was thrown when retrieving events to process
-                    bool errorGrabbingChanges = false;
 
                     try
                     {
@@ -2472,14 +3531,14 @@ namespace Cloud.Sync
                         {
                             commonWithinFailureTimerLock.Value = true; // set back to false on finally outside of the lock
 
-                            grabFileMonitorChangesAndCombineHierarchyWithErrorsAndReturnWhetherSuccessful.Data.nullErrorFoundInFailureQueue.Value = dequeueNonNullFailuresAndReturnWhetherNullFound.Process();
+                            commonNullErrorFoundInFailureQueue.Value = dequeueNonNullFailuresAndReturnWhetherNullFound.TypedProcess();
 
                             oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, commonDequeuedFailuresExcludingNulls.Value.Select(currentInitialError => currentInitialError.FileChange), traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
                             // update last status
                             syncStatus = "Sync Run dequeued initial failures for dependency check";
 
-                            errorGrabbingChanges = !grabFileMonitorChangesAndCombineHierarchyWithErrorsAndReturnWhetherSuccessful.Process();
+                            errorGrabbingChanges = !grabFileMonitorChangesAndCombineHierarchyWithErrorsAndReturnWhetherSuccessful.TypedProcess();
                         }
                     }
                     finally
@@ -2503,66 +3562,21 @@ namespace Cloud.Sync
 
                         SyncStillRunning(commonRunThreadId);
 
-                        if (getIsShutdown.Process())
+                        if (getIsShutdown.TypedProcess())
                         {
                             return toReturn.Value;
                         }
 
-                        if (preprocessExistingEventsAndReturnWhetherShutdown.Process())
+                        if (preprocessExistingEventsAndReturnWhetherShutdown.TypedProcess())
                         {
                             return toReturn.Value;
                         }
 
                         // for advanced trace, log SyncRunPreprocessedEventsSynchronous and SyncRunPreprocessedEventsAsynchronous
-                        if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                        {
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
-                        }
+                        oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, commonSynchronouslyProcessed.Value, traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
+                        oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, commonAsynchronouslyProcessed.Value, traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
-                        // status message(s)
-                        if (synchronouslyPreprocessed.Count != 0)
-                        {
-                            int syncToCount = synchronouslyPreprocessed.Count(syncProcess => syncProcess.Direction == SyncDirection.To);
-                            int syncFromCount = synchronouslyPreprocessed.Count - syncToCount;
-
-                            MessageEvents.FireNewEventMessage(
-                                (syncToCount == 0
-                                    ? string.Empty
-                                    : syncToCount.ToString() +
-                                        " change" + (syncToCount == 1 ? string.Empty : "s") + " synced to server" +
-                                        (syncFromCount == 0
-                                            ? string.Empty
-                                            : " and ")) +
-                                    (syncFromCount == 0
-                                        ? string.Empty
-                                        : syncFromCount.ToString() +
-                                            " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
-                                EventMessageLevel.Important,
-                                SyncBoxId: syncBox.SyncBoxId,
-                                DeviceId: syncBox.CopiedSettings.DeviceId);
-                        }
-                        if (asynchronouslyPreprocessed.Count != 0)
-                        {
-                            int syncToCount = asynchronouslyPreprocessed.Count(syncProcess => syncProcess.Direction == SyncDirection.To);
-                            int syncFromCount = asynchronouslyPreprocessed.Count - syncToCount;
-
-                            MessageEvents.FireNewEventMessage(
-                                (syncToCount == 0
-                                    ? string.Empty
-                                    : syncToCount.ToString() +
-                                        " file" + (syncToCount == 1 ? string.Empty : "s") + " queued for upload" +
-                                        (syncFromCount == 0
-                                            ? string.Empty
-                                            : " and ")) +
-                                    (syncFromCount == 0
-                                        ? string.Empty
-                                        : syncFromCount.ToString() +
-                                            " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
-                                EventMessageLevel.Important,
-                                SyncBoxId: syncBox.SyncBoxId,
-                                DeviceId: syncBox.CopiedSettings.DeviceId);
-                        }
+                        onBatchProcessedSendStatusMessages.Process();
 
                         // after each loop where more FileChanges from previous dependencies are processed,
                         // if any FileChange is synchronously complete or queued for file upload/download then it is removed from errorsToQueue
@@ -2572,132 +3586,22 @@ namespace Cloud.Sync
                         // update last status
                         syncStatus = "Sync Run initial operations completed synchronously or queued";
 
-                        // store changes not already processed as a new array
-                        PossiblyStreamableFileChange[] changesForCommunication;
-
-                        // block for garbage collection of temporary collections
-                        {
-                            List<PossiblyStreamableFileChange> normalSyncToCommuncationChanges = null;
-                            List<PossiblyStreamableFileChange> changesNotForCommunication = null;
-
-                            foreach (PossiblyStreamableFileChange currentOutputChange in outputChanges.Except(preprocessedEvents))
-                            {
-                                try
-                                {
-                                    switch (currentOutputChange.FileChange.Direction)
-                                    {
-                                        case SyncDirection.From:
-                                            if (changesNotForCommunication == null)
-                                            {
-                                                changesNotForCommunication = new List<PossiblyStreamableFileChange>();
-                                            }
-
-                                            changesNotForCommunication.Add(currentOutputChange);
-                                            break;
-
-                                        case SyncDirection.To:
-                                            if (normalSyncToCommuncationChanges == null)
-                                            {
-                                                normalSyncToCommuncationChanges = new List<PossiblyStreamableFileChange>();
-                                            }
-
-                                            normalSyncToCommuncationChanges.Add(currentOutputChange);
-                                            break;
-
-                                        default:
-                                            throw new NotSupportedException("Unknown currentOutputChange FileChange Direction: " + currentOutputChange.FileChange.Direction.ToString());
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    toReturn += ex;
-                                }
-                            }
-
-                            if (normalSyncToCommuncationChanges == null)
-                            {
-                                changesForCommunication = new PossiblyStreamableFileChange[0];
-                            }
-                            else
-                            {
-                                changesForCommunication = normalSyncToCommuncationChanges.ToArray();
-                            }
-
-                            if (changesNotForCommunication != null)
-                            {
-                                // for advanced trace, SyncRunErrorSyncFromForCommunication
-                                if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                                {
-                                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunErrorSyncFromForCommunication, changesNotForCommunication.Select(currentChangeNotForCommunication => currentChangeNotForCommunication.FileChange));
-                                }
-                            }
-                        }
-
-                        // outputChanges is not used again,
-                        // it is redefined after communication and after reassigning dependencies
-
-                        HashSet<FileChange> changesInCommunicationOrDequeuedDependencies = new HashSet<FileChange>();
-                        Array.ForEach(changesForCommunication,
-                            changeForCommunication => changesInCommunicationOrDequeuedDependencies.Add(changeForCommunication.FileChange));
-                        if (thingsThatWereDependenciesToQueue != null)
-                        {
-                            foreach (FileChange thingThatWasADependency in thingsThatWereDependenciesToQueue)
-                            {
-                                changesInCommunicationOrDequeuedDependencies.Add(thingThatWasADependency);
-                            }
-                        }
-
-                        // store the current errors which will not be making it to the next step (communication) to an array
-                        PossiblyStreamableAndPossiblyPreexistingErrorFileChange[] errorsToRequeue = errorsToQueue.Where(currentErrorToQueue => !changesInCommunicationOrDequeuedDependencies.Contains(currentErrorToQueue.FileChange))
-                            .ToArray();
-
-                        // declare the enumerable of failures for the log
-                        IEnumerable<FileChange> failuresBeforeCommunicationToLog;
-
-                        // add errors to failure queue (which will exclude changes which were succesfully completed)
-                        CLError requeueFailureError = RequeueFailures(new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>(errorsToRequeue), // all communication errors and some completed events
-                            successfulEventIds, // completed event ids, used to filter errors to just errors
-                            toReturn, // return error to aggregate with more errors
-                            out failuresBeforeCommunicationToLog); // output the enumerable of failures for the log
-                        if (requeueFailureError != null)
-                        {
-                            toReturn += new AggregateException("An error occurred requeuing failures from errorsToRequeue", requeueFailureError.GrabExceptions());
-                        }
-
-                        // redefine the errors enumeration by all the changes which will be used in the next step (communication)
-                        errorsToQueue = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>(changesForCommunication
-                            .Select(currentChangeForCommunication => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(false,
-                                currentChangeForCommunication.FileChange,
-                                currentChangeForCommunication.Stream)));
+                        changesForCommunication = buildChangesForCommunicationArrayAndSetErrorsToQueueToRemainingChanges.TypedProcess();
 
                         // errorToQueue is now defined as the changesForCommunication
                         // (all the previous errors that correspond to FileChanges which will not continue onto communication were added back to the failure queue)
 
                         // for advanced trace, SyncRunRequeuedFailuresBeforeCommunication and SyncRunChangesForCommunication
-                        if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                        {
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, failuresBeforeCommunicationToLog);
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
-                        }
+                        oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, buildChangesForCommunicationArrayAndSetErrorsToQueueToRemainingChanges.TypedData.queuedFailures.Value, traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
+                        oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange), traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
                         // update latest status
                         syncStatus = "Sync Run errors queued which were not changes that continued to communication";
 
                         // Take events without dependencies that were not fired off in order to perform communication (or Sync From for no events left)
 
-                        // Declare enumerable for changes completed during communication (i.e. client sends up that a local folder was created and the server responds with a success status)
-                        IEnumerable<PossiblyChangedFileChange> completedChanges;
-                        // Declare enumerable for changes which still need to be completed (i.e. the server sends down that a new folder needs to be created, or client sends up that a local file was created and the server responds with an upload status)
-                        IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange> incompleteChanges;
-                        // Declare enumerable for the changes which had errors for requeueing
-                        IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError> changesInError;
-                        // Declare string for the newest sync id from the server
-                        string newSyncId;
-
-                        CredentialErrorType credentialsError;
-
                         // Communicate with server with all the changes to process, storing any exception that occurs
-                        Exception communicationException = CommunicateWithServer(
+                        commonCommunicationException.Value = CommunicateWithServer(
                             changesForCommunication, // changes to process
                             respondingToPushNotification, // whether the current SyncEngine Run was called for responding to a push notification or on manual polling
                             out completedChanges, // output changes completed during communication
@@ -2706,80 +3610,21 @@ namespace Cloud.Sync
                             out newSyncId, // output newest sync id from server
                             out credentialsError);
 
-                        if (credentialsError != CredentialErrorType.NoError)
-                        {
-                            lock (CredentialErrorDetected)
-                            {
-                                CredentialErrorDetected.Value = credentialsError;
-                            }
+                        commonCompletedChanges.Value = completedChanges;
+                        commonIncompleteChanges.Value = incompleteChanges;
+                        commonChangesInError.Value = changesInError;
+                        commonNewSyncId.Value = newSyncId;
 
-                            try
-                            {
-                                string errorMessage;
-                                switch (credentialsError)
-                                {
-                                    case CredentialErrorType.ExpiredCredentials:
-                                        errorMessage = "SyncEngine halted after credentials expired";
-                                        break;
+                        commonCredentialsError.Value = credentialsError;
 
-                                    case CredentialErrorType.OtherError:
-                                        errorMessage = "SyncEngine halted after failing to authenticate";
-                                        break;
+                        handleCredentialsErrorIfAny.Process();
 
-                                    //case CredentialErrorType.NoError: // should not happen since we already checked for no error
-                                    default:
-                                        errorMessage = "SyncEngine halted after unknown credentials error: " + credentialsError.ToString();
-                                        break;
-                                }
-
-                                MessageEvents.FireNewEventMessage(
-                                    errorMessage,
-                                    EventMessageLevel.Important,
-                                    /*Error*/new HaltSyncEngineOnAuthenticationFailureErrorInfo(credentialsError == CredentialErrorType.ExpiredCredentials),
-                                    syncBox.SyncBoxId,
-                                    syncBox.CopiedSettings.DeviceId);
-                            }
-                            catch (Exception ex)
-                            {
-                                toReturn += ex;
-                            }
-                        }
-
-                        // if either an exception occurred in communication or there were no changes to sync (no new sync id returned),
-                        // then the normal post-communication processing will not occur which includes moving synchronously completed pre-processing changes to a completed state,
-                        // so do that here now
-                        if (communicationException != null
-                            || newSyncId == null)
-                        {
-                            if (successfulEventIds != null
-                                && successfulEventIds.Count > 0)
-                            {
-                                // declare long to store incrementing count of syncs
-                                long syncCounter;
-
-                                // Write new Sync point to database with successful events
-                                CLError recordSyncError = syncData.completeSyncSql(
-                                    syncData.getLastSyncId, // communication did not run, so use last sync id
-                                    successfulEventIds, // enumerable of event ids which have been completed
-                                    out syncCounter, // output incremented count of syncs
-                                    (syncBox.CopiedSettings.SyncRoot ?? string.Empty)); // pass current cloud root
-
-                                // if there was an error recording a new Sync, then append the exception to the return error
-                                if (recordSyncError != null)
-                                {
-                                    toReturn += recordSyncError.GrabFirstException();
-                                }
-                                else
-                                {
-                                    RunLocker.Value = true;
-                                }
-                            }
-                        }
+                        completeSyncIfNotContinueToProcessing.Process();
 
                         // if an exception occurred during server communication, then aggregate it into the return error
-                        if (communicationException != null)
+                        if (commonCommunicationException.Value != null)
                         {
-                            toReturn += communicationException;
+                            toReturn.Value += commonCommunicationException.Value;
                         }
                         // else if no exception occurred during server communication and the server was not contacted for a new sync id, then only update status
                         else if (newSyncId == null)
@@ -2793,619 +3638,106 @@ namespace Cloud.Sync
                             syncStatus = "Sync Run communication complete";
 
                             // for advanced trace, CommunicationCompletedChanges, CommunicationIncompletedChanges, and CommunicationChangesInError
-                            if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                            {
-                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
-                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
-                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
-                            }
+                            oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange), traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
+                            oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange), traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
+                            oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange), traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
-                            // if there are completed changes, then loop through them to process success
-                            if (completedChanges != null)
-                            {
-                                // loop through completed changes
-                                foreach (PossiblyChangedFileChange currentCompletedChange in completedChanges)
-                                {
-                                    // add id of completed changes to list
-                                    successfulEventIds.Add(currentCompletedChange.FileChange.EventId);
+                            pullSuccessIdsFromCompletedChangesAndPullOutDependencies.Process();
 
-                                    // try casting the completed change to one with dependencies
-                                    FileChangeWithDependencies castCurrentCompletedChange = currentCompletedChange.FileChange as FileChangeWithDependencies;
-                                    // if the completed change is one with dependencies with a count greater than zero, then concatenate the dependencies to all dependencies to requeue
-                                    if (castCurrentCompletedChange != null
-                                        && castCurrentCompletedChange.DependenciesCount > 0)
-                                    {
-                                        if (thingsThatWereDependenciesToQueue == null)
-                                        {
-                                            thingsThatWereDependenciesToQueue = castCurrentCompletedChange.Dependencies;
-                                        }
-                                        else
-                                        {
-                                            thingsThatWereDependenciesToQueue = thingsThatWereDependenciesToQueue.Concat(castCurrentCompletedChange.Dependencies);
-                                        }
-                                    }
-                                }
-                            }
+                            mergePostCommunicationChangesToSQL.Process();
 
-                            Func<FileChangeMerge, FileChangeMerge> setToAddToSQL = toAdd =>
-                            {
-                                toAdd.MergeTo.DoNotAddToSQLIndex = false;
-                                return toAdd;
-                            };
-
-                            // Merge in server values into DB (storage key, revision, etc) and add new Sync From events
-                            CLError communicatedChangesToSqlError = syncData.mergeToSql(
-
-                                // concatenate together all the groups of changes (before filtering by whether or not the sql change is needed)
-                                (completedChanges ?? Enumerable.Empty<PossiblyChangedFileChange>()) // changes completed during communication
-                                .Concat((incompleteChanges ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>()) // concatenate changes that still need to be performed
-                                    .Select(currentIncompleteChange => new PossiblyChangedFileChange(currentIncompleteChange.Changed, currentIncompleteChange.FileChange))) // reselect into same format
-                                .Concat((changesInError ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>()) // concatenate changes that were in error during communication (i.e. conflicts)
-                                    .Select(currentChangeInError => new PossiblyChangedFileChange(currentChangeInError.Changed, currentChangeInError.FileChange))) // reselect into same format
-
-                                // filter to only merge events into sql which have been marked as changed
-                                .Where(currentMerge => currentMerge.Changed)
-
-                                // reselect filtered changes into FileChangeMerge
-                                .Select(currentMerge => setToAddToSQL(new FileChangeMerge(currentMerge.FileChange))));
-
-                            // failing to merge communicated changes into SQL is a serious error and will cause changes to be lost if the sync id is updated in the database later;
-                            // because this may be at least partially unrecoverable, if there was an error, then show the message
-                            if (communicatedChangesToSqlError != null)
-                            {
-                                MessageEvents.FireNewEventMessage(
-                                    "syncData.mergeToSql returned an error after communicating changes: " + communicatedChangesToSqlError.errorDescription,
-                                    EventMessageLevel.Important,
-                                    new HaltAllOfCloudSDKErrorInfo());
-                            }
-
-                            // if there were changes in error during communication, then loop through them to add their streams and exceptions to the return error
-                            if (changesInError != null)
-                            {
-                                // loop through the changes in error during communication to add their streams and exceptions to the return error
-                                foreach (PossiblyStreamableAndPossiblyChangedFileChangeWithError grabException in changesInError)
-                                {
-                                    toReturn += grabException.Stream;
-                                    toReturn += grabException.Error;
-                                }
-                            }
+                            appendPostCommunicationErrorsToReturn.Process();
 
                             // update latest status
                             syncStatus = "Sync Run server values merged into database";
 
-                            SyncStillRunning(runThreadId);
+                            SyncStillRunning(commonRunThreadId);
 
-                            // check for sync shutdown
-                            Monitor.Enter(FullShutdownToken);
+                            if (getIsShutdown.TypedProcess())
+                            {
+                                return toReturn.Value;
+                            }
+
                             try
                             {
-                                if (FullShutdownToken.Token.IsCancellationRequested)
+                                // Within a lock on the failure queue (failureTimer.TimerRunningLocker),
+                                // check if each current server action needs to be moved to a dependency under a failure event or a server action in the current batch
+                                lock (FailureTimer.TimerRunningLocker)
                                 {
-                                    return toReturn;
+                                    commonWithinFailureTimerLock.Value = true; // set back to false on finally outside of the lock
+
+                                    dequeueFailuresIncludingNulls.Process();
+
+                                    // For advanced trace, SyncRunPostCommunicationDequeuedFailures
+                                    oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, commonDequeuedFailuresIncludingNulls.Value, traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
+
+                                    assignDependenciesAfterCommunication.Process();
                                 }
                             }
                             finally
                             {
-                                Monitor.Exit(FullShutdownToken);
-                            }
-
-                            // Within a lock on the failure queue (failureTimer.TimerRunningLocker),
-                            // check if each current server action needs to be moved to a dependency under a failure event or a server action in the current batch
-                            lock (FailureTimer.TimerRunningLocker)
-                            {
-                                // Initialize and fill an array of FileChanges dequeued from the failure queue
-                                FileChange[] dequeuedFailures = new FileChange[FailedChangesQueue.Count];
-                                for (int currentQueueIndex = 0; currentQueueIndex < dequeuedFailures.Length; currentQueueIndex++)
-                                {
-                                    dequeuedFailures[currentQueueIndex] = FailedChangesQueue.Dequeue();
-                                }
-
-                                // For advanced trace, SyncRunPostCommunicationDequeuedFailures
-                                if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                                {
-                                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
-                                }
-
-                                // Declare enumerable for errors to set after dependency calculations
-                                // (will be top level a.k.a. not have any dependencies)
-                                IEnumerable<FileChange> topLevelErrors;
-
-                                // Define a boolean to store whether an error was requeued, defaulting to false
-                                bool atLeastOneErrorAdded = false;
-                                GenericHolder<bool> nullErrorFound = new GenericHolder<bool>(false);
-
-                                // Try/finally to reassign dependencies (between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared)
-                                // On finally, if an error was requeued, start the failure queue timer
-                                try
-                                {
-                                    // Try/catch to reassign dependencies (between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared)
-                                    // On catch, requeue changes which were dequeued from the error queue and rethrow the exception
-                                    try
-                                    {
-                                        // Sort list of successully completed event ids so it can be used for binary search
-                                        successfulEventIds.Sort();
-
-                                        // Create a list of file upload changes which cannot be processed because they are missing streams
-                                        List<PossiblyStreamableFileChange> uploadFilesWithoutStreams = new List<PossiblyStreamableFileChange>(
-                                            (thingsThatWereDependenciesToQueue ?? Enumerable.Empty<FileChange>())
-                                                .Select(uploadFileWithoutStream => new PossiblyStreamableFileChange(uploadFileWithoutStream, null))); // reselected to appropriate format
-
-                                        CLError postCommunicationDependencyError;
-
-                                        Func<FileChange, GenericHolder<bool>, bool> checkForNullAndMark = (toCheck, nullFound) =>
-                                        {
-                                            if (toCheck == null)
-                                            {
-                                                nullErrorFound.Value = true;
-                                                return false;
-                                            }
-
-                                            return true;
-                                        };
-
-                                        lock (FailedOutTimer.TimerRunningLocker)
-                                        {
-                                            bool previousFailedOutChange = FailedOutChanges.Count > 0;
-
-                                            // Assign dependencies through a callback to the event source,
-                                            // between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared;
-                                            // Store any error returned
-                                            postCommunicationDependencyError = syncData.dependencyAssignment(
-
-                                                // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
-                                                (incompleteChanges ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
-                                                    .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.Stream))
-                                                    .Concat(uploadFilesWithoutStreams),
-
-                                                // second pass the enumerable of errors from the changes which had an error during communication and the changes that were in the queue for reprocessing
-                                                dequeuedFailures
-                                                    .Where(dequeuedFailure => checkForNullAndMark(dequeuedFailure, nullErrorFound))
-                                                    .Concat((changesInError ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
-                                                    .Select(currentChangeInError => currentChangeInError.FileChange)
-                                                    .Where(currentChangeInError => currentChangeInError != null)),// FileChange could be null for errors if there was an exeption but no FileChange was built
-
-                                                // output changes to process
-                                                out outputChanges,
-
-                                                // output changes to put into failure queue for reprocessing
-                                                out topLevelErrors);
-
-                                            if (previousFailedOutChange
-                                                && FailedOutChanges.Count == 0)
-                                            {
-                                                FailedOutTimer.TriggerTimerCompletionImmediately();
-                                            }
-                                        }
-
-                                        // if there was an error assigning dependencies, then rethrow exception for null outputs or aggregate error to return and continue for non-null outputs
-                                        if (postCommunicationDependencyError != null)
-                                        {
-                                            // if either output is null, then rethrow the exception
-                                            if (outputChanges == null
-                                                || topLevelErrors == null)
-                                            {
-                                                throw new AggregateException("Error on dependencyAssignment and outputs are not set", postCommunicationDependencyError.GrabExceptions());
-                                            }
-                                            // else if both outputs were not null, then aggregate the exception to the return error
-                                            else
-                                            {
-                                                toReturn += new AggregateException("Error on dependencyAssignment", postCommunicationDependencyError.GrabExceptions());
-                                            }
-                                        }
-
-                                        // outputChanges now contains the dependency-assigned changes left to process after communication (from incompleteChanges)
-
-                                        // if there were any changes to process, then set redefine the thingsThatWereDependenciesToQueue and outputChanges appropriately
-                                        if (outputChanges != null)
-                                        {
-                                            // if there were any file changes which could not be uploaded due to a missing stream,
-                                            // then assign thingsThatWereDependenciesToQueue by processing changes which were changes that could not be processed
-                                            if (uploadFilesWithoutStreams.Count > 0)
-                                            {
-                                                thingsThatWereDependenciesToQueue = outputChanges
-                                                    .Select(outputChange => outputChange.FileChange)
-                                                    .Intersect(thingsThatWereDependenciesToQueue);
-                                            }
-
-                                            // if the enumerable of dependency changes to requeue has been cleared out (exists but contains nothing), then redefine to null
-                                            if (thingsThatWereDependenciesToQueue != null
-                                                && !thingsThatWereDependenciesToQueue.Any())
-                                            {
-                                                thingsThatWereDependenciesToQueue = null;
-                                            }
-
-                                            // if the resulting enumerable of dependency changes to requeue remains, then set the processing changes to the changes not in that enumerable
-                                            if (thingsThatWereDependenciesToQueue != null)
-                                            {
-                                                outputChanges = outputChanges.Where(outputChange => !thingsThatWereDependenciesToQueue.Contains(outputChange.FileChange));
-                                            }
-                                        }
-
-                                        // For advanced trace, DependencyAssignmentOutputChanges and DependencyAssignmentTopLevelErrors
-                                        if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                                        {
-                                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
-                                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
-                                        }
-
-                                        // outputChanges now excludes any FileChanges which overlapped with the existing list of thingsThatWereDependenciesToQueue
-                                        // (because that means the changes are file uploads without FileStreams and cannot be processed now)
-
-                                        errorsToQueue = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>((outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>())
-                                            .Select(currentOutputChange => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(false, currentOutputChange.FileChange, currentOutputChange.Stream)));
-
-                                        // errorsToQueue now contains the outputChanges from after communication and dependency assignment
-                                        // (errors from communication and dependency assignment will be added immediately to failure queue
-
-                                        // Loop through errors returned from reassigning dependencies to requeue for failure processing
-                                        foreach (FileChange currentTopLevelError in topLevelErrors ?? Enumerable.Empty<FileChange>())
-                                        {
-                                            // Requeue change for failure processing
-                                            FailedChangesQueue.Enqueue(currentTopLevelError);
-
-                                            // Mark that a change was queued for failure processing
-                                            atLeastOneErrorAdded = true;
-                                        }
-                                    }
-                                    catch
-                                    {
-                                        // On error of assigning dependencies,
-                                        // put all the original failure queue items back in the failure queue;
-                                        // finally, rethrow the exception
-                                        for (int currentQueueIndex = 0; currentQueueIndex < dequeuedFailures.Length; currentQueueIndex++)
-                                        {
-                                            FailedChangesQueue.Enqueue(dequeuedFailures[currentQueueIndex]);
-
-                                            atLeastOneErrorAdded = true;
-                                        }
-                                        throw;
-                                    }
-                                }
-                                finally
-                                {
-                                    // No matter what, if even one change had been requeued to the failure queue, then start the failure queue timer
-                                    if (atLeastOneErrorAdded)
-                                    {
-                                        FailureTimer.StartTimerIfNotRunning();
-                                    }
-                                    else if (nullErrorFound.Value)
-                                    {
-                                        FailedChangesQueue.Enqueue(null);
-                                        FailureTimer.StartTimerIfNotRunning();
-                                    }
-                                }
+                                commonWithinFailureTimerLock.Value = false;
                             }
 
                             // Update latest status
                             syncStatus = "Sync Run post-communication dependencies calculated";
 
-                            SyncStillRunning(runThreadId);
+                            SyncStillRunning(commonRunThreadId);
 
-                            // Check for sync shutdown
-                            Monitor.Enter(FullShutdownToken);
-                            try
+                            if (getIsShutdown.TypedProcess())
                             {
-                                if (FullShutdownToken.Token.IsCancellationRequested)
-                                {
-                                    return toReturn;
-                                }
-                            }
-                            finally
-                            {
-                                Monitor.Exit(FullShutdownToken);
+                                return toReturn.Value;
                             }
 
-                            // Create a new list for asynchronous tasks to process
-                            List<PossiblyStreamableFileChangeWithUploadDownloadTask> asyncTasksToRun = new List<PossiblyStreamableFileChangeWithUploadDownloadTask>();
-
-                            // Create a new list for changes which can be performed synchronously
-                            List<FileChange> postCommunicationSynchronousChanges = new List<FileChange>();
-
-                            // Synchronously complete all local operations without dependencies (exclude file upload/download) and record successful events;
-                            // If a completed event has dependencies, stick them on the end of the current batch;
-                            // If an event fails to complete, leave it on errorsToQueue so it will be added to the failure queue later
-                            foreach (PossiblyStreamableFileChange topLevelChange in outputChanges)
-                            {
-                                // Declare event id for a successfully performed synchronous change
-                                Nullable<long> successfulEventId;
-                                // Declare Task for uploading or downloading files to perform asynchronously
-                                Nullable<AsyncUploadDownloadTask> asyncTask;
-
-                                // run private method which handles performing the action of a single FileChange, storing any exceptions thrown (which are caught and returned)
-                                Exception completionException = CompleteFileChange(
-                                    topLevelChange, // change to perform
-                                    FailureTimer, // timer for failure queue
-                                    out successfulEventId, // output successful event id or null
-                                    out asyncTask, // out async upload or download task to perform or null
-                                    TempDownloadsFolder); // full path location of folder to store temp file downloads
-
-                                // if there was a non-null and valid event id output as succesful,
-                                // then add to synchronous list, add to success list, remove from errors, and check and concatenate any dependent FileChanges
-                                if (successfulEventId != null
-                                    && (long)successfulEventId > 0)
-                                {
-                                    // add change to synchronous list
-                                    postCommunicationSynchronousChanges.Add(topLevelChange.FileChange);
-
-                                    // add successful id for completed event
-                                    successfulEventIds.Add((long)successfulEventId);
-
-                                    // try to cast the successful change as one with dependencies
-                                    FileChangeWithDependencies changeWithDependencies = topLevelChange.FileChange as FileChangeWithDependencies;
-                                    // if change was one with dependencies and has a dependency, then concatenate the dependencies into thingsThatWereDependenciesToQueue
-                                    if (changeWithDependencies != null
-                                        && changeWithDependencies.DependenciesCount > 0)
-                                    {
-                                        if (thingsThatWereDependenciesToQueue == null)
-                                        {
-                                            thingsThatWereDependenciesToQueue = changeWithDependencies.Dependencies;
-                                        }
-                                        else
-                                        {
-                                            thingsThatWereDependenciesToQueue = thingsThatWereDependenciesToQueue.Concat(changeWithDependencies.Dependencies);
-                                        }
-                                    }
-                                }
-                                // else if there was not a valid successful event id, then process for errors or async tasks
-                                else
-                                {
-                                    // if there was an exception, aggregate into returned error
-                                    if (completionException != null)
-                                    {
-                                        toReturn += completionException;
-                                    }
-
-                                    // if there was an async task to perform, then add it to list to start
-                                    if (asyncTask != null)
-                                    {
-                                        // add task to list to start
-                                        asyncTasksToRun.Add(new PossiblyStreamableFileChangeWithUploadDownloadTask(topLevelChange,
-                                            (AsyncUploadDownloadTask)asyncTask));
-                                    }
-                                }
-                            }
+                            // Complete synchronous changes and get the list for asynchronous tasks to process
+                            startAndReturnPostCommunicationAsynchronousChanges.TypedData.asyncTasksToRun.Value = completeSynchronousChangesAfterCommunicationAndReturnRemainingAsynchronousTasks.TypedProcess();
 
                             // advanced trace, SyncRunPostCommunicationSynchronous
-                            if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                            {
-                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
-                            }
+                            oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, commonSynchronouslyProcessed.Value, traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
                             // update latest status
                             syncStatus = "Sync Run synchronous post-communication operations complete";
 
-                            SyncStillRunning(runThreadId);
+                            SyncStillRunning(commonRunThreadId);
 
-                            // check for sync shutdown
-                            Monitor.Enter(FullShutdownToken);
-                            try
+                            if (getIsShutdown.TypedProcess())
                             {
-                                if (FullShutdownToken.Token.IsCancellationRequested)
-                                {
-                                    completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
-                                    incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
-                                    changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
-                                    newSyncId = Helpers.DefaultForType<string>();
-                                    return new Exception("Shut down in the middle of communication");
-                                }
-                            }
-                            finally
-                            {
-                                Monitor.Exit(FullShutdownToken);
+                                //completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
+                                //incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
+                                //changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
+                                //newSyncId = Helpers.DefaultForType<string>();
+                                //return new Exception("Shut down in the middle of communication");
+                                return toReturn.Value;
                             }
 
-                            // declare long to store incrementing count of syncs
-                            long syncCounter;
-
-                            // Write new Sync point to database with successful events
-                            CLError recordSyncError = syncData.completeSyncSql(
-                                newSyncId, // New Sync ID provided by server
-                                successfulEventIds, // enumerable of event ids which have been completed
-                                out syncCounter, // output incremented count of syncs
-                                (syncBox.CopiedSettings.SyncRoot ?? string.Empty)); // pass current cloud root
-
-                            // if there was an error recording a new Sync, then append the exception to the return error
-                            if (recordSyncError != null)
-                            {
-                                toReturn += recordSyncError.GrabFirstException();
-                            }
-                            else
-                            {
-                                RunLocker.Value = true;
-                            }
+                            completeSyncToSQL.Process();
 
                             // update latest status
                             syncStatus = "Sync Run new sync point persisted";
 
-                            SyncStillRunning(runThreadId);
+                            SyncStillRunning(commonRunThreadId);
 
-                            // check for sync shutdown
-                            Monitor.Enter(FullShutdownToken);
-                            try
+                            if (getIsShutdown.TypedProcess())
                             {
-                                if (FullShutdownToken.Token.IsCancellationRequested)
-                                {
-                                    completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
-                                    incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
-                                    changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
-                                    newSyncId = Helpers.DefaultForType<string>();
-                                    return new Exception("Shut down in the middle of communication");
-                                }
-                            }
-                            finally
-                            {
-                                Monitor.Exit(FullShutdownToken);
+                                //completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
+                                //incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
+                                //changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
+                                //newSyncId = Helpers.DefaultForType<string>();
+                                //return new Exception("Shut down in the middle of communication");
+                                return toReturn.Value;
                             }
 
-                            // create list to store asynchronous changes
-                            List<FileChange> postCommunicationAsynchronousChanges = new List<FileChange>();
-
-                            // Asynchronously fire off all remaining upload/download operations without dependencies
-                            foreach (PossiblyStreamableFileChangeWithUploadDownloadTask asyncTask in asyncTasksToRun)
-                            {
-                                // try/catch to process async task, on catch append exception to return
-                                try
-                                {
-                                    // switch on async task direction to either increment downloaded or uploaded count
-                                    switch (asyncTask.Task.Direction)
-                                    {
-                                        case SyncDirection.From:
-                                            // direction for downloads
-                                            asyncTask.Task.Task.ContinueWith(eventCompletion =>
-                                            {
-                                                // if event id is valid, then increment downloaded count
-                                                if (eventCompletion.Result.EventId != 0)
-                                                {
-                                                    MessageEvents.IncrementDownloadedCount(
-                                                        incrementAmount: 1,
-                                                        SyncBoxId: syncBox.SyncBoxId,
-                                                        DeviceId: syncBox.CopiedSettings.DeviceId);
-                                                }
-                                            }, TaskContinuationOptions.NotOnFaulted); // only increment count when not faulted
-                                            break;
-
-                                        case SyncDirection.To:
-                                            // direction for uploads
-                                            asyncTask.Task.Task.ContinueWith(eventCompletion =>
-                                            {
-                                                // if event id is valid, then increment uploaded count
-                                                if (eventCompletion.Result.EventId != 0)
-                                                {
-                                                    MessageEvents.IncrementUploadedCount(
-                                                        incrementAmount: 1,
-                                                        SyncBoxId: syncBox.SyncBoxId,
-                                                        DeviceId: syncBox.CopiedSettings.DeviceId);
-                                                }
-                                            }, TaskContinuationOptions.NotOnFaulted); // only increment count when not faulted
-                                            break;
-
-                                        default:
-                                            // if a new SyncDirection was added, this class needs to be updated to work with it, until then, throw this exception
-                                            throw new NotSupportedException("Unknown SyncDirection: " + asyncTask.Task.Direction.ToString());
-                                    }
-
-                                    // add continuation task for recording the completed event into the database
-                                    asyncTask.Task.Task.ContinueWith(eventCompletion =>
-                                    {
-                                        // if the completed task had a valid id, then record completion into the database
-                                        if (eventCompletion.Result.EventId != 0)
-                                        {
-                                            // record completion into the database, storing any error that occurs
-                                            CLError sqlCompleteError = eventCompletion.Result.SyncData.completeSingleEvent(eventCompletion.Result.EventId);
-                                            // if an error occurred storing the completion, then log it
-                                            if (sqlCompleteError != null)
-                                            {
-                                                sqlCompleteError.LogErrors(eventCompletion.Result.SyncSettings.TraceLocation, eventCompletion.Result.SyncSettings.LogErrors);
-                                            }
-                                        }
-                                    }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
-
-                                    // attach the current FileChange's UpDownEvent handler to the local UpDownEvent
-                                    AddFileChangeToUpDownEvent(asyncTask.FileChange.FileChange);
-
-                                    FileTransferQueued(asyncTask.Task.ThreadId,
-                                        asyncTask.FileChange.FileChange.EventId,
-                                        asyncTask.Task.Direction,
-                                        asyncTask.FileChange.FileChange.NewPath.GetRelativePath(syncBox.CopiedSettings.SyncRoot, false),
-                                        (long)asyncTask.FileChange.FileChange.Metadata.HashableProperties.Size);
-
-                                    // try/catch to start the async task, or removing the UpDownEvent handler and rethrowing on exception
-                                    try
-                                    {
-                                        // start async task on the HttpScheduler
-                                        asyncTask.Task.Task.Start(
-                                            HttpScheduler.GetSchedulerByDirection(asyncTask.Task.Direction, syncBox.CopiedSettings)); // retrieve HttpScheduler by direction and settings (upload and download are on seperate queues, and settings are used for error logging)
-
-                                        // add task as asynchronously processed
-                                        postCommunicationAsynchronousChanges.Add(asyncTask.FileChange.FileChange);
-                                    }
-                                    catch
-                                    {
-                                        // remove UpDownEvent handler on exception
-                                        RemoveFileChangeFromUpDownEvent(asyncTask.FileChange.FileChange);
-
-                                        // rethrow
-                                        throw;
-                                    }
-
-                                    // search for the FileChange in the errors by FileChange equality and Stream equality
-                                    Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> foundErrorToRemove = errorsToQueue
-                                        .Where(findErrorToQueue => findErrorToQueue.FileChange == asyncTask.FileChange.FileChange && findErrorToQueue.Stream == asyncTask.FileChange.Stream)
-                                        .Select(findErrorToQueue => (Nullable<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>)findErrorToQueue)
-                                        .FirstOrDefault();
-                                    // if a matching error was found, then remove it from the errors
-                                    if (foundErrorToRemove != null)
-                                    {
-                                        errorsToQueue.Remove((PossiblyStreamableAndPossiblyPreexistingErrorFileChange)foundErrorToRemove);
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    // append exception to return error
-                                    toReturn += ex;
-                                }
-                            }
+                            startAndReturnPostCommunicationAsynchronousChanges.Process();
 
                             // advanced trace, SyncRunPostCommunicationAsynchronous
-                            if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                            {
-                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
-                            }
+                            oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, commonAsynchronouslyProcessed.Value, traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
-
-                            // status message(s)
-                            if (postCommunicationSynchronousChanges.Count != 0)
-                            {
-                                int syncToCount = postCommunicationSynchronousChanges.Count(syncProcess => syncProcess.Direction == SyncDirection.To);
-                                int syncFromCount = postCommunicationSynchronousChanges.Count - syncToCount;
-
-                                MessageEvents.FireNewEventMessage(
-                                    (syncToCount == 0
-                                        ? string.Empty
-                                        : syncToCount.ToString() +
-                                            " change" + (syncToCount == 1 ? string.Empty : "s") + " synced to server" +
-                                            (syncFromCount == 0
-                                                ? string.Empty
-                                                : " and ")) +
-                                        (syncFromCount == 0
-                                            ? string.Empty
-                                            : syncFromCount.ToString() +
-                                                " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
-                                    EventMessageLevel.Important,
-                                    SyncBoxId: syncBox.SyncBoxId,
-                                    DeviceId: syncBox.CopiedSettings.DeviceId);
-                            }
-                            if (postCommunicationAsynchronousChanges.Count != 0)
-                            {
-                                int syncToCount = postCommunicationAsynchronousChanges.Count(syncProcess => syncProcess.Direction == SyncDirection.To);
-                                int syncFromCount = postCommunicationAsynchronousChanges.Count - syncToCount;
-
-                                MessageEvents.FireNewEventMessage(
-                                    (syncToCount == 0
-                                        ? string.Empty
-                                        : syncToCount.ToString() +
-                                            " file" + (syncToCount == 1 ? string.Empty : "s") + " queued for upload" +
-                                            (syncFromCount == 0
-                                                ? string.Empty
-                                                : " and ")) +
-                                        (syncFromCount == 0
-                                            ? string.Empty
-                                            : syncFromCount.ToString() +
-                                                " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
-                                    EventMessageLevel.Important,
-                                    SyncBoxId: syncBox.SyncBoxId,
-                                    DeviceId: syncBox.CopiedSettings.DeviceId);
-                            }
+                            onBatchProcessedSendStatusMessages.Process();
 
                             // for any FileChange which was asynchronously queued for file upload or download,
                             // errorsToQueue had that change removed
 
-                            // status message
-                            MessageEvents.FireNewEventMessage(
-                                "Finished processing sync changes",
-                                EventMessageLevel.Minor,
-                                SyncBoxId: syncBox.SyncBoxId,
-                                DeviceId: syncBox.CopiedSettings.DeviceId);
+                            sendFinishedMessage.Process();
 
                             // update latest status
                             syncStatus = "Sync Run async tasks started after communication (end of Sync)";
@@ -3415,158 +3747,33 @@ namespace Cloud.Sync
                 catch (Exception ex)
                 {
                     // append exception to return error
-                    toReturn += ex;
+                    toReturn.Value += ex;
                 }
 
-                // if there were dependencies to queue, then process adding them back to the event source to come back on next sync
-                if (thingsThatWereDependenciesToQueue != null)
-                {
-                    // try/catch to add dependencies to processing queue in event source to come back on next sync, on catch add dependencies to failure queue
-                    try
-                    {
-                        // add all dependencies to the top of the processing queue in the order they were discovered;
-                        // if there are any errors in queueing, add the changes to the failure queue instead;
-                        // also if there are any errors, add them to the returned aggregated errors
-                        GenericHolder<List<FileChange>> queueingErrors = new GenericHolder<List<FileChange>>();
-                        // add dependencies to top of queue for next sync run when it calls back to event source
-                        CLError queueingError = syncData.addChangesToProcessingQueue(thingsThatWereDependenciesToQueue, /* add to top */ true, queueingErrors);
-                        // if an error list was set, then add failed changes to failure queue
-                        if (queueingErrors.Value != null)
-                        {
-                            // lock on failure queue timer to modify failure queue
-                            lock (FailureTimer.TimerRunningLocker)
-                            {
-                                // define bool for whether at least one failure was added
-                                bool atLeastOneFailureAdded = false;
+                addDependenciesBackToProcessingQueue.Process();
 
-                                // loop through changes failed to add to processing queue
-                                foreach (FileChange currentQueueingError in queueingErrors.Value)
-                                {
-                                    // enqueue current failed change to failure queue
-                                    FailedChangesQueue.Enqueue(currentQueueingError);
-
-                                    // mark that a failure was added
-                                    atLeastOneFailureAdded = true;
-                                }
-
-                                // if at least one failure was added, then start the failure queue timer
-                                if (atLeastOneFailureAdded)
-                                {
-                                    FailureTimer.StartTimerIfNotRunning();
-                                }
-                            }
-                        }
-                        // if there was an error queueing dependencies to processing queue in event source, then aggregate error to return error
-                        if (queueingError != null)
-                        {
-                            toReturn += new AggregateException("Error adding dependencies to processing queue after sync", queueingError.GrabExceptions());
-                        }
-
-                        // advanced trace, SyncRunEndThingsThatWereDependenciesToQueue
-                        if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                        {
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
-                        }
-                    }
-                    // on catch, add dependencies to failure queue
-                    catch (Exception ex)
-                    {
-                        // on serious error in queueing changes,
-                        // instead add them all to the failure queue add add the error to the returned aggregate errors
-
-                        // lock on failure queue timer to modify failure queue
-                        lock (FailureTimer.TimerRunningLocker)
-                        {
-                            // define bool for whether at least one failure was added
-                            bool atLeastOneFailureAdded = false;
-
-                            // loop through changes failed to add to processing queue
-                            foreach (FileChange currentQueueingError in thingsThatWereDependenciesToQueue)
-                            {
-                                // enqueue current failed change to failure queue
-                                FailedChangesQueue.Enqueue(currentQueueingError);
-
-                                // mark that a failure was added
-                                atLeastOneFailureAdded = true;
-                            }
-
-                            // if at least one failure was added, then start the failure queue timer
-                            if (atLeastOneFailureAdded)
-                            {
-                                FailureTimer.StartTimerIfNotRunning();
-                            }
-                        }
-                        // append exception to return error
-                        toReturn += ex;
-                    }
-                }
+                // advanced trace, SyncRunEndThingsThatWereDependenciesToQueue
+                oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, commonThingsThatWereDependenciesToQueue.Value, traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
                 // errorsToQueue should contain all FileChanges which were already added back to the failure queue
                 // or are asynchronously queued for file upload or download; it may also contain some completed changes
                 // which will be checked against successfulEventIds;
                 // this should be true regardless of whether a line in the main try/catch threw an exception since it should be up to date at all times
 
-                // declare enumerable of errors to log
-                IEnumerable<FileChange> syncRunEndFailuresToLog;
-
-                // add errors to failure queue (which will exclude changes which were succesfully completed)
-                toReturn = RequeueFailures(errorsToQueue, // all errors and some completed events
-                    successfulEventIds, // completed event ids, used to filter errors to just errors
-                    toReturn, // return error to aggregate with more errors
-                    out syncRunEndFailuresToLog); // output enumerable of errors to log
+                IEnumerable<FileChange> syncRunEndFailuresToLog = requeueFinalFailures.TypedProcess();
 
                 // advanced trace, SyncRunEndRequeuedFailures
-                if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow
-                    && errorsToQueue != null) // <-- fixed a parameter exception on the Enumerable.Select extension method used in the trace statement
-                {
-                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, syncRunEndFailuresToLog);
-                }
+                oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, syncRunEndFailuresToLog, traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
                 // errorsToQueue is no longer used (all its errors were added back to the failure queue)
 
-                // if the output error aggregate contains any errors,
-                // then add the sync status (to notify position in case of catastrophic failure),
-                // dispose all FileStreams,
-                // and log all errors
-                if (toReturn != null)
-                {
-                    // add latest sync status to error so it will appear in error log
-                    toReturn.errorInfo.Add(CLError.ErrorInfo_Sync_Run_Status, syncStatus);
-                    // dequeue all Streams from the return error and dispose them, storing any error that occurs
-                    CLError disposalError = toReturn.DequeueStreams().DisposeAllStreams();
-                    // if there was an error disposing streams, then aggregate all errors to return error
-                    if (disposalError != null)
-                    {
-                        foreach (Exception disposalException in disposalError.GrabExceptions())
-                        {
-                            toReturn += disposalException;
-                        }
-                    }
+                disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = syncStatus;
+                disposeErrorStreamsAndLogErrors.Process();
 
-                    // define boolean to store whether the only content of the return error are streams to dispose, defaulting to true
-                    bool onlyErrorIsFileStream = true;
-                    // loop through all exceptions in the return error
-                    foreach (Exception errorException in toReturn.GrabExceptions())
-                    {
-                        // if the current exception is not the exception added when a stream is added to the return error without an exception,
-                        // then mark that a non-stream content was found in the return error and stop checking
-                        if (errorException.Message != CLError.StreamFirstMessage)
-                        {
-                            onlyErrorIsFileStream = false;
-                            break;
-                        }
-                    }
-                    // if there was any error content besides streams to dispose, then log the errors
-                    if (!onlyErrorIsFileStream)
-                    {
-                        toReturn.LogErrors(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.LogErrors);
-                    }
-                }
-
-                SyncStoppedRunning(runThreadId);
+                SyncStoppedRunning(commonRunThreadId);
 
                 // return error aggregate
-                return toReturn;
+                return toReturn.Value;
             }
         }
 
@@ -3803,9 +4010,9 @@ namespace Cloud.Sync
 
         #region subroutine calls of Sync Run
         // add errors to failure queue (which will exclude changes which were succesfully completed)
-        private CLError RequeueFailures(List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> errorsToQueue, // errors to queue (before filtering out successes)
+        private void RequeueFailures(List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange> errorsToQueue, // errors to queue (before filtering out successes)
             List<long> successfulEventIds, // successes to filter out
-            CLError appendErrors, // return error to aggregate with any errors that occur
+            GenericHolder<CLError> appendErrors, // return error to aggregate with any errors that occur
             out IEnumerable<FileChange> filteredErrors) // errors which were actually queued (not successful events)
         {
             List<FileChange> filteredErrorsList;
@@ -3920,14 +4127,14 @@ namespace Cloud.Sync
                                         }
 
                                         // add any error stream to the return error so it will be disposed (does not cause a problem to add null, it will just be ignored)
-                                        appendErrors += errorToQueue.Stream;
+                                        appendErrors.Value += errorToQueue.Stream;
                                     }
                                 }
                                 catch (Exception ex)
                                 {
                                     // add exception followed by Stream to return error (order is important, if the return error was null then the first thing added determines the error description)
-                                    appendErrors += ex;
-                                    appendErrors += errorToQueue.Stream;
+                                    appendErrors.Value += ex;
+                                    appendErrors.Value += errorToQueue.Stream;
                                 }
                             }
 
@@ -3954,12 +4161,10 @@ namespace Cloud.Sync
                     catch (Exception ex)
                     {
                         // aggregate the exception to the return error
-                        appendErrors += ex;
+                        appendErrors.Value += ex;
                     }
                 }
             }
-            // must return error which calling method must restore, simply modifying the paramater instance may not be sufficient since a null parameter when appended with an error produces a new instance
-            return appendErrors;
         }
 
         // private method which handles performing the action of a single FileChange, storing any exceptions thrown (which are caught and returned)
