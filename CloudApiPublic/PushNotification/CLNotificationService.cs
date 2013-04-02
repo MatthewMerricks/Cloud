@@ -638,12 +638,10 @@ namespace Cloud.PushNotification
             {
                 lock (this)
                 {
-                    if (_timerEngineWatcher != null)
+                    if (_timerEngineWatcher == null)
                     {
-                        throw new InvalidOperationException("Already created");
+                        _timerEngineWatcher = new Timer(callback: TimerCallback, state: userState, dueTime: Timeout.Infinite, period: Timeout.Infinite);
                     }
-
-                    _timerEngineWatcher = new Timer(callback: TimerCallback, state: userState, dueTime: Timeout.Infinite, period: Timeout.Infinite);
                 }
             }
             catch (Exception ex)
@@ -658,12 +656,10 @@ namespace Cloud.PushNotification
             {
                 lock (this)
                 {
-                    if (_timerEngineWatcher == null)
+                    if (_timerEngineWatcher != null)
                     {
-                        throw new InvalidOperationException("CreateEngineTimer first");
+                        _timerEngineWatcher.Change(dueTime: timeoutMilliseconds, period: timeoutMilliseconds);
                     }
-
-                    _timerEngineWatcher.Change(dueTime: timeoutMilliseconds, period: timeoutMilliseconds);
                 }
             }
             catch (Exception ex)

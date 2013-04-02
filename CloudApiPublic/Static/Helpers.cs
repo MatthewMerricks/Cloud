@@ -1919,6 +1919,16 @@ namespace Cloud.Static
         /// <summary>
         /// hash set for http communication methods which are good when the status is ok, created, or not modified
         /// </summary>
+        internal static readonly HashSet<HttpStatusCode> HttpStatusesOkCreatedNotModified = new HashSet<HttpStatusCode>(new[]
+            {
+                HttpStatusCode.OK,
+                HttpStatusCode.Created,
+                HttpStatusCode.NotModified,
+            });
+
+        /// <summary>
+        /// hash set for http communication methods which are good when the status is ok, created, not modified, or no content
+        /// </summary>
         internal static readonly HashSet<HttpStatusCode> HttpStatusesOkCreatedNotModifiedNoContent = new HashSet<HttpStatusCode>(new[]
             {
                 HttpStatusCode.OK,
