@@ -3182,6 +3182,7 @@ namespace Cloud.FileMonitor
                                             oldPath = newPath;
                                             newPath = firstFoundMatchingTime.Value.FullName;
                                             changeType = WatcherChangeTypes.Renamed;
+                                            exists = true; // exists was previously calculated as the 'deletion' of 'new path' which is now the old path, so exists should now be true since we found a folder at the 'renamed' 'new path'
                                         }
                                     }
                                     break;
