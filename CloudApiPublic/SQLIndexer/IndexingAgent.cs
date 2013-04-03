@@ -1236,6 +1236,23 @@ namespace Cloud.SQLIndexer
                                                         StorageKey = previousEvent.FileSystemObject.StorageKey
                                                     });
 
+                                                // Trace all of the existingEvents...
+                                                _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Trace the existing events.");
+                                                foreach (Event evt in existingEvents)
+                                                {
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: evt: EnumCategory: {0}. FileChangeTypeCategoryId: {1}. " +
+                                                                            "FileChangeTypeEnumId: {2}. SyncFrom: {3}. PreviousPath: {4}, IsFolder: {5}. Path: {6}. TargetPath: {7}.",
+                                                            evt.EnumCategory.ToString(), 
+                                                            evt.FileChangeTypeCategoryId.ToString(), 
+                                                            evt.FileChangeTypeEnumId.ToString(),
+                                                            evt.SyncFrom,
+                                                            evt.PreviousPath,
+                                                            evt.FileSystemObject.IsFolder,
+                                                            evt.FileSystemObject.Path,
+                                                            evt.FileSystemObject.TargetPath);
+                                                }
+
+                                                // Badge synced, unless there is a pending event at this same path.
                                                 if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
