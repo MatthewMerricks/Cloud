@@ -6,7 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 // Enable the following definition to trace the badging dictionaries.
-//#define TRACE_BADGING_DICTIONARIES
+#define TRACE_BADGING_DICTIONARIES   //&&&&&& DEBUG REMOVE THIS
 
 using System;
 using System.Collections.Generic;
@@ -469,6 +469,7 @@ namespace Cloud.BadgeNET
                 }
             }
 
+            _trace.writeToMemory(9, "IconOverlay: MessageEvents_BadgePathRenamed: FromPath: {0}. ToPath: {1}.", e.RenameBadgePath.FromPath, e.RenameBadgePath.ToPath);
             CLError error = RenameBadgePath(e.RenameBadgePath.FromPath, e.RenameBadgePath.ToPath);
             if (error != null)
             {
@@ -489,6 +490,7 @@ namespace Cloud.BadgeNET
             }
 
             bool isDeleted;
+            _trace.writeToMemory(9, "IconOverlay: MessageEvents_BadgePathDeleted: Path: {0}.", e.DeleteBadgePath.PathToDelete);
             CLError error = DeleteBadgePath(e.DeleteBadgePath.PathToDelete, out isDeleted);
             if (error != null)
             {
@@ -512,6 +514,7 @@ namespace Cloud.BadgeNET
                 }
             }
 
+            _trace.writeToMemory(9, "IconOverlay: MessageEvents_QueueSetBadgeChanged: State: {0}, Path: {1}.", e.SetBadge.BadgeState.ToString(), e.SetBadge.PathToBadge);
             cloudAppIconBadgeType convertedState = ConvertBadgeState(e.SetBadge.BadgeState);
             QueueSetBadge(convertedState, e.SetBadge.PathToBadge);
             e.MarkHandled();
@@ -528,6 +531,7 @@ namespace Cloud.BadgeNET
                 }
             }
 
+            _trace.writeToMemory(9, "IconOverlay: MessageEvents_FileChangeMergeToStateChanged: Call QueueNewEventBadge().");
             QueueNewEventBadge(e.MergedFileChanges.MergeTo, e.MergedFileChanges.MergeFrom);
             e.MarkHandled();
         }
@@ -543,6 +547,7 @@ namespace Cloud.BadgeNET
                 }
             }
 
+            _trace.writeToMemory(9, "IconOverlay: MessageEvents_PathStateChanged: State: {0}, Path: {1}.", e.SetBadge.BadgeState.ToString(), e.SetBadge.PathToBadge);
             cloudAppIconBadgeType convertedState = ConvertBadgeState(e.SetBadge.BadgeState);
             QueueSetBadge(convertedState, e.SetBadge.PathToBadge);
             e.MarkHandled();
@@ -910,17 +915,17 @@ namespace Cloud.BadgeNET
                 lock (_currentBadgesSyncedLocker)
                 {
                     // Trace the current badging flat dictionary
-                    _trace.writeToLog(9, "IconOverlay: TraceBadgingDictionaries: CurrentBadges: Called from: {0}.", whereCalled);
+                    _trace.writeToMemory(9, "IconOverlay: TraceBadgingDictionaries: CurrentBadges: Called from: {0}.", whereCalled);
                     foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> badge in _currentBadges)
                     {
-                        _trace.writeToLog(9, "    BadgeType: {0}. Path: <{1}.", badge.Value.Value.ToString(), badge.Key);
+                        _trace.writeToMemory(9, "    BadgeType: {0}. Path: <{1}.", badge.Value.Value.ToString(), badge.Key);
                     }
 
                     // Trace the current badging "synced" hierarchical dictionary
-                    _trace.writeToLog(9, "IconOverlay: TraceBadgingDictionaries: CurrentSyncedBadges:");
+                    _trace.writeToMemory(9, "IconOverlay: TraceBadgingDictionaries: CurrentSyncedBadges:");
                     foreach (KeyValuePair<FilePath, object> badge in _currentBadgesSynced)
                     {
-                        _trace.writeToLog(9, "    Path: <{0}>.", badge.Key);
+                        _trace.writeToMemory(9, "    Path: <{0}>.", badge.Key);
                     }
                 }
             }
