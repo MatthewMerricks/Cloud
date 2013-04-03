@@ -1204,6 +1204,7 @@ namespace Cloud.SQLIndexer
                                         switch (changeEnums[previousEvent.FileChangeTypeEnumId])
                                         {
                                             case FileChangeType.Created:
+                                                _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Created event: Path: {0}.", newPath);
                                                 Tuple<long, Nullable<long>, FileMetadata> previousCreatedState;
                                                 KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>> previousCreatedObjects;
                                                 if (lastSyncCounter != null
@@ -1240,6 +1241,10 @@ namespace Cloud.SQLIndexer
                                                 {
                                                     _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call setBadge synced.");
                                                     setBadge(PathState.Synced, newPath);
+                                                }
+                                                else
+                                                {
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Skipped setting synced badge because of other pending events at this path.");
                                                 }
                                                 break;
                                             case FileChangeType.Deleted:
