@@ -48,9 +48,7 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Cloud, Version=0.2.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
+    <Reference Include="Cloud, Version=0.2.0.1, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="RateBar.CSDK, Version=1.0.4810.27162, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\RateBar.CSDK.dll</HintPath>
     </Reference>
