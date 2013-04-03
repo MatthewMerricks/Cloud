@@ -1998,17 +1998,20 @@ namespace Cloud.BadgeNET
                     //TODO: Do we need to do anything with the eventToRemove?
                     if (mergedEvent != null)
                     {
+                        thisOverlay._trace.writeToMemory(9, "IconOverlay: Process: mergedEvent.Type: {0}. mergedEvent.Direction: {1}.  mergedEvent.OldPath: {2}, mergedEvent.NewPath: {3}.", mergedEvent.Type, mergedEvent.Direction, mergedEvent.OldPath, mergedEvent.NewPath);
                         switch (mergedEvent.Type)
                         {
                             case FileChangeType.Deleted:
                                 switch (mergedEvent.Direction)
                                 {
                                     case SyncDirection.From:
+                                        thisOverlay._trace.writeToMemory(9, "IconOverlay: Process: Deleted: Dir: From. Set NewPath to syncing.");
                                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
                                         break;
                                     case SyncDirection.To:
                                         bool isDeleted;
                                         thisOverlay.DeleteBadgePath(mergedEvent.NewPath, out isDeleted, true);
+                                        thisOverlay._trace.writeToMemory(9, "IconOverlay: Process: Deleted: Dir: To. DeleteBadgePath at NewPath. isDeleted: {0}.", isDeleted);
                                         break;
                                     default:
                                         throw new NotSupportedException("Unknown mergedEvent.Direction: " + mergedEvent.Direction.ToString());
@@ -2016,17 +2019,21 @@ namespace Cloud.BadgeNET
                                 break;
                             case FileChangeType.Created:
                             case FileChangeType.Modified:
+                                thisOverlay._trace.writeToMemory(9, "IconOverlay: Process: Created/Modified: setBadge syncing at NewPath.");
                                 setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
                                 break;
                             case FileChangeType.Renamed:
                                 switch (mergedEvent.Direction)
                                 {
                                     case SyncDirection.From:
+                                        thisOverlay._trace.writeToMemory(9, "IconOverlay: Process: Renamed. Dir: From. SetBadge syncing at OldPath.");
                                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
                                         break;
                                     case SyncDirection.To:
+                                        thisOverlay._trace.writeToMemory(9, "IconOverlay: Process: Renamed. Dir: To. Call RenameBadgePath.");
                                         thisOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
 
+                                        thisOverlay._trace.writeToMemory(9, "IconOverlay: Process: Renamed. Dir: To. setBadge syncing at NewPath.");
                                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
                                         break;
                                     default:

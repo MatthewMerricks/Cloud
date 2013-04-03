@@ -1133,7 +1133,7 @@ namespace Cloud.SQLIndexer
 
                                 Action<PathState, FilePath> setBadge = (badgeType, badgePath) =>
                                 {
-                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call MessageEvents.QueueSetBadgeg.");
+                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call MessageEvents.QueueSetBadge. badgeType: {0}. badgePath: {1}.", badgeType, badgePath);
                                     MessageEvents.QueueSetBadge(this, new SetBadge(badgeType, badgePath));   // Message to invoke BadgeNet.IconOverlay.QueueSetBadge(badgeType, badgePath);
 
                                 };
@@ -1380,6 +1380,10 @@ namespace Cloud.SQLIndexer
                                                 {
                                                     _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call setBadge synced (4).");
                                                     setBadge(PathState.Synced, newPath);
+                                                }
+                                                else
+                                                {
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Skip badging because of other events pending at this path.");
                                                 }
                                                 break;
                                         }
