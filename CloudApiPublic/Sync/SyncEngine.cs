@@ -8859,7 +8859,8 @@ namespace Cloud.Sync
                                 case FileChangeType.Modified:
                                     alreadyVisitedRenames[currentChange.NewPath.Copy()] = currentChange.Metadata;
 
-                                    if (string.IsNullOrEmpty(currentChange.Metadata.StorageKey))
+                                    //RKSChange: if (string.IsNullOrEmpty(currentChange.Metadata.StorageKey))
+                                    if (!currentChange.Metadata.HashableProperties.IsFolder && string.IsNullOrEmpty(currentChange.Metadata.StorageKey))  // RKSChange
                                     {
                                         syncFromErrors.Add(
                                             new PossiblyStreamableAndPossiblyChangedFileChangeWithError(
