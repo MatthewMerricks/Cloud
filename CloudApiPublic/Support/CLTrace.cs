@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Threading;
 using Cloud.Static;
 using System.Text.RegularExpressions;
+using Cloud.Model;
 
 namespace Cloud.Support
 {
@@ -28,6 +29,10 @@ namespace Cloud.Support
         private static int _maxPriority = 10;  // set this to the highest priority to log
         private static string _traceCategory = null;
         private static string _fileExtensionWithoutPeriod = null;
+
+        // following flag should always be false except for when debugging FileMonitor memory
+        private readonly GenericHolder<bool> _debugToMemory = new GenericHolder<bool>(false);
+        private readonly List<string> _memoryTraces = new List<string>();
 
         /// <summary>
         /// The full path of the folder where trace files will be placed.
@@ -206,6 +211,141 @@ namespace Cloud.Support
 
             }
         }
+
+        /// <summary>
+        /// Trace to a memory queue.  Used for internal development only.
+        /// </summary>
+        /// <param name="priority">The priority of the message.  0 is highest.</param>
+        /// <param name="message">The message to write to the log</param>
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public void writeToMemory(int priority, string format, params object[] args)
+        {
+            // Don't trace unless the development flag is set.
+            if (!_debugToMemory.Value)
+            {
+                return;
+            }
+
+            try
+            {
+                // Only write high priority messages
+                if ((_traceLocation == null || priority <= _maxPriority)
+                    // only trace if trace category was set via initialization to prevent an exception being thrown -David
+                    && _traceCategory != null)
+                {
+                    int formatParamCount = Regex.Matches(format,
+                        @"\{\d+[^\{\}]*\}",
+                        RegexOptions.Compiled
+                            | RegexOptions.CultureInvariant).Count;
+
+                    if (args == null)
+                    {
+                        args = new object[0];
+                    }
+
+                    object[] copiedArgs;
+                    if (args.Length == formatParamCount)
+                    {
+                        copiedArgs = args;
+                    }
+                    else
+                    {
+                        copiedArgs = new object[formatParamCount];
+                        if (args.Length > formatParamCount)
+                        {
+                            Array.Copy(args, copiedArgs, formatParamCount);
+                        }
+                        else // args.Length < formatParamCount
+                        {
+                            Array.Copy(args, copiedArgs, args.Length);
+
+                            // example:
+                            // 3 args (0, 1, 2)
+                            // 5 format params (0 through 4)
+                            // start at 3, go to 4
+                            for (int missingArgument = args.Length; missingArgument < formatParamCount; missingArgument++)
+                            {
+                                copiedArgs[missingArgument] = "¡¡MissingArg" + missingArgument.ToString() + "!!";
+                            }
+                        }
+                    }
+
+                    // Lock while writing to prevent contention for the memory trace list
+                    lock (_memoryTraces)
+                    {
+                        // Format the string
+                        string message = string.Format(format, copiedArgs);
+
+                        // Create the entry
+                        LogMessage logEntry = new LogMessage(priority, message);
+                        string sLog = string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message);
+
+                        // Log to memory
+                        _memoryTraces.Add(sLog);
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+        }
+        // \endcond
+
+        /// <summary>
+        /// Trace to a memory queue.  Used for internal development only.
+        /// </summary>
+        /// <param name="priority">The priority of the message.  0 is highest.</param>
+        /// <param name="message">The message to write to the log</param>
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public void closeMemoryTrace()
+        {
+            // Don't trace unless the development flag is set.
+            if (!_debugToMemory.Value)
+            {
+                return;
+            }
+
+            try
+            {
+                // Get the trace file log path
+                string logFilePath = Helpers.CheckLogFileExistance(TraceLocation: _traceLocation, SyncBoxId: null, UserDeviceId: null, TraceCategory: _traceCategory,
+                        FileExtensionWithoutPeriod: _fileExtensionWithoutPeriod, OnNewTraceFile: null, OnPreviousCompletion: null);
+
+                // Lock while writing to prevent contention for the log file
+                lock (Helpers.LogFileLocker)
+                {
+                    // Lock while writing to prevent contention for the memory trace list
+                    lock (_memoryTraces)
+                    {
+                        // This could be optimised to prevent opening and closing the file for each write
+                        using (FileStream fs = File.Open(logFilePath, FileMode.Append, FileAccess.Write, FileShare.Write))
+                        {
+                            using (StreamWriter log = new StreamWriter(fs))
+                            {
+                                // Write a header.
+                                log.WriteLine("Development memory trace:");
+
+                                // Output all of the memory traces.
+                                foreach (string sLogEntry in _memoryTraces)
+                                {
+                                    log.WriteLine(sLogEntry);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+        }
+        // \endcond
 
         /// <summary>
         /// A Log class to store the message and the Date and Time the log entry was created

@@ -32,6 +32,10 @@ namespace Cloud.Sync
     /// </summary>
     internal sealed class SyncEngine : IDisposable
     {
+        #region Trace
+        private static readonly CLTrace _trace = CLTrace.Instance;
+        #endregion
+
         #region instance fields, all readonly
         // locker to prevent multiple simultaneous processing of the same SyncEngine, also storing whether Run has fired before for special initial upload/download processing
         private readonly GenericHolder<bool> RunLocker = new GenericHolder<bool>(false);
@@ -9154,6 +9158,7 @@ namespace Cloud.Sync
                 if (toRetry.FileChange.FailureCounter == 0)
                 {
                     // mark the path state for error
+                    _trace.writeToMemory(9, "SyncEngine: ContinueToRetry: Badge failed initially");
                     MessageEvents.SetPathState(toRetry.FileChange, // source of the event (the event itself)
                         new SetBadge(PathState.Failed, // state to set is failed
                             ((toRetry.FileChange.Direction == SyncDirection.From && toRetry.FileChange.Type == FileChangeType.Renamed)
@@ -9181,6 +9186,7 @@ namespace Cloud.Sync
                 if (toRetry.FileChange.NotFoundForStreamCounter >= MaxNumberOfNotFounds)
                 {
                     // remove the badge at the current path by setting it as synced
+                    _trace.writeToMemory(9, "SyncEngine: ContinueToRetry: Badge synced, reached max not found count.");
                     MessageEvents.SetPathState(toRetry.FileChange, new SetBadge(PathState.Synced, toRetry.FileChange.NewPath));
 
                     // make sure to add change to SQL
@@ -9215,6 +9221,7 @@ namespace Cloud.Sync
                         && castRetry.DependenciesCount > 0)
                     {
                         // call a recursive function which will take a list of failed dependencies to badge as failed and call itself for inner dependencies
+                        _trace.writeToMemory(9, "SyncEngine: ContinueToRetry: Badge failed, with inner depencencies.");
                         BadgeDependenciesAsFailures(castRetry.Dependencies);
                     }
 

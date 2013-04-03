@@ -32,7 +32,7 @@ namespace Cloud.SQLIndexer
     internal sealed class IndexingAgent : IDisposable
     {
         #region private fields
-        private static CLTrace _trace = CLTrace.Instance;
+        private static readonly CLTrace _trace = CLTrace.Instance;
         // store the path that represents the root of indexing
         private string indexedPath = null;
         private readonly ICLSyncSettingsAdvanced _syncSettings = null;
@@ -742,6 +742,7 @@ namespace Cloud.SQLIndexer
                     foreach (KeyValuePair<FileChange, GenericHolder<long>> currentAddedEvent in orderToChange.Values)
                     {
                         currentAddedEvent.Key.EventId = currentAddedEvent.Value.Value;
+                        _trace.writeToMemory(9, "IndexingAgent: AddEvents: Call MessageEvents.ApplyFileChangeMergeToChangeState.");
                         MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentAddedEvent.Key, null));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentAddedEvent.Key, null)
                     }
                 }
@@ -1132,6 +1133,7 @@ namespace Cloud.SQLIndexer
 
                                 Action<PathState, FilePath> setBadge = (badgeType, badgePath) =>
                                 {
+                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call MessageEvents.QueueSetBadgeg.");
                                     MessageEvents.QueueSetBadge(this, new SetBadge(badgeType, badgePath));   // Message to invoke BadgeNet.IconOverlay.QueueSetBadge(badgeType, badgePath);
 
                                 };
@@ -1236,6 +1238,7 @@ namespace Cloud.SQLIndexer
                                                 if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call setBadge synced.");
                                                     setBadge(PathState.Synced, newPath);
                                                 }
                                                 break;
@@ -1245,6 +1248,7 @@ namespace Cloud.SQLIndexer
                                                 if (previousEvent.SyncFrom)
                                                 {
                                                     bool isDeleted;
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call MessageEvents.DeleteBadgePath.");
                                                     MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(newPath), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(newPath, out isDeleted);
                                                 }
 
@@ -1253,10 +1257,12 @@ namespace Cloud.SQLIndexer
                                                 if (existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call setBadge syncing (2).");
                                                     setBadge(PathState.Syncing, newPath);
                                                 }
                                                 else if (!previousEvent.SyncFrom)
                                                 {
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call setBadge synced (2).");
                                                     setBadge(PathState.Synced, newPath);
                                                 }
                                                 break;
@@ -1296,6 +1302,7 @@ namespace Cloud.SQLIndexer
                                                 if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call setBadge synced (3).");
                                                     setBadge(PathState.Synced, newPath);
                                                 }
                                                 break;
@@ -1363,6 +1370,7 @@ namespace Cloud.SQLIndexer
 
                                                 if (previousEvent.SyncFrom)
                                                 {
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call MessageEvents.RenameBadgePath.");
                                                     MessageEvents.RenameBadgePath(this, new RenameBadgePath(oldPath, newPath));   // Message to invoke BadgeNet.IconOverlay.RenameBadgePath(oldPath, newPath);
                                                 }
 
@@ -1370,6 +1378,7 @@ namespace Cloud.SQLIndexer
                                                 if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
                                                     && existingEvent.FileSystemObject.Path == newPath.ToString()))
                                                 {
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call setBadge synced (4).");
                                                     setBadge(PathState.Synced, newPath);
                                                 }
                                                 break;
@@ -1670,6 +1679,7 @@ namespace Cloud.SQLIndexer
                             && currentMergeToFrom.MergeTo.DoNotAddToSQLIndex
                             && currentMergeToFrom.MergeTo.EventId != 0)
                         {
+                            _trace.writeToMemory(9, "IndexingAgent: MergeEventsIntoDatabase: Call MessageEvents.ApplyFileChangeMergeToChangeState.");
                             MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
                             continue;
                         }
@@ -2007,6 +2017,7 @@ namespace Cloud.SQLIndexer
                             || toUpdate.ContainsKey(currentMergeToFrom.MergeTo.EventId)
                             || toDelete.Contains(currentMergeToFrom.MergeTo.EventId))
                         {
+                            _trace.writeToMemory(9, "IndexingAgent: MergeEventsIntoDatabase: Call MessageEvents.ApplyFileChangeMergeToChangeState (2).");
                             MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
                         }
                     }
@@ -2239,6 +2250,7 @@ namespace Cloud.SQLIndexer
 
                 Action<FilePath> setBadgeSynced = syncedPath =>
                     {
+                        _trace.writeToMemory(9, "IndexingAgent: MarkEventAsCompletedOnPreviousSync: Call setBadge synced (5).");
                         MessageEvents.QueueSetBadge(this, new SetBadge(PathState.Synced, syncedPath));   // Message to invoke BadgeNet.IconOverlay.QueueSetBadge(PathState.Synced, syncedPath);
                     };
 
@@ -2249,22 +2261,26 @@ namespace Cloud.SQLIndexer
                     {
                         case FileChangeType.Created:
                         case FileChangeType.Modified:
+                            _trace.writeToMemory(9, "IndexingAgent: MarkEventAsCompletedOnPreviousSync: Call setBadgeSynced (1)."); 
                             setBadgeSynced(currentEvent.FileSystemObject.Path);
                             break;
                         case FileChangeType.Deleted:
                             if (currentEvent.SyncFrom)
                             {
                                 bool isDeleted;
+                                _trace.writeToMemory(9, "IndexingAgent: MarkEventAsCompletedOnPreviousSync: Call MessageEvents.DeleteBadgePath.");
                                 MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(currentEvent.FileSystemObject.Path), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(currentEvent.FileSystemObject.Path, out isDeleted);
                             }
                             else
                             {
+                                _trace.writeToMemory(9, "IndexingAgent: MarkEventAsCompletedOnPreviousSync: Call setBadgeSynced (2).");
                                 setBadgeSynced(currentEvent.FileSystemObject.Path);
                             }
                             break;
                         case FileChangeType.Renamed:
                             if (currentEvent.SyncFrom)
                             {
+                                _trace.writeToMemory(9, "IndexingAgent: MarkEventAsCompletedOnPreviousSync: Call MessageEvents.RenameBadgePath.");
                                 MessageEvents.RenameBadgePath(this, new RenameBadgePath(currentEvent.PreviousPath, currentEvent.FileSystemObject.Path));   // Message to invoke BadgeNet.IconOverlay.RenameBadgePath(currentEvent.PreviousPath, currentEvent.FileSystemObject.Path);
                             }
 
@@ -2543,6 +2559,7 @@ namespace Cloud.SQLIndexer
 
                 foreach (FilePath initiallySyncedBadge in indexPaths.Keys)
                 {
+                    _trace.writeToMemory(9, "IndexingAgent: BuildIndex: Call MessageEvents.SetPathState synced.");
                     MessageEvents.SetPathState(this, new SetBadge(PathState.Synced, initiallySyncedBadge));
                 }
 
