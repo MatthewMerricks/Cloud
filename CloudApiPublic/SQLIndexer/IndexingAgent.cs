@@ -1246,10 +1246,10 @@ namespace Cloud.SQLIndexer
                                                             evt.FileChangeTypeCategoryId.ToString(), 
                                                             evt.FileChangeTypeEnumId.ToString(),
                                                             evt.SyncFrom,
-                                                            evt.PreviousPath,
+                                                            evt.PreviousPath ?? "NoPreviousPath",
                                                             evt.FileSystemObject.IsFolder,
-                                                            evt.FileSystemObject.Path,
-                                                            evt.FileSystemObject.TargetPath);
+                                                            evt.FileSystemObject.Path ?? "NoPath",
+                                                            evt.FileSystemObject.TargetPath ?? "NoTargetPath");
                                                 }
 
                                                 // Badge synced, unless there is a pending event at this same path.
