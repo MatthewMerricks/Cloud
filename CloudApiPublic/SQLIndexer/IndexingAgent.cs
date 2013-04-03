@@ -1242,9 +1242,9 @@ namespace Cloud.SQLIndexer
                                                 {
                                                     _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: evt: EnumCategory: {0}. FileChangeTypeCategoryId: {1}. " +
                                                                             "FileChangeTypeEnumId: {2}. SyncFrom: {3}. PreviousPath: {4}, IsFolder: {5}. Path: {6}. TargetPath: {7}.",
-                                                            evt.EnumCategory.ToString(), 
-                                                            evt.FileChangeTypeCategoryId.ToString(), 
-                                                            evt.FileChangeTypeEnumId.ToString(),
+                                                            evt.EnumCategory != null ? evt.EnumCategory.ToString() : "NoEnumCategory", 
+                                                            evt.FileChangeTypeCategoryId != null ? evt.FileChangeTypeCategoryId.ToString() : "NoFileChangeTypeCategoryId", 
+                                                            evt.FileChangeTypeEnumId != null ?  evt.FileChangeTypeEnumId.ToString() : "NoFileChangeTypeEnumId",
                                                             evt.SyncFrom,
                                                             evt.PreviousPath ?? "NoPreviousPath",
                                                             evt.FileSystemObject.IsFolder,
