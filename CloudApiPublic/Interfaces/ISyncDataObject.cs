@@ -36,7 +36,7 @@ namespace Cloud.Interfaces
         /// <param name="syncCounter">Output sync counter local identity</param>
         /// <param name="newRootPath">Optional new root path for location of sync root, must be set on first sync</param>
         /// <returns>Returns an error that occurred during recording the sync, if any</returns>
-        CLError RecordCompletedSync(string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, FilePath newRootPath = null);
+        CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null);
 
         /// <summary>
         /// Callback from SyncEngine to retrieve events to process, with dependencies assigned;
@@ -155,5 +155,7 @@ namespace Cloud.Interfaces
         /// <param name="metadata">(output) The retrieved metadata for the file</param>
         /// <returns>Should return any error that occurred while retrieving the file metadata, should not throw any exception</returns>
         CLError getMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata);
+
+        CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath);
     }
 }

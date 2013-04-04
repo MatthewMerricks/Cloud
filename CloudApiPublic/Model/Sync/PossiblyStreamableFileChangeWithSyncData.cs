@@ -13,7 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Cloud.Sync.Model
+namespace Cloud.Model
 {
     internal struct PossiblyStreamableFileChangeWithSyncData
     {

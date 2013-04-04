@@ -1,5 +1,5 @@
 //
-// PossiblyStreamableAndPossiblyChangedFileChange.cs
+// PossiblyChangedFileChange.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -8,13 +8,13 @@
 using Cloud.Model;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Cloud.Sync.Model
+namespace Cloud.Model
 {
-    internal struct PossiblyStreamableAndPossiblyChangedFileChange
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public struct PossiblyChangedFileChange
     {
         public FileChange FileChange
         {
@@ -22,25 +22,25 @@ namespace Cloud.Sync.Model
             {
                 if (!_isValid)
                 {
-                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableAndPossiblyChangedFileChange");
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyChangedFileChange");
                 }
                 return _fileChange;
             }
         }
-        private FileChange _fileChange;
+        private readonly FileChange _fileChange;
 
-        public Stream Stream
+        public int ResultOrder
         {
             get
             {
                 if (!_isValid)
                 {
-                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableAndPossiblyChangedFileChange");
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyChangedFileChange");
                 }
-                return _stream;
+                return _resultOrder;
             }
         }
-        private Stream _stream;
+        private readonly int _resultOrder;
 
         public bool Changed
         {
@@ -48,12 +48,12 @@ namespace Cloud.Sync.Model
             {
                 if (!_isValid)
                 {
-                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableAndPossiblyChangedFileChange");
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyChangedFileChange");
                 }
                 return _changed;
             }
         }
-        private bool _changed;
+        private readonly bool _changed;
         
         public bool IsValid
         {
@@ -62,18 +62,18 @@ namespace Cloud.Sync.Model
                 return _isValid;
             }
         }
-        private bool _isValid;
+        private readonly bool _isValid;
 
-        public PossiblyStreamableAndPossiblyChangedFileChange(bool Changed, FileChange FileChange, Stream Stream)
+        public PossiblyChangedFileChange(int ResultOrder, bool Changed, FileChange FileChange)
         {
             if (FileChange == null)
             {
                 throw new NullReferenceException("FileChange cannot be null");
             }
 
+            this._resultOrder = ResultOrder;
             this._fileChange = FileChange;
             this._changed = Changed;
-            this._stream = Stream;
             this._isValid = true;
         }
     }

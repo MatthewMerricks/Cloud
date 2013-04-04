@@ -206,6 +206,15 @@
     <Compile Include="Model\EventMessages\UploadingCountMessage.cs" />
     <Compile Include="Model\EventMessages\UploadProgressMessage.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
+    <Compile Include="Model\Sync\AsyncUploadDownloadTask.cs" />
+    <Compile Include="Model\Sync\DownloadIdAndMD5.cs" />
+    <Compile Include="Model\Sync\EventIdAndCompletionProcessor.cs" />
+    <Compile Include="Model\Sync\PossiblyChangedFileChange.cs" />
+    <Compile Include="Model\Sync\PossiblyStreamableAndPossiblyChangedFileChange.cs" />
+    <Compile Include="Model\Sync\PossiblyStreamableAndPossiblyChangedFileChangeWithError.cs" />
+    <Compile Include="Model\Sync\PossiblyStreamableAndPossiblyPreexistingErrorFileChange.cs" />
+    <Compile Include="Model\Sync\PossiblyStreamableFileChangeWithSyncData.cs" />
+    <Compile Include="Model\Sync\PossiblyStreamableFileChangeWithUploadDownloadTask.cs" />
     <Compile Include="PushNotification\CLNotificationManualPollingEngine.cs" />
     <Compile Include="REST\AsyncResults.cs" />
     <Compile Include="PushNotification\CLNotificationSseEngine.cs" />
@@ -344,15 +353,6 @@
     <Compile Include="Sync\HttpScheduler.cs" />
     <Compile Include="Sync\IEnumerableStreamExtensions.cs" />
     <Compile Include="Sync\IExecutableException.cs" />
-    <Compile Include="Sync\Model\AsyncUploadDownloadTask.cs" />
-    <Compile Include="Sync\Model\DownloadIdAndMD5.cs" />
-    <Compile Include="Sync\Model\EventIdAndCompletionProcessor.cs" />
-    <Compile Include="Sync\Model\PossiblyChangedFileChange.cs" />
-    <Compile Include="Sync\Model\PossiblyStreamableAndPossiblyChangedFileChange.cs" />
-    <Compile Include="Sync\Model\PossiblyStreamableAndPossiblyChangedFileChangeWithError.cs" />
-    <Compile Include="Sync\Model\PossiblyStreamableAndPossiblyPreexistingErrorFileChange.cs" />
-    <Compile Include="Sync\Model\PossiblyStreamableFileChangeWithSyncData.cs" />
-    <Compile Include="Sync\Model\PossiblyStreamableFileChangeWithUploadDownloadTask.cs" />
     <Compile Include="Sync\NetworkMonitor.cs" />
     <Compile Include="Sync\SyncEngine.cs" />
   </ItemGroup>
@@ -414,6 +414,7 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\23FileSystemObjects_Before_Delete.trigger.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\24FileSystemObjects_After_Delete.trigger.sql" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>echo ************  START POST BUILD STEPS **********************

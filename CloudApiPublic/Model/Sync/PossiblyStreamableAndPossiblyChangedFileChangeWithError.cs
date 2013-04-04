@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Cloud.Sync.Model
+namespace Cloud.Model
 {
     internal struct PossiblyStreamableAndPossiblyChangedFileChangeWithError
     {
@@ -27,7 +27,20 @@ namespace Cloud.Sync.Model
                 return _fileChange;
             }
         }
-        private FileChange _fileChange;
+        private readonly FileChange _fileChange;
+
+        public int ResultOrder
+        {
+            get
+            {
+                if (!_isValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyChangedFileChange");
+                }
+                return _resultOrder;
+            }
+        }
+        private readonly int _resultOrder;
 
         public Stream Stream
         {
@@ -40,7 +53,7 @@ namespace Cloud.Sync.Model
                 return _stream;
             }
         }
-        private Stream _stream;
+        private readonly Stream _stream;
 
         public bool Changed
         {
@@ -53,7 +66,7 @@ namespace Cloud.Sync.Model
                 return _changed;
             }
         }
-        private bool _changed;
+        private readonly bool _changed;
 
         public Exception Error
         {
@@ -66,7 +79,7 @@ namespace Cloud.Sync.Model
                 return _error;
             }
         }
-        private Exception _error;
+        private readonly Exception _error;
         
         public bool IsValid
         {
@@ -75,9 +88,9 @@ namespace Cloud.Sync.Model
                 return _isValid;
             }
         }
-        private bool _isValid;
+        private readonly bool _isValid;
 
-        public PossiblyStreamableAndPossiblyChangedFileChangeWithError(bool Changed, FileChange FileChange, Stream Stream, Exception Error)
+        public PossiblyStreamableAndPossiblyChangedFileChangeWithError(int ResultOrder, bool Changed, FileChange FileChange, Stream Stream, Exception Error)
         {
             if (FileChange == null)
             {
@@ -88,6 +101,7 @@ namespace Cloud.Sync.Model
                 throw new NullReferenceException("Error cannot be null");
             }
 
+            this._resultOrder = ResultOrder;
             this._fileChange = FileChange;
             this._changed = Changed;
             this._stream = Stream;

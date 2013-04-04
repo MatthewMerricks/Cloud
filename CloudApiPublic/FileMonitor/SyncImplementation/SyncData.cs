@@ -239,5 +239,10 @@ namespace Cloud.FileMonitor.SyncImplementation
         {
             return Indexer.GetMetadataByPathAndRevision(path, revision, out metadata);
         }
+
+        public CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath)
+        {
+            return Indexer.GetCalculatedFullPathByServerUid(serverUid, calculatedFullPath);
+        }
     }
 }

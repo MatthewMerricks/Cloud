@@ -29,4 +29,6 @@ namespace Cloud.Model
 
         public readonly object RevisionChangeLocker = new object();
     }
+
+    public class put event args here for revision plus server id
 }
