@@ -31,7 +31,7 @@ namespace Cloud.Support
         private static string _fileExtensionWithoutPeriod = null;
 
         // following flag should always be false except for when debugging FileMonitor memory
-        private readonly GenericHolder<bool> _debugToMemory = new GenericHolder<bool>(false);
+        private readonly GenericHolder<bool> _traceToMemory = new GenericHolder<bool>(false);
         private readonly List<string> _memoryTraces = new List<string>();
 
         /// <summary>
@@ -213,78 +213,87 @@ namespace Cloud.Support
         }
 
         /// <summary>
-        /// Trace to a memory queue.  Used for internal development only.
+        /// Format a string for trace.  Used for internal development only.
         /// </summary>
-        /// <param name="priority">The priority of the message.  0 is highest.</param>
-        /// <param name="message">The message to write to the log</param>
+        /// <param name="mainFormat">The format string</param>
+        /// <param name="stringParams">The arguments to format (variable number).  No args OK.</param>
+        /// <returns></returns>
         //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
         // \cond
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public void writeToMemory(int priority, string format, params object[] args)
+        public static string trcFmtStr(string mainFormat, params object[] stringParams)
+        {
+            int formatParamCount = Regex.Matches(mainFormat,
+                @"\{\d+[^\{\}]*\}",
+                RegexOptions.Compiled
+                    | RegexOptions.CultureInvariant).Count;
+
+            if (stringParams == null)
+            {
+                stringParams = new object[0];
+            }
+
+            object[] copiedArgs;
+            if (stringParams.Length == formatParamCount)
+            {
+                copiedArgs = stringParams;
+            }
+            else
+            {
+                copiedArgs = new object[formatParamCount];
+                if (stringParams.Length > formatParamCount)
+                {
+                    Array.Copy(stringParams, copiedArgs, formatParamCount);
+                }
+                else // args.Length < formatParamCount
+                {
+                    Array.Copy(stringParams, copiedArgs, stringParams.Length);
+
+                    // example:
+                    // 3 args (0, 1, 2)
+                    // 5 format params (0 through 4)
+                    // start at 3, go to 4
+                    for (int missingArgument = stringParams.Length; missingArgument < formatParamCount; missingArgument++)
+                    {
+                        copiedArgs[missingArgument] = "¡¡MissingArg" + missingArgument.ToString() + "!!";
+                    }
+                }
+            }
+
+            // Format the string
+            return string.Format(mainFormat, copiedArgs);
+        }
+        // \endcond
+
+        /// <summary>
+        /// Trace to a memory queue.  Used for internal development only.
+        /// </summary>
+        /// <param name="delegateReturningStringToLog">A delegate that will return the string to log.</param>
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public void writeToMemory(Func<string> delegateReturningStringToLog)
         {
             // Don't trace unless the development flag is set.
-            if (!_debugToMemory.Value)
+            if (!_traceToMemory.Value)
             {
                 return;
             }
 
             try
             {
-                // Only write high priority messages
-                if ((_traceLocation == null || priority <= _maxPriority)
-                    // only trace if trace category was set via initialization to prevent an exception being thrown -David
-                    && _traceCategory != null)
+                // Lock while writing to prevent contention for the memory trace list
+                lock (_memoryTraces)
                 {
-                    int formatParamCount = Regex.Matches(format,
-                        @"\{\d+[^\{\}]*\}",
-                        RegexOptions.Compiled
-                            | RegexOptions.CultureInvariant).Count;
+                    // Format the string
+                    string message = delegateReturningStringToLog();
 
-                    if (args == null)
-                    {
-                        args = new object[0];
-                    }
+                    // Create the entry
+                    LogMessage logEntry = new LogMessage(/* memory trace is always intense debugging */9, message);
+                    string sLog = string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message);
 
-                    object[] copiedArgs;
-                    if (args.Length == formatParamCount)
-                    {
-                        copiedArgs = args;
-                    }
-                    else
-                    {
-                        copiedArgs = new object[formatParamCount];
-                        if (args.Length > formatParamCount)
-                        {
-                            Array.Copy(args, copiedArgs, formatParamCount);
-                        }
-                        else // args.Length < formatParamCount
-                        {
-                            Array.Copy(args, copiedArgs, args.Length);
-
-                            // example:
-                            // 3 args (0, 1, 2)
-                            // 5 format params (0 through 4)
-                            // start at 3, go to 4
-                            for (int missingArgument = args.Length; missingArgument < formatParamCount; missingArgument++)
-                            {
-                                copiedArgs[missingArgument] = "¡¡MissingArg" + missingArgument.ToString() + "!!";
-                            }
-                        }
-                    }
-
-                    // Lock while writing to prevent contention for the memory trace list
-                    lock (_memoryTraces)
-                    {
-                        // Format the string
-                        string message = string.Format(format, copiedArgs);
-
-                        // Create the entry
-                        LogMessage logEntry = new LogMessage(priority, message);
-                        string sLog = string.Format("{0}_{1}_{2}_{3}", logEntry.LogTime, logEntry.ProcessId.ToString("x"), logEntry.ThreadId.ToString("x"), logEntry.Message);
-
-                        // Log to memory
-                        _memoryTraces.Add(sLog);
-                    }
+                    // Log to memory
+                    _memoryTraces.Add(sLog);
                 }
             }
             catch
@@ -305,7 +314,7 @@ namespace Cloud.Support
         public void closeMemoryTrace()
         {
             // Don't trace unless the development flag is set.
-            if (!_debugToMemory.Value)
+            if (!_traceToMemory.Value)
             {
                 return;
             }
