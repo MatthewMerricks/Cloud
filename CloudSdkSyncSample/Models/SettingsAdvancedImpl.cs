@@ -165,11 +165,13 @@ namespace SampleLiveSync.Models
                 return null;
             }
         }
-        public string ClientVersion
+        /// <summary>
+        /// Provide an optional description of the client application.  This description may be up to 32 characters, and must not contain commas.
+        /// </summary>
+        public string ClientDescription
         {
             get
             {
-                //TODO: ClientVersion should be deleted from settings.
                 return String.Empty;
             }
         }

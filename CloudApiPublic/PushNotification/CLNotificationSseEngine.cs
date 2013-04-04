@@ -259,7 +259,7 @@ namespace Cloud.PushNotification
                 }
 
                 // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-                sseRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = OSVersionInfo.GetClientVersionHttpHeader(_copiedSettings.ClientVersion); // set client version
+                sseRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = OSVersionInfo.GetClientVersionHttpHeader(_copiedSettings.ClientDescription); // set client version
                 sseRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
                                     CLDefinitions.HeaderAppendKey +
                                     _syncBox.Credential.Key + ", " +

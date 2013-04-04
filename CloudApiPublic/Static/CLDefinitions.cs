@@ -92,6 +92,7 @@ namespace Cloud.Static
         public const int MaxNumberOfConcurrentUploads = 6;
         public const int MaxNumberOfConcurrentDownloads = 6;
         public const int HttpTimeoutDefaultMilliseconds = 180000;
+        public const int MaxClientDescriptionLength = 32;
 
         public const string CLTwitterPageUrl = "http://twitter.com/clouddotcom";
 

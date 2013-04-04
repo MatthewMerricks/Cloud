@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 #endregion USINGS
@@ -986,10 +987,65 @@ namespace Cloud.Static
 
         #region Modifications
 
-        public static string GetClientVersionHttpHeader(string clientVersion)
+        /// <summary>
+        /// Replace commas in a string
+        /// </summary>
+        /// <param name="sIn">The input string</param>
+        /// <returns>The input string with commas replaced by spaces.</returns>
+        private static string ReplaceCommas(string sIn)
         {
-            return OSVersionInfo.Name + "_" + OSVersionInfo.Edition + "_ " + OSVersionInfo.OSBits.ToString() + "_" + 
-                        OSVersionInfo.VersionString + "&V" + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() + "&" + clientVersion;
+            return sIn.Replace(',', ' ');
+        }
+        
+        /// <summary>
+        /// Get the physical memory information string.
+        /// e.g.: "4096 MB".
+        /// </summary>
+        /// <returns></returns>
+        private static string GetPhysicalMemory()
+        {
+            double totalMB = 0;
+            foreach (ManagementObject mObj in new ManagementObjectSearcher("select * from Win32_PhysicalMemory").Get())
+                totalMB += Convert.ToDouble(mObj["Capacity"]);
+
+            return (totalMB / 1024 / 1024).ToString() + " MB";
+        }
+
+        /// <summary>
+        /// Get the processor information string.
+        /// e.g.: "2.3 GHz 64bit Pentium(R) Dual-Core CPU T4500 @ 2.30GHz"
+        /// </summary>
+        /// <returns></returns>
+        private static string GetProcessorInformation()
+        {
+            string ret = "";
+            foreach (ManagementObject mObj in new ManagementObjectSearcher("SELECT maxclockspeed, datawidth, name, manufacturer FROM Win32_Processor").Get())
+            {
+                ret = (Convert.ToDecimal(mObj["maxclockspeed"]) / 1000).ToString() + "GHz ";
+                ret += mObj["datawidth"].ToString() + "bit ";
+                ret += mObj["name"].ToString();
+                break;
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// Get the "X-Cld-Client-Version" header string.
+        /// </summary>
+        /// <param name="clientDescription">The client description from settings.  This is max 32 characters with no commas.</param>
+        /// <returns>The "X-Cld-Client-Version" header string.</returns>
+        public static string GetClientVersionHttpHeader(string clientDescription)
+        {
+            string sHardware = ReplaceCommas(GetProcessorInformation());
+            string sMemory = ReplaceCommas(GetPhysicalMemory());
+            string sOs = ReplaceCommas(OSVersionInfo.Name + " " + OSVersionInfo.Edition + " " + OSVersionInfo.OSBits.ToString() + " " + OSVersionInfo.VersionString);
+            string sSdkVersion = ReplaceCommas(typeof(OSVersionInfo).Assembly.GetName().Version.ToString());
+            string sClientName = ReplaceCommas(System.Reflection.Assembly.GetEntryAssembly().GetName().Name);
+            string sClientVersion = ReplaceCommas(System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString());
+            string sClientDescription = ReplaceCommas(clientDescription);
+
+            string toReturn = sHardware + " " + sMemory + "," + sOs + ",v" + sSdkVersion + "," + sClientName + ",v" + sClientVersion + "," + sClientDescription;
+            return toReturn;
         }
 
         #endregion

@@ -1166,6 +1166,7 @@ namespace SampleLiveSync.ViewModels
             }
         }
 
+
         /// <summary>
         /// Start syncing the SyncBox.
         /// </summary>

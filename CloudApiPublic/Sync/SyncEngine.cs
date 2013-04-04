@@ -7605,7 +7605,7 @@ namespace Cloud.Sync
                                                             }
 
                                                             // define a portion of the name which needs to be added to describe the conflict state dynamic to the current friendly-named device
-                                                            string deviceAppend = " CONFLICT " + syncBox.CopiedSettings.FriendlyName;
+                                                            string deviceAppend = " CONFLICT " + Environment.MachineName;
                                                             // declare a string to store the main name of the conflict file to create
                                                             string finalizedMainName;
                                                             // declare a FilePath to store the full path to the conflict file to create
