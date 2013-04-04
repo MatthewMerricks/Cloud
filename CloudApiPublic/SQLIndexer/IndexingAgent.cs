@@ -1252,18 +1252,17 @@ namespace Cloud.SQLIndexer
                                                             evt.FileSystemObject.TargetPath ?? "NoTargetPath");
                                                 }
 
-                                                // RKSCHANGE: Always badge completions.
                                                 // Badge synced, unless there is a pending event at this same path.
-                                                //if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
-                                                //    && existingEvent.FileSystemObject.Path == newPath.ToString()))
-                                                //{
+                                                if (!existingEvents.Any(existingEvent => Array.BinarySearch(syncedEventIdsEnumerated, existingEvent.EventId) < 0
+                                                    && existingEvent.FileSystemObject.Path == newPath.ToString()))
+                                                {
                                                     _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Call setBadge synced.");
                                                     setBadge(PathState.Synced, newPath);
-                                                //}
-                                                //else
-                                                //{
-                                                //    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Skipped setting synced badge because of other pending events at this path.");
-                                                //}
+                                                }
+                                                else
+                                                {
+                                                    _trace.writeToMemory(9, "IndexingAgent: RecordCompletedSync: Skipped setting synced badge because of other pending events at this path.");
+                                                }
                                                 break;
                                             case FileChangeType.Deleted:
                                                 newSyncStates.Remove(newPath);

@@ -1710,17 +1710,29 @@ namespace Cloud.FileMonitor
                                     {
                                         foreach (FileChangeWithDependencies CurrentDisposal in DisposeChanges)
                                         {
+                                            _trace.writeToMemory(9, "MonitorAgent: AssignDependencies: CurrentDisposal: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
+                                                        CurrentDisposal.Direction.ToString(),
+                                                        CurrentDisposal.Type.ToString(),
+                                                        CurrentDisposal.OldPath != null ? CurrentDisposal.OldPath : "NoOldPath",
+                                                        CurrentDisposal.NewPath != null ? CurrentDisposal.NewPath : "NoNewPath");
                                             KeyValuePair<FileChange, FileChangeSource> CurrentOriginalMapping;
                                             if (OriginalFileChangeMappings != null
                                                 && OriginalFileChangeMappings.TryGetValue(CurrentDisposal, out CurrentOriginalMapping))
                                             {
+                                                _trace.writeToMemory(9, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
+                                                            CurrentOriginalMapping.Key.Direction.ToString(),
+                                                            CurrentOriginalMapping.Key.Type.ToString(),
+                                                            CurrentOriginalMapping.Key.OldPath != null ? CurrentOriginalMapping.Key.OldPath : "NoOldPath",
+                                                            CurrentOriginalMapping.Key.NewPath != null ? CurrentOriginalMapping.Key.NewPath : "NoNewPath");
                                                 CurrentOriginalMapping.Key.Dispose();
 
                                                 if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges)
                                                 {
+                                                    _trace.writeToMemory(9, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Remove this CurrentOriginalMapping from originalQueuedChangesIndexesByInMemoryIds.");
                                                     RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds);
                                                 }
 
+                                                _trace.writeToMemory(9, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql.");
                                                 removeFromSql.Add(CurrentDisposal);
                                             }
                                         }
@@ -1807,13 +1819,19 @@ namespace Cloud.FileMonitor
                 DisposeChanges = null;
                 HashSet<FileChangeWithDependencies> RenamePathSearches = null;
 
+                _trace.writeToMemory(9, "MonitorAgent: RenameDependencyCheck: LaterChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
+                            LaterChange.Direction.ToString(),
+                            LaterChange.Type.ToString(),
+                            LaterChange.OldPath != null ? LaterChange.OldPath : "NoOldPath",
+                            LaterChange.NewPath != null ? LaterChange.NewPath : "NoNewPath");
                 foreach (FileChangeWithDependencies CurrentEarlierChange in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(EarlierChange)
                     .Reverse()
                     .OfType<FileChangeWithDependencies>())
                 {
                     bool breakOutOfEnumeration = false;
-                    _trace.writeToMemory(9, "MonitorAgent: RenameDependencyCheck: CurrentEarlierChange: Direction: {0}. OldPath: {1}. NewPath: {2}.", 
+                    _trace.writeToMemory(9, "MonitorAgent: RenameDependencyCheck: CurrentEarlierChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.", 
                                 CurrentEarlierChange.Direction.ToString(),
+                                CurrentEarlierChange.Type.ToString(),
                                 CurrentEarlierChange.OldPath != null ? CurrentEarlierChange.OldPath : "NoOldPath",
                                 CurrentEarlierChange.NewPath != null ? CurrentEarlierChange.NewPath : "NoNewPath");
                     switch (CurrentEarlierChange.Type)
@@ -1986,6 +2004,7 @@ namespace Cloud.FileMonitor
                 ContinueProcessing = Helpers.DefaultForType<bool>();
                 toReturn += ex;
             }
+
             if (toReturn != null)
             {
                 _trace.writeToMemory(9, "MonitorAgent: RenameDependencyCheck: ERROR: {0}.", toReturn.errorDescription);
