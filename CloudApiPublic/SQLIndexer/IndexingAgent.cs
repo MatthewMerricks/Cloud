@@ -855,7 +855,7 @@ namespace Cloud.SQLIndexer
                         {
                             foreach (int notDeletedIndex in unableToFindIndexes)
                             {
-                                notFoundErrors += new Exception("Event with id " + eventIdsArray[notDeletedIndex].ToString() + " not found to delete");
+                                notFoundErrors += new KeyNotFoundException("Event with id " + eventIdsArray[notDeletedIndex].ToString() + " not found to delete");
                             }
                         }
 
@@ -872,7 +872,7 @@ namespace Cloud.SQLIndexer
                         {
                             foreach (int notDeletedIndex in unableToFindIndexes)
                             {
-                                notFoundErrors += new Exception("Event with id " + eventIdsArray[notDeletedIndex].ToString() + " not found to delete");
+                                notFoundErrors += new KeyNotFoundException("Event with id " + eventIdsArray[notDeletedIndex].ToString() + " not found to delete");
                             }
                         }
                     }

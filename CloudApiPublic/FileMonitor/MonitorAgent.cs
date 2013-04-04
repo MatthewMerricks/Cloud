@@ -1715,11 +1715,13 @@ namespace Cloud.FileMonitor
                                                 && OriginalFileChangeMappings.TryGetValue(CurrentDisposal, out CurrentOriginalMapping))
                                             {
                                                 CurrentOriginalMapping.Key.Dispose();
-                                                if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges
-                                                    && RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds))
+
+                                                if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges)
                                                 {
-                                                    removeFromSql.Add(CurrentDisposal);
+                                                    RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds);
                                                 }
+
+                                                removeFromSql.Add(CurrentDisposal);
                                             }
                                         }
                                     }
@@ -1744,7 +1746,12 @@ namespace Cloud.FileMonitor
                                 true);
                             if (updateSQLError != null)
                             {
-                                toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
+                                // condition for all the exceptions being keys which were not found to delete (possible if we end up deleting the same event id twice, which isn't really an error)
+                                if (!updateSQLError.GrabExceptions()
+                                        /* ! */.All(currentAggregate => currentAggregate is AggregateException && ((AggregateException)currentAggregate).InnerExceptions.All(currentInnerException => currentInnerException is KeyNotFoundException)))
+                                {
+                                    toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -1964,11 +1971,13 @@ namespace Cloud.FileMonitor
                     }
                     if (breakOutOfEnumeration)
                     {
+                        _trace.writeToMemory(9, "MonitorAgent: RenameDependencyCheck: Break out of enumeration.");
                         break;
                     }
                 }
 
                 ContinueProcessing = !PulledChanges.Contains(EarlierChange);
+                _trace.writeToMemory(9, "MonitorAgent: RenameDependencyCheck: Continue processing: {0}.", ContinueProcessing);
             }
             catch (Exception ex)
             {
