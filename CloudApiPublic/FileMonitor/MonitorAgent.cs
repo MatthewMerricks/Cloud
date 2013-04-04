@@ -1735,6 +1735,10 @@ namespace Cloud.FileMonitor
                                                 _trace.writeToMemory(9, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql.");
                                                 removeFromSql.Add(CurrentDisposal);
                                             }
+                                            else
+                                            {
+                                                _trace.writeToMemory(9, "MonitorAgent: AssignDependencies: ERROR: CurrentOriginalMapping not found.");
+                                            }
                                         }
                                     }
 

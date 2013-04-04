@@ -306,9 +306,15 @@ namespace Cloud.BadgeNET
             {
                 CLError error = ex;
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                isInitialized = false;
                 _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>.", ex.Message);
 
+                // Attempt to clean up.  We may be partially initialized.
+                Shutdown();
+
+                // Uninitialized now.
+                isInitialized = false;
+
+                _trace.writeToLog(9, "IconOverlay: pInitialize: Tell UI the badging has failed.");
                 MessageEvents.FireNewEventMessage(
                     Message: "Explorer icon badging has failed",
                     Level: EventMessageLevel.Important,
