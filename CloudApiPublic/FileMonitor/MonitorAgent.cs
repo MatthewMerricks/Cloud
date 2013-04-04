@@ -1873,6 +1873,7 @@ namespace Cloud.FileMonitor
                             _trace.writeToMemory(9, "MonitorAgent: RenameDependencyCheck: Earlier change is Created or Modified.");
                             if (CurrentEarlierChange.NewPath.Contains(LaterChange.OldPath))
                             {
+                                _trace.writeToMemory(9, "MonitorAgent: RenameDependencyCheck: Earlier change contains OldPath.");
                                 if (FilePathComparer.Instance.Equals(CurrentEarlierChange.NewPath, LaterChange.OldPath))
                                 {
                                     _trace.writeToMemory(9, "MonitorAgent: RenameDependencyCheck: NewPath equals OldPath.");
