@@ -195,11 +195,11 @@ namespace Cloud.REST
         /// <param name="changeToDownload">File download change, requires Metadata.</param>
         /// <param name="moveFileUponCompletion">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Callback fired when download completes</param>
         /// <param name="moveFileUponCompletionState">Userstate passed upon firing completed download callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file download</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="beforeDownload">(optional) Callback fired before a download starts</param>
         /// <param name="beforeDownloadState">Userstate passed upon firing before download callback</param>
-        /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
+        /// <param name="shutdownToken">(optional) Token used to request cancellation of the download</param>
         /// <param name="customDownloadFolderFullPath">(optional) Full path to a folder where temporary downloads will be stored to override default</param>
         /// <returns>Returns the asynchronous result which is used to retrieve progress and/or the result</returns>
         public IAsyncResult BeginDownloadFile(AsyncCallback aCallback,
@@ -425,11 +425,11 @@ namespace Cloud.REST
         /// <param name="changeToDownload">File download change, requires Metadata.</param>
         /// <param name="moveFileUponCompletion">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Callback fired when download completes</param>
         /// <param name="moveFileUponCompletionState">Userstate passed upon firing completed download callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file download</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="beforeDownload">(optional) Callback fired before a download starts</param>
         /// <param name="beforeDownloadState">Userstate passed upon firing before download callback</param>
-        /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
+        /// <param name="shutdownToken">(optional) Token used to request cancellation of the download</param>
         /// <param name="customDownloadFolderFullPath">(optional) Full path to a folder where temporary downloads will be stored to override default</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DownloadFile(FileChange changeToDownload,
@@ -970,7 +970,7 @@ namespace Cloud.REST
                         progress, // holder for progress data which can be queried by user if called via async wrapper
                         statusUpdate, // callback to user to notify when a CLSyncEngine status has changed
                         statusUpdateId), // userstate to pass to the statusUpdate callback
-                    Helpers.HttpStatusesOkCreatedNotModifiedNoContent, // use the hashset for ok/created/not modified as successful HttpStatusCodes
+                    Helpers.HttpStatusesOkCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _credential, // pass the key/secret

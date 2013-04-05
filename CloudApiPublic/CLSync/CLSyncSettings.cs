@@ -153,23 +153,14 @@ namespace Cloud
         }
         private readonly string _tempDownloadFolderFullPath = null;
 
-        public string ClientVersion
+        public string ClientDescription
         {
             get
             {
-                return _clientVersion;
+                return _clientDescription;
             }
         }
-        private readonly string _clientVersion = null;
-
-        public string FriendlyName
-        {
-            get
-            {
-                return _friendlyName;
-            }
-        }
-        private readonly string _friendlyName = null;
+        private readonly string _clientDescription = null;
 
         public string SyncRoot
         {
@@ -200,8 +191,7 @@ namespace Cloud
                 null,
                 true,
                 null,
-                "SimpleClient01",
-                Environment.MachineName,
+                String.Empty,
                 null,
                 null);
         }
@@ -222,8 +212,7 @@ namespace Cloud
                 null,
                 true,
                 null,
-                "SimpleClient01",
-                Environment.MachineName,
+                String.Empty,
                 syncSettings.SyncRoot,
                 null);
         }
@@ -237,11 +226,19 @@ namespace Cloud
                     string deviceId,
                     bool badgingEnabled,
                     string tempDownloadFolderFullPath,
-                    string clientVersion,
-                    string friendlyName,
+                    string clientDescription,
                     string syncRoot,
                     string databaseFolder)
         {
+            if (clientDescription.Length > CLDefinitions.MaxClientDescriptionLength)
+            {
+                throw new ArgumentException("ClientDescription must have 32 or fewer characters");
+            }
+            if (clientDescription.Contains(","))
+            {
+                throw new ArgumentException("ClientDescription must not contain commas");
+            }
+
             this._logErrors = logErrors;
             this._traceType = traceType;
             this._traceLocation = traceLocation;
@@ -250,8 +247,7 @@ namespace Cloud
             this._deviceId = deviceId;
             this._badgingEnabled = badgingEnabled;
             this._tempDownloadFolderFullPath = tempDownloadFolderFullPath;
-            this._clientVersion = clientVersion;
-            this._friendlyName = friendlyName;
+            this._clientDescription = clientDescription;
             this._syncRoot = syncRoot;
             this._databaseFolder = databaseFolder;
         }
@@ -274,8 +270,7 @@ namespace Cloud
                 toCopy.DeviceId,
                 toCopy.BadgingEnabled,
                 toCopy.TempDownloadFolderFullPath,
-                toCopy.ClientVersion,
-                toCopy.FriendlyName,
+                toCopy.ClientDescription,
                 toCopy.SyncRoot,
                 toCopy.DatabaseFolder);
         }

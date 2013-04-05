@@ -1919,6 +1919,16 @@ namespace Cloud.Static
         /// <summary>
         /// hash set for http communication methods which are good when the status is ok, created, or not modified
         /// </summary>
+        internal static readonly HashSet<HttpStatusCode> HttpStatusesOkCreatedNotModified = new HashSet<HttpStatusCode>(new[]
+            {
+                HttpStatusCode.OK,
+                HttpStatusCode.Created,
+                HttpStatusCode.NotModified,
+            });
+
+        /// <summary>
+        /// hash set for http communication methods which are good when the status is ok, created, not modified, or no content
+        /// </summary>
         internal static readonly HashSet<HttpStatusCode> HttpStatusesOkCreatedNotModifiedNoContent = new HashSet<HttpStatusCode>(new[]
             {
                 HttpStatusCode.OK,
@@ -2288,7 +2298,7 @@ namespace Cloud.Static
 
             httpRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
             // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-            httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = OSVersionInfo.GetClientVersionHttpHeader(CopiedSettings.ClientVersion);
+            httpRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = OSVersionInfo.GetClientVersionHttpHeader(CopiedSettings.ClientDescription);
             httpRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
                                 CLDefinitions.HeaderAppendKey +
                                 Credential.Key + ", " +

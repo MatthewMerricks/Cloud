@@ -147,18 +147,11 @@ namespace CloudApiPrivate.Model.Settings
                 return null;
             }
         }
-        public string ClientVersion
+        public string ClientDescription
         {
             get
             {
                 return CLPrivateDefinitions.CLClientVersion;
-            }
-        }
-        public string FriendlyName
-        {
-            get
-            {
-                return Settings.Instance.DeviceName;
             }
         }
         public string SyncRoot

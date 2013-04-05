@@ -32,6 +32,10 @@ namespace Cloud.Sync
     /// </summary>
     internal sealed class SyncEngine : IDisposable
     {
+        #region Trace
+        private static readonly CLTrace _trace = CLTrace.Instance;
+        #endregion
+
         #region instance fields, all readonly
         // locker to prevent multiple simultaneous processing of the same SyncEngine, also storing whether Run has fired before for special initial upload/download processing
         private readonly GenericHolder<bool> RunLocker = new GenericHolder<bool>(false);
@@ -2698,7 +2702,9 @@ namespace Cloud.Sync
                                                 out outputChanges,
 
                                                 // output changes to put into failure queue for reprocessing
-                                                out topLevelErrors);
+                                                out topLevelErrors,
+
+                                                FailedOutChanges);
 
                                             if (previousFailedOutChange
                                                 && FailedOutChanges.Count == 0)
@@ -7585,7 +7591,7 @@ namespace Cloud.Sync
                                                             }
 
                                                             // define a portion of the name which needs to be added to describe the conflict state dynamic to the current friendly-named device
-                                                            string deviceAppend = " CONFLICT " + syncBox.CopiedSettings.FriendlyName;
+                                                            string deviceAppend = " CONFLICT " + Environment.MachineName;
                                                             // declare a string to store the main name of the conflict file to create
                                                             string finalizedMainName;
                                                             // declare a FilePath to store the full path to the conflict file to create
@@ -8845,7 +8851,8 @@ namespace Cloud.Sync
                                 case FileChangeType.Modified:
                                     alreadyVisitedRenames[currentChange.NewPath.Copy()] = currentChange.Metadata;
 
-                                    if (string.IsNullOrEmpty(currentChange.Metadata.StorageKey))
+                                    //RKSChange: if (string.IsNullOrEmpty(currentChange.Metadata.StorageKey))
+                                    if (!currentChange.Metadata.HashableProperties.IsFolder && string.IsNullOrEmpty(currentChange.Metadata.StorageKey))  // RKSChange
                                     {
                                         syncFromErrors.Add(
                                             new PossiblyStreamableAndPossiblyChangedFileChangeWithError(
@@ -9139,6 +9146,7 @@ namespace Cloud.Sync
                 if (toRetry.FileChange.FailureCounter == 0)
                 {
                     // mark the path state for error
+                    _trace.writeToMemory(() => CLTrace.trcFmtStr("SyncEngine: ContinueToRetry: Badge failed initially"));
                     MessageEvents.SetPathState(toRetry.FileChange, // source of the event (the event itself)
                         new SetBadge(PathState.Failed, // state to set is failed
                             ((toRetry.FileChange.Direction == SyncDirection.From && toRetry.FileChange.Type == FileChangeType.Renamed)
@@ -9166,6 +9174,7 @@ namespace Cloud.Sync
                 if (toRetry.FileChange.NotFoundForStreamCounter >= MaxNumberOfNotFounds)
                 {
                     // remove the badge at the current path by setting it as synced
+                    _trace.writeToMemory(() => CLTrace.trcFmtStr("SyncEngine: ContinueToRetry: Badge synced, reached max not found count."));
                     MessageEvents.SetPathState(toRetry.FileChange, new SetBadge(PathState.Synced, toRetry.FileChange.NewPath));
 
                     // make sure to add change to SQL
@@ -9200,6 +9209,7 @@ namespace Cloud.Sync
                         && castRetry.DependenciesCount > 0)
                     {
                         // call a recursive function which will take a list of failed dependencies to badge as failed and call itself for inner dependencies
+                        _trace.writeToMemory(() => CLTrace.trcFmtStr("SyncEngine: ContinueToRetry: Badge failed, with inner depencencies."));
                         BadgeDependenciesAsFailures(castRetry.Dependencies);
                     }
 

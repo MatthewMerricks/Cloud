@@ -70,23 +70,23 @@ namespace Cloud
         }
         private readonly int _traceLevel;
 
-        public string ClientVersion
+        public string ClientDescription
         {
             get
             {
-                return _clientVersion;
+                return _clientDescription;
             }
         }
-        private readonly string _clientVersion = null;
+        private readonly string _clientDescription = null;
 
-        public CLCredentialSettings(bool LogErrors, TraceType TraceType, string TraceLocation, bool TraceExcludeAuthorization, int TraceLevel, string ClientVersion)
+        public CLCredentialSettings(bool LogErrors, TraceType TraceType, string TraceLocation, bool TraceExcludeAuthorization, int TraceLevel, string ClientDescription)
         {
             this._logErrors = LogErrors;
             this._traceType = TraceType;
             this._traceLocation = TraceLocation;
             this._traceExcludeAuthorization = TraceExcludeAuthorization;
             this._traceLevel = TraceLevel;
-            this._clientVersion = ClientVersion;
+            this._clientDescription = ClientDescription;
         }
     }
 
@@ -110,8 +110,7 @@ namespace Cloud
                     Environment.MachineName + Guid.NewGuid().ToString("N"),
                     false,
                     null,
-                    toCopy.ClientVersion,
-                    Environment.MachineName,
+                    toCopy.ClientDescription,
                     null,
                     null);
             }

@@ -6,7 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 // Enable the following definition to trace the badging dictionaries.
-//#define TRACE_BADGING_DICTIONARIES
+#define TRACE_BADGING_DICTIONARIES   //&&&&&& DEBUG REMOVE THIS
 
 using System;
 using System.Collections.Generic;
@@ -306,9 +306,15 @@ namespace Cloud.BadgeNET
             {
                 CLError error = ex;
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                isInitialized = false;
                 _trace.writeToLog(1, "IconOverlay: pInitialize: ERROR: Exception: Msg: <{0}>.", ex.Message);
 
+                // Attempt to clean up.  We may be partially initialized.
+                Shutdown();
+
+                // Uninitialized now.
+                isInitialized = false;
+
+                _trace.writeToLog(9, "IconOverlay: pInitialize: Tell UI the badging has failed.");
                 MessageEvents.FireNewEventMessage(
                     Message: "Explorer icon badging has failed",
                     Level: EventMessageLevel.Important,
@@ -469,6 +475,7 @@ namespace Cloud.BadgeNET
                 }
             }
 
+            _trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: MessageEvents_BadgePathRenamed: FromPath: {0}. ToPath: {1}.", e.RenameBadgePath.FromPath, e.RenameBadgePath.ToPath));
             CLError error = RenameBadgePath(e.RenameBadgePath.FromPath, e.RenameBadgePath.ToPath);
             if (error != null)
             {
@@ -489,6 +496,7 @@ namespace Cloud.BadgeNET
             }
 
             bool isDeleted;
+            _trace.writeToMemory(() => CLTrace.trcFmtStr( "IconOverlay: MessageEvents_BadgePathDeleted: Path: {0}.", e.DeleteBadgePath.PathToDelete));
             CLError error = DeleteBadgePath(e.DeleteBadgePath.PathToDelete, out isDeleted);
             if (error != null)
             {
@@ -512,6 +520,7 @@ namespace Cloud.BadgeNET
                 }
             }
 
+            _trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: MessageEvents_QueueSetBadgeChanged: State: {0}, Path: {1}.", e.SetBadge.BadgeState.ToString(), e.SetBadge.PathToBadge));
             cloudAppIconBadgeType convertedState = ConvertBadgeState(e.SetBadge.BadgeState);
             QueueSetBadge(convertedState, e.SetBadge.PathToBadge);
             e.MarkHandled();
@@ -528,6 +537,7 @@ namespace Cloud.BadgeNET
                 }
             }
 
+            _trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: MessageEvents_FileChangeMergeToStateChanged: Call QueueNewEventBadge()."));
             QueueNewEventBadge(e.MergedFileChanges.MergeTo, e.MergedFileChanges.MergeFrom);
             e.MarkHandled();
         }
@@ -543,6 +553,7 @@ namespace Cloud.BadgeNET
                 }
             }
 
+            _trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: MessageEvents_PathStateChanged: State: {0}, Path: {1}.", e.SetBadge.BadgeState.ToString(), e.SetBadge.PathToBadge));
             cloudAppIconBadgeType convertedState = ConvertBadgeState(e.SetBadge.BadgeState);
             QueueSetBadge(convertedState, e.SetBadge.PathToBadge);
             e.MarkHandled();
@@ -910,17 +921,17 @@ namespace Cloud.BadgeNET
                 lock (_currentBadgesSyncedLocker)
                 {
                     // Trace the current badging flat dictionary
-                    _trace.writeToLog(9, "IconOverlay: TraceBadgingDictionaries: CurrentBadges: Called from: {0}.", whereCalled);
+                    _trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: TraceBadgingDictionaries: CurrentBadges: Called from: {0}.", whereCalled));
                     foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> badge in _currentBadges)
                     {
-                        _trace.writeToLog(9, "    BadgeType: {0}. Path: <{1}.", badge.Value.Value.ToString(), badge.Key);
+                        _trace.writeToMemory(() => CLTrace.trcFmtStr("    BadgeType: {0}. Path: <{1}.", badge.Value.Value.ToString(), badge.Key));
                     }
 
                     // Trace the current badging "synced" hierarchical dictionary
-                    _trace.writeToLog(9, "IconOverlay: TraceBadgingDictionaries: CurrentSyncedBadges:");
+                    _trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: TraceBadgingDictionaries: CurrentSyncedBadges:"));
                     foreach (KeyValuePair<FilePath, object> badge in _currentBadgesSynced)
                     {
-                        _trace.writeToLog(9, "    Path: <{0}>.", badge.Key);
+                        _trace.writeToMemory(() => CLTrace.trcFmtStr("    Path: <{0}>.", badge.Key));
                     }
                 }
             }
@@ -1993,17 +2004,20 @@ namespace Cloud.BadgeNET
                     //TODO: Do we need to do anything with the eventToRemove?
                     if (mergedEvent != null)
                     {
+                        thisOverlay._trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: Process: mergedEvent.Type: {0}. mergedEvent.Direction: {1}.  mergedEvent.OldPath: {2}, mergedEvent.NewPath: {3}.", mergedEvent.Type, mergedEvent.Direction, mergedEvent.OldPath, mergedEvent.NewPath));
                         switch (mergedEvent.Type)
                         {
                             case FileChangeType.Deleted:
                                 switch (mergedEvent.Direction)
                                 {
                                     case SyncDirection.From:
+                                        thisOverlay._trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: Process: Deleted: Dir: From. Set NewPath to syncing."));
                                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
                                         break;
                                     case SyncDirection.To:
                                         bool isDeleted;
                                         thisOverlay.DeleteBadgePath(mergedEvent.NewPath, out isDeleted, true);
+                                        thisOverlay._trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: Process: Deleted: Dir: To. DeleteBadgePath at NewPath. isDeleted: {0}.", isDeleted));
                                         break;
                                     default:
                                         throw new NotSupportedException("Unknown mergedEvent.Direction: " + mergedEvent.Direction.ToString());
@@ -2011,17 +2025,21 @@ namespace Cloud.BadgeNET
                                 break;
                             case FileChangeType.Created:
                             case FileChangeType.Modified:
+                                thisOverlay._trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: Process: Created/Modified: setBadge syncing at NewPath."));
                                 setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
                                 break;
                             case FileChangeType.Renamed:
                                 switch (mergedEvent.Direction)
                                 {
                                     case SyncDirection.From:
+                                        thisOverlay._trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: Process: Renamed. Dir: From. SetBadge syncing at OldPath."));
                                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
                                         break;
                                     case SyncDirection.To:
+                                        thisOverlay._trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: Process: Renamed. Dir: To. Call RenameBadgePath."));
                                         thisOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
 
+                                        thisOverlay._trace.writeToMemory(() => CLTrace.trcFmtStr("IconOverlay: Process: Renamed. Dir: To. setBadge syncing at NewPath."));
                                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
                                         break;
                                     default:

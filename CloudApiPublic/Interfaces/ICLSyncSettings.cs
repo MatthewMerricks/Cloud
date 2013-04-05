@@ -73,22 +73,18 @@ namespace Cloud.Interfaces
         /// </summary>
         string TempDownloadFolderFullPath { get; }
         /// <summary>
-        /// Friendly name of the current device (we use computer name)
-        /// </summary>
-        string FriendlyName { get; }
-        /// <summary>
         /// Full path to a folder location where the database will be stored when using a SyncBox (you must handle your own database when using SyncEngine directly); If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory.  The file will be IndexDB.sdf.
         /// </summary>
         string DatabaseFolder { get; }
     }
 
-    public interface ICLAddClientVersion
+    public interface ICLAddClientDescription
     {
         /// <summary>
-        /// Version letters/numbers used in communication with the server to identify the type of client (i.e. "MyClient01"); do not mimic values passed by other Cloud applications
+        /// Client description.  Limited to 32-characters with no commas. (e.g., "MyClient01"); do not mimic values passed by other Cloud applications
         /// </summary>
-        string ClientVersion { get; }
+        string ClientDescription { get; }
     }
 
-    public interface ICLCredentialSettings : ICLAddTraceSettings, ICLAddClientVersion { }
+    public interface ICLCredentialSettings : ICLAddTraceSettings, ICLAddClientDescription { }
 }

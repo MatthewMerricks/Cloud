@@ -1094,6 +1094,9 @@ namespace Cloud
         /// </summary>
         public static void Shutdown()
         {
+            // Write out any development debug traces
+            _trace.closeMemoryTrace();
+
             // Shuts down the HttpScheduler; after shutdown it cannot be used again
             HttpScheduler.DisposeBothSchedulers();
 
