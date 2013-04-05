@@ -254,6 +254,43 @@ namespace Cloud.SQLIndexer
             return null;
         }
 
+        public CLError GetServerUidByNewPath(string newPath, out string serverUid)
+        {
+            try
+            {
+                if (newPath == null)
+                {
+                    throw new NullReferenceException("newPath cannot be null");
+                }
+
+                using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
+                {
+                    if (!SqlAccessor<object>.TrySelectScalar<string>(
+                        indexDB,
+                        "SELECT FileSystemObjects.ServerUid " +
+                        "FROM FileSystemObjects " +
+                        "WHERE FileSystemObjects.CalculatedFullPath = ? " +
+                        "ORDER BY " +
+                        "CASE WHEN FileSystemObjects.EventId IS NULL " +
+                        "THEN 0 " +
+                        "ELSE FileSystemObjects.EventId " +
+                        "END DESC " +
+                        "LIMIT 1",
+                        out serverUid,
+                        selectParameters: Helpers.EnumerateSingleItem(newPath)))
+                    {
+                        serverUid = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                serverUid = Helpers.DefaultForType<string>();
+                return ex;
+            }
+            return null;
+        }
+
         //// whole method removed because SyncedObject class was removed (no more server-linked sync states since ServerName is a property of FileSystemObject)
         //
         ///// <summary>
@@ -1024,7 +1061,11 @@ namespace Cloud.SQLIndexer
                                 long toDeleteId;
                                 if (!SqlAccessor<object>.TrySelectScalar(
                                     castTransaction.sqlConnection,
-                                    "SELECT FileSystemObjects.FileSystemObjectId WHERE FileSystemObjects.EventId = ? ORDER BY FileSystemObjects.FileSystemObjectId DESC LIMIT 1", // <-- parameter 1
+                                    "SELECT FileSystemObjects.FileSystemObjectId " +
+                                        "FROM FileSystemObjects " +
+                                        "WHERE FileSystemObjects.EventId = ? " + // <-- parameter 1
+                                        "ORDER BY FileSystemObjects.FileSystemObjectId DESC " +
+                                        "LIMIT 1",
                                     out toDeleteId,
                                     castTransaction.sqlTransaction,
                                     Helpers.EnumerateSingleItem((long)storeLastDelete)))
@@ -1172,20 +1213,8 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred during recording the sync, if any</returns>
         public CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null)
         {
-            make sure that when events are completed synchronously (syncedEventIds) we correctly apply completion logic besides just marking them not pending
-
             try
             {
-                //MarkBadgeSyncedAfterEventCompletion(FileChangeType.Created, "new", "old", storeWhetherEventIsASyncFrom: true);
-                var badgeInfoesToCompleteTemplate = new
-                {
-                    storeExistingChangeType = (FileChangeType)0,
-                    storeNewPath = (string)null,
-                    storeOldPath = (string)null,
-                    storeWhetherEventIsASyncFrom = false
-                };
-                var badgeInfoesToComplete = Helpers.CreateEmptyListFromTemplate(badgeInfoesToCompleteTemplate);
-
                 using (SQLTransactionalImplementation connAndTran = GetNewTransactionPrivate())
                 {
                     if (rootFolderUID != null)
@@ -1214,46 +1243,23 @@ namespace Cloud.SQLIndexer
                     };
 
                     syncCounter = newSync.SyncCounter = SqlAccessor<SqlSync>.InsertRow<long>(connAndTran.sqlConnection, newSync, transaction: connAndTran.sqlTransaction);
-                    HashSet<long> syncedEventIdsHash = (syncedEventIds == null ? null : new HashSet<long>(syncedEventIds));
 
                     if (communicatedChanges != null)
                     {
-                        List<long> notMarkedAsChangedStillPending = new List<long>();
-                        List<long> notMarkedAsChangedNoLongerPending = new List<long>();
+                        List<long> notMarkedAsChanged = new List<long>();
 
                         CLError mergeChangedError = MergeEventsIntoDatabase(
                             newSync.SyncCounter,
-                            syncedEventIdsHash,
                             communicatedChanges.OrderBy(currentCommunicatedChange => currentCommunicatedChange.ResultOrder)
                                 .Where(currentCommunicatedChange =>
                                     {
-                                        bool currentChangeIsComplete = (syncedEventIdsHash != null && syncedEventIdsHash.Contains(currentCommunicatedChange.FileChange.EventId));
-
-                                        if (currentChangeIsComplete)
-                                        {
-                                            badgeInfoesToComplete.Add(new
-                                            {
-                                                storeExistingChangeType = currentCommunicatedChange.FileChange.Type,
-                                                storeNewPath = currentCommunicatedChange.FileChange.NewPath.ToString(),
-                                                storeOldPath = (currentCommunicatedChange.FileChange.OldPath == null ? null : currentCommunicatedChange.FileChange.OldPath.ToString()),
-                                                storeWhetherEventIsASyncFrom = (currentCommunicatedChange.FileChange.Direction == SyncDirection.From)
-                                            });
-                                        }
-
                                         if (currentCommunicatedChange.Changed)
                                         {
                                             currentCommunicatedChange.FileChange.DoNotAddToSQLIndex = false;
                                             return true;
                                         }
 
-                                        if (currentChangeIsComplete)
-                                        {
-                                            notMarkedAsChangedNoLongerPending.Add(currentCommunicatedChange.FileChange.EventId);
-                                        }
-                                        else
-                                        {
-                                            notMarkedAsChangedStillPending.Add(currentCommunicatedChange.FileChange.EventId);
-                                        }
+                                        notMarkedAsChanged.Add(currentCommunicatedChange.FileChange.EventId);
                                         return false;
                                     })
                                 .Select(currentCommunicatedChange => new FileChangeMerge(currentCommunicatedChange.FileChange)),
@@ -1264,7 +1270,7 @@ namespace Cloud.SQLIndexer
                             throw new AggregateException("An error occurred merging a batch of communicated changes before completing a new sync", mergeChangedError.GrabExceptions());
                         }
 
-                        if (notMarkedAsChangedStillPending.Count > 0)
+                        if (notMarkedAsChanged.Count > 0)
                         {
                             using (ISQLiteCommand updateSyncCounterOnly = connAndTran.sqlConnection.CreateCommand())
                             {
@@ -1276,7 +1282,7 @@ namespace Cloud.SQLIndexer
 
                                 StringBuilder updateSyncCounterOnlyText = null;
 
-                                foreach (long currentToUpdate in notMarkedAsChangedStillPending)
+                                foreach (long currentToUpdate in notMarkedAsChanged)
                                 {
                                     if (updateSyncCounterOnlyText == null)
                                     {
@@ -1302,53 +1308,16 @@ namespace Cloud.SQLIndexer
                                 updateSyncCounterOnly.ExecuteNonQuery();
                             }
                         }
-
-                        if (notMarkedAsChangedNoLongerPending.Count > 0)
-                        {
-                            using (ISQLiteCommand updateSyncCounterAndNotPending = connAndTran.sqlConnection.CreateCommand())
-                            {
-                                updateSyncCounterAndNotPending.Transaction = connAndTran.sqlTransaction;
-
-                                ISQLiteParameter newSyncCounter = updateSyncCounterAndNotPending.CreateParameter();
-                                newSyncCounter.Value = newSync.SyncCounter;
-                                updateSyncCounterAndNotPending.Parameters.Add(newSyncCounter);
-
-                                StringBuilder updateSyncCounterAndNotPendingText = null;
-
-                                foreach (long currentToUpdate in notMarkedAsChangedNoLongerPending)
-                                {
-                                    if (updateSyncCounterAndNotPendingText == null)
-                                    {
-                                        updateSyncCounterAndNotPendingText = new StringBuilder("UPDATE FileSystemObjects " +
-                                            "SET SyncCounter = CASE WHEN SyncCounter IS NULL THEN ? ELSE SyncCounter END, " +
-                                            "Pending = 0 " +
-                                            "WHERE EventId IN (?");
-                                    }
-                                    else
-                                    {
-                                        updateSyncCounterAndNotPendingText.Append(",?");
-                                    }
-
-                                    ISQLiteParameter currentEventId = updateSyncCounterAndNotPending.CreateParameter();
-                                    currentEventId.Value = currentEventId;
-                                    updateSyncCounterAndNotPending.Parameters.Add(currentEventId);
-                                }
-
-                                updateSyncCounterAndNotPendingText.Append(")");
-
-                                updateSyncCounterAndNotPending.CommandText = updateSyncCounterAndNotPendingText.ToString();
-
-                                updateSyncCounterAndNotPending.ExecuteNonQuery();
-                            }
-                        }
                     }
 
-                    connAndTran.Commit();
-                }
+                    foreach (long synchronouslyCompletedEventId in syncedEventIds ?? Enumerable.Empty<long>())
+                    {
+                        MarkEventAsCompletedOnPreviousSync(synchronouslyCompletedEventId, connAndTran);
+                    }
 
-                foreach (var currentBadgeInfoToComplete in badgeInfoesToComplete)
-                {
-                    MarkBadgeSyncedAfterEventCompletion(currentBadgeInfoToComplete.storeExistingChangeType, currentBadgeInfoToComplete.storeNewPath, currentBadgeInfoToComplete.storeOldPath, currentBadgeInfoToComplete.storeWhetherEventIsASyncFrom);
+                    LastSyncId = syncId;
+
+                    connAndTran.Commit();
                 }
             }
             catch (Exception ex)
@@ -1460,9 +1429,9 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error from merging the events, if any</returns>
         public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null)
         {
-            return MergeEventsIntoDatabase(null, null, mergeToFroms, existingTransaction);
+            return MergeEventsIntoDatabase(null, mergeToFroms, existingTransaction);
         }
-        private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, HashSet<long> syncedEventIdsHash, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction)
+        private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction)
         {
             // no point trying to perform multiple simultaneous merges since they will block each other via the SQLite transaction
             lock (MergeEventsLocker)
@@ -1908,12 +1877,6 @@ namespace Cloud.SQLIndexer
                                                         existingRow.SyncCounter = syncCounter;
                                                     }
 
-                                                    // besides being updated with new metadata fields, this event may also have been completed and if so it needs to be marked not Pending
-                                                    if (syncedEventIdsHash != null && syncedEventIdsHash.Contains(toUpdate.EventId))
-                                                    {
-                                                        existingRow.Pending = false;
-                                                    }
-
                                                     if (toUpdate.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks)
                                                     {
                                                         existingRow.CreationTimeUTCTicks = null;
@@ -1951,6 +1914,7 @@ namespace Cloud.SQLIndexer
                                                     existingRow.MimeType = toUpdate.Metadata.MimeType;
                                                     existingRow.Name = toUpdate.NewPath.Name;
                                                     existingRow.ParentFolderId = toUpdateParentFolderId;
+                                                    //existingRow.Pending = true; // <-- true on insert, no need to update here
                                                     existingRow.Permissions = (toUpdate.Metadata.Permissions == null
                                                         ? (Nullable<int>)null
                                                         : (int)((POSIXPermissions)toUpdate.Metadata.Permissions));
@@ -2034,265 +1998,304 @@ namespace Cloud.SQLIndexer
         /// </summary>
         /// <param name="eventId">Primary key value of the event to process</param>
         /// <returns>Returns an error that occurred marking the event complete, if any</returns>
-        public CLError MarkEventAsCompletedOnPreviousSync(long eventId)
+        public CLError MarkEventAsCompletedOnPreviousSync(long eventId, SQLTransactionalBase existingTransaction = null)
         {
+            CLError toReturn = null;
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            if (existingTransaction != null
+                && castTransaction == null)
+            {
+                try
+                {
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+                }
+                catch (Exception ex)
+                {
+                    toReturn += ex;
+                }
+            }
+
+            bool inputTransactionSet = castTransaction != null;
+            FileChangeType storeExistingChangeType;
+            string storeNewPath;
+            string storeOldPath;
+            bool storeWhetherEventIsASyncFrom;
+
             try
             {
-                FileChangeType storeExistingChangeType;
-                string storeNewPath;
-                string storeOldPath;
-                bool storeWhetherEventIsASyncFrom;
-
-                using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
+                if (castTransaction == null)
                 {
-                    using (ISQLiteTransaction indexTran = indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable))
+                    ISQLiteConnection indexDB;
+                    castTransaction = new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                }
+
+                //// don't think I need to change the SyncCounter ever when just completing an event, it should already be set
+                //
+                //long lastSyncCount;
+                //if (!SqlAccessor<object>.TrySelectScalar(
+                //    indexDB,
+                //    "SELECT Syncs.SyncCounter " +
+                //    "FROM Syncs " +
+                //    "ORDER BY Syncs.SyncCounter DESC " +
+                //    "LIMIT 1",
+                //    out lastSyncCount,
+                //    indexTran))
+                //{
+                //    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Cannot complete an event without a previous sync point");
+                //}
+
+                GenericHolder<CLError> moveObjectsToNewParentError = new GenericHolder<CLError>(null);
+                var moveObjectsToNewParent = DelegateAndDataHolder.Create(
+                    new
                     {
-                        //// don't think I need to change the SyncCounter ever when just completing an event, it should already be set
-                        //
-                        //long lastSyncCount;
-                        //if (!SqlAccessor<object>.TrySelectScalar(
-                        //    indexDB,
-                        //    "SELECT Syncs.SyncCounter " +
-                        //    "FROM Syncs " +
-                        //    "ORDER BY Syncs.SyncCounter DESC " +
-                        //    "LIMIT 1",
-                        //    out lastSyncCount,
-                        //    indexTran))
-                        //{
-                        //    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Cannot complete an event without a previous sync point");
-                        //}
-
-                        GenericHolder<CLError> moveObjectsToNewParentError = new GenericHolder<CLError>(null);
-                        var moveObjectsToNewParent = DelegateAndDataHolder.Create(
-                            new
-                            {
-                                indexDB = indexDB,
-                                indexTran = indexTran,
-                                oldId = new GenericHolder<long>(),
-                                newId = new GenericHolder<long>()
-                            },
-                            (Data, errorToAccumulate) =>
-                            {
-                                try
-                                {
-                                    using (ISQLiteCommand moveChildrenCommand = Data.indexDB.CreateCommand())
-                                    {
-                                        moveChildrenCommand.Transaction = Data.indexTran;
-                                        moveChildrenCommand.CommandText = "UPDATE FileSystemObjects " +
-                                            "SET ParentFolderId = ? " +
-                                            "WHERE ParentFolderId = ?";
-
-                                        ISQLiteParameter newObjectId = moveChildrenCommand.CreateParameter();
-                                        newObjectId.Value = Data.newId.Value;
-                                        moveChildrenCommand.Parameters.Add(newObjectId);
-
-                                        ISQLiteParameter oldObjectId = moveChildrenCommand.CreateParameter();
-                                        oldObjectId.Value = Data.oldId.Value;
-                                        moveChildrenCommand.Parameters.Add(oldObjectId);
-
-                                        moveChildrenCommand.ExecuteNonQuery();
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    errorToAccumulate.Value += ex;
-                                }
-                            },
-                            moveObjectsToNewParentError);
-
-                        FileSystemObject existingEventObject = SqlAccessor<FileSystemObject>.SelectResultSet(
-                                indexDB,
-                                "SELECT " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-                                SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") +
-                                " FROM FileSystemObjects" +
-                                " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
-                                " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
-                                " WHERE FileSystemObjects.EventId = ?" + // <-- parameter 1
-                                " ORDER BY FileSystemObjects.FileSystemObjectId DESC" +
-                                " LIMIT 1",
-                                new[]
-                                {
-                                    "Event",
-                                    "Event.Previous"
-                                },
-                                indexTran,
-                                Helpers.EnumerateSingleItem(eventId))
-                            .SingleOrDefault();
-
-                        if (existingEventObject == null)
+                        castTransaction = castTransaction,
+                        oldId = new GenericHolder<long>(),
+                        newId = new GenericHolder<long>()
+                    },
+                    (Data, errorToAccumulate) =>
+                    {
+                        try
                         {
-                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find existing event to complete");
-                        }
-                        if (!existingEventObject.Pending)
-                        {
-                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event already not pending");
-                        }
-                        if (existingEventObject.ParentFolderId == null)
-                        {
-                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "The root folder object should never have been pending to complete");
-                        }
-
-                        storeExistingChangeType = changeEnums[existingEventObject.Event.FileChangeTypeEnumId];
-                        storeNewPath = existingEventObject.CalculatedFullPath;
-                        storeOldPath = (existingEventObject.Event.Previous == null ? null : existingEventObject.Event.Previous.CalculatedFullPath);
-                        storeWhetherEventIsASyncFrom = existingEventObject.Event.SyncFrom;
-
-                        long existingNonPendingIdToMerge;
-                        if (SqlAccessor<object>.TrySelectScalar(
-                            indexDB,
-                            "SELECT FileSystemObjects.FileSystemObjectId " +
-                            "FROM FileSystemObjects " +
-                            "WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
-                            "AND FileSystemObjects.Name = ? " + // <-- parameter 2
-                            "AND FileSystemObjects.Pending = 0 " +
-                            "ORDER BY FileSystemObjects.FileSystemObjectId DESC " +
-                            "LIMIT 1",
-                            out existingNonPendingIdToMerge,
-                            indexTran,
-                            (new[] { (long)existingEventObject.ParentFolderId, (object)existingEventObject.Name })))
-                        {
-                            switch (storeExistingChangeType)
+                            using (ISQLiteCommand moveChildrenCommand = Data.castTransaction.sqlConnection.CreateCommand())
                             {
-                                case FileChangeType.Created:
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a create");
+                                moveChildrenCommand.Transaction = Data.castTransaction.sqlTransaction;
+                                moveChildrenCommand.CommandText = "UPDATE FileSystemObjects " +
+                                    "SET ParentFolderId = ? " +
+                                    "WHERE ParentFolderId = ?";
 
-                                case FileChangeType.Renamed:
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a rename");
-                            }
+                                ISQLiteParameter newObjectId = moveChildrenCommand.CreateParameter();
+                                newObjectId.Value = Data.newId.Value;
+                                moveChildrenCommand.Parameters.Add(newObjectId);
 
-                            moveObjectsToNewParent.TypedData.oldId.Value = existingNonPendingIdToMerge;
-                            moveObjectsToNewParent.TypedData.newId.Value = (long)existingEventObject.ParentFolderId;
-                            moveObjectsToNewParent.Process();
-                            if (moveObjectsToNewParentError.Value != null)
-                            {
-                                throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.GrabExceptions());
-                            }
+                                ISQLiteParameter oldObjectId = moveChildrenCommand.CreateParameter();
+                                oldObjectId.Value = Data.oldId.Value;
+                                moveChildrenCommand.Parameters.Add(oldObjectId);
 
-                            using (ISQLiteCommand movePreviousesCommand = indexDB.CreateCommand())
-                            {
-                                movePreviousesCommand.Transaction = indexTran;
-                                movePreviousesCommand.CommandText = "UPDATE Events " +
-                                    "SET PreviousId = ? " +
-                                    "WHERE PreviousId = ? ";
-
-                                ISQLiteParameter newPreviousId = movePreviousesCommand.CreateParameter();
-                                newPreviousId.Value = existingEventObject.FileSystemObjectId;
-                                movePreviousesCommand.Parameters.Add(newPreviousId);
-
-                                ISQLiteParameter oldPreviousId = movePreviousesCommand.CreateParameter();
-                                oldPreviousId.Value = existingNonPendingIdToMerge;
-                                movePreviousesCommand.Parameters.Add(oldPreviousId);
-                            }
-
-                            SqlAccessor<FileSystemObject>.DeleteRow(
-                                indexDB,
-                                new FileSystemObject()
-                                {
-                                    FileSystemObjectId = existingNonPendingIdToMerge
-                                },
-                                indexTran);
-                        }
-                        else
-                        {
-                            switch (storeExistingChangeType)
-                            {
-                                case FileChangeType.Modified:
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a modify");
-
-                                case FileChangeType.Deleted:
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a delete");
+                                moveChildrenCommand.ExecuteNonQuery();
                             }
                         }
-
-                        switch (storeExistingChangeType)
+                        catch (Exception ex)
                         {
-                            case FileChangeType.Modified:
-                                existingEventObject.Pending = false;
-                                existingEventObject.EventTimeUTCTicks = DateTime.UtcNow.Ticks;
-                                if (!SqlAccessor<FileSystemObject>.UpdateRow(
-                                    indexDB,
-                                    existingEventObject,
-                                    indexTran))
-                                {
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to update existing event to not be pending");
-                                }
-                                break;
-
-                            case FileChangeType.Deleted:
-                                if (!SqlAccessor<FileSystemObject>.DeleteRow(
-                                    indexDB,
-                                    existingEventObject,
-                                    indexTran))
-                                {
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to apply deletion to complete a delete event");
-                                }
-                                break;
-
-                            case FileChangeType.Renamed:
-                                existingEventObject.Pending = false;
-                                existingEventObject.EventTimeUTCTicks = DateTime.UtcNow.Ticks;
-                                if (existingEventObject.Event.PreviousId == null)
-                                {
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Rename event cannot have a null PreviousId");
-                                }
-
-                                long storePreviousId = (long)existingEventObject.Event.PreviousId; // store previous id, since we are about to nullify the event value but still need it to delete\move children
-                                existingEventObject.Event.PreviousId = null; // allows us to delete the FileSystemObject for the previous location so we don't have two of them non-pending to represent the same item
-                                if (!SqlAccessor<Event>.UpdateRow(
-                                    indexDB,
-                                    existingEventObject.Event,
-                                    indexTran))
-                                {
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to disconnect rename event from previous id in order to delete it");
-                                }
-                            
-                                moveObjectsToNewParent.TypedData.oldId.Value = storePreviousId;
-                                moveObjectsToNewParent.TypedData.newId.Value = existingEventObject.FileSystemObjectId;
-                                moveObjectsToNewParent.Process();
-                                if (moveObjectsToNewParentError.Value != null)
-                                {
-                                    throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.GrabExceptions());
-                                }
-
-                                if (!SqlAccessor<FileSystemObject>.DeleteRow(
-                                    indexDB,
-                                    new FileSystemObject()
-                                    {
-                                        FileSystemObjectId = storePreviousId
-                                    },
-                                    indexTran))
-                                {
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to delete previous object for rename event");
-                                }
-
-                                if (!SqlAccessor<FileSystemObject>.UpdateRow(
-                                    indexDB,
-                                    existingEventObject,
-                                    indexTran))
-                                {
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to update existing event to not be pending");
-                                }
-                                break;
-
-                            //case FileChangeType.Created: // <-- Created should have already been checked and had an exception thrown since a created object should not have another object already existing with the same parent and name
-                            default:
-                                throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event object had a FileChangeTypeEnumId which did not match to a known FileChangeType");
+                            errorToAccumulate.Value += ex;
                         }
-                    
-                        indexTran.Commit();
+                    },
+                    moveObjectsToNewParentError);
+
+                FileSystemObject existingEventObject = SqlAccessor<FileSystemObject>.SelectResultSet(
+                        castTransaction.sqlConnection,
+                        "SELECT " +
+                        SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                        SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
+                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") +
+                        " FROM FileSystemObjects" +
+                        " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
+                        " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
+                        " WHERE FileSystemObjects.EventId = ?" + // <-- parameter 1
+                        " ORDER BY FileSystemObjects.FileSystemObjectId DESC" +
+                        " LIMIT 1",
+                        new[]
+                        {
+                            "Event",
+                            "Event.Previous"
+                        },
+                        castTransaction.sqlTransaction,
+                        Helpers.EnumerateSingleItem(eventId))
+                    .SingleOrDefault();
+
+                if (existingEventObject == null)
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find existing event to complete");
+                }
+                if (!existingEventObject.Pending)
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event already not pending");
+                }
+                if (existingEventObject.ParentFolderId == null)
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "The root folder object should never have been pending to complete");
+                }
+
+                storeExistingChangeType = changeEnums[existingEventObject.Event.FileChangeTypeEnumId];
+                storeNewPath = existingEventObject.CalculatedFullPath;
+                storeOldPath = (existingEventObject.Event.Previous == null ? null : existingEventObject.Event.Previous.CalculatedFullPath);
+                storeWhetherEventIsASyncFrom = existingEventObject.Event.SyncFrom;
+
+                long existingNonPendingIdToMerge;
+                if (SqlAccessor<object>.TrySelectScalar(
+                    castTransaction.sqlConnection,
+                    "SELECT FileSystemObjects.FileSystemObjectId " +
+                    "FROM FileSystemObjects " +
+                    "WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
+                    "AND FileSystemObjects.Name = ? " + // <-- parameter 2
+                    "AND FileSystemObjects.Pending = 0 " +
+                    "ORDER BY FileSystemObjects.FileSystemObjectId DESC " +
+                    "LIMIT 1",
+                    out existingNonPendingIdToMerge,
+                    castTransaction.sqlTransaction,
+                    (new[] { (long)existingEventObject.ParentFolderId, (object)existingEventObject.Name })))
+                {
+                    switch (storeExistingChangeType)
+                    {
+                        case FileChangeType.Created:
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a create");
+
+                        case FileChangeType.Renamed:
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a rename");
+                    }
+
+                    moveObjectsToNewParent.TypedData.oldId.Value = existingNonPendingIdToMerge;
+                    moveObjectsToNewParent.TypedData.newId.Value = (long)existingEventObject.ParentFolderId;
+                    moveObjectsToNewParent.Process();
+                    if (moveObjectsToNewParentError.Value != null)
+                    {
+                        throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.GrabExceptions());
+                    }
+
+                    using (ISQLiteCommand movePreviousesCommand = castTransaction.sqlConnection.CreateCommand())
+                    {
+                        movePreviousesCommand.Transaction = castTransaction.sqlTransaction;
+                        movePreviousesCommand.CommandText = "UPDATE Events " +
+                            "SET PreviousId = ? " +
+                            "WHERE PreviousId = ? ";
+
+                        ISQLiteParameter newPreviousId = movePreviousesCommand.CreateParameter();
+                        newPreviousId.Value = existingEventObject.FileSystemObjectId;
+                        movePreviousesCommand.Parameters.Add(newPreviousId);
+
+                        ISQLiteParameter oldPreviousId = movePreviousesCommand.CreateParameter();
+                        oldPreviousId.Value = existingNonPendingIdToMerge;
+                        movePreviousesCommand.Parameters.Add(oldPreviousId);
+                    }
+
+                    SqlAccessor<FileSystemObject>.DeleteRow(
+                        castTransaction.sqlConnection,
+                        new FileSystemObject()
+                        {
+                            FileSystemObjectId = existingNonPendingIdToMerge
+                        },
+                        castTransaction.sqlTransaction);
+                }
+                else
+                {
+                    switch (storeExistingChangeType)
+                    {
+                        case FileChangeType.Modified:
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a modify");
+
+                        case FileChangeType.Deleted:
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a delete");
                     }
                 }
 
-                MarkBadgeSyncedAfterEventCompletion(storeExistingChangeType, storeNewPath, storeOldPath, storeWhetherEventIsASyncFrom);
+                switch (storeExistingChangeType)
+                {
+                    case FileChangeType.Modified:
+                        existingEventObject.Pending = false;
+                        existingEventObject.EventTimeUTCTicks = DateTime.UtcNow.Ticks;
+                        if (!SqlAccessor<FileSystemObject>.UpdateRow(
+                            castTransaction.sqlConnection,
+                            existingEventObject,
+                            castTransaction.sqlTransaction))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to update existing event to not be pending");
+                        }
+                        break;
+
+                    case FileChangeType.Deleted:
+                        if (!SqlAccessor<FileSystemObject>.DeleteRow(
+                            castTransaction.sqlConnection,
+                            existingEventObject,
+                            castTransaction.sqlTransaction))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to apply deletion to complete a delete event");
+                        }
+                        break;
+
+                    case FileChangeType.Renamed:
+                        existingEventObject.Pending = false;
+                        existingEventObject.EventTimeUTCTicks = DateTime.UtcNow.Ticks;
+                        if (existingEventObject.Event.PreviousId == null)
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Rename event cannot have a null PreviousId");
+                        }
+
+                        long storePreviousId = (long)existingEventObject.Event.PreviousId; // store previous id, since we are about to nullify the event value but still need it to delete\move children
+                        existingEventObject.Event.PreviousId = null; // allows us to delete the FileSystemObject for the previous location so we don't have two of them non-pending to represent the same item
+                        if (!SqlAccessor<Event>.UpdateRow(
+                            castTransaction.sqlConnection,
+                            existingEventObject.Event,
+                            castTransaction.sqlTransaction))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to disconnect rename event from previous id in order to delete it");
+                        }
+                            
+                        moveObjectsToNewParent.TypedData.oldId.Value = storePreviousId;
+                        moveObjectsToNewParent.TypedData.newId.Value = existingEventObject.FileSystemObjectId;
+                        moveObjectsToNewParent.Process();
+                        if (moveObjectsToNewParentError.Value != null)
+                        {
+                            throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.GrabExceptions());
+                        }
+
+                        if (!SqlAccessor<FileSystemObject>.DeleteRow(
+                            castTransaction.sqlConnection,
+                            new FileSystemObject()
+                            {
+                                FileSystemObjectId = storePreviousId
+                            },
+                            castTransaction.sqlTransaction))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to delete previous object for rename event");
+                        }
+
+                        if (!SqlAccessor<FileSystemObject>.UpdateRow(
+                            castTransaction.sqlConnection,
+                            existingEventObject,
+                            castTransaction.sqlTransaction))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to update existing event to not be pending");
+                        }
+                        break;
+
+                    //case FileChangeType.Created: // <-- Created should have already been checked and had an exception thrown since a created object should not have another object already existing with the same parent and name
+                    default:
+                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event object had a FileChangeTypeEnumId which did not match to a known FileChangeType");
+                }
             }
             catch (Exception ex)
             {
-                return ex;
+                storeExistingChangeType = Helpers.DefaultForType<FileChangeType>();
+                storeNewPath = Helpers.DefaultForType<string>();
+                storeOldPath = Helpers.DefaultForType<string>();
+                storeWhetherEventIsASyncFrom = Helpers.DefaultForType<bool>();
+                toReturn += ex;
+            }
+            finally
+            {
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+
+                    castTransaction.Dispose();
+                }
             }
 
-            return null;
+            if (toReturn == null)
+            {
+                try
+                {
+                    MarkBadgeSyncedAfterEventCompletion(storeExistingChangeType, storeNewPath, storeOldPath, storeWhetherEventIsASyncFrom);
+                }
+                catch (Exception ex)
+                {
+                    toReturn += ex;
+                }
+            }
+
+            return toReturn;
         }
 
         private void MarkBadgeSyncedAfterEventCompletion(FileChangeType storeExistingChangeType, string storeNewPath, string storeOldPath, bool storeWhetherEventIsASyncFrom)
@@ -2443,15 +2446,15 @@ namespace Cloud.SQLIndexer
 
             if (createDB)
             {
+                FileInfo indexDBInfo = new FileInfo(indexDBLocation);
+                if (!indexDBInfo.Directory.Exists)
+                {
+                    indexDBInfo.Directory.Create();
+                }
+
                 using (ISQLiteConnection newDBConnection = CreateAndOpenCipherConnection(enforceForeignKeyConstraints: false)) // circular reference between Events and FileSystemObjects tables
                 {
                     // read creation scripts in here
-
-                    FileInfo indexDBInfo = new FileInfo(indexDBLocation);
-                    if (!indexDBInfo.Directory.Exists)
-                    {
-                        indexDBInfo.Directory.Create();
-                    }
 
                     System.Reflection.Assembly indexingAssembly = System.Reflection.Assembly.GetAssembly(typeof(IndexingAgent));
 

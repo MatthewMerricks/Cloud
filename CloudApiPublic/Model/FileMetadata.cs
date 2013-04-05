@@ -79,11 +79,12 @@ namespace Cloud.Model
             }
         }
 
-        private void OnRevisionChanged(object sender, ResolveEventArgs e)
+        private void OnRevisionChanged(object sender, RevisionAndOtherDataEventArgs e)
         {
             if (this != sender)
             {
-                Revision = e.Name;
+                Revision = e.Revision;
+                ServerUid = e.ServerUid;
             }
         }
     }

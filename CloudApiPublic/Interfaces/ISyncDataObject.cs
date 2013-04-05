@@ -26,17 +26,6 @@ namespace Cloud.Interfaces
         /// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
         /// <returns>Returns any error that occurred while wiping the database index</returns>
         CLError WipeIndex(string newRootPath);
-        
-        /// <summary>
-        /// Writes a new set of sync states to the database after a sync completes,
-        /// requires newRootPath to be set on the first sync or on any sync with a new root path
-        /// </summary>
-        /// <param name="syncId">New sync Id from server</param>
-        /// <param name="syncedEventIds">Enumerable of event ids processed in sync</param>
-        /// <param name="syncCounter">Output sync counter local identity</param>
-        /// <param name="newRootPath">Optional new root path for location of sync root, must be set on first sync</param>
-        /// <returns>Returns an error that occurred during recording the sync, if any</returns>
-        CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null);
 
         /// <summary>
         /// Callback from SyncEngine to retrieve events to process, with dependencies assigned;
@@ -93,10 +82,7 @@ namespace Cloud.Interfaces
         /// <param name="syncCounter">(output) Incrementing counter to record all syncs</param>
         /// <param name="newRootPath">(optional) If provided and different from the previous root, make sure to update accordingly</param>
         /// <returns>Should return any error that occurred while marking sync completion, should not throw the exception</returns>
-        CLError completeSyncSql(string syncId,
-            IEnumerable<long> syncedEventIds,
-            out long syncCounter,
-            string newRootPath = null);
+        CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null);
 
         /// <summary>
         /// Should return the latest recorded sync id (from latest callback of completeSyncSql), return null or "0" if no syncs have been previously recorded
@@ -157,5 +143,7 @@ namespace Cloud.Interfaces
         CLError getMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata);
 
         CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath);
+
+        CLError GetServerUidByNewPath(string newPath, out string serverUid);
     }
 }

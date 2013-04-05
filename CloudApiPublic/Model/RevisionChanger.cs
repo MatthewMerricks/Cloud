@@ -14,7 +14,7 @@ namespace Cloud.Model
 {
     internal class RevisionChanger
     {
-        public event EventHandler<ResolveEventArgs> RevisionChanged;
+        public event EventHandler<RevisionAndOtherDataEventArgs> RevisionChanged;
 
         public void FireRevisionChanged(FileMetadata toFire)
         {
@@ -22,7 +22,7 @@ namespace Cloud.Model
             {
                 if (RevisionChanged != null)
                 {
-                    RevisionChanged(toFire, new ResolveEventArgs(toFire.Revision));
+                    RevisionChanged(toFire, new RevisionAndOtherDataEventArgs(toFire.Revision, toFire.ServerUid));
                 }
             }
         }
@@ -30,5 +30,30 @@ namespace Cloud.Model
         public readonly object RevisionChangeLocker = new object();
     }
 
-    public class put event args here for revision plus server id
+    internal sealed class RevisionAndOtherDataEventArgs : EventArgs
+    {
+        public string Revision
+        {
+            get
+            {
+                return _revision;
+            }
+        }
+        private readonly string _revision;
+
+        public string ServerUid
+        {
+            get
+            {
+                return _serverUid;
+            }
+        }
+        private readonly string _serverUid;
+
+        public RevisionAndOtherDataEventArgs(string revision, string serverUid)
+        {
+            this._revision = revision;
+            this._serverUid = serverUid;
+        }
+    }
 }

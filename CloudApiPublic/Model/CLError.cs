@@ -150,6 +150,39 @@ namespace Cloud.Model
         }
 
         /// <summary>
+        /// Appends an exception to an error and returns the error
+        /// </summary>
+        /// <param name="toAppend">Existing CLError to append</param>
+        /// <param name="ex">Exception to add</param>
+        public static CLError AddException(CLError toAppend, Exception ex)
+        {
+            if (toAppend == null)
+            {
+                return ex;
+            }
+
+            toAppend.AddException(ex);
+            return toAppend;
+        }
+
+        /// <summary>
+        /// Appends an exception to an error and returns the error
+        /// </summary>
+        /// <param name="toAppend">Existing CLError to append</param>
+        /// <param name="ex">Exception to add</param>
+        /// <param name="replaceErrorDescription">Whether the message of this error should be set from the currently appended exception</param>
+        public static CLError AddException(CLError toAppend, Exception ex, bool replaceErrorDescription)
+        {
+            if (toAppend == null)
+            {
+                return ex;
+            }
+
+            toAppend.AddException(ex, replaceErrorDescription);
+            return toAppend;
+        }
+
+        /// <summary>
         /// Appends an exception to this error
         /// </summary>
         /// <param name="ex">To append</param>

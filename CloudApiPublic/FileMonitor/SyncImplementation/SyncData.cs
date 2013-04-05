@@ -27,17 +27,18 @@ namespace Cloud.FileMonitor.SyncImplementation
         private IndexingAgent Indexer;
         
         /// <summary>
-        /// Writes a new set of sync states to the database after a sync completes,
-        /// requires newRootPath to be set on the first sync or on any sync with a new root path
+        /// Callback from SyncEngine upon completion of the primary Sync logic with a sync id to store along with ids of events which were completed in the process;
+        /// must output an incrementing counter to record all syncs;
+        /// if a newRootPath is provided and different from the previous root, update accordingly
         /// </summary>
-        /// <param name="syncId">New sync Id from server</param>
-        /// <param name="syncedEventIds">Enumerable of event ids processed in sync</param>
-        /// <param name="syncCounter">Output sync counter local identity</param>
-        /// <param name="newRootPath">Optional new root path for location of sync root, must be set on first sync</param>
-        /// <returns>Returns an error that occurred during recording the sync, if any</returns>
-        public CLError RecordCompletedSync(string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, FilePath newRootPath = null)
+        /// <param name="syncId">New sync id to store (should be returned on getLastSyncId on next call)</param>
+        /// <param name="syncedEventIds">Ids of events which were completed</param>
+        /// <param name="syncCounter">(output) Incrementing counter to record all syncs</param>
+        /// <param name="newRootPath">(optional) If provided and different from the previous root, make sure to update accordingly</param>
+        /// <returns>Should return any error that occurred while marking sync completion, should not throw the exception</returns>
+        public CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null)
         {
-            return this.Indexer.RecordCompletedSync(syncId, syncedEventIds, out syncCounter, newRootPath);
+            return this.Indexer.RecordCompletedSync(communicatedChanges, syncId, syncedEventIds, out syncCounter, rootFolderUID);
         }
         
         /// <summary>
@@ -133,25 +134,6 @@ namespace Cloud.FileMonitor.SyncImplementation
         }
 
         /// <summary>
-        /// Creates a new Sync in the database by the SyncId, a list of already succesful events, and the location of the root sync directory.
-        /// </summary>
-        /// <param name="syncId">The Sync ID.</param>
-        /// <param name="syncedEventIds">A list of successful events.</param>
-        /// <param name="syncCounter">(output) Sync counter local identity.</param>
-        /// <param name="newRootPath">A new SyncBox folder full path, or null.</param>
-        /// <returns>An aggregated error, or null.</returns>
-        public CLError completeSyncSql(string syncId,
-            IEnumerable<long> syncedEventIds,
-            out long syncCounter,
-            string newRootPath = null)
-        {
-            return Indexer.RecordCompletedSync(syncId,
-                syncedEventIds,
-                out syncCounter,
-                newRootPath);
-        }
-
-        /// <summary>
         /// Get the last Sync ID.
         /// </summary>
         public string getLastSyncId
@@ -242,7 +224,12 @@ namespace Cloud.FileMonitor.SyncImplementation
 
         public CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath)
         {
-            return Indexer.GetCalculatedFullPathByServerUid(serverUid, calculatedFullPath);
+            return Indexer.GetCalculatedFullPathByServerUid(serverUid, out calculatedFullPath);
+        }
+
+        public CLError GetServerUidByNewPath(string newPath, out string serverUid)
+        {
+            return Indexer.GetServerUidByNewPath(newPath, out serverUid);
         }
     }
 }
