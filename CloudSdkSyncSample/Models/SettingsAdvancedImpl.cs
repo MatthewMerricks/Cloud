@@ -172,15 +172,7 @@ namespace SampleLiveSync.Models
         {
             get
             {
-                return String.Empty;
-            }
-        }
-        public string FriendlyName
-        {
-            get
-            {
-                //TODO: FriendlyName should be deleted from settings.
-                return Environment.MachineName;
+                return "Cloud Sample App";
             }
         }
         /// <summary>
