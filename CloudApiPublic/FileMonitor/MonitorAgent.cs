@@ -1155,9 +1155,13 @@ namespace Cloud.FileMonitor
                                     {
                                         if (toApply.Metadata.HashableProperties.IsFolder)
                                         {
+                                            string oldPathString = toApply.OldPath.ToString();
+                                            string newPathString = toApply.NewPath.ToString();
+                                            DateTime oldPathCreationTime = Directory.GetCreationTimeUtc(oldPathString);
+
                                             try
                                             {
-                                                Directory.Move(toApply.OldPath.ToString(), toApply.NewPath.ToString());
+                                                Directory.Move(oldPathString, newPathString);
                                             }
                                             catch (DirectoryNotFoundException ex)
                                             {
@@ -1176,9 +1180,26 @@ namespace Cloud.FileMonitor
                                                 }
                                                 throw ex;
                                             }
+                                            catch (Exception ex)
+                                            {
+                                                if (oldPathCreationTime.Ticks != FileConstants.InvalidUtcTimeTicks
+                                                    && oldPathCreationTime.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+                                                    && Directory.Exists(newPathString)
+                                                    && !Directory.Exists(oldPathString)
+                                                    && DateTime.Compare(Directory.GetCreationTimeUtc(newPathString), oldPathCreationTime) == 0)
+                                                {
+                                                    // folder move actually worked even though it threw an exception
+                                                    // silence exception
+                                                }
+                                                else
+                                                {
+                                                    throw ex;
+                                                }
+                                            }
                                         }
                                         else
                                         {
+                                            // File rename.
                                             string newPathString = toApply.NewPath.ToString();
                                             string oldPathString = toApply.OldPath.ToString();
                                             string backupLocation = Helpers.GetTempFileDownloadPath(_syncBox.CopiedSettings, _syncBox.SyncBoxId) + "\\" + Guid.NewGuid().ToString();
@@ -1186,47 +1207,80 @@ namespace Cloud.FileMonitor
                                             Helpers.RunActionWithRetries(
                                                 fileMoveState =>
                                                 {
-                                                    if (File.Exists(fileMoveState.newPathString))
+                                                    FileInfo oldPathInfo = new FileInfo(fileMoveState.oldPathString);
+                                                    FileInfo newPathInfo = new FileInfo(fileMoveState.newPathString);
+                                                    DateTime oldPathCreation = oldPathInfo.CreationTimeUtc;
+                                                    DateTime oldPathWrite = oldPathInfo.LastWriteTimeUtc;
+                                                    long oldPathSize = oldPathInfo.Length;
+                                                    
+                                                    try
                                                     {
-                                                        try
+                                                        if (newPathInfo.Exists)
                                                         {
-                                                            File.Replace(fileMoveState.oldPathString,
-                                                                fileMoveState.newPathString,
-                                                                fileMoveState.backupLocation,
-                                                                ignoreMetadataErrors: true);
                                                             try
                                                             {
-                                                                if (File.Exists(fileMoveState.backupLocation))
+                                                                oldPathInfo.Replace(
+                                                                    fileMoveState.newPathString,
+                                                                    fileMoveState.backupLocation,
+                                                                    ignoreMetadataErrors: true);
+                                                                try
                                                                 {
-                                                                    File.Delete(fileMoveState.backupLocation);
+                                                                    if (File.Exists(fileMoveState.backupLocation))
+                                                                    {
+                                                                        File.Delete(fileMoveState.backupLocation);
+                                                                    }
+                                                                }
+                                                                catch
+                                                                {
                                                                 }
                                                             }
-                                                            catch
+                                                            // File.Replace not supported on non-NTFS drives, must use traditional move
+                                                            catch (PlatformNotSupportedException)
                                                             {
+                                                                if (newPathInfo.Exists)
+                                                                {
+                                                                    newPathInfo.Delete();
+                                                                }
+                                                                oldPathInfo.MoveTo(fileMoveState.newPathString);
+                                                            }
+                                                            // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
+                                                            catch (IOException)
+                                                            {
+                                                                if (newPathInfo.Exists)
+                                                                {
+                                                                    newPathInfo.Delete();
+                                                                }
+                                                                oldPathInfo.MoveTo(fileMoveState.newPathString);
                                                             }
                                                         }
-                                                        // File.Replace not supported on non-NTFS drives, must use traditional move
-                                                        catch (PlatformNotSupportedException)
+                                                        else
                                                         {
-                                                            if (File.Exists(fileMoveState.newPathString))
-                                                            {
-                                                                File.Delete(fileMoveState.newPathString);
-                                                            }
-                                                            File.Move(fileMoveState.oldPathString, fileMoveState.newPathString);
-                                                        }
-                                                        // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
-                                                        catch (IOException)
-                                                        {
-                                                            if (File.Exists(fileMoveState.newPathString))
-                                                            {
-                                                                File.Delete(fileMoveState.newPathString);
-                                                            }
-                                                            File.Move(fileMoveState.oldPathString, fileMoveState.newPathString);
+                                                            oldPathInfo.MoveTo(fileMoveState.newPathString);
                                                         }
                                                     }
-                                                    else
+                                                    catch (Exception ex)
                                                     {
-                                                        File.Move(fileMoveState.oldPathString, fileMoveState.newPathString);
+                                                        if (oldPathCreation.Ticks != FileConstants.InvalidUtcTimeTicks
+                                                            && oldPathCreation.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                                                            && oldPathWrite.Ticks != FileConstants.InvalidUtcTimeTicks
+                                                            && oldPathWrite.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                                                            && newPathInfo.Exists
+
+                                                            && DateTime.Compare(newPathInfo.CreationTimeUtc, oldPathCreation) == 0
+
+                                                            && DateTime.Compare(newPathInfo.LastWriteTimeUtc, oldPathWrite) == 0
+
+                                                            && oldPathSize == newPathInfo.Length)
+                                                        {
+                                                            // file move (or replace) actually worked even though it threw an exception
+                                                            // silence exception
+                                                        }
+                                                        else
+                                                        {
+                                                            throw ex;
+                                                        }
                                                     }
                                                 },
                                                 new
@@ -1710,7 +1764,7 @@ namespace Cloud.FileMonitor
                                     {
                                         foreach (FileChangeWithDependencies CurrentDisposal in DisposeChanges)
                                         {
-                                            _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: AssignDependencies: CurrentDisposal: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentDisposal: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
                                                         CurrentDisposal.Direction.ToString(),
                                                         CurrentDisposal.Type.ToString(),
                                                         CurrentDisposal.OldPath != null ? CurrentDisposal.OldPath : "NoOldPath",
@@ -1719,7 +1773,7 @@ namespace Cloud.FileMonitor
                                             if (OriginalFileChangeMappings != null
                                                 && OriginalFileChangeMappings.TryGetValue(CurrentDisposal, out CurrentOriginalMapping))
                                             {
-                                                _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: AssignDependencies: CurrentOriginalMapping: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
+                                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
                                                             CurrentOriginalMapping.Key.Direction.ToString(),
                                                             CurrentOriginalMapping.Key.Type.ToString(),
                                                             CurrentOriginalMapping.Key.OldPath != null ? CurrentOriginalMapping.Key.OldPath : "NoOldPath",
@@ -1728,16 +1782,16 @@ namespace Cloud.FileMonitor
 
                                                 if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges)
                                                 {
-                                                    _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: AssignDependencies: CurrentOriginalMapping: Remove this CurrentOriginalMapping from originalQueuedChangesIndexesByInMemoryIds."));
+                                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Remove this CurrentOriginalMapping from originalQueuedChangesIndexesByInMemoryIds."));
                                                     RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds);
                                                 }
 
-                                                _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql."));
+                                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql."));
                                                 removeFromSql.Add(CurrentDisposal);
                                             }
                                             else
                                             {
-                                                _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: AssignDependencies: ERROR: CurrentOriginalMapping not found."));
+                                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: ERROR: CurrentOriginalMapping not found."));
                                             }
                                         }
                                     }
@@ -1823,7 +1877,7 @@ namespace Cloud.FileMonitor
                 DisposeChanges = null;
                 HashSet<FileChangeWithDependencies> RenamePathSearches = null;
 
-                _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: LaterChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: LaterChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
                             LaterChange.Direction.ToString(),
                             LaterChange.Type.ToString(),
                             LaterChange.OldPath != null ? LaterChange.OldPath : "NoOldPath",
@@ -1833,7 +1887,7 @@ namespace Cloud.FileMonitor
                     .OfType<FileChangeWithDependencies>())
                 {
                     bool breakOutOfEnumeration = false;
-                    _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: CurrentEarlierChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.", 
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: CurrentEarlierChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.", 
                                 CurrentEarlierChange.Direction.ToString(),
                                 CurrentEarlierChange.Type.ToString(),
                                 CurrentEarlierChange.OldPath != null ? CurrentEarlierChange.OldPath : "NoOldPath",
@@ -1841,35 +1895,35 @@ namespace Cloud.FileMonitor
                     switch (CurrentEarlierChange.Type)
                     {
                         case FileChangeType.Renamed:
-                            _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Earlier change is renamed."));
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change is renamed."));
                             if (!DependenciesAddedToLaterChange
                                 && (RenamePathSearches == null || !RenamePathSearches.Contains(CurrentEarlierChange)))
                             {
-                                _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Loop thru onlyRenamePathsFromTop."));
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Loop thru onlyRenamePathsFromTop."));
                                 foreach (FileChangeWithDependencies CurrentInnerRename in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(CurrentEarlierChange, onlyRenamePathsFromTop: true)
                                     .OfType<FileChangeWithDependencies>())
                                 {
-                                    _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: CurrentInnerRename: Direction: {0}. OldPath: {1}. NewPath: {2}.",
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: CurrentInnerRename: Direction: {0}. OldPath: {1}. NewPath: {2}.",
                                                 CurrentInnerRename.Direction.ToString(),
                                                 CurrentInnerRename.OldPath != null ? CurrentInnerRename.OldPath : "NoOldPath",
                                                 CurrentInnerRename.NewPath != null ? CurrentInnerRename.NewPath : "NoNewPath"));
                                     if (RenamePathSearches == null)
                                     {
-                                        _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: RenamePathSearches is null."));
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: RenamePathSearches is null."));
                                         RenamePathSearches = new HashSet<FileChangeWithDependencies>(new FileChangeWithDependencies[] { CurrentInnerRename });
                                     }
                                     else
                                     {
-                                        _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: RenamePathSearches not null. Add this inner rename to RenamePathSearches."));
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: RenamePathSearches not null. Add this inner rename to RenamePathSearches."));
                                         RenamePathSearches.Add(CurrentInnerRename);
                                     }
                                     if (CurrentInnerRename.NewPath.Contains(LaterChange.OldPath)
                                         || LaterChange.OldPath.Contains(CurrentInnerRename.NewPath))
                                     {
-                                        _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Inner new path contains laterChange old path, or laterChange old path contains inner new path."));
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Inner new path contains laterChange old path, or laterChange old path contains inner new path."));
                                         foreach (FileChangeWithDependencies dependencyToMove in CurrentInnerRename.Dependencies)
                                         {
-                                            _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Remove dependency dependencyToMove: Direction: {0}. OldPath: {1}. NewPath: {2}.",
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Remove dependency dependencyToMove: Direction: {0}. OldPath: {1}. NewPath: {2}.",
                                                         dependencyToMove.Direction.ToString(),
                                                         dependencyToMove.OldPath != null ? dependencyToMove.OldPath : "NoOldPath",
                                                         dependencyToMove.NewPath != null ? dependencyToMove.NewPath : "NoNewPath"));
@@ -1881,7 +1935,7 @@ namespace Cloud.FileMonitor
                                         CurrentInnerRename.AddDependency(LaterChange);
                                         if (DependencyDebugging)
                                         {
-                                            _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Call CheckFileChangeDependenciesForDuplicates on inner rename."));
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Call CheckFileChangeDependenciesForDuplicates on inner rename."));
                                             Helpers.CheckFileChangeDependenciesForDuplicates(CurrentInnerRename);
                                         }
                                         PulledChanges.Add(LaterChange);
@@ -1892,13 +1946,13 @@ namespace Cloud.FileMonitor
                             break;
                         case FileChangeType.Created:
                         case FileChangeType.Modified:
-                            _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Earlier change is Created or Modified."));
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change is Created or Modified."));
                             if (CurrentEarlierChange.NewPath.Contains(LaterChange.OldPath))
                             {
-                                _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Earlier change contains OldPath."));
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change contains OldPath."));
                                 if (FilePathComparer.Instance.Equals(CurrentEarlierChange.NewPath, LaterChange.OldPath))
                                 {
-                                    _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: NewPath equals OldPath."));
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: NewPath equals OldPath."));
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
                                     CLError updateSqlError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentEarlierChange, null) }, true);
                                     if (updateSqlError != null)
@@ -1908,14 +1962,14 @@ namespace Cloud.FileMonitor
 
                                     if (CurrentEarlierChange.Type == FileChangeType.Created)
                                     {
-                                        _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Earlier change is Created."));
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change is Created."));
                                         if (DisposeChanges == null)
                                         {
                                             DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { LaterChange });
                                         }
                                         else
                                         {
-                                            _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Add later change to changes to dispose."));
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Add later change to changes to dispose."));
                                             DisposeChanges.Add(LaterChange);
                                         }
 
@@ -1925,7 +1979,7 @@ namespace Cloud.FileMonitor
                                             .OfType<FileChangeWithDependencies>()
                                             .Where(currentParentCheck => currentParentCheck.Dependencies.Contains(LaterChange)))
                                         {
-                                            _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Remove dependency from laterParent: LaterChange: Direction: {0}. OldPath: {1}. NewPath: {2}.",
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Remove dependency from laterParent: LaterChange: Direction: {0}. OldPath: {1}. NewPath: {2}.",
                                                         LaterChange.Direction.ToString(),
                                                         LaterChange.OldPath != null ? LaterChange.OldPath : "NoOldPath",
                                                         LaterChange.NewPath != null ? LaterChange.NewPath : "NoNewPath"));
@@ -1944,15 +1998,15 @@ namespace Cloud.FileMonitor
                                     FilePath renamedOverlap = renamedOverlapChild.Parent;
 
                                     // loop till recursing parent of current path level is null
-                                    _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: NewPath does not equal OldPath. Loop until recursing parent is null. renamedOverlapChild: {0}.", renamedOverlapChild.Name));
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: NewPath does not equal OldPath. Loop until recursing parent is null. renamedOverlapChild: {0}.", renamedOverlapChild.Name));
                                     while (renamedOverlap != null)
                                     {
                                         // when the rename's OldPath matches the current recursive path parent level,
                                         // replace the child's parent with the rename's NewPath and break out of the checking loop
-                                        _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Process renamedOverlap: {0}.", renamedOverlap.Name));
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Process renamedOverlap: {0}.", renamedOverlap.Name));
                                         if (FilePathComparer.Instance.Equals(renamedOverlap, LaterChange.OldPath))
                                         {
-                                            _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: renamedOverlap equals later change OldPath: {0}. Merge earlier change to SQL.", LaterChange.OldPath.Name));
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: renamedOverlap equals later change OldPath: {0}. Merge earlier change to SQL.", LaterChange.OldPath.Name));
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
                                             CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentEarlierChange, null) }, true);
                                             if (replacePathPortionError != null)
@@ -1969,7 +2023,7 @@ namespace Cloud.FileMonitor
                                     
                                     if (!DependenciesAddedToLaterChange)
                                     {
-                                        _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange."));
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange."));
                                         LaterChange.AddDependency(CurrentEarlierChange);
                                         if (DependencyDebugging)
                                         {
@@ -1982,10 +2036,10 @@ namespace Cloud.FileMonitor
                             }
                             break;
                         case FileChangeType.Deleted:// possible error condition, I am not sure this case should ever hit
-                            _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Earlier change is Deleted."));
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change is Deleted."));
                             if (LaterChange.OldPath.Contains(CurrentEarlierChange.NewPath))
                             {
-                                _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Later old path contains earlier new path."));
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Later old path contains earlier new path."));
                                 breakOutOfEnumeration = true;
                             }
                             break;
@@ -1994,14 +2048,14 @@ namespace Cloud.FileMonitor
                     }
                     if (breakOutOfEnumeration)
                     {
-                        _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Break out of enumeration."));
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Break out of enumeration."));
                         break;
                     }
                 }
 
                 bool localContinueProcessing = !PulledChanges.Contains(EarlierChange);
                 ContinueProcessing = localContinueProcessing;
-                _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: Continue processing: {0}.", localContinueProcessing));
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Continue processing: {0}.", localContinueProcessing));
             }
             catch (Exception ex)
             {
@@ -2012,7 +2066,7 @@ namespace Cloud.FileMonitor
 
             if (toReturn != null)
             {
-                _trace.writeToMemory(() => CLTrace.trcFmtStr("MonitorAgent: RenameDependencyCheck: ERROR: {0}.", toReturn.errorDescription));
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: ERROR: {0}.", toReturn.errorDescription));
             }
             return toReturn;
         }
@@ -2430,7 +2484,6 @@ namespace Cloud.FileMonitor
                                                                                                         MaxUploadFileSize, CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), initialFileSize));
                                                         }
                                                     }
-
 
                                                     try
                                                     {

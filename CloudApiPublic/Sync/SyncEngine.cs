@@ -4583,6 +4583,8 @@ namespace Cloud.Sync
                 // lock on current download id map for modification
                 lock (currentDownloads)
                 {
+                    Nullable<DownloadIdAndMD5> storeMatchedExistingDownload = null;
+
                     // declare list of download ids and hashes for the current file size
                     List<DownloadIdAndMD5> tempDownloadsInSize;
                     // try to retrieve the list of download ids and hashes by current file size and if found,
@@ -4613,11 +4615,25 @@ namespace Cloud.Sync
                                         // declare int for storying how many bytes were read on each buffer transfer
                                         int fileReadBytes;
 
+                                        GenericHolder<FileStream> verifyTempDownloadStreamHolder = new GenericHolder<FileStream>(null);
+
+                                        Helpers.RunActionWithRetries(
+                                            downloadStreamState =>
+                                            {
+                                                downloadStreamState.verifyTempDownloadStreamHolder.Value = new FileStream(downloadStreamState.existingDownloadPath,
+                                                    FileMode.Open,
+                                                    FileAccess.Read,
+                                                    FileShare.Read);
+                                            },
+                                            new
+                                            {
+                                                verifyTempDownloadStreamHolder = verifyTempDownloadStreamHolder,
+                                                existingDownloadPath = existingDownloadPath
+                                            },
+                                            throwExceptionOnFailure: true);
+
                                         // open a file read stream for reading the hash at the existing temp file location
-                                        using (FileStream verifyTempDownloadStream = new FileStream(existingDownloadPath,
-                                            FileMode.Open,
-                                            FileAccess.Read,
-                                            FileShare.Read))
+                                        using (FileStream verifyTempDownloadStream = verifyTempDownloadStreamHolder.Value)
                                         {
                                             // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file and store the read byte count
                                             while ((fileReadBytes = verifyTempDownloadStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
@@ -4638,6 +4654,8 @@ namespace Cloud.Sync
                                                 // use the existing file instead of downloading
                                                 newTempFile = currentTempDownload.Id;
 
+                                                storeMatchedExistingDownload = currentTempDownload;
+
                                                 // stop checking existing files upon match
                                                 break;
                                             }
@@ -4650,106 +4668,133 @@ namespace Cloud.Sync
                             }
                         }
                     }
-                }
 
-                // define the response body for download, defaulting to null
-                string responseBody = null;
+                    // define the response body for download, defaulting to null
+                    string responseBody = null;
 
-                // if a file already exists which matches the current download, then move the existing file instead of starting a new download
-                if (newTempFile != null)
-                {
-                    // calculate and store the path for the existing file
-                    string newTempFileString = castState.TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
-
-                    // move the file from the temp download path to the final location
-                    castState.MoveCompletedDownload(newTempFileString, // temp download path
-                        castState.FileToDownload, // event for the file download
-                        ref responseBody, // reference to the response body which will be set as "completed" if successful
-                        castState.FailureTimer, // timer for the failure queue
-                        (Guid)newTempFile); // the id of the existing temp file
-
-                    // using the existing temp file download succeeded so return success immediately
-                    return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // id of succesful event
-                        castState.SyncData, // event source for notifying completion
-                        castState.SyncBox.CopiedSettings, // settings for tracing and error logging
-                        castState.TempDownloadFolderPath); // path to the folder containing temp downloads
-                }
-
-                // declare the enumeration to store the state of the download
-                CLHttpRestStatus downloadStatus;
-                // perform the download of the file, storing any error that occurs
-                CLError downloadError = castState.RestClient.DownloadFile(castState.FileToDownload, // the download change
-                    OnAfterDownloadToTempFile, // handler for when downloading completes, needs to move the file to the final location and update the status string message
-                    new OnAfterDownloadToTempFileState() // userstate which will be passed along when the callback is fired when downloading completes
+                    // if a file already exists which matches the current download, then move the existing file instead of starting a new download
+                    if (newTempFile != null)
                     {
-                        FailureTimer = castState.FailureTimer, // pass-through the timer for the failure queue
-                        MoveCompletedDownload = castState.MoveCompletedDownload // pass-through the delegate to fire which moves the file from the temporary download location to the final location
-                    },
-                    castState.HttpTimeoutMilliseconds ?? 0, // milliseconds before communication throws exception from timeout, excludes the time it takes to actually download the file
-                    out downloadStatus, // output the status of the communication
-                    OnBeforeDownloadToTempFile, // handler for when downloading is going to start, which stores the new download id to a local dictionary
-                    new OnBeforeDownloadToTempFileState() // userstate which will be passed along when the callback is fired before downloading starts
-                    {
-                        currentDownloads = currentDownloads, // pass-through the dictionary of current downloads
-                        FileToDownload = castState.FileToDownload, // pass-through the file change itself
-                        MD5 = castState.MD5 // pass-through the MD5 hash of the file
-                    },
-                    castState.ShutdownToken, // the cancellation token which can cause the download to stop in the middle
-                    castState.TempDownloadFolderPath, // the full path to the folder which will contain all the temporary-downloaded files
-                    castState.StatusUpdate,
-                    castState.ThreadId);
+                        // calculate and store the path for the existing file
+                        string newTempFileString = castState.TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
 
-                // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+                        // move the file from the temp download path to the final location
+                        castState.MoveCompletedDownload(newTempFileString, // temp download path
+                            castState.FileToDownload, // event for the file download
+                            ref responseBody, // reference to the response body which will be set as "completed" if successful
+                            castState.FailureTimer, // timer for the failure queue
+                            (Guid)newTempFile); // the id of the existing temp file
 
-                if (downloadStatus == CLHttpRestStatus.ConnectionFailed)
-                {
-                    lock (castState.UploadDownloadServerConnectionFailureCount)
-                    {
-                        if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)255))
+                        if (storeMatchedExistingDownload != null)
                         {
-                            castState.UploadDownloadServerConnectionFailureCount.Value = (byte)(castState.UploadDownloadServerConnectionFailureCount.Value + 1);
+                            tempDownloadsInSize.Remove((DownloadIdAndMD5)storeMatchedExistingDownload);
+                            if (tempDownloadsInSize.Count == 0)
+                            {
+                                currentDownloads.Remove((long)castState.FileToDownload.Metadata.HashableProperties.Size);
+                            }
                         }
-                    }
-                }
-                else
-                {
-                    lock (castState.UploadDownloadServerConnectionFailureCount)
-                    {
-                        if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)0))
-                        {
-                            castState.UploadDownloadServerConnectionFailureCount.Value = 0;
-                        }
+
+                        // using the existing temp file download succeeded so return success immediately
+                        return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // id of succesful event
+                            castState.SyncData, // event source for notifying completion
+                            castState.SyncBox.CopiedSettings, // settings for tracing and error logging
+                            castState.TempDownloadFolderPath); // path to the folder containing temp downloads
                     }
                 }
 
-                // if there was an error while downloading, rethrow the error
-                if (downloadError != null)
-                {
-                    throw new AggregateException("An error occurred downloading a file", downloadError.GrabExceptions());
-                }
+                // repeat download infinitely on condition that each time the download is also being checked by a duplicate coming through the above existing download checker and removing the one which is about to be downloaded below
 
-                // The download was successful (no exceptions), but it may have been cancelled.
-                if (downloadStatus == CLHttpRestStatus.Cancelled
-                    && castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread
+                GenericHolder<bool> downloadFoundToMoveUnderTempDownloadsLock = null;
+                do
                 {
-                    return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.TempDownloadFolderPath);
-                }
+                    if (downloadFoundToMoveUnderTempDownloadsLock == null)
+                    {
+                        downloadFoundToMoveUnderTempDownloadsLock = new GenericHolder<bool>(true);
+                    }
+                    else
+                    {
+                        downloadFoundToMoveUnderTempDownloadsLock.Value = true;
+                    }
 
-                // if the download was not a success throw an error
-                if (downloadStatus != CLHttpRestStatus.Success)
-                {
-                    throw new Exception("The return status from downloading a file was not successful: CLHttpRestStatus." + downloadStatus.ToString());
-                }
+                    // declare the enumeration to store the state of the download
+                    CLHttpRestStatus downloadStatus;
+                    // perform the download of the file, storing any error that occurs
+                    CLError downloadError = castState.RestClient.DownloadFile(castState.FileToDownload, // the download change
+                        OnAfterDownloadToTempFile, // handler for when downloading completes, needs to move the file to the final location and update the status string message
+                        new OnAfterDownloadToTempFileState() // userstate which will be passed along when the callback is fired when downloading completes
+                        {
+                            FailureTimer = castState.FailureTimer, // pass-through the timer for the failure queue
+                            MoveCompletedDownload = castState.MoveCompletedDownload, // pass-through the delegate to fire which moves the file from the temporary download location to the final location
+                            CurrentDownloads = currentDownloads,
+                            DownloadFoundToMoveUnderTempDownloadsLock = downloadFoundToMoveUnderTempDownloadsLock
+                        },
+                        castState.HttpTimeoutMilliseconds ?? 0, // milliseconds before communication throws exception from timeout, excludes the time it takes to actually download the file
+                        out downloadStatus, // output the status of the communication
+                        OnBeforeDownloadToTempFile, // handler for when downloading is going to start, which stores the new download id to a local dictionary
+                        new OnBeforeDownloadToTempFileState() // userstate which will be passed along when the callback is fired before downloading starts
+                        {
+                            currentDownloads = currentDownloads, // pass-through the dictionary of current downloads
+                            FileToDownload = castState.FileToDownload, // pass-through the file change itself
+                            MD5 = castState.MD5 // pass-through the MD5 hash of the file
+                        },
+                        castState.ShutdownToken, // the cancellation token which can cause the download to stop in the middle
+                        castState.TempDownloadFolderPath, // the full path to the folder which will contain all the temporary-downloaded files
+                        castState.StatusUpdate,
+                        castState.ThreadId);
 
-                if (downloadStatus != CLHttpRestStatus.Cancelled) // possible that it was cancelled if path was set as null when event was cancelled out on another thread
-                {
-                    // status message
-                    MessageEvents.FireNewEventMessage(
-                        "File finished downloading to path " + castState.FileToDownload.NewPath.ToString(),
-                        EventMessageLevel.Regular,
-                        SyncBoxId: castState.SyncBox.SyncBoxId,
-                        DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
+                    // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+
+                    if (downloadStatus == CLHttpRestStatus.ConnectionFailed)
+                    {
+                        lock (castState.UploadDownloadServerConnectionFailureCount)
+                        {
+                            if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)255))
+                            {
+                                castState.UploadDownloadServerConnectionFailureCount.Value = (byte)(castState.UploadDownloadServerConnectionFailureCount.Value + 1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        lock (castState.UploadDownloadServerConnectionFailureCount)
+                        {
+                            if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)0))
+                            {
+                                castState.UploadDownloadServerConnectionFailureCount.Value = 0;
+                            }
+                        }
+                    }
+
+                    // if there was an error while downloading, rethrow the error
+                    if (downloadError != null)
+                    {
+                        throw new AggregateException("An error occurred downloading a file", downloadError.GrabExceptions());
+                    }
+
+                    // The download was successful (no exceptions), but it may have been cancelled.
+                    if (downloadStatus == CLHttpRestStatus.Cancelled
+                        && castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread
+                    {
+                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.TempDownloadFolderPath);
+                    }
+
+                    // if the download was not a success throw an error
+                    if (downloadStatus != CLHttpRestStatus.Success)
+                    {
+                        throw new Exception("The return status from downloading a file was not successful: CLHttpRestStatus." + downloadStatus.ToString());
+                    }
+
+                    if (downloadStatus != CLHttpRestStatus.Cancelled) // possible that it was cancelled if path was set as null when event was cancelled out on another thread
+                    {
+                        // status message
+                        MessageEvents.FireNewEventMessage(
+                            "File finished downloading to path " + castState.FileToDownload.NewPath.ToString(),
+                            EventMessageLevel.Regular,
+                            SyncBoxId: castState.SyncBox.SyncBoxId,
+                            DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
+                    }
                 }
+                while (!downloadFoundToMoveUnderTempDownloadsLock.Value);
 
                 // return the success
                 return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
@@ -4930,6 +4975,7 @@ namespace Cloud.Sync
         /// <param name="tempId">Unique ID created for the file and used as the file's name in the temp download directory</param>
         private static void OnAfterDownloadToTempFile(string tempFileFullPath, FileChange downloadChange, ref string responseBody, object UserState, Guid tempId)
         {
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Entry. path: {0}. Id: {1}.", tempFileFullPath, tempId));
             OnAfterDownloadToTempFileState castState = UserState as OnAfterDownloadToTempFileState;
 
             if (castState == null)
@@ -4944,20 +4990,10 @@ namespace Cloud.Sync
             {
                 throw new NullReferenceException("UserState must have MoveCompletedDownload");
             }
-
-            // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
-            // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
-            // attributes to set: creation time, last modified time, and last access time
-
-            Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
-                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.CreationTime),
-                true);
-            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
-                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime),
-                true);
-            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
-                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime),
-                true);
+            if (castState.CurrentDownloads == null)
+            {
+                throw new NullReferenceException("UserState must have CurrentDownloads");
+            }
 
             // fire callback to perform the actual move of the temp file to the final destination
             castState.MoveCompletedDownload(tempFileFullPath, // location of temp file
@@ -4965,12 +5001,57 @@ namespace Cloud.Sync
                 ref responseBody, // reference to response string (sets to "completed" on success)
                 castState.FailureTimer, // timer for failure queue
                 tempId); // id for the downloaded file
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Back from MoveCompletedDownload."));
+
+            List<DownloadIdAndMD5> downloadsByCurrentSize;
+            if (castState.CurrentDownloads.TryGetValue((long)downloadChange.Metadata.HashableProperties.Size, out downloadsByCurrentSize))
+            {
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Found a list."));
+                bool foundAtLeastOneToRemove = false;
+
+                downloadsByCurrentSize.RemoveAll(downloadAtCurrentSize =>
+                    {
+                        if (downloadAtCurrentSize.Id == tempId)
+                        {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Found it."));
+                            foundAtLeastOneToRemove = true;
+                            return true;
+                        }
+
+                        return false;
+                    });
+
+                if (foundAtLeastOneToRemove && downloadsByCurrentSize.Count == 0)
+                {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Remove this download from current list."));
+                    castState.CurrentDownloads.Remove((long)downloadChange.Metadata.HashableProperties.Size);
+                }
+            }
         }
 
-        private sealed class OnAfterDownloadToTempFileState
+        private sealed class OnAfterDownloadToTempFileState : IAfterDownloadCallbackState
         {
+            object IAfterDownloadCallbackState.LockerForDownloadedFileAccess
+            {
+                get
+                {
+                    return CurrentDownloads;
+                }
+            }
+
+            void IAfterDownloadCallbackState.SetFileNotFound()
+            {
+                if (DownloadFoundToMoveUnderTempDownloadsLock != null)
+                {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: SetFileNotFound: Set DownloadFoundToMoveUnderTempDownloadsLock false."));
+                    DownloadFoundToMoveUnderTempDownloadsLock.Value = false;
+                }
+            }
+
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public MoveCompletedDownloadDelegate MoveCompletedDownload { get; set; }
+            public Dictionary<long, List<DownloadIdAndMD5>> CurrentDownloads { get; set; }
+            public GenericHolder<bool> DownloadFoundToMoveUnderTempDownloadsLock { get; set; }
         }
 
         private static void OnBeforeDownloadToTempFile(Guid tempId, object UserState)
@@ -5041,7 +5122,7 @@ namespace Cloud.Sync
             public Dictionary<long, List<DownloadIdAndMD5>> currentDownloads { get; set; }
         }
 
-        // code to handle cleanup when an error occurred during upload
+        // code to handle cleanup when an error occurred during download
         private static void ProcessDownloadError(PossiblyStreamableFileChangeWithSyncData exceptionState, AggregateException exceptions)
         {
             // try/catch cleanup after a download error, on catch log the error that occurred during cleanup
@@ -9160,7 +9241,7 @@ namespace Cloud.Sync
                 if (toRetry.FileChange.FailureCounter == 0)
                 {
                     // mark the path state for error
-                    _trace.writeToMemory(() => CLTrace.trcFmtStr("SyncEngine: ContinueToRetry: Badge failed initially"));
+                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "SyncEngine: ContinueToRetry: Badge failed initially"));
                     MessageEvents.SetPathState(toRetry.FileChange, // source of the event (the event itself)
                         new SetBadge(PathState.Failed, // state to set is failed
                             ((toRetry.FileChange.Direction == SyncDirection.From && toRetry.FileChange.Type == FileChangeType.Renamed)
@@ -9188,7 +9269,7 @@ namespace Cloud.Sync
                 if (toRetry.FileChange.NotFoundForStreamCounter >= MaxNumberOfNotFounds)
                 {
                     // remove the badge at the current path by setting it as synced
-                    _trace.writeToMemory(() => CLTrace.trcFmtStr("SyncEngine: ContinueToRetry: Badge synced, reached max not found count."));
+                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "SyncEngine: ContinueToRetry: Badge synced, reached max not found count."));
                     MessageEvents.SetPathState(toRetry.FileChange, new SetBadge(PathState.Synced, toRetry.FileChange.NewPath));
 
                     // make sure to add change to SQL
@@ -9223,7 +9304,7 @@ namespace Cloud.Sync
                         && castRetry.DependenciesCount > 0)
                     {
                         // call a recursive function which will take a list of failed dependencies to badge as failed and call itself for inner dependencies
-                        _trace.writeToMemory(() => CLTrace.trcFmtStr("SyncEngine: ContinueToRetry: Badge failed, with inner depencencies."));
+                        _trace.writeToMemory(() => _trace.trcFmtStr(1, "SyncEngine: ContinueToRetry: Badge failed, with inner depencencies."));
                         BadgeDependenciesAsFailures(castRetry.Dependencies);
                     }
 

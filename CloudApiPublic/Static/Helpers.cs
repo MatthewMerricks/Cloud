@@ -3090,23 +3090,45 @@ namespace Cloud.Static
                             // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
                             // attributes to set: creation time, last modified time, and last access time
 
-                            Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
-                                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
-                                true);
-                            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
-                                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
-                                true);
-                            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
-                                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
-                                true);
+                            IAfterDownloadCallbackState castDownloadState = ((downloadParams)uploadDownload).AfterDownloadUserState as IAfterDownloadCallbackState;
 
+                            lock (castDownloadState == null ? new object() : castDownloadState.LockerForDownloadedFileAccess ?? new object())
+                            {
+                                if (castDownloadState != null
+                                    && !File.Exists(newTempFileString))
+                                {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: WARNING: Set file not found to trigger re-download."));
+                                    castDownloadState.SetFileNotFound();
+                                }
+                                else
+                                {
+                                    // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
+                                    // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
+                                    // attributes to set: creation time, last modified time, and last access time
 
-                            // fire callback to perform the actual move of the temp file to the final destination
-                            ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
-                                uploadDownload.ChangeToTransfer,
-                                ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
-                                ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
-                                newTempFile); // id for the downloaded file
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file creation time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime.ToString("G")));
+                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
+                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
+                                        true);
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file last access time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
+                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
+                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                                        true);
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file last write time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
+                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
+                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                                        true);
+
+                                    // fire callback to perform the actual move of the temp file to the final destination
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Call AfterDownloadCallback. Path: {0}.", newTempFileString));
+                                    ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
+                                        uploadDownload.ChangeToTransfer,
+                                        ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
+                                        ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
+                                        newTempFile); // id for the downloaded file
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: After call to AfterDownloadCallback."));
+                                }
+                            }
 
                             // if the after downloading callback set the response to null, then replace it saying it was null
                             if (responseBody == null)
@@ -3123,6 +3145,7 @@ namespace Cloud.Static
                         }
                         catch (Exception ex)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: Exception: Msg: {0}.", ex.Message));
                             responseBody = (responseBody ?? "---responseBody set to null---").TrimEnd('-') + ": " + ex.Message + "---";
 
                             throw ex;
