@@ -14,6 +14,7 @@ using Cloud.Model;
 using Cloud.Static;
 using Cloud.Support;
 using System.Globalization;
+using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Threading;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
@@ -1184,6 +1185,45 @@ namespace Cloud.FileMonitor
                                             Helpers.RunActionWithRetries(
                                                 fileMoveState =>
                                                 {
+
+                                                    // To preserve the DACL in the target file (newPathString) from being overwritten with the DACL of the temp file (oldPathString):
+                                                    //      collect the original target file external ACEs;
+                                                    //      collect the temporary file external ACEs;
+                                                    //      after the file has been moved, reset the target file DACL by adding the original external ACEs and removing the temoporary file external ACEs;
+                                                    //  Note that reseting the DACL will merge the correct inherited ACEs into the target file DACL;
+
+                                                    // NOTE: NULL DACL (grants full access to everyone) in C# is represented as AuthorizationRuleCollection([Allow, Everyone (S-1-1-0)]);
+                                                    //       Empty DACL (grants no access to anyone) in C# is represented as empty AuthorizationRuleCollection();
+
+                                                    AuthorizationRuleCollection targetExplicitRules = null;
+                                                    try
+                                                    {
+                                                        if (File.Exists(fileMoveState.newPathString))
+                                                        {
+                                                            targetExplicitRules = File.GetAccessControl(fileMoveState.newPathString)
+                                                                                        .GetAccessRules(true, false, typeof(System.Security.Principal.SecurityIdentifier));
+                                                        }
+                                                    }
+                                                    catch
+                                                    {
+                                                        //noop;
+                                                    }
+
+                                                    AuthorizationRuleCollection tempExplicitRules = null;
+                                                    try
+                                                    {
+                                                        if (File.Exists(fileMoveState.oldPathString))
+                                                        {
+                                                            tempExplicitRules = File.GetAccessControl(fileMoveState.oldPathString)
+                                                                                        .GetAccessRules(true, false, typeof(System.Security.Principal.SecurityIdentifier));
+                                                        }
+                                                    }
+                                                    catch
+                                                    {
+                                                        //noop;
+                                                    }
+
+
                                                     if (File.Exists(fileMoveState.newPathString))
                                                     {
                                                         try
@@ -1226,6 +1266,40 @@ namespace Cloud.FileMonitor
                                                     {
                                                         File.Move(fileMoveState.oldPathString, fileMoveState.newPathString);
                                                     }
+
+
+                                                    FileSecurity fileSecurity = new FileSecurity(fileMoveState.newPathString, AccessControlSections.Access);
+                                                    if (tempExplicitRules != null && tempExplicitRules.Count > 0)
+                                                    {
+                                                        foreach (FileSystemAccessRule rule in tempExplicitRules)
+                                                        {
+                                                            fileSecurity.RemoveAccessRule(rule);
+                                                        }
+                                                    }
+                                                    if (targetExplicitRules != null && targetExplicitRules.Count > 0)
+                                                    {
+                                                        foreach (FileSystemAccessRule rule in targetExplicitRules)
+                                                        {
+                                                            fileSecurity.ResetAccessRule(rule);
+                                                        }
+                                                    }
+                                                    if ((tempExplicitRules == null || tempExplicitRules.Count == 0) &&
+                                                        (targetExplicitRules == null || targetExplicitRules.Count == 0))
+                                                    {
+                                                        // Note: File.SetAccessControl() won't change the target file DACL if fileSecurity has not been modified;
+                                                        //          the following line formally "modifies" fileSecurity
+                                                        fileSecurity.SetSecurityDescriptorBinaryForm(fileSecurity.GetSecurityDescriptorBinaryForm(), AccessControlSections.Access);
+                                                    }
+
+                                                    try
+                                                    {
+                                                        File.SetAccessControl(fileMoveState.newPathString, fileSecurity);
+                                                    }
+                                                    catch
+                                                    {
+                                                        //noop; 
+                                                    }
+
                                                 },
                                                 new
                                                     {

@@ -4939,20 +4939,6 @@ namespace Cloud.Sync
                 throw new NullReferenceException("UserState must have MoveCompletedDownload");
             }
 
-            // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
-            // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
-            // attributes to set: creation time, last modified time, and last access time
-
-            Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
-                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.CreationTime),
-                true);
-            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
-                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime),
-                true);
-            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
-                new KeyValuePair<string, DateTime>(tempFileFullPath, downloadChange.Metadata.HashableProperties.LastTime),
-                true);
-
             // fire callback to perform the actual move of the temp file to the final destination
             castState.MoveCompletedDownload(tempFileFullPath, // location of temp file
                 downloadChange, // download event
