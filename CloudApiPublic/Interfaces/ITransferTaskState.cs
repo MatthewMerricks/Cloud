@@ -12,9 +12,9 @@ using System.Text;
 
 namespace Cloud.Interfaces
 {
-    // interface to allow HttpScheduler to access the SyncBox which started a Task for upload/download in order to fire filterable MessageEvents
+    // interface to allow HttpScheduler to access the Syncbox which started a Task for upload/download in order to fire filterable MessageEvents
     internal interface ITransferTaskState
     {
-        CLSyncBox SyncBox { get; }
+        CLSyncbox Syncbox { get; }
     }
 }

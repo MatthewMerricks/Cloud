@@ -24,7 +24,7 @@ namespace Cloud.Static
     public static class MessageEvents
     {
         #region IEventMessageReceiver subscription
-        public static CLError SubscribeMessageReceiver(long SyncBoxId, string DeviceId, IEventMessageReceiver receiver)
+        public static CLError SubscribeMessageReceiver(long SyncboxId, string DeviceId, IEventMessageReceiver receiver)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace Cloud.Static
                     throw new NullReferenceException("DeviceId cannot be null");
                 }
 
-                string receiverKey = SyncBoxId.ToString() + " " + DeviceId;
+                string receiverKey = SyncboxId.ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
                     InternalReceivers[receiverKey] = receiver;
@@ -49,7 +49,7 @@ namespace Cloud.Static
             }
             return null;
         }
-        public static CLError UnsubscribeMessageReceiver(long SyncBoxId, string DeviceId)
+        public static CLError UnsubscribeMessageReceiver(long SyncboxId, string DeviceId)
         {
             try
             {
@@ -58,12 +58,12 @@ namespace Cloud.Static
                     throw new NullReferenceException("DeviceId cannot be null");
                 }
 
-                string receiverKey = SyncBoxId.ToString() + " " + DeviceId;
+                string receiverKey = SyncboxId.ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
                     if (!InternalReceivers.Remove(receiverKey))
                     {
-                        throw new ArgumentException("Receiver with given SyncBoxId and DeviceId not found to unsubscribe");
+                        throw new ArgumentException("Receiver with given SyncboxId and DeviceId not found to unsubscribe");
                     }
                 }
             }
@@ -101,7 +101,7 @@ namespace Cloud.Static
             string Message,
             EventMessageLevel Level = EventMessageLevel.Minor,
             BaseErrorInfo Error = null,
-            Nullable<long> SyncBoxId = null,
+            Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
             if (Error != null
@@ -118,12 +118,12 @@ namespace Cloud.Static
                         Message,
                         Level,
                         Error,
-                        SyncBoxId,
+                        SyncboxId,
                         DeviceId)
                     : (BaseMessage)new InformationalMessage(
                         Message,
                         Level,
-                        SyncBoxId,
+                        SyncboxId,
                         DeviceId)));
 
             lock (NewEventMessageLocker)
@@ -147,10 +147,10 @@ namespace Cloud.Static
                 }
             }
 
-            if (SyncBoxId != null
+            if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
+                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
                     IEventMessageReceiver foundReceiver;
@@ -207,7 +207,7 @@ namespace Cloud.Static
         }
         public static EventHandledLevel SetDownloadingCount(
             uint newCount,
-            Nullable<long> SyncBoxId = null,
+            Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
             EventHandledLevel toReturn;
@@ -215,7 +215,7 @@ namespace Cloud.Static
             EventMessageArgs newArgs = new EventMessageArgs(
                 new DownloadingCountMessage(
                     newCount,
-                    SyncBoxId,
+                    SyncboxId,
                     DeviceId));
 
             lock (NewEventMessageLocker)
@@ -239,10 +239,10 @@ namespace Cloud.Static
                 }
             }
 
-            if (SyncBoxId != null
+            if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
+                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
                     IEventMessageReceiver foundReceiver;
@@ -267,7 +267,7 @@ namespace Cloud.Static
         }
         public static EventHandledLevel SetUploadingCount(
             uint newCount,
-            Nullable<long> SyncBoxId = null,
+            Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
             EventHandledLevel toReturn;
@@ -275,7 +275,7 @@ namespace Cloud.Static
             EventMessageArgs newArgs = new EventMessageArgs(
                 new UploadingCountMessage(
                     newCount,
-                    SyncBoxId,
+                    SyncboxId,
                     DeviceId));
 
             lock (NewEventMessageLocker)
@@ -300,10 +300,10 @@ namespace Cloud.Static
                 }
             }
 
-            if (SyncBoxId != null
+            if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
+                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
                     IEventMessageReceiver foundReceiver;
@@ -328,7 +328,7 @@ namespace Cloud.Static
         }
         public static EventHandledLevel IncrementDownloadedCount(
             uint incrementAmount = 1,
-            Nullable<long> SyncBoxId = null,
+            Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
             EventHandledLevel toReturn;
@@ -336,7 +336,7 @@ namespace Cloud.Static
             EventMessageArgs newArgs = new EventMessageArgs(
                 new SuccessfulDownloadsIncrementedMessage(
                     incrementAmount,
-                    SyncBoxId,
+                    SyncboxId,
                     DeviceId));
 
             lock (NewEventMessageLocker)
@@ -361,10 +361,10 @@ namespace Cloud.Static
                 }
             }
 
-            if (SyncBoxId != null
+            if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
+                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
                     IEventMessageReceiver foundReceiver;
@@ -389,7 +389,7 @@ namespace Cloud.Static
         }
         public static EventHandledLevel IncrementUploadedCount(
             uint incrementAmount = 1,
-            Nullable<long> SyncBoxId = null,
+            Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
             EventHandledLevel toReturn;
@@ -397,7 +397,7 @@ namespace Cloud.Static
             EventMessageArgs newArgs = new EventMessageArgs(
                 new SuccessfulUploadsIncrementedMessage(
                     incrementAmount,
-                    SyncBoxId,
+                    SyncboxId,
                     DeviceId));
 
             lock (NewEventMessageLocker)
@@ -422,10 +422,10 @@ namespace Cloud.Static
                 }
             }
 
-            if (SyncBoxId != null
+            if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
+                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
                     IEventMessageReceiver foundReceiver;
@@ -451,7 +451,7 @@ namespace Cloud.Static
         public static EventHandledLevel UpdateFileUpload(
             long eventId, 
             CLStatusFileTransferUpdateParameters parameters,
-            Nullable<long> SyncBoxId = null,
+            Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
             EventHandledLevel toReturn;
@@ -460,7 +460,7 @@ namespace Cloud.Static
                 new UploadProgressMessage(
                     parameters,
                     eventId,
-                    SyncBoxId,
+                    SyncboxId,
                     DeviceId));
 
             lock (NewEventMessageLocker)
@@ -485,10 +485,10 @@ namespace Cloud.Static
                 }
             }
 
-            if (SyncBoxId != null
+            if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
+                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
                     IEventMessageReceiver foundReceiver;
@@ -514,7 +514,7 @@ namespace Cloud.Static
         public static EventHandledLevel UpdateFileDownload(
             long eventId, 
             CLStatusFileTransferUpdateParameters parameters,
-            Nullable<long> SyncBoxId = null,
+            Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
             EventHandledLevel toReturn;
@@ -523,7 +523,7 @@ namespace Cloud.Static
                 new DownloadProgressMessage(
                     parameters,
                     eventId,
-                    SyncBoxId,
+                    SyncboxId,
                     DeviceId));
 
             lock (NewEventMessageLocker)
@@ -548,10 +548,10 @@ namespace Cloud.Static
                 }
             }
 
-            if (SyncBoxId != null
+            if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncBoxId).ToString() + " " + DeviceId;
+                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
                 lock (InternalReceivers)
                 {
                     IEventMessageReceiver foundReceiver;

@@ -115,7 +115,7 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        public Nullable<long> SyncBoxId
+        public Nullable<long> SyncboxId
         {
             get
             {
@@ -127,7 +127,7 @@ namespace CloudApiPrivate.Model.Settings
         {
             get
             {
-                return Settings.Instance.SyncBoxId;
+                return Settings.Instance.SyncboxId;
             }
         }
         public string Akey

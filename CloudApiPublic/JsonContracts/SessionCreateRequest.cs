@@ -24,7 +24,7 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.RESTRequestSession_TokenDuration, IsRequired = false)]
         public Nullable<long> TokenDuration { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTRequestSession_SyncBoxIds, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTRequestSession_SyncboxIds, IsRequired = false)]
         public long[] SessionIds { get; set; }
     }
 }

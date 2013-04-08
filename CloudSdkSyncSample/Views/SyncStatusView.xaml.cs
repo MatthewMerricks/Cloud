@@ -59,7 +59,7 @@ namespace SampleLiveSync.Views
         /// <summary>
         /// The sync status has changed.  Pass this event along to our ViewModel.
         /// </summary>
-        /// <param name="userState">This is the instance of the SyncBox (CLSync) whose status has changed.</param>
+        /// <param name="userState">This is the instance of the Syncbox (CLSync) whose status has changed.</param>
         public void OnSyncStatusUpdated(object userState)
         {
             if (_vmOurs != null)

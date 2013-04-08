@@ -49,11 +49,11 @@ namespace Cloud.Model
                 return _messageArgs.Message.Message;
             }
         }
-        Nullable<long> IMinimalMessage.SyncBoxId
+        Nullable<long> IMinimalMessage.SyncboxId
         {
             get
             {
-                return _messageArgs.Message.SyncBoxId;
+                return _messageArgs.Message.SyncboxId;
             }
         }
         string IMinimalMessage.DeviceId

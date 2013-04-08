@@ -269,11 +269,11 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             {
                 switch (eventSubType)
                 {
-                    case BadgeNet_AddSyncBoxFolderPath:
+                    case BadgeNet_AddSyncboxFolderPath:
 						try
 						{
-                            CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_AddSyncBoxFolderPath. Path: <%ls>. BadgeType: %d.", bsFullPath, badgeType);
-		                    pThis->FireEventAddSyncBoxFolderPath(bsFullPath, badgeType, processIdPublisher, guidPublisher);
+                            CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_AddSyncboxFolderPath. Path: <%ls>. BadgeType: %d.", bsFullPath, badgeType);
+		                    pThis->FireEventAddSyncboxFolderPath(bsFullPath, badgeType, processIdPublisher, guidPublisher);
 						}
 						catch (const std::exception &ex)
 						{
@@ -284,11 +284,11 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 		                    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: C++ exception(10).");
                         }
                         break;
-                    case BadgeNet_RemoveSyncBoxFolderPath:
+                    case BadgeNet_RemoveSyncboxFolderPath:
 						try
 						{
-	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_RemoveSyncBoxFolderPath. Path: <%ls>. BadgeType: %d.", bsFullPath, badgeType);
-		                    pThis->FireEventRemoveSyncBoxFolderPath(bsFullPath, badgeType, processIdPublisher, guidPublisher);
+	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_RemoveSyncboxFolderPath. Path: <%ls>. BadgeType: %d.", bsFullPath, badgeType);
+		                    pThis->FireEventRemoveSyncboxFolderPath(bsFullPath, badgeType, processIdPublisher, guidPublisher);
 						}
 						catch (const std::exception &ex)
 						{

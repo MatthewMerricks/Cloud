@@ -213,7 +213,7 @@ namespace Cloud.PushNotification
 
         private static object _instanceLocker = new object();
         private static CLTrace _trace = CLTrace.Instance;
-        private readonly CLSyncBox _syncBox;
+        private readonly CLSyncbox _syncBox;
         private bool _isServiceStarted;               // True: the push notification service has been started.
         private readonly GenericHolder<Thread> _serviceManagerThread = new GenericHolder<Thread>(null);
         private Timer _timerEngineWatcher = null;
@@ -221,17 +221,17 @@ namespace Cloud.PushNotification
         private NotificationEngines _currentEngineIndex;
 
         /// <summary>
-        /// Tracks the subscribed clients via their SyncBoxId/DeviceId combination.
+        /// Tracks the subscribed clients via their SyncboxId/DeviceId combination.
         /// </summary>
         private static readonly Dictionary<string, CLNotificationService> NotificationClientsRunning = new Dictionary<string, CLNotificationService>();
 
         /// <summary>
         /// Outputs the push notification server object for this client
         /// </summary>
-        /// <param name="syncBox">SyncBox of this client</param>
+        /// <param name="syncBox">Syncbox of this client</param>
         /// <param name="notificationServer">(output) The found or constructed notification server object</param>
         /// <returns>Returns any error that occurred retrieving the notification server object, if any</returns>
-        public static CLError GetInstance(CLSyncBox syncBox, out CLNotificationService notificationServer)
+        public static CLError GetInstance(CLSyncbox syncBox, out CLNotificationService notificationServer)
         {
             try
             {
@@ -242,7 +242,7 @@ namespace Cloud.PushNotification
 
                 lock (NotificationClientsRunning)
                 {
-                    string syncBoxDeviceCombination = syncBox.SyncBoxId.ToString() + " " + (syncBox.CopiedSettings.DeviceId ?? string.Empty);
+                    string syncBoxDeviceCombination = syncBox.SyncboxId.ToString() + " " + (syncBox.CopiedSettings.DeviceId ?? string.Empty);
 
                     if (!NotificationClientsRunning.TryGetValue(syncBoxDeviceCombination, out notificationServer))
                     {
@@ -259,7 +259,7 @@ namespace Cloud.PushNotification
         }
 
         // This is a private constructor, meaning no outsiders have access.
-        private CLNotificationService(CLSyncBox syncBox)
+        private CLNotificationService(CLSyncbox syncBox)
         {
             try
             {
@@ -320,7 +320,7 @@ namespace Cloud.PushNotification
 
                     if (_syncBox != null)
                     {
-                        syncBoxDeviceIdCombined = _syncBox.SyncBoxId.ToString() + " " + _syncBox.CopiedSettings.DeviceId;
+                        syncBoxDeviceIdCombined = _syncBox.SyncboxId.ToString() + " " + _syncBox.CopiedSettings.DeviceId;
                     }
                 }
 
@@ -763,7 +763,7 @@ namespace Cloud.PushNotification
                 {
                     ComTrace.LogCommunication(_syncBox.CopiedSettings.TraceLocation,
                         _syncBox.CopiedSettings.DeviceId,
-                        _syncBox.SyncBoxId,
+                        _syncBox.SyncboxId,
                         CommunicationEntryDirection.Response,
                         evt.Origin,
                         true,
@@ -782,7 +782,7 @@ namespace Cloud.PushNotification
                     {
                         ////DEBUG ONLY CODE!!! Remove
                         //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-                        //    "Notification received: " + (evt.Data ?? "{null}") + ", SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
+                        //    "Notification received: " + (evt.Data ?? "{null}") + ", SyncboxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncboxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
 
                         _trace.writeToLog(9, "CLNotificationService: SendNotificationEventCallback: Send DidReceivePushNotificationFromServer.");
                         lock (NotificationReceivedQueue)

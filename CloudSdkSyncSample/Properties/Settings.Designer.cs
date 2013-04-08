@@ -26,12 +26,12 @@ namespace SampleLiveSync.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SyncBoxFullPath {
+        public string SyncboxFullPath {
             get {
-                return ((string)(this["SyncBoxFullPath"]));
+                return ((string)(this["SyncboxFullPath"]));
             }
             set {
-                this["SyncBoxFullPath"] = value;
+                this["SyncboxFullPath"] = value;
             }
         }
         
@@ -62,12 +62,12 @@ namespace SampleLiveSync.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SyncBoxId {
+        public string SyncboxId {
             get {
-                return ((string)(this["SyncBoxId"]));
+                return ((string)(this["SyncboxId"]));
             }
             set {
-                this["SyncBoxId"] = value;
+                this["SyncboxId"] = value;
             }
         }
         

@@ -29,7 +29,7 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.ResponsePartial, IsRequired = false)]
         public Nullable<bool> PartialResponse {get;set;}
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxQuota, IsRequired = false)]
-        public SyncBoxUsage Quota { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxQuota, IsRequired = false)]
+        public SyncboxUsage Quota { get; set; }
     }
 }

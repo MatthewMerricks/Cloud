@@ -79,9 +79,9 @@ namespace Cloud.SQLIndexer
         /// must be started afterwards with StartInitialIndexing
         /// </summary>
         /// <param name="newIndexer">Output indexing agent</param>
-        /// <param name="syncBox">SyncBox to index</param>
+        /// <param name="syncBox">Syncbox to index</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
-        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, CLSyncBox syncBox)
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, CLSyncbox syncBox)
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
@@ -2311,8 +2311,8 @@ namespace Cloud.SQLIndexer
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
-        /// <param name="syncBox">SyncBox to index</param>
-        private IndexingAgent(CLSyncBox syncBox)
+        /// <param name="syncBox">Syncbox to index</param>
+        private IndexingAgent(CLSyncbox syncBox)
         {
             if (syncBox == null)
             {
@@ -2324,7 +2324,7 @@ namespace Cloud.SQLIndexer
             }
 
             this.indexDBLocation = (string.IsNullOrEmpty(syncBox.CopiedSettings.DatabaseFolder)
-                ? Helpers.GetDefaultDatabasePath(syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
+                ? Helpers.GetDefaultDatabasePath(syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
                 : syncBox.CopiedSettings.DatabaseFolder);
         }
 
@@ -2647,7 +2647,7 @@ namespace Cloud.SQLIndexer
                         new HaltAllOfCloudSDKErrorInfo());
 
                     // This is a really bad error.  It means the connection to the file system is broken, and if we just ignore this error,
-                    // sync will determine that there are no files in the SyncBox folder, and it will actually delete all of the files on the server.
+                    // sync will determine that there are no files in the Syncbox folder, and it will actually delete all of the files on the server.
                     // We have to stop this thread dead in its tracks, and do it in such a way that it is not recoverable.
                     CLError error = new Exception("Unable to find cloud directory at path: " + currentDirectoryFullPath);
                     error.LogErrors(_trace.TraceLocation, _trace.LogErrors);

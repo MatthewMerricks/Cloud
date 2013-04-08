@@ -43,8 +43,8 @@ namespace Cloud.Model.EventMessages
         }
         private readonly BaseErrorInfo _errorInfo;
 
-        internal ErrorMessage(string Message, EventMessageLevel Importance, BaseErrorInfo ErrorInfo, Nullable<long> SyncBoxId, string DeviceId)
-            : base(EventMessageType.Error, SyncBoxId, DeviceId)
+        internal ErrorMessage(string Message, EventMessageLevel Importance, BaseErrorInfo ErrorInfo, Nullable<long> SyncboxId, string DeviceId)
+            : base(EventMessageType.Error, SyncboxId, DeviceId)
         {
             this._message = Message;
             this._importance = Importance;

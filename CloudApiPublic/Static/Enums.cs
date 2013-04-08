@@ -133,7 +133,7 @@ namespace Cloud.Static
         /// </summary>
         ConnectionFailed,
         /// <summary>
-        /// The current SyncBox is actively syncing so cannot make modifications
+        /// The current Syncbox is actively syncing so cannot make modifications
         /// </summary>
         ReservedForActiveSync
     }

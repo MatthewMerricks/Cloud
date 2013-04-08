@@ -15,7 +15,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncBox.GetAllPending"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetAllPending"/>
     /// </summary>
     [DataContract]
     public sealed class PendingResponse

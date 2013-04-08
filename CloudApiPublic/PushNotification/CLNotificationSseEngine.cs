@@ -23,7 +23,7 @@ namespace Cloud.PushNotification
         #region Private fields
 
         private static CLTrace _trace = CLTrace.Instance;
-        private CLSyncBox _syncBox = null;
+        private CLSyncbox _syncBox = null;
         private ICLSyncSettingsAdvanced _copiedSettings = null;
         private CreateEngineTimer _delegateCreateEngineTimer = null;
         private StartEngineTimeout _delegateStartEngineTimeout = null;
@@ -95,7 +95,7 @@ namespace Cloud.PushNotification
         #region Constructors
 
         public CLNotificationSseEngine(
-                        CLSyncBox syncBox, 
+                        CLSyncbox syncBox, 
                         CreateEngineTimer delegateCreateEngineTimer,
                         StartEngineTimeout delegateStartEngineTimeout, 
                         CancelEngineTimeout delegateCancelEngineTimeout,
@@ -234,7 +234,7 @@ namespace Cloud.PushNotification
                 query = Helpers.QueryStringBuilder(
                     new[]
                     {
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBox.SyncBoxId.ToString()), // no need to escape string characters since the source is an integer
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncBox.SyncboxId.ToString()), // no need to escape string characters since the source is an integer
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
                     });
 
@@ -282,7 +282,7 @@ namespace Cloud.PushNotification
                     // trace communication for the current request
                     ComTrace.LogCommunication(_copiedSettings.TraceLocation, // location of trace file
                         _copiedSettings.DeviceId, // device id
-                        _syncBox.SyncBoxId, // syncbox id
+                        _syncBox.SyncboxId, // syncbox id
                         CommunicationEntryDirection.Request, // direction is request
                         CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe, // location for the server method
                         true, // trace is enabled
@@ -491,7 +491,7 @@ namespace Cloud.PushNotification
                                 ComTrace.LogCommunication(
                                     traceLocation: _syncBox.CopiedSettings.TraceLocation,
                                     UserDeviceId: _syncBox.CopiedSettings.DeviceId,
-                                    SyncBoxId: _syncBox.SyncBoxId,
+                                    SyncboxId: _syncBox.SyncboxId,
                                     Direction: CommunicationEntryDirection.Response,
                                     DomainAndMethodUri: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
                                     traceEnabled: true,
@@ -519,7 +519,7 @@ namespace Cloud.PushNotification
                                 ComTrace.LogCommunication(
                                     traceLocation: _syncBox.CopiedSettings.TraceLocation,
                                     UserDeviceId: _syncBox.CopiedSettings.DeviceId,
-                                    SyncBoxId: _syncBox.SyncBoxId,
+                                    SyncboxId: _syncBox.SyncboxId,
                                     Direction: CommunicationEntryDirection.Response,
                                     DomainAndMethodUri: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
                                     traceEnabled: true,
@@ -827,15 +827,15 @@ namespace Cloud.PushNotification
         }
 
         /// <summary>
-        /// Unsubscribe this SyncBox/Device ID from Sync notifications.Add a Sync box on the server for the current application
+        /// Unsubscribe this Syncbox/Device ID from Sync notifications.Add a Sync box on the server for the current application
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
-        /// <param name="syncBox">the SyncBox to use.</param>
+        /// <param name="syncBox">the Syncbox to use.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         private CLError SendUnsubscribeToServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.NotificationUnsubscribeResponse response,
-                    CLSyncBox syncBox)
+                    CLSyncbox syncBox)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -865,7 +865,7 @@ namespace Cloud.PushNotification
                 JsonContracts.NotificationUnsubscribeRequest request = new JsonContracts.NotificationUnsubscribeRequest()
                 {
                     DeviceId = copiedSettings.DeviceId,
-                    SyncBoxId = syncBox.SyncBoxId
+                    SyncboxId = syncBox.SyncboxId
                 };
 
 
@@ -873,7 +873,7 @@ namespace Cloud.PushNotification
                 string query = Helpers.QueryStringBuilder(
                     new[]
                     {
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBox.SyncBoxId.ToString()), // no need to escape string characters since the source is an integer
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncBox.SyncboxId.ToString()), // no need to escape string characters since the source is an integer
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
                     });
 
@@ -890,7 +890,7 @@ namespace Cloud.PushNotification
                     ref status,
                     copiedSettings,
                     syncBox.Credential,
-                    syncBox.SyncBoxId);
+                    syncBox.SyncboxId);
             }
             catch (Exception ex)
             {

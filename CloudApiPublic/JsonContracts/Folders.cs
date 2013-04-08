@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncBox.GetFolderHierarchy"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetFolderHierarchy"/>
     /// </summary>
     [DataContract]
     public sealed class Folders

@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncBox.GetArchives"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetArchives"/>
     /// </summary>
     [DataContract]
     public sealed class Archives

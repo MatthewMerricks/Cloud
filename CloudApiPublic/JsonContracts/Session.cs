@@ -21,8 +21,8 @@ namespace Cloud.JsonContracts
     [DataContract]
     public sealed class Session
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSession_SyncBoxIds, IsRequired = false)]
-        public HashSet<long> SyncBoxIds { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponseSession_SyncboxIds, IsRequired = false)]
+        public HashSet<long> SyncboxIds { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseSession_Key, IsRequired = false)]
         public string Key { get; set; }

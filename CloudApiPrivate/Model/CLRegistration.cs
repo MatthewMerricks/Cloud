@@ -184,7 +184,7 @@ namespace CloudApiPrivate.Model
             if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
             {
                 Nullable<long> sBoxId;
-                string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                string sBoxIdString = Settings.Settings.Instance.SyncboxId;
                 long sBoxIdTemp;
                 if (string.IsNullOrEmpty(sBoxIdString)
                     || !long.TryParse(sBoxIdString, out sBoxIdTemp))
@@ -271,7 +271,7 @@ namespace CloudApiPrivate.Model
                         if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
                             Nullable<long> sBoxId;
-                            string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                            string sBoxIdString = Settings.Settings.Instance.SyncboxId;
                             long sBoxIdTemp;
                             if (string.IsNullOrEmpty(sBoxIdString)
                                 || !long.TryParse(sBoxIdString, out sBoxIdTemp))
@@ -325,7 +325,7 @@ namespace CloudApiPrivate.Model
                     if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                     {
                         Nullable<long> sBoxId;
-                        string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                        string sBoxIdString = Settings.Settings.Instance.SyncboxId;
                         long sBoxIdTemp;
                         if (string.IsNullOrEmpty(sBoxIdString)
                             || !long.TryParse(sBoxIdString, out sBoxIdTemp))
@@ -566,7 +566,7 @@ namespace CloudApiPrivate.Model
             if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
             {
                 Nullable<long> sBoxId;
-                string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                string sBoxIdString = Settings.Settings.Instance.SyncboxId;
                 long sBoxIdTemp;
                 if (string.IsNullOrEmpty(sBoxIdString)
                     || !long.TryParse(sBoxIdString, out sBoxIdTemp))
@@ -653,7 +653,7 @@ namespace CloudApiPrivate.Model
                         if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
                             Nullable<long> sBoxId;
-                            string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                            string sBoxIdString = Settings.Settings.Instance.SyncboxId;
                             long sBoxIdTemp;
                             if (string.IsNullOrEmpty(sBoxIdString)
                                 || !long.TryParse(sBoxIdString, out sBoxIdTemp))
@@ -707,7 +707,7 @@ namespace CloudApiPrivate.Model
                     if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                     {
                         Nullable<long> sBoxId;
-                        string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                        string sBoxIdString = Settings.Settings.Instance.SyncboxId;
                         long sBoxIdTemp;
                         if (string.IsNullOrEmpty(sBoxIdString)
                             || !long.TryParse(sBoxIdString, out sBoxIdTemp))
@@ -934,7 +934,7 @@ namespace CloudApiPrivate.Model
                 if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                 {
                     Nullable<long> sBoxId;
-                    string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                    string sBoxIdString = Settings.Settings.Instance.SyncboxId;
                     long sBoxIdTemp;
                     if (string.IsNullOrEmpty(sBoxIdString)
                         || !long.TryParse(sBoxIdString, out sBoxIdTemp))
@@ -1021,7 +1021,7 @@ namespace CloudApiPrivate.Model
                             if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                             {
                                 Nullable<long> sBoxId;
-                                string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                                string sBoxIdString = Settings.Settings.Instance.SyncboxId;
                                 long sBoxIdTemp;
                                 if (string.IsNullOrEmpty(sBoxIdString)
                                     || !long.TryParse(sBoxIdString, out sBoxIdTemp))
@@ -1075,7 +1075,7 @@ namespace CloudApiPrivate.Model
                         if (((Settings.Settings.Instance.TraceType & TraceType.Communication) == TraceType.Communication))
                         {
                             Nullable<long> sBoxId;
-                            string sBoxIdString = Settings.Settings.Instance.SyncBoxId;
+                            string sBoxIdString = Settings.Settings.Instance.SyncboxId;
                             long sBoxIdTemp;
                             if (string.IsNullOrEmpty(sBoxIdString)
                                 || !long.TryParse(sBoxIdString, out sBoxIdTemp))

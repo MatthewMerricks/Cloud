@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncBox.GetPictures"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetPictures"/>
     /// </summary>
     [DataContract]
     public sealed class Pictures

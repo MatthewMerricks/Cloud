@@ -29,7 +29,7 @@ using Cloud.REST;
 using Cloud.Model.EventMessages.ErrorInfo;
 
 /// <summary>
-/// Monitor a local file system folder as a SyncBox.
+/// Monitor a local file system folder as a Syncbox.
 /// </summary>
 namespace Cloud.FileMonitor
 {
@@ -517,7 +517,7 @@ namespace Cloud.FileMonitor
         /// lock on InitialIndexLocker
         /// </summary>
         private bool IsInitialIndex = true;
-        private readonly CLSyncBox _syncBox;
+        private readonly CLSyncbox _syncBox;
         private readonly long MaxUploadFileSize;
         #endregion
 
@@ -662,7 +662,7 @@ namespace Cloud.FileMonitor
         /// requires running Start() method to begin monitoring and then, when available, load
         /// the initial index list to begin processing via BeginProcessing(initialList)
         /// </summary>
-        /// <param name="syncBox">SyncBox to monitor</param>
+        /// <param name="syncBox">Syncbox to monitor</param>
         /// <param name="indexer">Created and initialized but not started SQLIndexer</param>
         /// <param name="httpRestClient">Client for Http REST communication</param>
         /// <param name="StatusUpdated">Callback to fire upon update of the running status</param>
@@ -673,7 +673,7 @@ namespace Cloud.FileMonitor
         /// <param name="onQueueingCallback">(optional) action to be executed every time a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns>Returns any error that occurred, or null.</returns>
-        public static CLError CreateNewAndInitialize(CLSyncBox syncBox,
+        public static CLError CreateNewAndInitialize(CLSyncbox syncBox,
             IndexingAgent indexer,
             CLHttpRest httpRestClient,
             bool DependencyDebugging,
@@ -792,7 +792,7 @@ namespace Cloud.FileMonitor
             return null;
         }
 
-        private MonitorAgent(IndexingAgent Indexer, CLSyncBox syncBox, bool debugMemory, bool DependencyDebugging, long MaxUploadFileSize) 
+        private MonitorAgent(IndexingAgent Indexer, CLSyncbox syncBox, bool debugMemory, bool DependencyDebugging, long MaxUploadFileSize) 
         {
             // check input parameters
 
@@ -1203,7 +1203,7 @@ namespace Cloud.FileMonitor
                                             // File rename.
                                             string newPathString = toApply.NewPath.ToString();
                                             string oldPathString = toApply.OldPath.ToString();
-                                            string backupLocation = Helpers.GetTempFileDownloadPath(_syncBox.CopiedSettings, _syncBox.SyncBoxId) + "\\" + Guid.NewGuid().ToString();
+                                            string backupLocation = Helpers.GetTempFileDownloadPath(_syncBox.CopiedSettings, _syncBox.SyncboxId) + "\\" + Guid.NewGuid().ToString();
 
                                             Helpers.RunActionWithRetries(
                                                 fileMoveState =>
@@ -2708,7 +2708,7 @@ namespace Cloud.FileMonitor
 
             if ((_syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
+                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
                     {
                         FileChangeWithDependencies selectedWithoutDependencies;
                         // don't need to set optional parameter (fileDownloadMoveLocker: removeDependencies.fileDownloadMoveLocker) because the returned changes are only used for logging
@@ -2719,8 +2719,8 @@ namespace Cloud.FileMonitor
                         }
                         return selectedWithoutDependencies;
                     }))(currentQueuedChange.Key.MergeTo)));
-                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
-                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
             }
 
             return toReturn;
@@ -4196,7 +4196,7 @@ namespace Cloud.FileMonitor
         {
             if ((_syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
+                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
             }
 
             // lock on queue to prevent conflicting updates/reads
@@ -4754,7 +4754,7 @@ namespace Cloud.FileMonitor
 
                     if ((_syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
+                        ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
                     }
 
                     // clear out batch for merge for next set of remaining operations
@@ -5152,7 +5152,7 @@ namespace Cloud.FileMonitor
                 {
                     ////DEBUG ONLY CODE!!! Remove
                     //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-                    //    "NextSyncQueued, SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
+                    //    "NextSyncQueued, SyncboxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncboxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
 
                     NextSyncQueued.Value = true;
                 }
@@ -5160,7 +5160,7 @@ namespace Cloud.FileMonitor
                 {
                     ////DEBUG ONLY CODE!!! Remove
                     //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-                    //    "RunningSync not from NextSyncQueued, SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
+                    //    "RunningSync not from NextSyncQueued, SyncboxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncboxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
 
                     SyncRunLocker.Value = true;
 

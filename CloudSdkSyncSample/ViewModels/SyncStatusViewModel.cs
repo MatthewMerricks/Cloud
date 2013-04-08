@@ -185,9 +185,9 @@ namespace SampleLiveSync.ViewModels
         #region Public Methods
 
         /// <summary>
-        /// The sync status has changed.  Get the changed status from the SyncBox.
+        /// The sync status has changed.  Get the changed status from the Syncbox.
         /// </summary>
-        /// <param name="userState">This is the instance of the SyncBox (CLSync) whose status has changed.</param>
+        /// <param name="userState">This is the instance of the Syncbox (CLSync) whose status has changed.</param>
         public void OnSyncStatusUpdated(object userState)
         {
             CLSyncEngine syncEngine = userState as CLSyncEngine;
