@@ -3640,7 +3640,7 @@ namespace Cloud.Sync
                                                         "Unable to upload file due to large size. Expected to fail again, therefore will not try immediately. Path: " + errorToQueue.FileChange.NewPath.ToString(),
                                                         EventMessageLevel.Important,
                                                         /*Error*/new GeneralErrorInfo(),
-                                                        syncBox.SyncBoxId,
+                                                        syncBox.SyncboxId,
                                                         syncBox.CopiedSettings.DeviceId);
                                                 }
 
