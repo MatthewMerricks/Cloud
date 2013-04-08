@@ -3732,6 +3732,7 @@ namespace Cloud.Sync
                         && (toComplete.FileChange.Type == FileChangeType.Created
                             || toComplete.FileChange.Type == FileChangeType.Modified))
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Process this change as a download."));
                         // define bool to store whether a file already exists on disk with a matching hash and size
                         bool fileMatches = false;
 
@@ -3743,10 +3744,12 @@ namespace Cloud.Sync
                         {
                             try
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Set MD5 from revision because there was no MD5."));
                                 toCompleteBytes = Helpers.ParseHexadecimalStringToByteArray(toComplete.FileChange.Metadata.Revision);
                             }
                             catch
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: ERROR: Set MD5 null."));
                                 toCompleteBytes = null;
                             }
                         }
@@ -3754,6 +3757,7 @@ namespace Cloud.Sync
                         // if able to retrieve MD5 from either the GetMD5Bytes or by parsing revision, then check if file already matches on disk
                         if (toCompleteBytes != null)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: MD5 not null."));
                             // try/catch to compare event has with file on disk, silence exception
                             try
                             {
@@ -3765,6 +3769,7 @@ namespace Cloud.Sync
                                 if (existingInfo.Exists
                                     && existingInfo.Length == (toComplete.FileChange.Metadata.HashableProperties.Size ?? -1))
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Open a FileStream to read MD5."));
                                     // open read share stream on file at event path for reading to generate hash
                                     using (FileStream existingStream = new FileStream(toCompletePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                                     {
@@ -3797,15 +3802,18 @@ namespace Cloud.Sync
                                     }
                                 }
                             }
-                            catch
+                            catch (Exception ex)
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Exception silenced: Msg: {0}.", ex.Message));
                             }
                         }
 
                         // if a file was marked to exist at the event path with a matching file size and MD5 hash, then mark that it was already successfully downloaded synchronously
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Check whether file matches."));
                         if (fileMatches)
                         {
                             // immediately successful
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: File matches."));
                             immediateSuccessEventId = toComplete.FileChange.EventId;
                             // no task to run
                             asyncTask = null;
@@ -3814,6 +3822,7 @@ namespace Cloud.Sync
                         else
                         {
                             // not immediately successful
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: File does not match. Start download task."));
                             immediateSuccessEventId = null;
                             Guid asyncTaskThreadId = Guid.NewGuid();
                             // create task for download
@@ -4438,6 +4447,7 @@ namespace Cloud.Sync
         // Code to run for a download Task (object state should be a DownloadTaskState)
         private static EventIdAndCompletionProcessor DownloadForTask(object downloadState)
         {
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Entry."));
             if (Helpers.AllHaltedOnUnrecoverableError)
             {
                 throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
@@ -4573,8 +4583,10 @@ namespace Cloud.Sync
                 lock (TempDownloads)
                 {
                     // try to retrieve the current download id map for the current temp download folder and if unsuccesful, then add a new download id map
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Locked TempDownloads."));
                     if (!TempDownloads.TryGetValue(castState.TempDownloadFolderPath, out currentDownloads))
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Add to TempDownloads: {0}.", castState.TempDownloadFolderPath));
                         TempDownloads.Add(castState.TempDownloadFolderPath,
                             currentDownloads = new Dictionary<long, List<DownloadIdAndMD5>>());
                     }
@@ -4583,6 +4595,7 @@ namespace Cloud.Sync
                 // lock on current download id map for modification
                 lock (currentDownloads)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Locked currentDownloads."));
                     Nullable<DownloadIdAndMD5> storeMatchedExistingDownload = null;
 
                     // declare list of download ids and hashes for the current file size
@@ -4592,18 +4605,22 @@ namespace Cloud.Sync
                     if (currentDownloads.TryGetValue((long)castState.FileToDownload.Metadata.HashableProperties.Size,
                         out tempDownloadsInSize))
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Found size in currentDownloads: {0}.", (long)castState.FileToDownload.Metadata.HashableProperties.Size));
                         // loop through temp downloads
                         foreach (DownloadIdAndMD5 currentTempDownload in tempDownloadsInSize)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Process currentTempDownload Id: {0}.", currentTempDownload.Id));
                             // if the hash for the temp download matches the current event, then check the hash against the file itself to verify match
                             if (NativeMethods.memcmp(castState.MD5, currentTempDownload.MD5, new UIntPtr((uint)castState.MD5.Length)) == 0)
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: MD5 matches."));
                                 // try/catch to check hash of file, silencing errors
                                 try
                                 {
                                     string existingDownloadPath = castState.TempDownloadFolderPath + "\\" + currentTempDownload.Id.ToString("N");
                                     if (System.IO.File.Exists(existingDownloadPath))
                                     {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File exists: {0}.", existingDownloadPath));
                                         // create MD5 to calculate hash
                                         MD5 md5Hasher = MD5.Create();
 
@@ -4633,6 +4650,7 @@ namespace Cloud.Sync
                                             throwExceptionOnFailure: true);
 
                                         // open a file read stream for reading the hash at the existing temp file location
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Created FileStream."));
                                         using (FileStream verifyTempDownloadStream = verifyTempDownloadStreamHolder.Value)
                                         {
                                             // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file and store the read byte count
@@ -4649,9 +4667,21 @@ namespace Cloud.Sync
 
                                             // if the existing temp file has the same size and an identical hash, then use the existing file for the current download
                                             if (sizeCounter == (long)castState.FileToDownload.Metadata.HashableProperties.Size // matching size
-                                                && NativeMethods.memcmp(currentTempDownload.MD5, md5Hasher.Hash, new UIntPtr((uint)md5Hasher.Hash.Length)) == 0) // matching hash
+                                                && NativeMethods.memcmp(currentTempDownload.MD5, md5Hasher.Hash, new UIntPtr((uint)md5Hasher.Hash.Length)) == 0 // matching hash
+
+                                                // matching creation time
+                                                && (castState.FileToDownload.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || castState.FileToDownload.Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || DateTime.Compare(castState.FileToDownload.Metadata.HashableProperties.CreationTime, System.IO.File.GetCreationTimeUtc(existingDownloadPath)) == 0)
+
+                                                // matching last time
+                                                && (castState.FileToDownload.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || castState.FileToDownload.Metadata.HashableProperties.LastTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || (DateTime.Compare(castState.FileToDownload.Metadata.HashableProperties.LastTime, System.IO.File.GetLastAccessTimeUtc(existingDownloadPath)) == 0
+                                                        && DateTime.Compare(castState.FileToDownload.Metadata.HashableProperties.LastTime, System.IO.File.GetLastWriteTimeUtc(existingDownloadPath)) == 0)))
                                             {
                                                 // use the existing file instead of downloading
+                                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Use this existing file Id instead of downloading: {0}.", currentTempDownload.Id));
                                                 newTempFile = currentTempDownload.Id;
 
                                                 storeMatchedExistingDownload = currentTempDownload;
@@ -4662,8 +4692,9 @@ namespace Cloud.Sync
                                         }
                                     }
                                 }
-                                catch
+                                catch (Exception ex)
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: ignored: Msg: {0}.", ex.Message));
                                 }
                             }
                         }
@@ -4673,40 +4704,49 @@ namespace Cloud.Sync
                     string responseBody = null;
 
                     // if a file already exists which matches the current download, then move the existing file instead of starting a new download
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Check for newTempFile."));
                     if (newTempFile != null)
                     {
                         // calculate and store the path for the existing file
                         string newTempFileString = castState.TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
 
                         // move the file from the temp download path to the final location
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Call MoveCompletedDownload for file: {0}.", newTempFileString));
                         castState.MoveCompletedDownload(newTempFileString, // temp download path
                             castState.FileToDownload, // event for the file download
                             ref responseBody, // reference to the response body which will be set as "completed" if successful
                             castState.FailureTimer, // timer for the failure queue
                             (Guid)newTempFile); // the id of the existing temp file
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Back from MoveCompletedDownload."));
 
                         if (storeMatchedExistingDownload != null)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: storeMatchedExistingDownload not null."));
                             tempDownloadsInSize.Remove((DownloadIdAndMD5)storeMatchedExistingDownload);
                             if (tempDownloadsInSize.Count == 0)
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Remove this size from currentDownloads:L {0}.", (long)castState.FileToDownload.Metadata.HashableProperties.Size));
                                 currentDownloads.Remove((long)castState.FileToDownload.Metadata.HashableProperties.Size);
                             }
                         }
 
                         // using the existing temp file download succeeded so return success immediately
-                        return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // id of succesful event
-                            castState.SyncData, // event source for notifying completion
-                            castState.SyncBox.CopiedSettings, // settings for tracing and error logging
-                            castState.TempDownloadFolderPath); // path to the folder containing temp downloads
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Return EventIdAndCompletionProcessor EventId: {0}.", castState.FileToDownload.EventId));
+                        EventIdAndCompletionProcessor toReturn = new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // id of succesful event
+                                    castState.SyncData, // event source for notifying completion
+                                    castState.SyncBox.CopiedSettings, // settings for tracing and error logging
+                                    castState.TempDownloadFolderPath); // path to the folder containing temp downloads
+                        return toReturn;
                     }
-                }
+                }  // end lock (currentDownloads)
 
                 // repeat download infinitely on condition that each time the download is also being checked by a duplicate coming through the above existing download checker and removing the one which is about to be downloaded below
 
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Out of currentDownloads lock."));
                 GenericHolder<bool> downloadFoundToMoveUnderTempDownloadsLock = null;
                 do
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: EventIdAndCompletionDownloadForTaskProcessor: Top of download loop."));
                     if (downloadFoundToMoveUnderTempDownloadsLock == null)
                     {
                         downloadFoundToMoveUnderTempDownloadsLock = new GenericHolder<bool>(true);
@@ -4746,6 +4786,7 @@ namespace Cloud.Sync
 
                     if (downloadStatus == CLHttpRestStatus.ConnectionFailed)
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: Connection failed."));
                         lock (castState.UploadDownloadServerConnectionFailureCount)
                         {
                             if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)255))
@@ -4756,6 +4797,7 @@ namespace Cloud.Sync
                     }
                     else
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Connection OK."));
                         lock (castState.UploadDownloadServerConnectionFailureCount)
                         {
                             if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)0))
@@ -4775,7 +4817,9 @@ namespace Cloud.Sync
                     if (downloadStatus == CLHttpRestStatus.Cancelled
                         && castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread
                     {
-                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.TempDownloadFolderPath);
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: CANCELLED:  Return a zero ID."));
+                        EventIdAndCompletionProcessor toReturn = new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.TempDownloadFolderPath);
+                        return toReturn;
                     }
 
                     // if the download was not a success throw an error
@@ -4786,6 +4830,7 @@ namespace Cloud.Sync
 
                     if (downloadStatus != CLHttpRestStatus.Cancelled) // possible that it was cancelled if path was set as null when event was cancelled out on another thread
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading message."));
                         // status message
                         MessageEvents.FireNewEventMessage(
                             "File finished downloading to path " + castState.FileToDownload.NewPath.ToString(),
@@ -4797,13 +4842,16 @@ namespace Cloud.Sync
                 while (!downloadFoundToMoveUnderTempDownloadsLock.Value);
 
                 // return the success
-                return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Return success for EventId: {0}.", castState.FileToDownload.EventId));
+                EventIdAndCompletionProcessor toReturn2 = new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
                     castState.SyncData, // event source to handle callback for completing the event
                     castState.SyncBox.CopiedSettings, // settings for tracing and logging errors
                     castState.TempDownloadFolderPath); // location of folder for temp downloads
+                return toReturn2;
             }
             catch (Exception ex)
             {
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: Exception (2): Msg: {0}.", ex.Message));
                 if (castState != null
                     && castState.FileToDownload != null
                     && castState.FileToDownload.NewPath != null
@@ -4812,6 +4860,7 @@ namespace Cloud.Sync
                     && castState.StatusUpdate != null
                     && castState.FileToDownload.Metadata.HashableProperties.Size != null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Call StatusUpdate."));
                     castState.StatusUpdate(
                         castState.ThreadId, // threadId
                         castState.FileToDownload.EventId, // eventId
@@ -4831,6 +4880,7 @@ namespace Cloud.Sync
                 // if there was a download event, then fire the eventhandler for finishing the status of the transfer
                 if (castState.FileToDownload != null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Try to finish status of the transfer."));
                     // try/catch to finish the status of the transfer, failing silently
                     try
                     {
@@ -4861,6 +4911,7 @@ namespace Cloud.Sync
                     }
                     catch
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Fail silently."));
                     }
                 }
 
@@ -4869,6 +4920,7 @@ namespace Cloud.Sync
 
                 if (castState == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate null."));
                     MessageEvents.FireNewEventMessage(
                         "Unable to cast downloadState as DownloadTaskState and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4878,6 +4930,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.FileToDownload == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.FileToDownload null."));
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain FileToDownload and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4887,6 +4940,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.SyncData == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.SyncData null."));
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain SyncData and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4896,6 +4950,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.SyncBox == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.SyncBox null."));
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain SyncBox and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4905,6 +4960,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.MaxNumberOfFailureRetries == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.MaxNumberOfFailureRetries null."));
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain MaxNumberOfFailureRetries and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4914,6 +4970,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.MaxNumberOfNotFounds == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.MaxNumberOfNotFounds null."));
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain MaxNumberOfNotFounds and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4923,6 +4980,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.FailedChangesQueue == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.FailedChangesQueue null."));
                     MessageEvents.FireNewEventMessage(
                         "uploadState must contain FailedChangesQueue and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4935,6 +4993,7 @@ namespace Cloud.Sync
                 else
                 {
                     // wrap the error to execute for cleanup
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Wrap the error for cleanup."));
                     ExecutableException<PossiblyStreamableFileChangeWithSyncData> wrappedEx = new ExecutableException<PossiblyStreamableFileChangeWithSyncData>(ProcessDownloadError, // callback with the code to handle cleanup
                         new PossiblyStreamableFileChangeWithSyncData(castState.FailedChangesQueue, // failure queue for reprocessing failed events
                             (byte)castState.MaxNumberOfFailureRetries, // how many times to retry on failure before stopping
@@ -4957,6 +5016,7 @@ namespace Cloud.Sync
                     && castState.FileToDownload != null
                     && castState.RemoveFileChangeEvents != null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Finally RemoveFileChangeEvents: {0}.", castState.FileToDownload.NewPath));
                     castState.RemoveFileChangeEvents(castState.FileToDownload);
                 }
             }
@@ -5505,6 +5565,7 @@ namespace Cloud.Sync
         {
             // Create a new file move change (from the temp download file path to the final destination) and perform it via the event source, storing any error that occurs
             // And store any errors returned from performing the file move operation via the event source
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Entry. TempFile: {0}. newPath: {1}.", newTempFileString, completedDownload.NewPath));
             CLError applyError = syncData.applySyncFromChange(new FileChange()
                 {
                     Direction = SyncDirection.From, // File downloads are always Sync From operations
@@ -5516,6 +5577,7 @@ namespace Cloud.Sync
                 },
             onLockState =>
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: onLockState Entry."));
                     if (onLockState.fileDownloadMoveLocker != null)
                     {
                         Monitor.Enter(onLockState.fileDownloadMoveLocker);
@@ -5534,6 +5596,7 @@ namespace Cloud.Sync
                 },
             onBeforeUnlockState =>
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: onBeforeLockState Entry."));
                     if (onBeforeUnlockState.fileDownloadMoveLocker != null)
                     {
                         Monitor.Exit(onBeforeUnlockState.fileDownloadMoveLocker);
@@ -5580,17 +5643,20 @@ namespace Cloud.Sync
                 // lock on current download id map for modification
                 lock (currentDownloads)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Locked currentDownloads."));
                     // declare the map of file size to download ids
                     List<DownloadIdAndMD5> foundSize;
                     // try to get the download ids for the current download size and if successful, then try to find the current download id to remove
                     if (currentDownloads.TryGetValue((long)completedDownload.Metadata.HashableProperties.Size, out foundSize))
                     {
                         // loop through the download ids
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Found size: {0}.", (long)completedDownload.Metadata.HashableProperties.Size));
                         foreach (DownloadIdAndMD5 tempDownloadsInSize in foundSize.ToArray())
                         {
                             // if the current download id matches, then remove the download id from its list and stop searching
                             if (tempDownloadsInSize.Id == newTempFile)
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Found Id: {0}.  Remove from foundSize array.", newTempFile));
                                 foundSize.Remove(tempDownloadsInSize);
                                 break;
                             }
@@ -5599,6 +5665,7 @@ namespace Cloud.Sync
                         // if the download ids have been cleared out for this file size, then remove the current download ids
                         if (foundSize.Count == 0)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: foundSize count zero.  Remove this size from currentDownloads."));
                             currentDownloads.Remove((long)completedDownload.Metadata.HashableProperties.Size);
                         }
                     }
@@ -5606,6 +5673,7 @@ namespace Cloud.Sync
 
                 // record the download completion response
                 responseBody = "---Completed file download---";
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Set responseBody completed."));
 
                 // try cast download event as one with dependencies
                 FileChangeWithDependencies toCompleteWithDependencies = completedDownload as FileChangeWithDependencies;
@@ -5613,12 +5681,14 @@ namespace Cloud.Sync
                 if (toCompleteWithDependencies != null
                     && toCompleteWithDependencies.DependenciesCount > 0)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Add dependencies to processing queue in event source."));
                     // try/catch to add the dependencies to the processing queue in the event source, on catch add the dependencies to the failure queue instead
                     try
                     {
                         // create a folder for a list of events in error that could not be added to the processing queue in the event source
                         GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
                         // add dependencies to processing queue in the event source, storing any error that occurs
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Call addChangesToProcessingQueue."));
                         CLError err = syncData.addChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, // dependencies to add
                             /* add to top */ true, // add dependencies to top of queue
                             errList); // holder for list of dependencies which could not be added to the processing queue
@@ -5626,6 +5696,7 @@ namespace Cloud.Sync
                         // if there is a list of dependencies which failed to add to the dependency queue, then add them to the failure queue for reprocessing
                         if (errList.Value != null)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Some dependencies were not added to dependency queue."));
                             // define a bool for whether at least one failed event was added to the failure queue
                             bool atLeastOneFailureAdded = false;
 
@@ -5633,9 +5704,11 @@ namespace Cloud.Sync
                             lock (failureTimer)
                             {
                                 // loop through the dependencies which failed to add to the processing queue
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Locked failureTimer."));     
                                 foreach (FileChange currentError in errList.Value)
                                 {
                                     // add the failed event to the failure queue
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Add currentError: {0}.", currentError.NewPath));     
                                     FailedChangesQueue.Enqueue(currentError);
 
                                     // mark that an event was added to the failure queue
@@ -5645,6 +5718,7 @@ namespace Cloud.Sync
                                 // if at least one event was added to the failure queue, then start the failure queue timer
                                 if (atLeastOneFailureAdded)
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Start the failure timer."));     
                                     failureTimer.StartTimerIfNotRunning();
                                 }
                             }
@@ -5653,11 +5727,13 @@ namespace Cloud.Sync
                         // if there was an error adding the dependencies to the processing queue, then log the error
                         if (err != null)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: ERROR. Msg: {0}.", err.errorDescription));     
                             err.LogErrors(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.LogErrors);
                         }
                     }
                     catch (Exception ex)
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: ERROR. Exception: Msg: {0}.", ex.Message));
                         // define a bool for whether at least one failed event was added to the failure queue
                         bool atLeastOneFailureAdded = false;
 
@@ -5665,9 +5741,11 @@ namespace Cloud.Sync
                         lock (failureTimer)
                         {
                             // loop through the dependencies which failed to add to the processing queue
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Loop adding ERROR. Exception: Msg: {0}.", ex.Message));
                             foreach (FileChange currentError in toCompleteWithDependencies.Dependencies)
                             {
                                 // add the failed event to the failure queue
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Add currentError: {0}.", currentError.NewPath));
                                 FailedChangesQueue.Enqueue(currentError);
 
                                 // mark that an event was added to the failure queue
@@ -5677,6 +5755,7 @@ namespace Cloud.Sync
                             // if at least one event was added to the failure queue, then start the failure queue timer
                             if (atLeastOneFailureAdded)
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Start timer (2)."));
                                 failureTimer.StartTimerIfNotRunning();
                             }
                         }

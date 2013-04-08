@@ -3367,6 +3367,7 @@ namespace Cloud.FileMonitor
                                 DateTime creationTime;
                                 if (exists)
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: File or folder exists: {0}.", newPath));
                                     // set last time and creation time from appropriate info based on whether change is on a folder or file
                                     if (isFolder)
                                     {
@@ -3376,12 +3377,14 @@ namespace Cloud.FileMonitor
                                     // change was not a folder, grab times based on file
                                     else
                                     {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: File exists."));
                                         lastTime = file.LastWriteTimeUtc.DropSubSeconds();
                                         creationTime = file.CreationTimeUtc.DropSubSeconds();
                                     }
                                 }
                                 else
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: File or folder does not exist."));
                                     creationTime = lastTime = new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
                                 }
 
@@ -3399,12 +3402,14 @@ namespace Cloud.FileMonitor
                                 if ((changeType & WatcherChangeTypes.Changed) == WatcherChangeTypes.Changed
                                     || (changeType & WatcherChangeTypes.Created) == WatcherChangeTypes.Created)
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: Changed or Created event."));
                                     // if file/folder actually exists
                                     if (exists)
                                     {
                                         // if index exists at specified path
                                         if (AllPaths.ContainsKey(pathObject))
                                         {
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: AllPaths contains this item: {0}.", pathObject.Name));
                                             if (debugMemory)
                                             {
                                                 debugEntry.NewIndexed = true;
@@ -3416,6 +3421,7 @@ namespace Cloud.FileMonitor
                                             if (!isFolder
                                                 || !IgnoreFolderModifies)
                                             {
+                                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: Not folder, and not ignoring folder modifies. Call ReplacementMetadataIfDifferent."));
                                                 // retrieve stored index
                                                 FileMetadata previousMetadata = AllPaths[pathObject];
                                                 // compare stored index with values from file info
@@ -3428,6 +3434,7 @@ namespace Cloud.FileMonitor
                                                 // if new metadata came back after comparison, queue file change for modify
                                                 if (newMetadata != null)
                                                 {
+                                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: Metadata different."));
                                                     if (debugMemory)
                                                     {
                                                         debugEntry.NewChangeType = new WatcherChangeChanged();

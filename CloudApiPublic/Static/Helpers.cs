@@ -3092,8 +3092,17 @@ namespace Cloud.Static
 
                             IAfterDownloadCallbackState castDownloadState = ((downloadParams)uploadDownload).AfterDownloadUserState as IAfterDownloadCallbackState;
 
+                            if (castDownloadState == null)
+                            {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState is null."));
+                            }
+                            if (castDownloadState.LockerForDownloadedFileAccess == null)
+                            {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState.LockerForDownloadedFileAccess is null."));
+                            }
                             lock (castDownloadState == null ? new object() : castDownloadState.LockerForDownloadedFileAccess ?? new object())
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: In lock LockerForDownloadedFileAccess."));
                                 if (castDownloadState != null
                                     && !File.Exists(newTempFileString))
                                 {
@@ -3106,6 +3115,7 @@ namespace Cloud.Static
                                     // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
                                     // attributes to set: creation time, last modified time, and last access time
 
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set file attributes for file: {0}.", uploadDownload.ChangeToTransfer.NewPath));
                                     _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file creation time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime.ToString("G")));
                                     Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
                                         new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
