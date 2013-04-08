@@ -82,7 +82,7 @@
                 </StackPanel>
 
             </GroupBox>
-                      <!-- SyncBox ID -->
+                      <!-- Syncbox ID -->
         </StackPanel>
         <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button x:Name="cmdOk" HorizontalAlignment="Right" Width="75" Margin="0,0,20,0"

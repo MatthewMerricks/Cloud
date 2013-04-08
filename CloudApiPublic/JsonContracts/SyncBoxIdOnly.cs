@@ -1,5 +1,5 @@
 ﻿//
-// SyncBoxIdOnly.cs
+// SyncboxIdOnly.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -16,9 +16,9 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     [DataContract]
-    internal sealed class SyncBoxIdOnly
+    internal sealed class SyncboxIdOnly
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxId, IsRequired = false)]
         public Nullable<long> Id { get; set; }
     }
 }

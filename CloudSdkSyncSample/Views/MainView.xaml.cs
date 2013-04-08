@@ -41,7 +41,7 @@ namespace SampleLiveSync.Views
             MainViewModel vm = (MainViewModel)DataContext;
             if (vm != null)
             {
-                vm.NotifyBrowseSyncBoxFolder += OnNotifyBrowseSyncBoxFolder;
+                vm.NotifyBrowseSyncboxFolder += OnNotifyBrowseSyncboxFolder;
                 vm.NotifySettingsChanged += OnNotifySettingsChanged;
                 vm.NotifyException += OnNotifyException;
             }
@@ -52,7 +52,7 @@ namespace SampleLiveSync.Views
             MainViewModel vm = (MainViewModel)DataContext;
             if (vm != null)
             {
-                vm.NotifyBrowseSyncBoxFolder -= OnNotifyBrowseSyncBoxFolder;
+                vm.NotifyBrowseSyncboxFolder -= OnNotifyBrowseSyncboxFolder;
                 vm.NotifySettingsChanged -= OnNotifySettingsChanged;
                 vm.NotifyException -= OnNotifyException;
             }
@@ -62,13 +62,13 @@ namespace SampleLiveSync.Views
 
         #region Notification Handlers
 
-        private void OnNotifyBrowseSyncBoxFolder(object sender, Support.NotificationEventArgs e)
+        private void OnNotifyBrowseSyncboxFolder(object sender, Support.NotificationEventArgs e)
         {
             System.Windows.Forms.FolderBrowserDialog folderBrowser = new System.Windows.Forms.FolderBrowserDialog();
             folderBrowser.Description = "Choose a folder to synchronize with your other devices.";
-            if (!String.IsNullOrWhiteSpace(tbSyncBoxFolder.Text))
+            if (!String.IsNullOrWhiteSpace(tbSyncboxFolder.Text))
             {
-                folderBrowser.SelectedPath = tbSyncBoxFolder.Text;
+                folderBrowser.SelectedPath = tbSyncboxFolder.Text;
             }
             folderBrowser.RootFolder = Environment.SpecialFolder.DesktopDirectory;
             folderBrowser.ShowNewFolderButton = true;
@@ -76,8 +76,8 @@ namespace SampleLiveSync.Views
             if (result == System.Windows.Forms.DialogResult.OK)
             {
                 // The user selected a folder.
-                BindingExpression be = tbSyncBoxFolder.GetBindingExpression(TextBox.TextProperty);
-                tbSyncBoxFolder.Text = folderBrowser.SelectedPath;
+                BindingExpression be = tbSyncboxFolder.GetBindingExpression(TextBox.TextProperty);
+                tbSyncboxFolder.Text = folderBrowser.SelectedPath;
                 be.UpdateSource();
             }
         }

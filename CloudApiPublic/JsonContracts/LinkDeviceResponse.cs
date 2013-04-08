@@ -31,8 +31,8 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseLinkDevice_User, IsRequired = false)]
         public UserRegistrationResponse User { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseLinkDevice_SyncBox, IsRequired = false)]
-        public SyncBoxAuthResponse SyncBox { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponseLinkDevice_Syncbox, IsRequired = false)]
+        public SyncboxAuthResponse Syncbox { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseLinkDevice_Session, IsRequired = false)]
         public Session Session { get; set; }

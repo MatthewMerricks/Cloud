@@ -42,8 +42,8 @@ namespace Cloud.Model.EventMessages
         }
         private readonly uint _count;
 
-        internal DownloadingCountMessage(uint Count, Nullable<long> SyncBoxId, string DeviceId)
-            : base(EventMessageType.DownloadingCountChanged, SyncBoxId, DeviceId)
+        internal DownloadingCountMessage(uint Count, Nullable<long> SyncboxId, string DeviceId)
+            : base(EventMessageType.DownloadingCountChanged, SyncboxId, DeviceId)
         {
             this._count = Count;
         }

@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncBox.GetRecents"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetRecents"/>
     /// </summary>
     [DataContract]
     public sealed class Recents

@@ -24,7 +24,7 @@ namespace Cloud.Static
     public static class ComTrace
     {
         #region public methods
-        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, Stream body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, Stream body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
         {
             string bodyString = null;
             if (traceEnabled
@@ -42,7 +42,7 @@ namespace Cloud.Static
             }
             LogCommunication(traceLocation,
                 UserDeviceId,
-                SyncBoxId,
+                SyncboxId,
                 Direction,
                 DomainAndMethodUri,
                 traceEnabled,
@@ -56,7 +56,7 @@ namespace Cloud.Static
                 connectionHeader);
         }
 
-        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
         {
             if (traceEnabled
                 && !string.IsNullOrWhiteSpace(UserDeviceId)
@@ -70,7 +70,7 @@ namespace Cloud.Static
 
                     LogCommunication(traceLocation,
                         UDid,
-                        SyncBoxId,
+                        SyncboxId,
                         Direction,
                         DomainAndMethodUri,
                         (headers == null
@@ -101,7 +101,7 @@ namespace Cloud.Static
             }
         }
 
-        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, HttpHeaders defaultHeaders = null, HttpHeaders messageHeaders = null, HttpContent body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, HttpHeaders defaultHeaders = null, HttpHeaders messageHeaders = null, HttpContent body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
         {
             if (traceEnabled
                 && !string.IsNullOrWhiteSpace(DomainAndMethodUri))
@@ -871,7 +871,7 @@ namespace Cloud.Static
 
                     LogCommunication(traceLocation,
                         UDid,
-                        SyncBoxId,
+                        SyncboxId,
                         Direction,
                         DomainAndMethodUri,
                         ((defaultHeaders == null && messageHeaders == null)
@@ -897,7 +897,7 @@ namespace Cloud.Static
             }
         }
 
-        public static void LogFileChangeFlow(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, FileChangeFlowEntryPositionInFlow position, IEnumerable<FileChange> changes)
+        public static void LogFileChangeFlow(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, FileChangeFlowEntryPositionInFlow position, IEnumerable<FileChange> changes)
         {
             try
             {
@@ -911,8 +911,8 @@ namespace Cloud.Static
                     Time = DateTime.UtcNow,
                     ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
                     ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId,
-                    SyncBoxId = SyncBoxId ?? 0,
-                    SyncBoxIdSpecified = SyncBoxId != null,
+                    SyncboxId = SyncboxId ?? 0,
+                    SyncboxIdSpecified = SyncboxId != null,
                     PositionInFlow = position,
                     FileChanges = traceChangesArray
                 };
@@ -1004,7 +1004,7 @@ namespace Cloud.Static
                     }
                 }
 
-                WriteLogEntry(newEntry, traceLocation, UserDeviceId, SyncBoxId);
+                WriteLogEntry(newEntry, traceLocation, UserDeviceId, SyncboxId);
             }
             catch
             {
@@ -1014,7 +1014,7 @@ namespace Cloud.Static
 
         #region private methods
         // the calling method should wrap this private helper in a try/catch
-        private static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, IEnumerable<KeyValuePair<string, string>> headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
+        private static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, IEnumerable<KeyValuePair<string, string>> headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
         {
             if (!string.IsNullOrEmpty(body)
                 && excludeAuthorization)
@@ -1046,8 +1046,8 @@ namespace Cloud.Static
                 Time = DateTime.UtcNow,
                 ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
                 ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId,
-                SyncBoxId = SyncBoxId ?? 0,
-                SyncBoxIdSpecified = SyncBoxId != null,
+                SyncboxId = SyncboxId ?? 0,
+                SyncboxIdSpecified = SyncboxId != null,
                 Direction = Direction,
                 Uri = DomainAndMethodUri,
                 Headers = (headers == null
@@ -1066,16 +1066,16 @@ namespace Cloud.Static
                     : (int)statusCode)
             };
 
-            WriteLogEntry(newEntry, traceLocation, UserDeviceId, SyncBoxId);
+            WriteLogEntry(newEntry, traceLocation, UserDeviceId, SyncboxId);
         }
         // the calling method should wrap this private helper in a try/catch
         [MethodImpl(MethodImplOptions.Synchronized)]
-        private static void WriteLogEntry(Entry logEntry, string traceLocation, string UserDeviceId, Nullable<long> SyncBoxId)
+        private static void WriteLogEntry(Entry logEntry, string traceLocation, string UserDeviceId, Nullable<long> SyncboxId)
         {
-            string logLocation = Helpers.CheckLogFileExistance(traceLocation, SyncBoxId, UserDeviceId, "Sync", "xml",
-                new Action<TextWriter, string, Nullable<long>, string>((logWriter, finalLocation, innerSyncBoxId, innerDeviceId) =>
+            string logLocation = Helpers.CheckLogFileExistance(traceLocation, SyncboxId, UserDeviceId, "Sync", "xml",
+                new Action<TextWriter, string, Nullable<long>, string>((logWriter, finalLocation, innerSyncboxId, innerDeviceId) =>
                 {
-                    logWriter.Write(LogXmlStart(finalLocation, "UDid: {" + innerDeviceId + "}, SyncBoxId: {" + innerSyncBoxId + "}"));
+                    logWriter.Write(LogXmlStart(finalLocation, "UDid: {" + innerDeviceId + "}, SyncboxId: {" + innerSyncboxId + "}"));
                 }),
                 new Action<TextWriter>((logWriter) =>
                 {

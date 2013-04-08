@@ -107,7 +107,7 @@ namespace Cloud.Static
         public const string MethodPathGetPending = VersionPrefix + "/sync/file/pending";                                // GET
         public const string MethodPathGetFileMetadata = VersionPrefix + "/sync/file/metadata";                          // GET
         public const string MethodPathGetFolderMetadata = VersionPrefix + "/sync/folder/metadata";                      // GET
-        public const string MethodPathSyncBoxList = VersionPrefix + "/sync/syncbox/list";                               // POST
+        public const string MethodPathSyncboxList = VersionPrefix + "/sync/syncbox/list";                               // POST
 
         //public const string MethodPathGetUsedBytes = VersionPrefix + "/sync/file/used_bytes";                           // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
 
@@ -150,8 +150,8 @@ namespace Cloud.Static
         public const string MethodPathFolderUndelete = VersionPrefix + "/sync/folder/undelete";                         // POST
         #endregion
 
-        #region SyncBox operations
-        public const string MethodPathSyncBoxUsage = VersionPrefix + "/sync/syncbox/usage";                             // GET
+        #region Syncbox operations
+        public const string MethodPathSyncboxUsage = VersionPrefix + "/sync/syncbox/usage";                             // GET
     	#endregion
 
         #region Notification operations
@@ -160,14 +160,14 @@ namespace Cloud.Static
         #endregion
 
         #region Platform Management operations
-        public const string MethodPathAuthCreateSyncBox = VersionPrefix + "/sync/syncbox/create";                       // POST
-        public const string MethodPathAuthListSyncBoxes = VersionPrefix + "/sync/syncbox/list";                         // POST
-        public const string MethodPathAuthSyncBoxExtendedMetadata = VersionPrefix + "/sync/syncbox/update_metadata";    // POST
-        public const string MethodPathAuthSyncBoxQuota = VersionPrefix + "/sync/syncbox/update_quota";                  // POST  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
-        public const string MethodPathAuthSyncBoxUpdatePlan = VersionPrefix + "/sync/syncbox/update_plan";              // POST
-        public const string MethodPathAuthSyncBoxUpdate = VersionPrefix + "/sync/syncbox/update";                       // POST
-        public const string MethodPathAuthDeleteSyncBox = VersionPrefix + "/sync/syncbox/delete";                       // POST
-        public const string MethodPathAuthSyncBoxStatus = VersionPrefix + "/sync/syncbox/status";                       // POST
+        public const string MethodPathAuthCreateSyncbox = VersionPrefix + "/sync/syncbox/create";                       // POST
+        public const string MethodPathAuthListSyncboxes = VersionPrefix + "/sync/syncbox/list";                         // POST
+        public const string MethodPathAuthSyncboxExtendedMetadata = VersionPrefix + "/sync/syncbox/update_metadata";    // POST
+        public const string MethodPathAuthSyncboxQuota = VersionPrefix + "/sync/syncbox/update_quota";                  // POST  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
+        public const string MethodPathAuthSyncboxUpdatePlan = VersionPrefix + "/sync/syncbox/update_plan";              // POST
+        public const string MethodPathAuthSyncboxUpdate = VersionPrefix + "/sync/syncbox/update";                       // POST
+        public const string MethodPathAuthDeleteSyncbox = VersionPrefix + "/sync/syncbox/delete";                       // POST
+        public const string MethodPathAuthSyncboxStatus = VersionPrefix + "/sync/syncbox/status";                       // POST
         public const string MethodPathAuthListPlans = VersionPrefix + "/sync/plans";                                    // GET
         public const string MethodPathAuthCreateSession = VersionPrefix + "/auth/session/create";                       // POST
         public const string MethodPathAuthListSessions = VersionPrefix + "/auth/session/list";                          // POST
@@ -189,7 +189,7 @@ namespace Cloud.Static
         public const string MethodPathGetPending = "/1/file/pending";                                   // GET
         public const string MethodPathGetFileMetadata = "/1/file/metadata";                             // GET
         public const string MethodPathGetFolderMetadata = "/1/folder/metadata";                         // GET
-        public const string MethodPathSyncBoxList = "/1/sync_box/list";                                 // POST
+        public const string MethodPathSyncboxList = "/1/sync_box/list";                                 // POST
 
         //public const string MethodPathGetUsedBytes = "/1/file/used_bytes";                              // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
 
@@ -231,19 +231,19 @@ namespace Cloud.Static
         public const string MethodPathFolderUndelete = "/1/folder/undelete";                            // POST
         #endregion
 
-        public const string MethodPathSyncBoxUsage = "/1/sync_box/usage";                               // GET
+        public const string MethodPathSyncboxUsage = "/1/sync_box/usage";                               // GET
 
         public const string MethodPathPushSubscribe = "/1/sync/subscribe";                              // GET
 
         #region Platform Management operations
-        public const string MethodPathAuthCreateSyncBox = "/1/sync/sync_box/create";                    // POST
-        public const string MethodPathAuthListSyncBoxes = "/1/sync/sync_box/list";                      // POST
-        public const string MethodPathAuthSyncBoxExtendedMetadata = "/1/sync/sync_box/update_metadata"; // POST
-        public const string MethodPathAuthSyncBoxQuota = "/1/sync/sync_box/update_quota";               // POST  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
-        public const string MethodPathAuthSyncBoxUpdatePlan = "/1/sync/sync_box/update_plan";           // POST
-        public const string MethodPathAuthSyncBoxUpdate = "/1/sync/sync_box/update";                    // POST
-        public const string MethodPathAuthDeleteSyncBox = "/1/sync/sync_box/delete";                    // POST
-        public const string MethodPathAuthSyncBoxStatus = "/1/sync/sync_box/status";                    // POST
+        public const string MethodPathAuthCreateSyncbox = "/1/sync/sync_box/create";                    // POST
+        public const string MethodPathAuthListSyncboxes = "/1/sync/sync_box/list";                      // POST
+        public const string MethodPathAuthSyncboxExtendedMetadata = "/1/sync/sync_box/update_metadata"; // POST
+        public const string MethodPathAuthSyncboxQuota = "/1/sync/sync_box/update_quota";               // POST  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
+        public const string MethodPathAuthSyncboxUpdatePlan = "/1/sync/sync_box/update_plan";           // POST
+        public const string MethodPathAuthSyncboxUpdate = "/1/sync/sync_box/update";                    // POST
+        public const string MethodPathAuthDeleteSyncbox = "/1/sync/sync_box/delete";                    // POST
+        public const string MethodPathAuthSyncboxStatus = "/1/sync/sync_box/status";                    // POST
         public const string MethodPathAuthListPlans = "/1/sync/plans";                                  // GET
         public const string MethodPathAuthCreateSession = "/1/auth/session/create";                     // POST
         public const string MethodPathAuthListSessions = "/1/auth/session/list";                        // POST
@@ -295,7 +295,7 @@ namespace Cloud.Static
         // Json account fields
         public const string JsonAccountFieldId = "id";
         public const string JsonAccountFieldName = "name";
-        public const string JsonAccountFieldSyncBoxId = "sync_box_id";
+        public const string JsonAccountFieldSyncboxId = "sync_box_id";
         public const string JsonAccountFieldCreatedAt = "created_at";
 
         // client_param fields
@@ -308,7 +308,7 @@ namespace Cloud.Static
 
         // Query string keys
         public const string QueryStringDeviceId = "device_uuid";
-        public const string QueryStringSyncBoxId = "sync_box_id";
+        public const string QueryStringSyncboxId = "sync_box_id";
         public const string QueryStringIncludeDeleted = "include_deleted";
         public const string QueryStringDepth = "depth";
         public const string QueryStringIncludeCount = "include_count";
@@ -449,14 +449,14 @@ namespace Cloud.Static
             CLEventTypeModifyLink
         };
 
-        // SyncBox
-        public const string CLSyncBoxClientAppId = "client_application_id";
-        public const string CLSyncBoxCreatedAt = "created_at";
-        public const string CLSyncBoxId = "id";
-        public const string CLSyncBoxStorageQuota = "storage_quota";
-        public const string CLSyncBoxUpdatedAt = "updated_at";
-        public const string CLSyncBoxStoredBytes = "stored_bytes";
-        public const string CLSyncBoxPendingBytes = "pending_bytes";
+        // Syncbox
+        public const string CLSyncboxClientAppId = "client_application_id";
+        public const string CLSyncboxCreatedAt = "created_at";
+        public const string CLSyncboxId = "id";
+        public const string CLSyncboxStorageQuota = "storage_quota";
+        public const string CLSyncboxUpdatedAt = "updated_at";
+        public const string CLSyncboxStoredBytes = "stored_bytes";
+        public const string CLSyncboxPendingBytes = "pending_bytes";
 
         // Cloud Sync Status
         public const string CLEventTypeAccepted = "ok";
@@ -521,7 +521,7 @@ namespace Cloud.Static
         public const string CLSyncEventID = "eid";
         public const string ResponsePendingCount = "pending_count";
         public const string ResponsePartial = "partial_response";
-        public const string CLSyncBoxes = "syncboxes";
+        public const string CLSyncboxes = "syncboxes";
 
         // Notification keys
         public const string NotificationMessageBody = "message_body";
@@ -558,22 +558,22 @@ namespace Cloud.Static
         public const string RESTResponseMessage = "message";
         public const string RESTResponseErrors = "errors";
 
-        // REST Response SyncBox
-        public const string RESTResponseSyncBox = "sync_box";
-        public const string RESTResponseSyncBoxes = "sync_boxes";
-        public const string RESTResponseSyncBoxId = "sync_box_id";
-        public const string RESTResponseSyncBoxPlanId = "plan_id";
-        public const string RESTResponseSyncBoxStorageQuota = "storage_quota";
-        public const string RESTResponseSyncBoxStorageQuotaUpdateOnly = "quota_size";
-        public const string RESTResponseSyncBoxCreatedAt = "created_at";
-        public const string RESTResponseSyncBoxFriendlyName = "friendly_name";
-        public const string RESTResponseSyncBoxMetadata = "metadata";
-        public const string RESTResponseSyncBoxQuota = "quota";
+        // REST Response Syncbox
+        public const string RESTResponseSyncbox = "sync_box";
+        public const string RESTResponseSyncboxes = "sync_boxes";
+        public const string RESTResponseSyncboxId = "sync_box_id";
+        public const string RESTResponseSyncboxPlanId = "plan_id";
+        public const string RESTResponseSyncboxStorageQuota = "storage_quota";
+        public const string RESTResponseSyncboxStorageQuotaUpdateOnly = "quota_size";
+        public const string RESTResponseSyncboxCreatedAt = "created_at";
+        public const string RESTResponseSyncboxFriendlyName = "friendly_name";
+        public const string RESTResponseSyncboxMetadata = "metadata";
+        public const string RESTResponseSyncboxQuota = "quota";
 
-        // REST Request SyncBox
-        public const string RESTRequestSyncBox = "sync_box";
-        public const string RESTRequestSyncBoxPlanId = "plan_id";
-        public const string RESTRequestSyncBoxFriendlyName = "friendly_name";
+        // REST Request Syncbox
+        public const string RESTRequestSyncbox = "sync_box";
+        public const string RESTRequestSyncboxPlanId = "plan_id";
+        public const string RESTRequestSyncboxFriendlyName = "friendly_name";
 
         // REST Response Plan
         public const string RESTResponsePlan = "plan";
@@ -593,14 +593,14 @@ namespace Cloud.Static
         public const string RESTResponseSession_Key = "key";
         public const string RESTResponseSession_Secret = "secret";
         public const string RESTResponseSession_Token = "token";
-        public const string RESTResponseSession_SyncBoxIds = "sync_box_ids";
+        public const string RESTResponseSession_SyncboxIds = "sync_box_ids";
         public const string RESTResponseSession_AllowAll = "allow_all";
         public const string RESTResponseSession_Sessions = "sessions";
 
         // REST Request Session
         public const string RESTRequestSession_TokenDuration = "token_duration";
-        public const string RESTRequestSession_SyncBoxIds = "sync_box_ids";
-        public const string RESTRequestSession_SyncBoxIdsAll = "all";
+        public const string RESTRequestSession_SyncboxIds = "sync_box_ids";
+        public const string RESTRequestSession_SyncboxIdsAll = "all";
         public const string RESTRequestSession_KeyId = "key_id";
         public const string RESTRequestSession_Key = "key";
 
@@ -631,7 +631,7 @@ namespace Cloud.Static
 
         // REST Link Device First-Time Response  (POST /device/link/first_time)
         public const string RESTResponseLinkDeviceFirstTime_User = "user";
-        public const string RESTResponseLinkDeviceFirstTime_SyncBox = "sync_box";
+        public const string RESTResponseLinkDeviceFirstTime_Syncbox = "sync_box";
         public const string RESTResponseLinkDeviceFirstTime_Session = "session";
         public const string RESTResponseLinkDeviceFirstTime_Device = "device";
         public const string RESTResponseLinkDeviceFirstTime_AccessToken = "access_token";
@@ -645,14 +645,14 @@ namespace Cloud.Static
 
         // REST Link Device Response  (POST /device/link)
         public const string RESTResponseLinkDevice_User = "user";
-        public const string RESTResponseLinkDevice_SyncBox = "sync_box";
+        public const string RESTResponseLinkDevice_Syncbox = "sync_box";
         public const string RESTResponseLinkDevice_Session = "session";
         public const string RESTResponseLinkDevice_Device = "device";
         public const string RESTResponseLinkDevice_AccessToken = "access_token";
 
-        // REST SyncBox Auth Reponse
-        public const string RESTResponseSyncBoxAuth_Id = "id";
-        public const string RESTResponseSyncBoxAuth_FriendlyName = "friendly_name";
+        // REST Syncbox Auth Reponse
+        public const string RESTResponseSyncboxAuth_Id = "id";
+        public const string RESTResponseSyncboxAuth_FriendlyName = "friendly_name";
 
         // REST Unlink Device Request
         public const string RESTRequestUnlinkDevice_AccessToken = "access_token";

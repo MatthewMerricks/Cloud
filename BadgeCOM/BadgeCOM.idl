@@ -113,8 +113,8 @@ library BadgeCOMLib
         typedef [v1_enum] enum 
         {
             BadgeCom_Initialization=0,
-            BadgeNet_AddSyncBoxFolderPath,
-            BadgeNet_RemoveSyncBoxFolderPath,
+            BadgeNet_AddSyncboxFolderPath,
+            BadgeNet_RemoveSyncboxFolderPath,
             BadgeNet_AddBadgePath,
             BadgeNet_RemoveBadgePath
         } EnumEventSubType;

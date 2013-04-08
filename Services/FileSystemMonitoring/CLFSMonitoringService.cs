@@ -26,7 +26,7 @@ namespace win_client.Services.FileSystemMonitoring
         static readonly CLFSMonitoringService _instance = new CLFSMonitoringService();
         private static Boolean _isLoaded = false;
         private static CLTrace _trace = CLTrace.Instance;
-        internal Cloud.CLSync SyncBox { get; private set; }
+        internal Cloud.CLSync Syncbox { get; private set; }
 
         /// <summary>
         /// Access Instance to get the singleton object.
@@ -53,13 +53,13 @@ namespace win_client.Services.FileSystemMonitoring
         {
             try
             {
-                SyncBox = new Cloud.CLSync();
+                Syncbox = new Cloud.CLSync();
             }
             catch (Exception ex)
             {
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLFSMonitoringService: ERROR: Creating the SyncBox. Msg: <{0}>", ex.Message);
+                _trace.writeToLog(1, "CLFSMonitoringService: ERROR: Creating the Syncbox. Msg: <{0}>", ex.Message);
             }
         }
 
@@ -71,13 +71,13 @@ namespace win_client.Services.FileSystemMonitoring
             try
             {
                 Cloud.CLSyncStartStatus startStatus;
-                SyncBox.Start(CLSettingsSync.Instance, out startStatus);
+                Syncbox.Start(CLSettingsSync.Instance, out startStatus);
             }
             catch (Exception ex)
             {
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the SyncBox. Msg: <{0}>", ex.Message);
+                _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the Syncbox. Msg: <{0}>", ex.Message);
             }
         }
 
@@ -88,13 +88,13 @@ namespace win_client.Services.FileSystemMonitoring
         {
             try
             {
-                SyncBox.Stop();
+                Syncbox.Stop();
             }
             catch (Exception ex)
             {
                 CLError error = ex;
                 error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring. ERROR: Stop SyncBox. Msg: <{0}>", ex.Message);
+                _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring. ERROR: Stop Syncbox. Msg: <{0}>", ex.Message);
             }
         }
     }

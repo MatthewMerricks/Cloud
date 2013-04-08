@@ -51,8 +51,8 @@ namespace Cloud.Interfaces
         /// </summary>
         string SyncRoot { get; }
         /// <summary>
-        /// Device id (each SyncBox may contain multiple devices, each with a unique id within the SyncBox).
-        /// When running multiple instances of the sync engine on one machine, each combination of SyncBoxId and DeviceId used with an engine must be unique on the machine.
+        /// Device id (each Syncbox may contain multiple devices, each with a unique id within the Syncbox).
+        /// When running multiple instances of the sync engine on one machine, each combination of SyncboxId and DeviceId used with an engine must be unique on the machine.
         /// </summary>
         string DeviceId { get; }
     }
@@ -68,12 +68,12 @@ namespace Cloud.Interfaces
         bool BadgingEnabled { get; }
         /// <summary>
         /// Location to store temporary downloads before they complete downloading and get moved to the final location;
-        /// Use a different download folder path for each SyncBox or SyncEngine (the SyncEngine will clean out existing files in the provided directory);
+        /// Use a different download folder path for each Syncbox or SyncEngine (the SyncEngine will clean out existing files in the provided directory);
         /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
         /// </summary>
         string TempDownloadFolderFullPath { get; }
         /// <summary>
-        /// Full path to a folder location where the database will be stored when using a SyncBox (you must handle your own database when using SyncEngine directly); If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory.  The file will be IndexDB.sdf.
+        /// Full path to a folder location where the database will be stored when using a Syncbox (you must handle your own database when using SyncEngine directly); If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory.  The file will be IndexDB.sdf.
         /// </summary>
         string DatabaseFolder { get; }
     }

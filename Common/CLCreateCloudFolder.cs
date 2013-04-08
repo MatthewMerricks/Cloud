@@ -55,7 +55,7 @@ namespace win_client.Common
                     //Directory.CreateDirectory(cloudFolderPath + "\\" + Resources.Resources.CloudFolderPicturesFolder);
 
                     // Reset the index to a new clean sync point so it will scan this new folder.
-                    CLFSMonitoringService.Instance.SyncBox.WipeIndex();
+                    CLFSMonitoringService.Instance.Syncbox.WipeIndex();
                 }
                 else
                 {
@@ -77,7 +77,7 @@ namespace win_client.Common
                             // The cloud folder was moved or renamed.  Rebase the index to this new location.
                             _trace.writeToLog(9, "CreateCloudFolder: The path does not matche the settings path.  Rebase the index from the old path <{0}>.", Settings.Instance.CloudFolderPath);
                             long syncCounter;
-                            CLFSMonitoringService.Instance.SyncBox.RecordCompletedSync(null, new long[0], out syncCounter);
+                            CLFSMonitoringService.Instance.Syncbox.RecordCompletedSync(null, new long[0], out syncCounter);
                         }
                     }
                     else
@@ -85,7 +85,7 @@ namespace win_client.Common
                         // This is a new cloud folder.  Reset the index to a new clean sync point so it will
                         // scan this new folder.
                         _trace.writeToLog(9, "CreateCloudFolder: The creation times don't match.  This is a new folder.  Rebase the index..");
-                        CLFSMonitoringService.Instance.SyncBox.WipeIndex();
+                        CLFSMonitoringService.Instance.Syncbox.WipeIndex();
                     }
                 }
 

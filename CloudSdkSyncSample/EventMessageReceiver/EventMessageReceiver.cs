@@ -204,7 +204,7 @@ namespace SampleLiveSync.EventMessageReceiver
         private Nullable<DateTime> lastFadeOutCompletion = null;
 
         // Identifies this EventMessageReceiver in the MessageEvents filter
-        private readonly long SyncBoxId;
+        private readonly long SyncboxId;
         private readonly string DeviceId;
 
         // Delegates
@@ -227,7 +227,7 @@ namespace SampleLiveSync.EventMessageReceiver
         /// Create a new EventMessageReceiver ViewModel.  Optionally use this ViewModel with your sync status controls.
         /// It exposes three ObservableCollections (ListFilesDownloading, ListFilesUploading and ListMessages).
         /// </summary>
-        /// <param name="SyncBoxId">The ID of the related CLSyncBox.</param>
+        /// <param name="SyncboxId">The ID of the related CLSyncbox.</param>
         /// <param name="DeviceId">The ID of the related device.</param>
         /// <param name="receiver">(output) The created EventMessageReceiver, or null.</param>
         /// <param name="getHistoricBandwidthSettings">(optional) Your callback method to retrieve the historic bandwidth for upload and download from persistent storage.</param>
@@ -237,7 +237,7 @@ namespace SampleLiveSync.EventMessageReceiver
         /// <param name="OverrideDefaultMaxStatusMessages">(optional) The maximum number of messages that will be maintained in ListMessages.</param>
         /// <returns>CLError: Any error that occurs, with exception information, or null.</returns>
         public static CLError CreateAndInitialize(
-            long SyncBoxId,
+            long SyncboxId,
             string DeviceId,
             out EventMessageReceiver receiver,
             GetHistoricBandwidthSettings getHistoricBandwidthSettings = null,
@@ -248,7 +248,7 @@ namespace SampleLiveSync.EventMessageReceiver
         {
             try
             {
-                receiver = new EventMessageReceiver(SyncBoxId,
+                receiver = new EventMessageReceiver(SyncboxId,
                     DeviceId,
                     getHistoricBandwidthSettings,
                     setHistoricBandwidthSettings,
@@ -264,7 +264,7 @@ namespace SampleLiveSync.EventMessageReceiver
             return null;
         }
         private EventMessageReceiver(
-            long SyncBoxId,
+            long SyncboxId,
             string DeviceId,
             GetHistoricBandwidthSettings getHistoricBandwidthSettings,
             SetHistoricBandwidthSettings setHistoricBandwidthSettings,
@@ -272,7 +272,7 @@ namespace SampleLiveSync.EventMessageReceiver
             Nullable<EventMessageLevel> OverrideImportanceFilterErrors,
             Nullable<int> OverrideDefaultMaxStatusMessages)
         {
-            CLError subscriptionError = MessageEvents.SubscribeMessageReceiver(SyncBoxId,
+            CLError subscriptionError = MessageEvents.SubscribeMessageReceiver(SyncboxId,
                 DeviceId,
                 this);
             if (subscriptionError != null)
@@ -284,7 +284,7 @@ namespace SampleLiveSync.EventMessageReceiver
             _getHistoricBandwidthSettingsDelegate = getHistoricBandwidthSettings;
             _setHistoricBandwidthSettingsDelegate = setHistoricBandwidthSettings;
 
-            this.SyncBoxId = SyncBoxId;
+            this.SyncboxId = SyncboxId;
             this.DeviceId = DeviceId;
 
             // changes made upon construction for other partial class portions should be handled via a ConstructedHolder (see the next custom construction setter directly below)
@@ -519,7 +519,7 @@ namespace SampleLiveSync.EventMessageReceiver
                     if (!isDisposed)
                     {
                         MessageEvents.UnsubscribeMessageReceiver(
-                            SyncBoxId,
+                            SyncboxId,
                             DeviceId);
                     }
                 }

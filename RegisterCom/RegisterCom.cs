@@ -718,23 +718,23 @@ namespace RegisterCom
                                 fpAppDataLocalCloudDir.GetRelativePath(localUserProfileObject, false));
 
                             // Loop through all of the subdirectories in this user's AppData\Local\Cloud directory.  We are looking for
-                            // any SyncBox directories.  These are directories numbered by the SyncBox ID.  Delete the entire
+                            // any Syncbox directories.  These are directories numbered by the Syncbox ID.  Delete the entire
                             // directory if we can.
-                            foreach (DirectoryInfo currentScannedSyncBox in cloudAppData.EnumerateDirectories())
+                            foreach (DirectoryInfo currentScannedSyncbox in cloudAppData.EnumerateDirectories())
                             {
-                                bool fIsSyncBoxDirectory = false;
+                                bool fIsSyncboxDirectory = false;
                                 try
                                 {
                                     // C:\Users\<enumerating user>\AppData\Local\Cloud\<sync box id>\IndexDB.sdf
                                     // C:\Documents and Settings\<enumerating user>\Local Settings\Cloud\<sync box id>\IndexDB.sdf
-                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Top of SyncBox directory loop.  currentSyncBox: {0}.", currentScannedSyncBox.FullName);
-                                    string currentSyncBoxDB = currentScannedSyncBox.FullName + "\\" + CLDefinitions.kSyncDatabaseFileName;
-                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: currentSyncBoxDB: {0}.", currentSyncBoxDB);
-                                    if (File.Exists(currentSyncBoxDB))
+                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: Top of Syncbox directory loop.  currentSyncbox: {0}.", currentScannedSyncbox.FullName);
+                                    string currentSyncboxDB = currentScannedSyncbox.FullName + "\\" + CLDefinitions.kSyncDatabaseFileName;
+                                    _trace.writeToLog(9, "RegisterCom: UninstallCOM: currentSyncboxDB: {0}.", currentSyncboxDB);
+                                    if (File.Exists(currentSyncboxDB))
                                     {
-                                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the database file: {0}.", currentSyncBoxDB);
-                                        fIsSyncBoxDirectory = true;
-                                        File.Delete(currentSyncBoxDB);
+                                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the database file: {0}.", currentSyncboxDB);
+                                        fIsSyncboxDirectory = true;
+                                        File.Delete(currentSyncboxDB);
                                     }
                                 }
                                 catch (Exception ex)
@@ -748,12 +748,12 @@ namespace RegisterCom
                                 {
                                     // C:\Users\<enumerating user>\AppData\Local\Cloud\<sync box id>\DownloadTemp
                                     // C:\Documents and Settings\<enumerating user>\Local Settings\Cloud\<sync box id>\DownloadTemp
-                                    string currentTempDownloads = currentScannedSyncBox.FullName + "\\" + CLDefinitions.kTempDownloadFolderName;
+                                    string currentTempDownloads = currentScannedSyncbox.FullName + "\\" + CLDefinitions.kTempDownloadFolderName;
                                     _trace.writeToLog(9, "RegisterCom: UninstallCOM: currentTempDownloads: {0}.", currentTempDownloads);
                                     if (Directory.Exists(currentTempDownloads))
                                     {
                                         _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the currentTempDownloads directory: {0}.", currentTempDownloads);
-                                        fIsSyncBoxDirectory = true;
+                                        fIsSyncboxDirectory = true;
                                         Directory.Delete(currentTempDownloads, recursive: true);
                                     }
                                 }
@@ -766,11 +766,11 @@ namespace RegisterCom
 
                                 try
                                 {
-                                    // Delete the entire SyncBox directory now.
-                                    if (fIsSyncBoxDirectory)
+                                    // Delete the entire Syncbox directory now.
+                                    if (fIsSyncboxDirectory)
                                     {
-                                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the SyncBox directory.  currentSyncBox: {0}.", currentScannedSyncBox.FullName);
-                                        Directory.Delete(currentScannedSyncBox.FullName);
+                                        _trace.writeToLog(9, "RegisterCom: UninstallCOM: Delete the Syncbox directory.  currentSyncbox: {0}.", currentScannedSyncbox.FullName);
+                                        Directory.Delete(currentScannedSyncbox.FullName);
                                     }
                                 }
                                 catch (Exception ex)

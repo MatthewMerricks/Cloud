@@ -92,7 +92,7 @@ namespace SampleLiveSync.EventMessageReceiver
                 e.IsError,
                 e.Level,
                 e.Message,
-                e.SyncBoxId);
+                e.SyncboxId);
 
             // event is handled
             e.MarkHandled();
@@ -102,17 +102,17 @@ namespace SampleLiveSync.EventMessageReceiver
         /// Private helper forwarded from individual message arguments in IEventMessageReceiver.AddStatusMessage,
         /// allows self-recursion for the Application Dispatcher
         /// </summary>
-        /// <param name="DeviceId">Unique ID for the device in the SyncBox</param>
+        /// <param name="DeviceId">Unique ID for the device in the Syncbox</param>
         /// <param name="IsError">Whether the message is for an error</param>
         /// <param name="Level">The importance of this message from 1 to 9 (as an enum)</param>
         /// <param name="Message">The actual message</param>
-        /// <param name="SyncBoxId">ID of the SyncBox</param>
+        /// <param name="SyncboxId">ID of the Syncbox</param>
         private void AddStatusMessage(
             string DeviceId,
             bool IsError,
             EventMessageLevel Level,
             string Message,
-            Nullable<long> SyncBoxId)
+            Nullable<long> SyncboxId)
         {
             // if this message should not be filtered out, then process adding the status message
             if (IsError
@@ -158,7 +158,7 @@ namespace SampleLiveSync.EventMessageReceiver
                         IsError,
                         Level,
                         Message,
-                        SyncBoxId);
+                        SyncboxId);
                 }
             }
         }

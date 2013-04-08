@@ -1,5 +1,5 @@
 ﻿//
-// SyncBoxMetadata.cs
+// SyncboxMetadata.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -16,16 +16,16 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncBox.SyncBoxUpdateExtendedMetadata"/>
+    /// Result from <see cref="Cloud.CLSyncbox.SyncboxUpdateExtendedMetadata"/>
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary]
-    internal sealed class SyncBoxMetadata
+    internal sealed class SyncboxMetadata
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxId, IsRequired = false)]
         public Nullable<long> Id { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxMetadata, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxMetadata, IsRequired = false)]
         public MetadataDictionary Metadata { get; set; }
     }
 }
