@@ -474,7 +474,9 @@ namespace Cloud.Static
         public const string CLMetadataFileIsLink = "is_link";
         public const string CLMetadataFileSize = "file_size";
         public const string CLMetadataName = "name";
+        public const string CLMetadataToName = "to_name";
         public const string CLMetadataParentUid = "parent_uid";
+        public const string CLMetadataToParentUid = "to_parent_uid";
         /// <summary>
         /// Be careful, this may be the wrong key name, you may need the inverse of <see cref="CLDefinitions.CLMetadataIsStored"/>
         /// </summary>

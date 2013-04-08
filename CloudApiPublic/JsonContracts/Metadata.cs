@@ -25,11 +25,17 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.CLMetadataName, IsRequired = false)]
         public string Name { get; set; }
 
+        [DataMember(Name = CLDefinitions.CLMetadataToName, IsRequired = false)]
+        public string ToName { get; set; }
+
         [DataMember(Name = CLDefinitions.CLMetadataParentUid, IsRequired = false)]
         public string ParentUid { get; set; }
 
+        [DataMember(Name = CLDefinitions.CLMetadataToParentUid, IsRequired = false)]
+        public string ToParentUid { get; set; }
+
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
-        public string ErrorMessage { get; set; }
+        public string[] ErrorMessage { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataServerId, IsRequired = false)]
         public string ServerUid { get; set; }

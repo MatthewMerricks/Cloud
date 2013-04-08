@@ -3478,7 +3478,7 @@ namespace Cloud.Sync
                     // then add the sync status (to notify position in case of catastrophic failure),
                     // dispose all FileStreams,
                     // and log all errors
-                    if (errorToAccumulate != null)
+                    if (errorToAccumulate.Value != null)
                     {
                         // add latest sync status to error so it will appear in error log
                         errorToAccumulate.Value.errorInfo.Add(CLError.ErrorInfo_Sync_Run_Status, Data.syncStatus.Value);
@@ -6371,10 +6371,10 @@ namespace Cloud.Sync
                             }
 
                             FilePath localDictionaryParentPath;
-                            if (!Data.serverUidsToPath.TryGetValue(Data.currentEvent.Value.Metadata.ParentUid, out localDictionaryParentPath))
+                            if (!Data.serverUidsToPath.TryGetValue(Data.currentEvent.Value.Metadata.ToParentUid ?? Data.currentEvent.Value.Metadata.ParentUid, out localDictionaryParentPath))
                             {
                                 string localDictionaryParentPathString;
-                                CLError queryDatabaseForParentPath = Data.commonThisEngine.syncData.GetCalculatedFullPathByServerUid(Data.currentEvent.Value.Metadata.ParentUid, out localDictionaryParentPathString);
+                                CLError queryDatabaseForParentPath = Data.commonThisEngine.syncData.GetCalculatedFullPathByServerUid(Data.currentEvent.Value.Metadata.ToParentUid ?? Data.currentEvent.Value.Metadata.ParentUid, out localDictionaryParentPathString);
                                 if (queryDatabaseForParentPath != null)
                                 {
                                     throw new AggregateException("Error grabbing parent path for parent folder server uid", queryDatabaseForParentPath.GrabExceptions());
@@ -6390,10 +6390,13 @@ namespace Cloud.Sync
                                 localDictionaryParentPath = localDictionaryParentPathString;
                             }
 
-                            Data.serverUidsToPath[Data.currentEvent.Value.Metadata.ParentUid] = localDictionaryParentPath;
-                            Data.pathsToServerUid[localDictionaryParentPath.Copy()] = Data.currentEvent.Value.Metadata.ParentUid;
+                            if (Data.currentEvent.Value.Header.Status != CLDefinitions.RESTResponseStatusFailed)
+                            {
+                                Data.serverUidsToPath[Data.currentEvent.Value.Metadata.ToParentUid ?? Data.currentEvent.Value.Metadata.ParentUid] = localDictionaryParentPath;
+                                Data.pathsToServerUid[localDictionaryParentPath.Copy()] = Data.currentEvent.Value.Metadata.ToParentUid ?? Data.currentEvent.Value.Metadata.ParentUid;
+                            }
 
-                            localDictionaryPath = new FilePath(Data.currentEvent.Value.Metadata.Name, localDictionaryParentPath.Copy());
+                            localDictionaryPath = new FilePath(Data.currentEvent.Value.Metadata.ToName ?? Data.currentEvent.Value.Metadata.Name, localDictionaryParentPath.Copy());
                         }
                         else
                         {
@@ -6543,7 +6546,9 @@ namespace Cloud.Sync
                                 {
                                     ServerUid = currentEvent.FileChange.Metadata.ServerUid, // the unique id on the server
                                     ParentUid = currentEvent.FileChange.Metadata.ParentFolderServerUid,
+                                    ToParentUid = currentEvent.FileChange.Metadata.ParentFolderServerUid,
                                     Name = currentEvent.FileChange.NewPath.Name,
+                                    ToName = currentEvent.FileChange.NewPath.Name,
                                     CreatedDate = currentEvent.FileChange.Metadata.HashableProperties.CreationTime, // when the file system object was created
                                     Deleted = currentEvent.FileChange.Type == FileChangeType.Deleted, // whether or not the file system object is deleted
                                     Hash = ((Func<FileChange, string>)(innerEvent => // hash must be retrieved via function because the appropriate FileChange call has an output parameter (and requires error checking)
@@ -6696,14 +6701,14 @@ namespace Cloud.Sync
                                 // grab the current event
                                 Event currentEvent = deserializedResponse.Events[currentEventIndex];
 
-                                bool isRootFolder = (currentEvent.Metadata.Name == string.Empty); // special event on SID "0" for root folder
+                                bool isRootFolder = (currentEvent.Metadata != null && currentEvent.Metadata.Name == string.Empty && string.IsNullOrEmpty(currentEvent.Metadata.ToName)); // special event on SID "0" for root folder
 
                                 if (isRootFolder)
                                 {
                                     syncRootUid = currentEvent.Metadata.ServerUid;
                                 }
 
-                                if (currentEvent.Metadata == null || isRootFolder)
+                                if (currentEvent.Metadata == null || !isRootFolder)
                                 {
                                     if (currentEvent.Header == null)
                                     {
@@ -6806,14 +6811,14 @@ namespace Cloud.Sync
                             // grab the current event by index
                             Event currentEvent = deserializedResponse.Events[currentEventIndex];
 
-                            bool isRootFolder = (currentEvent.Metadata.Name == string.Empty); // special event on SID "0" for root folder
+                            bool isRootFolder = (currentEvent.Metadata != null && currentEvent.Metadata.Name == string.Empty && string.IsNullOrEmpty(currentEvent.Metadata.ToName)); // special event on SID "0" for root folder
 
                             if (isRootFolder)
                             {
                                 syncRootUid = currentEvent.Metadata.ServerUid;
                             }
 
-                            if (currentEvent.Metadata == null || isRootFolder)
+                            if (currentEvent.Metadata == null || !isRootFolder)
                             {
                                 // define the current FileChange, defaulting to null
                                 FileChangeWithDependencies currentChange = null;
@@ -6892,7 +6897,7 @@ namespace Cloud.Sync
                                         // set the unique server id
                                         findServerUid = currentEvent.Metadata.ServerUid;
                                         // set the parent folder server id
-                                        findParentId = currentEvent.Metadata.ParentUid;
+                                        findParentId = currentEvent.Metadata.ToParentUid ?? currentEvent.Metadata.ParentUid;
                                         // set the metadata properties
                                         findHashableProperties = new FileMetadataHashableProperties(currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action), // whether the event represents a folder, first try to grab the bool otherwise you can parse it from the action
                                             currentEvent.Metadata.ModifiedDate, // the last time the file system object was modified
@@ -6949,9 +6954,15 @@ namespace Cloud.Sync
                                             StorageKey = findStorageKey, // set the storage key, or null for non-files
                                             MimeType = findMimeType // never set on Windows
                                         };
+
+                                    // store the previous values for revision and server uid since firing the revision changer will change these;
+                                    // the originals are needed for comparison to see if metadata has changed
+                                    string storeOldRevision = (matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision);
+                                    string storeOldServerUid = (matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUid);
+
                                     if (matchedChange != null
-                                        && (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision != findRevision)
-                                            || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUid != findServerUid))
+                                        && (storeOldRevision != findRevision
+                                            || storeOldServerUid != findServerUid))
                                     {
                                         currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
                                     }
@@ -7064,14 +7075,18 @@ namespace Cloud.Sync
                                                             {
                                                                 throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.GrabExceptions());
                                                             }
-                                                            // if there was a hierarchy found at the old path for the rename, then apply a rename to the dictionary based on the current rename
-                                                            if (renameHierarchy != null)
-                                                            {
-                                                                alreadyVisitedRenames.Rename(currentChange.OldPath, currentChange.NewPath.Copy());
-                                                            }
 
-                                                            // add the currently found metadata to the rename dictionary so it can be searched for subsequent renames
-                                                            alreadyVisitedRenames[currentChange.NewPath.Copy()] = findMetadata.Metadata;
+                                                            if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
+                                                            {
+                                                                // if there was a hierarchy found at the old path for the rename, then apply a rename to the dictionary based on the current rename
+                                                                if (renameHierarchy != null)
+                                                                {
+                                                                    alreadyVisitedRenames.Rename(currentChange.OldPath, currentChange.NewPath.Copy());
+                                                                }
+
+                                                                // add the currently found metadata to the rename dictionary so it can be searched for subsequent renames
+                                                                alreadyVisitedRenames[currentChange.NewPath.Copy()] = findMetadata.Metadata;
+                                                            }
                                                         }
 
                                                         // stop searching for a match
@@ -7194,7 +7209,10 @@ namespace Cloud.Sync
                                                             newPathCreation.DoNotAddToSQLIndex = false;
                                                             currentChange.DoNotAddToSQLIndex = false;
 
-                                                            alreadyVisitedRenames[newPathCreation.NewPath.Copy()] = newPathCreation.Metadata;
+                                                            if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
+                                                            {
+                                                                alreadyVisitedRenames[newPathCreation.NewPath.Copy()] = newPathCreation.Metadata;
+                                                            }
 
                                                             // merge the creation of the new FileChange for a pseudo Sync From creation event with the event source database, storing any error that occurs
                                                             CLError newPathCreationError = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(newPathCreation, currentChange)));
@@ -7458,14 +7476,18 @@ namespace Cloud.Sync
                                                         {
                                                             throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.GrabExceptions());
                                                         }
-                                                        // if there was a hierarchy found at the old path for the rename, then apply a rename to the dictionary based on the current rename
-                                                        if (renameHierarchy != null)
-                                                        {
-                                                            alreadyVisitedRenames.Rename(currentChange.OldPath, currentChange.NewPath.Copy());
-                                                        }
 
-                                                        // add the currently found metadata to the rename dictionary so it can be searched for subsequent renames
-                                                        alreadyVisitedRenames[currentChange.NewPath.Copy()] = syncStateMetadata;
+                                                        if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
+                                                        {
+                                                            // if there was a hierarchy found at the old path for the rename, then apply a rename to the dictionary based on the current rename
+                                                            if (renameHierarchy != null)
+                                                            {
+                                                                alreadyVisitedRenames.Rename(currentChange.OldPath, currentChange.NewPath.Copy());
+                                                            }
+
+                                                            // add the currently found metadata to the rename dictionary so it can be searched for subsequent renames
+                                                            alreadyVisitedRenames[currentChange.NewPath.Copy()] = syncStateMetadata;
+                                                        }
                                                     }
 
                                                     // create a fake FileChange just to store found metadata for the current event which will be used if event processing continues (notFoundRename == false)
@@ -7496,44 +7518,60 @@ namespace Cloud.Sync
                                             // set the metadata of the current FileChange as the metadata from the previous change (or fake previous change if server was queried for new metadata)
                                             currentChange.Metadata = fileChangeForOriginalMetadata.Metadata;
 
-                                            try
+                                            if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
                                             {
-                                                if (!pathsToServerUid.ContainsKey(currentChange.NewPath))
+                                                try
                                                 {
-                                                    pathsToServerUid.Rename(currentChange.OldPath, currentChange.NewPath.Copy());
+                                                    if (!pathsToServerUid.ContainsKey(currentChange.NewPath))
+                                                    {
+                                                        FilePathHierarchicalNode<string> oldPathsToRename;
+                                                        CLError getOldPathsError = pathsToServerUid.GrabHierarchyForPath(currentChange.OldPath, out oldPathsToRename, suppressException: true);
+
+                                                        if (getOldPathsError == null
+                                                            && oldPathsToRename != null)
+                                                        {
+                                                            pathsToServerUid.Rename(currentChange.OldPath, currentChange.NewPath.Copy());
+                                                        }
+                                                    }
+
+                                                    serverUidsToPath[currentChange.Metadata.ServerUid] = currentChange.NewPath.ToString();
                                                 }
-                                                
-                                                serverUidsToPath[currentChange.Metadata.ServerUid] = currentChange.NewPath.ToString();
-                                            }
-                                            catch
-                                            {
+                                                catch
+                                                {
+                                                }
                                             }
                                             break;
 
                                         case FileChangeType.Created:
                                         case FileChangeType.Modified:
-                                            alreadyVisitedRenames[currentChange.NewPath.Copy()] = currentChange.Metadata;
+                                            if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
+                                            {
+                                                alreadyVisitedRenames[currentChange.NewPath.Copy()] = currentChange.Metadata;
 
-                                            try
-                                            {
-                                                pathsToServerUid[currentChange.NewPath.Copy()] = currentChange.Metadata.ServerUid;
-                                                serverUidsToPath[currentChange.Metadata.ServerUid] = currentChange.NewPath.ToString();
-                                            }
-                                            catch
-                                            {
+                                                try
+                                                {
+                                                    pathsToServerUid[currentChange.NewPath.Copy()] = currentChange.Metadata.ServerUid;
+                                                    serverUidsToPath[currentChange.Metadata.ServerUid] = currentChange.NewPath.ToString();
+                                                }
+                                                catch
+                                                {
+                                                }
                                             }
                                             break;
 
                                         case FileChangeType.Deleted:
-                                            alreadyVisitedRenames.Remove(currentChange.NewPath);
+                                            if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
+                                            {
+                                                alreadyVisitedRenames.Remove(currentChange.NewPath);
 
-                                            try
-                                            {
-                                                pathsToServerUid.Remove(currentChange.NewPath);
-                                                serverUidsToPath.Remove(currentChange.Metadata.ServerUid);
-                                            }
-                                            catch
-                                            {
+                                                try
+                                                {
+                                                    pathsToServerUid.Remove(currentChange.NewPath);
+                                                    serverUidsToPath.Remove(currentChange.Metadata.ServerUid);
+                                                }
+                                                catch
+                                                {
+                                                }
                                             }
                                             break;
                                     }
@@ -7561,10 +7599,12 @@ namespace Cloud.Sync
                                                 || (((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath != null && currentChange.OldPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath, currentChange.OldPath)))
 
                                             // different if FileChanges have mismatching unique server ids
-                                            || (((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUid != null && !string.IsNullOrEmpty(currentChange.Metadata.ServerUid)
-                                                && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUid != currentChange.Metadata.ServerUid)
+                                            || (storeOldServerUid != null && !string.IsNullOrEmpty(currentChange.Metadata.ServerUid)
+                                                && storeOldServerUid != currentChange.Metadata.ServerUid)
 
                                             // different if the revision is different
+                                            || (storeOldRevision != null && !string.IsNullOrEmpty(currentChange.Metadata.Revision)
+                                                && storeOldRevision != currentChange.Metadata.Revision)
 
                                             // different if the change is not a rename and any remaining metadata is different (rename is not checked for other metadata here because the remaining metadata properties were copied from previous metadata and are therefore known to match)
                                             || (currentChange.Type != FileChangeType.Renamed
@@ -8211,9 +8251,14 @@ namespace Cloud.Sync
                                                         throw new Exception("Error response: " +
                                                             (currentEvent.Metadata == null
                                                                 ? "{null Metadata}"
-                                                                : string.IsNullOrEmpty(currentEvent.Metadata.ErrorMessage)
+                                                                : (currentEvent.Metadata.ErrorMessage == null
                                                                     ? "{Metadata has null ErrorMessage}"
-                                                                    : currentEvent.Metadata.ErrorMessage));
+                                                                    : (currentEvent.Metadata.ErrorMessage.Length == 0
+                                                                        ? "{Metadata error message array is empty}"
+                                                                        : string.Join("; ", currentEvent.Metadata.ErrorMessage)))));
+                                                                //: string.IsNullOrEmpty(currentEvent.Metadata.ErrorMessage)
+                                                                //    ? "{Metadata has null ErrorMessage}"
+                                                                //    : currentEvent.Metadata.ErrorMessage));
 
                                                     // server sent a new type of message that is not yet recognized
                                                     default:
@@ -8541,9 +8586,9 @@ namespace Cloud.Sync
 
                         GenericHolder<string> storeSyncRootUid = new GenericHolder<string>(null);
 
-                        Func<string, string, GenericHolder<string>, bool> checkRootFolder = (currentEventName, currentEventUid, storeUid) =>
+                        Func<string, string, string, GenericHolder<string>, bool> checkRootFolder = (currentEventName, currentEventToName, currentEventUid, storeUid) =>
                             {
-                                if (currentEventName == string.Empty)
+                                if (currentEventName == string.Empty && string.IsNullOrEmpty(currentEventToName))
                                 {
                                     storeUid.Value = currentEventUid;
                                     return true;
@@ -8557,7 +8602,7 @@ namespace Cloud.Sync
 
                         // store all events from sync from as events which still need to be performed (set as the output parameter for incomplete changes)
                         incompleteChanges = deserializedResponse.Events
-                            .Where(currentEvent => currentEvent.Metadata == null || !checkRootFolder(currentEvent.Metadata.Name, currentEvent.Metadata.ServerUid, storeSyncRootUid)) // special condition on SID "0" for root folder path
+                            .Where(currentEvent => currentEvent.Metadata == null || !checkRootFolder(currentEvent.Metadata.Name, currentEvent.Metadata.ToName, currentEvent.Metadata.ServerUid, storeSyncRootUid)) // special condition on SID "0" for root folder path
                             .Select(currentEvent => 
                                 {
                                     findPathsByUids.TypedData.currentEvent.Value = currentEvent;
@@ -8588,7 +8633,8 @@ namespace Cloud.Sync
                                                             currentEvent.Metadata.Size), // grab the file size, or null for non-files
                                                         Revision = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
                                                         StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
-                                                        MimeType = currentEvent.Metadata.MimeType // never set on Windows
+                                                        MimeType = currentEvent.Metadata.MimeType, // never set on Windows
+                                                        ParentFolderServerUid = currentEvent.Metadata.ToParentUid ?? currentEvent.Metadata.ParentUid
                                                     }
                                                 },
                                             currentEvent.Metadata.Hash, // grab the MD5 hash
@@ -8599,39 +8645,55 @@ namespace Cloud.Sync
                                     {
                                         case FileChangeType.Created:
                                         case FileChangeType.Modified:
-                                            try
+                                            if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
                                             {
-                                                pathsToServerUid[storeConvertedChange.FileChange.NewPath.Copy()] = storeConvertedChange.FileChange.Metadata.ServerUid;
-                                                serverUidsToPath[storeConvertedChange.FileChange.Metadata.ServerUid] = storeConvertedChange.FileChange.NewPath.ToString();
-                                            }
-                                            catch
-                                            {
+                                                try
+                                                {
+                                                    pathsToServerUid[storeConvertedChange.FileChange.NewPath.Copy()] = storeConvertedChange.FileChange.Metadata.ServerUid;
+                                                    serverUidsToPath[storeConvertedChange.FileChange.Metadata.ServerUid] = storeConvertedChange.FileChange.NewPath.ToString();
+                                                }
+                                                catch
+                                                {
+                                                }
                                             }
                                             break;
 
                                         case FileChangeType.Renamed:
-                                            try
+                                            if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
                                             {
-                                                if (!pathsToServerUid.ContainsKey(storeConvertedChange.FileChange.NewPath))
+                                                try
                                                 {
-                                                    pathsToServerUid.Rename(storeConvertedChange.FileChange.OldPath, storeConvertedChange.FileChange.NewPath.Copy());
-                                                }
+                                                    if (!pathsToServerUid.ContainsKey(storeConvertedChange.FileChange.NewPath))
+                                                    {
+                                                        FilePathHierarchicalNode<string> oldPathsToRename;
+                                                        CLError getOldPathsError = pathsToServerUid.GrabHierarchyForPath(storeConvertedChange.FileChange.OldPath, out oldPathsToRename, suppressException: true);
 
-                                                serverUidsToPath[storeConvertedChange.FileChange.Metadata.ServerUid] = storeConvertedChange.FileChange.NewPath.ToString();
-                                            }
-                                            catch
-                                            {
+                                                        if (getOldPathsError == null
+                                                            && oldPathsToRename != null)
+                                                        {
+                                                            pathsToServerUid.Rename(storeConvertedChange.FileChange.OldPath, storeConvertedChange.FileChange.NewPath.Copy());
+                                                        }
+                                                    }
+
+                                                    serverUidsToPath[storeConvertedChange.FileChange.Metadata.ServerUid] = storeConvertedChange.FileChange.NewPath.ToString();
+                                                }
+                                                catch
+                                                {
+                                                }
                                             }
                                             break;
 
                                         case FileChangeType.Deleted:
-                                            try
+                                            if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
                                             {
-                                                pathsToServerUid.Remove(storeConvertedChange.FileChange.NewPath);
-                                                serverUidsToPath.Remove(storeConvertedChange.FileChange.Metadata.ServerUid);
-                                            }
-                                            catch
-                                            {
+                                                try
+                                                {
+                                                    pathsToServerUid.Remove(storeConvertedChange.FileChange.NewPath);
+                                                    serverUidsToPath.Remove(storeConvertedChange.FileChange.Metadata.ServerUid);
+                                                }
+                                                catch
+                                                {
+                                                }
                                             }
                                             break;
                                     }

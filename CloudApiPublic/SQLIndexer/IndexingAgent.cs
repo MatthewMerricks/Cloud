@@ -842,7 +842,14 @@ namespace Cloud.SQLIndexer
                                 case FileChangeType.Renamed:
                                     var existingRenamePair = Helpers.DictionaryTryGetValue(currentBatchTrackPathChanges, currentObjectToBatch.OldPath);
 
-                                    currentBatchTrackPathChanges.Rename(currentObjectToBatch.OldPath, currentObjectToBatch.NewPath);
+                                    FilePathHierarchicalNode<object> oldPathHierarchy;
+                                    CLError oldPathHierarchyError = currentBatchTrackPathChanges.GrabHierarchyForPath(currentObjectToBatch.OldPath, out oldPathHierarchy, suppressException: true);
+
+                                    if (oldPathHierarchyError == null
+                                        && oldPathHierarchy != null)
+                                    {
+                                        currentBatchTrackPathChanges.Rename(currentObjectToBatch.OldPath, currentObjectToBatch.NewPath);
+                                    }
 
                                     if (!existingRenamePair.Success)
                                     {
@@ -2191,6 +2198,7 @@ namespace Cloud.SQLIndexer
 
                 switch (storeExistingChangeType)
                 {
+                    case FileChangeType.Created:
                     case FileChangeType.Modified:
                         existingEventObject.Pending = false;
                         existingEventObject.EventTimeUTCTicks = DateTime.UtcNow.Ticks;
@@ -2259,7 +2267,6 @@ namespace Cloud.SQLIndexer
                         }
                         break;
 
-                    //case FileChangeType.Created: // <-- Created should have already been checked and had an exception thrown since a created object should not have another object already existing with the same parent and name
                     default:
                         throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event object had a FileChangeTypeEnumId which did not match to a known FileChangeType");
                 }
