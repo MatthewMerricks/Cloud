@@ -3630,10 +3630,20 @@ namespace Cloud.Sync
 
 
                                             // if there is a failed out change to add, then reset its failure counters recursively and add the change to the list of those failed out
-                                            if (errorToQueue.FileChange != null && 
-                                                ((errorToQueue.FileChange.NotFoundForStreamCounter < MaxNumberOfNotFounds) 
-                                                 || errorToQueue.FileChange.FileIsTooBig))
+                                            bool skipAddChangesToFailedOutQueue = (errorToQueue.FileChange == null || errorToQueue.FileChange.NotFoundForStreamCounter >= MaxNumberOfNotFounds);
+                                            if (!skipAddChangesToFailedOutQueue)
                                             {
+                                                // Note that recurseResetCounters() will reset FileIsTooBig 
+                                                if (errorToQueue.FileChange.FileIsTooBig)
+                                                {
+                                                    MessageEvents.FireNewEventMessage(
+                                                        "Unable to upload file due to large size. Expected to fail again, therefore will not try immediately. Path: " + errorToQueue.FileChange.NewPath.ToString(),
+                                                        EventMessageLevel.Important,
+                                                        /*Error*/new GeneralErrorInfo(),
+                                                        syncBox.SyncBoxId,
+                                                        syncBox.CopiedSettings.DeviceId);
+                                                }
+
                                                 recurseResetCounters(errorToQueue.FileChange, recurseResetCounters);
 
                                                 if (failedOutChanges == null)
