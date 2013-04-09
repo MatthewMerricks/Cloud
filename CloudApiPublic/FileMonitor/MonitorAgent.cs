@@ -5146,6 +5146,14 @@ namespace Cloud.FileMonitor
 
         private void ProcessQueuesAfterTimer(bool emptyProcessingQueue)
         {
+            lock (this)
+            {
+                if (this.Disposed)
+                {
+                    return;
+                }
+            }
+
             lock (SyncRunLocker)
             {
                 if (SyncRunLocker.Value)
