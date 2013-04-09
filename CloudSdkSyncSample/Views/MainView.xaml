@@ -33,28 +33,28 @@
                         <AccessText Text="Bro_wse..."/>
                     </Button>
                 </Grid>
-                <TextBox x:Name="tbSyncboxFolder" Margin="10,0,0,0" 
+                <TextBox x:Name="tbSyncboxFolder" Margin="10,0,0,0" Height="23"
                          Text="{Binding SyncRoot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbSyncboxFolderEnabled}"
                          ext:FocusExtension.IsFocused="{Binding IsSyncboxPathFocused}"
                          ToolTip="Enter the full path of the folder to sync." />
                 <!-- Key -->
                 <Label Content="_Key:" Target="{Binding ElementName=tbKey}"/>
-                <TextBox Name="tbKey" Margin="10,0,0,0" 
+                <TextBox Name="tbKey" Margin="10,0,0,0" Height="23"
                         Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbKeyEnabled}"
                         ext:FocusExtension.IsFocused="{Binding IsKeyFocused}"
                         ToolTip="Paste the key from your Cloud DashBoard."/>
                 <!-- Secret -->
                 <Label Content="_Secret:" Target="{Binding ElementName=tbSecret}"/>
-                <TextBox x:Name="tbSecret" Margin="10,0,0,0" 
+                <TextBox x:Name="tbSecret" Margin="10,0,0,0" Height="23"
                         Text="{Binding Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding TbSecretEnabled}"
                         ext:FocusExtension.IsFocused="{Binding IsSecretFocused}"
                         ToolTip="Paste the secret from your Cloud DashBoard."/>
                 <!-- Token -->
                 <Label Content="Toke_n (optional):" Target="{Binding ElementName=tbToken}"/>
-                <TextBox x:Name="tbToken" Margin="10,0,0,0" 
+                <TextBox x:Name="tbToken" Margin="10,0,0,0" Height="23"
                         Text="{Binding Token, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding TbTokenEnabled}"
                         ext:FocusExtension.IsFocused="{Binding IsTokenFocused}"
@@ -69,19 +69,19 @@
                         <AccessText Text="G_enerate"/>
                     </Button>
                 </StackPanel>
-                            
+
                 <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                     <!-- Syncbox ID -->
                     <Label Content="Syncbox _ID:" Target="{Binding ElementName=tbSyncboxId}"/>
-                    <TextBox x:Name="tbSyncboxId" Margin="10,0,0,0" Width="175" HorizontalAlignment="Left"
+                    <TextBox x:Name="tbSyncboxId" Margin="10,0,0,0" Width="175" HorizontalAlignment="Left" Height="23"
                          Text="{Binding SyncboxId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbSyncboxIdEnabled}"
                          ext:FocusExtension.IsFocused="{Binding IsSyncboxIdFocused}"
                          ToolTip="Paste the Syncbox ID from your Cloud DashBoard."/>
                     <!-- Unique Device ID -->
                     <Label Content="Unique _Device ID:" Target="{Binding ElementName=tbSyncboxId}"/>
-                    <TextBox x:Name="tbDeviceId" Margin="10,0,0,0"  Width="160
-                             " HorizontalAlignment="Left"
+                    <TextBox x:Name="tbDeviceId" Margin="10,0,0,0" Width="160" Height="23"
+                         HorizontalAlignment="Left"
                          Text="{Binding DeviceId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbUniqueDeviceIdEnabled}"
                          ext:FocusExtension.IsFocused="{Binding IsDeviceIdFocused}"

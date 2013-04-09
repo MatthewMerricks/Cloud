@@ -126,7 +126,7 @@ namespace Cloud.Sync
             object statusUpdatedUserState = null,
             int HttpTimeoutMilliseconds = CLDefinitions.HttpTimeoutDefaultMilliseconds,
             byte MaxNumberOfFailureRetries = 20,
-            byte MaxNumberOfNotFounds = 10,
+            byte MaxNumberOfNotFounds = 3,
             int ErrorProcessingMillisecondInterval = 10000,// wait ten seconds between processing
             byte MaxNumberConnectionFailures = 40,
             int FailedOutRetryMillisecondInterval = 14400000) // wait four hours between retrying failed out changes
@@ -6872,7 +6872,7 @@ namespace Cloud.Sync
                                                 innerCurrentChange,
                                                 innerCurrentStreamContext);
 
-                                            if ((innerCurrentChange.Type == FileChangeType.Created || innerCurrentChange.Type == FileChangeType.Modified) && string.IsNullOrEmpty(innerCurrentChange.Metadata.StorageKey))
+                                            if (!innerCurrentChange.Metadata.HashableProperties.IsFolder && (innerCurrentChange.Type == FileChangeType.Created || innerCurrentChange.Type == FileChangeType.Modified) && string.IsNullOrEmpty(innerCurrentChange.Metadata.StorageKey))
                                             {
                                                 throw new NullReferenceException("Metadata.StorageKey must not be null for uploads or downloads");
                                             }
