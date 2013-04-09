@@ -952,7 +952,7 @@ namespace Cloud.BadgeNET
             try
             {
                 // ensure this is initialized
-                _trace.writeToLog(9, "IconOverlay: RenameBadgePath. Old path: {0}, New path: {1}.", oldPath.ToString(), newPath.ToString());
+                _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Old path: {0}, New path: {1}.", oldPath.ToString(), newPath.ToString()));
                 lock (this)
                 {
                     if (!isInitialized)
@@ -971,11 +971,13 @@ namespace Cloud.BadgeNET
                     // Simply pass this action on to the badge dictionary.  The dictionary will pass recursive renames back to us
                     // as the rename is processes, and those recursive renames will cause the badges to be adjusted.
                     // Put in a check if both paths already have values so we can overwrite at the new path.
-                    _trace.writeToLog(9, "IconOverlay: RenameBadgePath. Pass this rename to the dictionary.");
+                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Pass this rename to the dictionary."));
                     if (allBadges.ContainsKey(oldPath))
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Contains oldPath."));
                         if (allBadges.ContainsKey(newPath))
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Remove newPath."));
                             allBadges.Remove(newPath);
                         }
 
@@ -987,7 +989,7 @@ namespace Cloud.BadgeNET
                         CLError error = allBadges.Rename(oldPath, newPath);
                         if (error != null)
                         {
-                            _trace.writeToLog(9, "IconOverlay: RenameBadgePath. ERROR: Renaming in allBadges. Msg: <{0}>.  Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                            _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. ERROR: Renaming in allBadges. Msg: <{0}>.  Code: {1}.", error.errorDescription, ((int)error.code).ToString()));
 
                             FilePathHierarchicalNode<GenericHolder<cloudAppIconBadgeType>> tree;
                             CLError errGrab = allBadges.GrabHierarchyForPath(oldPath, out tree, suppressException: true);
@@ -996,64 +998,81 @@ namespace Cloud.BadgeNET
                             {
                                 // Delete the oldPath.
                                 bool isDeleted;
+                                _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Delete the oldPath."));
                                 DeleteBadgePath(oldPath, out isDeleted, isPending: false, alreadyCheckedInitialized: true);
 
                                 // Chase the hierarchy grabbed above and manually apply all of the renames.  Also set the BadgeCom and
                                 // current badge flat dictionary badge states as we go.  This essentially adds back the deleted tree
                                 // using the new names.
+                                _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Call ManuallyApplyRenamesInHierarchyAndUpdateBadgeState."));
                                 ManuallyApplyRenamesInHierarchyAndUpdateBadgeState(tree, oldPath, newPath);
 
                                 lock (_currentBadgesSyncedLocker)
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. In _currentBadgesSyncedLocker."));
                                     if (_currentBadgesSynced != null)
                                     {
                                         object notUsed;
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. _currentBadgesSynced not null."));
                                         if (_currentBadgesSynced.TryGetValue(oldPath, out notUsed))
                                         {
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Got _currentBadgesSynced oldPath item."));
                                             GenericHolder<cloudAppIconBadgeType> existingSyncedHolder;
                                             if (_currentBadges.TryGetValue(oldPath, out existingSyncedHolder))
                                             {
+                                                _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Got _currentBadges oldPath item. Remove oldPath."));
                                                 _currentBadges.Remove(oldPath);
                                                 if (existingSyncedHolder.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
                                                 {
+                                                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. existingSyncedHolder is synced."));
                                                     existingSyncedHolder = new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced);
                                                 }
                                             }
                                             else
                                             {
+                                                _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. existingSyncedHolder is synced (2)."));
                                                 existingSyncedHolder = new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced);
                                             }
 
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}.", oldPath));
                                             SendRemoveBadgePathEvent(oldPath);
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Remove badge at newPath: {0}.", newPath));
                                             SendRemoveBadgePathEvent(newPath);
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Add badge at newPath: {0}. Badge: {1}.", newPath, existingSyncedHolder.Value.ToString()));
                                             SendAddBadgePathEvent(newPath, existingSyncedHolder);
                                             _currentBadges[newPath] = existingSyncedHolder;
                                         }
 
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Rename oldPath to newPath in _currentBadgesSynced."));
                                         _currentBadgesSynced.Rename(oldPath, newPath);
 
                                         // Update badges for anything changed up the tree
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Update badge state up the tree from oldPath."));
                                         UpdateBadgeStateUpTreeStartingWithParentOfNode(oldPath, _filePathCloudDirectory.ToString());
 
                                         // Update badges for anything changed up the tree
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Update badge state up the tree from newPath."));
                                         UpdateBadgeStateUpTreeStartingWithParentOfNode(newPath, _filePathCloudDirectory.ToString());
                                     }
                                 }
 
+                                _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Set return status OK."));
                                 errorToReturn = null;
                             }
                             else
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. ERROR: grabbing hierarchy or nothing grabbed."));
                                 if (errGrab == null)
                                 {
                                     errGrab = new Exception("ERROR: Grabbing oldPath hierarchy: tree is null");
                                 }
-                                _trace.writeToLog(9, "IconOverlay: RenameBadgePath. ERROR: Grabbing oldPath hierarchy. Msg: <{0}>.  Code: {1}.", errGrab.errorDescription, ((int)errGrab.code).ToString());
+                                _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. ERROR: Grabbing oldPath hierarchy. Msg: <{0}>.  Code: {1}.", errGrab.errorDescription, ((int)errGrab.code).ToString()));
                                 errorToReturn = errGrab;
                             }
                         }
                         else
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Success on allBadges rename."));
                             // No rename error.  Update the badge state for anything changed up the tree.
                             //TODO: This could be optimized by processing either of these (oldPath or newPath) first, then processing
                             // the other path only up to the point one below the overlapping root path.
@@ -1064,26 +1083,42 @@ namespace Cloud.BadgeNET
                             GenericHolder<cloudAppIconBadgeType> newBadgeType;
                             getBadgeTypeForFileAtPath(newPath, out newBadgeType);        // always returns a badgeType, even if an error occurs.
                             SendRemoveBadgePathEvent(oldPath);
+                            _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Badge newPath with {0}.", newBadgeType.Value.ToString()));
                             SendAddBadgePathEvent(newPath, newBadgeType);
                             _currentBadges.Remove(oldPath);
                             _currentBadges[newPath] = newBadgeType;
-                            if (newBadgeType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
+                            
+                            lock (_currentBadgesSyncedLocker)
                             {
-                                lock (_currentBadgesSyncedLocker)
+                                _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. In _currentBadgesSyncedLocker."));
+                                if (_currentBadgesSynced != null)
                                 {
-                                    if (_currentBadgesSynced != null)
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. _currentBadgesSynced not null.")); 
+
+                                    FilePathHierarchicalNode<object> oldPathSyncedHierarchy;
+                                    CLError grabOldPathSyncedHierarchyError = _currentBadgesSynced.GrabHierarchyForPath(oldPath, out oldPathSyncedHierarchy, suppressException: true);
+                                    if (grabOldPathSyncedHierarchyError == null
+                                        && oldPathSyncedHierarchy != null)
                                     {
-                                        _currentBadgesSynced.Remove(oldPath);
-                                        _currentBadgesSynced[newPath] = syncedDictionaryValue;
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. oldPath found in _currentBadgesSynced.  Rename."));
+                                        _currentBadgesSynced.Remove(newPath);
+                                        _currentBadgesSynced.Rename(oldPath, newPath);
                                     }
+
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Set newPath to _currentBadgesSynced. Value: {0}.", newBadgeType.Value.ToString()));
+                                    _currentBadgesSynced[newPath] = (newBadgeType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced
+                                        ? _syncedDictionaryValue
+                                        : null);
                                 }
                             }
 
+                            _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Set return status OK (2)."));
                             errorToReturn = null;
                         }
                     }
                     else
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Set ERROR: Could not find path to rename at oldPath."));
                         errorToReturn = new KeyNotFoundException("Could not find path to rename at oldPath");
                     }
                 }
@@ -1096,6 +1131,7 @@ namespace Cloud.BadgeNET
                 CLError error = ex;
                 error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "IconOverlay: RenameBadgePath: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath: ERROR: Exception: Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString()));
                 errorToReturn = error;
             }
 
@@ -1439,7 +1475,7 @@ namespace Cloud.BadgeNET
         private readonly object _currentBadgesLocker = new object();
         private FilePathDictionary<object> _currentBadgesSynced;
         private readonly object _currentBadgesSyncedLocker = new object();
-        private static readonly object syncedDictionaryValue = new object();
+        private static readonly object _syncedDictionaryValue = new object();
 
         /// <summary>
         /// The hierarhical dictionary that holds all of the badges.  Nodes with null values are assumed to be synced.
@@ -1775,7 +1811,7 @@ namespace Cloud.BadgeNET
                             {
                                 if (hierarchicalBadgeType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
                                 {
-                                    _currentBadgesSynced[nodePath] = syncedDictionaryValue;
+                                    _currentBadgesSynced[nodePath] = _syncedDictionaryValue;
                                 }
                                 else
                                 {
@@ -1809,7 +1845,7 @@ namespace Cloud.BadgeNET
                         {
                             if (_currentBadgesSynced != null)
                             {
-                                _currentBadgesSynced[nodePath] = syncedDictionaryValue;
+                                _currentBadgesSynced[nodePath] = _syncedDictionaryValue;
                             }
                         }
                     }
@@ -2036,11 +2072,11 @@ namespace Cloud.BadgeNET
                                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
                                         break;
                                     case SyncDirection.To:
+                                        thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, "IconOverlay: Process: Renamed. Dir: To. setBadge syncing at oldPath."));
+                                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
+
                                         thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, "IconOverlay: Process: Renamed. Dir: To. Call RenameBadgePath."));
                                         thisOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
-
-                                        thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, "IconOverlay: Process: Renamed. Dir: To. setBadge syncing at NewPath."));
-                                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
                                         break;
                                     default:
                                         throw new NotSupportedException("Unknown mergedEvent.Direction: " + mergedEvent.Direction.ToString());
