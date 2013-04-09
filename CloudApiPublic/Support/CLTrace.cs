@@ -102,9 +102,9 @@ namespace Cloud.Support
         {
             try
             {
-                if (TraceLocation == null)
+                if (String.IsNullOrEmpty(TraceLocation))
                 {
-                    throw new NullReferenceException("TraceLocation must not be null");
+                    throw new NullReferenceException("TraceLocation must be specified");
                 }
                 if (TraceCategory == null)
                 {
@@ -136,6 +136,7 @@ namespace Cloud.Support
             }
             catch
             {
+                _traceLocation = null;
             }
         }
 
