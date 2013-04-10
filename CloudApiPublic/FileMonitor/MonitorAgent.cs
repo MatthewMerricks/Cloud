@@ -1754,8 +1754,7 @@ namespace Cloud.FileMonitor
                                     {
                                         case FileChangeType.Created:
                                         case FileChangeType.Modified:
-                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges);
-                                            DisposeChanges = null;
+                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges);
                                             ContinueProcessing = true;
                                             if (creationModificationCheckError != null)
                                             {
@@ -1861,9 +1860,10 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        private CLError CreationModificationDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges)
+        private CLError CreationModificationDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges)
         {
             CLError toReturn = null;
+            DisposeChanges = null;
             try
             {
                 foreach (FileChangeWithDependencies CurrentEarlierChange in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(EarlierChange)
@@ -1871,12 +1871,47 @@ namespace Cloud.FileMonitor
                 {
                     if (LaterChange.NewPath.Contains(CurrentEarlierChange.NewPath))
                     {
-                        CurrentEarlierChange.AddDependency(LaterChange);
-                        if (DependencyDebugging)
+                        if (FilePathComparer.Instance.Equals(LaterChange.NewPath, CurrentEarlierChange.NewPath))
                         {
-                            Helpers.CheckFileChangeDependenciesForDuplicates(CurrentEarlierChange);
+                            if (EarlierChange.Type == FileChangeType.Created
+                                && LaterChange.Type == FileChangeType.Modified)
+                            {
+                                LaterChange.Type = FileChangeType.Created;
+
+                                CLError updateLaterChangeAsCreatedError = SyncData.mergeToSql(new[] { new FileChangeMerge(LaterChange) });
+                                if (updateLaterChangeAsCreatedError != null)
+                                {
+                                    throw new AggregateException("Error updating LaterChange in CreationModificationDependencyCheck to Created Type", updateLaterChangeAsCreatedError.GrabExceptions());
+                                }
+                            }
+
+                            if (DisposeChanges == null)
+                            {
+                                DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { EarlierChange });
+                            }
+                            else
+                            {
+                                DisposeChanges.Add(EarlierChange);
+                            }
+
+                            PulledChanges.Add(EarlierChange);
+
+                            foreach (FileChangeWithDependencies laterParent in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(LaterChange)
+                                .OfType<FileChangeWithDependencies>()
+                                .Where(currentParentCheck => currentParentCheck.Dependencies.Contains(EarlierChange)))
+                            {
+                                laterParent.RemoveDependency(EarlierChange);
+                            }
                         }
-                        PulledChanges.Add(LaterChange);
+                        else
+                        {
+                            CurrentEarlierChange.AddDependency(LaterChange);
+                            if (DependencyDebugging)
+                            {
+                                Helpers.CheckFileChangeDependenciesForDuplicates(CurrentEarlierChange);
+                            }
+                            PulledChanges.Add(LaterChange);
+                        }
                         break;
                     }
                 }

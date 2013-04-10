@@ -2430,9 +2430,101 @@ namespace Cloud.Sync
 
                         CredentialErrorType credentialsError;
 
+                        // check to see if any pending file uploads match with an existing file upload to prevent uploading the same file twice simultaneously
+
+                        List<PossiblyStreamableFileChange> uploadsRemovedUponDuplicateFound = new List<PossiblyStreamableFileChange>();
+
+                        // define a dictionary which will store FileChanges which are asynchronously processing for uploads or downloads to allow lookup of metadata when needed (renames from the server do not include metadata),
+                        // default to null (will be initialized and filled in by a function when and if it is needed and retrieved in the same state until the end of the method)
+                        FilePathDictionary<FileChange> runningUpChangesDict = null;
+                        // define a function to initialize and fill in the failuresDict for lookup of metadata when needed (runs only when needed to prevent unnecessary logic under the UpDownEvent locker)
+                        Func<FilePathDictionary<FileChange>> getRunningUpChangesDict = () =>
+                        {
+                            // if the runningUpDownChangesDict has not already been initialized, then initialize it and fill it out
+                            if (runningUpChangesDict == null)
+                            {
+                                // create a list to store the changes which are currently uploading or downloading
+                                List<FileChange> runningUpChanges = new List<FileChange>();
+                                // retrieve the changes which are currently uploading or downloading via UpDownEvent (all under the UpDownEvent locker)
+                                RunUpDownEvent(
+                                    new FileChange.UpDownEventArgs((currentUpDown, innerState) =>
+                                    {
+                                        List<FileChange> castState = innerState as List<FileChange>;
+                                        if (castState == null)
+                                        {
+                                            MessageEvents.FireNewEventMessage(
+                                                "Unable to cast innerState as List<FileChange>",
+                                                EventMessageLevel.Important,
+                                                new HaltAllOfCloudSDKErrorInfo());
+                                        }
+                                        else if (currentUpDown.Direction == SyncDirection.To)
+                                        {
+                                            castState.Add(currentUpDown);
+                                        }
+                                    }),
+                                    runningUpChanges);
+
+                                // initialize the runningUpDownChangesDict and store any error that occurs in the process
+                                CLError createUpDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncBox.CopiedSettings.SyncRoot ?? string.Empty),
+                                    out runningUpChangesDict);
+                                // if an error occurred initializing the runningUpDownChangesDict, then rethrow the error
+                                if (createUpDictError != null)
+                                {
+                                    throw new AggregateException("Error creating upDict", createUpDictError.GrabExceptions());
+                                }
+                                // loop through the events which are uploading or downloading
+                                foreach (FileChange currentUpChange in runningUpChanges)
+                                {
+                                    // add the uploading or downloading event to the runningUpDownChangesDict dictionary via a recursive function which also adds any inner dependencies
+                                    AddChangeToDictionary(runningUpChangesDict, currentUpChange);
+                                }
+                            }
+                            // return the previously initialized or newly initialized uploading/downloading changes dictionary
+                            return runningUpChangesDict;
+                        };
+                        foreach (PossiblyStreamableFileChange currentChangeToCommunicate in changesForCommunication)
+                        {
+                            if (currentChangeToCommunicate.FileChange.Direction == SyncDirection.To
+                                && !currentChangeToCommunicate.FileChange.Metadata.HashableProperties.IsFolder
+                                && (currentChangeToCommunicate.FileChange.Type == FileChangeType.Modified))
+                            {
+                                if (getRunningUpChangesDict().ContainsKey(currentChangeToCommunicate.FileChange.NewPath))
+                                {
+                                    uploadsRemovedUponDuplicateFound.Add(currentChangeToCommunicate);
+                                }
+                            }
+                        }
+                        if (uploadsRemovedUponDuplicateFound.Count > 0)
+                        {
+                            Dictionary<FileChange, PossiblyStreamableFileChange> hashedDuplicates = uploadsRemovedUponDuplicateFound.ToDictionary(currentDuplicate => currentDuplicate.FileChange);
+
+                            errorsToQueue.RemoveAll(currentErrorToQueue => hashedDuplicates.ContainsKey(currentErrorToQueue.FileChange));
+
+                            lock (FailureTimer.TimerRunningLocker)
+                            {
+                                foreach (PossiblyStreamableFileChange currentDuplicate in uploadsRemovedUponDuplicateFound)
+                                {
+                                    if (currentDuplicate.StreamContext != null)
+                                    {
+                                        try
+                                        {
+                                            currentDuplicate.StreamContext.Dispose();
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+
+                                    FailedChangesQueue.Enqueue(currentDuplicate.FileChange);
+                                }
+
+                                FailureTimer.StartTimerIfNotRunning();
+                            }
+                        }
+
                         // Communicate with server with all the changes to process, storing any exception that occurs
                         Exception communicationException = CommunicateWithServer(
-                            changesForCommunication, // changes to process
+                            changesForCommunication.Except(uploadsRemovedUponDuplicateFound), // changes to process
                             respondingToPushNotification, // whether the current SyncEngine Run was called for responding to a push notification or on manual polling
                             out completedChanges, // output changes completed during communication
                             out incompleteChanges, // output changes that still need to be performed
