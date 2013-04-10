@@ -1363,8 +1363,8 @@ namespace Cloud.FileMonitor
                                                         newPathString = newPathString,
                                                         backupLocation = backupLocation
                                                     },
-                                                throwExceptionOnFailure: true);
-                                        }
+                                                throwExceptionOnFailure: true);  // end RunActionWithRetries
+                                        }  // end else file rename
 
                                         foreach (FileChange matchedDown in matchedDownsForRenamed)
                                         {
@@ -1434,7 +1434,7 @@ namespace Cloud.FileMonitor
                 return ex;
             }
             return null;
-        }
+        }  // end ApplySyncFromFileChange
 
         // helper method to create a directory at a given path and set the time attributes for creation/last modified
         private static void CreateDirectoryWithAttributes(FilePath toCreate, Nullable<DateTime> creationTime, Nullable<DateTime> lastTime, out Nullable<DateTime> createdLastWriteUtc, out Nullable<DateTime> createdCreationUtc)
@@ -2095,6 +2095,17 @@ namespace Cloud.FileMonitor
                                             laterParent.RemoveDependency(LaterChange);
                                         }
 
+                                        DependenciesAddedToLaterChange = true;
+                                    }
+                                    else if (!DependenciesAddedToLaterChange)
+                                    {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange (2)."));
+                                        LaterChange.AddDependency(CurrentEarlierChange);
+                                        if (DependencyDebugging)
+                                        {
+                                            Helpers.CheckFileChangeDependenciesForDuplicates(LaterChange);
+                                        }
+                                        PulledChanges.Add(CurrentEarlierChange);
                                         DependenciesAddedToLaterChange = true;
                                     }
                                 }

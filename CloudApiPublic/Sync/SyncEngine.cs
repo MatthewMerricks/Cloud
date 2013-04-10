@@ -4071,6 +4071,8 @@ namespace Cloud.Sync
 
             // Define cast state, defaulting to null
             UploadTaskState castState = null;
+            // Define an error that will be set by CLRestClient.UploadFile.  We will test this for null.  If it is null on an exception, we will send the appropriate status messages.  Otherwise we assume that CLRestClient.UploadFile sent the status messages.
+            CLError uploadError = null;
 
             // Create an object to store the DateTime when it is first retrieved (and will be reused thus keeping the same time)
             GenericHolder<Nullable<DateTime>> startTimeHolder = new GenericHolder<Nullable<DateTime>>(null);
@@ -4210,7 +4212,7 @@ namespace Cloud.Sync
                     string uploadMessage;
                     bool hashMismatchFound;
                     // upload the file using the REST client, storing any error that occurs
-                    CLError uploadError = castState.RestClient.UploadFile(castState.StreamContext, // stream for upload
+                    uploadError = castState.RestClient.UploadFile(castState.StreamContext, // stream for upload
                         castState.FileToUpload, // upload change
                         (int)castState.HttpTimeoutMilliseconds, // milliseconds before communication timeout (does not apply to the amount of time it takes to actually upload the file)
                         out uploadStatus, // output the status of communication
@@ -4318,44 +4320,47 @@ namespace Cloud.Sync
             }
             catch (Exception ex)
             {
-                // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window).
-                if (castState != null
-                    && castState.FileToUpload != null
-                    && castState.FileToUpload.NewPath != null
-                    && castState.Syncbox != null
-                    && castState.FileToUpload.Metadata != null
-                    && castState.StatusUpdate != null
-                    && castState.FileToUpload.Metadata.HashableProperties.Size != null)
+                // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window), unless the status messages were already sent by CLHttpRest.UploadFile.
+                if (uploadError == null)
                 {
-                    castState.StatusUpdate(
-                        castState.ThreadId, // threadId
-                        castState.FileToUpload.EventId, // eventId
-                        SyncDirection.To, // direction
-                        castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false), // relativePath
-                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
-                        (long)castState.FileToUpload.Metadata.HashableProperties.Size, // totalByteSize
-                        true); // error occurred
-                }
+                    if (castState != null
+                        && castState.FileToUpload != null
+                        && castState.FileToUpload.NewPath != null
+                        && castState.Syncbox != null
+                        && castState.FileToUpload.Metadata != null
+                        && castState.StatusUpdate != null
+                        && castState.FileToUpload.Metadata.HashableProperties.Size != null)
+                    {
+                        castState.StatusUpdate(
+                            castState.ThreadId, // threadId
+                            castState.FileToUpload.EventId, // eventId
+                            SyncDirection.To, // direction
+                            castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false), // relativePath
+                            (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
+                            (long)castState.FileToUpload.Metadata.HashableProperties.Size, // totalByteSize
+                            true); // error occurred
+                    }
 
-                // Also call back to update the upload EventMessage (used by the RateBar controls on the status window.
-                // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window).
-                if (castState != null
-                    && castState.FileToUpload != null
-                    && castState.FileToUpload.Metadata != null
-                    && castState.FileToUpload.Metadata.HashableProperties.Size != null
-                    && castState.FileToUpload.NewPath != null
-                    && castState.Syncbox != null)
-                {
-                    Helpers.HandleUploadDownloadStatus(
-                                            new CLStatusFileTransferUpdateParameters(
-                                                    DateTime.Now,   // use the current local time as the start time, since we never really got started.
-                                                    (long)castState.FileToUpload.Metadata.HashableProperties.Size,
-                                                    castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false),
-                                                    (long)castState.FileToUpload.Metadata.HashableProperties.Size
-                                            ),
-                                            castState.FileToUpload,
-                                            castState.Syncbox.SyncboxId,
-                                            castState.Syncbox.CopiedSettings.DeviceId);
+                    // Also call back to update the upload EventMessage (used by the RateBar controls on the status window.
+                    // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window).
+                    if (castState != null
+                        && castState.FileToUpload != null
+                        && castState.FileToUpload.Metadata != null
+                        && castState.FileToUpload.Metadata.HashableProperties.Size != null
+                        && castState.FileToUpload.NewPath != null
+                        && castState.Syncbox != null)
+                    {
+                        Helpers.HandleUploadDownloadStatus(
+                                                new CLStatusFileTransferUpdateParameters(
+                                                        DateTime.Now,   // use the current local time as the start time, since we never really got started.
+                                                        (long)castState.FileToUpload.Metadata.HashableProperties.Size,
+                                                        castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false),
+                                                        (long)castState.FileToUpload.Metadata.HashableProperties.Size
+                                                ),
+                                                castState.FileToUpload,
+                                                castState.Syncbox.SyncboxId,
+                                                castState.Syncbox.CopiedSettings.DeviceId);
+                    }
                 }
 
                 // if the error was any that are not recoverable, display a message to the user for the serious problem and return
@@ -4592,6 +4597,8 @@ namespace Cloud.Sync
             DownloadTaskState castState = null;
             // Define a unique id which will be used as the temp download file name, defaulting to null
             Nullable<Guid> newTempFile = null;
+            // Define an error that will be set by CLRestClient.DownloadFile.  We will test this for null.  If it is null on an exception, we will send the appropriate status messages.  Otherwise we assume that CLRestClient.DownloadFile sent the status messages.
+            CLError downloadError = null;
 
             // Create an object to store the DateTime when it is first retrieved (and will be reused thus keeping the same time)
             GenericHolder<Nullable<DateTime>> startTimeHolder = new GenericHolder<Nullable<DateTime>>(null);
@@ -4894,7 +4901,7 @@ namespace Cloud.Sync
                     // declare the enumeration to store the state of the download
                     CLHttpRestStatus downloadStatus;
                     // perform the download of the file, storing any error that occurs
-                    CLError downloadError = castState.RestClient.DownloadFile(castState.FileToDownload, // the download change
+                    downloadError = castState.RestClient.DownloadFile(castState.FileToDownload, // the download change
                         OnAfterDownloadToTempFile, // handler for when downloading completes, needs to move the file to the final location and update the status string message
                         new OnAfterDownloadToTempFileState() // userstate which will be passed along when the callback is fired when downloading completes
                         {
@@ -4986,45 +4993,50 @@ namespace Cloud.Sync
             }
             catch (Exception ex)
             {
+                // Send the status messages, unless CLHttpRest.Download file already sent them.
                 _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: Exception (2): Msg: {0}.", ex.Message));
-                if (castState != null
-                    && castState.FileToDownload != null
-                    && castState.FileToDownload.NewPath != null
-                    && castState.Syncbox != null
-                    && castState.FileToDownload.Metadata != null
-                    && castState.StatusUpdate != null
-                    && castState.FileToDownload.Metadata.HashableProperties.Size != null)
+                if (downloadError == null)
                 {
-                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Call StatusUpdate."));
-                    castState.StatusUpdate(
-                        castState.ThreadId, // threadId
-                        castState.FileToDownload.EventId, // eventId
-                        SyncDirection.From, // direction
-                        castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false), // relativePath
-                        (long)castState.FileToDownload.Metadata.HashableProperties.Size, // byteProgress
-                        (long)castState.FileToDownload.Metadata.HashableProperties.Size, // totalByteSize
-                        true); // error occurred
-                }
+                    if (castState != null
+                        && castState.FileToDownload != null
+                        && castState.FileToDownload.NewPath != null
+                        && castState.Syncbox != null
+                        && castState.FileToDownload.Metadata != null
+                        && castState.StatusUpdate != null
+                        && castState.FileToDownload.Metadata.HashableProperties.Size != null)
+                    {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Call StatusUpdate."));
+                        castState.StatusUpdate(
+                            castState.ThreadId, // threadId
+                            castState.FileToDownload.EventId, // eventId
+                            SyncDirection.From, // direction
+                            castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false), // relativePath
+                            (long)castState.FileToDownload.Metadata.HashableProperties.Size, // byteProgress
+                            (long)castState.FileToDownload.Metadata.HashableProperties.Size, // totalByteSize
+                            true); // error occurred
+                    }
 
-                // Also call back to update the download EventMessage (used by the RateBar controls on the status window).
-                // Call the StatusUpdate callback to update the summary information for this download ("center section" of the status window).
-                if (castState != null
-                    && castState.FileToDownload != null
-                    && castState.FileToDownload.Metadata != null
-                    && castState.FileToDownload.Metadata.HashableProperties.Size != null
-                    && castState.FileToDownload.NewPath != null
-                    && castState.Syncbox != null)
-                {
-                    Helpers.HandleUploadDownloadStatus(
-                                            new CLStatusFileTransferUpdateParameters(
-                                                    DateTime.Now,   // use the current local time as the start time, since we never really got started.
-                                                    (long)castState.FileToDownload.Metadata.HashableProperties.Size,
-                                                    castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false),
-                                                    (long)castState.FileToDownload.Metadata.HashableProperties.Size
-                                            ),
-                                            castState.FileToDownload,
-                                            castState.Syncbox.SyncboxId,
-                                            castState.Syncbox.CopiedSettings.DeviceId);
+                    // Also call back to update the download EventMessage (used by the RateBar controls on the status window).
+                    // Call the StatusUpdate callback to update the summary information for this download ("center section" of the status window).
+                    if (castState != null
+                        && castState.FileToDownload != null
+                        && castState.FileToDownload.Metadata != null
+                        && castState.FileToDownload.Metadata.HashableProperties.Size != null
+                        && castState.FileToDownload.NewPath != null
+                        && castState.Syncbox != null)
+                    {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Call HandlerUploadDownloadStatus."));
+                        Helpers.HandleUploadDownloadStatus(
+                                                new CLStatusFileTransferUpdateParameters(
+                                                        DateTime.Now,   // use the current local time as the start time, since we never really got started.
+                                                        (long)castState.FileToDownload.Metadata.HashableProperties.Size,
+                                                        castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false),
+                                                        (long)castState.FileToDownload.Metadata.HashableProperties.Size
+                                                ),
+                                                castState.FileToDownload,
+                                                castState.Syncbox.SyncboxId,
+                                                castState.Syncbox.CopiedSettings.DeviceId);
+                    }
                 }
 
                 // for advanced trace, UploadDownloadFailure
