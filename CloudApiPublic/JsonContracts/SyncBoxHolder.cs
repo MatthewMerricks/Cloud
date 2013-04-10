@@ -1,5 +1,5 @@
 ﻿//
-// SyncBoxHolder.cs
+// SyncboxHolder.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -16,13 +16,13 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLCredential.AddSyncBoxOnServer"/>, <see cref="Cloud.CLSyncBox.SyncBoxUpdateExtendedMetadata"/>,
-    /// <see cref="Cloud.CLSyncBox.DeleteSyncBox"/>, and
-    /// <see cref="Cloud.CLSyncBox.GetSyncBoxStatus"/>
+    /// Result from <see cref="Cloud.CLCredential.AddSyncboxOnServer"/>, <see cref="Cloud.CLSyncbox.SyncboxUpdateExtendedMetadata"/>,
+    /// <see cref="Cloud.CLSyncbox.DeleteSyncbox"/>, and
+    /// <see cref="Cloud.CLSyncbox.GetSyncboxStatus"/>
     /// </summary>
     [DataContract]
-    [ContainsMetadataDictionary] // within SyncBox SyncBox
-    public sealed class SyncBoxHolder
+    [ContainsMetadataDictionary] // within Syncbox Syncbox
+    public sealed class SyncboxHolder
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }
@@ -30,7 +30,7 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
         public string Message { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBox, IsRequired = false)]
-        public SyncBox SyncBox { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponseSyncbox, IsRequired = false)]
+        public Syncbox Syncbox { get; set; }
     }
 }

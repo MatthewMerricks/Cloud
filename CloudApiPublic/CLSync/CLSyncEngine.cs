@@ -24,7 +24,7 @@ using System.Collections;
 namespace Cloud
 {
     /// <summary>
-    /// A class used to create a SyncBox to synchronize the contents of a local disk directory.
+    /// A class used to create a Syncbox to synchronize the contents of a local disk directory.
     /// </summary>
     public sealed class CLSyncEngine
     {
@@ -145,12 +145,12 @@ namespace Cloud
         // \endcond
         #endregion
 
-        //// Not sure if we want to expose access to the contained SyncBox since it is set on Start and not on construction (it changes during usage)s
+        //// Not sure if we want to expose access to the contained Syncbox since it is set on Start and not on construction (it changes during usage)s
         //
         ///// <summary>
-        ///// Retrieves a currently attached SyncBox, or null if one isn't attached
+        ///// Retrieves a currently attached Syncbox, or null if one isn't attached
         ///// </summary>
-        //public CLSyncBox SyncBox
+        //public CLSyncbox Syncbox
         //{
         //    get
         //    {
@@ -160,7 +160,7 @@ namespace Cloud
         //        }
         //    }
         //}
-        private CLSyncBox _syncBox = null;
+        private CLSyncbox _syncBox = null;
         /// <summary>
         /// Event fired when a serious notification error has occurred.  Push notification is
         /// no longer functional.
@@ -319,9 +319,9 @@ namespace Cloud
         /// <summary>
         /// ¡¡ Do not use this method. Besides just completely wiping the index database, this also removes the database file which may be important for tracing/debugging; instead use WipeIndex !!
         /// </summary>
-        /// <param name="syncBox">SyncBox to reset</param>
+        /// <param name="syncBox">Syncbox to reset</param>
         /// <returns>Returns any error that occurred deleting the index database file, if any</returns>
-        public CLError SyncReset(CLSyncBox syncBox)
+        public CLError SyncReset(CLSyncbox syncBox)
         {
             try
             {
@@ -356,7 +356,7 @@ namespace Cloud
 
                 // Determine the database file with full path
                 string sDatabaseDirectoryToUse = (string.IsNullOrEmpty(syncBox.CopiedSettings.DatabaseFolder)
-                    ? Helpers.GetDefaultDatabasePath(syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId)
+                    ? Helpers.GetDefaultDatabasePath(syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId)
                     : syncBox.CopiedSettings.DatabaseFolder.Trim());
                 string sDatabaseFile = sDatabaseDirectoryToUse + "\\" + CLDefinitions.kSyncDatabaseFileName;
 
@@ -367,7 +367,7 @@ namespace Cloud
                 }
 
                 // Delete the temp download directory recursively, but not the directory itself.
-                string sTempDownloadFolderToUse = Helpers.GetTempFileDownloadPath(syncBox.CopiedSettings, syncBox.SyncBoxId);
+                string sTempDownloadFolderToUse = Helpers.GetTempFileDownloadPath(syncBox.CopiedSettings, syncBox.SyncboxId);
                 CLError errorFromDelete = Helpers.DeleteEverythingInDirectory(sTempDownloadFolderToUse);
                 if (errorFromDelete != null)
                 {
@@ -387,19 +387,19 @@ namespace Cloud
         }
 
         ///// <summary>
-        ///// Simplest initialization of a SyncBox to start syncing its contents to the Cloud server, and to other devices registering the same SyncBox.
+        ///// Simplest initialization of a Syncbox to start syncing its contents to the Cloud server, and to other devices registering the same Syncbox.
         ///// </summary>
         ///// <param name="ApplicationKey">The public key that identifies this application.</param>
         ///// <param name="ApplicationSecret">The application secret private key.</param>
-        ///// <param name="SyncBoxId">The unique ID of this SyncBox assigned by the auth server.</param>
+        ///// <param name="SyncboxId">The unique ID of this Syncbox assigned by the auth server.</param>
         ///// <param name="SyncRoot">Full path to the directory to be synced (do not include a trailing slash except for a drive root)</param>
-        ///// <param name="Status">(output) State of starting SyncBox, check this to make sure it was successful</param>
-        ///// <param name="StatusUpdated">(optional) Callback to fire whenever the status of the SyncBox has been updated</param>
+        ///// <param name="Status">(output) State of starting Syncbox, check this to make sure it was successful</param>
+        ///// <param name="StatusUpdated">(optional) Callback to fire whenever the status of the Syncbox has been updated</param>
         ///// <param name="StatusUpdatedUserState">(optional) Userstate to pass when firing the statusUpdated callback</param>
-        ///// <returns>Returns any error which occurred starting the SyncBox</returns>
+        ///// <returns>Returns any error which occurred starting the Syncbox</returns>
         //public CLError Start(string ApplicationKey,
         //    string ApplicationSecret,
-        //    long SyncBoxId,
+        //    long SyncboxId,
         //    string SyncRoot,
         //    out CLSyncStartStatus Status,
         //    System.Threading.WaitCallback StatusUpdated = null,
@@ -421,7 +421,7 @@ namespace Cloud
         //                Helpers.GetComputerFriendlyName() + Guid.NewGuid().ToString("N"),
         //                ApplicationKey,
         //                ApplicationSecret,
-        //                SyncBoxId,
+        //                SyncboxId,
         //                "SimpleWinClient01",
         //                SyncRoot),
         //            out Status,
@@ -440,23 +440,20 @@ namespace Cloud
         //}
 
         /// <summary>
-        /// Start the SyncEngine with a SyncBox to start syncing contents to the Cloud server, and to other devices registering the same SyncBox.
+        /// Start the SyncEngine with a Syncbox to start syncing contents to the Cloud server, and to other devices registering the same Syncbox.
         /// </summary>
-        /// <param name="SyncBox">SyncBox to sync</param>
+        /// <param name="Syncbox">Syncbox to sync</param>
         /// <param name="Status">(output) State of starting SyncEngine, check this to make sure it was successful</param>
         /// <param name="StatusUpdated">(optional) Callback to fire whenever the status of the SyncEngine has been updated</param>
         /// <param name="StatusUpdatedUserState">(optional) Userstate to pass when firing the statusUpdated callback</param>
         /// <returns>Returns any error which occurred starting to sync, if any</returns>
         public CLError Start(
-			CLSyncBox SyncBox,
+			CLSyncbox Syncbox,
 			out CLSyncStartStatus Status,
 			System.Threading.WaitCallback StatusUpdated = null,
 			object StatusUpdatedUserState = null)
         {
-            ////DEBUG ONLY CODE!!! Remove
-            //Cloud.PushNotification.DebugDeleteMe.RecordMessage("SyncBoxId starting: " + (SyncBox == null ? "{null}" : SyncBox.SyncBoxId.ToString()));
-
-            bool reservedSyncBox = false;
+            bool reservedSyncbox = false;
             try
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
@@ -464,30 +461,30 @@ namespace Cloud
                     throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
                 }
 
-                if (SyncBox == null)
+                if (Syncbox == null)
                 {
                     const string settingsError = "syncBox cannot be null";
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", settingsError);
-                    Status = CLSyncStartStatus.ErrorNullSyncBox;
+                    Status = CLSyncStartStatus.ErrorNullSyncbox;
                     return new NullReferenceException(settingsError);
                 }
 
-                if (!SyncBox.TryReserveForActiveSync())
+                if (!Syncbox.TryReserveForActiveSync())
                 {
-                    const string modificationError = "syncBox cannot be modifying server SyncBox via public API calls (i.e. DeleteSyncBox or UpdateSyncBoxQuota)";
+                    const string modificationError = "syncBox cannot be modifying server Syncbox via public API calls (i.e. DeleteSyncbox or UpdateSyncboxQuota)";
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", modificationError);
                     Status = CLSyncStartStatus.ErrorInProcessOfModification;
                     return new ArgumentException(modificationError);
                 }
 
-                reservedSyncBox = true;
+                reservedSyncbox = true;
 
-                if (string.IsNullOrEmpty(SyncBox.CopiedSettings.DeviceId))
+                if (string.IsNullOrEmpty(Syncbox.CopiedSettings.DeviceId))
                 {
-                    if (reservedSyncBox
-                        && SyncBox != null)
+                    if (reservedSyncbox
+                        && Syncbox != null)
                     {
-                        SyncBox.ResetReserveForActiveSync();
+                        Syncbox.ResetReserveForActiveSync();
                     }
 
                     const string settingsError = "syncBox CopiedSettings DeviceId cannot be null";
@@ -498,7 +495,7 @@ namespace Cloud
 
                 lock (_locker)
                 {
-                    this._syncBox = SyncBox;
+                    this._syncBox = Syncbox;
                     this.statusUpdated = StatusUpdated;
                     if (StatusUpdated == null)
                     {
@@ -518,10 +515,10 @@ namespace Cloud
                 // Check the TraceLocation vs. LogErrors
                 if (string.IsNullOrWhiteSpace(this._syncBox.CopiedSettings.TraceLocation) && this._syncBox.CopiedSettings.LogErrors)
                 {
-                    if (reservedSyncBox
-                        && SyncBox != null)
+                    if (reservedSyncbox
+                        && Syncbox != null)
                     {
-                        SyncBox.ResetReserveForActiveSync();
+                        Syncbox.ResetReserveForActiveSync();
                     }
 
                     const string verifyTraceError = "TraceLocation must be set if LogErrors is checked";
@@ -533,12 +530,12 @@ namespace Cloud
                 if (!String.IsNullOrWhiteSpace(this._syncBox.CopiedSettings.DatabaseFolder))
                 {
                     FilePath fpDatabase = this._syncBox.CopiedSettings.DatabaseFolder;
-                    FilePath fpSyncBox = this._syncBox.CopiedSettings.SyncRoot;
-                    if (fpDatabase.Contains(fpSyncBox, insensitiveNameSearch: true))
+                    FilePath fpSyncbox = this._syncBox.CopiedSettings.SyncRoot;
+                    if (fpDatabase.Contains(fpSyncbox, insensitiveNameSearch: true))
                     {
-                        const string verifyDatabaseError = "SyncBox settings DatabaseFolder cannot be inside the SyncBox settings SyncRoot";
+                        const string verifyDatabaseError = "Syncbox settings DatabaseFolder cannot be inside the Syncbox settings SyncRoot";
                         _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", verifyDatabaseError);
-                        Status = CLSyncStartStatus.ErrorDatabaseFolderInsideSyncBoxFolder;
+                        Status = CLSyncStartStatus.ErrorDatabaseFolderInsideSyncboxFolder;
                         return new ArgumentException(verifyDatabaseError);
                     }
                 }
@@ -546,12 +543,12 @@ namespace Cloud
                 if (!string.IsNullOrWhiteSpace(this._syncBox.CopiedSettings.TraceLocation))
                 {
                     FilePath fpTraceLocation = this._syncBox.CopiedSettings.TraceLocation;
-                    FilePath fpSyncBox = this._syncBox.CopiedSettings.SyncRoot;
-                    if (fpTraceLocation.Contains(fpSyncBox, insensitiveNameSearch: true))
+                    FilePath fpSyncbox = this._syncBox.CopiedSettings.SyncRoot;
+                    if (fpTraceLocation.Contains(fpSyncbox, insensitiveNameSearch: true))
                     {
-                        const string verifyTraceLocationError = "SyncBox settings TraceLocation cannot be inside the SyncBox settings SyncRoot";
+                        const string verifyTraceLocationError = "Syncbox settings TraceLocation cannot be inside the Syncbox settings SyncRoot";
                         _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", verifyTraceLocationError);
-                        Status = CLSyncStartStatus.ErrorTraceFolderInsideSyncBoxFolder;
+                        Status = CLSyncStartStatus.ErrorTraceFolderInsideSyncboxFolder;
                         return new ArgumentException(verifyTraceLocationError);
                     }
                 }
@@ -559,12 +556,12 @@ namespace Cloud
                 if (!String.IsNullOrWhiteSpace(this._syncBox.CopiedSettings.TempDownloadFolderFullPath))
                 {
                     FilePath fpTemp = this._syncBox.CopiedSettings.TempDownloadFolderFullPath;
-                    FilePath fpSyncBox = this._syncBox.CopiedSettings.SyncRoot;
-                    if (fpTemp.Contains(fpSyncBox, insensitiveNameSearch: true))
+                    FilePath fpSyncbox = this._syncBox.CopiedSettings.SyncRoot;
+                    if (fpTemp.Contains(fpSyncbox, insensitiveNameSearch: true))
                     {
-                        const string verifyTempDownloadFolderError = "SyncBox settings TempDownloadFolderFullPath cannot be inside the SyncBox settings SyncRoot";
+                        const string verifyTempDownloadFolderError = "Syncbox settings TempDownloadFolderFullPath cannot be inside the Syncbox settings SyncRoot";
                         _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", verifyTempDownloadFolderError);
-                        Status = CLSyncStartStatus.ErrorTempDownloadFolderInsideSyncBoxFolder;
+                        Status = CLSyncStartStatus.ErrorTempDownloadFolderInsideSyncboxFolder;
                         return new ArgumentException(verifyTempDownloadFolderError);
                     }
                 }
@@ -572,10 +569,10 @@ namespace Cloud
                 CLError checkBadPath = Helpers.CheckForBadPath(this._syncBox.CopiedSettings.SyncRoot);
                 if (checkBadPath != null)
                 {
-                    if (reservedSyncBox
-                        && SyncBox != null)
+                    if (reservedSyncbox
+                        && Syncbox != null)
                     {
-                        SyncBox.ResetReserveForActiveSync();
+                        Syncbox.ResetReserveForActiveSync();
                     }
 
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkBadPath.errorDescription);
@@ -587,10 +584,10 @@ namespace Cloud
                 CLError checkPathLength = Helpers.CheckSyncRootLength(this._syncBox.CopiedSettings.SyncRoot, out tooLongChars);
                 if (checkPathLength != null)
                 {
-                    if (reservedSyncBox
-                        && SyncBox != null)
+                    if (reservedSyncbox
+                        && Syncbox != null)
                     {
-                        SyncBox.ResetReserveForActiveSync();
+                        Syncbox.ResetReserveForActiveSync();
                     }
 
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkPathLength.errorDescription);
@@ -602,10 +599,10 @@ namespace Cloud
                 _trace.writeToLog(1, "CLSyncEngine: Start: Entry.");
                 if (_isStarted)
                 {
-                    if (reservedSyncBox
-                        && SyncBox != null)
+                    if (reservedSyncbox
+                        && Syncbox != null)
                     {
-                        SyncBox.ResetReserveForActiveSync();
+                        Syncbox.ResetReserveForActiveSync();
                     }
 
                     CLError error = new Exception("Already started");
@@ -614,7 +611,7 @@ namespace Cloud
                     return error;
                 }
 
-                // Create the SyncBox directory if it doesn't exist
+                // Create the Syncbox directory if it doesn't exist
                 bool alreadyExists = true;
                 System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncBox.CopiedSettings.SyncRoot);
                 if (!rootInfo.Exists)
@@ -655,7 +652,7 @@ namespace Cloud
                 {
                     _iconOverlay = new IconOverlay();
                 }
-                CLError iconOverlayError = _iconOverlay.Initialize(this._syncBox.CopiedSettings, this._syncBox.SyncBoxId);
+                CLError iconOverlayError = _iconOverlay.Initialize(this._syncBox.CopiedSettings, this._syncBox.SyncboxId);
                 if (iconOverlayError != null)
                 {
                     // Failure to start badging does not prevent syncing.  Just log it.
@@ -671,10 +668,10 @@ namespace Cloud
                 }
                 if (indexCreationError != null)
                 {
-                    if (reservedSyncBox
-                        && SyncBox != null)
+                    if (reservedSyncbox
+                        && Syncbox != null)
                     {
-                        SyncBox.ResetReserveForActiveSync();
+                        Syncbox.ResetReserveForActiveSync();
                     }
 
                     _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, ((int)indexCreationError.code).ToString());
@@ -688,16 +685,16 @@ namespace Cloud
                 lock (_locker)
                 {
                     ////DEBUG ONLY CODE!!! Remove
-                    //Cloud.PushNotification.DebugDeleteMe.RecordMessage("About to start notification service on SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
+                    //Cloud.PushNotification.DebugDeleteMe.RecordMessage("About to start notification service on SyncboxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncboxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
 
                     CLError getNotificationError = CLNotificationService.GetInstance(this._syncBox, out _notifier);
                     if (getNotificationError != null
                         || _notifier == null)
                     {
-                        if (reservedSyncBox
-                            && SyncBox != null)
+                        if (reservedSyncbox
+                            && Syncbox != null)
                         {
-                            SyncBox.ResetReserveForActiveSync();
+                            Syncbox.ResetReserveForActiveSync();
                         }
 
                         CLError error;
@@ -745,7 +742,7 @@ namespace Cloud
 
                 ////DEBUG ONLY CODE!!! Remove
                 //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-                //    "About to attach OnNotificationReceived. SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
+                //    "About to attach OnNotificationReceived. SyncboxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncboxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
 
                 // Hook up the events
                 _trace.writeToLog(9, "CLSyncEngine: Start: Hook up events.");
@@ -755,10 +752,10 @@ namespace Cloud
 
                 if (fileMonitorCreationError != null)
                 {
-                    if (reservedSyncBox
-                        && SyncBox != null)
+                    if (reservedSyncbox
+                        && Syncbox != null)
                     {
-                        SyncBox.ResetReserveForActiveSync();
+                        Syncbox.ResetReserveForActiveSync();
                     }
 
                     _trace.writeToLog(1, "CLSyncEngine: Start: ERROR(4): Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, ((int)fileMonitorCreationError.code).ToString());
@@ -798,10 +795,10 @@ namespace Cloud
                                 CLError fileMonitorStartError = _monitor.Start(out returnStatus);
                                 if (fileMonitorStartError != null)
                                 {
-                                    if (reservedSyncBox
-                                        && SyncBox != null)
+                                    if (reservedSyncbox
+                                        && Syncbox != null)
                                     {
-                                        SyncBox.ResetReserveForActiveSync();
+                                        Syncbox.ResetReserveForActiveSync();
                                     }
 
                                     _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, ((int)fileMonitorStartError.code).ToString());
@@ -815,10 +812,10 @@ namespace Cloud
                                                 _monitor.GetCurrentPath);
                                 if (indexerStartError != null)
                                 {
-                                    if (reservedSyncBox
-                                        && SyncBox != null)
+                                    if (reservedSyncbox
+                                        && Syncbox != null)
                                     {
-                                        SyncBox.ResetReserveForActiveSync();
+                                        Syncbox.ResetReserveForActiveSync();
                                     }
 
                                     _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, ((int)indexerStartError.code).ToString());
@@ -829,10 +826,10 @@ namespace Cloud
                             }
                             catch (Exception ex)
                             {
-                                if (reservedSyncBox
-                                    && SyncBox != null)
+                                if (reservedSyncbox
+                                    && Syncbox != null)
                                 {
-                                    SyncBox.ResetReserveForActiveSync();
+                                    Syncbox.ResetReserveForActiveSync();
                                 }
 
                                 CLError error = ex;
@@ -850,10 +847,10 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                if (reservedSyncBox
-                    && SyncBox != null)
+                if (reservedSyncbox
+                    && Syncbox != null)
                 {
-                    SyncBox.ResetReserveForActiveSync();
+                    Syncbox.ResetReserveForActiveSync();
                 }
 
                 CLError error = ex;
@@ -910,7 +907,7 @@ namespace Cloud
         {
             ////DEBUG ONLY CODE!!! Remove
             //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-            //    "OnNotificationReceived. SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
+            //    "OnNotificationReceived. SyncboxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncboxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
 
             // Let the file monitor know about this event.
             lock (_locker)
@@ -924,13 +921,13 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Stop syncing the SyncBox, and free all resources.
+        /// Stop syncing the Syncbox, and free all resources.
         /// </summary>
         private CLError ReleaseResources()
         {
             CLError toReturn = null;
 
-            CLSyncBox storeSyncBox;
+            CLSyncbox storeSyncbox;
 
             lock (_locker)
             {
@@ -1052,12 +1049,12 @@ namespace Cloud
                     }
                 }
 
-                storeSyncBox = _syncBox;
+                storeSyncbox = _syncBox;
             }
 
             if (toReturn != null)
             {
-                toReturn.LogErrors(storeSyncBox.CopiedSettings.TraceLocation, storeSyncBox.CopiedSettings.LogErrors);
+                toReturn.LogErrors(storeSyncbox.CopiedSettings.TraceLocation, storeSyncbox.CopiedSettings.LogErrors);
             }
 
             lock (_locker)
@@ -1073,7 +1070,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Stop syncing the SyncBox and free resources.
+        /// Stop syncing the Syncbox and free resources.
         /// </summary>
         public void Stop()
         {

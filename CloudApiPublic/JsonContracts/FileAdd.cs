@@ -91,7 +91,7 @@ namespace Cloud.JsonContracts
         }
         public Nullable<DateTime> ModifiedDate { get; set; }
 
-        [DataMember(Name = CLDefinitions.QueryStringSyncBoxId, IsRequired = false)]
-        public Nullable<long> SyncBoxId { get; set; }
+        [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
+        public Nullable<long> SyncboxId { get; set; }
     }
 }

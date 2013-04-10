@@ -480,7 +480,7 @@ namespace CloudApiPrivate.Model.Settings
         }
 
         private string _syncBoxId;
-        public string SyncBoxId
+        public string SyncboxId
         {
             get { return _syncBoxId; }
             set
@@ -1287,7 +1287,7 @@ namespace CloudApiPrivate.Model.Settings
             //UserFullName = (string)accountInfo[kUserFullName];
             DeviceName = (string)accountInfo[kDeviceName];
             Akey = (string)accountInfo[kAKey];
-            SyncBoxId = (string)accountInfo[kUuid];
+            SyncboxId = (string)accountInfo[kUuid];
             DeviceId = (string)accountInfo[kUdid];
         }
 

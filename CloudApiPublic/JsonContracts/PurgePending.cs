@@ -17,8 +17,8 @@ namespace Cloud.JsonContracts
     [DataContract]
     internal sealed class PurgePending
     {
-        [DataMember(Name = CLDefinitions.QueryStringSyncBoxId, IsRequired = false)]
-        public Nullable<long> SyncBoxId { get; set; }
+        [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
+        public Nullable<long> SyncboxId { get; set; }
 
         [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
         public string DeviceId { get; set; }

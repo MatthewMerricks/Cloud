@@ -1,5 +1,5 @@
 ﻿//
-// SyncBoxForUpdateRequest.cs
+// SyncboxForUpdateRequest.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -19,9 +19,9 @@ namespace Cloud.JsonContracts
     /// Inner request to change the properties of a sync box.
     /// </summary>
     [DataContract]
-    public sealed class SyncBoxForUpdateRequest
+    public sealed class SyncboxForUpdateRequest
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxFriendlyName, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxFriendlyName, IsRequired = false)]
         public string FriendlyName { get; set; }
     }
 }

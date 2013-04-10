@@ -42,8 +42,8 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.CLSyncID, IsRequired = false)]
         public string LastSyncId { get; set; }
 
-        [DataMember(Name = CLDefinitions.JsonAccountFieldSyncBoxId, IsRequired = false)]
-        public Nullable<long> SyncBoxId { get; set; }
+        [DataMember(Name = CLDefinitions.JsonAccountFieldSyncboxId, IsRequired = false)]
+        public Nullable<long> SyncboxId { get; set; }
 
         [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
         public string DeviceId { get; set; }

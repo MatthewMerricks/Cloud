@@ -24,7 +24,7 @@ namespace Cloud
     /// 
     /// The CLCredential class declares the interface used for authentication and authorization to Cloud.com <http://Cloud.com>.
     ///
-    /// The CLCredential class allows the developer to represent both the Application’s credential as well as temporary session credential. The Application’s credential provides access to all of your Application’s SyncBoxes. Using a temporary credential, access can be limited to an individual SyncBox.
+    /// The CLCredential class allows the developer to represent both the Application’s credential as well as temporary session credential. The Application’s credential provides access to all of your Application’s Syncboxes. Using a temporary credential, access can be limited to an individual Syncbox.
     ///
     /// If the CLCredential object does not contain a token, all authentication and authorization attempts will be made by looking up the credential in the Application space.
     ///
@@ -178,8 +178,8 @@ namespace Cloud
         }
         #endregion
 
-        #region AddSyncBoxOnServer
-        //// The following method is not useful since AddSyncBoxOnServer does not yet support initial metadata, and this was simply an overload which accepted metadata in a different format
+        #region AddSyncboxOnServer
+        //// The following method is not useful since AddSyncboxOnServer does not yet support initial metadata, and this was simply an overload which accepted metadata in a different format
         //
         ///// <summary>
         ///// Asynchronously starts adding a Sync box on the server for the current application
@@ -191,7 +191,7 @@ namespace Cloud
         ///// <param name="friendlyName">(optional) friendly name of the Sync box</param>
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public IAsyncResult BeginAddSyncBoxOnServer<T>(AsyncCallback aCallback,
+        //public IAsyncResult BeginAddSyncboxOnServer<T>(AsyncCallback aCallback,
         //    object aState,
         //    int timeoutMilliseconds,
         //    ICLCredentialSettings settings = null,
@@ -199,13 +199,13 @@ namespace Cloud
         //    IDictionary<string, T> metadata = null)
         //{
         //    // create the asynchronous result to return
-        //    GenericAsyncResult<AddSyncBoxOnServerResult> toReturn = new GenericAsyncResult<AddSyncBoxOnServerResult>(
+        //    GenericAsyncResult<AddSyncboxOnServerResult> toReturn = new GenericAsyncResult<AddSyncboxOnServerResult>(
         //        aCallback,
         //        aState);
 
         //    // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-        //    Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>> asyncParams =
-        //        new Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>>(
+        //    Tuple<GenericAsyncResult<AddSyncboxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>> asyncParams =
+        //        new Tuple<GenericAsyncResult<AddSyncboxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>>(
         //            toReturn,
         //            timeoutMilliseconds,
         //            settings,
@@ -216,7 +216,7 @@ namespace Cloud
         //    (new Thread(new ParameterizedThreadStart(state =>
         //    {
         //        // try cast the state as the object with all the input parameters
-        //        Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>> castState = state as Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>>;
+        //        Tuple<GenericAsyncResult<AddSyncboxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>> castState = state as Tuple<GenericAsyncResult<AddSyncboxOnServerResult>, int, ICLCredentialSettings, string, IDictionary<string, T>>;
         //        // if the try cast failed, then show a message box for this unrecoverable error
         //        if (castState == null)
         //        {
@@ -234,9 +234,9 @@ namespace Cloud
         //                // declare the output status for communication
         //                CLHttpRestStatus status;
         //                // declare the specific type of result for this operation
-        //                JsonContracts.CreateSyncBox result;
+        //                JsonContracts.CreateSyncbox result;
         //                // run the download of the file with the passed parameters, storing any error that occurs
-        //                CLError processError = AddSyncBoxOnServer(
+        //                CLError processError = AddSyncboxOnServer(
         //                    castState.Item2,
         //                    out status,
         //                    out result,
@@ -248,7 +248,7 @@ namespace Cloud
         //                if (castState.Item1 != null)
         //                {
         //                    castState.Item1.Complete(
-        //                        new AddSyncBoxOnServerResult(
+        //                        new AddSyncboxOnServerResult(
         //                            processError, // any error that may have occurred during processing
         //                            status, // the output status of communication
         //                            result), // the specific type of result for this operation
@@ -279,14 +279,14 @@ namespace Cloud
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="friendlyName">(optional) friendly name of the Sync box</param>
-        /// <param name="planId">(optional) The ID of the plan to use with this SyncBox</param>
+        /// <param name="planId">(optional) The ID of the plan to use with this Syncbox</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         //
         //// The following metadata parameter was temporarily removed until the server checks for it for this call
         //
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginAddSyncBoxOnServer(AsyncCallback aCallback,
+        public IAsyncResult BeginAddSyncboxOnServer(AsyncCallback aCallback,
             object aState,
             int timeoutMilliseconds,
             string friendlyName = null,
@@ -295,13 +295,13 @@ namespace Cloud
             JsonContracts.MetadataDictionary metadata = null*/) 
         {
             // create the asynchronous result to return
-            GenericAsyncResult<AddSyncBoxOnServerResult> toReturn = new GenericAsyncResult<AddSyncBoxOnServerResult>(
+            GenericAsyncResult<AddSyncboxOnServerResult> toReturn = new GenericAsyncResult<AddSyncboxOnServerResult>(
                 aCallback,
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/> asyncParams =
-                new Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/>(
+            Tuple<GenericAsyncResult<AddSyncboxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/> asyncParams =
+                new Tuple<GenericAsyncResult<AddSyncboxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/>(
                     toReturn,
                     timeoutMilliseconds,
                     friendlyName,
@@ -313,8 +313,8 @@ namespace Cloud
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/> castState =
-                    state as Tuple<GenericAsyncResult<AddSyncBoxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/>;
+                Tuple<GenericAsyncResult<AddSyncboxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/> castState =
+                    state as Tuple<GenericAsyncResult<AddSyncboxOnServerResult>, int, string, Nullable<long>, ICLCredentialSettings/*, JsonContracts.MetadataDictionary*/>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -332,9 +332,9 @@ namespace Cloud
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.SyncBoxHolder result;
+                        JsonContracts.SyncboxHolder result;
                         // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = AddSyncBoxOnServer(
+                        CLError processError = AddSyncboxOnServer(
                             castState.Item2,
                             out status,
                             out result,
@@ -347,7 +347,7 @@ namespace Cloud
                         if (castState.Item1 != null)
                         {
                             castState.Item1.Complete(
-                                new AddSyncBoxOnServerResult(
+                                new AddSyncboxOnServerResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
                                     result), // the specific type of result for this operation
@@ -378,16 +378,16 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting adding the sync box</param>
         /// <param name="result">(output) The result from adding the sync box</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAddSyncBoxOnServer(IAsyncResult aResult, out AddSyncBoxOnServerResult result)
+        public CLError EndAddSyncboxOnServer(IAsyncResult aResult, out AddSyncboxOnServerResult result)
         {
             // declare the specific type of asynchronous result for sync box add
-            GenericAsyncResult<AddSyncBoxOnServerResult> castAResult;
+            GenericAsyncResult<AddSyncboxOnServerResult> castAResult;
 
             // try/catch to try casting the asynchronous result as the type for adding sync boxes and pull the result (possibly incomplete), on catch default the output and return the error
             try
             {
                 // try cast the asynchronous result as the type for adding sync boxes
-                castAResult = aResult as GenericAsyncResult<AddSyncBoxOnServerResult>;
+                castAResult = aResult as GenericAsyncResult<AddSyncboxOnServerResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -400,7 +400,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                result = Helpers.DefaultForType<AddSyncBoxOnServerResult>();
+                result = Helpers.DefaultForType<AddSyncboxOnServerResult>();
                 return ex;
             }
 
@@ -432,7 +432,7 @@ namespace Cloud
             return null;
         }
 
-        //// The following method is not useful since AddSyncBoxOnServer does not yet support initial metadata, and this was simply an overload which accepted metadata in a different format
+        //// The following method is not useful since AddSyncboxOnServer does not yet support initial metadata, and this was simply an overload which accepted metadata in a different format
         //
         ///// <summary>
         ///// Add a Sync box on the server for the current application
@@ -444,11 +444,11 @@ namespace Cloud
         ///// <param name="friendlyName">(optional) friendly name of the Sync box</param>
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError AddSyncBoxOnServer<T>(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response, ICLCredentialSettings settings = null, string friendlyName = null, IDictionary<string, T> metadata = null)
+        //public CLError AddSyncboxOnServer<T>(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response, ICLCredentialSettings settings = null, string friendlyName = null, IDictionary<string, T> metadata = null)
         //{
         //    try
         //    {
-        //        return AddSyncBoxOnServer(timeoutMilliseconds, out status, out response, settings, friendlyName,
+        //        return AddSyncboxOnServer(timeoutMilliseconds, out status, out response, settings, friendlyName,
         //            (metadata == null
         //                ? null
         //                : new JsonContracts.MetadataDictionary(
@@ -459,7 +459,7 @@ namespace Cloud
         //    catch (Exception ex)
         //    {
         //        status = CLHttpRestStatus.BadRequest;
-        //        response = Helpers.DefaultForType<JsonContracts.SyncBoxHolder>();
+        //        response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
         //        return ex;
         //    }
         //}
@@ -471,14 +471,14 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="friendlyName">(optional) friendly name of the Sync box</param>
-        /// <param name="planId">(optional) the ID of the plan to use with this SyncBox</param>
+        /// <param name="planId">(optional) the ID of the plan to use with this Syncbox</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         //
         //// The following metadata parameter was temporarily removed until the server checks for it for this call
         //
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddSyncBoxOnServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncBoxHolder response, 
+        public CLError AddSyncboxOnServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response, 
                     string friendlyName = null,
                     Nullable<long> planId = null,
                     ICLCredentialSettings settings = null/*, JsonContracts.MetadataDictionary metadata = null*/)
@@ -500,12 +500,12 @@ namespace Cloud
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                JsonContracts.SyncBoxHolder inputBox = (/*metadata == null
+                JsonContracts.SyncboxHolder inputBox = (/*metadata == null
                         && */string.IsNullOrEmpty(friendlyName)
                     ? null
-                    : new JsonContracts.SyncBoxHolder()
+                    : new JsonContracts.SyncboxHolder()
                     {
-                        SyncBox = new JsonContracts.SyncBox()
+                        Syncbox = new JsonContracts.Syncbox()
                         {
                             FriendlyName = (string.IsNullOrEmpty(friendlyName)
                                 ? null
@@ -515,10 +515,10 @@ namespace Cloud
                         }
                     });
 
-                response = Helpers.ProcessHttp<JsonContracts.SyncBoxHolder>(
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxHolder>(
                     inputBox,
                     CLDefinitions.CLPlatformAuthServerURL,
-                    CLDefinitions.MethodPathAuthCreateSyncBox,
+                    CLDefinitions.MethodPathAuthCreateSyncbox,
                     Helpers.requestMethod.post,
                     timeoutMilliseconds,
                     null, // not an upload nor download
@@ -530,14 +530,14 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SyncBoxHolder>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
                 return ex;
             }
             return null;
         }
         #endregion
 
-        #region ListSyncBoxes
+        #region ListSyncboxes
         /// <summary>
         /// Asynchronously starts listing the Sync boxes on the server for the current application
         /// </summary>
@@ -546,19 +546,19 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginListSyncBoxes(AsyncCallback aCallback,
+        public IAsyncResult BeginListSyncboxes(AsyncCallback aCallback,
             object aState,
             int timeoutMilliseconds,
             ICLCredentialSettings settings = null)
         {
             // create the asynchronous result to return
-            GenericAsyncResult<ListSyncBoxesResult> toReturn = new GenericAsyncResult<ListSyncBoxesResult>(
+            GenericAsyncResult<ListSyncboxesResult> toReturn = new GenericAsyncResult<ListSyncboxesResult>(
                 aCallback,
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<ListSyncBoxesResult>, int, ICLCredentialSettings> asyncParams =
-                new Tuple<GenericAsyncResult<ListSyncBoxesResult>, int, ICLCredentialSettings>(
+            Tuple<GenericAsyncResult<ListSyncboxesResult>, int, ICLCredentialSettings> asyncParams =
+                new Tuple<GenericAsyncResult<ListSyncboxesResult>, int, ICLCredentialSettings>(
                     toReturn,
                     timeoutMilliseconds,
                     settings);
@@ -567,7 +567,7 @@ namespace Cloud
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<ListSyncBoxesResult>, int, ICLCredentialSettings> castState = state as Tuple<GenericAsyncResult<ListSyncBoxesResult>, int, ICLCredentialSettings>;
+                Tuple<GenericAsyncResult<ListSyncboxesResult>, int, ICLCredentialSettings> castState = state as Tuple<GenericAsyncResult<ListSyncboxesResult>, int, ICLCredentialSettings>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -585,9 +585,9 @@ namespace Cloud
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.ListSyncBoxes result;
+                        JsonContracts.ListSyncboxes result;
                         // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = ListSyncBoxes(
+                        CLError processError = ListSyncboxes(
                             castState.Item2,
                             out status,
                             out result,
@@ -597,7 +597,7 @@ namespace Cloud
                         if (castState.Item1 != null)
                         {
                             castState.Item1.Complete(
-                                new ListSyncBoxesResult(
+                                new ListSyncboxesResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
                                     result), // the specific type of result for this operation
@@ -628,16 +628,16 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting listing the sync boxes</param>
         /// <param name="result">(output) The result from listing the sync boxes</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndListSyncBoxes(IAsyncResult aResult, out ListSyncBoxesResult result)
+        public CLError EndListSyncboxes(IAsyncResult aResult, out ListSyncboxesResult result)
         {
             // declare the specific type of asynchronous result for sync boxes listing
-            GenericAsyncResult<ListSyncBoxesResult> castAResult;
+            GenericAsyncResult<ListSyncboxesResult> castAResult;
 
             // try/catch to try casting the asynchronous result as the type for sync boxes listing and pull the result (possibly incomplete), on catch default the output and return the error
             try
             {
                 // try cast the asynchronous result as the type for listing sync boxes
-                castAResult = aResult as GenericAsyncResult<ListSyncBoxesResult>;
+                castAResult = aResult as GenericAsyncResult<ListSyncboxesResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -650,7 +650,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                result = Helpers.DefaultForType<ListSyncBoxesResult>();
+                result = Helpers.DefaultForType<ListSyncboxesResult>();
                 return ex;
             }
 
@@ -690,7 +690,7 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ListSyncBoxes(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.ListSyncBoxes response, ICLCredentialSettings settings = null)
+        public CLError ListSyncboxes(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.ListSyncboxes response, ICLCredentialSettings settings = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -709,10 +709,10 @@ namespace Cloud
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                response = Helpers.ProcessHttp<JsonContracts.ListSyncBoxes>(
+                response = Helpers.ProcessHttp<JsonContracts.ListSyncboxes>(
                     null, // no request body for listing sync boxes
                     CLDefinitions.CLPlatformAuthServerURL,
-                    CLDefinitions.MethodPathAuthListSyncBoxes,
+                    CLDefinitions.MethodPathAuthListSyncboxes,
                     Helpers.requestMethod.post,
                     timeoutMilliseconds,
                     null, // not an upload nor download
@@ -724,7 +724,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.ListSyncBoxes>();
+                response = Helpers.DefaultForType<JsonContracts.ListSyncboxes>();
                 return ex;
             }
             return null;
@@ -1307,13 +1307,13 @@ namespace Cloud
                 }
 
                 // Determine the request JSON contract to use.  If the syncBoxIds parameter is null, use the "all"
-                // contract.  Otherwise, build the contract that includes an array of SyncBoxIds.
+                // contract.  Otherwise, build the contract that includes an array of SyncboxIds.
                 object requestContract = null;
                 if (syncBoxIds == null)
                 {
                     Cloud.JsonContracts.SessionCreateAllRequest sessionCreateAll = new JsonContracts.SessionCreateAllRequest()
                     {
-                        SessionIds = CLDefinitions.RESTRequestSession_SyncBoxIdsAll,
+                        SessionIds = CLDefinitions.RESTRequestSession_SyncboxIdsAll,
                         TokenDuration = tokenDurationMinutes
                     };
                     requestContract = sessionCreateAll;
@@ -1773,7 +1773,7 @@ namespace Cloud
         #region LinkDeviceFirstTime
 
         /// <summary>
-        /// Asynchronously starts a request to create an account with a device and a new SyncBox.
+        /// Asynchronously starts a request to create an account with a device and a new Syncbox.
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
         /// <param name="aState">Userstate to pass when firing async callback</param>
@@ -1923,7 +1923,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Registers a user, links a device and creates a SyncBox, all at the same time.
+        /// Registers a user, links a device and creates a Syncbox, all at the same time.
         /// </summary>
         /// <param name="request">The parameters to send to the server.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>

@@ -32,7 +32,7 @@ namespace Cloud
         private readonly string _syncRoot = null;
 
         /// <summary>
-        /// The ID of this device, unique within the SyncBox.
+        /// The ID of this device, unique within the Syncbox.
         /// </summary>
         public string DeviceId
         {
@@ -118,7 +118,7 @@ namespace Cloud
         private readonly int _traceLevel;
 
         /// <summary>
-        /// The ID of this device, unique within the SyncBox.
+        /// The ID of this device, unique within the Syncbox.
         /// </summary>
         public string DeviceId
         {

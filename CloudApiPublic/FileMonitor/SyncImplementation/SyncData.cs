@@ -125,7 +125,7 @@ namespace Cloud.FileMonitor.SyncImplementation
         /// <param name="syncId">The Sync ID.</param>
         /// <param name="syncedEventIds">A list of successful events.</param>
         /// <param name="syncCounter">(output) Sync counter local identity.</param>
-        /// <param name="newRootPath">A new SyncBox folder full path, or null.</param>
+        /// <param name="newRootPath">A new Syncbox folder full path, or null.</param>
         /// <returns>An aggregated error, or null.</returns>
         public CLError completeSyncSql(string syncId,
             IEnumerable<long> syncedEventIds,

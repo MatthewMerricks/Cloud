@@ -384,12 +384,12 @@ namespace SampleLiveSync.ViewModels
                 return;
             }
 
-            // The temporary download file path cannot be in the SyncBox directory.
+            // The temporary download file path cannot be in the Syncbox directory.
             FilePath fpTemp = TempDownloadFolderFullPath;
-            FilePath fpSyncBox = _settingsCaller.SyncBoxFullPath;
-            if (fpTemp.Contains(fpSyncBox, insensitiveNameSearch: true))
+            FilePath fpSyncbox = _settingsCaller.SyncboxFullPath;
+            if (fpTemp.Contains(fpSyncbox, insensitiveNameSearch: true))
             {
-                MessageBox.Show("The temporary download folder cannot be inside the SyncBox directory.");
+                MessageBox.Show("The temporary download folder cannot be inside the Syncbox directory.");
                 this.IsTempDownloadFolderFullPathFocused = true;
                 return;
             }
@@ -412,11 +412,11 @@ namespace SampleLiveSync.ViewModels
                 return;
             }
 
-            // The database file path cannot be in the SyncBox directory.
+            // The database file path cannot be in the Syncbox directory.
             fpTemp = DatabaseFolderFullPath;
-            if (fpTemp.Contains(fpSyncBox, insensitiveNameSearch: true))
+            if (fpTemp.Contains(fpSyncbox, insensitiveNameSearch: true))
             {
-                MessageBox.Show("The database folder cannot be inside the SyncBox directory.");
+                MessageBox.Show("The database folder cannot be inside the Syncbox directory.");
                 this.IsDatabaseFolderFullPathFocused = true;
                 return;
             }
@@ -439,11 +439,11 @@ namespace SampleLiveSync.ViewModels
                 return;
             }
 
-            // The trace file path cannot be in the SyncBox directory.
+            // The trace file path cannot be in the Syncbox directory.
             fpTemp = TraceFolderFullPath;
-            if (fpTemp.Contains(fpSyncBox, insensitiveNameSearch: true))
+            if (fpTemp.Contains(fpSyncbox, insensitiveNameSearch: true))
             {
-                MessageBox.Show("The trace folder cannot be inside the SyncBox directory.");
+                MessageBox.Show("The trace folder cannot be inside the Syncbox directory.");
                 this.IsTraceFolderFullPathFocused = true;
                 return;
             }

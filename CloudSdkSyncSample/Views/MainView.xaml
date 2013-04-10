@@ -24,37 +24,37 @@
         </Grid.ColumnDefinitions>
         <GroupBox Header="Settings" HorizontalAlignment="Stretch" Grid.Row="1" Grid.Column="1">
             <StackPanel Orientation="Vertical" Margin="5,3,5,5">
-                <!-- SyncBox Folder -->
+                <!-- Syncbox Folder -->
                 <Grid>
-                    <Label Content="SyncBox _Folder:" Target="{Binding ElementName=tbSyncBoxFolder}"/>
-                    <Button x:Name="cmdBrowseSyncBoxFolder" HorizontalAlignment="Right" Width="50" FontSize="10"
-                            Height="20" Command="{Binding Path=CommandBrowseSyncBoxFolder, Mode=OneTime}" 
+                    <Label Content="Syncbox _Folder:" Target="{Binding ElementName=tbSyncboxFolder}"/>
+                    <Button x:Name="cmdBrowseSyncboxFolder" HorizontalAlignment="Right" Width="50" FontSize="10"
+                            Height="20" Command="{Binding Path=CommandBrowseSyncboxFolder, Mode=OneTime}" 
                             ToolTip="Click to choose a folder to sync.">
                         <AccessText Text="Bro_wse..."/>
                     </Button>
                 </Grid>
-                <TextBox x:Name="tbSyncBoxFolder" Margin="10,0,0,0" 
+                <TextBox x:Name="tbSyncboxFolder" Margin="10,0,0,0" Height="23"
                          Text="{Binding SyncRoot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         IsEnabled="{Binding TbSyncBoxFolderEnabled}"
-                         ext:FocusExtension.IsFocused="{Binding IsSyncBoxPathFocused}"
+                         IsEnabled="{Binding TbSyncboxFolderEnabled}"
+                         ext:FocusExtension.IsFocused="{Binding IsSyncboxPathFocused}"
                          ToolTip="Enter the full path of the folder to sync." />
                 <!-- Key -->
                 <Label Content="_Key:" Target="{Binding ElementName=tbKey}"/>
-                <TextBox Name="tbKey" Margin="10,0,0,0" 
+                <TextBox Name="tbKey" Margin="10,0,0,0" Height="23"
                         Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbKeyEnabled}"
                         ext:FocusExtension.IsFocused="{Binding IsKeyFocused}"
                         ToolTip="Paste the key from your Cloud DashBoard."/>
                 <!-- Secret -->
                 <Label Content="_Secret:" Target="{Binding ElementName=tbSecret}"/>
-                <TextBox x:Name="tbSecret" Margin="10,0,0,0" 
+                <TextBox x:Name="tbSecret" Margin="10,0,0,0" Height="23"
                         Text="{Binding Secret, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding TbSecretEnabled}"
                         ext:FocusExtension.IsFocused="{Binding IsSecretFocused}"
                         ToolTip="Paste the secret from your Cloud DashBoard."/>
                 <!-- Token -->
                 <Label Content="Toke_n (optional):" Target="{Binding ElementName=tbToken}"/>
-                <TextBox x:Name="tbToken" Margin="10,0,0,0" 
+                <TextBox x:Name="tbToken" Margin="10,0,0,0" Height="23"
                         Text="{Binding Token, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         IsEnabled="{Binding TbTokenEnabled}"
                         ext:FocusExtension.IsFocused="{Binding IsTokenFocused}"
@@ -69,23 +69,23 @@
                         <AccessText Text="G_enerate"/>
                     </Button>
                 </StackPanel>
-                            
+
                 <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                    <!-- SyncBox ID -->
-                    <Label Content="SyncBox _ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
-                    <TextBox x:Name="tbSyncBoxId" Margin="10,0,0,0" Width="175" HorizontalAlignment="Left"
-                         Text="{Binding SyncBoxId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         IsEnabled="{Binding TbSyncBoxIdEnabled}"
-                         ext:FocusExtension.IsFocused="{Binding IsSyncBoxIdFocused}"
-                         ToolTip="Paste the SyncBox ID from your Cloud DashBoard."/>
+                    <!-- Syncbox ID -->
+                    <Label Content="Syncbox _ID:" Target="{Binding ElementName=tbSyncboxId}"/>
+                    <TextBox x:Name="tbSyncboxId" Margin="10,0,0,0" Width="175" HorizontalAlignment="Left" Height="23"
+                         Text="{Binding SyncboxId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{Binding TbSyncboxIdEnabled}"
+                         ext:FocusExtension.IsFocused="{Binding IsSyncboxIdFocused}"
+                         ToolTip="Paste the Syncbox ID from your Cloud DashBoard."/>
                     <!-- Unique Device ID -->
-                    <Label Content="Unique _Device ID:" Target="{Binding ElementName=tbSyncBoxId}"/>
-                    <TextBox x:Name="tbDeviceId" Margin="10,0,0,0"  Width="160
-                             " HorizontalAlignment="Left"
+                    <Label Content="Unique _Device ID:" Target="{Binding ElementName=tbSyncboxId}"/>
+                    <TextBox x:Name="tbDeviceId" Margin="10,0,0,0" Width="160" Height="23"
+                         HorizontalAlignment="Left"
                          Text="{Binding DeviceId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbUniqueDeviceIdEnabled}"
                          ext:FocusExtension.IsFocused="{Binding IsDeviceIdFocused}"
-                         ToolTip="(Optional) A unique ID for this device.  If specified, it must be unique within this SyncBox ID."/>
+                         ToolTip="(Optional) A unique ID for this device.  If specified, it must be unique within this Syncbox ID."/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="10,10,0,0">
                     <Button x:Name="cmdShowAdvancedOptions" HorizontalAlignment="Left" Width="130" Height="40"
@@ -121,12 +121,12 @@
         <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
             <Button x:Name="cmdStartSyncing" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
                         Command="{Binding Path=CommandStartSyncing, Mode=OneTime}" 
-                        ToolTip="Click to start syncing the SyncBox.">
+                        ToolTip="Click to start syncing the Syncbox.">
                 <AccessText Text="Sta_rt Syncing"/>
             </Button>
             <Button x:Name="cmdStopSyncing" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"
                         Command="{Binding Path=CommandStopSyncing, Mode=OneTime}" 
-                        ToolTip="Click to stop syncing the SyncBox.">
+                        ToolTip="Click to stop syncing the Syncbox.">
                 <AccessText Text="Sto_p Syncing"/>
             </Button>
             <Button x:Name="cmdSyncStatus" HorizontalAlignment="Right" Width="100" Margin="0,0,20,0"

@@ -1,5 +1,5 @@
 ﻿//
-// SyncBoxUpdatePlanResponse.cs
+// SyncboxUpdatePlanResponse.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -16,11 +16,11 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncBox.UpdateSyncBoxPlan"/>
+    /// Result from <see cref="Cloud.CLSyncbox.UpdateSyncboxPlan"/>
     /// </summary>
     [DataContract]
-    [ContainsMetadataDictionary] // within SyncBox SyncBox
-    public sealed class SyncBoxUpdatePlanResponse
+    [ContainsMetadataDictionary] // within Syncbox Syncbox
+    public sealed class SyncboxUpdatePlanResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }
@@ -31,7 +31,7 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponsePlan, IsRequired = false)]
         public Plan Plan { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBox, IsRequired = false)]
-        public SyncBox SyncBox { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponseSyncbox, IsRequired = false)]
+        public Syncbox Syncbox { get; set; }
     }
 }

@@ -41,6 +41,9 @@ namespace Cloud.Static
         AlreadyStopped
     }
 
+    /// <summary>
+    /// The type of the event message.
+    /// </summary>
     public enum EventMessageType : byte
     {
         Informational,
@@ -53,6 +56,9 @@ namespace Cloud.Static
         DownloadingCountChanged
     }
 
+    /// <summary>
+    /// The type of the error message.
+    /// </summary>
     public enum ErrorMessageType : byte
     {
         General = 1,
@@ -133,7 +139,7 @@ namespace Cloud.Static
         /// </summary>
         ConnectionFailed,
         /// <summary>
-        /// The current SyncBox is actively syncing so cannot make modifications
+        /// The current Syncbox is actively syncing so cannot make modifications
         /// </summary>
         ReservedForActiveSync
     }

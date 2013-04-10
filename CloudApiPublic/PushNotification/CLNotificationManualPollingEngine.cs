@@ -23,7 +23,7 @@ namespace Cloud.PushNotification
         #region Private fields
 
         private static CLTrace _trace = CLTrace.Instance;
-        private CLSyncBox _syncBox = null;
+        private CLSyncbox _syncBox = null;
         private ICLSyncSettingsAdvanced _copiedSettings = null;
         private readonly object _locker = new object();
         private bool _isInitialized = false;
@@ -60,7 +60,7 @@ namespace Cloud.PushNotification
         #region Constructors
 
         public CLNotificationManualPollingEngine(
-                        CLSyncBox syncBox, 
+                        CLSyncbox syncBox, 
                         SendManualPoll delegateSendManualPoll)
         {
             if (syncBox == null)

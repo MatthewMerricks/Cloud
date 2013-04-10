@@ -12,12 +12,15 @@ using System.Text;
 
 namespace Cloud.PushNotification
 {
+    //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+    // \cond
     public enum NotificationEngines : uint
     {
         NotificationEngine_SSE,
         //NotificationEngine_WebSockets,
         NotificationEngine_ManualPolling,
     }
+    // \endcond
 
     public sealed class CLNotificationEvent
     {
@@ -35,12 +38,15 @@ namespace Cloud.PushNotification
         }
     }
 
+    //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+    // \cond
     public delegate void CreateEngineTimer(object userState);
     public delegate void StartEngineTimeout(int timeoutMilliseconds);
     public delegate void CancelEngineTimeout();
     public delegate void DisposeEngineTimer();
     public delegate void SendManualPoll();
     public delegate void SendNotificationEvent(CLNotificationEvent evt);
+    // \endcond
 
     internal interface ICLNotificationEngine
     {

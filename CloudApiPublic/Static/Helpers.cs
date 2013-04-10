@@ -1143,9 +1143,9 @@ namespace Cloud.Static
         /// <param name="FileExtensionWithoutPeriod">The file extension to use.  e.g., "log" or "xml".</param>
         /// <param name="OnNewTraceFile">An action that will be driven when a new trace file is created.</param>
         /// <param name="OnPreviousCompletion">An action that will be driven on the old trace file when a trace file rolls over.</param>
-        /// <param name="SyncBoxId">The relevant sync box id, or null</param>
+        /// <param name="SyncboxId">The relevant sync box id, or null</param>
         /// <returns>string: The full path and filename.ext of the trace file to use.</returns>
-        internal static string CheckLogFileExistance(string TraceLocation, Nullable<long> SyncBoxId, string UserDeviceId, string TraceCategory, string FileExtensionWithoutPeriod, Action<TextWriter, string, Nullable<long>, string> OnNewTraceFile, Action<TextWriter> OnPreviousCompletion)
+        internal static string CheckLogFileExistance(string TraceLocation, Nullable<long> SyncboxId, string UserDeviceId, string TraceCategory, string FileExtensionWithoutPeriod, Action<TextWriter, string, Nullable<long>, string> OnNewTraceFile, Action<TextWriter> OnPreviousCompletion)
         {
             // Get the last day we created a trace file for this category
             if (String.IsNullOrWhiteSpace(TraceCategory))
@@ -1188,7 +1188,7 @@ namespace Cloud.Static
             // Build the final full path of the trace file with filename and extension.
             string finalLocation = logFileBaseForCategoryWithoutExtension.FullName +
 
-                // Removed device id from trace file name since now my trace files have SyncBoxId for every entry -David
+                // Removed device id from trace file name since now my trace files have SyncboxId for every entry -David
                 //(UserDeviceId == null ? "" : "-" + UserDeviceId) +
 
                 "." + FileExtensionWithoutPeriod;
@@ -1333,9 +1333,9 @@ namespace Cloud.Static
                         {
                             using (TextWriter logWriter = File.CreateText(finalLocation))
                             {
-                                OnNewTraceFile(logWriter, finalLocation, SyncBoxId, UserDeviceId);
+                                OnNewTraceFile(logWriter, finalLocation, SyncboxId, UserDeviceId);
                                 //logWriter.Write(LogXmlStart(finalLocation,
-                                //    "DeviceUuid: {" + UserDeviceId + "}, SyncBoxId: {" + UniqueUserId + "}"));
+                                //    "DeviceUuid: {" + UserDeviceId + "}, SyncboxId: {" + UniqueUserId + "}"));
                             }
                         }
                         catch
@@ -1755,7 +1755,7 @@ namespace Cloud.Static
         /// Get the full path of the folder which will be used to store files while they are downloading.
         /// </summary>
         /// <param name="settings">The settings to use.</param>
-        /// <param name="syncBoxId">ID of the SyncBox</param>
+        /// <param name="syncBoxId">ID of the Syncbox</param>
         /// <returns>string: The full path of the temp download directory.</returns>
         /// <remarks>Can throw.</remarks>
         internal static string GetTempFileDownloadPath(ICLSyncSettingsAdvanced settings, long syncBoxId)
@@ -1807,10 +1807,10 @@ namespace Cloud.Static
         /// Get the full path of the folder which will be used to store the database file.
         /// </summary>
         /// <param name="DeviceId">Unique ID of this device</param>
-        /// <param name="SyncBoxId">ID of the SyncBox</param>
+        /// <param name="SyncboxId">ID of the Syncbox</param>
         /// <returns>string: The full path of the directory which will be used for the database file.</returns>
         /// <remarks>Can throw.</remarks>
-        internal static string GetDefaultDatabasePath(string DeviceId, long SyncBoxId)
+        internal static string GetDefaultDatabasePath(string DeviceId, long SyncboxId)
         {
             try
             {
@@ -1822,7 +1822,7 @@ namespace Cloud.Static
                 // Gather the path info
                 string sAppName = Helpers.GetDefaultNameFromApplicationName().Trim();
                 string sLocalDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Trim();
-                string sUniqueFolderName = SyncBoxId.ToString() + "-" + DeviceId.Trim();
+                string sUniqueFolderName = SyncboxId.ToString() + "-" + DeviceId.Trim();
                 return sLocalDir + "\\" + sAppName + "\\" + sUniqueFolderName;
             }
             catch (Exception ex)
@@ -1970,12 +1970,12 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileCopy), JsonContractHelpers.FileCopySerializer },
 
             #region platform management
-            { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
-            { typeof(JsonContracts.SyncBoxMetadata), JsonContractHelpers.SyncBoxMetadataSerializer },
-            { typeof(JsonContracts.SyncBoxQuota), JsonContractHelpers.SyncBoxQuotaSerializer },
-            { typeof(JsonContracts.SyncBoxIdOnly), JsonContractHelpers.SyncBoxDeleteSerializer },
-            { typeof(JsonContracts.SyncBoxUpdatePlanRequest), JsonContractHelpers.SyncBoxUpdatePlanRequestSerializer },
-            { typeof(JsonContracts.SyncBoxUpdateRequest), JsonContractHelpers.SyncBoxUpdateRequestSerializer },
+            { typeof(JsonContracts.SyncboxHolder), JsonContractHelpers.CreateSyncboxSerializer },
+            { typeof(JsonContracts.SyncboxMetadata), JsonContractHelpers.SyncboxMetadataSerializer },
+            { typeof(JsonContracts.SyncboxQuota), JsonContractHelpers.SyncboxQuotaSerializer },
+            { typeof(JsonContracts.SyncboxIdOnly), JsonContractHelpers.SyncboxDeleteSerializer },
+            { typeof(JsonContracts.SyncboxUpdatePlanRequest), JsonContractHelpers.SyncboxUpdatePlanRequestSerializer },
+            { typeof(JsonContracts.SyncboxUpdateRequest), JsonContractHelpers.SyncboxUpdateRequestSerializer },
             { typeof(JsonContracts.SessionCreateRequest), JsonContractHelpers.SessionCreateRequestSerializer },
             { typeof(JsonContracts.SessionCreateAllRequest), JsonContractHelpers.SessionCreateAllRequestSerializer },
             { typeof(JsonContracts.SessionDeleteRequest), JsonContractHelpers.SessionDeleteRequestSerializer },
@@ -2004,17 +2004,17 @@ namespace Cloud.Static
             { typeof(JsonContracts.Audios), JsonContractHelpers.AudiosSerializer },
             { typeof(JsonContracts.Archives), JsonContractHelpers.ArchivesSerializer },
             { typeof(JsonContracts.Recents), JsonContractHelpers.RecentsSerializer },
-            { typeof(JsonContracts.SyncBoxUsage), JsonContractHelpers.SyncBoxUsageSerializer },
+            { typeof(JsonContracts.SyncboxUsage), JsonContractHelpers.SyncboxUsageSerializer },
             { typeof(JsonContracts.Folders), JsonContractHelpers.FoldersSerializer },
             { typeof(JsonContracts.FolderContents), JsonContractHelpers.FolderContentsSerializer },
             { typeof(JsonContracts.AuthenticationErrorResponse), JsonContractHelpers.AuthenticationErrorResponseSerializer },
             //{ typeof(JsonContracts.AuthenticationErrorMessage), JsonContractHelpers.AuthenticationErrorMessageSerializer }, // deprecated
 
             #region platform management
-            { typeof(JsonContracts.SyncBoxHolder), JsonContractHelpers.CreateSyncBoxSerializer },
-            { typeof(JsonContracts.ListSyncBoxes), JsonContractHelpers.ListSyncBoxesSerializer },
+            { typeof(JsonContracts.SyncboxHolder), JsonContractHelpers.CreateSyncboxSerializer },
+            { typeof(JsonContracts.ListSyncboxes), JsonContractHelpers.ListSyncboxesSerializer },
             { typeof(JsonContracts.ListPlansResponse), JsonContractHelpers.ListPlansSerializer },
-            { typeof(JsonContracts.SyncBoxUpdatePlanResponse), JsonContractHelpers.SyncBoxUpdatePlanResponseSerializer },
+            { typeof(JsonContracts.SyncboxUpdatePlanResponse), JsonContractHelpers.SyncboxUpdatePlanResponseSerializer },
             { typeof(JsonContracts.SessionCreateResponse), JsonContractHelpers.SessionCreateResponseSerializer },
             { typeof(JsonContracts.ListSessionsResponse), JsonContractHelpers.ListSessionsSerializer },
             { typeof(JsonContracts.SessionShowResponse), JsonContractHelpers.SessionShowSerializer },
@@ -2023,7 +2023,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.UserRegistrationResponse), JsonContractHelpers.UserRegistrationResponseSerializer},
             { typeof(JsonContracts.DeviceResponse), JsonContractHelpers.DeviceResponseSerializer},
             { typeof(JsonContracts.LinkDeviceFirstTimeResponse), JsonContractHelpers.LinkDeviceFirstTimeResponseSerializer},
-            { typeof(JsonContracts.SyncBoxAuthResponse), JsonContractHelpers.SyncBoxAuthResponseSerializer},
+            { typeof(JsonContracts.SyncboxAuthResponse), JsonContractHelpers.SyncboxAuthResponseSerializer},
             { typeof(JsonContracts.LinkDeviceResponse), JsonContractHelpers.LinkDeviceResponseSerializer},
             { typeof(JsonContracts.UnlinkDeviceResponse), JsonContractHelpers.UnlinkDeviceResponseSerializer},
             #endregion
@@ -2048,7 +2048,7 @@ namespace Cloud.Static
                 MessageEvents.UpdateFileUpload(
                     eventId: eventSource.EventId, // the id for the event
                     parameters: status, // the event arguments describing the status change
-                    SyncBoxId: syncBoxId,
+                    SyncboxId: syncBoxId,
                     DeviceId: deviceId);
             }
             else
@@ -2056,7 +2056,7 @@ namespace Cloud.Static
                 MessageEvents.UpdateFileDownload(
                     eventId: eventSource.EventId, // the id for the event
                     parameters: status,  // the event arguments describing the status change
-                    SyncBoxId: syncBoxId,
+                    SyncboxId: syncBoxId,
                     DeviceId: deviceId);
             }
         }
@@ -2074,7 +2074,7 @@ namespace Cloud.Static
             ref CLHttpRestStatus status, // reference to the successful/failed state of communication
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredential Credential, // contains key/secret for authorization
-            Nullable<long> SyncBoxId, // unique id for the sync box on the server
+            Nullable<long> SyncboxId, // unique id for the sync box on the server
             RequestNewCredentialInfo RequestNewCredentialInfo = null)
         {
             return ProcessHttp<object>(requestContent,
@@ -2087,7 +2087,7 @@ namespace Cloud.Static
                 ref status,
                 CopiedSettings,
                 Credential,
-                SyncBoxId,
+                SyncboxId,
                 RequestNewCredentialInfo);
         }
         
@@ -2105,7 +2105,7 @@ namespace Cloud.Static
             ref CLHttpRestStatus status, // reference to the successful/failed state of communication
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredential Credential, // contains key/secret for authorization
-            Nullable<long> SyncBoxId,  // unique id for the sync box on the server
+            Nullable<long> SyncboxId,  // unique id for the sync box on the server
             RequestNewCredentialInfo RequestNewCredentialInfo = null)
             where T : class // restrict T to an object type to allow default null return
         {
@@ -2154,7 +2154,7 @@ namespace Cloud.Static
                         ref status,
                         CopiedSettings,
                         Credential,
-                        SyncBoxId);
+                        SyncboxId);
 
             // Part 2 of the "request new credential" processing.  This processing is invoked when temporary token credentials time out.
             // Here we watch for the "token expired" error.  We will ask the caller for a new temporary credential 
@@ -2231,7 +2231,7 @@ namespace Cloud.Static
                                 ref status,
                                 CopiedSettings,
                                 Credential,
-                                SyncBoxId);
+                                SyncboxId);
                 }
             }
 
@@ -2252,7 +2252,7 @@ namespace Cloud.Static
             ref CLHttpRestStatus status, // reference to the successful/failed state of communication
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredential Credential, // contains key/secret for authorization
-            Nullable<long> SyncBoxId) // unique id for the sync box on the server
+            Nullable<long> SyncboxId) // unique id for the sync box on the server
             where T : class // restrict T to an object type to allow default null return
         {
             if (AllHaltedOnUnrecoverableError)
@@ -2395,7 +2395,7 @@ namespace Cloud.Static
                 // trace communication for the current request
                 ComTrace.LogCommunication(CopiedSettings.TraceLocation, // location of trace file
                     CopiedSettings.DeviceId, // device id
-                    SyncBoxId, // user id
+                    SyncboxId, // user id
                     CommunicationEntryDirection.Request, // direction is request
                     serverUrl + serverMethodPath, // location for the server method
                     true, // trace is enabled
@@ -2580,7 +2580,7 @@ namespace Cloud.Static
                                         uploadDownload.RelativePathForStatus, // relative path of file
                                         totalBytesUploaded), // bytes uploaded so far
                                     uploadDownload.ChangeToTransfer, // the source of the event (the event itself)
-                                    SyncBoxId, // pass in sync box id to allow filtering
+                                    SyncboxId, // pass in sync box id to allow filtering
                                     CopiedSettings.DeviceId); // pass in device id to allow filtering
 
                                 if (uploadDownload.StatusUpdate != null
@@ -3078,7 +3078,7 @@ namespace Cloud.Static
                                                     uploadDownload.RelativePathForStatus, // relative path of file
                                                     totalBytesDownloaded), // current count of completed download bytes
                                             uploadDownload.ChangeToTransfer, // the source of the event, the event itself
-                                            SyncBoxId, // pass in sync box id for filtering
+                                            SyncboxId, // pass in sync box id for filtering
                                             CopiedSettings.DeviceId); // pass in device id for filtering
                                     }
                                     // flush file stream to finish the file
@@ -3090,23 +3090,55 @@ namespace Cloud.Static
                             // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
                             // attributes to set: creation time, last modified time, and last access time
 
-                            Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
-                                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
-                                true);
-                            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
-                                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
-                                true);
-                            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
-                                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
-                                true);
+                            IAfterDownloadCallbackState castDownloadState = ((downloadParams)uploadDownload).AfterDownloadUserState as IAfterDownloadCallbackState;
 
+                            if (castDownloadState == null)
+                            {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState is null."));
+                            }
+                            if (castDownloadState.LockerForDownloadedFileAccess == null)
+                            {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState.LockerForDownloadedFileAccess is null."));
+                            }
+                            lock (castDownloadState == null ? new object() : castDownloadState.LockerForDownloadedFileAccess ?? new object())
+                            {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: In lock LockerForDownloadedFileAccess."));
+                                if (castDownloadState != null
+                                    && !File.Exists(newTempFileString))
+                                {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: WARNING: Set file not found to trigger re-download."));
+                                    castDownloadState.SetFileNotFound();
+                                }
+                                else
+                                {
+                                    // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
+                                    // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
+                                    // attributes to set: creation time, last modified time, and last access time
 
-                            // fire callback to perform the actual move of the temp file to the final destination
-                            ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
-                                uploadDownload.ChangeToTransfer,
-                                ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
-                                ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
-                                newTempFile); // id for the downloaded file
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set file attributes for file: {0}.", uploadDownload.ChangeToTransfer.NewPath));
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file creation time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime.ToString("G")));
+                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
+                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
+                                        true);
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file last access time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
+                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
+                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                                        true);
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file last write time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
+                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
+                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                                        true);
+
+                                    // fire callback to perform the actual move of the temp file to the final destination
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Call AfterDownloadCallback. Path: {0}.", newTempFileString));
+                                    ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
+                                        uploadDownload.ChangeToTransfer,
+                                        ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
+                                        ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
+                                        newTempFile); // id for the downloaded file
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: After call to AfterDownloadCallback."));
+                                }
+                            }
 
                             // if the after downloading callback set the response to null, then replace it saying it was null
                             if (responseBody == null)
@@ -3123,6 +3155,7 @@ namespace Cloud.Static
                         }
                         catch (Exception ex)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: Exception: Msg: {0}.", ex.Message));
                             responseBody = (responseBody ?? "---responseBody set to null---").TrimEnd('-') + ": " + ex.Message + "---";
 
                             throw ex;
@@ -3151,7 +3184,7 @@ namespace Cloud.Static
                             // log communication for stream body
                             ComTrace.LogCommunication(CopiedSettings.TraceLocation, // trace file location
                                 CopiedSettings.DeviceId, // device id
-                                SyncBoxId, // user id
+                                SyncboxId, // user id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled
@@ -3252,7 +3285,7 @@ namespace Cloud.Static
                                     // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
                                     uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0),
                                 uploadDownload.ChangeToTransfer, // sender of event (the event itself)
-                                SyncBoxId, // pass in sync box id for filtering
+                                SyncboxId, // pass in sync box id for filtering
                                 CopiedSettings.DeviceId); // pass in device id for filtering
                         }
                     }
@@ -3298,7 +3331,7 @@ namespace Cloud.Static
                             // log communication for string body
                             ComTrace.LogCommunication(CopiedSettings.TraceLocation, // trace file location
                                 CopiedSettings.DeviceId, // device id
-                                SyncBoxId, // user id
+                                SyncboxId, // user id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled

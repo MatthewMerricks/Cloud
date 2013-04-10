@@ -755,8 +755,8 @@ EXCLUDE_SYMBOLS        = Cloud::Interfaces::ISyncDataObject \
                          Cloud::JsonContracts::Event \
                          Cloud::JsonContracts::Header \
                          Cloud::Static::ComTrace \
-			 Cloud::Model::StreamContext \
-			 Cloud::Model::UploadStreamContext \
+                         Cloud::Model::StreamContext \
+                         Cloud::Model::UploadStreamContext \
                          Cloud::JsonContracts::DeviceResponse \
                          Cloud::JsonContracts::LinkDeviceFirstTimeRequest \
                          Cloud::JsonContracts::LinkDeviceFirstTimeResponse \

@@ -30,7 +30,7 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.CLMetadataToPath, IsRequired = false)]
         public string RelativeToPath { get; set; }
 
-        [DataMember(Name = CLDefinitions.QueryStringSyncBoxId, IsRequired = false)]
-        public Nullable<long> SyncBoxId { get; set; }
+        [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
+        public Nullable<long> SyncboxId { get; set; }
     }
 }

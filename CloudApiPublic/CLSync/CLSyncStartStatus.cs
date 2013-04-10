@@ -18,11 +18,11 @@ namespace Cloud
     public enum CLSyncStartStatus : byte
     {
         Success = 0,
-        ErrorNullSyncBox = 1,
+        ErrorNullSyncbox = 1,
         ErrorTraceEnabledWithoutDirectory = 2,
-        ErrorDatabaseFolderInsideSyncBoxFolder = 3,
-        ErrorTraceFolderInsideSyncBoxFolder = 4,
-        ErrorTempDownloadFolderInsideSyncBoxFolder = 5,
+        ErrorDatabaseFolderInsideSyncboxFolder = 3,
+        ErrorTraceFolderInsideSyncboxFolder = 4,
+        ErrorTempDownloadFolderInsideSyncboxFolder = 5,
         ErrorNullDeviceId = 6,
         ErrorLongRootPath = 7,
         ErrorBadRootPath = 8,

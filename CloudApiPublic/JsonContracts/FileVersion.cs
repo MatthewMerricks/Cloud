@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result (in array format) from <see cref="Cloud.CLSyncBox.GetFileVersions"/>
+    /// Result (in array format) from <see cref="Cloud.CLSyncbox.GetFileVersions"/>
     /// </summary>
     [DataContract]
     public sealed class FileVersion

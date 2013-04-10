@@ -1,5 +1,5 @@
 ﻿//
-// ListSyncBoxes.cs
+// ListSyncboxes.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -16,11 +16,11 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLCredential.ListSyncBoxes"/>
+    /// Result from <see cref="Cloud.CLCredential.ListSyncboxes"/>
     /// </summary>
     [DataContract]
-    [ContainsMetadataDictionary] // within SyncBox[] SyncBoxes
-    public sealed class ListSyncBoxes
+    [ContainsMetadataDictionary] // within Syncbox[] Syncboxes
+    public sealed class ListSyncboxes
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }
@@ -28,7 +28,7 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
         public string Message { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxes, IsRequired = false)]
-        public SyncBox[] SyncBoxes { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxes, IsRequired = false)]
+        public Syncbox[] Syncboxes { get; set; }
     }
 }

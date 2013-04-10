@@ -537,7 +537,7 @@ namespace Cloud.Static
         }
 
         /// <remarks/>
-        public long SyncBoxId
+        public long SyncboxId
         {
             get
             {
@@ -551,7 +551,7 @@ namespace Cloud.Static
 
         /// <remarks/>
         [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool SyncBoxIdSpecified
+        public bool SyncboxIdSpecified
         {
             get
             {

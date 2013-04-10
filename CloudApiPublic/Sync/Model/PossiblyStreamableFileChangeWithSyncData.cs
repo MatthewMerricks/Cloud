@@ -59,7 +59,7 @@ namespace Cloud.Sync.Model
         }
         private ISyncDataObject _syncData;
 
-        public CLSyncBox SyncBox
+        public CLSyncbox Syncbox
         {
             get
             {
@@ -71,7 +71,7 @@ namespace Cloud.Sync.Model
                 return _syncBox;
             }
         }
-        private CLSyncBox _syncBox;
+        private CLSyncbox _syncBox;
 
         public string TempDownloadFolderPath
         {
@@ -152,15 +152,15 @@ namespace Cloud.Sync.Model
         }
         private bool _isValid;
 
-        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, CLSyncBox SyncBox, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
+        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, CLSyncbox Syncbox, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
         {
             if (SyncData == null)
             {
                 throw new NullReferenceException("SyncData cannot be null");
             }
-            if (SyncBox == null)
+            if (Syncbox == null)
             {
-                throw new NullReferenceException("SyncBox cannot be null");
+                throw new NullReferenceException("Syncbox cannot be null");
             }
             if (DownloadErrorTimer == null)
             {
@@ -173,7 +173,7 @@ namespace Cloud.Sync.Model
 
             this._fileChange = FileChange;
             this._syncData = SyncData;
-            this._syncBox = SyncBox;
+            this._syncBox = Syncbox;
             this._tempDownloadFolderPath = TempDownloadFolderPath;
             this._tempDownloadFileId = TempDownloadFileId;
             this._isValid = true;

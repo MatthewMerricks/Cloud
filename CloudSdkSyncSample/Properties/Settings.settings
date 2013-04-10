@@ -2,7 +2,7 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="SampleLiveSync.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="SyncBoxFullPath" Type="System.String" Scope="User">
+    <Setting Name="SyncboxFullPath" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="Key" Type="System.String" Scope="User">
@@ -11,7 +11,7 @@
     <Setting Name="Secret" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="SyncBoxId" Type="System.String" Scope="User">
+    <Setting Name="SyncboxId" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="UniqueDeviceId" Type="System.String" Scope="User">

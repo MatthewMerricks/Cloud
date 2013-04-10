@@ -1,5 +1,5 @@
 ﻿//
-// SyncBoxAuthResponse.cs
+// SyncboxAuthResponse.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -17,12 +17,12 @@ namespace Cloud.JsonContracts
 {
     [DataContract]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public sealed class SyncBoxAuthResponse
+    public sealed class SyncboxAuthResponse
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxAuth_Id, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxAuth_Id, IsRequired = false)]
         public Nullable<long> Id { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxAuth_FriendlyName, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxAuth_FriendlyName, IsRequired = false)]
         public string FriendlyName { get; set; }
     }
 }

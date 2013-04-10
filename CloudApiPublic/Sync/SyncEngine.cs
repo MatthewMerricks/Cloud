@@ -48,7 +48,7 @@ namespace Cloud.Sync
         // userstate to pass to status change callback
         private readonly object statusUpdatedUserState;
         // store settings source
-        private readonly CLSyncBox syncBox;
+        private readonly CLSyncbox syncBox;
         // store client for Http REST communication
         private readonly CLHttpRest httpRestClient;
         // time to wait before presuming communication failure
@@ -106,7 +106,7 @@ namespace Cloud.Sync
         /// Engine constructor
         /// </summary>
         /// <param name="syncData">Event source</param>
-        /// <param name="syncBox">SyncBox to sync</param>
+        /// <param name="syncBox">Syncbox to sync</param>
         /// <param name="httpRestClient">Http client for REST communication</param>
         /// <param name="engine">(output) Created SyncEngine</param>
         /// <param name="statusUpdated">(optional) Callback to fire upon update of the running status</param>
@@ -118,7 +118,7 @@ namespace Cloud.Sync
         /// <returns>Returns any error that occurred creating the SyncEngine, if any</returns>
         public static CLError CreateAndInitialize(
             ISyncDataObject syncData,
-            CLSyncBox syncBox,
+            CLSyncbox syncBox,
             CLHttpRest httpRestClient,
             out SyncEngine engine,
             bool DependencyDebugging,
@@ -126,7 +126,7 @@ namespace Cloud.Sync
             object statusUpdatedUserState = null,
             int HttpTimeoutMilliseconds = CLDefinitions.HttpTimeoutDefaultMilliseconds,
             byte MaxNumberOfFailureRetries = 20,
-            byte MaxNumberOfNotFounds = 10,
+            byte MaxNumberOfNotFounds = 3,
             int ErrorProcessingMillisecondInterval = 10000,// wait ten seconds between processing
             byte MaxNumberConnectionFailures = 40,
             int FailedOutRetryMillisecondInterval = 14400000) // wait four hours between retrying failed out changes
@@ -156,7 +156,7 @@ namespace Cloud.Sync
         }
 
         public SyncEngine(ISyncDataObject syncData,
-            CLSyncBox syncBox,
+            CLSyncbox syncBox,
             CLHttpRest httpRestClient,
             bool DependencyDebugging,
             System.Threading.WaitCallback statusUpdated,
@@ -220,7 +220,7 @@ namespace Cloud.Sync
             CLTrace.Initialize(this.syncBox.CopiedSettings.TraceLocation, "Cloud", "log", this.syncBox.CopiedSettings.TraceLevel, this.syncBox.CopiedSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "SyncEngine: SyncEngine: Entry.");
 
-            this.DefaultTempDownloadsPath = Helpers.GetTempFileDownloadPath(this.syncBox.CopiedSettings, this.syncBox.SyncBoxId);
+            this.DefaultTempDownloadsPath = Helpers.GetTempFileDownloadPath(this.syncBox.CopiedSettings, this.syncBox.SyncboxId);
 
             this.HttpTimeoutMilliseconds = HttpTimeoutMilliseconds;
             this.MaxNumberOfFailureRetries = MaxNumberOfFailureRetries;
@@ -587,6 +587,7 @@ namespace Cloud.Sync
                 }
                 else
                 {
+                    // Function to determine whether to continue in the do loop just below...  Returns true if there are more queued StatusChanges, or false, in which case it cleans up and causes the thread to exit at the bottom of the do loop.
                     Func<GenericHolder<bool>, Queue<KeyValuePair<Guid, ThreadStatus>>, GenericHolder<Timer>, GenericHolder<CLSyncCurrentStatus>, bool> continueProcessing = (threadRunning, statusQueue, killTimer, statusHolder) =>
                     {
                         lock (statusQueue)
@@ -628,14 +629,18 @@ namespace Cloud.Sync
                         }
                     };
 
+                    // There is guaranteed to be at least one StatusChange in the queue.  Otherwise, we wouldn't have been started, or we wouldn't have looped.
+                    // Loop until there are no more StatusChanges to process.
                     do
                     {
+                        // Pull the first queued StatusChange.
                         Nullable<KeyValuePair<Guid, ThreadStatus>> currentDequeued;
                         lock (castState.StatusChangesQueue)
                         {
                             currentDequeued = castState.StatusChangesQueue.Dequeue();
                         }
 
+                        // Function to pull another StatusChange from the queue.
                         Func<Queue<KeyValuePair<Guid, ThreadStatus>>, Nullable<KeyValuePair<Guid, ThreadStatus>>> moreToDequeue = statusQueue =>
                         {
                             lock (statusQueue)
@@ -652,6 +657,7 @@ namespace Cloud.Sync
                         };
 
                         // we are sure there is an item left in the queue since we just dequeued one to start, so no need to apply while condition till after
+                        // Loop pulling out all of the queued status changes and add them to the ThreadsToStatus dictionary for processing below.
                         do
                         {
                             KeyValuePair<Guid, ThreadStatus> nonNullDequeued = (KeyValuePair<Guid, ThreadStatus>)currentDequeued;
@@ -668,6 +674,7 @@ namespace Cloud.Sync
                         CLSyncCurrentState outputState = CLSyncCurrentState.Idle;
                         List<CLSyncTransferringFile> outputTransferring = null;
 
+                        // Loop processing the ThreadsToStatus dictionary items.
                         Nullable<DateTime> earliestToKill = null;
                         DateTime killTime = DateTime.UtcNow.Subtract(ThreadStatusTimeoutSpan);
                         List<Guid> removedStatusKeys = null;
@@ -746,7 +753,7 @@ namespace Cloud.Sync
 
                                 removedStatusKeys.Add(currentStatus.Key);
                             }
-                        }
+                        }  // end loop thru ThreadsToStatus dictionary.
 
                         if (removedStatusKeys != null)
                         {
@@ -799,6 +806,8 @@ namespace Cloud.Sync
 
                         lock (castState.StatusHolder)
                         {
+                            // outputTransferring is the list of CLSyncTransferringFiles with updated status.
+                            // The information in outputTransferring will be returned to the caller via castState.StatusHolder when he calls GetCurrentStatus().
                             castState.StatusHolder.Value = new CLSyncCurrentStatus(outputState,
                                 outputTransferring);
 
@@ -806,7 +815,7 @@ namespace Cloud.Sync
                             {
                                 try
                                 {
-                                    // Call the optional status changed callback.
+                                    // Call the optional status changed callback with the caller-provided user state.
                                     castState.StatusUpdated(castState.StatusUpdatedUserState);
                                 }
                                 catch
@@ -829,6 +838,7 @@ namespace Cloud.Sync
                     EventMessageLevel.Important,
                     new HaltAllOfCloudSDKErrorInfo());
             }
+            // Exit this thread here.
         }
         private static void ProcessKillTimer(object state)
         {
@@ -966,7 +976,8 @@ namespace Cloud.Sync
                             EventID = eventId,
                             LastUpdateTime = DateTime.UtcNow,
                             RelativePath = relativePath,
-                            TotalByteSize = totalByteSize
+                            TotalByteSize = totalByteSize,
+                            IsError = isError
                         }));
 
                     StartStatusAggregatorIfNotStarted();
@@ -1274,7 +1285,7 @@ namespace Cloud.Sync
 
                         MessageEvents.FireNewEventMessage(
                             "No internet connection detected. Retrying Sync after a short delay.",
-                            SyncBoxId: syncBox.SyncBoxId,
+                            SyncboxId: syncBox.SyncboxId,
                             DeviceId: syncBox.CopiedSettings.DeviceId);
 
                         return null;
@@ -1312,7 +1323,7 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         Message: "Started checking for sync changes to process",
                         Error: null,
-                        SyncBoxId: syncBox.SyncBoxId,
+                        SyncboxId: syncBox.SyncboxId,
                         DeviceId: syncBox.CopiedSettings.DeviceId);
 
                     // check for Sync shutdown
@@ -1459,7 +1470,7 @@ namespace Cloud.Sync
                         // advanced trace, SyncRunInitialErrors
                         if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.FileChange));
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, initialErrors.Select(currentInitialError => currentInitialError.FileChange));
                         }
 
                         // update last status
@@ -1517,7 +1528,7 @@ namespace Cloud.Sync
                                 (outputChangesCount == 0
                                     ? EventMessageLevel.Minor
                                     : EventMessageLevel.Important),
-                                SyncBoxId: syncBox.SyncBoxId,
+                                SyncboxId: syncBox.SyncboxId,
                                 DeviceId: syncBox.CopiedSettings.DeviceId);
                         }
                         catch (Exception ex)
@@ -1542,7 +1553,7 @@ namespace Cloud.Sync
                                 Message: "An error occurred checking for changes",
                                 Level: EventMessageLevel.Important,
                                 Error: new GeneralErrorInfo(),
-                                SyncBoxId: syncBox.SyncBoxId,
+                                SyncboxId: syncBox.SyncboxId,
                                 DeviceId: syncBox.CopiedSettings.DeviceId);
                         }
                     }
@@ -1730,7 +1741,7 @@ namespace Cloud.Sync
                                                 pendingsErrorString,
                                                 EventMessageLevel.Important,
                                                 /*Error*/ new GeneralErrorInfo(),
-                                                syncBox.SyncBoxId,
+                                                syncBox.SyncboxId,
                                                 syncBox.CopiedSettings.DeviceId);
                                         }
                                         catch (Exception ex)
@@ -1775,7 +1786,7 @@ namespace Cloud.Sync
                                                         ? "; Handle message event to prevent duplicate messages"
                                                         : string.Empty),
                                                 EventMessageLevel.Regular,
-                                                SyncBoxId: syncBox.SyncBoxId,
+                                                SyncboxId: syncBox.SyncboxId,
                                                 DeviceId: syncBox.CopiedSettings.DeviceId);
 
                                         innerUnhandledPreexistingUploadDownloadEventMessage = !innerConfirmingMetadataForPreexistingUploadDownloads;
@@ -1832,7 +1843,7 @@ namespace Cloud.Sync
                                     // advanced trace, InitialRunFileTransfer
                                     if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                     {
-                                        ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.InitialRunFileTransfer, new[] { topLevelChange.FileChange });
+                                        ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.InitialRunFileTransfer, new[] { topLevelChange.FileChange });
                                     }
 
                                     byte[] existingFileMD5;
@@ -1947,7 +1958,7 @@ namespace Cloud.Sync
                                                             fileMetadataErrorString,
                                                             EventMessageLevel.Regular,
                                                             /*Error*/new GeneralErrorInfo(),
-                                                            syncBox.SyncBoxId,
+                                                            syncBox.SyncboxId,
                                                             syncBox.CopiedSettings.DeviceId);
                                                     }
                                                     catch (Exception ex)
@@ -1983,7 +1994,7 @@ namespace Cloud.Sync
                                                                 fileVersionsErrorString,
                                                                 EventMessageLevel.Regular,
                                                                 /*Error*/new GeneralErrorInfo(),
-                                                                syncBox.SyncBoxId,
+                                                                syncBox.SyncboxId,
                                                                 syncBox.CopiedSettings.DeviceId);
                                                         }
                                                         catch (Exception ex)
@@ -2137,7 +2148,7 @@ namespace Cloud.Sync
                                                         {
                                                             MessageEvents.IncrementDownloadedCount(
                                                                 incrementAmount: 1,
-                                                                SyncBoxId: syncBox.SyncBoxId,
+                                                                SyncboxId: syncBox.SyncboxId,
                                                                 DeviceId: syncBox.CopiedSettings.DeviceId);
                                                         }
                                                     }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
@@ -2154,7 +2165,7 @@ namespace Cloud.Sync
                                                         {
                                                             MessageEvents.IncrementUploadedCount(
                                                                 incrementAmount: 1,
-                                                                SyncBoxId: syncBox.SyncBoxId,
+                                                                SyncboxId: syncBox.SyncboxId,
                                                                 DeviceId: syncBox.CopiedSettings.DeviceId);
                                                         }
                                                     }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
@@ -2250,8 +2261,8 @@ namespace Cloud.Sync
                         // for advanced trace, log SyncRunPreprocessedEventsSynchronous and SyncRunPreprocessedEventsAsynchronous
                         if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsSynchronous, synchronouslyPreprocessed);
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunPreprocessedEventsAsynchronous, asynchronouslyPreprocessed);
                         }
 
                         // status message(s)
@@ -2273,7 +2284,7 @@ namespace Cloud.Sync
                                         : syncFromCount.ToString() +
                                             " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
                                 EventMessageLevel.Important,
-                                SyncBoxId: syncBox.SyncBoxId,
+                                SyncboxId: syncBox.SyncboxId,
                                 DeviceId: syncBox.CopiedSettings.DeviceId);
                         }
                         if (asynchronouslyPreprocessed.Count != 0)
@@ -2294,7 +2305,7 @@ namespace Cloud.Sync
                                         : syncFromCount.ToString() +
                                             " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
                                 EventMessageLevel.Important,
-                                SyncBoxId: syncBox.SyncBoxId,
+                                SyncboxId: syncBox.SyncboxId,
                                 DeviceId: syncBox.CopiedSettings.DeviceId);
                         }
 
@@ -2362,7 +2373,7 @@ namespace Cloud.Sync
                                 // for advanced trace, SyncRunErrorSyncFromForCommunication
                                 if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                 {
-                                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunErrorSyncFromForCommunication, changesNotForCommunication.Select(currentChangeNotForCommunication => currentChangeNotForCommunication.FileChange));
+                                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunErrorSyncFromForCommunication, changesNotForCommunication.Select(currentChangeNotForCommunication => currentChangeNotForCommunication.FileChange));
                                 }
                             }
                         }
@@ -2410,8 +2421,8 @@ namespace Cloud.Sync
                         // for advanced trace, SyncRunRequeuedFailuresBeforeCommunication and SyncRunChangesForCommunication
                         if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, failuresBeforeCommunicationToLog);
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunRequeuedFailuresBeforeCommunication, failuresBeforeCommunicationToLog);
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, changesForCommunication.Select(currentChangeForCommunication => currentChangeForCommunication.FileChange));
                         }
 
                         // update latest status
@@ -2562,7 +2573,7 @@ namespace Cloud.Sync
                                     errorMessage,
                                     EventMessageLevel.Important,
                                     /*Error*/new HaltSyncEngineOnAuthenticationFailureErrorInfo(credentialsError == CredentialErrorType.ExpiredCredentials),
-                                    syncBox.SyncBoxId,
+                                    syncBox.SyncboxId,
                                     syncBox.CopiedSettings.DeviceId);
                             }
                             catch (Exception ex)
@@ -2621,9 +2632,9 @@ namespace Cloud.Sync
                             // for advanced trace, CommunicationCompletedChanges, CommunicationIncompletedChanges, and CommunicationChangesInError
                             if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
-                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
-                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
+                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange));
+                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.CommunicationIncompletedChanges, incompleteChanges.Select(currentIncompleteChange => currentIncompleteChange.FileChange));
+                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.CommunicationChangesInError, changesInError.Select(currentChangeInError => currentChangeInError.FileChange));
                             }
 
                             // if there are completed changes, then loop through them to process success
@@ -2729,7 +2740,7 @@ namespace Cloud.Sync
                                 // For advanced trace, SyncRunPostCommunicationDequeuedFailures
                                 if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                 {
-                                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
+                                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationDequeuedFailures, dequeuedFailures);
                                 }
 
                                 // Declare enumerable for errors to set after dependency calculations
@@ -2852,8 +2863,8 @@ namespace Cloud.Sync
                                         // For advanced trace, DependencyAssignmentOutputChanges and DependencyAssignmentTopLevelErrors
                                         if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                                         {
-                                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
-                                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
+                                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, outputChanges.Select(currentOutputChange => currentOutputChange.FileChange));
+                                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, topLevelErrors);
                                         }
 
                                         // outputChanges now excludes any FileChanges which overlapped with the existing list of thingsThatWereDependenciesToQueue
@@ -2996,7 +3007,7 @@ namespace Cloud.Sync
                             // advanced trace, SyncRunPostCommunicationSynchronous
                             if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
+                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, postCommunicationSynchronousChanges);
                             }
 
                             // update latest status
@@ -3086,7 +3097,7 @@ namespace Cloud.Sync
                                                 {
                                                     MessageEvents.IncrementDownloadedCount(
                                                         incrementAmount: 1,
-                                                        SyncBoxId: syncBox.SyncBoxId,
+                                                        SyncboxId: syncBox.SyncboxId,
                                                         DeviceId: syncBox.CopiedSettings.DeviceId);
                                                 }
                                             }, TaskContinuationOptions.NotOnFaulted); // only increment count when not faulted
@@ -3101,7 +3112,7 @@ namespace Cloud.Sync
                                                 {
                                                     MessageEvents.IncrementUploadedCount(
                                                         incrementAmount: 1,
-                                                        SyncBoxId: syncBox.SyncBoxId,
+                                                        SyncboxId: syncBox.SyncboxId,
                                                         DeviceId: syncBox.CopiedSettings.DeviceId);
                                                 }
                                             }, TaskContinuationOptions.NotOnFaulted); // only increment count when not faulted
@@ -3177,7 +3188,7 @@ namespace Cloud.Sync
                             // advanced trace, SyncRunPostCommunicationAsynchronous
                             if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
+                                ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationAsynchronous, postCommunicationAsynchronousChanges);
                             }
 
 
@@ -3200,7 +3211,7 @@ namespace Cloud.Sync
                                             : syncFromCount.ToString() +
                                                 " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
                                     EventMessageLevel.Important,
-                                    SyncBoxId: syncBox.SyncBoxId,
+                                    SyncboxId: syncBox.SyncboxId,
                                     DeviceId: syncBox.CopiedSettings.DeviceId);
                             }
                             if (postCommunicationAsynchronousChanges.Count != 0)
@@ -3221,7 +3232,7 @@ namespace Cloud.Sync
                                             : syncFromCount.ToString() +
                                                 " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
                                     EventMessageLevel.Important,
-                                    SyncBoxId: syncBox.SyncBoxId,
+                                    SyncboxId: syncBox.SyncboxId,
                                     DeviceId: syncBox.CopiedSettings.DeviceId);
                             }
 
@@ -3232,7 +3243,7 @@ namespace Cloud.Sync
                             MessageEvents.FireNewEventMessage(
                                 "Finished processing sync changes",
                                 EventMessageLevel.Minor,
-                                SyncBoxId: syncBox.SyncBoxId,
+                                SyncboxId: syncBox.SyncboxId,
                                 DeviceId: syncBox.CopiedSettings.DeviceId);
 
                             // update latest status
@@ -3293,7 +3304,7 @@ namespace Cloud.Sync
                         // advanced trace, SyncRunEndThingsThatWereDependenciesToQueue
                         if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                         {
-                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
+                            ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunEndThingsThatWereDependenciesToQueue, thingsThatWereDependenciesToQueue);
                         }
                     }
                     // on catch, add dependencies to failure queue
@@ -3347,7 +3358,7 @@ namespace Cloud.Sync
                 if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow
                     && errorsToQueue != null) // <-- fixed a parameter exception on the Enumerable.Select extension method used in the trace statement
                 {
-                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, syncRunEndFailuresToLog);
+                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.SyncRunEndRequeuedFailures, syncRunEndFailuresToLog);
                 }
 
                 // errorsToQueue is no longer used (all its errors were added back to the failure queue)
@@ -3437,7 +3448,7 @@ namespace Cloud.Sync
                     "SyncEngine halted after repeated failure to communicate over one of the Cloud server domains",
                     EventMessageLevel.Important,
                     /*Error*/new HaltSyncEngineOnConnectionFailureErrorInfo(),
-                    syncBox.SyncBoxId,
+                    syncBox.SyncboxId,
                     syncBox.CopiedSettings.DeviceId);
 
                 if (statusUpdated != null)
@@ -3732,7 +3743,7 @@ namespace Cloud.Sync
                                                         "Unable to upload file due to large size. Expected to fail again, therefore will not try immediately. Path: " + errorToQueue.FileChange.NewPath.ToString(),
                                                         EventMessageLevel.Important,
                                                         /*Error*/new GeneralErrorInfo(),
-                                                        syncBox.SyncBoxId,
+                                                        syncBox.SyncboxId,
                                                         syncBox.CopiedSettings.DeviceId);
                                                 }
 
@@ -3834,6 +3845,7 @@ namespace Cloud.Sync
                         && (toComplete.FileChange.Type == FileChangeType.Created
                             || toComplete.FileChange.Type == FileChangeType.Modified))
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Process this change as a download."));
                         // define bool to store whether a file already exists on disk with a matching hash and size
                         bool fileMatches = false;
 
@@ -3845,10 +3857,12 @@ namespace Cloud.Sync
                         {
                             try
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Set MD5 from revision because there was no MD5."));
                                 toCompleteBytes = Helpers.ParseHexadecimalStringToByteArray(toComplete.FileChange.Metadata.Revision);
                             }
                             catch
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: ERROR: Set MD5 null."));
                                 toCompleteBytes = null;
                             }
                         }
@@ -3856,6 +3870,7 @@ namespace Cloud.Sync
                         // if able to retrieve MD5 from either the GetMD5Bytes or by parsing revision, then check if file already matches on disk
                         if (toCompleteBytes != null)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: MD5 not null."));
                             // try/catch to compare event has with file on disk, silence exception
                             try
                             {
@@ -3867,6 +3882,7 @@ namespace Cloud.Sync
                                 if (existingInfo.Exists
                                     && existingInfo.Length == (toComplete.FileChange.Metadata.HashableProperties.Size ?? -1))
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Open a FileStream to read MD5."));
                                     // open read share stream on file at event path for reading to generate hash
                                     using (FileStream existingStream = new FileStream(toCompletePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                                     {
@@ -3899,15 +3915,18 @@ namespace Cloud.Sync
                                     }
                                 }
                             }
-                            catch
+                            catch (Exception ex)
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Exception silenced: Msg: {0}.", ex.Message));
                             }
                         }
 
                         // if a file was marked to exist at the event path with a matching file size and MD5 hash, then mark that it was already successfully downloaded synchronously
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Check whether file matches."));
                         if (fileMatches)
                         {
                             // immediately successful
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: File matches."));
                             immediateSuccessEventId = toComplete.FileChange.EventId;
                             // no task to run
                             asyncTask = null;
@@ -3916,6 +3935,7 @@ namespace Cloud.Sync
                         else
                         {
                             // not immediately successful
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: File does not match. Start download task."));
                             immediateSuccessEventId = null;
                             Guid asyncTaskThreadId = Guid.NewGuid();
                             // create task for download
@@ -3931,7 +3951,7 @@ namespace Cloud.Sync
                                         FileToDownload = toComplete.FileChange,
                                         MD5 = toCompleteBytes,
                                         SyncData = syncData,
-                                        SyncBox = syncBox,
+                                        Syncbox = syncBox,
                                         TempDownloadFolderPath = TempDownloadsFolder,
                                         ShutdownToken = FullShutdownToken,
                                         MoveCompletedDownload = MoveCompletedDownload,
@@ -3960,7 +3980,7 @@ namespace Cloud.Sync
                                     "Error applying change locally: " + applyChangeError.errorDescription,
                                     EventMessageLevel.Regular,
                                     /*Error*/new GeneralErrorInfo(),
-                                    syncBox.SyncBoxId,
+                                    syncBox.SyncboxId,
                                     syncBox.CopiedSettings.DeviceId);
                             }
                             catch
@@ -4008,7 +4028,7 @@ namespace Cloud.Sync
                                 FailureTimer = FailureTimer,
                                 FileToUpload = toComplete.FileChange,
                                 SyncData = syncData,
-                                SyncBox = syncBox,
+                                Syncbox = syncBox,
                                 StreamContext = toComplete.StreamContext,
                                 ShutdownToken = FullShutdownToken,
                                 HttpTimeoutMilliseconds = HttpTimeoutMilliseconds,
@@ -4103,7 +4123,7 @@ namespace Cloud.Sync
                     {
                         if (castState.ShutdownToken.Token.IsCancellationRequested)
                         {
-                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings);
+                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.Syncbox.CopiedSettings);
                         }
                     }
                     finally
@@ -4150,9 +4170,9 @@ namespace Cloud.Sync
                         throw new NullReferenceException("UploadTaskState must contain SyncData");
                     }
 
-                    if (castState.SyncBox == null)
+                    if (castState.Syncbox == null)
                     {
-                        throw new NullReferenceException("UploadTaskState must contain SyncBox");
+                        throw new NullReferenceException("UploadTaskState must contain Syncbox");
                     }
 
                     if (castState.FailedChangesQueue == null)
@@ -4236,7 +4256,7 @@ namespace Cloud.Sync
                                 if (castState != null
                                     && castState.FileToUpload != null
                                     && castState.FileToUpload.NewPath != null
-                                    && castState.SyncBox != null
+                                    && castState.Syncbox != null
                                     && castState.FileToUpload.Metadata != null
                                     && castState.StatusUpdate != null
                                     && castState.FileToUpload.Metadata.HashableProperties.Size != null)
@@ -4245,7 +4265,7 @@ namespace Cloud.Sync
                                         castState.ThreadId, // threadId
                                         castState.FileToUpload.EventId, // eventId
                                         SyncDirection.To, // direction
-                                        castState.FileToUpload.NewPath.GetRelativePath(castState.SyncBox.CopiedSettings.SyncRoot, false), // relativePath
+                                        castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false), // relativePath
                                         (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
                                         (long)castState.FileToUpload.Metadata.HashableProperties.Size, // totalByteSize
                                         true); // error occurred
@@ -4257,8 +4277,8 @@ namespace Cloud.Sync
                                     "Change to file detected while uploading. Upload will restart with latest data.",
                                     EventMessageLevel.Regular,
                                     new GeneralErrorInfo(),
-                                    castState.SyncBox.SyncBoxId,
-                                    castState.SyncBox.CopiedSettings.DeviceId);
+                                    castState.Syncbox.SyncboxId,
+                                    castState.Syncbox.CopiedSettings.DeviceId);
 
                                 // return without EventId so that "ContinueWith"s will not mark the event complete in the database, nor increment the download count
                                 return new EventIdAndCompletionProcessor(0, null, null);
@@ -4269,27 +4289,27 @@ namespace Cloud.Sync
                     }
 
                     // for advanced trace, UploadDownloadSuccess
-                    if ((castState.SyncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    if ((castState.Syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        ComTrace.LogFileChangeFlow(castState.SyncBox.CopiedSettings.TraceLocation, castState.SyncBox.CopiedSettings.DeviceId, castState.SyncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
+                        ComTrace.LogFileChangeFlow(castState.Syncbox.CopiedSettings.TraceLocation, castState.Syncbox.CopiedSettings.DeviceId, castState.Syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { castState.FileToUpload });
                     }
 
                     // status message
                     MessageEvents.FireNewEventMessage(
                         "File finished uploading from path " + castState.FileToUpload.NewPath.ToString(),
                         EventMessageLevel.Regular,
-                        SyncBoxId: castState.SyncBox.SyncBoxId,
-                        DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
+                        SyncboxId: castState.Syncbox.SyncboxId,
+                        DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
 
                     // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
-                    return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.SyncBox.CopiedSettings);
+                    return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.Syncbox.CopiedSettings);
                 }
                 catch
                 {
                     // advanced trace, UploadDownloadFailure
-                    if ((castState.SyncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    if ((castState.Syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        ComTrace.LogFileChangeFlow(castState.SyncBox.CopiedSettings.TraceLocation, castState.SyncBox.CopiedSettings.DeviceId, castState.SyncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToUpload == null ? null : new FileChange[] { castState.FileToUpload }));
+                        ComTrace.LogFileChangeFlow(castState.Syncbox.CopiedSettings.TraceLocation, castState.Syncbox.CopiedSettings.DeviceId, castState.Syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToUpload == null ? null : new FileChange[] { castState.FileToUpload }));
                     }
 
                     // rethrow
@@ -4298,10 +4318,11 @@ namespace Cloud.Sync
             }
             catch (Exception ex)
             {
+                // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window).
                 if (castState != null
                     && castState.FileToUpload != null
                     && castState.FileToUpload.NewPath != null
-                    && castState.SyncBox != null
+                    && castState.Syncbox != null
                     && castState.FileToUpload.Metadata != null
                     && castState.StatusUpdate != null
                     && castState.FileToUpload.Metadata.HashableProperties.Size != null)
@@ -4310,10 +4331,31 @@ namespace Cloud.Sync
                         castState.ThreadId, // threadId
                         castState.FileToUpload.EventId, // eventId
                         SyncDirection.To, // direction
-                        castState.FileToUpload.NewPath.GetRelativePath(castState.SyncBox.CopiedSettings.SyncRoot, false), // relativePath
+                        castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false), // relativePath
                         (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
                         (long)castState.FileToUpload.Metadata.HashableProperties.Size, // totalByteSize
                         true); // error occurred
+                }
+
+                // Also call back to update the upload EventMessage (used by the RateBar controls on the status window.
+                // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window).
+                if (castState != null
+                    && castState.FileToUpload != null
+                    && castState.FileToUpload.Metadata != null
+                    && castState.FileToUpload.Metadata.HashableProperties.Size != null
+                    && castState.FileToUpload.NewPath != null
+                    && castState.Syncbox != null)
+                {
+                    Helpers.HandleUploadDownloadStatus(
+                                            new CLStatusFileTransferUpdateParameters(
+                                                    DateTime.Now,   // use the current local time as the start time, since we never really got started.
+                                                    (long)castState.FileToUpload.Metadata.HashableProperties.Size,
+                                                    castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false),
+                                                    (long)castState.FileToUpload.Metadata.HashableProperties.Size
+                                            ),
+                                            castState.FileToUpload,
+                                            castState.Syncbox.SyncboxId,
+                                            castState.Syncbox.CopiedSettings.DeviceId);
                 }
 
                 // if the error was any that are not recoverable, display a message to the user for the serious problem and return
@@ -4345,10 +4387,10 @@ namespace Cloud.Sync
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
-                else if (castState.SyncBox == null)
+                else if (castState.Syncbox == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "uploadState must contain SyncBox and thus unable cleanup after upload error: " + ex.Message,
+                        "uploadState must contain Syncbox and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
@@ -4395,7 +4437,7 @@ namespace Cloud.Sync
                                 castState.StreamContext, // upload stream for failed event
                                 ignoreStreamException: true), // ignore stream exception because we set the reference castState.UploadStream to null when it is normally disposed
                             castState.SyncData, // event source for updating when needed
-                            castState.SyncBox), // settings for tracing or logging errors
+                            castState.Syncbox), // settings for tracing or logging errors
                         "Error in upload Task, see inner exception", // exception message
                         ex); // original exception
 
@@ -4526,20 +4568,21 @@ namespace Cloud.Sync
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
                     Error: new GeneralErrorInfo(),
-                    SyncBoxId: exceptionState.SyncBox.SyncBoxId,
-                    DeviceId: exceptionState.SyncBox.CopiedSettings.DeviceId);
+                    SyncboxId: exceptionState.Syncbox.SyncboxId,
+                    DeviceId: exceptionState.Syncbox.CopiedSettings.DeviceId);
 
             }
             catch (Exception innerEx)
             {
                 // log error that occurred in attempting to clean up the error
-                ((CLError)innerEx).LogErrors(exceptionState.SyncBox.CopiedSettings.TraceLocation, exceptionState.SyncBox.CopiedSettings.LogErrors);
+                ((CLError)innerEx).LogErrors(exceptionState.Syncbox.CopiedSettings.TraceLocation, exceptionState.Syncbox.CopiedSettings.LogErrors);
             }
         }
 
         // Code to run for a download Task (object state should be a DownloadTaskState)
         private static EventIdAndCompletionProcessor DownloadForTask(object downloadState)
         {
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Entry."));
             if (Helpers.AllHaltedOnUnrecoverableError)
             {
                 throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
@@ -4600,9 +4643,9 @@ namespace Cloud.Sync
                     throw new NullReferenceException("DownloadTaskState must contain SyncData");
                 }
 
-                if (castState.SyncBox == null)
+                if (castState.Syncbox == null)
                 {
-                    throw new NullReferenceException("DownloadTaskState must contain SyncBox");
+                    throw new NullReferenceException("DownloadTaskState must contain Syncbox");
                 }
 
                 if (string.IsNullOrWhiteSpace(castState.TempDownloadFolderPath))
@@ -4661,7 +4704,7 @@ namespace Cloud.Sync
                 {
                     if (castState.ShutdownToken.Token.IsCancellationRequested)
                     {
-                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.TempDownloadFolderPath);
+                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.Syncbox.CopiedSettings, castState.TempDownloadFolderPath);
                     }
                 }
                 finally
@@ -4675,8 +4718,10 @@ namespace Cloud.Sync
                 lock (TempDownloads)
                 {
                     // try to retrieve the current download id map for the current temp download folder and if unsuccesful, then add a new download id map
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Locked TempDownloads."));
                     if (!TempDownloads.TryGetValue(castState.TempDownloadFolderPath, out currentDownloads))
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Add to TempDownloads: {0}.", castState.TempDownloadFolderPath));
                         TempDownloads.Add(castState.TempDownloadFolderPath,
                             currentDownloads = new Dictionary<long, List<DownloadIdAndMD5>>());
                     }
@@ -4685,6 +4730,9 @@ namespace Cloud.Sync
                 // lock on current download id map for modification
                 lock (currentDownloads)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Locked currentDownloads."));
+                    Nullable<DownloadIdAndMD5> storeMatchedExistingDownload = null;
+
                     // declare list of download ids and hashes for the current file size
                     List<DownloadIdAndMD5> tempDownloadsInSize;
                     // try to retrieve the list of download ids and hashes by current file size and if found,
@@ -4692,18 +4740,22 @@ namespace Cloud.Sync
                     if (currentDownloads.TryGetValue((long)castState.FileToDownload.Metadata.HashableProperties.Size,
                         out tempDownloadsInSize))
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Found size in currentDownloads: {0}.", (long)castState.FileToDownload.Metadata.HashableProperties.Size));
                         // loop through temp downloads
                         foreach (DownloadIdAndMD5 currentTempDownload in tempDownloadsInSize)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Process currentTempDownload Id: {0}.", currentTempDownload.Id));
                             // if the hash for the temp download matches the current event, then check the hash against the file itself to verify match
                             if (NativeMethods.memcmp(castState.MD5, currentTempDownload.MD5, new UIntPtr((uint)castState.MD5.Length)) == 0)
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: MD5 matches."));
                                 // try/catch to check hash of file, silencing errors
                                 try
                                 {
                                     string existingDownloadPath = castState.TempDownloadFolderPath + "\\" + currentTempDownload.Id.ToString("N");
                                     if (System.IO.File.Exists(existingDownloadPath))
                                     {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File exists: {0}.", existingDownloadPath));
                                         // create MD5 to calculate hash
                                         MD5 md5Hasher = MD5.Create();
 
@@ -4715,11 +4767,26 @@ namespace Cloud.Sync
                                         // declare int for storying how many bytes were read on each buffer transfer
                                         int fileReadBytes;
 
+                                        GenericHolder<FileStream> verifyTempDownloadStreamHolder = new GenericHolder<FileStream>(null);
+
+                                        Helpers.RunActionWithRetries(
+                                            downloadStreamState =>
+                                            {
+                                                downloadStreamState.verifyTempDownloadStreamHolder.Value = new FileStream(downloadStreamState.existingDownloadPath,
+                                                    FileMode.Open,
+                                                    FileAccess.Read,
+                                                    FileShare.Read);
+                                            },
+                                            new
+                                            {
+                                                verifyTempDownloadStreamHolder = verifyTempDownloadStreamHolder,
+                                                existingDownloadPath = existingDownloadPath
+                                            },
+                                            throwExceptionOnFailure: true);
+
                                         // open a file read stream for reading the hash at the existing temp file location
-                                        using (FileStream verifyTempDownloadStream = new FileStream(existingDownloadPath,
-                                            FileMode.Open,
-                                            FileAccess.Read,
-                                            FileShare.Read))
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Created FileStream."));
+                                        using (FileStream verifyTempDownloadStream = verifyTempDownloadStreamHolder.Value)
                                         {
                                             // loop till there are no more bytes to read, on the loop condition perform the buffer transfer from the file and store the read byte count
                                             while ((fileReadBytes = verifyTempDownloadStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
@@ -4735,10 +4802,24 @@ namespace Cloud.Sync
 
                                             // if the existing temp file has the same size and an identical hash, then use the existing file for the current download
                                             if (sizeCounter == (long)castState.FileToDownload.Metadata.HashableProperties.Size // matching size
-                                                && NativeMethods.memcmp(currentTempDownload.MD5, md5Hasher.Hash, new UIntPtr((uint)md5Hasher.Hash.Length)) == 0) // matching hash
+                                                && NativeMethods.memcmp(currentTempDownload.MD5, md5Hasher.Hash, new UIntPtr((uint)md5Hasher.Hash.Length)) == 0 // matching hash
+
+                                                // matching creation time
+                                                && (castState.FileToDownload.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || castState.FileToDownload.Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || DateTime.Compare(castState.FileToDownload.Metadata.HashableProperties.CreationTime, System.IO.File.GetCreationTimeUtc(existingDownloadPath)) == 0)
+
+                                                // matching last time
+                                                && (castState.FileToDownload.Metadata.HashableProperties.LastTime.Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || castState.FileToDownload.Metadata.HashableProperties.LastTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
+                                                    || (DateTime.Compare(castState.FileToDownload.Metadata.HashableProperties.LastTime, System.IO.File.GetLastAccessTimeUtc(existingDownloadPath)) == 0
+                                                        && DateTime.Compare(castState.FileToDownload.Metadata.HashableProperties.LastTime, System.IO.File.GetLastWriteTimeUtc(existingDownloadPath)) == 0)))
                                             {
                                                 // use the existing file instead of downloading
+                                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Use this existing file Id instead of downloading: {0}.", currentTempDownload.Id));
                                                 newTempFile = currentTempDownload.Id;
+
+                                                storeMatchedExistingDownload = currentTempDownload;
 
                                                 // stop checking existing files upon match
                                                 break;
@@ -4746,148 +4827,217 @@ namespace Cloud.Sync
                                         }
                                     }
                                 }
-                                catch
+                                catch (Exception ex)
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: ignored: Msg: {0}.", ex.Message));
                                 }
                             }
                         }
                     }
-                }
 
-                // define the response body for download, defaulting to null
-                string responseBody = null;
+                    // define the response body for download, defaulting to null
+                    string responseBody = null;
 
-                // if a file already exists which matches the current download, then move the existing file instead of starting a new download
-                if (newTempFile != null)
-                {
-                    // calculate and store the path for the existing file
-                    string newTempFileString = castState.TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
-
-                    // move the file from the temp download path to the final location
-                    castState.MoveCompletedDownload(newTempFileString, // temp download path
-                        castState.FileToDownload, // event for the file download
-                        ref responseBody, // reference to the response body which will be set as "completed" if successful
-                        castState.FailureTimer, // timer for the failure queue
-                        (Guid)newTempFile); // the id of the existing temp file
-
-                    // using the existing temp file download succeeded so return success immediately
-                    return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // id of succesful event
-                        castState.SyncData, // event source for notifying completion
-                        castState.SyncBox.CopiedSettings, // settings for tracing and error logging
-                        castState.TempDownloadFolderPath); // path to the folder containing temp downloads
-                }
-
-                // declare the enumeration to store the state of the download
-                CLHttpRestStatus downloadStatus;
-                // perform the download of the file, storing any error that occurs
-                CLError downloadError = castState.RestClient.DownloadFile(castState.FileToDownload, // the download change
-                    OnAfterDownloadToTempFile, // handler for when downloading completes, needs to move the file to the final location and update the status string message
-                    new OnAfterDownloadToTempFileState() // userstate which will be passed along when the callback is fired when downloading completes
+                    // if a file already exists which matches the current download, then move the existing file instead of starting a new download
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Check for newTempFile."));
+                    if (newTempFile != null)
                     {
-                        FailureTimer = castState.FailureTimer, // pass-through the timer for the failure queue
-                        MoveCompletedDownload = castState.MoveCompletedDownload // pass-through the delegate to fire which moves the file from the temporary download location to the final location
-                    },
-                    castState.HttpTimeoutMilliseconds ?? 0, // milliseconds before communication throws exception from timeout, excludes the time it takes to actually download the file
-                    out downloadStatus, // output the status of the communication
-                    OnBeforeDownloadToTempFile, // handler for when downloading is going to start, which stores the new download id to a local dictionary
-                    new OnBeforeDownloadToTempFileState() // userstate which will be passed along when the callback is fired before downloading starts
-                    {
-                        currentDownloads = currentDownloads, // pass-through the dictionary of current downloads
-                        FileToDownload = castState.FileToDownload, // pass-through the file change itself
-                        MD5 = castState.MD5 // pass-through the MD5 hash of the file
-                    },
-                    castState.ShutdownToken, // the cancellation token which can cause the download to stop in the middle
-                    castState.TempDownloadFolderPath, // the full path to the folder which will contain all the temporary-downloaded files
-                    castState.StatusUpdate,
-                    castState.ThreadId);
+                        // calculate and store the path for the existing file
+                        string newTempFileString = castState.TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
 
-                // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+                        // move the file from the temp download path to the final location
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Call MoveCompletedDownload for file: {0}.", newTempFileString));
+                        castState.MoveCompletedDownload(newTempFileString, // temp download path
+                            castState.FileToDownload, // event for the file download
+                            ref responseBody, // reference to the response body which will be set as "completed" if successful
+                            castState.FailureTimer, // timer for the failure queue
+                            (Guid)newTempFile); // the id of the existing temp file
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Back from MoveCompletedDownload."));
 
-                if (downloadStatus == CLHttpRestStatus.ConnectionFailed)
-                {
-                    lock (castState.UploadDownloadServerConnectionFailureCount)
-                    {
-                        if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)255))
+                        if (storeMatchedExistingDownload != null)
                         {
-                            castState.UploadDownloadServerConnectionFailureCount.Value = (byte)(castState.UploadDownloadServerConnectionFailureCount.Value + 1);
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: storeMatchedExistingDownload not null."));
+                            tempDownloadsInSize.Remove((DownloadIdAndMD5)storeMatchedExistingDownload);
+                            if (tempDownloadsInSize.Count == 0)
+                            {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Remove this size from currentDownloads:L {0}.", (long)castState.FileToDownload.Metadata.HashableProperties.Size));
+                                currentDownloads.Remove((long)castState.FileToDownload.Metadata.HashableProperties.Size);
+                            }
+                        }
+
+                        // using the existing temp file download succeeded so return success immediately
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Return EventIdAndCompletionProcessor EventId: {0}.", castState.FileToDownload.EventId));
+                        EventIdAndCompletionProcessor toReturn = new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // id of succesful event
+                                    castState.SyncData, // event source for notifying completion
+                                    castState.Syncbox.CopiedSettings, // settings for tracing and error logging
+                                    castState.TempDownloadFolderPath); // path to the folder containing temp downloads
+                        return toReturn;
+                    }
+                }  // end lock (currentDownloads)
+
+                // repeat download infinitely on condition that each time the download is also being checked by a duplicate coming through the above existing download checker and removing the one which is about to be downloaded below
+
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Out of currentDownloads lock."));
+                GenericHolder<bool> downloadFoundToMoveUnderTempDownloadsLock = null;
+                do
+                {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: EventIdAndCompletionDownloadForTaskProcessor: Top of download loop."));
+                    if (downloadFoundToMoveUnderTempDownloadsLock == null)
+                    {
+                        downloadFoundToMoveUnderTempDownloadsLock = new GenericHolder<bool>(true);
+                    }
+                    else
+                    {
+                        downloadFoundToMoveUnderTempDownloadsLock.Value = true;
+                    }
+
+                    // declare the enumeration to store the state of the download
+                    CLHttpRestStatus downloadStatus;
+                    // perform the download of the file, storing any error that occurs
+                    CLError downloadError = castState.RestClient.DownloadFile(castState.FileToDownload, // the download change
+                        OnAfterDownloadToTempFile, // handler for when downloading completes, needs to move the file to the final location and update the status string message
+                        new OnAfterDownloadToTempFileState() // userstate which will be passed along when the callback is fired when downloading completes
+                        {
+                            FailureTimer = castState.FailureTimer, // pass-through the timer for the failure queue
+                            MoveCompletedDownload = castState.MoveCompletedDownload, // pass-through the delegate to fire which moves the file from the temporary download location to the final location
+                            CurrentDownloads = currentDownloads,
+                            DownloadFoundToMoveUnderTempDownloadsLock = downloadFoundToMoveUnderTempDownloadsLock
+                        },
+                        castState.HttpTimeoutMilliseconds ?? 0, // milliseconds before communication throws exception from timeout, excludes the time it takes to actually download the file
+                        out downloadStatus, // output the status of the communication
+                        OnBeforeDownloadToTempFile, // handler for when downloading is going to start, which stores the new download id to a local dictionary
+                        new OnBeforeDownloadToTempFileState() // userstate which will be passed along when the callback is fired before downloading starts
+                        {
+                            currentDownloads = currentDownloads, // pass-through the dictionary of current downloads
+                            FileToDownload = castState.FileToDownload, // pass-through the file change itself
+                            MD5 = castState.MD5 // pass-through the MD5 hash of the file
+                        },
+                        castState.ShutdownToken, // the cancellation token which can cause the download to stop in the middle
+                        castState.TempDownloadFolderPath, // the full path to the folder which will contain all the temporary-downloaded files
+                        castState.StatusUpdate,
+                        castState.ThreadId);
+
+                    // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+
+                    if (downloadStatus == CLHttpRestStatus.ConnectionFailed)
+                    {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: Connection failed."));
+                        lock (castState.UploadDownloadServerConnectionFailureCount)
+                        {
+                            if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)255))
+                            {
+                                castState.UploadDownloadServerConnectionFailureCount.Value = (byte)(castState.UploadDownloadServerConnectionFailureCount.Value + 1);
+                            }
                         }
                     }
-                }
-                else
-                {
-                    lock (castState.UploadDownloadServerConnectionFailureCount)
+                    else
                     {
-                        if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)0))
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Connection OK."));
+                        lock (castState.UploadDownloadServerConnectionFailureCount)
                         {
-                            castState.UploadDownloadServerConnectionFailureCount.Value = 0;
+                            if (castState.UploadDownloadServerConnectionFailureCount.Value != ((byte)0))
+                            {
+                                castState.UploadDownloadServerConnectionFailureCount.Value = 0;
+                            }
                         }
                     }
-                }
 
-                // if there was an error while downloading, rethrow the error
-                if (downloadError != null)
-                {
-                    throw new AggregateException("An error occurred downloading a file", downloadError.GrabExceptions());
-                }
+                    // if there was an error while downloading, rethrow the error
+                    if (downloadError != null)
+                    {
+                        throw new AggregateException("An error occurred downloading a file", downloadError.GrabExceptions());
+                    }
 
-                // The download was successful (no exceptions), but it may have been cancelled.
-                if (downloadStatus == CLHttpRestStatus.Cancelled
-                    && castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread
-                {
-                    return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.SyncBox.CopiedSettings, castState.TempDownloadFolderPath);
-                }
+                    // The download was successful (no exceptions), but it may have been cancelled.
+                    if (downloadStatus == CLHttpRestStatus.Cancelled
+                        && castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread
+                    {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: CANCELLED:  Return a zero ID."));
+                        EventIdAndCompletionProcessor toReturn = new EventIdAndCompletionProcessor(0, castState.SyncData, castState.Syncbox.CopiedSettings, castState.TempDownloadFolderPath);
+                        return toReturn;
+                    }
 
-                // if the download was not a success throw an error
-                if (downloadStatus != CLHttpRestStatus.Success)
-                {
-                    throw new Exception("The return status from downloading a file was not successful: CLHttpRestStatus." + downloadStatus.ToString());
-                }
+                    // if the download was not a success throw an error
+                    if (downloadStatus != CLHttpRestStatus.Success)
+                    {
+                        throw new Exception("The return status from downloading a file was not successful: CLHttpRestStatus." + downloadStatus.ToString());
+                    }
 
-                if (downloadStatus != CLHttpRestStatus.Cancelled) // possible that it was cancelled if path was set as null when event was cancelled out on another thread
-                {
-                    // status message
-                    MessageEvents.FireNewEventMessage(
-                        "File finished downloading to path " + castState.FileToDownload.NewPath.ToString(),
-                        EventMessageLevel.Regular,
-                        SyncBoxId: castState.SyncBox.SyncBoxId,
-                        DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
+                    if (downloadStatus != CLHttpRestStatus.Cancelled) // possible that it was cancelled if path was set as null when event was cancelled out on another thread
+                    {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading message."));
+                        // status message
+                        MessageEvents.FireNewEventMessage(
+                            "File finished downloading to path " + castState.FileToDownload.NewPath.ToString(),
+                            EventMessageLevel.Regular,
+                            SyncboxId: castState.Syncbox.SyncboxId,
+                            DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
+                    }
                 }
+                while (!downloadFoundToMoveUnderTempDownloadsLock.Value);
 
                 // return the success
-                return new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Return success for EventId: {0}.", castState.FileToDownload.EventId));
+                EventIdAndCompletionProcessor toReturn2 = new EventIdAndCompletionProcessor(castState.FileToDownload.EventId, // successful event id
                     castState.SyncData, // event source to handle callback for completing the event
-                    castState.SyncBox.CopiedSettings, // settings for tracing and logging errors
+                    castState.Syncbox.CopiedSettings, // settings for tracing and logging errors
                     castState.TempDownloadFolderPath); // location of folder for temp downloads
+                return toReturn2;
             }
             catch (Exception ex)
             {
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: Exception (2): Msg: {0}.", ex.Message));
                 if (castState != null
                     && castState.FileToDownload != null
                     && castState.FileToDownload.NewPath != null
-                    && castState.SyncBox != null
+                    && castState.Syncbox != null
                     && castState.FileToDownload.Metadata != null
                     && castState.StatusUpdate != null
                     && castState.FileToDownload.Metadata.HashableProperties.Size != null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Call StatusUpdate."));
                     castState.StatusUpdate(
                         castState.ThreadId, // threadId
                         castState.FileToDownload.EventId, // eventId
                         SyncDirection.From, // direction
-                        castState.FileToDownload.NewPath.GetRelativePath(castState.SyncBox.CopiedSettings.SyncRoot, false), // relativePath
+                        castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false), // relativePath
                         (long)castState.FileToDownload.Metadata.HashableProperties.Size, // byteProgress
                         (long)castState.FileToDownload.Metadata.HashableProperties.Size, // totalByteSize
                         true); // error occurred
                 }
-                // for advanced trace, UploadDownloadFailure
-                if ((castState.SyncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+
+                // Also call back to update the download EventMessage (used by the RateBar controls on the status window).
+                // Call the StatusUpdate callback to update the summary information for this download ("center section" of the status window).
+                if (castState != null
+                    && castState.FileToDownload != null
+                    && castState.FileToDownload.Metadata != null
+                    && castState.FileToDownload.Metadata.HashableProperties.Size != null
+                    && castState.FileToDownload.NewPath != null
+                    && castState.Syncbox != null)
                 {
-                    ComTrace.LogFileChangeFlow(castState.SyncBox.CopiedSettings.TraceLocation, castState.SyncBox.CopiedSettings.DeviceId, castState.SyncBox.SyncBoxId,
+                    Helpers.HandleUploadDownloadStatus(
+                                            new CLStatusFileTransferUpdateParameters(
+                                                    DateTime.Now,   // use the current local time as the start time, since we never really got started.
+                                                    (long)castState.FileToDownload.Metadata.HashableProperties.Size,
+                                                    castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false),
+                                                    (long)castState.FileToDownload.Metadata.HashableProperties.Size
+                                            ),
+                                            castState.FileToDownload,
+                                            castState.Syncbox.SyncboxId,
+                                            castState.Syncbox.CopiedSettings.DeviceId);
+                }
+
+                // for advanced trace, UploadDownloadFailure
+                if ((castState.Syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                {
+                    ComTrace.LogFileChangeFlow(castState.Syncbox.CopiedSettings.TraceLocation, castState.Syncbox.CopiedSettings.DeviceId, castState.Syncbox.SyncboxId,
                         FileChangeFlowEntryPositionInFlow.UploadDownloadFailure, (castState.FileToDownload == null ? null : new FileChange[] { castState.FileToDownload }));
                 }
 
                 // if there was a download event, then fire the eventhandler for finishing the status of the transfer
                 if (castState.FileToDownload != null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Try to finish status of the transfer."));
                     // try/catch to finish the status of the transfer, failing silently
                     try
                     {
@@ -4905,19 +5055,20 @@ namespace Cloud.Sync
                                 // try to build the same relative path that would be used in the normal status, falling back first to the full path then to an empty string
                                 (castState.FileToDownload.NewPath == null
                                     ? string.Empty
-                                    : castState.SyncBox.CopiedSettings == null
+                                    : castState.Syncbox.CopiedSettings == null
                                         ? castState.FileToDownload.NewPath.ToString()
-                                        : castState.FileToDownload.NewPath.GetRelativePath((castState.SyncBox.CopiedSettings.SyncRoot ?? string.Empty), false) ?? string.Empty),
+                                        : castState.FileToDownload.NewPath.GetRelativePath((castState.Syncbox.CopiedSettings.SyncRoot ?? string.Empty), false) ?? string.Empty),
 
                                 // need to send a total downloaded bytes which matches the file size so they are equal to cancel the status
                                 (castState.FileToDownload.Metadata == null
                                     ? 0 // if the event has no metadata, then use 0 as total downloaded bytes
                                     : castState.FileToDownload.Metadata.HashableProperties.Size ?? 0)), // else if the event has metadata, then use the size as total uploaded bytes or use 0
-                            SyncBoxId: castState.SyncBox.SyncBoxId,
-                            DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
+                            SyncboxId: castState.Syncbox.SyncboxId,
+                            DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
                     }
                     catch
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Fail silently."));
                     }
                 }
 
@@ -4926,6 +5077,7 @@ namespace Cloud.Sync
 
                 if (castState == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate null."));
                     MessageEvents.FireNewEventMessage(
                         "Unable to cast downloadState as DownloadTaskState and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4935,6 +5087,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.FileToDownload == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.FileToDownload null."));
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain FileToDownload and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4944,6 +5097,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.SyncData == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.SyncData null."));
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain SyncData and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4951,10 +5105,11 @@ namespace Cloud.Sync
 
                     return new EventIdAndCompletionProcessor(0, null, null);
                 }
-                else if (castState.SyncBox == null)
+                else if (castState.Syncbox == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.Syncbox null."));
                     MessageEvents.FireNewEventMessage(
-                        "downloadState must contain SyncBox and thus unable cleanup after download error: " + ex.Message,
+                        "downloadState must contain Syncbox and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
 
@@ -4962,6 +5117,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.MaxNumberOfFailureRetries == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.MaxNumberOfFailureRetries null."));
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain MaxNumberOfFailureRetries and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4971,6 +5127,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.MaxNumberOfNotFounds == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.MaxNumberOfNotFounds null."));
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain MaxNumberOfNotFounds and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4980,6 +5137,7 @@ namespace Cloud.Sync
                 }
                 else if (castState.FailedChangesQueue == null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: caststate.FailedChangesQueue null."));
                     MessageEvents.FireNewEventMessage(
                         "uploadState must contain FailedChangesQueue and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
@@ -4992,6 +5150,7 @@ namespace Cloud.Sync
                 else
                 {
                     // wrap the error to execute for cleanup
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Wrap the error for cleanup."));
                     ExecutableException<PossiblyStreamableFileChangeWithSyncData> wrappedEx = new ExecutableException<PossiblyStreamableFileChangeWithSyncData>(ProcessDownloadError, // callback with the code to handle cleanup
                         new PossiblyStreamableFileChangeWithSyncData(castState.FailedChangesQueue, // failure queue for reprocessing failed events
                             (byte)castState.MaxNumberOfFailureRetries, // how many times to retry on failure before stopping
@@ -4999,7 +5158,7 @@ namespace Cloud.Sync
                             castState.FailureTimer, // timer for failure queue
                             new PossiblyStreamableFileChange(castState.FileToDownload, null), // event which failed
                             castState.SyncData, // event source for updating when needed
-                            castState.SyncBox), // settings for tracing or logging errors
+                            castState.Syncbox), // settings for tracing or logging errors
                         "Error in download Task, see inner exception", // exception message
                         ex); // original exception
 
@@ -5014,6 +5173,7 @@ namespace Cloud.Sync
                     && castState.FileToDownload != null
                     && castState.RemoveFileChangeEvents != null)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Finally RemoveFileChangeEvents: {0}.", castState.FileToDownload.NewPath));
                     castState.RemoveFileChangeEvents(castState.FileToDownload);
                 }
             }
@@ -5032,6 +5192,7 @@ namespace Cloud.Sync
         /// <param name="tempId">Unique ID created for the file and used as the file's name in the temp download directory</param>
         private static void OnAfterDownloadToTempFile(string tempFileFullPath, FileChange downloadChange, ref string responseBody, object UserState, Guid tempId)
         {
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Entry. path: {0}. Id: {1}.", tempFileFullPath, tempId));
             OnAfterDownloadToTempFileState castState = UserState as OnAfterDownloadToTempFileState;
 
             if (castState == null)
@@ -5046,6 +5207,10 @@ namespace Cloud.Sync
             {
                 throw new NullReferenceException("UserState must have MoveCompletedDownload");
             }
+            if (castState.CurrentDownloads == null)
+            {
+                throw new NullReferenceException("UserState must have CurrentDownloads");
+            }
 
             // fire callback to perform the actual move of the temp file to the final destination
             castState.MoveCompletedDownload(tempFileFullPath, // location of temp file
@@ -5053,12 +5218,57 @@ namespace Cloud.Sync
                 ref responseBody, // reference to response string (sets to "completed" on success)
                 castState.FailureTimer, // timer for failure queue
                 tempId); // id for the downloaded file
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Back from MoveCompletedDownload."));
+
+            List<DownloadIdAndMD5> downloadsByCurrentSize;
+            if (castState.CurrentDownloads.TryGetValue((long)downloadChange.Metadata.HashableProperties.Size, out downloadsByCurrentSize))
+            {
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Found a list."));
+                bool foundAtLeastOneToRemove = false;
+
+                downloadsByCurrentSize.RemoveAll(downloadAtCurrentSize =>
+                    {
+                        if (downloadAtCurrentSize.Id == tempId)
+                        {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Found it."));
+                            foundAtLeastOneToRemove = true;
+                            return true;
+                        }
+
+                        return false;
+                    });
+
+                if (foundAtLeastOneToRemove && downloadsByCurrentSize.Count == 0)
+                {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Remove this download from current list."));
+                    castState.CurrentDownloads.Remove((long)downloadChange.Metadata.HashableProperties.Size);
+                }
+            }
         }
 
-        private sealed class OnAfterDownloadToTempFileState
+        private sealed class OnAfterDownloadToTempFileState : IAfterDownloadCallbackState
         {
+            object IAfterDownloadCallbackState.LockerForDownloadedFileAccess
+            {
+                get
+                {
+                    return CurrentDownloads;
+                }
+            }
+
+            void IAfterDownloadCallbackState.SetFileNotFound()
+            {
+                if (DownloadFoundToMoveUnderTempDownloadsLock != null)
+                {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: SetFileNotFound: Set DownloadFoundToMoveUnderTempDownloadsLock false."));
+                    DownloadFoundToMoveUnderTempDownloadsLock.Value = false;
+                }
+            }
+
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public MoveCompletedDownloadDelegate MoveCompletedDownload { get; set; }
+            public Dictionary<long, List<DownloadIdAndMD5>> CurrentDownloads { get; set; }
+            public GenericHolder<bool> DownloadFoundToMoveUnderTempDownloadsLock { get; set; }
         }
 
         private static void OnBeforeDownloadToTempFile(Guid tempId, object UserState)
@@ -5129,7 +5339,7 @@ namespace Cloud.Sync
             public Dictionary<long, List<DownloadIdAndMD5>> currentDownloads { get; set; }
         }
 
-        // code to handle cleanup when an error occurred during upload
+        // code to handle cleanup when an error occurred during download
         private static void ProcessDownloadError(PossiblyStreamableFileChangeWithSyncData exceptionState, AggregateException exceptions)
         {
             // try/catch cleanup after a download error, on catch log the error that occurred during cleanup
@@ -5291,13 +5501,13 @@ namespace Cloud.Sync
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
                     Error: new GeneralErrorInfo(),
-                    SyncBoxId: exceptionState.SyncBox.SyncBoxId,
-                    DeviceId: exceptionState.SyncBox.CopiedSettings.DeviceId);
+                    SyncboxId: exceptionState.Syncbox.SyncboxId,
+                    DeviceId: exceptionState.Syncbox.CopiedSettings.DeviceId);
             }
             catch (Exception innerEx)
             {
                 // log the error that occurred trying to cleanup after a download error
-                ((CLError)innerEx).LogErrors(exceptionState.SyncBox.CopiedSettings.TraceLocation, exceptionState.SyncBox.CopiedSettings.LogErrors);
+                ((CLError)innerEx).LogErrors(exceptionState.Syncbox.CopiedSettings.TraceLocation, exceptionState.Syncbox.CopiedSettings.LogErrors);
             }
         }
         /// <summary>
@@ -5312,7 +5522,7 @@ namespace Cloud.Sync
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public ISyncDataObject SyncData { get; set; }
             public string TempDownloadFolderPath { get; set; }
-            public CLSyncBox SyncBox { get; set; }
+            public CLSyncbox Syncbox { get; set; }
             public CancellationTokenSource ShutdownToken { get; set; }
             public MoveCompletedDownloadDelegate MoveCompletedDownload { get; set; }
             public Nullable<int> HttpTimeoutMilliseconds { get; set; }
@@ -5334,7 +5544,7 @@ namespace Cloud.Sync
             public StreamContext StreamContext { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public ISyncDataObject SyncData { get; set; }
-            public CLSyncBox SyncBox { get; set; }
+            public CLSyncbox Syncbox { get; set; }
             public CancellationTokenSource ShutdownToken { get; set; }
             public Nullable<int> HttpTimeoutMilliseconds { get; set; }
             public Nullable<byte> MaxNumberOfFailureRetries { get; set; }
@@ -5512,6 +5722,7 @@ namespace Cloud.Sync
         {
             // Create a new file move change (from the temp download file path to the final destination) and perform it via the event source, storing any error that occurs
             // And store any errors returned from performing the file move operation via the event source
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Entry. TempFile: {0}. newPath: {1}.", newTempFileString, completedDownload.NewPath));
             CLError applyError = syncData.applySyncFromChange(new FileChange()
                 {
                     Direction = SyncDirection.From, // File downloads are always Sync From operations
@@ -5523,6 +5734,7 @@ namespace Cloud.Sync
                 },
             onLockState =>
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: onLockState Entry."));
                     if (onLockState.fileDownloadMoveLocker != null)
                     {
                         Monitor.Enter(onLockState.fileDownloadMoveLocker);
@@ -5541,6 +5753,7 @@ namespace Cloud.Sync
                 },
             onBeforeUnlockState =>
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: onBeforeLockState Entry."));
                     if (onBeforeUnlockState.fileDownloadMoveLocker != null)
                     {
                         Monitor.Exit(onBeforeUnlockState.fileDownloadMoveLocker);
@@ -5565,7 +5778,7 @@ namespace Cloud.Sync
                 // For advanced trace, UploadDownloadSuccess
                 if ((syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
+                    ComTrace.LogFileChangeFlow(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, new FileChange[] { completedDownload });
                 }
 
                 // Pull the location of the temp download folder by finding the directory path portion before the name of the downloaded file
@@ -5587,17 +5800,20 @@ namespace Cloud.Sync
                 // lock on current download id map for modification
                 lock (currentDownloads)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Locked currentDownloads."));
                     // declare the map of file size to download ids
                     List<DownloadIdAndMD5> foundSize;
                     // try to get the download ids for the current download size and if successful, then try to find the current download id to remove
                     if (currentDownloads.TryGetValue((long)completedDownload.Metadata.HashableProperties.Size, out foundSize))
                     {
                         // loop through the download ids
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Found size: {0}.", (long)completedDownload.Metadata.HashableProperties.Size));
                         foreach (DownloadIdAndMD5 tempDownloadsInSize in foundSize.ToArray())
                         {
                             // if the current download id matches, then remove the download id from its list and stop searching
                             if (tempDownloadsInSize.Id == newTempFile)
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Found Id: {0}.  Remove from foundSize array.", newTempFile));
                                 foundSize.Remove(tempDownloadsInSize);
                                 break;
                             }
@@ -5606,6 +5822,7 @@ namespace Cloud.Sync
                         // if the download ids have been cleared out for this file size, then remove the current download ids
                         if (foundSize.Count == 0)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: foundSize count zero.  Remove this size from currentDownloads."));
                             currentDownloads.Remove((long)completedDownload.Metadata.HashableProperties.Size);
                         }
                     }
@@ -5613,6 +5830,7 @@ namespace Cloud.Sync
 
                 // record the download completion response
                 responseBody = "---Completed file download---";
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Set responseBody completed."));
 
                 // try cast download event as one with dependencies
                 FileChangeWithDependencies toCompleteWithDependencies = completedDownload as FileChangeWithDependencies;
@@ -5620,12 +5838,14 @@ namespace Cloud.Sync
                 if (toCompleteWithDependencies != null
                     && toCompleteWithDependencies.DependenciesCount > 0)
                 {
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Add dependencies to processing queue in event source."));
                     // try/catch to add the dependencies to the processing queue in the event source, on catch add the dependencies to the failure queue instead
                     try
                     {
                         // create a folder for a list of events in error that could not be added to the processing queue in the event source
                         GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
                         // add dependencies to processing queue in the event source, storing any error that occurs
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Call addChangesToProcessingQueue."));
                         CLError err = syncData.addChangesToProcessingQueue(toCompleteWithDependencies.Dependencies, // dependencies to add
                             /* add to top */ true, // add dependencies to top of queue
                             errList); // holder for list of dependencies which could not be added to the processing queue
@@ -5633,6 +5853,7 @@ namespace Cloud.Sync
                         // if there is a list of dependencies which failed to add to the dependency queue, then add them to the failure queue for reprocessing
                         if (errList.Value != null)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Some dependencies were not added to dependency queue."));
                             // define a bool for whether at least one failed event was added to the failure queue
                             bool atLeastOneFailureAdded = false;
 
@@ -5640,9 +5861,11 @@ namespace Cloud.Sync
                             lock (failureTimer)
                             {
                                 // loop through the dependencies which failed to add to the processing queue
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Locked failureTimer."));     
                                 foreach (FileChange currentError in errList.Value)
                                 {
                                     // add the failed event to the failure queue
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Add currentError: {0}.", currentError.NewPath));     
                                     FailedChangesQueue.Enqueue(currentError);
 
                                     // mark that an event was added to the failure queue
@@ -5652,6 +5875,7 @@ namespace Cloud.Sync
                                 // if at least one event was added to the failure queue, then start the failure queue timer
                                 if (atLeastOneFailureAdded)
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Start the failure timer."));     
                                     failureTimer.StartTimerIfNotRunning();
                                 }
                             }
@@ -5660,11 +5884,13 @@ namespace Cloud.Sync
                         // if there was an error adding the dependencies to the processing queue, then log the error
                         if (err != null)
                         {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: ERROR. Msg: {0}.", err.errorDescription));     
                             err.LogErrors(syncBox.CopiedSettings.TraceLocation, syncBox.CopiedSettings.LogErrors);
                         }
                     }
                     catch (Exception ex)
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: ERROR. Exception: Msg: {0}.", ex.Message));
                         // define a bool for whether at least one failed event was added to the failure queue
                         bool atLeastOneFailureAdded = false;
 
@@ -5672,9 +5898,11 @@ namespace Cloud.Sync
                         lock (failureTimer)
                         {
                             // loop through the dependencies which failed to add to the processing queue
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Loop adding ERROR. Exception: Msg: {0}.", ex.Message));
                             foreach (FileChange currentError in toCompleteWithDependencies.Dependencies)
                             {
                                 // add the failed event to the failure queue
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Add currentError: {0}.", currentError.NewPath));
                                 FailedChangesQueue.Enqueue(currentError);
 
                                 // mark that an event was added to the failure queue
@@ -5684,6 +5912,7 @@ namespace Cloud.Sync
                             // if at least one event was added to the failure queue, then start the failure queue timer
                             if (atLeastOneFailureAdded)
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: Start timer (2)."));
                                 failureTimer.StartTimerIfNotRunning();
                             }
                         }
@@ -6110,7 +6339,7 @@ namespace Cloud.Sync
                             communicationArray.Length.ToString() +
                             " change" + (communicationArray.Length == 1 ? string.Empty : "s") + " to server and checking for any new changes to sync from server",
                         EventMessageLevel.Regular,
-                        SyncBoxId: syncBox.SyncBoxId,
+                        SyncboxId: syncBox.SyncboxId,
                         DeviceId: syncBox.CopiedSettings.DeviceId);
 
                     // build a function which will throw a formatted exception when the FileChange's FileChangeType and the type of file system object (file or folder) do not match
@@ -6267,7 +6496,7 @@ namespace Cloud.Sync
                                     MimeType = currentEvent.FileChange.Metadata.MimeType // never retrieved from Windows
                                 }
                             }).ToArray(), // selected into a new array
-                            SyncBoxId = syncBox.SyncBoxId, // pass in the sync box id
+                            SyncboxId = syncBox.SyncboxId, // pass in the sync box id
                             DeviceId = syncBox.CopiedSettings.DeviceId // pass in the device id
                         };
 
@@ -6422,7 +6651,7 @@ namespace Cloud.Sync
                                     // If the file does not already exist on the server for that path (unknown if it's an error to send up a file modify for a file that doesn't exist, needs testing),
                                     // then the server has three possible responses: "exists" or "upload" or "uploading"
                                     //
-                                    // "exists" : de-duplication found a matching file in storage, it will use that one and it is immediately ready for download on other clients on the same SyncBoxId
+                                    // "exists" : de-duplication found a matching file in storage, it will use that one and it is immediately ready for download on other clients on the same SyncboxId
                                     // "upload" : this origin client was the first to tell the server of this combination of file hash and file size so upload it; upon upload, the file will be available for download
                                     // "uploading" : this origin client may or may not have been the first to tell the server of this combination of file hash and file size, but it wasn't told to the server the first time this time; still, if this client finishes it's upload, it will be available for download
                                     //
@@ -6447,7 +6676,7 @@ namespace Cloud.Sync
                                     //
                                     // Category B (statuses: "exists", "upload", "already_deleted", or "uploading")
                                     //
-                                    // "exists": de-duplication found a matching file in storage, it will use that one and it is immediately ready for download on other clients on the same SyncBoxId
+                                    // "exists": de-duplication found a matching file in storage, it will use that one and it is immediately ready for download on other clients on the same SyncboxId
                                     // "upload": the file hash and file size combination are not stored on the server and this is the first client to notify the server of this combination, client must upload before file is available to download
                                     // "uploading": the file hash and file size combination metadata is stored on the server but the corresponding file is not stored on the server and this may or may not be the first client to notify the server of this combination, whichever client finishes uploading this combination first will make the file available to download
                                     // "already_deleted": if server "uid" is sent to the server and this modify is on a file which has been previously deleted, this is an error condition which could allow the client to change the file modify to a file create and try again
@@ -6790,7 +7019,7 @@ namespace Cloud.Sync
                                                 innerCurrentChange,
                                                 innerCurrentStreamContext);
 
-                                            if ((innerCurrentChange.Type == FileChangeType.Created || innerCurrentChange.Type == FileChangeType.Modified) && string.IsNullOrEmpty(innerCurrentChange.Metadata.StorageKey))
+                                            if (!innerCurrentChange.Metadata.HashableProperties.IsFolder && (innerCurrentChange.Type == FileChangeType.Created || innerCurrentChange.Type == FileChangeType.Modified) && string.IsNullOrEmpty(innerCurrentChange.Metadata.StorageKey))
                                             {
                                                 throw new NullReferenceException("Metadata.StorageKey must not be null for uploads or downloads");
                                             }
@@ -7221,7 +7450,7 @@ namespace Cloud.Sync
                                                                                 "Error occurred handling conflict for a file rename: " + ex.Message,
                                                                                 EventMessageLevel.Regular,
                                                                                 /*Error*/ new GeneralErrorInfo(),
-                                                                                syncBox.SyncBoxId,
+                                                                                syncBox.SyncboxId,
                                                                                 syncBox.CopiedSettings.DeviceId);
                                                                         }
                                                                         catch
@@ -7239,7 +7468,7 @@ namespace Cloud.Sync
                                                                                 "File rename conflict handled through duplication",
                                                                                 EventMessageLevel.Minor,
                                                                                 /*Error*/ null,
-                                                                                syncBox.SyncBoxId,
+                                                                                syncBox.SyncboxId,
                                                                                 syncBox.CopiedSettings.DeviceId);
                                                                         }
                                                                         catch
@@ -8352,7 +8581,7 @@ namespace Cloud.Sync
                         MessageEvents.FireNewEventMessage(
                             "Checking for any new changes to sync from server",
                             EventMessageLevel.Regular,
-                            SyncBoxId: syncBox.SyncBoxId,
+                            SyncboxId: syncBox.SyncboxId,
                             DeviceId: syncBox.CopiedSettings.DeviceId);
 
                         // declare the status of the sync from communication
@@ -8365,7 +8594,7 @@ namespace Cloud.Sync
                             {
                                 LastSyncId = syncString, // fill in the last sync id
                                 DeviceId = syncBox.CopiedSettings.DeviceId, // fill in the device id
-                                SyncBoxId = syncBox.SyncBoxId // fill in the sync box id
+                                SyncboxId = syncBox.SyncboxId // fill in the sync box id
                             },
                             HttpTimeoutMilliseconds, // milliseconds before http communication will timeout on an operation
                             out syncFromStatus, // output the status of the communication
@@ -8871,7 +9100,7 @@ namespace Cloud.Sync
                                                                 "Error occurred handling conflict for a file rename: " + ex.Message,
                                                                 EventMessageLevel.Regular,
                                                                 /*Error*/ new GeneralErrorInfo(),
-                                                                syncBox.SyncBoxId,
+                                                                syncBox.SyncboxId,
                                                                 syncBox.CopiedSettings.DeviceId);
                                                         }
                                                         catch
@@ -8889,7 +9118,7 @@ namespace Cloud.Sync
                                                                 "File rename conflict handled through duplication",
                                                                 EventMessageLevel.Minor,
                                                                 /*Error*/ null,
-                                                                syncBox.SyncBoxId,
+                                                                syncBox.SyncboxId,
                                                                 syncBox.CopiedSettings.DeviceId);
                                                         }
                                                         catch
@@ -8992,7 +9221,7 @@ namespace Cloud.Sync
                         MessageEvents.FireNewEventMessage(
                             "Nothing to communicate with server",
                             EventMessageLevel.Minor,
-                            SyncBoxId: syncBox.SyncBoxId,
+                            SyncboxId: syncBox.SyncboxId,
                             DeviceId: syncBox.CopiedSettings.DeviceId);
 
                         incompleteChanges = Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>();
@@ -9020,7 +9249,7 @@ namespace Cloud.Sync
                                     : ex.InnerException.Message)), // else if there is an inner exception with message then append the inner exception message
                     Level: EventMessageLevel.Important,
                     Error: new GeneralErrorInfo(),
-                    SyncBoxId: syncBox.SyncBoxId,
+                    SyncboxId: syncBox.SyncboxId,
                     DeviceId: syncBox.CopiedSettings.DeviceId);
 
                 // default all ouputs
@@ -9248,7 +9477,7 @@ namespace Cloud.Sync
                 if (toRetry.FileChange.FailureCounter == 0)
                 {
                     // mark the path state for error
-                    _trace.writeToMemory(() => CLTrace.trcFmtStr("SyncEngine: ContinueToRetry: Badge failed initially"));
+                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "SyncEngine: ContinueToRetry: Badge failed initially"));
                     MessageEvents.SetPathState(toRetry.FileChange, // source of the event (the event itself)
                         new SetBadge(PathState.Failed, // state to set is failed
                             ((toRetry.FileChange.Direction == SyncDirection.From && toRetry.FileChange.Type == FileChangeType.Renamed)
@@ -9276,7 +9505,7 @@ namespace Cloud.Sync
                 if (toRetry.FileChange.NotFoundForStreamCounter >= MaxNumberOfNotFounds)
                 {
                     // remove the badge at the current path by setting it as synced
-                    _trace.writeToMemory(() => CLTrace.trcFmtStr("SyncEngine: ContinueToRetry: Badge synced, reached max not found count."));
+                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "SyncEngine: ContinueToRetry: Badge synced, reached max not found count."));
                     MessageEvents.SetPathState(toRetry.FileChange, new SetBadge(PathState.Synced, toRetry.FileChange.NewPath));
 
                     // make sure to add change to SQL
@@ -9311,7 +9540,7 @@ namespace Cloud.Sync
                         && castRetry.DependenciesCount > 0)
                     {
                         // call a recursive function which will take a list of failed dependencies to badge as failed and call itself for inner dependencies
-                        _trace.writeToMemory(() => CLTrace.trcFmtStr("SyncEngine: ContinueToRetry: Badge failed, with inner depencencies."));
+                        _trace.writeToMemory(() => _trace.trcFmtStr(1, "SyncEngine: ContinueToRetry: Badge failed, with inner depencencies."));
                         BadgeDependenciesAsFailures(castRetry.Dependencies);
                     }
 

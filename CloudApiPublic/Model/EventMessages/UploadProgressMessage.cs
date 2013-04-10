@@ -52,8 +52,8 @@ namespace Cloud.Model.EventMessages
         }
         private readonly CLStatusFileTransferUpdateParameters _parameters;
 
-        internal UploadProgressMessage(CLStatusFileTransferUpdateParameters Parameters, long EventId, Nullable<long> SyncBoxId, string DeviceId)
-            : base(EventMessageType.UploadProgress, SyncBoxId, DeviceId)
+        internal UploadProgressMessage(CLStatusFileTransferUpdateParameters Parameters, long EventId, Nullable<long> SyncboxId, string DeviceId)
+            : base(EventMessageType.UploadProgress, SyncboxId, DeviceId)
         {
             this._eventId = EventId;
             this._parameters = Parameters;

@@ -52,8 +52,8 @@ namespace Cloud.Model.EventMessages
         }
         private readonly CLStatusFileTransferUpdateParameters _parameters;
 
-        internal DownloadProgressMessage(CLStatusFileTransferUpdateParameters Parameters, long EventId, Nullable<long> SyncBoxId, string DeviceId)
-            : base(EventMessageType.DownloadProgress, SyncBoxId, DeviceId)
+        internal DownloadProgressMessage(CLStatusFileTransferUpdateParameters Parameters, long EventId, Nullable<long> SyncboxId, string DeviceId)
+            : base(EventMessageType.DownloadProgress, SyncboxId, DeviceId)
         {
             this._eventId = EventId;
             this._parameters = Parameters;
