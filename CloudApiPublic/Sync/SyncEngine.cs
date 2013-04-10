@@ -587,6 +587,7 @@ namespace Cloud.Sync
                 }
                 else
                 {
+                    // Function to determine whether to continue in the do loop just below...  Returns true if there are more queued StatusChanges, or false, in which case it cleans up and causes the thread to exit at the bottom of the do loop.
                     Func<GenericHolder<bool>, Queue<KeyValuePair<Guid, ThreadStatus>>, GenericHolder<Timer>, GenericHolder<CLSyncCurrentStatus>, bool> continueProcessing = (threadRunning, statusQueue, killTimer, statusHolder) =>
                     {
                         lock (statusQueue)
@@ -628,14 +629,18 @@ namespace Cloud.Sync
                         }
                     };
 
+                    // There is guaranteed to be at least one StatusChange in the queue.  Otherwise, we wouldn't have been started, or we wouldn't have looped.
+                    // Loop until there are no more StatusChanges to process.
                     do
                     {
+                        // Pull the first queued StatusChange.
                         Nullable<KeyValuePair<Guid, ThreadStatus>> currentDequeued;
                         lock (castState.StatusChangesQueue)
                         {
                             currentDequeued = castState.StatusChangesQueue.Dequeue();
                         }
 
+                        // Function to pull another StatusChange from the queue.
                         Func<Queue<KeyValuePair<Guid, ThreadStatus>>, Nullable<KeyValuePair<Guid, ThreadStatus>>> moreToDequeue = statusQueue =>
                         {
                             lock (statusQueue)
@@ -652,6 +657,7 @@ namespace Cloud.Sync
                         };
 
                         // we are sure there is an item left in the queue since we just dequeued one to start, so no need to apply while condition till after
+                        // Loop pulling out all of the queued status changes and add them to the ThreadsToStatus dictionary for processing below.
                         do
                         {
                             KeyValuePair<Guid, ThreadStatus> nonNullDequeued = (KeyValuePair<Guid, ThreadStatus>)currentDequeued;
@@ -668,6 +674,7 @@ namespace Cloud.Sync
                         CLSyncCurrentState outputState = CLSyncCurrentState.Idle;
                         List<CLSyncTransferringFile> outputTransferring = null;
 
+                        // Loop processing the ThreadsToStatus dictionary items.
                         Nullable<DateTime> earliestToKill = null;
                         DateTime killTime = DateTime.UtcNow.Subtract(ThreadStatusTimeoutSpan);
                         List<Guid> removedStatusKeys = null;
@@ -746,7 +753,7 @@ namespace Cloud.Sync
 
                                 removedStatusKeys.Add(currentStatus.Key);
                             }
-                        }
+                        }  // end loop thru ThreadsToStatus dictionary.
 
                         if (removedStatusKeys != null)
                         {
@@ -799,6 +806,8 @@ namespace Cloud.Sync
 
                         lock (castState.StatusHolder)
                         {
+                            // outputTransferring is the list of CLSyncTransferringFiles with updated status.
+                            // The information in outputTransferring will be returned to the caller via castState.StatusHolder when he calls GetCurrentStatus().
                             castState.StatusHolder.Value = new CLSyncCurrentStatus(outputState,
                                 outputTransferring);
 
@@ -806,7 +815,7 @@ namespace Cloud.Sync
                             {
                                 try
                                 {
-                                    // Call the optional status changed callback.
+                                    // Call the optional status changed callback with the caller-provided user state.
                                     castState.StatusUpdated(castState.StatusUpdatedUserState);
                                 }
                                 catch
@@ -829,6 +838,7 @@ namespace Cloud.Sync
                     EventMessageLevel.Important,
                     new HaltAllOfCloudSDKErrorInfo());
             }
+            // Exit this thread here.
         }
         private static void ProcessKillTimer(object state)
         {
@@ -966,7 +976,8 @@ namespace Cloud.Sync
                             EventID = eventId,
                             LastUpdateTime = DateTime.UtcNow,
                             RelativePath = relativePath,
-                            TotalByteSize = totalByteSize
+                            TotalByteSize = totalByteSize,
+                            IsError = isError
                         }));
 
                     StartStatusAggregatorIfNotStarted();
@@ -4215,6 +4226,7 @@ namespace Cloud.Sync
             }
             catch (Exception ex)
             {
+                // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window).
                 if (castState != null
                     && castState.FileToUpload != null
                     && castState.FileToUpload.NewPath != null
@@ -4231,6 +4243,27 @@ namespace Cloud.Sync
                         (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
                         (long)castState.FileToUpload.Metadata.HashableProperties.Size, // totalByteSize
                         true); // error occurred
+                }
+
+                // Also call back to update the upload EventMessage (used by the RateBar controls on the status window.
+                // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window).
+                if (castState != null
+                    && castState.FileToUpload != null
+                    && castState.FileToUpload.Metadata != null
+                    && castState.FileToUpload.Metadata.HashableProperties.Size != null
+                    && castState.FileToUpload.NewPath != null
+                    && castState.Syncbox != null)
+                {
+                    Helpers.HandleUploadDownloadStatus(
+                                            new CLStatusFileTransferUpdateParameters(
+                                                    DateTime.Now,   // use the current local time as the start time, since we never really got started.
+                                                    (long)castState.FileToUpload.Metadata.HashableProperties.Size,
+                                                    castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false),
+                                                    (long)castState.FileToUpload.Metadata.HashableProperties.Size
+                                            ),
+                                            castState.FileToUpload,
+                                            castState.Syncbox.SyncboxId,
+                                            castState.Syncbox.CopiedSettings.DeviceId);
                 }
 
                 // if the error was any that are not recoverable, display a message to the user for the serious problem and return
@@ -4880,6 +4913,28 @@ namespace Cloud.Sync
                         (long)castState.FileToDownload.Metadata.HashableProperties.Size, // totalByteSize
                         true); // error occurred
                 }
+
+                // Also call back to update the download EventMessage (used by the RateBar controls on the status window).
+                // Call the StatusUpdate callback to update the summary information for this download ("center section" of the status window).
+                if (castState != null
+                    && castState.FileToDownload != null
+                    && castState.FileToDownload.Metadata != null
+                    && castState.FileToDownload.Metadata.HashableProperties.Size != null
+                    && castState.FileToDownload.NewPath != null
+                    && castState.Syncbox != null)
+                {
+                    Helpers.HandleUploadDownloadStatus(
+                                            new CLStatusFileTransferUpdateParameters(
+                                                    DateTime.Now,   // use the current local time as the start time, since we never really got started.
+                                                    (long)castState.FileToDownload.Metadata.HashableProperties.Size,
+                                                    castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false),
+                                                    (long)castState.FileToDownload.Metadata.HashableProperties.Size
+                                            ),
+                                            castState.FileToDownload,
+                                            castState.Syncbox.SyncboxId,
+                                            castState.Syncbox.CopiedSettings.DeviceId);
+                }
+
                 // for advanced trace, UploadDownloadFailure
                 if ((castState.Syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {

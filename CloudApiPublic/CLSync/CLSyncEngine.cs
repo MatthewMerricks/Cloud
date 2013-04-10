@@ -453,9 +453,6 @@ namespace Cloud
 			System.Threading.WaitCallback StatusUpdated = null,
 			object StatusUpdatedUserState = null)
         {
-            ////DEBUG ONLY CODE!!! Remove
-            //Cloud.PushNotification.DebugDeleteMe.RecordMessage("SyncboxId starting: " + (Syncbox == null ? "{null}" : Syncbox.SyncboxId.ToString()));
-
             bool reservedSyncbox = false;
             try
             {
