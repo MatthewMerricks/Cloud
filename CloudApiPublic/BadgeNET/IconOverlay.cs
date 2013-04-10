@@ -447,6 +447,14 @@ namespace Cloud.BadgeNET
                             }
                         };
 
+                    // Set the root directory badge to synced.  We do this to have the syncbox root directory badged in case that is the only directory (with no contents).
+                    // Other badges below may cause the badge to be changed.
+                    CLError errorFromSetBadgeType = setBadgeType(new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced), this._filePathCloudDirectory, alreadyCheckedInitialized: true);
+                    if (errorFromSetBadgeType != null)
+                    {
+                        throw new AggregateException("Error from setting Syncbox root badge", errorFromSetBadgeType.GrabExceptions());
+                    }
+
                     // Iterate over the current badge state dictionary and send the badges to BadgeCom. This will populate the BadgeCom instance that just initialized.
                     // Other instances will update from these events only if necessary.
                     foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> item in copyBadgesUnderLock(_currentBadges, _currentBadgesLocker))
