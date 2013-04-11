@@ -55,6 +55,7 @@ namespace Cloud.Model
         /// Type of file system event
         /// </summary>
         public FileChangeType Type { get; set; }
+        internal bool PreviouslyModified { get; set; }
         /// <summary>
         /// Event ID
         /// </summary>

@@ -61,9 +61,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BadgeCOMLib, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="BadgeCOMLib, Version=0.1.6.3, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="ErikEJ.SqlCe40.CSDK, Version=2.1.6.5, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\ErikEJ.SqlCe40.CSDK.dll</HintPath>

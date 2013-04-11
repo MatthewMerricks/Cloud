@@ -3582,20 +3582,21 @@ namespace Cloud.FileMonitor
                                                 debugEntry.NewChangeType = new WatcherChangeCreated();
                                             }
 
-                                            // add new index
-                                            new ChangeAllPathsAdd(this, pathObject,
+                                            FileMetadata addedMetadata =
                                                 new FileMetadata()
                                                 {
                                                     HashableProperties = new FileMetadataHashableProperties(isFolder,
                                                         lastTime,
                                                         creationTime,
                                                         fileLength)
-                                                });
+                                                };
+                                            // add new index
+                                            new ChangeAllPathsAdd(this, pathObject, addedMetadata);
                                             // queue file change for create
                                             QueueFileChange(new FileChange(QueuedChanges)
                                             {
                                                 NewPath = pathObject,
-                                                Metadata = AllPaths[pathObject],
+                                                Metadata = addedMetadata,
                                                 Type = FileChangeType.Created,
                                                 Direction = SyncDirection.To // detected that a file or folder was created locally, so Sync To to update server
                                             }, startProcessingAction);
@@ -4377,6 +4378,8 @@ namespace Cloud.FileMonitor
                                             }
 
                                             QueuedChanges[toChange.NewPath] = toChange; // the previous folder deletion change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
+
+                                            StartDelay(toChange, startProcessingAction);
                                         }
                                         // else if the path does not represent a folder,
                                         // discard the deletion change for files which have been deleted and created again with the same metadata
@@ -4405,6 +4408,15 @@ namespace Cloud.FileMonitor
                                             previousChange.Type = FileChangeType.Modified;
                                             previousChange.Metadata = toChange.Metadata;
                                             previousChange.SetDelayBackToInitialValue();
+
+                                            
+                                            // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
+                                            // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
+                                            
+                                            toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
+                                            toChange.Metadata.Revision = previousChange.Metadata.Revision;
+                                            toChange.Metadata.ServerId = previousChange.Metadata.ServerId;
+                                            toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
                                         }
                                         break;
                                     case FileChangeType.Modified:
@@ -4432,6 +4444,8 @@ namespace Cloud.FileMonitor
                                         // error condition
                                         break;
                                     case FileChangeType.Modified:
+                                        previousChange.PreviouslyModified = true;
+
                                         previousChange.Type = FileChangeType.Deleted;
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
@@ -4462,8 +4476,26 @@ namespace Cloud.FileMonitor
                                         previousChange.SetDelayBackToInitialValue();
                                         break;
                                     case FileChangeType.Renamed:
-                                        previousChange.Metadata = toChange.Metadata;
-                                        previousChange.SetDelayBackToInitialValue();
+                                        // updating a rename with new metadata will not cause the server to process both modification and rename,
+                                        // so need to split the changes into two
+                                        
+                                        FileChange changeForPreviousMetadata;
+                                        if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out changeForPreviousMetadata)
+                                            && changeForPreviousMetadata.Equals(previousChange))
+                                        {
+                                            QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties); // the previous change will be allowed to process as-is, clear out its metadata for future checking
+                                        }
+
+                                        FileChange toCompareForNewMetadata;
+                                        if (!QueuedChangesByMetadata.TryGetValue(toChange.Metadata.HashableProperties, out toCompareForNewMetadata)
+                                            || !toCompareForNewMetadata.Equals(toChange))
+                                        {
+                                            QueuedChangesByMetadata[toChange.Metadata.HashableProperties] = toChange;
+                                        }
+
+                                        QueuedChanges[toChange.NewPath] = toChange; // the previous file rename change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
+
+                                        StartDelay(toChange, startProcessingAction);
                                         break;
                                 }
                                 break;
@@ -4538,22 +4570,60 @@ namespace Cloud.FileMonitor
                         && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Deleted
                         && !matchedFileChangeForRename.DelayCompleted)
                 {
-                    // FileChange already exists
-                    // Instead of starting a new processing delay, update the FileChange information
-                    // Then restart the delay timer
-                    matchedFileChangeForRename.Type = FileChangeType.Renamed;
-                    matchedFileChangeForRename.OldPath = matchedFileChangeForRename.NewPath;
-                    matchedFileChangeForRename.NewPath = toChange.NewPath;
-                    matchedFileChangeForRename.Metadata = toChange.Metadata;
-                    if (QueuedChanges.ContainsKey(matchedFileChangeForRename.OldPath))
+                    FilePath removeFromQueuedChanges = matchedFileChangeForRename.NewPath;
+                    if (matchedFileChangeForRename.PreviouslyModified)
                     {
-                        QueuedChanges.Remove(matchedFileChangeForRename.OldPath);
+                        matchedFileChangeForRename.Type = FileChangeType.Modified;
+
+                        toChange.Type = FileChangeType.Renamed;
+                        toChange.OldPath = matchedFileChangeForRename.NewPath;
                     }
-                    QueuedChanges.Add(matchedFileChangeForRename.NewPath,
-                        matchedFileChangeForRename);
-                    matchedFileChangeForRename.SetDelayBackToInitialValue();
+                    else
+                    {
+                        // FileChange already exists
+                        // Instead of starting a new processing delay, update the FileChange information
+                        // Then restart the delay timer
+                        matchedFileChangeForRename.Type = FileChangeType.Renamed;
+                        matchedFileChangeForRename.OldPath = matchedFileChangeForRename.NewPath;
+                        matchedFileChangeForRename.NewPath = toChange.NewPath;
+                    }
+
+                    // if the new created change is missing required fields to process a rename (such as ServerUid and maybe Revision),
+                    // then try and pull them from the previous deletion change before replacing the metadata
+                    if (toChange.Metadata != null
+                        && matchedFileChangeForRename.Metadata != null)
+                    {
+                        if (toChange.Metadata.ServerId == null)
+                        {
+                            toChange.Metadata.ServerId = matchedFileChangeForRename.Metadata.ServerId;
+                        }
+
+                        if (toChange.Metadata.Revision == null)
+                        {
+                            toChange.Metadata.Revision = matchedFileChangeForRename.Metadata.Revision;
+                        }
+                    }
+
+                    matchedFileChangeForRename.Metadata = toChange.Metadata;
+
+                    QueuedChanges.Remove(matchedFileChangeForRename.OldPath);
+
+                    if (matchedFileChangeForRename.PreviouslyModified)
+                    {
+                        StartDelay(toChange, startProcessingAction);
+                        
+                        QueuedChanges[toChange.NewPath] = toChange;
+                    }
+                    else
+                    {
+                        matchedFileChangeForRename.SetDelayBackToInitialValue();
+
+                        QueuedChanges.Add(matchedFileChangeForRename.NewPath,
+                            matchedFileChangeForRename);
+                    }
+
                     // add old/new path pairs for recursive rename processing
-                    OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
+                    OldToNewPathRenames[removeFromQueuedChanges] = toChange.NewPath;
                 }
                 // Existing FileChange is a Created event and the incoming event is a matching Deleted event which has not yet completed
                 else if (toChange.Type == FileChangeType.Deleted
@@ -4566,6 +4636,16 @@ namespace Cloud.FileMonitor
                     // Then restart the delay timer
                     matchedFileChangeForRename.Type = FileChangeType.Renamed;
                     matchedFileChangeForRename.OldPath = toChange.NewPath;
+
+                    // the later deletion caused the metatadata to be lost in AllPaths,
+                    // so need to add it back here;
+                    // already under a lock on AllPaths since QueueFileChange must be called under such lock
+                    if (AllPaths.ContainsKey(matchedFileChangeForRename.OldPath))
+                    {
+                        AllPaths[matchedFileChangeForRename.NewPath] = null; // ensure no error with the rename
+                        AllPaths.Rename(matchedFileChangeForRename.OldPath, matchedFileChangeForRename.NewPath); // should move the existing metadata at path forwards
+                    }
+
                     if (QueuedChanges.ContainsKey(matchedFileChangeForRename.NewPath))
                     {
                         if (QueuedChanges[matchedFileChangeForRename.NewPath] != matchedFileChangeForRename)
