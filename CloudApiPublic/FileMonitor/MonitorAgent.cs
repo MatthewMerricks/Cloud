@@ -4840,7 +4840,10 @@ namespace Cloud.FileMonitor
                                         }
                                         finally
                                         {
-                                            Monitor.Enter(currentMatchedDownload.fileDownloadMoveLocker);
+                                            if (currentMatchedDownload.fileDownloadMoveLocker != null)
+                                            {
+                                                Monitor.Exit(currentMatchedDownload.fileDownloadMoveLocker);
+                                            }
                                         }
                                     }
                                 }
