@@ -51,7 +51,8 @@ namespace Cloud.Model
                         thisType
                             .GetProperty(
                                 ((MemberExpression)((Expression<Func<FilePathHierarchicalNode<T>, KeyValuePair<FilePath, T>>>)(member => member.Value)).Body).Member.Name)
-                            .DeclaringType != thisType;
+                            .DeclaringType
+                            .GetGenericTypeDefinition() != typeof(FilePathHierarchicalNode<>);
                     return toReturn;
                 }
             }
