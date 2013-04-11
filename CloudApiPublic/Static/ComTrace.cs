@@ -958,12 +958,20 @@ namespace Cloud.Static
 
                             currentArray[currentIndex] = new TraceFileChange()
                             {
-                                ServerId = currentChange.Metadata.ServerUid,
+                                ServerUid = currentChange.Metadata.ServerUid,
                                 EventId = currentChange.EventId,
                                 EventIdSpecified = currentChange.EventId != 0,
                                 NewPath = currentChange.NewPath.ToString(),
                                 OldPath = (currentChange.OldPath == null ? null : currentChange.OldPath.ToString()),
                                 IsFolder = currentChange.Metadata.HashableProperties.IsFolder,
+                                IsShare = currentChange.Metadata.IsShare ?? false,
+                                IsShareSpecified = currentChange.Metadata.IsShare != null,
+                                Version = currentChange.Metadata.Version ?? 0,
+                                VersionSpecified = currentChange.Metadata.Version != null,
+                                ParentServerUid = currentChange.Metadata.ParentFolderServerUid,
+                                MimeType = currentChange.Metadata.MimeType,
+                                Permissions = (int)(currentChange.Metadata.Permissions ?? POSIXPermissions.NoPermission),
+                                PermissionsSpecified = currentChange.Metadata.Permissions != null,
                                 Type = convertedCurrentType,
                                 LastTime = currentChange.Metadata.HashableProperties.LastTime.ToUniversalTime(),
                                 LastTimeSpecified = currentChange.Metadata.HashableProperties.LastTime.Ticks != FileConstants.InvalidUtcTimeTicks,

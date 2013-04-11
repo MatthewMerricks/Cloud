@@ -48,6 +48,9 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property]
         public Nullable<long> EventId { get; set; }
 
+        [SqlAccess.Property(SqlAccess.FieldType.ReadOnly)]
+        public Nullable<long> EventOrder { get; set; }
+
         [SqlAccess.Property]
         public Nullable<bool> IsShare { get; set; }
 

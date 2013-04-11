@@ -148,7 +148,7 @@ namespace Cloud.Static
     public partial class TraceFileChange
     {
 
-        private string serverIdField;
+        private string serverUidField;
 
         private long eventIdField;
 
@@ -159,6 +159,22 @@ namespace Cloud.Static
         private string oldPathField;
 
         private bool isFolderField;
+
+        private bool isShareField;
+
+        private bool isShareFieldSpecified;
+
+        private int versionField;
+
+        private bool versionFieldSpecified;
+
+        private string parentServerUidField;
+
+        private string mimeTypeField;
+
+        private int permissionsField;
+
+        private bool permissionsFieldSpecified;
 
         private TraceFileChangeType typeField;
 
@@ -185,15 +201,15 @@ namespace Cloud.Static
         private TraceFileChange[] dependenciesField;
 
         /// <remarks />
-        public string ServerId
+        public string ServerUid
         {
             get
             {
-                return this.serverIdField;
+                return this.serverUidField;
             }
             set
             {
-                this.serverIdField = value;
+                this.serverUidField = value;
             }
         }
 
@@ -260,6 +276,113 @@ namespace Cloud.Static
             set
             {
                 this.isFolderField = value;
+            }
+        }
+
+        /// <remarks/>
+        public bool IsShare
+        {
+            get
+            {
+                return this.isShareField;
+            }
+            set
+            {
+                this.isShareField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool IsShareSpecified
+        {
+            get
+            {
+                return this.isShareFieldSpecified;
+            }
+            set
+            {
+                this.isShareFieldSpecified = value;
+            }
+        }
+
+        /// <remarks/>
+        public int Version
+        {
+            get
+            {
+                return this.versionField;
+            }
+            set
+            {
+                this.versionField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool VersionSpecified
+        {
+            get
+            {
+                return this.versionFieldSpecified;
+            }
+            set
+            {
+                this.versionFieldSpecified = value;
+            }
+        }
+
+        /// <remarks />
+        public string ParentServerUid
+        {
+            get
+            {
+                return this.parentServerUidField;
+            }
+            set
+            {
+                this.parentServerUidField = value;
+            }
+        }
+
+        /// <remarks />
+        public string MimeType
+        {
+            get
+            {
+                return this.mimeTypeField;
+            }
+            set
+            {
+                this.mimeTypeField = value;
+            }
+        }
+
+        /// <remarks/>
+        public int Permissions
+        {
+            get
+            {
+                return this.permissionsField;
+            }
+            set
+            {
+                this.permissionsField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool PermissionsSpecified
+        {
+            get
+            {
+                return this.permissionsFieldSpecified;
+            }
+            set
+            {
+                this.permissionsFieldSpecified = value;
             }
         }
 

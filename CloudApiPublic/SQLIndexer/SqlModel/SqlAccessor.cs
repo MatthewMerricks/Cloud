@@ -110,7 +110,8 @@ namespace Cloud.SQLIndexer.SqlModel
 
                 object responseObject = scalarCommand.ExecuteScalar();
 
-                if (responseObject == null)
+                if (responseObject == null
+                    || responseObject is DBNull)
                 {
                     result = Helpers.DefaultForType<TKey>();
                     return false;

@@ -217,7 +217,109 @@ namespace Cloud.SQLIndexer
             return null;
         }
 
-        public CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath)
+        public void SwapOrderBetweenTwoEventIds(long eventIdA, long eventIdB, SQLTransactionalBase requiredTransaction)
+        {
+            if (requiredTransaction == null)
+            {
+                throw new NullReferenceException("requiredTransaction cannot be null");
+            }
+
+            SQLTransactionalImplementation castTransaction = requiredTransaction as SQLTransactionalImplementation;
+
+            if (castTransaction == null)
+            {
+                throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+            }
+            if (!(eventIdA > 0))
+            {
+                throw new ArgumentException("eventIdA was not the positive integer created from adding a new Event to the databse");
+            }
+            if (!(eventIdB > 0))
+            {
+                throw new ArgumentException("eventIdB was not the positive integer created from adding a new Event to the database");
+            }
+            if (eventIdA == eventIdB)
+            {
+                throw new ArgumentException("Cannot swap two events with the same ID");
+            }
+
+            FileSystemObject eventAObject = null;
+            FileSystemObject eventBObject = null;
+
+            foreach (FileSystemObject matchedEventObject in SqlAccessor<FileSystemObject>.SelectResultSet(
+                castTransaction.sqlConnection,
+                "SELECT *" +
+                    "FROM FileSystemObjects " +
+                    "WHERE FileSystemObjects.EventId = ? " + // <-- parameter 1
+                    "OR FileSystemObjects.EventId = ?", // <-- paremeter 2
+                transaction: castTransaction.sqlTransaction,
+                selectParameters: new[] { eventIdA, eventIdB }))
+            {
+                if (matchedEventObject.EventId == eventIdA)
+                {
+                    if (eventAObject != null)
+                    {
+                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Query for FileSystemObjects by eventIdA and eventIdB returned more than one Event for eventIdA");
+                    }
+
+                    eventAObject = matchedEventObject;
+                }
+                else if (matchedEventObject.EventId == eventIdB)
+                {
+                    if (eventBObject != null)
+                    {
+                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Query for FileSystemObjects by eventIdA and eventIdB returned more than one Event for eventIdB");
+                    }
+
+                    eventBObject = matchedEventObject;
+                }
+                else
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Query for FileSystemObjects by eventIdA and eventIdB returned an event which matches neither ID");
+                }
+            }
+
+            if (eventAObject == null)
+            {
+                throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Query for FileSystemObjects by eventIdA and eventIdB did not return any Event for eventIdA");
+            }
+            if (eventBObject == null)
+            {
+                throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Query for FileSystemObjects by eventIdA and eventIdB did not return any Event for eventIdB");
+            }
+
+            using (ISQLiteCommand swapEventOrders = castTransaction.sqlConnection.CreateCommand())
+            {
+                swapEventOrders.Transaction = castTransaction.sqlTransaction;
+
+                swapEventOrders.CommandText = "UPDATE FileSystemObjects " +
+                    "SET EventOrder = ? " + // <-- parameter 1
+                    "WHERE FileSystemObjectId = ?; " + // <-- parameter 2
+                    "UPDATE FileSystemObjects " +
+                    "SET EventOrder = ? " + // <-- parameter 3
+                    "WHERE FileSystemObjectId = ?;";// <-- parameter 4
+
+                ISQLiteParameter eventBOrderParam = swapEventOrders.CreateParameter();
+                eventBOrderParam.Value = eventBObject.EventOrder;
+                swapEventOrders.Parameters.Add(eventBOrderParam);
+
+                ISQLiteParameter eventAIdParam = swapEventOrders.CreateParameter();
+                eventAIdParam.Value = eventAObject.FileSystemObjectId;
+                swapEventOrders.Parameters.Add(eventAIdParam);
+
+                ISQLiteParameter eventAOrderParam = swapEventOrders.CreateParameter();
+                eventAOrderParam.Value = eventAObject.EventOrder;
+                swapEventOrders.Parameters.Add(eventAOrderParam);
+
+                ISQLiteParameter eventBIdParam = swapEventOrders.CreateParameter();
+                eventBIdParam.Value = eventBObject.FileSystemObjectId;
+                swapEventOrders.Parameters.Add(eventBIdParam);
+
+                swapEventOrders.ExecuteNonQuery();
+            }
+        }
+
+        public CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath, Nullable<long> excludedEventId = null)
         {
             try
             {
@@ -228,19 +330,32 @@ namespace Cloud.SQLIndexer
 
                 using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                 {
+                    // prefers the latest rename which is pending,
+                    // otherwise prefers non-pending,
+                    // last take most recent event
                     if (!SqlAccessor<object>.TrySelectScalar<string>(
                         indexDB,
                         "SELECT FileSystemObjects.CalculatedFullPath " +
-                        "FROM FileSystemObjects " +
-                        "WHERE FileSystemObjects.ServerUid = ? " +
-                        "ORDER BY " +
-                        "CASE WHEN FileSystemObjects.EventId IS NULL " +
-                        "THEN 0 " +
-                        "ELSE FileSystemObjects.EventId " +
-                        "END DESC " +
-                        "LIMIT 1",
+                            "FROM FileSystemObjects " +
+                            "INNER JOIN (SELECT ? AS ExcludedEventId) ConstantJoin " + // <-- parameter 1
+                            "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
+                            "WHERE FileSystemObjects.ServerUid = ? " + // <-- parameter 2
+                            "AND (ConstantJoin.ExcludedEventId IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.ExcludedEventId <> FileSystemObjects.EventId) " +
+                            "ORDER BY " +
+                            "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
+                            "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
+                            " AND FileSystemObjects.Pending = 1 " +
+                            "THEN 0 " +
+                            "ELSE 1 " +
+                            "END ASC, " +
+                            "FileSystemObjects.Pending ASC, " +
+                            "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                            "THEN 0 " +
+                            "ELSE FileSystemObjects.EventOrder " +
+                            "END DESC " +
+                            "LIMIT 1",
                         out calculatedFullPath,
-                        selectParameters: Helpers.EnumerateSingleItem(serverUid)))
+                        selectParameters: new[] { excludedEventId, (object)serverUid }))
                     {
                         calculatedFullPath = null;
                     }
@@ -265,15 +380,16 @@ namespace Cloud.SQLIndexer
 
                 using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                 {
+                    // prefers latest event even if pending
                     if (!SqlAccessor<object>.TrySelectScalar<string>(
                         indexDB,
                         "SELECT FileSystemObjects.ServerUid " +
                         "FROM FileSystemObjects " +
                         "WHERE FileSystemObjects.CalculatedFullPath = ? " +
                         "ORDER BY " +
-                        "CASE WHEN FileSystemObjects.EventId IS NULL " +
+                        "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
                         "THEN 0 " +
-                        "ELSE FileSystemObjects.EventId " +
+                        "ELSE FileSystemObjects.EventOrder " +
                         "END DESC " +
                         "LIMIT 1",
                         out serverUid,
@@ -659,16 +775,27 @@ namespace Cloud.SQLIndexer
                             long parentFolderId;
                             Nullable<long> previousId;
 
-                            // orders by highest event id first to lowest event id where a null event id would filter last
-                            // then takes only the top row
-                            const string objectIdByPathSelect =
+                            // prefers the latest rename which is pending,
+                            // otherwise prefers non-pending,
+                            // last take most recent event
+                            const string objectIdByPathSelectPart1 =
                                 "SELECT FileSystemObjects.FileSystemObjectId " +
                                     "FROM FileSystemObjects " +
-                                    "WHERE CalculatedFullPath = ? " + // <-- parameter 1
+                                    "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
+                                    "WHERE FileSystemObjects.CalculatedFullPath = ? " + // <-- parameter 1
                                     "ORDER BY " +
-                                    "CASE WHEN FileSystemObjects.EventId IS NULL " +
+                                    "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
+                                    "AND Events.FileChangeTypeEnumId = ";
+                            // parts to be seperated by: changeEnumsBackward[FileChangeType.Renamed].ToString()
+                            const string objectIdByPathSelectPart2 =
+                                " AND FileSystemObjects.Pending = 1 " +
                                     "THEN 0 " +
-                                    "ELSE FileSystemObjects.EventId " +
+                                    "ELSE 1 " +
+                                    "END ASC, " +
+                                    "FileSystemObjects.Pending ASC, " +
+                                    "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                                    "THEN 0 " +
+                                    "ELSE FileSystemObjects.EventOrder " +
                                     "END DESC " +
                                     "LIMIT 1";
 
@@ -731,7 +858,7 @@ namespace Cloud.SQLIndexer
                             }
                             else if (!SqlAccessor<object>.TrySelectScalar(
                                 castTransaction.sqlConnection,
-                                objectIdByPathSelect,
+                                objectIdByPathSelectPart1 + changeEnumsBackward[FileChangeType.Renamed].ToString() + objectIdByPathSelectPart2,
                                 out parentFolderId,
                                 castTransaction.sqlTransaction,
                                 selectParameters: Helpers.EnumerateSingleItem(currentObjectToBatch.NewPath.Parent.ToString())))
@@ -802,7 +929,7 @@ namespace Cloud.SQLIndexer
                                 }
                                 else if (!SqlAccessor<object>.TrySelectScalar(
                                     castTransaction.sqlConnection,
-                                    objectIdByPathSelect,
+                                    objectIdByPathSelectPart1 + changeEnumsBackward[FileChangeType.Renamed].ToString() + objectIdByPathSelectPart2,
                                     out previousIdNotNull,
                                     castTransaction.sqlTransaction,
                                     selectParameters: Helpers.EnumerateSingleItem(currentObjectToBatch.OldPath.ToString())))
@@ -1224,17 +1351,31 @@ namespace Cloud.SQLIndexer
             {
                 using (SQLTransactionalImplementation connAndTran = GetNewTransactionPrivate())
                 {
+                    SqlSync newSync = new SqlSync()
+                    {
+                        SID = syncId
+                    };
+
+                    syncCounter = newSync.SyncCounter = SqlAccessor<SqlSync>.InsertRow<long>(connAndTran.sqlConnection, newSync, transaction: connAndTran.sqlTransaction);
+
                     if (rootFolderUID != null)
                     {
                         using (ISQLiteCommand updateRootFolderUID = connAndTran.sqlConnection.CreateCommand())
                         {
+                            updateRootFolderUID.Transaction = connAndTran.sqlTransaction;
+
                             updateRootFolderUID.CommandText = "UPDATE FileSystemObjects " +
-                                "SET ServerUid = ? " +
-                                "WHERE FileSystemObjectId = ?";
+                                "SET ServerUid = ?, " + // <-- parameter 1
+                                "SyncCounter = ?" + // <-- parameter 2
+                                "WHERE FileSystemObjectId = ?"; // <-- parameter 3
 
                             ISQLiteParameter rootUID = updateRootFolderUID.CreateParameter();
                             rootUID.Value = rootFolderUID;
                             updateRootFolderUID.Parameters.Add(rootUID);
+
+                            ISQLiteParameter firstSyncCounter = updateRootFolderUID.CreateParameter();
+                            firstSyncCounter.Value = syncCounter;
+                            updateRootFolderUID.Parameters.Add(firstSyncCounter);
 
                             ISQLiteParameter rootPK = updateRootFolderUID.CreateParameter();
                             rootPK.Value = rootFileSystemObjectId;
@@ -1243,13 +1384,6 @@ namespace Cloud.SQLIndexer
                             updateRootFolderUID.ExecuteNonQuery();
                         }
                     }
-
-                    SqlSync newSync = new SqlSync()
-                    {
-                        SID = syncId
-                    };
-
-                    syncCounter = newSync.SyncCounter = SqlAccessor<SqlSync>.InsertRow<long>(connAndTran.sqlConnection, newSync, transaction: connAndTran.sqlTransaction);
 
                     if (communicatedChanges != null)
                     {
@@ -1269,7 +1403,8 @@ namespace Cloud.SQLIndexer
                                         notMarkedAsChanged.Add(currentCommunicatedChange.FileChange.EventId);
                                         return false;
                                     })
-                                .Select(currentCommunicatedChange => new FileChangeMerge(currentCommunicatedChange.FileChange)),
+                                .Select(currentCommunicatedChange => new FileChangeMerge(currentCommunicatedChange.FileChange))
+                                .ToArray(), // ToArray prevents multiple enumeration from running select logic a second time
                             connAndTran);
 
                         if (mergeChangedError != null)
@@ -1304,7 +1439,7 @@ namespace Cloud.SQLIndexer
                                     }
 
                                     ISQLiteParameter currentEventId = updateSyncCounterOnly.CreateParameter();
-                                    currentEventId.Value = currentEventId;
+                                    currentEventId.Value = currentToUpdate;
                                     updateSyncCounterOnly.Parameters.Add(currentEventId);
                                 }
 
@@ -1319,7 +1454,11 @@ namespace Cloud.SQLIndexer
 
                     foreach (long synchronouslyCompletedEventId in syncedEventIds ?? Enumerable.Empty<long>())
                     {
-                        MarkEventAsCompletedOnPreviousSync(synchronouslyCompletedEventId, connAndTran);
+                        CLError markCompletionError = MarkEventAsCompletedOnPreviousSync(synchronouslyCompletedEventId, connAndTran);
+                        if (markCompletionError != null)
+                        {
+                            throw new AggregateException("Error marking Event at synchronouslyCompletedEventId completed on RecordCompleted", markCompletionError.GrabExceptions());
+                        }
                     }
 
                     LastSyncId = syncId;
@@ -1766,7 +1905,7 @@ namespace Cloud.SQLIndexer
 
                                             // action is add
                                             case (byte)1:
-                                                CLError addBatchError = AddEvents(toAddList, castTransaction);
+                                                CLError addBatchError = AddEvents(syncCounter, toAddList, castTransaction);
 
                                                 if (addBatchError != null)
                                                 {
@@ -1824,15 +1963,16 @@ namespace Cloud.SQLIndexer
                                                     {
                                                         toUpdateParentFolderId = (long)existingRow.ParentFolderId;
                                                     }
+                                                    // prefer latest event even if pending
                                                     else if (!SqlAccessor<object>.TrySelectScalar(
                                                         castTransaction.sqlConnection,
                                                         "SELECT FileSystemObjects.FileSystemObjectId " +
                                                             "FROM FileSystemObjects " +
                                                             "WHERE CalculatedFullPath = ? " + // <-- parameter 1
                                                             "ORDER BY " +
-                                                            "CASE WHEN FileSystemObjects.EventId IS NULL " +
+                                                            "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
                                                             "THEN 0 " +
-                                                            "ELSE FileSystemObjects.EventId " +
+                                                            "ELSE FileSystemObjects.EventOrder " +
                                                             "END DESC " +
                                                             "LIMIT 1",
                                                         out toUpdateParentFolderId,
@@ -1851,15 +1991,26 @@ namespace Cloud.SQLIndexer
                                                     {
                                                         long previousIdNotNull;
 
+                                                        // prefers the latest rename which is pending,
+                                                        // otherwise prefers non-pending,
+                                                        // last take most recent event
                                                         if (!SqlAccessor<object>.TrySelectScalar(
                                                             castTransaction.sqlConnection,
                                                             "SELECT FileSystemObjects.FileSystemObjectId " +
                                                                 "FROM FileSystemObjects " +
-                                                                "WHERE CalculatedFullPath = ? " + // <-- parameter 1
+                                                                "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
+                                                                "WHERE FileSystemObjects.CalculatedFullPath = ? " + // <-- parameter 1
                                                                 "ORDER BY " +
-                                                                "CASE WHEN FileSystemObjects.EventId IS NULL " +
+                                                                "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
+                                                                "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
+                                                                " AND FileSystemObjects.Pending = 1 " +
                                                                 "THEN 0 " +
-                                                                "ELSE FileSystemObjects.EventId " +
+                                                                "ELSE 1 " +
+                                                                "END ASC, " +
+                                                                "FileSystemObjects.Pending ASC, " +
+                                                                "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                                                                "THEN 0 " +
+                                                                "ELSE FileSystemObjects.EventOrder " +
                                                                 "END DESC " +
                                                                 "LIMIT 1",
                                                             result: out previousIdNotNull,
@@ -2153,7 +2304,7 @@ namespace Cloud.SQLIndexer
                     }
 
                     moveObjectsToNewParent.TypedData.oldId.Value = existingNonPendingIdToMerge;
-                    moveObjectsToNewParent.TypedData.newId.Value = (long)existingEventObject.ParentFolderId;
+                    moveObjectsToNewParent.TypedData.newId.Value = existingEventObject.FileSystemObjectId;
                     moveObjectsToNewParent.Process();
                     if (moveObjectsToNewParentError.Value != null)
                     {
@@ -2228,8 +2379,42 @@ namespace Cloud.SQLIndexer
                         {
                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Rename event cannot have a null PreviousId");
                         }
+                        else if (existingEventObject.Event.Previous == null)
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Rename event has a PreviousId, but the previous object was not retrieved");
+                        }
 
                         long storePreviousId = (long)existingEventObject.Event.PreviousId; // store previous id, since we are about to nullify the event value but still need it to delete\move children
+
+                        using (ISQLiteCommand moveOtherMatchingOldNames = castTransaction.sqlConnection.CreateCommand())
+                        {
+                            moveOtherMatchingOldNames.Transaction = castTransaction.sqlTransaction;
+
+                            moveOtherMatchingOldNames.CommandText = "UPDATE FileSystemObjects " +
+                                "SET ParentFolderId = ?, " + // <-- parameter 1
+                                "Name = ? " + // <-- parameter 2
+                                "WHERE ParentFolderId = ? " + // <-- parameter 3
+                                "AND Name = ?"; // <-- parameter 4
+
+                            ISQLiteParameter newParentParam = moveOtherMatchingOldNames.CreateParameter();
+                            newParentParam.Value = existingEventObject.ParentFolderId;
+                            moveOtherMatchingOldNames.Parameters.Add(newParentParam);
+
+                            ISQLiteParameter newNameParam = moveOtherMatchingOldNames.CreateParameter();
+                            newNameParam.Value = existingEventObject.Name;
+                            moveOtherMatchingOldNames.Parameters.Add(newNameParam);
+
+                            ISQLiteParameter oldParentParam = moveOtherMatchingOldNames.CreateParameter();
+                            oldParentParam.Value = existingEventObject.Event.Previous.ParentFolderId;
+                            moveOtherMatchingOldNames.Parameters.Add(oldParentParam);
+
+                            ISQLiteParameter oldNameParam = moveOtherMatchingOldNames.CreateParameter();
+                            oldNameParam.Value = existingEventObject.Event.Previous.Name;
+                            moveOtherMatchingOldNames.Parameters.Add(oldNameParam);
+
+                            moveOtherMatchingOldNames.ExecuteNonQuery();
+                        }
+
                         existingEventObject.Event.PreviousId = null; // allows us to delete the FileSystemObject for the previous location so we don't have two of them non-pending to represent the same item
                         if (!SqlAccessor<Event>.UpdateRow(
                             castTransaction.sqlConnection,
@@ -2733,6 +2918,7 @@ namespace Cloud.SQLIndexer
 
                 Dictionary<long, string> objectIdsToFullPath = new Dictionary<long, string>();
                 SortedDictionary<KeyValuePair<bool, long>, FileSystemObject> sortedFileSystemObjects = new SortedDictionary<KeyValuePair<bool, long>, FileSystemObject>(pendingThenIdComparer.Instance);
+                long missingOrderAppend = 0;
 
                 foreach (FileSystemObject combinedPendingNonPending in SqlAccessor<FileSystemObject>.SelectResultSet(
                     indexDB,
@@ -2771,8 +2957,10 @@ namespace Cloud.SQLIndexer
                     {
                         objectIdsToFullPath.Add(combinedPendingNonPending.FileSystemObjectId, combinedPendingNonPending.CalculatedFullPath);
                         sortedFileSystemObjects.Add(
-                            new KeyValuePair<bool, long>(combinedPendingNonPending.Pending, combinedPendingNonPending.FileSystemObjectId),
-                                combinedPendingNonPending);
+                            new KeyValuePair<bool, long>(
+                                combinedPendingNonPending.Pending,
+                                combinedPendingNonPending.EventOrder ?? ((missingOrderAppend++) + Int64.MinValue)),
+                            combinedPendingNonPending);
                     }
                 }
 
@@ -2998,7 +3186,7 @@ namespace Cloud.SQLIndexer
                     }
                     if (!foundDeletedParent)
                     {
-                        changeList.Add(possibleDeletion);
+                        changeList.Insert(0, possibleDeletion);
                     }
                 }
 

@@ -51,4 +51,8 @@ BEGIN
       LIMIT 1
     ) || Name)
   WHERE FileSystemObjects.FileSystemObjectId = NEW.FileSystemObjectId;
+
+  UPDATE FileSystemObjects
+  SET EventOrder = EventId
+  WHERE FileSystemObjects.FileSystemObjectId = NEW.FileSystemObjectId;
 END

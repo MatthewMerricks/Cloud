@@ -414,9 +414,6 @@ namespace Cloud
 			System.Threading.WaitCallback StatusUpdated = null,
 			object StatusUpdatedUserState = null)
         {
-            ////DEBUG ONLY CODE!!! Remove
-            //Cloud.PushNotification.DebugDeleteMe.RecordMessage("SyncBoxId starting: " + (SyncBox == null ? "{null}" : SyncBox.SyncBoxId.ToString()));
-
             bool reservedSyncBox = false;
             try
             {
@@ -648,9 +645,6 @@ namespace Cloud
                 _trace.writeToLog(9, "CLSyncEngine: Start: Start the notifier.");
                 lock (_locker)
                 {
-                    ////DEBUG ONLY CODE!!! Remove
-                    //Cloud.PushNotification.DebugDeleteMe.RecordMessage("About to start notification service on SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
-
                     CLError getNotificationError = CLNotificationService.GetInstance(this._syncBox, out _notifier);
                     if (getNotificationError != null
                         || _notifier == null)
@@ -703,10 +697,6 @@ namespace Cloud
                         out _syncEngine,
                         debugMemory);
                 }
-
-                ////DEBUG ONLY CODE!!! Remove
-                //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-                //    "About to attach OnNotificationReceived. SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
 
                 // Hook up the events
                 _trace.writeToLog(9, "CLSyncEngine: Start: Hook up events.");
@@ -869,10 +859,6 @@ namespace Cloud
         /// <param name="e">Arguments containing the push notification message received.</param>
         private void OnNotificationReceived(object sender, NotificationEventArgs e)
         {
-            ////DEBUG ONLY CODE!!! Remove
-            //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-            //    "OnNotificationReceived. SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
-
             // Let the file monitor know about this event.
             lock (_locker)
             {

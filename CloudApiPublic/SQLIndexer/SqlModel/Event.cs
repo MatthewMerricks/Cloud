@@ -31,7 +31,7 @@ namespace Cloud.SQLIndexer.SqlModel
         public bool SyncFrom { get; set; }
 
         [SqlAccess.Property]
-        public Guid GroupId { get; set; }
+        public Nullable<Guid> GroupId { get; set; }
 
         [SqlAccess.Property]
         public Nullable<int> GroupOrder { get; set; }

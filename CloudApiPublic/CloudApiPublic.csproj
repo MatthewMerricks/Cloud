@@ -393,7 +393,7 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_EventId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects_ServerUid.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14FileSystemObjects_Pending.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\25Finalize.pragma.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\26Finalize.pragma.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\1Initialize.pragma.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\2EnumCategories.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\3AddFileChangeTypeEnumCategory.data.sql" />
@@ -414,7 +414,9 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\23FileSystemObjects_Before_Delete.trigger.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\24FileSystemObjects_After_Delete.trigger.sql" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\25FileSystemObjects_EventId_Update.trigger.sql" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>echo ************  START POST BUILD STEPS **********************

@@ -43,6 +43,7 @@ namespace Cloud.Model
             }
         }
         private volatile FilePath _newPath = null;
+
         ///// <summary>
         ///// Server-mapped path of file system object for use in communication to and from the server
         ///// </summary>
@@ -59,6 +60,7 @@ namespace Cloud.Model
         /// Type of file system event
         /// </summary>
         public FileChangeType Type { get; set; }
+        internal bool PreviouslyModified { get; set; }
         /// <summary>
         /// Event ID
         /// </summary>

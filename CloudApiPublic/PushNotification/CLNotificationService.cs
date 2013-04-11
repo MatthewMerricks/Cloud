@@ -22,31 +22,6 @@ using Cloud.REST;
 
 namespace Cloud.PushNotification
 {
-    //public static class DebugDeleteMe
-    //{
-    //    public static void RecordMessage(string message)
-    //    {
-    //        lock (messages)
-    //        {
-    //            if (messages.Count == 0)
-    //            {
-    //                System.Windows.MessageBox.Show("DEBUG ONLY CODE!!! Remove Cloud.PushNotification.DebugDeleteMe");
-    //            }
-    //            messages.Add(message);
-    //        }
-    //    }
-    //    private static readonly List<string> messages = new List<string>();
-
-    //    public static string ViewMessages()
-    //    {
-    //        lock (messages)
-    //        {
-    //            return String.Join(Environment.NewLine, messages);
-    //        }
-    //    }
-    //}
-
-
     //extern alias WebSocket4NetBase;
 
     /// <summary>
@@ -784,10 +759,6 @@ namespace Cloud.PushNotification
                         || parsedResponse.Body != CLDefinitions.CLNotificationTypeNew
                         || parsedResponse.Author.ToUpper() != _syncBox.CopiedSettings.DeviceId.ToUpper())
                     {
-                        ////DEBUG ONLY CODE!!! Remove
-                        //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-                        //    "Notification received: " + (evt.Data ?? "{null}") + ", SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
-
                         _trace.writeToLog(9, "CLNotificationService: SendNotificationEventCallback: Send DidReceivePushNotificationFromServer.");
                         lock (NotificationReceivedQueue)
                         {

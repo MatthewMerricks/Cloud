@@ -14,4 +14,8 @@ BEGIN
   DELETE
   FROM FileSystemObjects
   WHERE ParentFolderId = OLD.FileSystemObjectId;
+
+  UPDATE Events
+  SET PreviousId = NULL
+  WHERE PreviousId = OLD.FileSystemObjectId;
 END

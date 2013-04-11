@@ -868,99 +868,123 @@ namespace Cloud.FileMonitor
                     throw new ArgumentException("Cannot download a file in MonitorAgent, it needs to be downloaded through Sync");
                 }
 
-                GenericHolder<FilePathDictionary<List<FileChange>>> upDownsHolder = new GenericHolder<FilePathDictionary<List<FileChange>>>(null);
-                Func<GenericHolder<FilePathDictionary<List<FileChange>>>, MonitorAgent, string, FilePathDictionary<List<FileChange>>> fillAndReturnUpDowns =
-                    (innerUpDownsHolder, thisAgent, innerRootPath) =>
-                        {
-                            if (innerUpDownsHolder.Value == null)
-                            {
-                                KeyValuePair<FilePathDictionary<List<FileChange>>, CLError> upDownsPair = thisAgent.GetUploadDownloadTransfersInProgress(innerRootPath);
-                                if (upDownsPair.Value != null)
-                                {
-                                    throw new AggregateException("Error in GetUploadDownloadTransfersInProgress", upDownsPair.Value.GrabExceptions());
-                                }
-                                if (upDownsPair.Key == null)
-                                {
-                                    throw new NullReferenceException("GetUploadDownloadTransfersInProgress return cannot have a null Key");
-                                }
-                                innerUpDownsHolder.Value = upDownsPair.Key;
-                            }
-                            return innerUpDownsHolder.Value;
-                        };
+                string rootPathString;
+                FilePath rootPath = rootPathString = CurrentFolderPath;
 
-                Action<FilePath, FilePath, object, Nullable<DateTime>, Nullable<DateTime>> recurseFolderCreationToRoot = (toCreate, root, currentAction, creationTime, lastTime) =>
+                var fillAndReturnUpDowns = DelegateAndDataHolder.Create(
+                    new
                     {
-                        if (!FilePathComparer.Instance.Equals(toCreate, root))
+                        upDownsHolder = new GenericHolder<FilePathDictionary<List<FileChange>>>(null),
+                        thisAgent = this,
+                        innerRootPath = new GenericHolder<string>(null)
+                    },
+                    (Data, errorToAccumulate) =>
+                    {
+                        if (Data.upDownsHolder.Value == null)
                         {
-                            Action<FilePath, FilePath, object, Nullable<DateTime>, Nullable<DateTime>> castAction = currentAction as Action<FilePath, FilePath, object, Nullable<DateTime>, Nullable<DateTime>>;
-                            if (castAction == null)
+                            KeyValuePair<FilePathDictionary<List<FileChange>>, CLError> upDownsPair = Data.thisAgent.GetUploadDownloadTransfersInProgress(Data.innerRootPath.Value);
+                            if (upDownsPair.Value != null)
                             {
-                                throw new NullReferenceException("Unable to cast currentAction as the type of the current Action");
+                                throw new AggregateException("Error in GetUploadDownloadTransfersInProgress", upDownsPair.Value.GrabExceptions());
                             }
-                            castAction(toCreate.Parent, root, castAction, null, null);
+                            if (upDownsPair.Key == null)
+                            {
+                                throw new NullReferenceException("GetUploadDownloadTransfersInProgress return cannot have a null Key");
+                            }
+                            Data.upDownsHolder.Value = upDownsPair.Key;
+                        }
+                        return Data.upDownsHolder.Value;
+                    },
+                    null);
+
+                var recurseFolderCreationToRoot = DelegateAndDataHolder.Create(
+                    new
+                    {
+                        thisAgent = this,
+                        thisDelegate = new GenericHolder<DelegateAndDataHolder>(null),
+                        toCreate = new GenericHolder<FilePath>(null),
+                        root = rootPath,
+                        creationTime = new GenericHolder<Nullable<DateTime>>(null),
+                        lastTime = new GenericHolder<Nullable<DateTime>>(null),
+                        serverUid = new GenericHolder<string>(null)
+                    },
+                    (Data, errorToAccumulate) =>
+                    {
+                        FilePath storeToCreate = Data.toCreate.Value;
+                        Nullable<DateTime> storeCreationTime = Data.creationTime.Value;
+                        Nullable<DateTime> storeLastTime = Data.lastTime.Value;
+                        string storeServerUid = Data.serverUid.Value;
+
+                        if (!FilePathComparer.Instance.Equals(storeToCreate, Data.root))
+                        {
+                            Data.toCreate.Value = storeToCreate.Parent;
+                            Data.creationTime.Value = null;
+                            Data.lastTime.Value = null;
+                            Data.serverUid.Value = null;
+
+                            Data.thisDelegate.Value.Process();
 
                             FileMetadata existingPath;
                             Nullable<DateTime> createdLastWriteUtc;
                             Nullable<DateTime> createdCreationUtc;
 
-                            if (AllPaths.TryGetValue(toCreate, out existingPath))
+                            if (Data.thisAgent.AllPaths.TryGetValue(storeToCreate, out existingPath))
                             {
-                                if (!Directory.Exists(toCreate.ToString()))
+                                if (!Directory.Exists(storeToCreate.ToString()))
                                 {
-                                    CreateDirectoryWithAttributes(toCreate, existingPath.HashableProperties.CreationTime, existingPath.HashableProperties.LastTime, out createdLastWriteUtc, out createdCreationUtc);
+                                    CreateDirectoryWithAttributes(storeToCreate, existingPath.HashableProperties.CreationTime, existingPath.HashableProperties.LastTime, out createdLastWriteUtc, out createdCreationUtc);
                                 }
                             }
                             else
                             {
-                                CreateDirectoryWithAttributes(toCreate, creationTime, lastTime, out createdLastWriteUtc, out createdCreationUtc);
+                                CreateDirectoryWithAttributes(storeToCreate, storeCreationTime, storeLastTime, out createdLastWriteUtc, out createdCreationUtc);
 
-                                new ChangeAllPathsAdd(this, toCreate,
+                                new ChangeAllPathsAdd(Data.thisAgent, storeToCreate,
                                     new FileMetadata()
                                     {
                                         HashableProperties = new FileMetadataHashableProperties(true,
                                             createdLastWriteUtc,
                                             createdCreationUtc,
-                                            null)
+                                            null),
+                                        ServerUid = storeServerUid
                                     });
                             }
                         }
-                    };
+                    },
+                    null);
+                recurseFolderCreationToRoot.TypedData.thisDelegate.Value = recurseFolderCreationToRoot;
 
-                Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object> recurseHierarchyAndAddSyncFromsToHashSet =
-                    (innerHierarchy, innerMatchedDowns, innerRecurseHierarchy) =>
+                var recurseHierarchyAndAddSyncFromsToHashSet = DelegateAndDataHolder.Create(
+                    new
                     {
-                        Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object> castRecurseHierarchy =
-                            innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object>;
-
-                        if (castRecurseHierarchy == null)
+                        thisDelegate = new GenericHolder<DelegateAndDataHolder>(null),
+                        matchedDowns = new HashSet<FileChange>(),
+                        innerHierarchy = new GenericHolder<FilePathHierarchicalNode<List<FileChange>>>(null)
+                    },
+                    (Data, errorToAccumulate) =>
+                    {
+                        FilePathHierarchicalNodeWithValue<List<FileChange>> castHierarchy = Data.innerHierarchy.Value as FilePathHierarchicalNodeWithValue<List<FileChange>>;
+                        if (castHierarchy != null)
                         {
-                            MessageEvents.FireNewEventMessage(
-                                "Unable to cast innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object>",
-                                EventMessageLevel.Important,
-                                new HaltAllOfCloudSDKErrorInfo());
-                        }
-                        else
-                        {
-                            FilePathHierarchicalNodeWithValue<List<FileChange>> castHierarchy = innerHierarchy as FilePathHierarchicalNodeWithValue<List<FileChange>>;
-                            if (castHierarchy != null)
+                            foreach (FileChange innerUpDown in (castHierarchy.Value.Value ?? Enumerable.Empty<FileChange>()))
                             {
-                                foreach (FileChange innerUpDown in (castHierarchy.Value.Value ?? Enumerable.Empty<FileChange>()))
+                                if (innerUpDown.Direction == SyncDirection.From)
                                 {
-                                    if (innerUpDown.Direction == SyncDirection.From)
-                                    {
-                                        innerMatchedDowns.Add(innerUpDown);
-                                    }
-                                }
-                            }
-                            if (innerHierarchy != null)
-                            {
-                                foreach (FilePathHierarchicalNode<List<FileChange>> recurseHierarchicalNode in (innerHierarchy.Children ?? Enumerable.Empty<FilePathHierarchicalNode<List<FileChange>>>()))
-                                {
-                                    castRecurseHierarchy(recurseHierarchicalNode, innerMatchedDowns, castRecurseHierarchy);
+                                    Data.matchedDowns.Add(innerUpDown);
                                 }
                             }
                         }
-                    };
+                        if (Data.innerHierarchy.Value != null)
+                        {
+                            foreach (FilePathHierarchicalNode<List<FileChange>> recurseHierarchicalNode in (Data.innerHierarchy.Value.Children ?? Enumerable.Empty<FilePathHierarchicalNode<List<FileChange>>>()))
+                            {
+                                Data.innerHierarchy.Value = recurseHierarchicalNode;
+                                Data.thisDelegate.Value.Process();
+                            }
+                        }
+                    },
+                    null);
+                recurseHierarchyAndAddSyncFromsToHashSet.TypedData.thisDelegate.Value = recurseHierarchyAndAddSyncFromsToHashSet;
 
                 lock (AllPaths)
                 {
@@ -979,8 +1003,7 @@ namespace Cloud.FileMonitor
                                 return null;
                             }
 
-                            string rootPathString;
-                            FilePath rootPath = rootPathString = CurrentFolderPath;
+                            fillAndReturnUpDowns.TypedData.innerRootPath.Value = rootPathString;
                             if (!toApply.NewPath.Contains(rootPath))
                             {
                                 throw new ArgumentException("FileChange's NewPath does not fall within the root directory");
@@ -989,7 +1012,11 @@ namespace Cloud.FileMonitor
                             switch (toApply.Type)
                             {
                                 case FileChangeType.Created:
-                                    recurseFolderCreationToRoot(toApply.NewPath, rootPath, recurseFolderCreationToRoot, toApply.Metadata.HashableProperties.CreationTime, toApply.Metadata.HashableProperties.LastTime);
+                                    recurseFolderCreationToRoot.TypedData.toCreate.Value = toApply.NewPath;
+                                    recurseFolderCreationToRoot.TypedData.creationTime.Value = toApply.Metadata.HashableProperties.CreationTime;
+                                    recurseFolderCreationToRoot.TypedData.lastTime.Value = toApply.Metadata.HashableProperties.LastTime;
+                                    recurseFolderCreationToRoot.TypedData.serverUid.Value = toApply.Metadata.ServerUid;
+                                    recurseFolderCreationToRoot.Process();
 
                                     Exception creationToRethrow = null;
                                     try
@@ -1034,7 +1061,9 @@ namespace Cloud.FileMonitor
                                             new ChangeAllPathsIndexSet(this, toApply.NewPath,
                                                 new FileMetadata()
                                                 {
-                                                    HashableProperties = toApply.Metadata.HashableProperties
+                                                    HashableProperties = toApply.Metadata.HashableProperties,
+                                                    ServerUid = toApply.Metadata.ServerUid,
+                                                    Revision = toApply.Metadata.Revision
                                                 });
                                         }
                                     }
@@ -1047,8 +1076,7 @@ namespace Cloud.FileMonitor
                                     }
                                     break;
                                 case FileChangeType.Deleted:
-                                    HashSet<FileChange> matchedDownsForDeleted = new HashSet<FileChange>();
-                                    FilePathDictionary<List<FileChange>> upDownsForDeleted = fillAndReturnUpDowns(upDownsHolder, this, rootPathString);
+                                    FilePathDictionary<List<FileChange>> upDownsForDeleted = fillAndReturnUpDowns.TypedProcess();
 
                                     FilePathHierarchicalNode<List<FileChange>> deletedHierarchy;
                                     CLError deletedHierarchyError = upDownsForDeleted.GrabHierarchyForPath(toApply.NewPath, out deletedHierarchy, suppressException: true);
@@ -1057,9 +1085,10 @@ namespace Cloud.FileMonitor
                                         throw new AggregateException("Error grabbing hierarchy from upDownsForDeleted", deletedHierarchyError.GrabExceptions());
                                     }
 
-                                    recurseHierarchyAndAddSyncFromsToHashSet(deletedHierarchy, matchedDownsForDeleted, recurseHierarchyAndAddSyncFromsToHashSet);
+                                    recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = deletedHierarchy;
+                                    recurseHierarchyAndAddSyncFromsToHashSet.Process();
 
-                                    foreach (FileChange matchedDown in matchedDownsForDeleted)
+                                    foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
                                     {
                                         if (matchedDown.fileDownloadMoveLocker != null)
                                         {
@@ -1097,7 +1126,7 @@ namespace Cloud.FileMonitor
 
                                         if (deleteHappened)
                                         {
-                                            foreach (FileChange matchedDown in matchedDownsForDeleted)
+                                            foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
                                             {
                                                 matchedDown.NewPath = null; // set volatile path on this alternate thread which is checked as a way to cancel a download
                                             }
@@ -1105,8 +1134,8 @@ namespace Cloud.FileMonitor
                                     }
                                     finally
                                     {
-                                        matchedDownsForDeleted.Reverse(); // not sure if reversal is necessary, but other types of locks should be exited in reverse order
-                                        foreach (FileChange matchedDown in matchedDownsForDeleted)
+                                        recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns.Reverse(); // not sure if reversal is necessary, but other types of locks should be exited in reverse order
+                                        foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
                                         {
                                             if (matchedDown.fileDownloadMoveLocker != null)
                                             {
@@ -1118,14 +1147,14 @@ namespace Cloud.FileMonitor
                                     new ChangeAllPathsRemove(this, toApply.NewPath);
                                     break;
                                 case FileChangeType.Renamed:
-                                    recurseFolderCreationToRoot(toApply.NewPath.Parent, rootPath, recurseFolderCreationToRoot, null, null);
+                                    recurseFolderCreationToRoot.TypedData.toCreate.Value = toApply.NewPath.Parent;
+                                    recurseFolderCreationToRoot.Process();
 
-                                    HashSet<FileChange> matchedDownsForRenamed = new HashSet<FileChange>();
                                     // check if move old path is outside of the cloud directory (temp download directory) in order to bypass updown checking and locking
                                     if (toApply.Metadata.HashableProperties.IsFolder
                                         || toApply.OldPath.Contains(rootPath, insensitiveNameSearch: true))
                                     {
-                                        FilePathDictionary<List<FileChange>> upDownsForRenamed = fillAndReturnUpDowns(upDownsHolder, this, rootPathString);
+                                        FilePathDictionary<List<FileChange>> upDownsForRenamed = fillAndReturnUpDowns.TypedProcess();
 
                                         FilePathHierarchicalNode<List<FileChange>> renamedHierarchy;
                                         CLError renamedHierarchyError = upDownsForRenamed.GrabHierarchyForPath(toApply.OldPath, out renamedHierarchy, suppressException: true);
@@ -1134,10 +1163,11 @@ namespace Cloud.FileMonitor
                                             throw new AggregateException("Error grabbing hierarchy from upDownsForRenamed", renamedHierarchyError.GrabExceptions());
                                         }
 
-                                        recurseHierarchyAndAddSyncFromsToHashSet(renamedHierarchy, matchedDownsForRenamed, recurseHierarchyAndAddSyncFromsToHashSet);
+                                        recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = renamedHierarchy;
+                                        recurseHierarchyAndAddSyncFromsToHashSet.Process();
                                     }
 
-                                    foreach (FileChange matchedDown in matchedDownsForRenamed)
+                                    foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
                                     {
                                         if (matchedDown.fileDownloadMoveLocker != null)
                                         {
@@ -1232,7 +1262,7 @@ namespace Cloud.FileMonitor
                                                 throwExceptionOnFailure: true);
                                         }
 
-                                        foreach (FileChange matchedDown in matchedDownsForRenamed)
+                                        foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
                                         {
                                             FilePath previousNewPath = matchedDown.NewPath;
                                             if (previousNewPath != null)
@@ -1245,8 +1275,8 @@ namespace Cloud.FileMonitor
                                     }
                                     finally
                                     {
-                                        matchedDownsForRenamed.Reverse(); // not sure if reversal is necessary, but other types of locks should be exited in reverse order
-                                        foreach (FileChange matchedDown in matchedDownsForRenamed)
+                                        recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns.Reverse(); // not sure if reversal is necessary, but other types of locks should be exited in reverse order
+                                        foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
                                         {
                                             if (matchedDown.fileDownloadMoveLocker != null)
                                             {
@@ -1845,11 +1875,17 @@ namespace Cloud.FileMonitor
                                 if (FilePathComparer.Instance.Equals(CurrentEarlierChange.NewPath, LaterChange.OldPath))
                                 {
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
-                                    CLError updateSqlError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange, null)), sqlTran);
+                                    CLError updateSqlError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange)), sqlTran);
                                     if (updateSqlError != null)
                                     {
                                         toReturn += new AggregateException("Error updating SQL after replacing NewPath", updateSqlError.GrabExceptions());
                                     }
+
+                                    if (LaterChange.EventId == 0)
+                                    {
+                                        Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange)), sqlTran);
+                                    }
+                                    Indexer.SwapOrderBetweenTwoEventIds(CurrentEarlierChange.EventId, LaterChange.EventId, sqlTran);
 
                                     if (CurrentEarlierChange.Type == FileChangeType.Created)
                                     {
@@ -1873,6 +1909,16 @@ namespace Cloud.FileMonitor
 
                                         DependenciesAddedToLaterChange = true;
                                     }
+                                    else if (!DependenciesAddedToLaterChange)
+                                    {
+                                        LaterChange.AddDependency(CurrentEarlierChange);
+                                        if (DependencyDebugging)
+                                        {
+                                            Helpers.CheckFileChangeDependenciesForDuplicates(LaterChange);
+                                        }
+                                        PulledChanges.Add(CurrentEarlierChange);
+                                        DependenciesAddedToLaterChange = true;
+                                    }
                                 }
                                 else
                                 {
@@ -1890,11 +1936,17 @@ namespace Cloud.FileMonitor
                                         if (FilePathComparer.Instance.Equals(renamedOverlap, LaterChange.OldPath))
                                         {
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
-                                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange, null)), sqlTran);
+                                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange)), sqlTran);
                                             if (replacePathPortionError != null)
                                             {
                                                 toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
                                             }
+
+                                            if (LaterChange.EventId == 0)
+                                            {
+                                                Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange)), sqlTran);
+                                            }
+                                            Indexer.SwapOrderBetweenTwoEventIds(CurrentEarlierChange.EventId, LaterChange.EventId, sqlTran);
                                             break;
                                         }
 
@@ -3299,20 +3351,21 @@ namespace Cloud.FileMonitor
                                                 debugEntry.NewChangeType = new WatcherChangeCreated();
                                             }
 
-                                            // add new index
-                                            new ChangeAllPathsAdd(this, pathObject,
+                                            FileMetadata addedMetadata =
                                                 new FileMetadata()
                                                 {
                                                     HashableProperties = new FileMetadataHashableProperties(isFolder,
                                                         lastTime,
                                                         creationTime,
                                                         fileLength)
-                                                });
+                                                };
+                                            // add new index
+                                            new ChangeAllPathsAdd(this, pathObject, addedMetadata);
                                             // queue file change for create
                                             QueueFileChange(new FileChange(QueuedChanges)
                                             {
                                                 NewPath = pathObject,
-                                                Metadata = AllPaths[pathObject],
+                                                Metadata = addedMetadata,
                                                 Type = FileChangeType.Created,
                                                 Direction = SyncDirection.To // detected that a file or folder was created locally, so Sync To to update server
                                             }, startProcessingAction);
@@ -4085,6 +4138,8 @@ namespace Cloud.FileMonitor
                                             }
 
                                             QueuedChanges[toChange.NewPath] = toChange; // the previous folder deletion change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
+
+                                            StartDelay(toChange, startProcessingAction);
                                         }
                                         // else if the path does not represent a folder,
                                         // discard the deletion change for files which have been deleted and created again with the same metadata
@@ -4113,6 +4168,14 @@ namespace Cloud.FileMonitor
                                             previousChange.Type = FileChangeType.Modified;
                                             previousChange.Metadata = toChange.Metadata;
                                             previousChange.SetDelayBackToInitialValue();
+
+                                            // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
+                                            // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
+
+                                            toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
+                                            toChange.Metadata.Revision = previousChange.Metadata.Revision;
+                                            toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
+                                            toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
                                         }
                                         break;
                                     case FileChangeType.Modified:
@@ -4140,6 +4203,8 @@ namespace Cloud.FileMonitor
                                         // error condition
                                         break;
                                     case FileChangeType.Modified:
+                                        previousChange.PreviouslyModified = true;
+
                                         previousChange.Type = FileChangeType.Deleted;
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
@@ -4170,8 +4235,26 @@ namespace Cloud.FileMonitor
                                         previousChange.SetDelayBackToInitialValue();
                                         break;
                                     case FileChangeType.Renamed:
-                                        previousChange.Metadata = toChange.Metadata;
-                                        previousChange.SetDelayBackToInitialValue();
+                                        // updating a rename with new metadata will not cause the server to process both modification and rename,
+                                        // so need to split the changes into two
+                                        
+                                        FileChange changeForPreviousMetadata;
+                                        if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out changeForPreviousMetadata)
+                                            && changeForPreviousMetadata.Equals(previousChange))
+                                        {
+                                            QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties); // the previous change will be allowed to process as-is, clear out its metadata for future checking
+                                        }
+
+                                        FileChange toCompareForNewMetadata;
+                                        if (!QueuedChangesByMetadata.TryGetValue(toChange.Metadata.HashableProperties, out toCompareForNewMetadata)
+                                            || !toCompareForNewMetadata.Equals(toChange))
+                                        {
+                                            QueuedChangesByMetadata[toChange.Metadata.HashableProperties] = toChange;
+                                        }
+
+                                        QueuedChanges[toChange.NewPath] = toChange; // the previous file rename change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
+
+                                        StartDelay(toChange, startProcessingAction);
                                         break;
                                 }
                                 break;
@@ -4182,6 +4265,9 @@ namespace Cloud.FileMonitor
                                         // error condition
                                         break;
                                     case FileChangeType.Deleted:
+                                        // TODO: check if this condition requires setting the ServerUid and Revision fields in toChange.Metadata back to the values from
+                                        // previous change like we did with delete followed by create (which in turn sets the fields back appropriately in AllPaths)
+
                                         if (QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
                                         {
                                             previousChange.NewPath = toChange.OldPath;
@@ -4246,22 +4332,60 @@ namespace Cloud.FileMonitor
                         && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Deleted
                         && !matchedFileChangeForRename.DelayCompleted)
                 {
-                    // FileChange already exists
-                    // Instead of starting a new processing delay, update the FileChange information
-                    // Then restart the delay timer
-                    matchedFileChangeForRename.Type = FileChangeType.Renamed;
-                    matchedFileChangeForRename.OldPath = matchedFileChangeForRename.NewPath;
-                    matchedFileChangeForRename.NewPath = toChange.NewPath;
-                    matchedFileChangeForRename.Metadata = toChange.Metadata;
-                    if (QueuedChanges.ContainsKey(matchedFileChangeForRename.OldPath))
+                    FilePath removeFromQueuedChanges = matchedFileChangeForRename.NewPath;
+                    if (matchedFileChangeForRename.PreviouslyModified)
                     {
-                        QueuedChanges.Remove(matchedFileChangeForRename.OldPath);
+                        matchedFileChangeForRename.Type = FileChangeType.Modified;
+
+                        toChange.Type = FileChangeType.Renamed;
+                        toChange.OldPath = matchedFileChangeForRename.NewPath;
                     }
-                    QueuedChanges.Add(matchedFileChangeForRename.NewPath,
-                        matchedFileChangeForRename);
-                    matchedFileChangeForRename.SetDelayBackToInitialValue();
+                    else
+                    {
+                        // FileChange already exists
+                        // Instead of starting a new processing delay, update the FileChange information
+                        // Then restart the delay timer
+                        matchedFileChangeForRename.Type = FileChangeType.Renamed;
+                        matchedFileChangeForRename.OldPath = matchedFileChangeForRename.NewPath;
+                        matchedFileChangeForRename.NewPath = toChange.NewPath;
+                    }
+
+                    // if the new created change is missing required fields to process a rename (such as ServerUid and maybe Revision),
+                    // then try and pull them from the previous deletion change before replacing the metadata
+                    if (toChange.Metadata != null
+                        && matchedFileChangeForRename.Metadata != null)
+                    {
+                        if (toChange.Metadata.ServerUid == null)
+                        {
+                            toChange.Metadata.ServerUid = matchedFileChangeForRename.Metadata.ServerUid;
+                        }
+
+                        if (toChange.Metadata.Revision == null)
+                        {
+                            toChange.Metadata.Revision = matchedFileChangeForRename.Metadata.Revision;
+                        }
+                    }
+
+                    matchedFileChangeForRename.Metadata = toChange.Metadata;
+
+                    QueuedChanges.Remove(removeFromQueuedChanges);
+
+                    if (matchedFileChangeForRename.PreviouslyModified)
+                    {
+                        StartDelay(toChange, startProcessingAction);
+
+                        QueuedChanges[toChange.NewPath] = toChange;
+                    }
+                    else
+                    {
+                        matchedFileChangeForRename.SetDelayBackToInitialValue();
+
+                        QueuedChanges.Add(matchedFileChangeForRename.NewPath,
+                            matchedFileChangeForRename);
+                    }
+
                     // add old/new path pairs for recursive rename processing
-                    OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
+                    OldToNewPathRenames[removeFromQueuedChanges] = toChange.NewPath;
                 }
                 // Existing FileChange is a Created event and the incoming event is a matching Deleted event which has not yet completed
                 else if (toChange.Type == FileChangeType.Deleted
@@ -4274,6 +4398,17 @@ namespace Cloud.FileMonitor
                     // Then restart the delay timer
                     matchedFileChangeForRename.Type = FileChangeType.Renamed;
                     matchedFileChangeForRename.OldPath = toChange.NewPath;
+
+                    // the later deletion caused the metatadata to be lost in AllPaths,
+                    // so need to add it back here;
+                    // already under a lock on AllPaths since QueueFileChange must be called under such lock
+                    if (AllPaths.ContainsKey(matchedFileChangeForRename.OldPath))
+                    {
+                        AllPaths[matchedFileChangeForRename.NewPath] = null; // ensure no error with the rename
+                        AllPaths.Rename(matchedFileChangeForRename.OldPath, matchedFileChangeForRename.NewPath); // should move the existing metadata at path forwards
+                    }
+
+
                     if (QueuedChanges.ContainsKey(matchedFileChangeForRename.NewPath))
                     {
                         if (QueuedChanges[matchedFileChangeForRename.NewPath] != matchedFileChangeForRename)
@@ -4286,6 +4421,7 @@ namespace Cloud.FileMonitor
                         QueuedChanges.Add(matchedFileChangeForRename.NewPath,
                             matchedFileChangeForRename);
                     }
+
                     matchedFileChangeForRename.SetDelayBackToInitialValue();
                     // add old/new path pairs for recursive rename processing
                     OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
@@ -4364,41 +4500,37 @@ namespace Cloud.FileMonitor
                     senderToAdd = null;
                 }
 
-                Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object> recurseHierarchyAndAddSyncFromsToHashSet =
-                    (innerHierarchy, innerMatchedDowns, innerRecurseHierarchy) =>
+                var recurseHierarchyAndAddSyncFromsToHashSet = DelegateAndDataHolder.Create(
+                    new
                     {
-                        Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object> castRecurseHierarchy =
-                            innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object>;
-
-                        if (castRecurseHierarchy == null)
+                        thisDelegate = new GenericHolder<DelegateAndDataHolder>(null),
+                        innerHierarchy = new GenericHolder<FilePathHierarchicalNode<List<FileChange>>>(null),
+                        matchedChanges = new HashSet<FileChange>()
+                    },
+                    (Data, errorToAccumulate) =>
+                    {
+                        FilePathHierarchicalNodeWithValue<List<FileChange>> castHierarchy = Data.innerHierarchy.Value as FilePathHierarchicalNodeWithValue<List<FileChange>>;
+                        if (castHierarchy != null)
                         {
-                            MessageEvents.FireNewEventMessage(
-                                "Unable to cast innerRecurseHierarchy as Action<FilePathHierarchicalNode<List<FileChange>>, HashSet<FileChange>, object>",
-                                EventMessageLevel.Important,
-                                new HaltAllOfCloudSDKErrorInfo());
-                        }
-                        else
-                        {
-                            FilePathHierarchicalNodeWithValue<List<FileChange>> castHierarchy = innerHierarchy as FilePathHierarchicalNodeWithValue<List<FileChange>>;
-                            if (castHierarchy != null)
+                            foreach (FileChange innerUpDown in (castHierarchy.Value.Value ?? Enumerable.Empty<FileChange>()))
                             {
-                                foreach (FileChange innerUpDown in (castHierarchy.Value.Value ?? Enumerable.Empty<FileChange>()))
+                                if (innerUpDown.Direction == SyncDirection.From)
                                 {
-                                    if (innerUpDown.Direction == SyncDirection.From)
-                                    {
-                                        innerMatchedDowns.Add(innerUpDown);
-                                    }
-                                }
-                            }
-                            if (innerHierarchy != null)
-                            {
-                                foreach (FilePathHierarchicalNode<List<FileChange>> recurseHierarchicalNode in (innerHierarchy.Children ?? Enumerable.Empty<FilePathHierarchicalNode<List<FileChange>>>()))
-                                {
-                                    castRecurseHierarchy(recurseHierarchicalNode, innerMatchedDowns, castRecurseHierarchy);
+                                    Data.matchedChanges.Add(innerUpDown);
                                 }
                             }
                         }
-                    };
+                        if (Data.innerHierarchy.Value != null)
+                        {
+                            foreach (FilePathHierarchicalNode<List<FileChange>> recurseHierarchicalNode in (Data.innerHierarchy.Value.Children ?? Enumerable.Empty<FilePathHierarchicalNode<List<FileChange>>>()))
+                            {
+                                Data.innerHierarchy.Value = recurseHierarchicalNode;
+                                Data.thisDelegate.Value.Process();
+                            }
+                        }
+                    },
+                    null);
+                recurseHierarchyAndAddSyncFromsToHashSet.TypedData.thisDelegate.Value = recurseHierarchyAndAddSyncFromsToHashSet;
 
                 do
                 {
@@ -4442,8 +4574,6 @@ namespace Cloud.FileMonitor
                                 && (currentMerge.Type == FileChangeType.Deleted
                                     || currentMerge.Type == FileChangeType.Renamed))
                             {
-                                HashSet<FileChange> matchedToCurrentMerge = new HashSet<FileChange>();
-
                                 FilePathHierarchicalNode<List<FileChange>> matchedHierarchy;
                                 CLError matchedHierarchyError = upDowns.GrabHierarchyForPath(
                                     (currentMerge.Type == FileChangeType.Deleted
@@ -4453,9 +4583,10 @@ namespace Cloud.FileMonitor
                                     suppressException: true);
                                 if (matchedHierarchyError == null)
                                 {
-                                    recurseHierarchyAndAddSyncFromsToHashSet(matchedHierarchy, matchedToCurrentMerge, recurseHierarchyAndAddSyncFromsToHashSet);
+                                    recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = matchedHierarchy;
+                                    recurseHierarchyAndAddSyncFromsToHashSet.Process();
 
-                                    foreach (FileChange currentMatchedDownload in matchedToCurrentMerge)
+                                    foreach (FileChange currentMatchedDownload in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedChanges)
                                     {
                                         if (currentMatchedDownload.fileDownloadMoveLocker != null)
                                         {
@@ -4922,18 +5053,10 @@ namespace Cloud.FileMonitor
             {
                 if (SyncRunLocker.Value)
                 {
-                    ////DEBUG ONLY CODE!!! Remove
-                    //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-                    //    "NextSyncQueued, SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
-
                     NextSyncQueued.Value = true;
                 }
                 else
                 {
-                    ////DEBUG ONLY CODE!!! Remove
-                    //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-                    //    "RunningSync not from NextSyncQueued, SyncBoxId: " + (this._syncBox == null ? "{null}" : this._syncBox.SyncBoxId.ToString()) + ", DeviceId: " + ((this._syncBox == null || this._syncBox.CopiedSettings.DeviceId == null) ? "{null}" : this._syncBox.CopiedSettings.DeviceId));
-
                     SyncRunLocker.Value = true;
 
                     // run Sync
@@ -4977,10 +5100,6 @@ namespace Cloud.FileMonitor
                             {
                                 if (nextQueue.Value)
                                 {
-                                    ////DEBUG ONLY CODE!!! Remove
-                                    //Cloud.PushNotification.DebugDeleteMe.RecordMessage(
-                                    //    "RunningSync again from NextSyncQueued");
-
                                     nextQueue.Value = false;
                                     return true;
                                 }

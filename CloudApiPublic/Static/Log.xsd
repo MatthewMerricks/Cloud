@@ -151,11 +151,16 @@
   </xs:complexType>
   <xs:complexType name="TraceFileChange">
     <xs:all>
-      <xs:element name="ServerId" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="ServerUid" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="EventId" minOccurs="0" maxOccurs="1" type="xs:long" />
       <xs:element name="NewPath" minOccurs="1" maxOccurs="1" type="xs:string" />
       <xs:element name="OldPath" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="IsFolder" minOccurs="1" maxOccurs="1" type="xs:boolean" />
+      <xs:element name="IsShare" minOccurs="0" maxOccurs="1" type="xs:boolean" />
+      <xs:element name="Version" minOccurs="0" maxOccurs="1" type="xs:int" />
+      <xs:element name="ParentServerUid" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="MimeType" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="Permissions" minOccurs="0" maxOccurs="1" type="xs:int" />
       <xs:element name="Type" minOccurs="1" maxOccurs="1">
         <xs:simpleType>
           <xs:restriction base="xs:string">

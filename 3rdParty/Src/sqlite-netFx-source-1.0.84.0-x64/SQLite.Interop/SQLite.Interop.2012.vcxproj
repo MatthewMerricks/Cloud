@@ -458,7 +458,9 @@ XCOPY "$(TargetPath)" "$(OutDir)..\..\Release\bin\" /D /E /V /I /F /H /Y</Comman
   </ItemGroup>
   <ItemGroup>
     <None Include="props\SQLite.Interop.2012.props" />
-    <None Include="props\sqlite3.props" />
+    <None Include="props\sqlite3.props">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\sqlite3.h" />

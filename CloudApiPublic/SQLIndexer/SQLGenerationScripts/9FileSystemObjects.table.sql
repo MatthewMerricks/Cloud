@@ -27,6 +27,7 @@ CREATE TABLE FileSystemObjects
     ServerName TEXT CONSTRAINT CHK_FileSystemObjects_ServerName_TEXT
       CHECK (ServerName IS NULL OR (TYPEOF(ServerName) = 'text' AND ServerName <> '')),
     EventId INTEGER,
+	EventOrder INTEGER,
     IsShare INTEGER CONSTRAINT CHK_FileSystemObjects_IsShare_Boolean
       CHECK (IsShare IS NULL OR IsShare = 0 OR IsShare = 1),
     MD5 BLOB CONSTRAINT CHK_FileSystemObjects_MD5_Hash

@@ -222,14 +222,19 @@ namespace Cloud.FileMonitor.SyncImplementation
             return Indexer.GetMetadataByPathAndRevision(path, revision, out metadata);
         }
 
-        public CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath)
+        public CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath, Nullable<long> excludedEventId = null)
         {
-            return Indexer.GetCalculatedFullPathByServerUid(serverUid, out calculatedFullPath);
+            return Indexer.GetCalculatedFullPathByServerUid(serverUid, out calculatedFullPath, excludedEventId);
         }
 
         public CLError GetServerUidByNewPath(string newPath, out string serverUid)
         {
             return Indexer.GetServerUidByNewPath(newPath, out serverUid);
         }
+
+        //public void SwapOrderBetweenTwoEventIds(long eventIdA, long eventIdB, SQLTransactionalBase requiredTransaction)
+        //{
+        //    Indexer.SwapOrderBetweenTwoEventIds(eventIdA, eventIdB, requiredTransaction);
+        //}
     }
 }

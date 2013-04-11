@@ -142,8 +142,10 @@ namespace Cloud.Interfaces
         /// <returns>Should return any error that occurred while retrieving the file metadata, should not throw any exception</returns>
         CLError getMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata);
 
-        CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath);
+        CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath, Nullable<long> excludedEventId = null);
 
         CLError GetServerUidByNewPath(string newPath, out string serverUid);
+
+        //void SwapOrderBetweenTwoEventIds(long eventIdA, long eventIdB, SQLTransactionalBase requiredTransaction);
     }
 }

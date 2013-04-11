@@ -39,4 +39,8 @@ BEGIN
   UPDATE FileSystemObjects
   SET CalculatedFullPath = NEW.CalculatedFullPath || '\' || Name
   WHERE ParentFolderId = NEW.FileSystemObjectId;
+
+  UPDATE FileSystemObjects
+  SET EventOrder = EventId
+  WHERE FileSystemObjects.FileSystemObjectId = NEW.FileSystemObjectId;
 END
