@@ -1040,8 +1040,8 @@ namespace Cloud.Static
             string sMemory = ReplaceCommas(GetPhysicalMemory());
             string sOs = ReplaceCommas(OSVersionInfo.Name + " " + OSVersionInfo.Edition + " " + OSVersionInfo.OSBits.ToString() + " " + OSVersionInfo.VersionString);
             string sSdkVersion = ReplaceCommas(typeof(OSVersionInfo).Assembly.GetName().Version.ToString());
-            string sClientName = ReplaceCommas(System.Reflection.Assembly.GetEntryAssembly().GetName().Name);
-            string sClientVersion = ReplaceCommas(System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString());
+            string sClientName = ReplaceCommas(Helpers.GetDefaultNameFromApplicationName());
+            string sClientVersion = ReplaceCommas(Helpers.GetVersionStringFromApplication());
             string sClientDescription = ReplaceCommas(clientDescription);
 
             string toReturn = sHardware + " " + sMemory + "," + sOs + ",v" + sSdkVersion + "," + sClientName + ",v" + sClientVersion + "," + sClientDescription;
