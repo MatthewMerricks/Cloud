@@ -43,14 +43,24 @@ CBadgeIconBase::CBadgeIconBase(int iconIndex, EnumCloudAppIconBadgeType badgeTyp
 		//fCompletedOnce = true;
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
+		// Initialize instance variables
+		strncpy_s(_szOutProcessName, "<unknown>", MAX_PATH);
+
 		// Get the process name so we can trace it.
-		CHAR szOutProcessName[MAX_PATH] = "<unknown>";
 		DWORD dwOutProcessId = 0;
-		GetCurrentProcessNameAndProcessId(szOutProcessName, sizeof(szOutProcessName), &dwOutProcessId);
+		GetCurrentProcessNameAndProcessId(_szOutProcessName, sizeof(_szOutProcessName), &dwOutProcessId);
+
+		// Vista X64 was failing to badge.  It turns out that they verify the shell extension by launching a separate process from Explorer (verclsid.exe).
+		// Just return on the construction if it is verclsid.exe that is calling.
+		if (!_strnicmp("verclsid.exe", _szOutProcessName, MAX_PATH))
+		{
+			CLTRACE(9, "CBadgeIconBase: CBadgeIconBase: Entry. Quick exit.");
+			return;
+		}
 
 	    // Allocate the PubSubEvents system, subscribe to events, and send an initialization event to BadgeNet.
         _strBaseBadgeType = BadgeTypeToString(badgeType);
-		CLTRACE(9, "CBadgeIconBase: CBadgeIconBase: Entry. Start the subscription threads. Badge type: %s. ProcessId: %lu. ProcessName: %s.", _strBaseBadgeType.c_str(), dwOutProcessId, szOutProcessName);
+		CLTRACE(9, "CBadgeIconBase: CBadgeIconBase: Entry. Start the subscription threads. Badge type: %s. ProcessId: %lu. ProcessName: %s.", _strBaseBadgeType.c_str(), dwOutProcessId, _szOutProcessName);
         _fIsInitialized = false;
         _iconIndex = iconIndex;
         _badgeType = badgeType;
@@ -73,8 +83,16 @@ CBadgeIconBase::~CBadgeIconBase()
 {
     try
     {
-		// We lost the badging connection.  Empty the dictionaries.  They will be rebuilt if we can get another connection.
+		// Vista X64 was failing to badge.  It turns out that they verify the shell extension by launching a separate process from Explorer (verclsid.exe).
+		// Just return on the construction if it is verclsid.exe that is calling.
 		CLTRACE(9, "CBadgeIconBase: ~CBadgeIconBase: Entry. Shut down this instance.");
+		if (!_strnicmp("verclsid.exe", _szOutProcessName, MAX_PATH))
+		{
+			CLTRACE(9, "CBadgeIconBase: ~CBadgeIconBase: Entry. Quick exit.");
+			return;
+		}
+
+		// We lost the badging connection.  Empty the dictionaries.  They will be rebuilt if we can get another connection.
 		_mapBadges.clear();
         _mapRootFolders.clear();
 
