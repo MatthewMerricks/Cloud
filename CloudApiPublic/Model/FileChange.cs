@@ -189,6 +189,7 @@ namespace Cloud.Model
         private byte[] MD5 = null;
         internal byte FailureCounter = 0;
         internal byte NotFoundForStreamCounter = 0;
+        internal bool FileIsTooBig = false;
 
         // If properties are changed/added/removed, make sure to update FileChangeWithDependencies in the Sync project!!
 

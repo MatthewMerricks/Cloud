@@ -28,7 +28,7 @@ namespace SampleLiveSync.ViewModels
         #region Fields
         
         // RelayCommands
-        RelayCommand<object> _commandBrowseSyncBoxFolder;
+        RelayCommand<object> _commandBrowseSyncboxFolder;
         RelayCommand<object> _commandShowAdvancedOptions;
         RelayCommand<object> _commandSaveSettings;
         RelayCommand<object> _commandResetSync;
@@ -37,6 +37,7 @@ namespace SampleLiveSync.ViewModels
         RelayCommand<object> _commandShowSyncStatus;
         RelayCommand<object> _commandStartSyncing;
         RelayCommand<object> _commandStopSyncing;
+        RelayCommand<object> _commandGenerateDeviceId;
         RelayCommand<object> _commandExit;
 
         // Private fields
@@ -55,7 +56,7 @@ namespace SampleLiveSync.ViewModels
 
         #region Events
 
-        public event EventHandler<NotificationEventArgs> NotifyBrowseSyncBoxFolder;
+        public event EventHandler<NotificationEventArgs> NotifyBrowseSyncboxFolder;
         public event EventHandler<NotificationEventArgs<string, bool>> NotifySettingsChanged;
         public event EventHandler<NotificationEventArgs<CLError>> NotifyException;
 		 
@@ -97,15 +98,15 @@ namespace SampleLiveSync.ViewModels
 
         public string SyncRoot
         {
-            get { return _settingsCurrent.SyncBoxFullPath; }
+            get { return _settingsCurrent.SyncboxFullPath; }
             set
             {
-                if (value == _settingsCurrent.SyncBoxFullPath)
+                if (value == _settingsCurrent.SyncboxFullPath)
                 {
                     return;
                 }
 
-                _settingsCurrent.SyncBoxFullPath = value;
+                _settingsCurrent.SyncboxFullPath = value;
 
                 base.OnPropertyChanged("SyncRoot");
             }
@@ -159,19 +160,19 @@ namespace SampleLiveSync.ViewModels
             }
         }
 
-        public string SyncBoxId
+        public string SyncboxId
         {
-            get { return _settingsCurrent.SyncBoxId; }
+            get { return _settingsCurrent.SyncboxId; }
             set
             {
-                if (value == _settingsCurrent.SyncBoxId)
+                if (value == _settingsCurrent.SyncboxId)
                 {
                     return;
                 }
 
-                _settingsCurrent.SyncBoxId = value;
+                _settingsCurrent.SyncboxId = value;
 
-                base.OnPropertyChanged("SyncBoxId");
+                base.OnPropertyChanged("SyncboxId");
             }
         }
 
@@ -211,22 +212,22 @@ namespace SampleLiveSync.ViewModels
 
         #region IsEnabled Properties
 
-        public bool TbSyncBoxFolderEnabled
+        public bool TbSyncboxFolderEnabled
         {
-            get { return _tbSyncBoxFolderEnabled; }
+            get { return _tbSyncboxFolderEnabled; }
             set
             {
-                if (value == _tbSyncBoxFolderEnabled)
+                if (value == _tbSyncboxFolderEnabled)
                 {
                     return;
                 }
 
-                _tbSyncBoxFolderEnabled= value;
+                _tbSyncboxFolderEnabled= value;
 
-                base.OnPropertyChanged("TbSyncBoxFolderEnabled");
+                base.OnPropertyChanged("TbSyncboxFolderEnabled");
             }
         }
-        private bool _tbSyncBoxFolderEnabled = true;
+        private bool _tbSyncboxFolderEnabled = true;
 
         public bool TbKeyEnabled
         {
@@ -279,22 +280,22 @@ namespace SampleLiveSync.ViewModels
         }
         private bool _tbTokenEnabled = true;
 
-        public bool TbSyncBoxIdEnabled
+        public bool TbSyncboxIdEnabled
         {
-            get { return _tbSyncBoxIdEnabled; }
+            get { return _tbSyncboxIdEnabled; }
             set
             {
-                if (value == _tbSyncBoxIdEnabled)
+                if (value == _tbSyncboxIdEnabled)
                 {
                     return;
                 }
 
-                _tbSyncBoxIdEnabled = value;
+                _tbSyncboxIdEnabled = value;
 
-                base.OnPropertyChanged("TbSyncBoxIdEnabled");
+                base.OnPropertyChanged("TbSyncboxIdEnabled");
             }
         }
-        private bool _tbSyncBoxIdEnabled = true;
+        private bool _tbSyncboxIdEnabled = true;
 
         public bool TbUniqueDeviceIdEnabled
         {
@@ -317,22 +318,22 @@ namespace SampleLiveSync.ViewModels
 
         #region Focus Properties
 
-        public bool IsSyncBoxPathFocused
+        public bool IsSyncboxPathFocused
         {
-            get { return _isSyncBoxPathFocused; }
+            get { return _isSyncboxPathFocused; }
             set
             {
-                if (value == _isSyncBoxPathFocused)
+                if (value == _isSyncboxPathFocused)
                 {
-                    _isSyncBoxPathFocused = false;
-                    base.OnPropertyChanged("IsSyncBoxPathFocused");
+                    _isSyncboxPathFocused = false;
+                    base.OnPropertyChanged("IsSyncboxPathFocused");
                 }
 
-                _isSyncBoxPathFocused = value;
-                base.OnPropertyChanged("IsSyncBoxPathFocused");
+                _isSyncboxPathFocused = value;
+                base.OnPropertyChanged("IsSyncboxPathFocused");
             }
         }
-        private bool _isSyncBoxPathFocused;
+        private bool _isSyncboxPathFocused;
 
         public bool IsKeyFocused
         {
@@ -385,22 +386,22 @@ namespace SampleLiveSync.ViewModels
         }
         private bool _isTokenFocused;
 
-        public bool IsSyncBoxIdFocused
+        public bool IsSyncboxIdFocused
         {
-            get { return _isSyncBoxIdFocused; }
+            get { return _isSyncboxIdFocused; }
             set
             {
-                if (value == _isSyncBoxIdFocused)
+                if (value == _isSyncboxIdFocused)
                 {
-                    _isSyncBoxIdFocused = false;
-                    base.OnPropertyChanged("IsSyncBoxIdFocused");
+                    _isSyncboxIdFocused = false;
+                    base.OnPropertyChanged("IsSyncboxIdFocused");
                 }
 
-                _isSyncBoxIdFocused = value;
-                base.OnPropertyChanged("IsSyncBoxIdFocused");
+                _isSyncboxIdFocused = value;
+                base.OnPropertyChanged("IsSyncboxIdFocused");
             }
         }
-        private bool _isSyncBoxIdFocused;
+        private bool _isSyncboxIdFocused;
 
         public bool IsDeviceIdFocused
         {
@@ -424,20 +425,20 @@ namespace SampleLiveSync.ViewModels
         #region Commands
 
         /// <summary>
-        /// Returns a command that browses to select a SyncBox folder.
+        /// Returns a command that browses to select a Syncbox folder.
         /// </summary>
-        public ICommand CommandBrowseSyncBoxFolder
+        public ICommand CommandBrowseSyncboxFolder
         {
             get
             {
-                if (_commandBrowseSyncBoxFolder == null)
+                if (_commandBrowseSyncboxFolder == null)
                 {
-                    _commandBrowseSyncBoxFolder = new RelayCommand<object>(
-                        param => this.BrowseSyncBoxFolder(),
-                        param => this.CanBrowseSyncBoxFolder
+                    _commandBrowseSyncboxFolder = new RelayCommand<object>(
+                        param => this.BrowseSyncboxFolder(),
+                        param => this.CanBrowseSyncboxFolder
                         );
                 }
-                return _commandBrowseSyncBoxFolder;
+                return _commandBrowseSyncboxFolder;
             }
         }
 
@@ -550,7 +551,7 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// Returns a command that starts syncing the SyncBox.
+        /// Returns a command that starts syncing the Syncbox.
         /// </summary>
         public ICommand CommandStartSyncing
         {
@@ -568,7 +569,7 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// Returns a command that stops syncing the SyncBox.
+        /// Returns a command that stops syncing the Syncbox.
         /// </summary>
         public ICommand CommandStopSyncing
         {
@@ -582,6 +583,24 @@ namespace SampleLiveSync.ViewModels
                         );
                 }
                 return _commandStopSyncing;
+            }
+        }
+
+        /// <summary>
+        /// Returns a command that generates a device ID.
+        /// </summary>
+        public ICommand CommandGenerateDeviceId
+        {
+            get
+            {
+                if (_commandGenerateDeviceId == null)
+                {
+                    _commandGenerateDeviceId = new RelayCommand<object>(
+                        param => this.GenerateDeviceId(),
+                        param => this.CanGenerateDeviceId
+                        );
+                }
+                return _commandGenerateDeviceId;
             }
         }
 
@@ -610,21 +629,21 @@ namespace SampleLiveSync.ViewModels
         /// <summary>
         /// Browse to locate a folder to be synced.
         /// </summary>
-        private void BrowseSyncBoxFolder()
+        private void BrowseSyncboxFolder()
         {
             try
             {
                 // Notify the view to put up the folder selector.
-                if (NotifyBrowseSyncBoxFolder != null)
+                if (NotifyBrowseSyncboxFolder != null)
                 {
-                    NotifyBrowseSyncBoxFolder(this, new NotificationEventArgs());
+                    NotifyBrowseSyncboxFolder(this, new NotificationEventArgs());
                 }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                _trace.writeToLog(1, "MainViewModel: BrowseSyncBoxFolder: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "MainViewModel: BrowseSyncboxFolder: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
         }
@@ -682,13 +701,13 @@ namespace SampleLiveSync.ViewModels
         {
             try
             {
-                // Validate the SyncBox full path.
+                // Validate the Syncbox full path.
                 SyncRoot = SyncRoot.Trim();
                 if (String.IsNullOrEmpty(SyncRoot) ||
                     !Directory.Exists(SyncRoot))
                 {
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The SyncBox Folder must be the full path of a valid directory.  Please create the directory first." });
-                    this.IsSyncBoxPathFocused = true;
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Syncbox Folder must be the full path of a valid directory.  Please create the directory first." });
+                    this.IsSyncboxPathFocused = true;
                     return;
                 }
 
@@ -696,8 +715,8 @@ namespace SampleLiveSync.ViewModels
                 CLError badPathError = Cloud.Static.Helpers.CheckForBadPath(SyncRoot);
                 if (badPathError != null)
                 {
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The SyncBox Folder path is invalid: " + badPathError.errorDescription });
-                    this.IsSyncBoxIdFocused = true;
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Syncbox Folder path is invalid: " + badPathError.errorDescription });
+                    this.IsSyncboxIdFocused = true;
                     return;
                 }
 
@@ -706,24 +725,24 @@ namespace SampleLiveSync.ViewModels
                 CLError checkCaseError = Cloud.Static.Helpers.DirectoryMatchesCaseWithDisk(SyncRoot, out syncPathMatches);
                 if (checkCaseError != null)
                 {
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "There was an error checking whether the SyncBox Folder matches case with an existing directory on disk: " + checkCaseError.errorDescription });
-                    this.IsSyncBoxIdFocused = true;
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "There was an error checking whether the Syncbox Folder matches case with an existing directory on disk: " + checkCaseError.errorDescription });
+                    this.IsSyncboxIdFocused = true;
                     return;
                 }
                 if (!syncPathMatches)
                 {
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The SyncBox Folder does not match case perfectly with an existing folder on disk. Please check the case of the directory string."});
-                    this.IsSyncBoxIdFocused = true;
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Syncbox Folder does not match case perfectly with an existing folder on disk. Please check the case of the directory string."});
+                    this.IsSyncboxIdFocused = true;
                     return;
                 }
 
-                // Validate the length of the SyncBox full path.
+                // Validate the length of the Syncbox full path.
                 int tooLongChars;
                 CLError errorFromLengthCheck = Cloud.Static.Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
                 if (errorFromLengthCheck != null)
                 {
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = String.Format("The SyncBox Folder is too long by {0} characters.  Please shorten the path.", tooLongChars) });
-                    this.IsSyncBoxPathFocused = true;
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = String.Format("The Syncbox Folder is too long by {0} characters.  Please shorten the path.", tooLongChars) });
+                    this.IsSyncboxPathFocused = true;
                     return;
                 }
 
@@ -762,19 +781,18 @@ namespace SampleLiveSync.ViewModels
                     return;
                 }
 
-                // Validate the SyncBox ID.
-                SyncBoxId = SyncBoxId.Trim();
-                if (String.IsNullOrEmpty(SyncBoxId))
+                // Validate the Syncbox ID.
+                SyncboxId = SyncboxId.Trim();
+                if (String.IsNullOrEmpty(SyncboxId))
                 {
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The SyncBox ID must be specified." });
-                    this.IsSyncBoxIdFocused = true;
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Syncbox ID must be specified." });
+                    this.IsSyncboxIdFocused = true;
                     return;
                 }
 
                 // Validate the Device ID.
                 DeviceId = DeviceId.Trim();
-                if (!String.IsNullOrEmpty(DeviceId) && 
-                    Path.GetInvalidPathChars().Any(x => DeviceId.Contains(x)))
+                if (String.IsNullOrWhiteSpace(DeviceId) || Path.GetInvalidPathChars().Any(x => DeviceId.Contains(x)))
                 {
                     NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Device ID must be specified, and it must be valid as a portion of a folder name." });
                     this.IsDeviceIdFocused = true;
@@ -783,19 +801,19 @@ namespace SampleLiveSync.ViewModels
 
                 // The settings are valid.  Any of this information may have changed, and
                 // we don't want to get the sync databases mixed up.  On changes, set a persistent
-                // request to delete the sync database when the SyncBox is started.  The sync
-                // database will be recreated with the current state of the SyncBox folder.
+                // request to delete the sync database when the Syncbox is started.  The sync
+                // database will be recreated with the current state of the Syncbox folder.
                 if (ShouldWeRequestSyncDatabaseDeletion())
                 {
                     Properties.Settings.Default.ShouldResetSync = true;
                 }
 
                 // Save the values to Settings
-                Properties.Settings.Default.SyncBoxFullPath = SyncRoot;
+                Properties.Settings.Default.SyncboxFullPath = SyncRoot;
                 Properties.Settings.Default.Key = Key;
                 Properties.Settings.Default.Secret = Secret;
                 Properties.Settings.Default.Token = Token;
-                Properties.Settings.Default.SyncBoxId = SyncBoxId;
+                Properties.Settings.Default.SyncboxId = SyncboxId;
                 Properties.Settings.Default.UniqueDeviceId = DeviceId;
                 Properties.Settings.Default.BadgingEnabled = BadgingEnabled;
                 Properties.Settings.Default.TempDownloadFolderFullPath = _settingsCurrent.TempDownloadFolderFullPath;
@@ -824,13 +842,13 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// Determine whether we should request that the sync database be deleted when the SyncBox is started.
+        /// Determine whether we should request that the sync database be deleted when the Syncbox is started.
         /// </summary>
         private bool ShouldWeRequestSyncDatabaseDeletion()
         {
-            if (!string.Equals(_settingsCurrent.SyncBoxFullPath, _settingsInitial.SyncBoxFullPath, StringComparison.InvariantCultureIgnoreCase) ||
+            if (!string.Equals(_settingsCurrent.SyncboxFullPath, _settingsInitial.SyncboxFullPath, StringComparison.InvariantCultureIgnoreCase) ||
                 !string.Equals(_settingsCurrent.Key, _settingsInitial.Key, StringComparison.InvariantCultureIgnoreCase) ||
-                !string.Equals(_settingsCurrent.SyncBoxId, _settingsInitial.SyncBoxId, StringComparison.InvariantCultureIgnoreCase) ||
+                !string.Equals(_settingsCurrent.SyncboxId, _settingsInitial.SyncboxId, StringComparison.InvariantCultureIgnoreCase) ||
                 !string.Equals(_settingsCurrent.UniqueDeviceId, _settingsInitial.UniqueDeviceId, StringComparison.InvariantCultureIgnoreCase) ||
                 !string.Equals(_settingsCurrent.DatabaseFolderFullPath, _settingsInitial.DatabaseFolderFullPath, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -846,42 +864,47 @@ namespace SampleLiveSync.ViewModels
         private void InstallBadging()
         {
             Process regsvr32Process = null;
+            Process regsvr64Process = null;
             try
             {
                 // Stop Explorer
                 StopExplorer();
 
-                // Determine the path to the proper 64- or 32-bit .dll file to register.
-                string commandArguments = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                if (IntPtr.Size == 4)
+                // 32-bit platforms will install only the 32-bit version of the BadgeCom.dll.  RegSvr32.exe will be used from C:\Windows\System32.
+                // 64-bit platforms will install both the 32-bit and the 64-bit versions of BadgeCom.dll.  For the 64-bit version, we will use regsvr32.exe from C:\Windows\System32.
+                // For the 32-bit version, we will use regsvr32.exe from C:\Windows\SysWow64.
+                // Set the directories and command arguments to use
+                string commandRegSvr32ProgramPath32Bit = String.Empty;
+                string commandRegSvr32ProgramPath64Bit = String.Empty;
+                string commandArguments32Bit = "/s \"" + Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                string commandArguments64Bit = commandArguments32Bit;
+                commandArguments32Bit += "\\x86\\BadgeCom.dll\"";
+                commandArguments64Bit += "\\amd64\\BadgeCom.dll\"";
+
+                if (Is64BitOperatingSystem())
                 {
-                    // 32-bit 
-                    commandArguments += "\\x86\\BadgeCom.dll";
+                    commandRegSvr32ProgramPath32Bit = Get32BitSystemDirectory() + "\\regsvr32.exe";
+                    commandRegSvr32ProgramPath64Bit = Environment.SystemDirectory + "\\regsvr32.exe";
                 }
                 else
                 {
-                    // 64-bit 
-                    commandArguments += "\\amd64\\BadgeCom.dll";
+                    commandRegSvr32ProgramPath32Bit = Environment.SystemDirectory + "\\regsvr32.exe";
                 }
-                commandArguments = "/s \"" + commandArguments + "\"";
 
-                // Build the command line: regsvr32 <path to the proper BadgeCom.dll>
-                string commandProgram = "regsvr32";
-
-                // Launch the process
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.CreateNoWindow = true;
-                startInfo.UseShellExecute = true;
-                startInfo.FileName = commandProgram;
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.Arguments = commandArguments;
+                // We always register the 32-bit BadgeCom.dll.
+                ProcessStartInfo startInfo32Bit = new ProcessStartInfo();
+                startInfo32Bit.CreateNoWindow = true;
+                startInfo32Bit.UseShellExecute = true;
+                startInfo32Bit.FileName = commandRegSvr32ProgramPath32Bit;
+                startInfo32Bit.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo32Bit.Arguments = commandArguments32Bit;
                 if (!SampleLiveSync.Static.Helpers.IsAdministrator())
                 {
-                    _trace.writeToLog(1, "MainViewModel: InstallBadging: Run as administrator.");
-                    startInfo.Verb = "runas";
+                    _trace.writeToLog(1, "MainViewModel: InstallBadging: Run 32-bit regsvr32 as administrator.");
+                    startInfo32Bit.Verb = "runas";
                 }
-                _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run regsvr32. Program: {0}. Arguments: {1}.", commandProgram, commandArguments);
-                regsvr32Process = Process.Start(startInfo);
+                _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run 32-bit regsvr32. Program: {0}. Arguments: {1}.", commandRegSvr32ProgramPath32Bit, commandArguments32Bit);
+                regsvr32Process = Process.Start(startInfo32Bit);
 
                 // Wait for the process to exit
                 if (regsvr32Process.WaitForExit(20000))
@@ -891,17 +914,60 @@ namespace SampleLiveSync.ViewModels
                     if (retCode != 0)
                     {
                         // Error return code
-                        CLError error = new Exception(String.Format("Error registering BadgeCom.dll.  Code: {0}.", retCode));
-                        _trace.writeToLog(1, "MainViewModel: InstallBadging: Error registering BadgeCom.dll. Code: {0}.", retCode);
-                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error registering BadgeCom.dll." });
+                        string msg = "Error registering 32-bit BadgeCom.dll.";
+                        CLError error = new Exception(String.Format("({0} Code: {1}.", msg, retCode));
+                        _trace.writeToLog(1, "MainViewModel: InstallBadging: {0} Code: {1}.", msg, retCode);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
                     }
                 }
                 else
                 {
                     // Timed out.
-                    CLError error = new Exception("Error: Timeout registering BadgeCom.dll.");
-                    _trace.writeToLog(1, "MainViewModel: InstallBadging: Error. Timeout registering BadgeCom.dll.");
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Timeout registering BadgeCom.dll." });
+                    string msg = "Error: Timeout registering 32-bit BadgeCom.dll.";
+                    CLError error = new Exception(msg);
+                    _trace.writeToLog(1, "MainViewModel: InstallBadging: " + msg);
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                }
+
+                // Register the 64-bit BadgeCom.dll if we should.
+                if (!String.IsNullOrEmpty(commandRegSvr32ProgramPath64Bit))
+                {
+                    ProcessStartInfo startInfo64Bit = new ProcessStartInfo();
+                    startInfo64Bit.CreateNoWindow = true;
+                    startInfo64Bit.UseShellExecute = true;
+                    startInfo64Bit.FileName = commandRegSvr32ProgramPath64Bit;
+                    startInfo64Bit.WindowStyle = ProcessWindowStyle.Hidden;
+                    startInfo64Bit.Arguments = commandArguments64Bit;
+                    if (!SampleLiveSync.Static.Helpers.IsAdministrator())
+                    {
+                        _trace.writeToLog(1, "MainViewModel: InstallBadging: Run 64-bit regsvr32 as administrator.");
+                        startInfo64Bit.Verb = "runas";
+                    }
+                    _trace.writeToLog(1, "MainViewModel: InstallBadging: Start process to run 64-bit regsvr32. Program: {0}. Arguments: {1}.", commandRegSvr32ProgramPath64Bit, commandArguments64Bit);
+                    regsvr64Process = Process.Start(startInfo64Bit);
+
+                    // Wait for the process to exit
+                    if (regsvr64Process.WaitForExit(20000))
+                    {
+                        // Process has exited.  Get the return code.
+                        int retCode = regsvr64Process.ExitCode;
+                        if (retCode != 0)
+                        {
+                            // Error return code
+                            string msg = "Error registering 64-bit BadgeCom.dll.";
+                            CLError error = new Exception(String.Format("({0} Code: {1}.", msg, retCode));
+                            _trace.writeToLog(1, "MainViewModel: InstallBadging: {0} Code: {1}.", msg, retCode);
+                            NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                        }
+                    }
+                    else
+                    {
+                        // Timed out.
+                        string msg = "Error: Timeout registering 64-bit BadgeCom.dll.";
+                        CLError error = new Exception(msg);
+                        _trace.writeToLog(1, "MainViewModel: InstallBadging: " + msg);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                    }
                 }
             }
             catch (Exception ex)
@@ -918,6 +984,12 @@ namespace SampleLiveSync.ViewModels
                     {
                         regsvr32Process.Close();
                     }
+
+                    if (regsvr64Process != null)
+                    {
+                        regsvr64Process.Close();
+                    }
+
                 }
                 catch
                 {
@@ -934,41 +1006,47 @@ namespace SampleLiveSync.ViewModels
         private void UninstallBadging()
         {
             Process regsvr32Process = null;
+            Process regsvr64Process = null;
             try
             {
                 // Stop Explorer
                 StopExplorer();
 
-                // Determine the path to the proper 64- or 32-bit .dll file to register.
-                string commandArguments = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-                if (IntPtr.Size == 4)
+                // 32-bit platforms will install only the 32-bit version of the BadgeCom.dll.  RegSvr32.exe will be used from C:\Windows\System32.
+                // 64-bit platforms will install both the 32-bit and the 64-bit versions of BadgeCom.dll.  For the 64-bit version, we will use regsvr32.exe from C:\Windows\System32.
+                // For the 32-bit version, we will use regsvr32.exe from C:\Windows\SysWow64.
+                // Set the directories and command arguments to use
+                string commandRegSvr32ProgramPath32Bit = String.Empty;
+                string commandRegSvr32ProgramPath64Bit = String.Empty;
+                string commandArguments32Bit = "/u /s \"" + Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                string commandArguments64Bit = commandArguments32Bit;
+                commandArguments32Bit += "\\x86\\BadgeCom.dll\"";
+                commandArguments64Bit += "\\amd64\\BadgeCom.dll\"";
+
+                if (Is64BitOperatingSystem())
                 {
-                    // 32-bit 
-                    commandArguments += "\\x86\\BadgeCom.dll";
+                    commandRegSvr32ProgramPath32Bit = Get32BitSystemDirectory() + "\\regsvr32.exe";
+                    commandRegSvr32ProgramPath64Bit = Environment.SystemDirectory + "\\regsvr32.exe";
                 }
                 else
                 {
-                    // 64-bit 
-                    commandArguments += "\\amd64\\BadgeCom.dll";
+                    commandRegSvr32ProgramPath32Bit = Environment.SystemDirectory + "\\regsvr32.exe";
                 }
-                commandArguments = "/u /s \"" + commandArguments + "\"";
 
-                // Build the command line: regsvr32 <path to the proper BadgeCom.dll>
-                string commandProgram = "regsvr32";
-
-                // Launch the process
-                ProcessStartInfo startInfo = new ProcessStartInfo();
-                startInfo.CreateNoWindow = true;
-                startInfo.UseShellExecute = true;
-                startInfo.FileName = commandProgram;
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.Arguments = commandArguments;
+                // We always register the 32-bit BadgeCom.dll.
+                ProcessStartInfo startInfo32Bit = new ProcessStartInfo();
+                startInfo32Bit.CreateNoWindow = true;
+                startInfo32Bit.UseShellExecute = true;
+                startInfo32Bit.FileName = commandRegSvr32ProgramPath32Bit;
+                startInfo32Bit.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo32Bit.Arguments = commandArguments32Bit;
                 if (!SampleLiveSync.Static.Helpers.IsAdministrator())
                 {
-                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: Run as administrator.");
-                    startInfo.Verb = "runas";
+                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: Run 32-bit regsvr32 as administrator.");
+                    startInfo32Bit.Verb = "runas";
                 }
-                regsvr32Process = Process.Start(startInfo);
+                _trace.writeToLog(1, "MainViewModel: UninstallBadging: Start process to run 32-bit regsvr32. Program: {0}. Arguments: {1}.", commandRegSvr32ProgramPath32Bit, commandArguments32Bit);
+                regsvr32Process = Process.Start(startInfo32Bit);
 
                 // Wait for the process to exit
                 if (regsvr32Process.WaitForExit(20000))
@@ -978,17 +1056,60 @@ namespace SampleLiveSync.ViewModels
                     if (retCode != 0)
                     {
                         // Error return code
-                        CLError error = new Exception(String.Format("Error unregistering BadgeCom.dll.  Code: {0}.", retCode));
-                        _trace.writeToLog(1, "MainViewModel: UninstallBadging: Error unregistering BadgeCom.dll. Code: {0}.", retCode);
-                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error unregistering BadgeCom.dll." });
+                        string msg = "Error unregistering 32-bit BadgeCom.dll.";
+                        CLError error = new Exception(String.Format("({0} Code: {1}.", msg, retCode));
+                        _trace.writeToLog(1, "MainViewModel: UninstallBadging: {0} Code: {1}.", msg, retCode);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
                     }
                 }
                 else
                 {
                     // Timed out.
-                    CLError error = new Exception("Error: Timeout unregistering BadgeCom.dll.");
-                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: Error: Timeout unregistering BadgeCom.dll.");
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = "Error: Timeout unregistering BadgeCom.dll." });
+                    string msg = "Error: Timeout unregistering 32-bit BadgeCom.dll.";
+                    CLError error = new Exception(msg);
+                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: " + msg);
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                }
+
+                // Register the 64-bit BadgeCom.dll if we should.
+                if (!String.IsNullOrEmpty(commandRegSvr32ProgramPath64Bit))
+                {
+                    ProcessStartInfo startInfo64Bit = new ProcessStartInfo();
+                    startInfo64Bit.CreateNoWindow = true;
+                    startInfo64Bit.UseShellExecute = true;
+                    startInfo64Bit.FileName = commandRegSvr32ProgramPath64Bit;
+                    startInfo64Bit.WindowStyle = ProcessWindowStyle.Hidden;
+                    startInfo64Bit.Arguments = commandArguments64Bit;
+                    if (!SampleLiveSync.Static.Helpers.IsAdministrator())
+                    {
+                        _trace.writeToLog(1, "MainViewModel: UninstallBadging: Run 64-bit regsvr32 as administrator.");
+                        startInfo64Bit.Verb = "runas";
+                    }
+                    _trace.writeToLog(1, "MainViewModel: UninstallBadging: Start process to run 64-bit regsvr32. Program: {0}. Arguments: {1}.", commandRegSvr32ProgramPath64Bit, commandArguments64Bit);
+                    regsvr64Process = Process.Start(startInfo64Bit);
+
+                    // Wait for the process to exit
+                    if (regsvr64Process.WaitForExit(20000))
+                    {
+                        // Process has exited.  Get the return code.
+                        int retCode = regsvr64Process.ExitCode;
+                        if (retCode != 0 && retCode != 5)
+                        {
+                            // Error return code
+                            string msg = "Error unregistering 64-bit BadgeCom.dll.";
+                            CLError error = new Exception(String.Format("({0} Code: {1}.", msg, retCode));
+                            _trace.writeToLog(1, "MainViewModel: UninstallBadging: {0} Code: {1}.", msg, retCode);
+                            NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                        }
+                    }
+                    else
+                    {
+                        // Timed out.
+                        string msg = "Error: Timeout unregistering 64-bit BadgeCom.dll.";
+                        CLError error = new Exception(msg);
+                        _trace.writeToLog(1, "MainViewModel: UninstallBadging: " + msg);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = msg });
+                    }
                 }
             }
             catch (Exception ex)
@@ -1005,6 +1126,12 @@ namespace SampleLiveSync.ViewModels
                     {
                         regsvr32Process.Close();
                     }
+
+                    if (regsvr64Process != null)
+                    {
+                        regsvr64Process.Close();
+                    }
+
                 }
                 catch
                 {
@@ -1039,33 +1166,34 @@ namespace SampleLiveSync.ViewModels
             }
         }
 
+
         /// <summary>
-        /// Start syncing the SyncBox.
+        /// Start syncing the Syncbox.
         /// </summary>
-        public void StartSyncing()
+        private void StartSyncing()
         {
             try
             {
-                bool startSyncBox = false;
+                bool startSyncbox = false;
 
-                // Store SyncBox.  It will be set under the locker which checks the _syncEngine, but started afterwards if it was set
-                CLSyncBox syncBox = null;
+                // Store Syncbox.  It will be set under the locker which checks the _syncEngine, but started afterwards if it was set
+                CLSyncbox syncbox = null;
                 lock (_locker)
                 {
                     if (_syncEngine == null)
                     {
-                        if (SettingsAdvancedImpl.Instance.SyncBoxId == null)
+                        if (SettingsAdvancedImpl.Instance.SyncboxId == null)
                         {
-                            const string nullSyncBoxId = "SettingsAvancedImpl Instance SyncBoxId cannot be null";
+                            const string nullSyncboxId = "SettingsAvancedImpl Instance SyncboxId cannot be null";
                             if (NotifyException != null)
                             {
                                 NotifyException(this, new NotificationEventArgs<CLError>()
                                 {
-                                    Data = new ArgumentException(nullSyncBoxId),
-                                    Message = nullSyncBoxId
+                                    Data = new ArgumentException(nullSyncboxId),
+                                    Message = nullSyncboxId
                                 });
                             }
-                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From StartSyncing: Msg: <{0}>.", nullSyncBoxId);
+                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From StartSyncing: Msg: <{0}>.", nullSyncboxId);
                         }
                         else
                         {
@@ -1097,51 +1225,51 @@ namespace SampleLiveSync.ViewModels
                             }
                             else
                             {
-                                // create a SyncBox from an existing SyncBoxId
-                                CLSyncBoxCreationStatus syncBoxStatus;
-                                CLError errorCreateSyncBox = CLSyncBox.CreateAndInitialize(
+                                // create a Syncbox from an existing SyncboxId
+                                CLSyncboxCreationStatus syncboxStatus;
+                                CLError errorCreateSyncbox = CLSyncbox.CreateAndInitialize(
                                     syncCredential,
-                                    (long)SettingsAdvancedImpl.Instance.SyncBoxId,
-                                    out syncBox,
-                                    out syncBoxStatus,
+                                    (long)SettingsAdvancedImpl.Instance.SyncboxId,
+                                    out syncbox,
+                                    out syncboxStatus,
                                     SettingsAdvancedImpl.Instance);
 
-                                if (errorCreateSyncBox != null)
+                                if (errorCreateSyncbox != null)
                                 {
-                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncBox.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncBox.errorDescription);
+                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncbox.errorDescription);
                                 }
-                                if (syncBoxStatus != CLSyncBoxCreationStatus.Success)
+                                if (syncboxStatus != CLSyncboxCreationStatus.Success)
                                 {
                                     if (NotifyException != null)
                                     {
                                         NotifyException(this, new NotificationEventArgs<CLError>()
                                         {
-                                            Data = errorCreateSyncBox,
-                                            Message = "syncBoxStatus: " + syncBoxStatus.ToString() + ":" + Environment.NewLine +
-                                                errorCreateSyncBox.errorDescription
+                                            Data = errorCreateSyncbox,
+                                            Message = "syncboxStatus: " + syncboxStatus.ToString() + ":" + Environment.NewLine +
+                                                errorCreateSyncbox.errorDescription
                                         });
                                     }
                                 }
                                 else
                                 {
                                     _syncEngine = new CLSyncEngine();
-                                    startSyncBox = true;
+                                    startSyncbox = true;
 
                                     // Reset the sync database if we should
                                     if (Properties.Settings.Default.ShouldResetSync)
                                     {
-                                        CLError errorFromSyncReset = _syncEngine.SyncReset(syncBox);
+                                        CLError errorFromSyncReset = _syncEngine.SyncReset(syncbox);
                                         if (errorFromSyncReset != null)
                                         {
                                             _syncEngine = null;
-                                            startSyncBox = false;
-                                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From SyncBox.SyncReset: Msg: <{0}.", errorFromSyncReset.errorDescription);
+                                            startSyncbox = false;
+                                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.SyncReset: Msg: <{0}.", errorFromSyncReset.errorDescription);
                                             if (NotifyException != null)
                                             {
                                                 NotifyException(this, new NotificationEventArgs<CLError>()
                                                 {
                                                     Data = errorFromSyncReset,
-                                                    Message = String.Format("Error resetting the SyncBox: {0}.", errorFromSyncReset.errorDescription)
+                                                    Message = String.Format("Error resetting the Syncbox: {0}.", errorFromSyncReset.errorDescription)
                                                 });
                                             }
                                         }
@@ -1157,27 +1285,27 @@ namespace SampleLiveSync.ViewModels
                     }
                 }
 
-                if (startSyncBox
-                    && syncBox != null)
+                if (startSyncbox
+                    && syncbox != null)
                 {
                     // start syncing
                     CLSyncStartStatus startStatus;
-                    CLError errorFromSyncBoxStart = _syncEngine.Start(
-                        SyncBox: syncBox, // syncbox to sync (contains required settings)
+                    CLError errorFromSyncboxStart = _syncEngine.Start(
+                        Syncbox: syncbox, // syncbox to sync (contains required settings)
                         Status: out startStatus, // The completion status of the Start() function
                         StatusUpdated: OnSyncStatusUpdated, // called when sync status is updated
                         StatusUpdatedUserState: _syncEngine); // the user state passed to the callback above
 
-                    if (errorFromSyncBoxStart != null)
+                    if (errorFromSyncboxStart != null)
                     {
                         _syncEngine = null;
-                        _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From SyncBox.Start: Msg: <{0}>.", errorFromSyncBoxStart.errorDescription);
+                        _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.Start: Msg: <{0}>.", errorFromSyncboxStart.errorDescription);
                     }
                     if (startStatus != CLSyncStartStatus.Success)
                     {
                         if (NotifyException != null)
                         {
-                            NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncBoxStart, Message = String.Format("Error starting the SyncBox: {0}.", startStatus.ToString()) });
+                            NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncboxStart, Message = String.Format("Error starting the Syncbox: {0}.", startStatus.ToString()) });
                         }
                     }
                     else
@@ -1185,7 +1313,7 @@ namespace SampleLiveSync.ViewModels
                         lock (_locker)
                         {
                             // Sync has started
-                            SetSyncBoxStartedState(isStartedStateToSet: true);
+                            SetSyncboxStartedState(isStartedStateToSet: true);
 
                             // Watch for push notification errors
                             _syncEngine.PushNotificationError += OnPushNotificationError;
@@ -1198,8 +1326,8 @@ namespace SampleLiveSync.ViewModels
                                 // Get a ViewModel to provide some of the status information to use on our status window.
                                 EventMessageReceiver.EventMessageReceiver vm;
                                 CLError errorCreateVM = EventMessageReceiver.EventMessageReceiver.CreateAndInitialize(
-                                    syncBox.SyncBoxId, // filter by current sync box
-                                    syncBox.CopiedSettings.DeviceId, // filter by current device
+                                    syncbox.SyncboxId, // filter by current sync box
+                                    syncbox.CopiedSettings.DeviceId, // filter by current device
                                     out vm, // output the created view model
                                     OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the engine
                                     OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the engine
@@ -1245,7 +1373,7 @@ namespace SampleLiveSync.ViewModels
         /// <summary>
         /// Reset the sync engine.
         /// </summary>
-        public void ResetSync()
+        private void ResetSync()
         {
             try
             {
@@ -1273,7 +1401,7 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// The sync status for this SyncBox has changed.  Pass this event to the sync status view.
+        /// The sync status for this Syncbox has changed.  Pass this event to the sync status view.
         /// </summary>
         /// <param name="userState">This is the instance of CLSync.</param>
         private void OnSyncStatusUpdated(object userState)
@@ -1301,9 +1429,9 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// Stop syncing the SyncBox.
+        /// Stop syncing the Syncbox.
         /// </summary>
-        public void StopSyncing()
+        private void StopSyncing()
         {
             try
             {
@@ -1331,7 +1459,7 @@ namespace SampleLiveSync.ViewModels
 
                     if (_syncEngine != null)
                     {
-                        SetSyncBoxStartedState(isStartedStateToSet: false);
+                        SetSyncboxStartedState(isStartedStateToSet: false);
                         _syncStarted = false;
                         _syncEngine.Stop();
                         _syncEngine = null;
@@ -1348,9 +1476,27 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
+        /// Generate a random device ID.
+        /// </summary>
+        private void GenerateDeviceId()
+        {
+            try
+            {
+                DeviceId = Environment.MachineName + Guid.NewGuid().ToString("N");
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: GenerateDeviceId: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
+            }
+        }
+
+        /// <summary>
         /// Exit the application.
         /// </summary>
-        public void Exit()
+        private void Exit()
         {
             try
             {
@@ -1477,6 +1623,17 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
+        /// Returns true if the Generate button (generate device ID) should be active.
+        /// </summary>
+        private bool CanGenerateDeviceId
+        {
+            get
+            {
+                return !_syncStarted;
+            }
+        }
+
+        /// <summary>
         /// Returns true if the Exit button should be active.
         /// </summary>
         private bool CanExit
@@ -1499,9 +1656,9 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// Returns true if the SyncBox Folder Browse button should be active.
+        /// Returns true if the Syncbox Folder Browse button should be active.
         /// </summary>
-        private bool CanBrowseSyncBoxFolder
+        private bool CanBrowseSyncboxFolder
         {
             get
             {
@@ -1518,9 +1675,9 @@ namespace SampleLiveSync.ViewModels
             //// you can pull out a formatted message regardless of message type
             //string messageText = e.Message.Message;
 
-            //// all messages have properties to identify the unique combination of SyncBoxId and DeviceId,
+            //// all messages have properties to identify the unique combination of SyncboxId and DeviceId,
             //// but some messages can be fired without a sync box and thus both will be null
-            //Nullable<long> syncBoxId = e.Message.SyncBoxId;
+            //Nullable<long> syncboxId = e.Message.SyncboxId;
             //string deviceId = e.Message.DeviceId;
 
             // switch on the message type for the special cases we wish to handle here
@@ -1569,10 +1726,10 @@ namespace SampleLiveSync.ViewModels
                                         new NotificationEventArgs<CLError>()
                                         {
                                             Data = new Exception(e.Message.Message),
-                                            Message = String.Format("Temporary credentials expired for local SyncBox with id {0} and device id {1}. Restart sync with new credentials. Error message: {2}",
-                                                (e.Message.SyncBoxId == null
+                                            Message = String.Format("Temporary credentials expired for local Syncbox with id {0} and device id {1}. Restart sync with new credentials. Error message: {2}",
+                                                (e.Message.SyncboxId == null
                                                     ? "{null}"
-                                                    : ((long)e.Message.SyncBoxId).ToString()),
+                                                    : ((long)e.Message.SyncboxId).ToString()),
                                                 e.Message.DeviceId ?? "{null}",
                                                 e.Message.Message)
                                         });
@@ -1586,10 +1743,10 @@ namespace SampleLiveSync.ViewModels
                                     new NotificationEventArgs<CLError>()
                                     {
                                         Data = new Exception(e.Message.Message),
-                                        Message = String.Format("Incorrect credentials for local SyncBox with id {0} and device id {1}. Error message: {2}",
-                                            (e.Message.SyncBoxId == null
+                                        Message = String.Format("Incorrect credentials for local Syncbox with id {0} and device id {1}. Error message: {2}",
+                                            (e.Message.SyncboxId == null
                                                 ? "{null}"
-                                                : ((long)e.Message.SyncBoxId).ToString()),
+                                                : ((long)e.Message.SyncboxId).ToString()),
                                             e.Message.DeviceId ?? "{null}",
                                             e.Message.Message)
                                     });
@@ -1630,11 +1787,11 @@ namespace SampleLiveSync.ViewModels
                                     new NotificationEventArgs<CLError>()
                                     {
                                         Data = new Exception(e.Message.Message),
-                                        Message = String.Format("Unhandled type of error. Type: {0}. SyncBox id: {1}. Device id: {2}. Error message: {3}.",
+                                        Message = String.Format("Unhandled type of error. Type: {0}. Syncbox id: {1}. Device id: {2}. Error message: {3}.",
                                             errMessage.ErrorInfo.ErrorType.ToString(),
-                                            (e.Message.SyncBoxId == null
+                                            (e.Message.SyncboxId == null
                                                 ? "{null}"
-                                                : ((long)e.Message.SyncBoxId).ToString()),
+                                                : ((long)e.Message.SyncboxId).ToString()),
                                             e.Message.DeviceId ?? "{null}",
                                             e.Message.Message)
                                     });
@@ -1781,29 +1938,46 @@ namespace SampleLiveSync.ViewModels
             try
             {
                 // Start Explorer
-                string explorerLocation = "\" start " + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe") + "\"";
-                string commandLocation = Environment.SystemDirectory + "\\cmd.exe";
+                string explorerLocation = "start " + Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
+                string commandLocation = "\"" + Environment.SystemDirectory + "\\cmd.exe\"";
 
                 // Start explorer as a medium integrity process for Vista and above.
                 // Note: For Windows 8, the Metro mode will be disabled if Explorer is started with Administrator privileges.  That could
                 // happen if this app is started to "runas" Administrator.
                 if (System.Environment.OSVersion.Version.Major >= 6)
                 {
-                    string commandLine = "\"" + commandLocation + "\" /c " + explorerLocation;
+                    string commandLine = commandLocation + " /s /c \"" + explorerLocation + "\"";
                     _trace.writeToLog(9, "MainViewModel: StartExplorer: Create medium integrity process. Command line: <{0}>.", commandLine);
-                    SampleLiveSync.Static.Helpers.CreateMediumIntegrityProcess(commandLine, NativeMethod.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
+                    SampleLiveSync.Static.Helpers.CreateMediumIntegrityProcess(commandLine, NativeMethods.CreateProcessFlags.CREATE_NEW_PROCESS_GROUP);
                 }
                 else
                 {
-                    _trace.writeToLog(9, "MainViewModel: StartExplorer: Create normal process. Explorer location: <{0}>. Cmd location: <{1}.", explorerLocation, commandLocation);
+                    _trace.writeToLog(9, "MainViewModel: StartExplorer: Create normal process. Explorer location: <{0}>. Cmd location: <{1}>.", explorerLocation, commandLocation);
                     ProcessStartInfo taskStartInfo = new ProcessStartInfo();
                     taskStartInfo.CreateNoWindow = true;
                     taskStartInfo.UseShellExecute = true;
                     taskStartInfo.FileName = commandLocation;
                     taskStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                    taskStartInfo.Arguments = explorerLocation;
+                    taskStartInfo.Arguments = "/s /c \"" + explorerLocation + "\"";
                     _trace.writeToLog(9, "MainViewModel: StartExplorer: Start explorer.");
-                    Process.Start(taskStartInfo);
+                    Process processExplorer = Process.Start(taskStartInfo);
+
+                    // wait for this action to complete
+                    bool fExplorerStarted = false;
+                    int exitCode = -10000;
+                    if (processExplorer.WaitForExit(10000))
+                    {
+                        exitCode = processExplorer.ExitCode;
+                        if (exitCode == 0)
+                        {
+                            fExplorerStarted = true;
+                        }
+                    }
+
+                    if (!fExplorerStarted)
+                    {
+                        _trace.writeToLog(9, "MainViewModel: StartExplorer: ERROR: Starting Explorer. ExitCode: {0}.", exitCode);
+                    }
                 }
             }
             catch (Exception ex)
@@ -1907,25 +2081,79 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// Set the SyncBox started state.
+        /// Set the Syncbox started state.
         /// </summary>
         /// <param name="isStartedStateToSet">The state to set.</param>
-        private void SetSyncBoxStartedState(bool isStartedStateToSet)
+        private void SetSyncboxStartedState(bool isStartedStateToSet)
         {
             _syncStarted = isStartedStateToSet;
 
             // Set the TextBox dependent properties.
-            TbSyncBoxFolderEnabled = !isStartedStateToSet;
+            TbSyncboxFolderEnabled = !isStartedStateToSet;
             TbKeyEnabled = !isStartedStateToSet;
             TbSecretEnabled= !isStartedStateToSet;
             TbTokenEnabled = !isStartedStateToSet;
-            TbSyncBoxIdEnabled = !isStartedStateToSet;
+            TbSyncboxIdEnabled = !isStartedStateToSet;
             TbUniqueDeviceIdEnabled = !isStartedStateToSet;
         }
 
-        #endregion
+        /// <summary>
+        /// The function determines whether the current operating system is a 
+        /// 64-bit operating system.
+        /// </summary>
+        /// <returns>
+        /// The function returns true if the operating system is 64-bit; 
+        /// otherwise, it returns false.
+        /// </returns>
+        /// <remarks>From: http://1code.codeplex.com/SourceControl/changeset/view/39074#842775</remarks>
+        private static bool Is64BitOperatingSystem()
+        {
+            if (IntPtr.Size == 8)  // 64-bit programs run only on Win64
+            {
+                return true;
+            }
+            else  // 32-bit programs run on both 32-bit and 64-bit Windows
+            {
+                // Detect whether the current process is a 32-bit process 
+                // running on a 64-bit system.
+                bool flag;
+                return ((DoesWin32MethodExist("kernel32.dll", "IsWow64Process") &&
+                    NativeMethods.IsWow64Process(NativeMethods.GetCurrentProcess(), out flag)) && flag);
+            }
+        }
 
-        #region Private Classes
+        /// <summary>
+        /// Get the 32-bit system directory:
+        /// On x86: %windir%\System32.
+        /// On x64: %windir%\SysWow64.
+        /// </summary>
+        /// <returns></returns>
+        private static string Get32BitSystemDirectory()
+        {
+            StringBuilder path = new StringBuilder(260);
+            NativeMethods.SHGetSpecialFolderPath(IntPtr.Zero, path, 0x0029, false);
+            return path.ToString();
+        }
+
+        /// <summary>
+        /// The function determins whether a method exists in the export 
+        /// table of a certain module.
+        /// </summary>
+        /// <param name="moduleName">The name of the module</param>
+        /// <param name="methodName">The name of the method</param>
+        /// <returns>
+        /// The function returns true if the method specified by methodName 
+        /// exists in the export table of the module specified by moduleName.
+        /// </returns>
+        private static bool DoesWin32MethodExist(string moduleName, string methodName)
+        {
+            IntPtr moduleHandle = NativeMethods.GetModuleHandle(moduleName);
+            if (moduleHandle == IntPtr.Zero)
+            {
+                return false;
+            }
+            return (NativeMethods.GetProcAddress(moduleHandle, methodName) != IntPtr.Zero);
+        }
 
         /// <summary>
         /// Used by IsExplorerRunning.

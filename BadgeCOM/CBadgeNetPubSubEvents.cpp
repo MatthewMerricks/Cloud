@@ -13,7 +13,7 @@
 #define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
 
 // Initialize static fields.
-bool CBadgeNetPubSubEvents::_fDebugging = false;
+BOOL CBadgeNetPubSubEvents::_fDebugging = false;
 
 /// <summary>
 /// Constructor
@@ -168,7 +168,7 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, Enum
 		CLTRACE(9, "CBadgeNetPubSubEvents: PublishEventToBadgeNet: Entry. EventType: %d. EventSubType: %d. BadgeType: %d.", eventType, eventSubType, badgeType);
         if (_pPubSubServer == NULL || fullPath == NULL)
         {
-            throw new std::exception("Call Initialize() first");
+            throw new std::exception("Call Initialize() first, and fullPath must not be null");
         }
 
         // Publish the event
@@ -192,15 +192,15 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, Enum
 /// <summary>
 /// Start a thread which will subscribe to events from BadgeNet.  
 /// </summary>
-/// <returns>bool: true is success</returns>
-bool CBadgeNetPubSubEvents::SubscribeToBadgeNetEvents()
+/// <returns>BOOL: true is success</returns>
+BOOL CBadgeNetPubSubEvents::SubscribeToBadgeNetEvents()
 {
-    bool fIsStartedOk = false;
+    BOOL fIsStartedOk = false;
 	try
 	{
 		// Start the threads.
 		CLTRACE(9, "CBadgeNetPubSubEvents: SubscribeToBadgeNetEvents: Entry.");
-		bool startedOk = StartSubscribingThread();
+		BOOL startedOk = StartSubscribingThread();
 		if (startedOk)
 		{
 			StartWatchingThread();
@@ -230,7 +230,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 {
     try
     {
-        bool fSemaphoreReleased = false;
+        BOOL fSemaphoreReleased = false;
 
 		CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Entry.");
 		if (pUserState == NULL)
@@ -269,11 +269,11 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             {
                 switch (eventSubType)
                 {
-                    case BadgeNet_AddSyncBoxFolderPath:
+                    case BadgeNet_AddSyncboxFolderPath:
 						try
 						{
-                            CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_AddSyncBoxFolderPath. Path: <%ls>. BadgeType: %d.", bsFullPath, badgeType);
-		                    pThis->FireEventAddSyncBoxFolderPath(bsFullPath, badgeType, processIdPublisher, guidPublisher);
+                            CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_AddSyncboxFolderPath. Path: <%ls>. BadgeType: %d.", bsFullPath, badgeType);
+		                    pThis->FireEventAddSyncboxFolderPath(bsFullPath, badgeType, processIdPublisher, guidPublisher);
 						}
 						catch (const std::exception &ex)
 						{
@@ -284,11 +284,11 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 		                    CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: C++ exception(10).");
                         }
                         break;
-                    case BadgeNet_RemoveSyncBoxFolderPath:
+                    case BadgeNet_RemoveSyncboxFolderPath:
 						try
 						{
-	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_RemoveSyncBoxFolderPath. Path: <%ls>. BadgeType: %d.", bsFullPath, badgeType);
-		                    pThis->FireEventRemoveSyncBoxFolderPath(bsFullPath, badgeType, processIdPublisher, guidPublisher);
+	        		        CLTRACE(9, "CBadgeNetPubSubEvents: SubscribingThreadProc: Event: BadgeNet_RemoveSyncboxFolderPath. Path: <%ls>. BadgeType: %d.", bsFullPath, badgeType);
+		                    pThis->FireEventRemoveSyncboxFolderPath(bsFullPath, badgeType, processIdPublisher, guidPublisher);
 						}
 						catch (const std::exception &ex)
 						{
@@ -406,7 +406,7 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
 			throw new std::exception("pUserState must not be NULL");
 		}
 
-        bool fRestartSubscribingThread;
+        BOOL fRestartSubscribingThread;
         while (true)
         {
             // Wait letting the subscribing thread work.
@@ -511,7 +511,7 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
     try
     {
 		CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Entry.");
-        bool fThreadSubscribingInstantiated = false;
+        BOOL fThreadSubscribingInstantiated = false;
         _locker.lock();
         {
             if (_pPubSubServer != NULL)
@@ -540,7 +540,7 @@ void CBadgeNetPubSubEvents::KillSubscribingThread()
         // Try to kill the thread if it is instantiated.
         if (fThreadSubscribingInstantiated)
         {
-            bool fThreadDead = false;
+            BOOL fThreadDead = false;
 
 			// Request the thread to exit and wait for it.  Kill it if it takes too long.
 			CLTRACE(9, "CBadgeNetPubSubEvents: KillSubscribingThread: Request subscribing thread to exit.");
@@ -590,7 +590,7 @@ void CBadgeNetPubSubEvents::KillWatchingThread()
     {
 		CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Entry.");
         // Request the thread to exit and wait for the thread to be gone.  If it takes too long, kill it.
-        bool fThreadWatchingInstantiated = false;
+        BOOL fThreadWatchingInstantiated = false;
         _locker.lock();
         {
             if (_threadWatchingHandle != NULL)
@@ -608,7 +608,7 @@ void CBadgeNetPubSubEvents::KillWatchingThread()
         if (fThreadWatchingInstantiated)
         {
 			CLTRACE(9, "CBadgeNetPubSubEvents: KillWatchingThread: Wait for watching thread to exit.");
-            bool fThreadDead = false;
+            BOOL fThreadDead = false;
             for (int i = 0; i < _knShortRetries; i++)
             {
                 if (IsThreadAlive(_threadWatchingHandle))
@@ -648,10 +648,10 @@ void CBadgeNetPubSubEvents::KillWatchingThread()
 /// <summary>
 /// Start the subscribing thread.
 /// </summary>
-/// <returns>bool: true: Thread subscription OK.</returns>
-bool CBadgeNetPubSubEvents::StartSubscribingThread()
+/// <returns>BOOL: true: Thread subscription OK.</returns>
+BOOL CBadgeNetPubSubEvents::StartSubscribingThread()
 {
-    bool result = false;
+    BOOL result = false;
 
     try
     {
@@ -759,8 +759,8 @@ void CBadgeNetPubSubEvents::RestartSubcribingThread()
 /// Checks whether a thread is alive.
 /// </summary>
 /// <param name="hThread">This thread handle to check.</param>
-/// <returns>bool true: The thread is still alive.</returns>
-bool CBadgeNetPubSubEvents::IsThreadAlive(const HANDLE hThread)
+/// <returns>BOOL true: The thread is still alive.</returns>
+BOOL CBadgeNetPubSubEvents::IsThreadAlive(const HANDLE hThread)
 {
      // Read thread's exit code.
      DWORD dwExitCode = 0;

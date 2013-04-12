@@ -565,7 +565,7 @@ namespace Xceed.Wpf.Toolkit
           }
       }
 
-      ImageSource = ( ImageSource )new ImageSourceConverter().ConvertFromString( String.Format( "pack://application:,,,/WPFToolkit.Extended;component/MessageBox/Icons/{0}", iconName ) );
+      ImageSource = ( ImageSource )new ImageSourceConverter().ConvertFromString( String.Format( "pack://application:,,,/WPFToolkit.Extended.CAPP;component/MessageBox/Icons/{0}", iconName ) );
     }
 
     /// <summary>

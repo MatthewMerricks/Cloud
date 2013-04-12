@@ -21,42 +21,42 @@ namespace Cloud.Interfaces
     public interface IEventMessageReceiver
     {
         /// <summary>
-        /// Fired when NewEventMessage event fires in Cloud.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
+        /// Fired when NewEventMessage event fires in Cloud.Static.MessageEvents, filtered down to a specific Syncbox/Device combination
         /// </summary>
         /// <param name="e">Message parameters</param>
         void MessageEvents_NewEventMessage(IBasicMessage e);
         /// <summary>
-        /// Fired when NewEventMessage event fires in Cloud.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
+        /// Fired when NewEventMessage event fires in Cloud.Static.MessageEvents, filtered down to a specific Syncbox/Device combination
         /// </summary>
         /// <param name="e">Message parameters</param>
         void AddStatusMessage(IBasicMessage e);
         /// <summary>
-        /// Fired when DownloadingCountSet event fires in Cloud.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
+        /// Fired when DownloadingCountSet event fires in Cloud.Static.MessageEvents, filtered down to a specific Syncbox/Device combination
         /// </summary>
         /// <param name="e">Message parameters</param>
         void SetDownloadingCount(ISetCountMessage e);
         /// <summary>
-        /// Fired when DownloadingCountSet event fires in Cloud.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
+        /// Fired when DownloadingCountSet event fires in Cloud.Static.MessageEvents, filtered down to a specific Syncbox/Device combination
         /// </summary>
         /// <param name="e">Message parameters</param>
         void SetUploadingCount(ISetCountMessage e);
         /// <summary>
-        /// Fired when DownloadedCountIncremented event fires in Cloud.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
+        /// Fired when DownloadedCountIncremented event fires in Cloud.Static.MessageEvents, filtered down to a specific Syncbox/Device combination
         /// </summary>
         /// <param name="e">Message parameters</param>
         void IncrementDownloadedCount(IIncrementCountMessage e);
         /// <summary>
-        /// Fired when UploadedCountIncremented event fires in Cloud.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
+        /// Fired when UploadedCountIncremented event fires in Cloud.Static.MessageEvents, filtered down to a specific Syncbox/Device combination
         /// </summary>
         /// <param name="e">Message parameters</param>
         void IncrementUploadedCount(IIncrementCountMessage e);
         /// <summary>
-        /// Fired when FileUploadUpdated event fires in Cloud.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
+        /// Fired when FileUploadUpdated event fires in Cloud.Static.MessageEvents, filtered down to a specific Syncbox/Device combination
         /// </summary>
         /// <param name="e">Message parameters</param>
         void UpdateFileUpload(ITransferUpdateMessage e);
         /// <summary>
-        /// Fired when FileDownloadUpdated event fires in Cloud.Static.MessageEvents, filtered down to a specific SyncBox/Device combination
+        /// Fired when FileDownloadUpdated event fires in Cloud.Static.MessageEvents, filtered down to a specific Syncbox/Device combination
         /// </summary>
         /// <param name="e">Message parameters</param>
         void UpdateFileDownload(ITransferUpdateMessage e);
@@ -64,7 +64,7 @@ namespace Cloud.Interfaces
     public interface IMinimalMessage : IHandleableArgs
     {
         string Message { get; }
-        Nullable<long> SyncBoxId { get; }
+        Nullable<long> SyncboxId { get; }
         string DeviceId { get; }
         BaseMessage BaseMessage { get; }
     }

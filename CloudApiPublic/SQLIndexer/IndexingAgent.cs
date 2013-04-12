@@ -32,10 +32,10 @@ namespace Cloud.SQLIndexer
     internal sealed class IndexingAgent : IDisposable
     {
         #region private fields
-        private static CLTrace _trace = CLTrace.Instance;
+        private static readonly CLTrace _trace = CLTrace.Instance;
         // store the path that represents the root of indexing
         private string indexedPath = null;
-        private readonly CLSyncBox syncBox;
+        private readonly CLSyncbox syncbox;
         private long rootFileSystemObjectId = 0;
 
         #region SQLite
@@ -68,15 +68,15 @@ namespace Cloud.SQLIndexer
         /// must be started afterwards with StartInitialIndexing
         /// </summary>
         /// <param name="newIndexer">Output indexing agent</param>
-        /// <param name="syncBox">SyncBox to index</param>
+        /// <param name="syncbox">Syncbox to index</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
-        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, CLSyncBox syncBox)
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, CLSyncbox syncbox)
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
             try
             {
-                newIndexer = newAgent = new IndexingAgent(syncBox); // this double instance setting is required for some reason to prevent a "does not exist in the current context" compiler error
+                newIndexer = newAgent = new IndexingAgent(syncbox); // this double instance setting is required for some reason to prevent a "does not exist in the current context" compiler error
             }
             catch (Exception ex)
             {
@@ -86,7 +86,7 @@ namespace Cloud.SQLIndexer
 
             try
             {
-                newIndexer.InitializeDatabase(syncBox.CopiedSettings.SyncRoot);
+                newIndexer.InitializeDatabase(syncbox.CopiedSettings.SyncRoot);
             }
             catch (Exception ex)
             {
@@ -1092,6 +1092,7 @@ namespace Cloud.SQLIndexer
                         foreach (KeyValuePair<FileChange, GenericHolder<long>> currentAddedEvent in orderToChange.Values)
                         {
                             currentAddedEvent.Key.EventId = currentAddedEvent.Value.Value;
+                        	_trace.writeToMemory(() => _trace.trcFmtStr(2, "IndexingAgent: AddEvents: Call MessageEvents.ApplyFileChangeMergeToChangeState."));
                             MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentAddedEvent.Key, null));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentAddedEvent.Key, null)
                         }
                     }
@@ -1170,7 +1171,7 @@ namespace Cloud.SQLIndexer
                         indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
                 }
 
-                Func<Exception> notFoundException = () => new Exception("Event not found to delete");
+                Func<Exception> notFoundException = () => new KeyNotFoundException("Event not found to delete");
 
                 // Find the existing objects for the given ids
                 List<long> toDeleteIds = new List<long>();
@@ -1287,7 +1288,7 @@ namespace Cloud.SQLIndexer
                     {
                         try
                         {
-                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject with EventId " + deleteIdsToFind.ToString() + " to delete");
+                            throw new KeyNotFoundException("Unable to find FileSystemObject with EventId " + deleteIdsToFind.ToString() + " to delete");
                         }
                         catch (Exception ex)
                         {
@@ -1309,7 +1310,7 @@ namespace Cloud.SQLIndexer
                         {
                             try
                             {
-                                throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject by Id " + fileSystemObjectIdsToDelete[unableToFindIndex].ToString() + " even after confirming existing record; row possibly deleted by recursive trigger beforehand");
+                                throw new KeyNotFoundException("Unable to find FileSystemObject by Id " + fileSystemObjectIdsToDelete[unableToFindIndex].ToString() + " even after confirming existing record; row possibly deleted by recursive trigger beforehand");
                             }
                             catch (Exception ex)
                             {
@@ -2532,19 +2533,23 @@ namespace Cloud.SQLIndexer
         /// <summary>
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
-        /// <param name="syncBox">SyncBox to index</param>
-        private IndexingAgent(CLSyncBox syncBox)
+        /// <param name="syncbox">SyncBox to index</param>
+        private IndexingAgent(CLSyncbox syncbox)
         {
-            if (syncBox == null)
+            if (syncbox == null)
             {
-                throw new NullReferenceException("syncBox cannot be null");
+                throw new NullReferenceException("syncbox cannot be null");
+            }
+            if (string.IsNullOrEmpty(syncbox.CopiedSettings.DeviceId))
+            {
+                throw new NullReferenceException("settings DeviceId cannot be null");
             }
 
-            this.indexDBLocation = (string.IsNullOrEmpty(syncBox.CopiedSettings.DatabaseFolder)
-                ? Helpers.GetDefaultDatabasePath(syncBox.CopiedSettings.DeviceId, syncBox.SyncBoxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
-                : syncBox.CopiedSettings.DatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
+            this.indexDBLocation = (string.IsNullOrEmpty(syncbox.CopiedSettings.DatabaseFolder)
+                ? Helpers.GetDefaultDatabasePath(syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
+                : syncbox.CopiedSettings.DatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
 
-            this.syncBox = syncBox;
+            this.syncbox = syncbox;
         }
 
         private void InitializeDatabase(string syncRoot)
@@ -2612,8 +2617,8 @@ namespace Cloud.SQLIndexer
                         "Database corruption found on initializing index. Replacing database with a fresh one. Files and folders changed while offline will be grabbed again from server. Error message: " + ex.Message,
                         EventMessageLevel.Important,
                         new GeneralErrorInfo(),
-                        syncBox.SyncBoxId,
-                        syncBox.CopiedSettings.DeviceId);
+                        syncbox.SyncboxId,
+                        syncbox.CopiedSettings.DeviceId);
 
                     deleteDB = true;
                     createDB = true;
@@ -2624,8 +2629,8 @@ namespace Cloud.SQLIndexer
                 MessageEvents.FireNewEventMessage(
                     "Existing database not found, possibly due to new SyncBoxId\\DeviceId combination. Starting fresh.",
                     EventMessageLevel.Minor,
-                    SyncBoxId: syncBox.SyncBoxId,
-                    DeviceId: syncBox.CopiedSettings.DeviceId);
+                    SyncboxId: syncbox.SyncboxId,
+                    DeviceId: syncbox.CopiedSettings.DeviceId);
 
                 createDB = true;
                 deleteDB = false;
@@ -3192,10 +3197,8 @@ namespace Cloud.SQLIndexer
 
                 foreach (FilePath initiallySyncedBadge in indexPaths.Keys)
                 {
-                    if (!FilePathComparer.Instance.Equals(initiallySyncedBadge, baseComparePath))
-                    {
-                        MessageEvents.SetPathState(this, new SetBadge(PathState.Synced, initiallySyncedBadge));
-                    }
+                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "IndexingAgent: BuildIndex: Call MessageEvents.SetPathState synced.")); 
+                    MessageEvents.SetPathState(this, new SetBadge(PathState.Synced, initiallySyncedBadge));
                 }
 
                 // Callback on initial index completion
@@ -3302,7 +3305,7 @@ namespace Cloud.SQLIndexer
                         new HaltAllOfCloudSDKErrorInfo());
 
                     // This is a really bad error.  It means the connection to the file system is broken, and if we just ignore this error,
-                    // sync will determine that there are no files in the SyncBox folder, and it will actually delete all of the files on the server.
+                    // sync will determine that there are no files in the Syncbox folder, and it will actually delete all of the files on the server.
                     // We have to stop this thread dead in its tracks, and do it in such a way that it is not recoverable.
                     CLError error = new Exception("Unable to find cloud directory at path: " + currentDirectoryFullPath);
                     error.LogErrors(_trace.TraceLocation, _trace.LogErrors);

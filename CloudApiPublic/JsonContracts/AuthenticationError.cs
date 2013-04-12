@@ -22,51 +22,19 @@ namespace Cloud.JsonContracts
     internal sealed class AuthenticationError
     {
         [DataMember(Name = CLDefinitions.JsonServiceTypeFieldCode, IsRequired = false)]
-        public decimal Code
+        public Nullable<ulong> Code
         {
             get
             {
-                ulong wholeEnumInteger = (ulong)_codeAsEnum;
-                ulong bottomPart = wholeEnumInteger % (((ulong)1) << 32);
-                ulong topPart = wholeEnumInteger - bottomPart;
-                return decimal.Parse(
-                    (topPart >> 32).ToString() + // top part are taken as-is, but need to offset back to the one's place
-                    (bottomPart > 0
-                        ? "." +
-                            string.Join(
-                                string.Empty,
-                                bottomPart.ToString().Reverse()) // reverse the digits in the integer that represents the part to the right of the decimal ([top part].05 would have had bottom part 50)
+                return (ulong)CodeAsEnum;
+            }
+            set
+            {
+                CodeAsEnum = (value == null ? (Nullable<AuthenticationErrorType>)null : (AuthenticationErrorType)value);
+            }
+        }
 
-                        : string.Empty));
-            }
-            set
-            {
-                decimal decimalRemainder = value % 1;
-                ulong bottomPart =
-                    (decimalRemainder == 0M
-                        ? 0
-                        : ulong.Parse(
-                            string.Join(
-                                string.Empty,
-                                decimalRemainder.ToString()
-                                    .Substring(2) // remove the "0." from the 0.XXX string representation
-                                    .Reverse())));
-                ulong topPart = ((ulong)(value - decimalRemainder)) << 32; // bit-shift the whole number part of the decimal to the 32 highest-order bits
-                _codeAsEnum = (AuthenticationErrorType)(topPart | bottomPart);
-            }
-        }
-        public AuthenticationErrorType CodeAsEnum
-        {
-            get
-            {
-                return _codeAsEnum;
-            }
-            set
-            {
-                _codeAsEnum = value;
-            }
-        }
-        private AuthenticationErrorType _codeAsEnum = (AuthenticationErrorType)0;
+        public Nullable<AuthenticationErrorType> CodeAsEnum { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
         public string Message { get; set; }

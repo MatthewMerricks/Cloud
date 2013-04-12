@@ -482,17 +482,17 @@ namespace Cloud.Sync
                 ITransferTaskState castState = task.AsyncState as ITransferTaskState;
 
                 if (castState != null
-                    && castState.SyncBox != null)
+                    && castState.Syncbox != null)
                 {
                     ITransferTaskState runningTaskState;
                     int runningTaskCount = runningTasks.Count(runningTask => (runningTaskState = runningTask.Value.AsyncState as ITransferTaskState) != null
-                        && runningTaskState.SyncBox != null
-                        && runningTaskState.SyncBox.SyncBoxId == castState.SyncBox.SyncBoxId
-                        && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castState.SyncBox.CopiedSettings.DeviceId));
+                        && runningTaskState.Syncbox != null
+                        && runningTaskState.Syncbox.SyncboxId == castState.Syncbox.SyncboxId
+                        && string.Equals(runningTaskState.Syncbox.CopiedSettings.DeviceId, castState.Syncbox.CopiedSettings.DeviceId));
                     int inlineExecutingCount = inlineExecuting.Count(currentInline => (runningTaskState = currentInline.Value.AsyncState as ITransferTaskState) != null
-                        && runningTaskState.SyncBox != null
-                        && runningTaskState.SyncBox.SyncBoxId == castState.SyncBox.SyncBoxId
-                        && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castState.SyncBox.CopiedSettings.DeviceId));
+                        && runningTaskState.Syncbox != null
+                        && runningTaskState.Syncbox.SyncboxId == castState.Syncbox.SyncboxId
+                        && string.Equals(runningTaskState.Syncbox.CopiedSettings.DeviceId, castState.Syncbox.CopiedSettings.DeviceId));
 
                     switch (Direction)
                     {
@@ -500,16 +500,16 @@ namespace Cloud.Sync
                             // direction for downloads
                             MessageEvents.SetDownloadingCount(
                                 newCount: (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1),
-                                SyncBoxId: castState.SyncBox.SyncBoxId,
-                                DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
+                                SyncboxId: castState.Syncbox.SyncboxId,
+                                DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
                             break;
 
                         case SyncDirection.To:
                             // direction for uploads
                             MessageEvents.SetUploadingCount(
                                 newCount: (uint)(TaskQueue.Count + runningTaskCount + inlineExecutingCount + 1),
-                                SyncBoxId: castState.SyncBox.SyncBoxId,
-                                DeviceId: castState.SyncBox.CopiedSettings.DeviceId);
+                                SyncboxId: castState.Syncbox.SyncboxId,
+                                DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
                             break;
 
                         default:
@@ -557,20 +557,20 @@ namespace Cloud.Sync
                         ITransferTaskState castTask = currentTask.AsyncState as ITransferTaskState;
 
                         if (castTask != null
-                            && castTask.SyncBox != null)
+                            && castTask.Syncbox != null)
                         {
                             uint taskCount;
                             lock (scheduler.TaskQueueLocker)
                             {
                                 ITransferTaskState runningTaskState;
                                 int runningTaskCount = scheduler.runningTasks.Count(runningTask => (runningTaskState = runningTask.Value.AsyncState as ITransferTaskState) != null
-                                    && runningTaskState.SyncBox != null
-                                    && runningTaskState.SyncBox.SyncBoxId == castTask.SyncBox.SyncBoxId
-                                    && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castTask.SyncBox.CopiedSettings.DeviceId));
+                                    && runningTaskState.Syncbox != null
+                                    && runningTaskState.Syncbox.SyncboxId == castTask.Syncbox.SyncboxId
+                                    && string.Equals(runningTaskState.Syncbox.CopiedSettings.DeviceId, castTask.Syncbox.CopiedSettings.DeviceId));
                                 int inlineExecutingCount = scheduler.inlineExecuting.Count(currentInline => (runningTaskState = currentInline.Value.AsyncState as ITransferTaskState) != null
-                                    && runningTaskState.SyncBox != null
-                                    && runningTaskState.SyncBox.SyncBoxId == castTask.SyncBox.SyncBoxId
-                                    && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castTask.SyncBox.CopiedSettings.DeviceId));
+                                    && runningTaskState.Syncbox != null
+                                    && runningTaskState.Syncbox.SyncboxId == castTask.Syncbox.SyncboxId
+                                    && string.Equals(runningTaskState.Syncbox.CopiedSettings.DeviceId, castTask.Syncbox.CopiedSettings.DeviceId));
 
                                 taskCount = (uint)(scheduler.TaskQueue.Count + runningTaskCount + inlineExecutingCount - 1);
                             }
@@ -581,16 +581,16 @@ namespace Cloud.Sync
                                     // direction for downloads
                                     MessageEvents.SetDownloadingCount(
                                         newCount: taskCount,
-                                        SyncBoxId: castTask.SyncBox.SyncBoxId,
-                                        DeviceId: castTask.SyncBox.CopiedSettings.DeviceId);
+                                        SyncboxId: castTask.Syncbox.SyncboxId,
+                                        DeviceId: castTask.Syncbox.CopiedSettings.DeviceId);
                                     break;
 
                                 case SyncDirection.To:
                                     // direction for uploads
                                     MessageEvents.SetUploadingCount(
                                         newCount: taskCount,
-                                        SyncBoxId: castTask.SyncBox.SyncBoxId,
-                                        DeviceId: castTask.SyncBox.CopiedSettings.DeviceId);
+                                        SyncboxId: castTask.Syncbox.SyncboxId,
+                                        DeviceId: castTask.Syncbox.CopiedSettings.DeviceId);
                                     break;
 
                                 default:
@@ -694,17 +694,17 @@ namespace Cloud.Sync
                 ITransferTaskState castInlineTask = inlineTask.AsyncState as ITransferTaskState;
 
                 if (castInlineTask != null
-                    && castInlineTask.SyncBox != null)
+                    && castInlineTask.Syncbox != null)
                 {
                     ITransferTaskState runningTaskState;
                     int runningTaskCount = scheduler.runningTasks.Count(runningTask => (runningTaskState = runningTask.Value.AsyncState as ITransferTaskState) != null
-                        && runningTaskState.SyncBox != null
-                        && runningTaskState.SyncBox.SyncBoxId == castInlineTask.SyncBox.SyncBoxId
-                        && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castInlineTask.SyncBox.CopiedSettings.DeviceId));
+                        && runningTaskState.Syncbox != null
+                        && runningTaskState.Syncbox.SyncboxId == castInlineTask.Syncbox.SyncboxId
+                        && string.Equals(runningTaskState.Syncbox.CopiedSettings.DeviceId, castInlineTask.Syncbox.CopiedSettings.DeviceId));
                     int inlineExecutingCount = scheduler.inlineExecuting.Count(currentInline => (runningTaskState = currentInline.Value.AsyncState as ITransferTaskState) != null
-                        && runningTaskState.SyncBox != null
-                        && runningTaskState.SyncBox.SyncBoxId == castInlineTask.SyncBox.SyncBoxId
-                        && string.Equals(runningTaskState.SyncBox.CopiedSettings.DeviceId, castInlineTask.SyncBox.CopiedSettings.DeviceId));
+                        && runningTaskState.Syncbox != null
+                        && runningTaskState.Syncbox.SyncboxId == castInlineTask.Syncbox.SyncboxId
+                        && string.Equals(runningTaskState.Syncbox.CopiedSettings.DeviceId, castInlineTask.Syncbox.CopiedSettings.DeviceId));
 
                     uint taskCount = (uint)(scheduler.TaskQueue.Count + runningTaskCount + inlineExecutingCount);
 
@@ -714,16 +714,16 @@ namespace Cloud.Sync
                             // direction for downloads
                             MessageEvents.SetDownloadingCount(
                                 newCount: taskCount,
-                                SyncBoxId: castInlineTask.SyncBox.SyncBoxId,
-                                DeviceId: castInlineTask.SyncBox.CopiedSettings.DeviceId);
+                                SyncboxId: castInlineTask.Syncbox.SyncboxId,
+                                DeviceId: castInlineTask.Syncbox.CopiedSettings.DeviceId);
                             break;
 
                         case SyncDirection.To:
                             // direction for uploads
                             MessageEvents.SetUploadingCount(
                                 newCount: taskCount,
-                                SyncBoxId: castInlineTask.SyncBox.SyncBoxId,
-                                DeviceId: castInlineTask.SyncBox.CopiedSettings.DeviceId);
+                                SyncboxId: castInlineTask.Syncbox.SyncboxId,
+                                DeviceId: castInlineTask.Syncbox.CopiedSettings.DeviceId);
                             break;
 
                         default:

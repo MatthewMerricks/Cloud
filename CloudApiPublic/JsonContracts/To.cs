@@ -23,13 +23,13 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.CLSyncID)]
         public string SyncId { get; set; }
 
-        [DataMember(Name = CLDefinitions.JsonAccountFieldSyncBoxId, IsRequired = false)]
-        public Nullable<long> SyncBoxId { get; set; }
+        [DataMember(Name = CLDefinitions.JsonAccountFieldSyncboxId, IsRequired = false)]
+        public Nullable<long> SyncboxId { get; set; }
 
         [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
         public string DeviceId { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxQuota, IsRequired = false)]
-        public SyncBoxUsage Quota { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxQuota, IsRequired = false)]
+        public SyncboxUsage Quota { get; set; }
     }
 }

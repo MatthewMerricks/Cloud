@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
+using Cloud.Model;
 
 namespace SampleLiveSync.ViewModels
 {
@@ -184,9 +185,9 @@ namespace SampleLiveSync.ViewModels
         #region Public Methods
 
         /// <summary>
-        /// The sync status has changed.  Get the changed status from the SyncBox.
+        /// The sync status has changed.  Get the changed status from the Syncbox.
         /// </summary>
-        /// <param name="userState">This is the instance of the SyncBox (CLSync) whose status has changed.</param>
+        /// <param name="userState">This is the instance of the Syncbox (CLSync) whose status has changed.</param>
         public void OnSyncStatusUpdated(object userState)
         {
             CLSyncEngine syncEngine = userState as CLSyncEngine;
@@ -194,7 +195,12 @@ namespace SampleLiveSync.ViewModels
             {
                 // Set the overall sync status
                 CLSyncCurrentStatus currentStatus;
-                syncEngine.GetEngineCurrentStatus(out currentStatus);
+                CLError errorFromGetEngineCurrentStatus = syncEngine.GetEngineCurrentStatus(out currentStatus);
+                if (errorFromGetEngineCurrentStatus != null || currentStatus == null)
+                {
+                    return;
+                }
+
                 if (currentStatus.CurrentState == CLSyncCurrentState.Idle)
                 {
                     SyncStatus = SyncStates.Synced;

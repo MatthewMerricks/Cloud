@@ -14,6 +14,7 @@ using Cloud.Model;
 using Cloud.Static;
 using Cloud.Support;
 using System.Globalization;
+using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Threading;
 // the following linq namespace is used only if the optional initialization parameter for processing logging is passed as true
@@ -29,7 +30,7 @@ using Cloud.Model.EventMessages.ErrorInfo;
 using Cloud.SQLIndexer.Model;
 
 /// <summary>
-/// Monitor a local file system folder as a SyncBox.
+/// Monitor a local file system folder as a Syncbox.
 /// </summary>
 namespace Cloud.FileMonitor
 {
@@ -105,6 +106,8 @@ namespace Cloud.FileMonitor
 
         // store the optional logging boolean initialization parameter
         private bool LogProcessingFileChanges;
+
+        private static readonly CLTrace _trace = CLTrace.Instance;
 
         // file extension for shortcuts
         private const string ShortcutExtension = "lnk";
@@ -515,7 +518,8 @@ namespace Cloud.FileMonitor
         /// lock on InitialIndexLocker
         /// </summary>
         private bool IsInitialIndex = true;
-        private readonly CLSyncBox _syncBox;
+        private readonly CLSyncbox _syncbox;
+        private readonly long MaxUploadFileSize;
         #endregion
 
         #region memory debug
@@ -659,7 +663,7 @@ namespace Cloud.FileMonitor
         /// requires running Start() method to begin monitoring and then, when available, load
         /// the initial index list to begin processing via BeginProcessing(initialList)
         /// </summary>
-        /// <param name="syncBox">SyncBox to monitor</param>
+        /// <param name="syncbox">Syncbox to monitor</param>
         /// <param name="indexer">Created and initialized but not started SQLIndexer</param>
         /// <param name="httpRestClient">Client for Http REST communication</param>
         /// <param name="StatusUpdated">Callback to fire upon update of the running status</param>
@@ -670,7 +674,7 @@ namespace Cloud.FileMonitor
         /// <param name="onQueueingCallback">(optional) action to be executed every time a FileChange would be queued for processing</param>
         /// <param name="logProcessing">(optional) if set, logs FileChange objects when their processing callback fires</param>
         /// <returns>Returns any error that occurred, or null.</returns>
-        public static CLError CreateNewAndInitialize(CLSyncBox syncBox,
+        public static CLError CreateNewAndInitialize(CLSyncbox syncbox,
             IndexingAgent indexer,
             CLHttpRest httpRestClient,
             bool DependencyDebugging,
@@ -680,11 +684,13 @@ namespace Cloud.FileMonitor
             out SyncEngine syncEngine,
             bool debugMemory,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
-            bool logProcessing = false)
+            bool logProcessing = false,
+            long MaxUploadFileSize = FileConstants.MaxUploadFileSize)
         {
+
             try
             {
-                newAgent = new MonitorAgent(indexer, syncBox, debugMemory, DependencyDebugging);
+                newAgent = new MonitorAgent(indexer, syncbox, debugMemory, DependencyDebugging, MaxUploadFileSize);
             }
             catch (Exception ex)
             {
@@ -698,7 +704,7 @@ namespace Cloud.FileMonitor
                 // Create sync engine
                 CLError createSyncEngineError = SyncEngine.CreateAndInitialize(
                     newAgent._syncData,
-                    syncBox,
+                    syncbox,
                     httpRestClient,
                     out syncEngine,
                     DependencyDebugging,
@@ -717,12 +723,12 @@ namespace Cloud.FileMonitor
 
             try
             {
-                if (string.IsNullOrWhiteSpace(syncBox.CopiedSettings.SyncRoot))
+                if (string.IsNullOrWhiteSpace(syncbox.CopiedSettings.SyncRoot))
                 {
                     throw new ArgumentException("Folder path cannot be null or empty");
                 }
 
-                DirectoryInfo folderInfo = new DirectoryInfo(syncBox.CopiedSettings.SyncRoot);
+                DirectoryInfo folderInfo = new DirectoryInfo(syncbox.CopiedSettings.SyncRoot);
                 if (!folderInfo.Exists)
                 {
                     throw new Exception("Folder not found at provided folder path");
@@ -739,7 +745,7 @@ namespace Cloud.FileMonitor
                 }
 
                 // Initialize folder paths
-                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = syncBox.CopiedSettings.SyncRoot;
+                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = syncbox.CopiedSettings.SyncRoot;
 
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;
@@ -787,24 +793,25 @@ namespace Cloud.FileMonitor
             return null;
         }
 
-        private MonitorAgent(IndexingAgent Indexer, CLSyncBox syncBox, bool debugMemory, bool DependencyDebugging)
+        private MonitorAgent(IndexingAgent Indexer, CLSyncbox syncbox, bool debugMemory, bool DependencyDebugging, long MaxUploadFileSize) 
         {
             // check input parameters
 
-            if (syncBox == null)
+            if (syncbox == null)
             {
-                throw new NullReferenceException("syncBox cannot be null");
+                throw new NullReferenceException("syncbox cannot be null");
             }
 
             // Initialize Cloud trace in case it is not already initialized.
-            CLTrace.Initialize(syncBox.CopiedSettings.TraceLocation, "Cloud", "log", syncBox.CopiedSettings.TraceLevel, syncBox.CopiedSettings.LogErrors);
+            CLTrace.Initialize(syncbox.CopiedSettings.TraceLocation, "Cloud", "log", syncbox.CopiedSettings.TraceLevel, syncbox.CopiedSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "MonitorAgent: CreateNewAndInitialize: Entry");
 
             if (Indexer == null)
             {
                 throw new NullReferenceException("Indexer cannot be null");
             }
-            this._syncBox = syncBox;
+            this.MaxUploadFileSize = MaxUploadFileSize;
+            this._syncbox = syncbox;
             this.Indexer = Indexer;
             this._syncData = new SyncData(this, Indexer);
             this.debugMemory = debugMemory;
@@ -1179,9 +1186,13 @@ namespace Cloud.FileMonitor
                                     {
                                         if (toApply.Metadata.HashableProperties.IsFolder)
                                         {
+                                            string oldPathString = toApply.OldPath.ToString();
+                                            string newPathString = toApply.NewPath.ToString();
+                                            DateTime oldPathCreationTime = Directory.GetCreationTimeUtc(oldPathString);
+
                                             try
                                             {
-                                                Directory.Move(toApply.OldPath.ToString(), toApply.NewPath.ToString());
+                                                Directory.Move(oldPathString, newPathString);
                                             }
                                             catch (DirectoryNotFoundException ex)
                                             {
@@ -1200,58 +1211,181 @@ namespace Cloud.FileMonitor
                                                 }
                                                 throw ex;
                                             }
+                                            catch (Exception ex)
+                                            {
+                                                if (oldPathCreationTime.Ticks != FileConstants.InvalidUtcTimeTicks
+                                                    && oldPathCreationTime.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+                                                    && Directory.Exists(newPathString)
+                                                    && !Directory.Exists(oldPathString)
+                                                    && DateTime.Compare(Directory.GetCreationTimeUtc(newPathString), oldPathCreationTime) == 0)
+                                                {
+                                                    // folder move actually worked even though it threw an exception
+                                                    // silence exception
+                                                }
+                                                else
+                                                {
+                                                    throw ex;
+                                                }
+                                            }
                                         }
                                         else
                                         {
+                                            // File rename.
                                             string newPathString = toApply.NewPath.ToString();
                                             string oldPathString = toApply.OldPath.ToString();
-                                            string backupLocation = Helpers.GetTempFileDownloadPath(_syncBox.CopiedSettings, _syncBox.SyncBoxId) + "\\" + Guid.NewGuid().ToString();
+                                            string backupLocation = Helpers.GetTempFileDownloadPath(_syncbox.CopiedSettings, _syncbox.SyncboxId) + "\\" + Guid.NewGuid().ToString();
 
                                             Helpers.RunActionWithRetries(
                                                 fileMoveState =>
                                                 {
-                                                    if (File.Exists(fileMoveState.newPathString))
+
+                                                    // To preserve the DACL in the target file (newPathString) from being overwritten with the DACL of the temp file (oldPathString):
+                                                    //      collect the original target file external ACEs;
+                                                    //      collect the temporary file external ACEs;
+                                                    //      after the file has been moved, reset the target file DACL by adding the original external ACEs and removing the temoporary file external ACEs;
+                                                    //  Note that reseting the DACL will merge the correct inherited ACEs into the target file DACL;
+
+                                                    // NOTE: NULL DACL (grants full access to everyone) in C# is represented as AuthorizationRuleCollection([Allow, Everyone (S-1-1-0)]);
+                                                    //       Empty DACL (grants no access to anyone) in C# is represented as empty AuthorizationRuleCollection();
+
+                                                    AuthorizationRuleCollection targetExplicitRules = null;
+                                                    try
                                                     {
-                                                        try
+                                                        if (File.Exists(fileMoveState.newPathString))
                                                         {
-                                                            File.Replace(fileMoveState.oldPathString,
-                                                                fileMoveState.newPathString,
-                                                                fileMoveState.backupLocation,
-                                                                ignoreMetadataErrors: true);
+                                                            targetExplicitRules = File.GetAccessControl(fileMoveState.newPathString)
+                                                                                        .GetAccessRules(true, false, typeof(System.Security.Principal.SecurityIdentifier));
+                                                        }
+                                                    }
+                                                    catch
+                                                    {
+                                                        //noop;
+                                                    }
+
+                                                    AuthorizationRuleCollection tempExplicitRules = null;
+                                                    try
+                                                    {
+                                                        if (File.Exists(fileMoveState.oldPathString))
+                                                        {
+                                                            tempExplicitRules = File.GetAccessControl(fileMoveState.oldPathString)
+                                                                                        .GetAccessRules(true, false, typeof(System.Security.Principal.SecurityIdentifier));
+                                                        }
+                                                    }
+                                                    catch
+                                                    {
+                                                        //noop;
+                                                    }
+
+
+                                                    FileInfo oldPathInfo = new FileInfo(fileMoveState.oldPathString);
+                                                    FileInfo newPathInfo = new FileInfo(fileMoveState.newPathString);
+                                                    DateTime oldPathCreation = oldPathInfo.CreationTimeUtc;
+                                                    DateTime oldPathWrite = oldPathInfo.LastWriteTimeUtc;
+                                                    long oldPathSize = oldPathInfo.Length;
+                                                    
+                                                    try
+                                                    {
+                                                        if (newPathInfo.Exists)
+                                                        {
                                                             try
                                                             {
-                                                                if (File.Exists(fileMoveState.backupLocation))
+                                                                oldPathInfo.Replace(
+                                                                    fileMoveState.newPathString,
+                                                                    fileMoveState.backupLocation,
+                                                                    ignoreMetadataErrors: true);
+                                                                try
                                                                 {
-                                                                    File.Delete(fileMoveState.backupLocation);
+                                                                    if (File.Exists(fileMoveState.backupLocation))
+                                                                    {
+                                                                        File.Delete(fileMoveState.backupLocation);
+                                                                    }
+                                                                }
+                                                                catch
+                                                                {
                                                                 }
                                                             }
-                                                            catch
+                                                            // File.Replace not supported on non-NTFS drives, must use traditional move
+                                                            catch (PlatformNotSupportedException)
                                                             {
+                                                                if (newPathInfo.Exists)
+                                                                {
+                                                                    newPathInfo.Delete();
+                                                                }
+                                                                oldPathInfo.MoveTo(fileMoveState.newPathString);
+                                                            }
+                                                            // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
+                                                            catch (IOException)
+                                                            {
+                                                                if (newPathInfo.Exists)
+                                                                {
+                                                                    newPathInfo.Delete();
+                                                                }
+                                                                oldPathInfo.MoveTo(fileMoveState.newPathString);
                                                             }
                                                         }
-                                                        // File.Replace not supported on non-NTFS drives, must use traditional move
-                                                        catch (PlatformNotSupportedException)
+                                                        else
                                                         {
-                                                            if (File.Exists(fileMoveState.newPathString))
-                                                            {
-                                                                File.Delete(fileMoveState.newPathString);
-                                                            }
-                                                            File.Move(fileMoveState.oldPathString, fileMoveState.newPathString);
-                                                        }
-                                                        // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
-                                                        catch (IOException)
-                                                        {
-                                                            if (File.Exists(fileMoveState.newPathString))
-                                                            {
-                                                                File.Delete(fileMoveState.newPathString);
-                                                            }
-                                                            File.Move(fileMoveState.oldPathString, fileMoveState.newPathString);
+                                                            oldPathInfo.MoveTo(fileMoveState.newPathString);
                                                         }
                                                     }
-                                                    else
+                                                    catch (Exception ex)
                                                     {
-                                                        File.Move(fileMoveState.oldPathString, fileMoveState.newPathString);
+                                                        if (oldPathCreation.Ticks != FileConstants.InvalidUtcTimeTicks
+                                                            && oldPathCreation.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                                                            && oldPathWrite.Ticks != FileConstants.InvalidUtcTimeTicks
+                                                            && oldPathWrite.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                                                            && newPathInfo.Exists
+
+                                                            && DateTime.Compare(newPathInfo.CreationTimeUtc, oldPathCreation) == 0
+
+                                                            && DateTime.Compare(newPathInfo.LastWriteTimeUtc, oldPathWrite) == 0
+
+                                                            && oldPathSize == newPathInfo.Length)
+                                                        {
+                                                            // file move (or replace) actually worked even though it threw an exception
+                                                            // silence exception
+                                                        }
+                                                        else
+                                                        {
+                                                            throw ex;
+                                                        }
                                                     }
+
+
+                                                    FileSecurity fileSecurity = new FileSecurity(fileMoveState.newPathString, AccessControlSections.Access);
+                                                    if (tempExplicitRules != null && tempExplicitRules.Count > 0)
+                                                    {
+                                                        foreach (FileSystemAccessRule rule in tempExplicitRules)
+                                                        {
+                                                            fileSecurity.RemoveAccessRule(rule);
+                                                        }
+                                                    }
+                                                    if (targetExplicitRules != null && targetExplicitRules.Count > 0)
+                                                    {
+                                                        foreach (FileSystemAccessRule rule in targetExplicitRules)
+                                                        {
+                                                            fileSecurity.ResetAccessRule(rule);
+                                                        }
+                                                    }
+                                                    if ((tempExplicitRules == null || tempExplicitRules.Count == 0) &&
+                                                        (targetExplicitRules == null || targetExplicitRules.Count == 0))
+                                                    {
+                                                        // Note: File.SetAccessControl() won't change the target file DACL if fileSecurity has not been modified;
+                                                        //          the following line formally "modifies" fileSecurity
+                                                        fileSecurity.SetSecurityDescriptorBinaryForm(fileSecurity.GetSecurityDescriptorBinaryForm(), AccessControlSections.Access);
+                                                    }
+
+                                                    try
+                                                    {
+                                                        File.SetAccessControl(fileMoveState.newPathString, fileSecurity);
+                                                    }
+                                                    catch
+                                                    {
+                                                        //noop; 
+                                                    }
+
                                                 },
                                                 new
                                                     {
@@ -1259,8 +1393,8 @@ namespace Cloud.FileMonitor
                                                         newPathString = newPathString,
                                                         backupLocation = backupLocation
                                                     },
-                                                throwExceptionOnFailure: true);
-                                        }
+                                                throwExceptionOnFailure: true);  // end RunActionWithRetries
+                                        }  // end else file rename
 
                                         foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
                                         {
@@ -1329,7 +1463,7 @@ namespace Cloud.FileMonitor
                 return ex;
             }
             return null;
-        }
+        }  // end ApplySyncFromFileChange
 
         // helper method to create a directory at a given path and set the time attributes for creation/last modified
         private static void CreateDirectoryWithAttributes(FilePath toCreate, Nullable<DateTime> creationTime, Nullable<DateTime> lastTime, out Nullable<DateTime> createdLastWriteUtc, out Nullable<DateTime> createdCreationUtc)
@@ -1704,8 +1838,7 @@ namespace Cloud.FileMonitor
                                         {
                                             case FileChangeType.Created:
                                             case FileChangeType.Modified:
-                                                CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges);
-                                                DisposeChanges = null;
+                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges);
                                                 ContinueProcessing = true;
                                                 if (creationModificationCheckError != null)
                                                 {
@@ -1734,16 +1867,34 @@ namespace Cloud.FileMonitor
                                         {
                                             foreach (FileChangeWithDependencies CurrentDisposal in DisposeChanges)
                                             {
+                                            	_trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentDisposal: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
+                                                    CurrentDisposal.Direction.ToString(),
+                                                    CurrentDisposal.Type.ToString(),
+                                                    CurrentDisposal.OldPath != null ? CurrentDisposal.OldPath : "NoOldPath",
+                                                    CurrentDisposal.NewPath != null ? CurrentDisposal.NewPath : "NoNewPath"));
                                                 KeyValuePair<FileChange, FileChangeSource> CurrentOriginalMapping;
                                                 if (OriginalFileChangeMappings != null
                                                     && OriginalFileChangeMappings.TryGetValue(CurrentDisposal, out CurrentOriginalMapping))
                                                 {
+                                                	_trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
+                                                        CurrentOriginalMapping.Key.Direction.ToString(),
+                                                        CurrentOriginalMapping.Key.Type.ToString(),
+                                                        CurrentOriginalMapping.Key.OldPath != null ? CurrentOriginalMapping.Key.OldPath : "NoOldPath",
+                                                        CurrentOriginalMapping.Key.NewPath != null ? CurrentOriginalMapping.Key.NewPath : "NoNewPath"));
                                                     CurrentOriginalMapping.Key.Dispose();
-                                                    if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges
-                                                        && RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds))
-                                                    {
-                                                        removeFromSql.Add(CurrentDisposal);
-                                                    }
+
+                                                	if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges)
+                                                	{
+                                                    	_trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Remove this CurrentOriginalMapping from originalQueuedChangesIndexesByInMemoryIds."));
+                                                    	RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds);
+                                                	}
+
+                                                	_trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql."));
+                                                    removeFromSql.Add(CurrentDisposal);
+                                                }
+                                            	else
+                                            	{
+                                                	_trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: ERROR: CurrentOriginalMapping not found."));
                                                 }
                                             }
                                         }
@@ -1768,7 +1919,12 @@ namespace Cloud.FileMonitor
                                     sqlTran);
                                 if (updateSQLError != null)
                                 {
-                                    toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
+                                	// condition for all the exceptions being keys which were not found to delete (possible if we end up deleting the same event id twice, which isn't really an error)
+                                	if (!updateSQLError.GrabExceptions()
+                                        /* ! */.All(currentAggregate => currentAggregate is AggregateException && ((AggregateException)currentAggregate).InnerExceptions.All(currentInnerException => currentInnerException is KeyNotFoundException)))
+                                	{
+                                    	toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
+                                	}
                                 }
                             }
                             catch (Exception ex)
@@ -1789,9 +1945,10 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        private CLError CreationModificationDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges)
+        private CLError CreationModificationDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges)
         {
             CLError toReturn = null;
+            DisposeChanges = null;
             try
             {
                 foreach (FileChangeWithDependencies CurrentEarlierChange in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(EarlierChange)
@@ -1799,12 +1956,47 @@ namespace Cloud.FileMonitor
                 {
                     if (LaterChange.NewPath.Contains(CurrentEarlierChange.NewPath))
                     {
-                        CurrentEarlierChange.AddDependency(LaterChange);
-                        if (DependencyDebugging)
+                        if (FilePathComparer.Instance.Equals(LaterChange.NewPath, CurrentEarlierChange.NewPath))
                         {
-                            Helpers.CheckFileChangeDependenciesForDuplicates(CurrentEarlierChange);
+                            if (EarlierChange.Type == FileChangeType.Created
+                                && LaterChange.Type == FileChangeType.Modified)
+                            {
+                                LaterChange.Type = FileChangeType.Created;
+
+                                CLError updateLaterChangeAsCreatedError = SyncData.mergeToSql(new[] { new FileChangeMerge(LaterChange) });
+                                if (updateLaterChangeAsCreatedError != null)
+                                {
+                                    throw new AggregateException("Error updating LaterChange in CreationModificationDependencyCheck to Created Type", updateLaterChangeAsCreatedError.GrabExceptions());
+                                }
+                            }
+
+                            if (DisposeChanges == null)
+                            {
+                                DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { EarlierChange });
+                            }
+                            else
+                            {
+                                DisposeChanges.Add(EarlierChange);
+                            }
+
+                            PulledChanges.Add(EarlierChange);
+
+                            foreach (FileChangeWithDependencies laterParent in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(LaterChange)
+                                .OfType<FileChangeWithDependencies>()
+                                .Where(currentParentCheck => currentParentCheck.Dependencies.Contains(EarlierChange)))
+                            {
+                                laterParent.RemoveDependency(EarlierChange);
+                            }
                         }
-                        PulledChanges.Add(LaterChange);
+                        else
+                        {
+                            CurrentEarlierChange.AddDependency(LaterChange);
+                            if (DependencyDebugging)
+                            {
+                                Helpers.CheckFileChangeDependenciesForDuplicates(CurrentEarlierChange);
+                            }
+                            PulledChanges.Add(LaterChange);
+                        }
                         break;
                     }
                 }
@@ -1825,33 +2017,56 @@ namespace Cloud.FileMonitor
                 DisposeChanges = null;
                 HashSet<FileChangeWithDependencies> RenamePathSearches = null;
 
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: LaterChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
+                            LaterChange.Direction.ToString(),
+                            LaterChange.Type.ToString(),
+                            LaterChange.OldPath != null ? LaterChange.OldPath : "NoOldPath",
+                            LaterChange.NewPath != null ? LaterChange.NewPath : "NoNewPath"));
                 foreach (FileChangeWithDependencies CurrentEarlierChange in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(EarlierChange)
                     .Reverse()
                     .OfType<FileChangeWithDependencies>())
                 {
                     bool breakOutOfEnumeration = false;
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: CurrentEarlierChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.", 
+                                CurrentEarlierChange.Direction.ToString(),
+                                CurrentEarlierChange.Type.ToString(),
+                                CurrentEarlierChange.OldPath != null ? CurrentEarlierChange.OldPath : "NoOldPath",
+                                CurrentEarlierChange.NewPath != null ? CurrentEarlierChange.NewPath : "NoNewPath"));
                     switch (CurrentEarlierChange.Type)
                     {
                         case FileChangeType.Renamed:
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change is renamed."));
                             if (!DependenciesAddedToLaterChange
                                 && (RenamePathSearches == null || !RenamePathSearches.Contains(CurrentEarlierChange)))
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Loop thru onlyRenamePathsFromTop."));
                                 foreach (FileChangeWithDependencies CurrentInnerRename in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(CurrentEarlierChange, onlyRenamePathsFromTop: true)
                                     .OfType<FileChangeWithDependencies>())
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: CurrentInnerRename: Direction: {0}. OldPath: {1}. NewPath: {2}.",
+                                                CurrentInnerRename.Direction.ToString(),
+                                                CurrentInnerRename.OldPath != null ? CurrentInnerRename.OldPath : "NoOldPath",
+                                                CurrentInnerRename.NewPath != null ? CurrentInnerRename.NewPath : "NoNewPath"));
                                     if (RenamePathSearches == null)
                                     {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: RenamePathSearches is null."));
                                         RenamePathSearches = new HashSet<FileChangeWithDependencies>(new FileChangeWithDependencies[] { CurrentInnerRename });
                                     }
                                     else
                                     {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: RenamePathSearches not null. Add this inner rename to RenamePathSearches."));
                                         RenamePathSearches.Add(CurrentInnerRename);
                                     }
                                     if (CurrentInnerRename.NewPath.Contains(LaterChange.OldPath)
                                         || LaterChange.OldPath.Contains(CurrentInnerRename.NewPath))
                                     {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Inner new path contains laterChange old path, or laterChange old path contains inner new path."));
                                         foreach (FileChangeWithDependencies dependencyToMove in CurrentInnerRename.Dependencies)
                                         {
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Remove dependency dependencyToMove: Direction: {0}. OldPath: {1}. NewPath: {2}.",
+                                                        dependencyToMove.Direction.ToString(),
+                                                        dependencyToMove.OldPath != null ? dependencyToMove.OldPath : "NoOldPath",
+                                                        dependencyToMove.NewPath != null ? dependencyToMove.NewPath : "NoNewPath"));
                                             CurrentInnerRename.RemoveDependency(dependencyToMove);
                                             LaterChange.AddDependency(dependencyToMove);
                                         }
@@ -1860,6 +2075,7 @@ namespace Cloud.FileMonitor
                                         CurrentInnerRename.AddDependency(LaterChange);
                                         if (DependencyDebugging)
                                         {
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Call CheckFileChangeDependenciesForDuplicates on inner rename."));
                                             Helpers.CheckFileChangeDependenciesForDuplicates(CurrentInnerRename);
                                         }
                                         PulledChanges.Add(LaterChange);
@@ -1870,10 +2086,13 @@ namespace Cloud.FileMonitor
                             break;
                         case FileChangeType.Created:
                         case FileChangeType.Modified:
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change is Created or Modified."));
                             if (CurrentEarlierChange.NewPath.Contains(LaterChange.OldPath))
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change contains OldPath."));
                                 if (FilePathComparer.Instance.Equals(CurrentEarlierChange.NewPath, LaterChange.OldPath))
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: NewPath equals OldPath."));
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
                                     CLError updateSqlError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange)), sqlTran);
                                     if (updateSqlError != null)
@@ -1889,12 +2108,14 @@ namespace Cloud.FileMonitor
 
                                     if (CurrentEarlierChange.Type == FileChangeType.Created)
                                     {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change is Created."));
                                         if (DisposeChanges == null)
                                         {
                                             DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { LaterChange });
                                         }
                                         else
                                         {
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Add later change to changes to dispose."));
                                             DisposeChanges.Add(LaterChange);
                                         }
 
@@ -1904,9 +2125,24 @@ namespace Cloud.FileMonitor
                                             .OfType<FileChangeWithDependencies>()
                                             .Where(currentParentCheck => currentParentCheck.Dependencies.Contains(LaterChange)))
                                         {
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Remove dependency from laterParent: LaterChange: Direction: {0}. OldPath: {1}. NewPath: {2}.",
+                                                        LaterChange.Direction.ToString(),
+                                                        LaterChange.OldPath != null ? LaterChange.OldPath : "NoOldPath",
+                                                        LaterChange.NewPath != null ? LaterChange.NewPath : "NoNewPath"));
                                             laterParent.RemoveDependency(LaterChange);
                                         }
 
+                                        DependenciesAddedToLaterChange = true;
+                                    }
+                                    else if (!DependenciesAddedToLaterChange)
+                                    {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange (2)."));
+                                        LaterChange.AddDependency(CurrentEarlierChange);
+                                        if (DependencyDebugging)
+                                        {
+                                            Helpers.CheckFileChangeDependenciesForDuplicates(LaterChange);
+                                        }
+                                        PulledChanges.Add(CurrentEarlierChange);
                                         DependenciesAddedToLaterChange = true;
                                     }
                                     else if (!DependenciesAddedToLaterChange)
@@ -1929,12 +2165,15 @@ namespace Cloud.FileMonitor
                                     FilePath renamedOverlap = renamedOverlapChild.Parent;
 
                                     // loop till recursing parent of current path level is null
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: NewPath does not equal OldPath. Loop until recursing parent is null. renamedOverlapChild: {0}.", renamedOverlapChild.Name));
                                     while (renamedOverlap != null)
                                     {
                                         // when the rename's OldPath matches the current recursive path parent level,
                                         // replace the child's parent with the rename's NewPath and break out of the checking loop
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Process renamedOverlap: {0}.", renamedOverlap.Name));
                                         if (FilePathComparer.Instance.Equals(renamedOverlap, LaterChange.OldPath))
                                         {
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: renamedOverlap equals later change OldPath: {0}. Merge earlier change to SQL.", LaterChange.OldPath.Name));
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
                                             CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange)), sqlTran);
                                             if (replacePathPortionError != null)
@@ -1957,6 +2196,7 @@ namespace Cloud.FileMonitor
                                     
                                     if (!DependenciesAddedToLaterChange)
                                     {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange."));
                                         LaterChange.AddDependency(CurrentEarlierChange);
                                         if (DependencyDebugging)
                                         {
@@ -1969,8 +2209,10 @@ namespace Cloud.FileMonitor
                             }
                             break;
                         case FileChangeType.Deleted:// possible error condition, I am not sure this case should ever hit
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change is Deleted."));
                             if (LaterChange.OldPath.Contains(CurrentEarlierChange.NewPath))
                             {
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Later old path contains earlier new path."));
                                 breakOutOfEnumeration = true;
                             }
                             break;
@@ -1979,17 +2221,25 @@ namespace Cloud.FileMonitor
                     }
                     if (breakOutOfEnumeration)
                     {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Break out of enumeration."));
                         break;
                     }
                 }
 
-                ContinueProcessing = !PulledChanges.Contains(EarlierChange);
+                bool localContinueProcessing = !PulledChanges.Contains(EarlierChange);
+                ContinueProcessing = localContinueProcessing;
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Continue processing: {0}.", localContinueProcessing));
             }
             catch (Exception ex)
             {
                 DisposeChanges = Helpers.DefaultForType<List<FileChangeWithDependencies>>();
                 ContinueProcessing = Helpers.DefaultForType<bool>();
                 toReturn += ex;
+            }
+
+            if (toReturn != null)
+            {
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: ERROR: {0}.", toReturn.errorDescription));
             }
             return toReturn;
         }
@@ -2093,11 +2343,12 @@ namespace Cloud.FileMonitor
             try
             {
                 HashSet<FileChangeWithDependencies> PulledChanges;
-                Func<PossiblyStreamableFileChange, Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, Stream>>, FileChangeWithDependencies> convertChange = (inputChange, streamMappings) =>
+                Func<FileChangeSource, PossiblyStreamableFileChange, Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>>, Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>>, FileChangeWithDependencies> convertChange = (originalSource, inputChange, streamMappings, originalChangeMappings) =>
                     {
                         if (inputChange.FileChange is FileChangeWithDependencies)
                         {
-                            streamMappings[(FileChangeWithDependencies)inputChange.FileChange] = new KeyValuePair<GenericHolder<bool>, Stream>(new GenericHolder<bool>(false), inputChange.Stream);
+                            streamMappings[(FileChangeWithDependencies)inputChange.FileChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
+                            originalChangeMappings[(FileChangeWithDependencies)inputChange.FileChange] = new KeyValuePair<FileChange, FileChangeSource>(inputChange.FileChange, originalSource);
                             return (FileChangeWithDependencies)inputChange.FileChange;
                         }
 
@@ -2111,18 +2362,22 @@ namespace Cloud.FileMonitor
                         {
                             throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
                         }
-                        streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>, Stream>(new GenericHolder<bool>(false), inputChange.Stream);
+                        originalChangeMappings[outputChange] = new KeyValuePair<FileChange, FileChangeSource>(inputChange.FileChange, originalSource);
+                        streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
                         return outputChange;
                     };
-                Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, Stream>> originalFileStreams = new Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, Stream>>();
+                Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>> originalFileStreams = new Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>>();
+
+                Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>> OriginalFileChangeMappings = new Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>>();
+
                 KeyValuePair<FileChangeSource, FileChangeWithDependencies>[] assignmentsWithDependencies = toAssign
-                    .Select(currentToAssign => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.ProcessingChanges, convertChange(currentToAssign, originalFileStreams)))
-                    .Concat(currentFailures.Select(currentFailure => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailureQueue, convertChange(new PossiblyStreamableFileChange(currentFailure, null), originalFileStreams))))
-                    .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailedOutList, convertChange(new PossiblyStreamableFileChange(currentFailedOut, null), originalFileStreams))))
+                    .Select(currentToAssign => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.ProcessingChanges, convertChange(FileChangeSource.ProcessingChanges, currentToAssign, originalFileStreams, OriginalFileChangeMappings)))
+                    .Concat(currentFailures.Select(currentFailure => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailureQueue, convertChange(FileChangeSource.FailureQueue, new PossiblyStreamableFileChange(currentFailure, null), originalFileStreams, OriginalFileChangeMappings))))
+                    .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailedOutList, convertChange(FileChangeSource.FailedOutList, new PossiblyStreamableFileChange(currentFailedOut, null), originalFileStreams, OriginalFileChangeMappings))))
                     .OrderBy(currentSourcedChange => currentSourcedChange.Value.EventId)
                     .ToArray();
                 toReturn = AssignDependencies(assignmentsWithDependencies,
-                    null,
+                    OriginalFileChangeMappings,
                     out PulledChanges,
                     originalQueuedChangesIndexesByInMemoryIds: null);
 
@@ -2145,11 +2400,11 @@ namespace Cloud.FileMonitor
                         }
                         else
                         {
-                            KeyValuePair<GenericHolder<bool>, Stream> originalStream;
-                            if (originalFileStreams.TryGetValue(currentAssignment.Value, out originalStream))
+                            KeyValuePair<GenericHolder<bool>, StreamContext> originalStreamContext;
+                            if (originalFileStreams.TryGetValue(currentAssignment.Value, out originalStreamContext))
                             {
-                                originalStream.Key.Value = true;
-                                outputChangeList.Add(new PossiblyStreamableFileChange(currentAssignment.Value, originalStream.Value));
+                                originalStreamContext.Key.Value = true;
+                                outputChangeList.Add(new PossiblyStreamableFileChange(currentAssignment.Value, originalStreamContext.Value));
                             }
                             else
                             {
@@ -2159,7 +2414,7 @@ namespace Cloud.FileMonitor
                     }
                 }
 
-                foreach (KeyValuePair<GenericHolder<bool>, Stream> streamValue in originalFileStreams.Values)
+                foreach (KeyValuePair<GenericHolder<bool>, StreamContext> streamValue in originalFileStreams.Values)
                 {
                     if (streamValue.Key.Value == false
                         && streamValue.Value != null)
@@ -2373,6 +2628,12 @@ namespace Cloud.FileMonitor
                                         if (nonFailedOutChangeFound)
                                         {
                                             FileStream OutputStream = null;
+                                            byte[][] intermediateHashes = null;
+                                            byte[] newMD5Bytes = null;
+
+                                            // Note: file size can change during hashing since the file is open with share write 
+                                            Nullable<long> finalFileSize = null;
+
                                             bool CurrentFailed = false;
                                             if (CurrentDependencyTree.DependencyFileChange.Metadata != null
                                                 && !CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.IsFolder
@@ -2382,9 +2643,26 @@ namespace Cloud.FileMonitor
                                             {
                                                 try
                                                 {
+                                                    if (MaxUploadFileSize != -1) // there is a max upload file size threshold
+                                                    {
+                                                        // Note: file size can change during hashing since the file is open with share write
+                                                        long initialFileSize = new FileInfo(CurrentDependencyTree.DependencyFileChange.NewPath.ToString()).Length;
+
+                                                        CurrentDependencyTree.DependencyFileChange.FileIsTooBig = (MaxUploadFileSize < initialFileSize);
+
+                                                        if (CurrentDependencyTree.DependencyFileChange.FileIsTooBig)
+                                                        {
+                                                            String maxUploadFileSizeText = MaxUploadFileSize > (1024 * 1024) ? String.Format("{0}M", MaxUploadFileSize / (1024 * 1024)) :
+                                                                                            MaxUploadFileSize > 1024 ? String.Format("{0}K", MaxUploadFileSize / 1024) :
+                                                                                            String.Format("{0} bytes", MaxUploadFileSize);
+                                                            throw new AggregateException(String.Format("Files bigger than {0} are not yet supported; File: {1}, Size: {2}",
+                                                                                                        MaxUploadFileSize, CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), initialFileSize));
+                                                        }
+                                                    }
+
                                                     try
                                                     {
-                                                        OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
+                                                        OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write | FileShare.Delete);
                                                     }
                                                     catch (FileNotFoundException)
                                                     {
@@ -2398,7 +2676,7 @@ namespace Cloud.FileMonitor
                                                         throw new AggregateException("Error retrieving previousMD5Bytes", retrieveMD5Error.GrabExceptions());
                                                     }
 
-                                                    MD5 md5Hasher = MD5.Create();
+                                                    Model.Md5Hasher hasher = new Model.Md5Hasher(FileConstants.MaxUploadIntermediateHashBytesSize);
 
                                                     try
                                                     {
@@ -2409,11 +2687,14 @@ namespace Cloud.FileMonitor
                                                         while ((fileReadBytes = OutputStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
                                                         {
                                                             countFileSize += fileReadBytes;
-                                                            md5Hasher.TransformBlock(fileBuffer, 0, fileReadBytes, fileBuffer, 0);
+
+                                                            hasher.Update(fileBuffer, fileReadBytes);
                                                         }
 
-                                                        md5Hasher.TransformFinalBlock(FileConstants.EmptyBuffer, 0, 0);
-                                                        byte[] newMD5Bytes = md5Hasher.Hash;
+                                                        hasher.FinalizeHashes();
+                                                        newMD5Bytes = hasher.Hash;
+                                                        intermediateHashes = hasher.IntermediateHashes;
+                                                        finalFileSize = countFileSize; // file size as counted through a successfull hashing
 
                                                         string pathString = CurrentDependencyTree.DependencyFileChange.NewPath.ToString();
                                                         FileInfo uploadInfo = new FileInfo(pathString);
@@ -2424,8 +2705,7 @@ namespace Cloud.FileMonitor
                                                             || newWriteTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.LastTime) != 0 // or last write time changed
                                                             || CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size == null // or previous size was not set
                                                             || ((long)CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size) == countFileSize // or size changed
-                                                            || !((previousMD5Bytes == null && newMD5Bytes == null)
-                                                                || (previousMD5Bytes != null && newMD5Bytes != null && previousMD5Bytes.Length == newMD5Bytes.Length && NativeMethods.memcmp(previousMD5Bytes, newMD5Bytes, new UIntPtr((uint)previousMD5Bytes.Length)) == 0))) // or md5 changed
+                                                            || !Helpers.IsEqualHashes(previousMD5Bytes, newMD5Bytes))
                                                         {
                                                             CLError setMD5Error = CurrentDependencyTree.DependencyFileChange.SetMD5(newMD5Bytes);
                                                             if (setMD5Error != null)
@@ -2438,7 +2718,7 @@ namespace Cloud.FileMonitor
                                                                 newCreationTime,
                                                                 countFileSize);
 
-                                                            CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentDependencyTree.DependencyFileChange, null)));
+                                                            CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentDependencyTree.DependencyFileChange)));
                                                             if (writeNewMetadataError != null)
                                                             {
                                                                 throw new AggregateException("Error writing updated file upload metadata to SQL", writeNewMetadataError.GrabExceptions());
@@ -2458,7 +2738,7 @@ namespace Cloud.FileMonitor
                                                         {
                                                         }
 
-                                                        md5Hasher.Dispose();
+                                                        hasher.Dispose();
                                                     }
                                                 }
                                                 catch (Exception ex)
@@ -2474,7 +2754,7 @@ namespace Cloud.FileMonitor
                                             }
                                             else
                                             {
-                                                OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, OutputStream));
+                                                OutputChangesList.Add(new PossiblyStreamableFileChange(CurrentDependencyTree.DependencyFileChange, UploadStreamContext.Create(OutputStream, intermediateHashes, newMD5Bytes, finalFileSize)));
                                             }
                                         }
                                         else/* if (failedOutChanges != null)*/ // not necessary to check for null failed out changes list since if it was null this else condition could never be reached
@@ -2531,9 +2811,9 @@ namespace Cloud.FileMonitor
                 toReturn += ex;
             }
 
-            if ((_syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
+                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.GrabChangesQueuedChangesAddedToSQL, queuedChangesNeedMergeToSql.Select(currentQueuedChange => ((Func<FileChange, FileChange>)(removeDependencies =>
                     {
                         FileChangeWithDependencies selectedWithoutDependencies;
                         // don't need to set optional parameter (fileDownloadMoveLocker: removeDependencies.fileDownloadMoveLocker) because the returned changes are only used for logging
@@ -2544,8 +2824,8 @@ namespace Cloud.FileMonitor
                         }
                         return selectedWithoutDependencies;
                     }))(currentQueuedChange.Key.MergeTo)));
-                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
-                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChanges, (outputChanges ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentOutputChange => currentOutputChange.FileChange));
+                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.GrabChangesOutputChangesInError, (outputChangesInError ?? Enumerable.Empty<PossiblyPreexistingFileChangeInError>()).Select(currentOutputChange => currentOutputChange.FileChange));
             }
 
             return toReturn;
@@ -3211,6 +3491,7 @@ namespace Cloud.FileMonitor
                                             oldPath = newPath;
                                             newPath = firstFoundMatchingTime.Value.FullName;
                                             changeType = WatcherChangeTypes.Renamed;
+                                            exists = true; // exists was previously calculated as the 'deletion' of 'new path' which is now the old path, so exists should now be true since we found a folder at the 'renamed' 'new path'
                                         }
                                     }
                                     break;
@@ -3258,12 +3539,14 @@ namespace Cloud.FileMonitor
                                             | FileAttributes.Offline // ignore offline files (data is not available on them)
                                             | FileAttributes.System // ignore system files
                                             | FileAttributes.Temporary)) // ignore temporary files
-                                    && (isFolder ? true : !FileIsShortcut(file)))) // allow change if it is a folder or if it is a file that is not a shortcut
+                                    //RKSCHANGE:&& (isFolder ? true : !FileIsShortcut(file)))) // allow change if it is a folder or if it is a file that is not a shortcut
+                                    ))
                             {
                                 DateTime lastTime;
                                 DateTime creationTime;
                                 if (exists)
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: File or folder exists: {0}.", newPath));
                                     // set last time and creation time from appropriate info based on whether change is on a folder or file
                                     if (isFolder)
                                     {
@@ -3273,12 +3556,14 @@ namespace Cloud.FileMonitor
                                     // change was not a folder, grab times based on file
                                     else
                                     {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: File exists."));
                                         lastTime = file.LastWriteTimeUtc.DropSubSeconds();
                                         creationTime = file.CreationTimeUtc.DropSubSeconds();
                                     }
                                 }
                                 else
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: File or folder does not exist."));
                                     creationTime = lastTime = new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
                                 }
 
@@ -3296,12 +3581,14 @@ namespace Cloud.FileMonitor
                                 if ((changeType & WatcherChangeTypes.Changed) == WatcherChangeTypes.Changed
                                     || (changeType & WatcherChangeTypes.Created) == WatcherChangeTypes.Created)
                                 {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: Changed or Created event."));
                                     // if file/folder actually exists
                                     if (exists)
                                     {
                                         // if index exists at specified path
                                         if (AllPaths.ContainsKey(pathObject))
                                         {
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: AllPaths contains this item: {0}.", pathObject.Name));
                                             if (debugMemory)
                                             {
                                                 debugEntry.NewIndexed = true;
@@ -3313,6 +3600,7 @@ namespace Cloud.FileMonitor
                                             if (!isFolder
                                                 || !IgnoreFolderModifies)
                                             {
+                                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: Not folder, and not ignoring folder modifies. Call ReplacementMetadataIfDifferent."));
                                                 // retrieve stored index
                                                 FileMetadata previousMetadata = AllPaths[pathObject];
                                                 // compare stored index with values from file info
@@ -3324,6 +3612,7 @@ namespace Cloud.FileMonitor
                                                 // if new metadata came back after comparison, queue file change for modify
                                                 if (newMetadata != null)
                                                 {
+                                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: Metadata different."));
                                                     if (debugMemory)
                                                     {
                                                         debugEntry.NewChangeType = new WatcherChangeChanged();
@@ -4001,9 +4290,9 @@ namespace Cloud.FileMonitor
         /// <param name="toChange">New file change</param>
         private void QueueFileChange(FileChange toChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null)
         {
-            if ((_syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
+                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
             }
 
             // lock on queue to prevent conflicting updates/reads
@@ -4641,7 +4930,7 @@ namespace Cloud.FileMonitor
                     if (mergeError != null)
                     {
                         // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                        mergeError.LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
+                        mergeError.LogErrors(_syncbox.CopiedSettings.TraceLocation, true);
 
                         // errors may be more common now that our database is hierarchichal and simple event ordering problems could throw an error adding to database (file before parent folder),
                         // TODO: better error recovery instead of halting whole SDK
@@ -4655,9 +4944,9 @@ namespace Cloud.FileMonitor
                             new HaltAllOfCloudSDKErrorInfo());
                     }
 
-                    if ((_syncBox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                    if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                     {
-                        ComTrace.LogFileChangeFlow(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.DeviceId, _syncBox.SyncBoxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
+                        ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
                     }
 
                     // clear out batch for merge for next set of remaining operations
@@ -4677,7 +4966,7 @@ namespace Cloud.FileMonitor
                                     nextMerge.ToString() + " " + (nextMerge.NewPath == null ? "nullPath" : nextMerge.NewPath.ToString());
 
                                 // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                                ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncBox.CopiedSettings.TraceLocation, true);
+                                ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncbox.CopiedSettings.TraceLocation, true);
 
                                 MessageEvents.FireNewEventMessage(
                                     noEventIdErrorMessage,
@@ -5049,6 +5338,14 @@ namespace Cloud.FileMonitor
 
         private void ProcessQueuesAfterTimer(bool emptyProcessingQueue)
         {
+            lock (this)
+            {
+                if (this.Disposed)
+                {
+                    return;
+                }
+            }
+
             lock (SyncRunLocker)
             {
                 if (SyncRunLocker.Value)

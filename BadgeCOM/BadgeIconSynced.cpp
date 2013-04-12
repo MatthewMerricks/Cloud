@@ -24,13 +24,15 @@ CBadgeIconSynced::CBadgeIconSynced()
 {
     try
     {
+#if WAIT_FOR_DEBUG
         //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        //static bool fCompletedOnce = false;
-        //while (!fCompletedOnce)
-        //{
-        //      Sleep(100);
-        //}
-        //fCompletedOnce = true;
+        static BOOL fCompletedOnce = false;
+        while (!fCompletedOnce)
+        {
+			Sleep(100);
+        }
+        fCompletedOnce = true;
+#endif // WAIT_FOR_DEBUG
         //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 	    // Allocate the base shell extension.
@@ -110,7 +112,7 @@ STDMETHODIMP CBadgeIconSynced::GetPriority(int* pPriority)
         CLTRACE(9, "CBadgeIconSynced: GetPriority: Entry");
         if (_pBaseShellExtension != NULL)
         {
-            _pBaseShellExtension->GetPriority(pPriority);
+            _pBaseShellExtension->GetPriority(pPriority);	
         }
     }
     catch (const std::exception &ex)

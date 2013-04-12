@@ -14,26 +14,7 @@ namespace Cloud.Static
 {
     internal enum AuthenticationErrorType : ulong
     {
-        /*
-         * number to the left of the decimal point is used as a 32-bit unsigned integer bit-shifted greater by 32 bits
-         * number to the right of the decimal point is taken first as a string, its characters are reversed, and then parsed as a 32-bit unsigned integer
-         *    (which takes the lower-order 32 bits)
-         * these higher and lower-order bits are ORed together
-         * 
-         * decimal 3000.2 translates to
-         * (((ulong)3000) << 32) | 2
-         * 
-         * decimal 2.11 translates to
-         * (((ulong)2) << 32) | 11
-         * 
-         * decimal 44.05 translates to
-         * (((ulong)44) << 32) | 50        <-- notice 05 => 50
-         * 
-         * decimal ABC.DEF translates to   <-- notice DEF => FED
-         * (((ulong)ABC) << 32) | FED
-         */
-
-        SessionExpired = (((ulong)3000) << 32) | 2 // 3000.2
+        SessionExpired = 30002
     }
 
     /// <summary>
@@ -124,6 +105,9 @@ namespace Cloud.Static
         AlreadyStopped
     }
 
+    /// <summary>
+    /// The type of the event message.
+    /// </summary>
     public enum EventMessageType : byte
     {
         Informational,
@@ -136,6 +120,9 @@ namespace Cloud.Static
         DownloadingCountChanged
     }
 
+    /// <summary>
+    /// The type of the error message.
+    /// </summary>
     public enum ErrorMessageType : byte
     {
         General = 1,
@@ -216,7 +203,7 @@ namespace Cloud.Static
         /// </summary>
         ConnectionFailed,
         /// <summary>
-        /// The current SyncBox is actively syncing so cannot make modifications
+        /// The current Syncbox is actively syncing so cannot make modifications
         /// </summary>
         ReservedForActiveSync
     }
@@ -250,6 +237,8 @@ namespace Cloud.Static
         public const long InvalidUtcTimeTicks = 504911232000000000; //number determined by practice
         public static readonly byte[] EmptyBuffer = new byte[0]; // empty buffer is used to complete an MD5 hash
         public const int BufferSize = 4096; //posts online seem to suggest between 1kb and 12kb is optimal for a FileStream buffer, 4kb seems commonly used
+        public const long MaxUploadFileSize = 500 * 1024 * 1024; // -1 if no restrictions
+        public const int MaxUploadIntermediateHashBytesSize = 10 * 1024 * 1024; // 10MB; size of intermediate file blocks to hash for verifying the file contents in an optimistic share lock startegy on uploads
     }
 
     /// <summary>
@@ -331,5 +320,15 @@ namespace Cloud.Static
         /// Use something like the selective badge icon
         /// </summary>
         Inaction
+    }
+
+    /// <summary>
+    /// Used to determine what an individual thread will do when handling token expired errors in Helpers.processHttp.
+    /// </summary>
+    internal enum EnumRequestNewCredentialStates : byte
+    {
+        RequestNewCredential_NotSet = 0,
+        RequestNewCredential_BubbleResult,
+        RequestNewCredential_Retry,
     }
 }

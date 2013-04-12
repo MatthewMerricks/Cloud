@@ -23,7 +23,7 @@ namespace Cloud.PushNotification
         #region Private fields
 
         private static CLTrace _trace = CLTrace.Instance;
-        private CLSyncBox _syncBox = null;
+        private CLSyncbox _syncbox = null;
         private ICLSyncSettingsAdvanced _copiedSettings = null;
         private CreateEngineTimer _delegateCreateEngineTimer = null;
         private StartEngineTimeout _delegateStartEngineTimeout = null;
@@ -95,16 +95,16 @@ namespace Cloud.PushNotification
         #region Constructors
 
         public CLNotificationSseEngine(
-                        CLSyncBox syncBox, 
+                        CLSyncbox syncbox, 
                         CreateEngineTimer delegateCreateEngineTimer,
                         StartEngineTimeout delegateStartEngineTimeout, 
                         CancelEngineTimeout delegateCancelEngineTimeout,
                         DisposeEngineTimer delegateDisposeEngineTimer,
                         SendNotificationEvent delegateSendNotificationEvent)
         {
-            if (syncBox == null)
+            if (syncbox == null)
             {
-                throw new ArgumentNullException("syncBox must not be null");
+                throw new ArgumentNullException("syncbox must not be null");
             }
             if (delegateCreateEngineTimer == null)
             {
@@ -127,8 +127,8 @@ namespace Cloud.PushNotification
                 throw new ArgumentNullException("delegateSendNotificationEvent must not be null");
             }
 
-            _syncBox = syncBox;
-            _copiedSettings = syncBox.CopiedSettings;
+            _syncbox = syncbox;
+            _copiedSettings = syncbox.CopiedSettings;
             _delegateCreateEngineTimer = delegateCreateEngineTimer;
             _delegateStartEngineTimeout = delegateStartEngineTimeout;
             _delegateCancelEngineTimeout = delegateCancelEngineTimeout;
@@ -234,7 +234,7 @@ namespace Cloud.PushNotification
                 query = Helpers.QueryStringBuilder(
                     new[]
                     {
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBox.SyncBoxId.ToString()), // no need to escape string characters since the source is an integer
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()), // no need to escape string characters since the source is an integer
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
                     });
 
@@ -259,18 +259,18 @@ namespace Cloud.PushNotification
                 }
 
                 // Add the client type and version.  For the Windows client, it will be Wnn.  e.g., W01 for the 0.1 client.
-                sseRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = OSVersionInfo.GetClientVersionHttpHeader(_copiedSettings.ClientVersion); // set client version
+                sseRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = OSVersionInfo.GetClientVersionHttpHeader(_copiedSettings.ClientDescription); // set client version
                 sseRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
                                     CLDefinitions.HeaderAppendKey +
-                                    _syncBox.Credential.Key + ", " +
+                                    _syncbox.Credential.Key + ", " +
                                     CLDefinitions.HeaderAppendSignature +
                                             Helpers.GenerateAuthorizationHeaderToken(
-                                                _syncBox.Credential.Secret,
+                                                _syncbox.Credential.Secret,
                                                 httpMethod: sseRequest.Method,
                                                 pathAndQueryStringAndFragment: CLDefinitions.MethodPathPushSubscribe + query) +
                     // Add token if specified
-                                                (!String.IsNullOrEmpty(_syncBox.Credential.Token) ?
-                                                        CLDefinitions.HeaderAppendToken + _syncBox.Credential.Token :
+                                                (!String.IsNullOrEmpty(_syncbox.Credential.Token) ?
+                                                        CLDefinitions.HeaderAppendToken + _syncbox.Credential.Token :
                                                         String.Empty);
                 sseRequest.SendChunked = false; // do not send chunked
                 sseRequest.Timeout = CLDefinitions.HttpTimeoutDefaultMilliseconds; // set timeout.  The timeout does not apply to the amount of time the readStream stays open to read server events.
@@ -282,7 +282,7 @@ namespace Cloud.PushNotification
                     // trace communication for the current request
                     ComTrace.LogCommunication(_copiedSettings.TraceLocation, // location of trace file
                         _copiedSettings.DeviceId, // device id
-                        _syncBox.SyncBoxId, // syncbox id
+                        _syncbox.SyncboxId, // syncbox id
                         CommunicationEntryDirection.Request, // direction is request
                         CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe, // location for the server method
                         true, // trace is enabled
@@ -307,7 +307,7 @@ namespace Cloud.PushNotification
                 {
                     CLError error = ex;
                     _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}.", ex.Message);
-                    error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                    error.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
 
                     // This exception probably occurred because we had difficulty reaching the server.  In that case, we should
                     // probably retry soon because it may just be a temporary inability to communication.  So, we have to reverse
@@ -341,7 +341,10 @@ namespace Cloud.PushNotification
                 try
                 {
                     boxedResponse = sseRequest.GetResponse();   // sends the request and blocks for the response
-                    _resourcesToCleanUp.Add(boxedResponse);
+                    lock (_locker)
+                    {
+                        _resourcesToCleanUp.Add(boxedResponse);
+                    }
                     response = (HttpWebResponse)boxedResponse;
                 }
                 catch (ThreadAbortException)
@@ -355,13 +358,16 @@ namespace Cloud.PushNotification
                         if (ex.Response != null)
                         {
                             boxedResponse = ex.Response;
-                            _resourcesToCleanUp.Add(boxedResponse);
+                            lock (_locker)
+                            {
+                                _resourcesToCleanUp.Add(boxedResponse);
+                            }
                             response = (HttpWebResponse)boxedResponse;
                             storeWebEx = ex;
 
                             CLError error = ex;
                             _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception (4): Msg: {0}.", ex.Message);
-                            error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                            error.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
                         }
                         else
                         {
@@ -384,7 +390,10 @@ namespace Cloud.PushNotification
                         {
                             using (receiveStream = response.GetResponseStream())
                             {
-                                _resourcesToCleanUp.Add(receiveStream);
+                                lock (_locker)
+                                {
+                                    _resourcesToCleanUp.Add(receiveStream);
+                                }
                                 _delegateCancelEngineTimeout();
 
                                 StreamReader readStream = null;
@@ -426,7 +435,10 @@ namespace Cloud.PushNotification
                                         _delegateCancelEngineTimeout();
                                         if (readStream != null)
                                         {
-                                            _resourcesToCleanUp.Remove(readStream);
+                                            lock (_locker)
+                                            {
+                                                _resourcesToCleanUp.Remove(readStream);
+                                            }
                                         }
                                     }
                                 }
@@ -443,7 +455,10 @@ namespace Cloud.PushNotification
                                 _delegateCancelEngineTimeout();
                                 if (receiveStream != null)
                                 {
-                                    _resourcesToCleanUp.Remove(receiveStream);
+                                    lock (_locker)
+                                    {
+                                        _resourcesToCleanUp.Remove(receiveStream);
+                                    }
                                 }
                             }
                         }
@@ -468,22 +483,22 @@ namespace Cloud.PushNotification
                     case HttpStatusCode.NoContent: // do not continue reconnecting, do not check for data
 
                         _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: Received 204 no content.");
-                        if ((_syncBox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
+                        if ((_syncbox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                         {
                             using (Stream responseStream = response.GetResponseStream())
                             {
 
                                 ComTrace.LogCommunication(
-                                    traceLocation: _syncBox.CopiedSettings.TraceLocation,
-                                    UserDeviceId: _syncBox.CopiedSettings.DeviceId,
-                                    SyncBoxId: _syncBox.SyncBoxId,
+                                    traceLocation: _syncbox.CopiedSettings.TraceLocation,
+                                    UserDeviceId: _syncbox.CopiedSettings.DeviceId,
+                                    SyncboxId: _syncbox.SyncboxId,
                                     Direction: CommunicationEntryDirection.Response,
                                     DomainAndMethodUri: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
                                     traceEnabled: true,
                                     headers: (WebHeaderCollection)null,
                                     body: responseStream,
                                     statusCode: (int)HttpStatusCode.NoContent,
-                                    excludeAuthorization: _syncBox.CopiedSettings.TraceExcludeAuthorization);
+                                    excludeAuthorization: _syncbox.CopiedSettings.TraceExcludeAuthorization);
                             }
                             _trace.writeToLog(9, "CLNotificationSseEngine: StartThreadProc: Received no content from server.");
                         }
@@ -497,21 +512,21 @@ namespace Cloud.PushNotification
                     default: // invalid status code
 
                         _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: Received invalid status code.");
-                        if ((_syncBox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
+                        if ((_syncbox.CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                         {
                             using (Stream responseStream = response.GetResponseStream())
                             {
                                 ComTrace.LogCommunication(
-                                    traceLocation: _syncBox.CopiedSettings.TraceLocation,
-                                    UserDeviceId: _syncBox.CopiedSettings.DeviceId,
-                                    SyncBoxId: _syncBox.SyncBoxId,
+                                    traceLocation: _syncbox.CopiedSettings.TraceLocation,
+                                    UserDeviceId: _syncbox.CopiedSettings.DeviceId,
+                                    SyncboxId: _syncbox.SyncboxId,
                                     Direction: CommunicationEntryDirection.Response,
                                     DomainAndMethodUri: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
                                     traceEnabled: true,
                                     headers: (WebHeaderCollection)null,
                                     body: responseStream,
                                     statusCode: (int)response.StatusCode,
-                                    excludeAuthorization: _syncBox.CopiedSettings.TraceExcludeAuthorization);
+                                    excludeAuthorization: _syncbox.CopiedSettings.TraceExcludeAuthorization);
                             }
                         }
 
@@ -528,7 +543,7 @@ namespace Cloud.PushNotification
                 {
                     CLError error = ex;
                     _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
-                    error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                    error.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
 
                     // This exception probably occurred because we had difficulty reaching the server.  In that case, we should
                     // probably retry soon because it may just be a temporary inability to communication.  So, we have to reverse
@@ -550,24 +565,28 @@ namespace Cloud.PushNotification
             {
                 if (!wasThreadAborted)
                 {
-                    _delegateCancelEngineTimeout();
-                    if (boxedResponse != null)
-                    {
-                        try
+                        _delegateCancelEngineTimeout();
+                        if (boxedResponse != null)
                         {
-                            ((IDisposable)boxedResponse).Dispose();
+                            try
+                            {
+                                ((IDisposable)boxedResponse).Dispose();
+                            }
+                            catch (ThreadAbortException)
+                            {
+                                wasThreadAborted = true;
+                            }
+                            catch
+                            {
+                            }
+
+                            lock (_locker)
+                            {
+                                _resourcesToCleanUp.Remove(boxedResponse);
+                            }
+                            boxedResponse = null;
+                            response = null;
                         }
-                        catch (ThreadAbortException)
-                        {
-                            wasThreadAborted = true;
-                        }
-                        catch
-                        {
-                        }
-                        _resourcesToCleanUp.Remove(boxedResponse);
-                        boxedResponse = null;
-                        response = null;
-                    }
                 }
             }
 
@@ -757,11 +776,11 @@ namespace Cloud.PushNotification
                     // Send an unsubscribe to the server.  Allow just 200 ms for this to complete.
                     CLHttpRestStatus status;
                     JsonContracts.NotificationUnsubscribeResponse response;
-                    CLError errorFromUnsubscribe = SendUnsubscribeToServer(200, out status, out response, castState._syncBox);
+                    CLError errorFromUnsubscribe = SendUnsubscribeToServer(200, out status, out response, castState._syncbox);
                     if (errorFromUnsubscribe != null)
                     {
                         _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}.", errorFromUnsubscribe.errorDescription);
-                        errorFromUnsubscribe.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                        errorFromUnsubscribe.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
                     }
 
                     // Fail the service manager thread.
@@ -776,19 +795,22 @@ namespace Cloud.PushNotification
                     }
 
                     // Clean up any resources left over.
-                    foreach (IDisposable toDispose in _resourcesToCleanUp)
+                    lock (_locker)
                     {
-                        try
+                        foreach (IDisposable toDispose in _resourcesToCleanUp)
                         {
-                            _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Clean up resource: {0}.", toDispose.ToString());
-                            toDispose.Dispose();
+                            try
+                            {
+                                _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Clean up resource: {0}.", toDispose.ToString());
+                                toDispose.Dispose();
+                            }
+                            catch
+                            {
+                            }
                         }
-                        catch
-                        {
-                        }
-                    }
 
-                    _resourcesToCleanUp.Clear();
+                        _resourcesToCleanUp.Clear();
+                    }
                 }
                 else
                 {
@@ -799,21 +821,21 @@ namespace Cloud.PushNotification
             {
                 CLError error = ex;
                 _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Exception: Msg: {0}.", ex.Message);
-                error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
+                error.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
             }
             _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Exit.");
         }
 
         /// <summary>
-        /// Unsubscribe this SyncBox/Device ID from Sync notifications.Add a Sync box on the server for the current application
+        /// Unsubscribe this Syncbox/Device ID from Sync notifications.Add a Sync box on the server for the current application
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
-        /// <param name="syncBox">the SyncBox to use.</param>
+        /// <param name="syncbox">the Syncbox to use.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         private CLError SendUnsubscribeToServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.NotificationUnsubscribeResponse response,
-                    CLSyncBox syncBox)
+                    CLSyncbox syncbox)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -827,23 +849,23 @@ namespace Cloud.PushNotification
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                if (syncBox == null)
+                if (syncbox == null)
                 {
-                    throw new ArgumentException("syncBox must not be null");
+                    throw new ArgumentException("syncbox must not be null");
                 }
 
-                if (syncBox.CopiedSettings == null)
+                if (syncbox.CopiedSettings == null)
                 {
-                    throw new NullReferenceException("syncBox.CopiedSettings must not be null");
+                    throw new NullReferenceException("syncbox.CopiedSettings must not be null");
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
-                ICLSyncSettingsAdvanced copiedSettings = syncBox.CopiedSettings.CopySettings();
+                ICLSyncSettingsAdvanced copiedSettings = syncbox.CopiedSettings.CopySettings();
 
                 JsonContracts.NotificationUnsubscribeRequest request = new JsonContracts.NotificationUnsubscribeRequest()
                 {
                     DeviceId = copiedSettings.DeviceId,
-                    SyncBoxId = syncBox.SyncBoxId
+                    SyncboxId = syncbox.SyncboxId
                 };
 
 
@@ -851,7 +873,7 @@ namespace Cloud.PushNotification
                 string query = Helpers.QueryStringBuilder(
                     new[]
                     {
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncBoxId, _syncBox.SyncBoxId.ToString()), // no need to escape string characters since the source is an integer
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()), // no need to escape string characters since the source is an integer
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
                     });
 
@@ -867,8 +889,8 @@ namespace Cloud.PushNotification
                     Helpers.HttpStatusesOkAccepted,
                     ref status,
                     copiedSettings,
-                    syncBox.Credential,
-                    syncBox.SyncBoxId);
+                    syncbox.Credential,
+                    syncbox.SyncboxId);
             }
             catch (Exception ex)
             {

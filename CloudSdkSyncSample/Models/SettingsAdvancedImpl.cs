@@ -79,7 +79,7 @@ namespace SampleLiveSync.Models
             }
         }
         /// <summary>
-        /// The unique device ID within SyncBoxId.
+        /// The unique device ID within SyncboxId.
         /// </summary>
         public string DeviceId
         {
@@ -136,16 +136,16 @@ namespace SampleLiveSync.Models
         }
 
         /// <summary>
-        /// The unique SyncBox ID within an application.
+        /// The unique Syncbox ID within an application.
         /// </summary>
-        public Nullable<long> SyncBoxId
+        public Nullable<long> SyncboxId
         {
             get
             {
-                long syncBoxIdParsed;
-                if (long.TryParse(Properties.Settings.Default.SyncBoxId, out syncBoxIdParsed))
+                long syncboxIdParsed;
+                if (long.TryParse(Properties.Settings.Default.SyncboxId, out syncboxIdParsed))
                 {
-                    return syncBoxIdParsed;
+                    return syncboxIdParsed;
                 }
                 else
                 {
@@ -165,20 +165,14 @@ namespace SampleLiveSync.Models
                 return null;
             }
         }
-        public string ClientVersion
+        /// <summary>
+        /// Provide an optional description of the client application.  This description may be up to 32 characters, and must not contain commas.
+        /// </summary>
+        public string ClientDescription
         {
             get
             {
-                //TODO: ClientVersion should be deleted from settings.
-                return String.Empty;
-            }
-        }
-        public string FriendlyName
-        {
-            get
-            {
-                //TODO: FriendlyName should be deleted from settings.
-                return Environment.MachineName;
+                return "Cloud Sample App";
             }
         }
         /// <summary>
@@ -188,12 +182,12 @@ namespace SampleLiveSync.Models
         {
             get
             {
-                return Properties.Settings.Default.SyncBoxFullPath;
+                return Properties.Settings.Default.SyncboxFullPath;
             }
         }
 
         /// <summary>
-        /// This is the full path of the folder to be used to store the sync database file for this SyncBoxId and DeviceId.
+        /// This is the full path of the folder to be used to store the sync database file for this SyncboxId and DeviceId.
         /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
         /// </summary>
         public string DatabaseFolder

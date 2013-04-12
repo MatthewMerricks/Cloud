@@ -45,7 +45,7 @@
       <xs:element name="Time" minOccurs="1" maxOccurs="1" type="xs:dateTime" />
       <xs:element name="ProcessId" minOccurs="1" maxOccurs="1" type="xs:int" />
       <xs:element name="ThreadId" minOccurs="1" maxOccurs="1" type="xs:int" />
-      <xs:element name="SyncBoxId" minOccurs="0" maxOccurs="1" type="xs:long" />
+      <xs:element name="SyncboxId" minOccurs="0" maxOccurs="1" type="xs:long" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="CommunicationEntry">

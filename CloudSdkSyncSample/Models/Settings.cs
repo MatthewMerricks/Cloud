@@ -5,11 +5,11 @@ namespace SampleLiveSync.Models
 {
     public class Settings
     {
-        public string SyncBoxFullPath { get; set; }
+        public string SyncboxFullPath { get; set; }
         public string Key { get; set; }
         public string Secret { get; set; }
         public string Token { get; set; }
-        public string SyncBoxId { get; set; }
+        public string SyncboxId { get; set; }
         public string UniqueDeviceId { get; set; }
         public string TempDownloadFolderFullPath { get; set; }
         public string DatabaseFolderFullPath { get; set; }
@@ -30,11 +30,11 @@ namespace SampleLiveSync.Models
         /// <param name="settingsCopy"></param>
         public Settings(Settings settingsCopy)
         {
-            SyncBoxFullPath = settingsCopy.SyncBoxFullPath;
+            SyncboxFullPath = settingsCopy.SyncboxFullPath;
             Key = settingsCopy.Key;
             Secret = settingsCopy.Secret;
             Token = settingsCopy.Token;
-            SyncBoxId = settingsCopy.SyncBoxId;
+            SyncboxId = settingsCopy.SyncboxId;
             UniqueDeviceId = settingsCopy.UniqueDeviceId;
             TempDownloadFolderFullPath = settingsCopy.TempDownloadFolderFullPath;
             DatabaseFolderFullPath = settingsCopy.DatabaseFolderFullPath;
@@ -62,11 +62,11 @@ namespace SampleLiveSync.Models
             }
 
             // Use this pattern to compare reference members
-            if (!Object.Equals(SyncBoxFullPath, otherSettings.SyncBoxFullPath)) return false;
+            if (!Object.Equals(SyncboxFullPath, otherSettings.SyncboxFullPath)) return false;
             if (!Object.Equals(Key, otherSettings.Key)) return false;
             if (!Object.Equals(Secret, otherSettings.Secret)) return false;
             if (!Object.Equals(Token, otherSettings.Token)) return false;
-            if (!Object.Equals(SyncBoxId, otherSettings.SyncBoxId)) return false;
+            if (!Object.Equals(SyncboxId, otherSettings.SyncboxId)) return false;
             if (!Object.Equals(UniqueDeviceId, otherSettings.UniqueDeviceId)) return false;
             if (!Object.Equals(TempDownloadFolderFullPath, otherSettings.TempDownloadFolderFullPath)) return false;
             if (!Object.Equals(DatabaseFolderFullPath, otherSettings.DatabaseFolderFullPath)) return false;
@@ -92,11 +92,11 @@ namespace SampleLiveSync.Models
         /// </summary>
         public void GetSavedSettings()
         {
-            this.SyncBoxFullPath = Properties.Settings.Default.SyncBoxFullPath;
+            this.SyncboxFullPath = Properties.Settings.Default.SyncboxFullPath;
             this.Key = Properties.Settings.Default.Key;
             this.Secret = Properties.Settings.Default.Secret;
             this.Token = Properties.Settings.Default.Token;
-            this.SyncBoxId = Properties.Settings.Default.SyncBoxId;
+            this.SyncboxId = Properties.Settings.Default.SyncboxId;
             this.UniqueDeviceId = Properties.Settings.Default.UniqueDeviceId;
             this.TempDownloadFolderFullPath = Properties.Settings.Default.TempDownloadFolderFullPath;
             this.DatabaseFolderFullPath = Properties.Settings.Default.DatabaseFolderFullPath;

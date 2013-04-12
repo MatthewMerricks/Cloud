@@ -1,5 +1,5 @@
 ﻿//
-// SyncBoxQuota.cs
+// SyncboxQuota.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -16,15 +16,15 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncBox.UpdateSyncBoxQuota"/>
+    /// Result from <see cref="Cloud.CLSyncbox.UpdateSyncboxQuota"/>
     /// </summary>
     [DataContract]
-    internal sealed class SyncBoxQuota
+    internal sealed class SyncboxQuota
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxId, IsRequired = false)]
         public Nullable<long> Id { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxStorageQuotaUpdateOnly, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxStorageQuotaUpdateOnly, IsRequired = false)]
         public Nullable<long> StorageQuota { get; set; }
     }
 }

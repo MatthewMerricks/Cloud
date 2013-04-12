@@ -1,5 +1,5 @@
 ﻿//
-// SyncBoxUsage.cs
+// SyncboxUsage.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -16,10 +16,10 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncBox.GetSyncBoxUsage"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetSyncboxUsage"/>
     /// </summary>
     [DataContract]
-    public sealed class SyncBoxUsage
+    public sealed class SyncboxUsage
     {
         [DataMember(Name = CLDefinitions.CLMetadataLocal, IsRequired = false)]
         public Nullable<long> Local { get; set; }

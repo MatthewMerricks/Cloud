@@ -1,5 +1,5 @@
 ﻿//
-// SyncBox.cs
+// Syncbox.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -16,22 +16,22 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Contains actual response properties for <see cref="SyncBoxHolder"/>
+    /// Contains actual response properties for <see cref="SyncboxHolder"/>
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary]
-    public sealed class SyncBox
+    public sealed class Syncbox
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxId, IsRequired = false)]
         public Nullable<long> Id { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxPlanId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxPlanId, IsRequired = false)]
         public Nullable<long> PlanId { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxStorageQuota, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxStorageQuota, IsRequired = false)]
         public Nullable<long> StorageQuota { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxCreatedAt, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxCreatedAt, IsRequired = false)]
         public string CreatedAtString
         {
             get
@@ -61,10 +61,10 @@ namespace Cloud.JsonContracts
         }
         public Nullable<DateTime> CreatedAt { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxFriendlyName, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxFriendlyName, IsRequired = false)]
         public string FriendlyName { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSyncBoxMetadata, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxMetadata, IsRequired = false)]
         public MetadataDictionary Metadata { get; set; }
     }
 }

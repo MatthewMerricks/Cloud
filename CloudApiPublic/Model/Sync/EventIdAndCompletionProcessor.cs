@@ -68,7 +68,7 @@ namespace Cloud.Model
         }
         private readonly string _tempDownloadFolderPath;
 
-        public long SyncBoxId
+        public long SyncboxId
         {
             get
             {
@@ -76,10 +76,10 @@ namespace Cloud.Model
                 {
                     throw new ArgumentException("Cannot retrieve property values on an invalid EventIdAndCompletionProcessor");
                 }
-                return _syncBoxId;
+                return _syncboxId;
             }
         }
-        private readonly long _syncBoxId;
+        private readonly long _syncboxId;
 
         public bool IsValid
         {
@@ -90,21 +90,27 @@ namespace Cloud.Model
         }
         private readonly bool _isValid;
 
-        public EventIdAndCompletionProcessor(long EventId, ISyncDataObject syncData, ICLSyncSettingsAdvanced syncSettings, long SyncBoxId, string TempDownloadFolderPath = null)
+        public EventIdAndCompletionProcessor(long EventId, ISyncDataObject syncData, ICLSyncSettingsAdvanced syncSettings, long SyncboxId, string TempDownloadFolderPath = null)
         {
-            if (syncData == null)
+            if (EventId != 0)
             {
-                throw new NullReferenceException("syncData cannot be null");
-            }
-            if (syncSettings == null)
-            {
-                throw new NullReferenceException("syncSettings cannot be null");
+                // syncData and syncSetting must be valid if EventId is valid
+                //
+
+                if (syncData == null)
+                {
+                    throw new NullReferenceException("syncData cannot be null");
+                }
+                if (syncSettings == null)
+                {
+                    throw new NullReferenceException("syncSettings cannot be null");
+                }
             }
 
             this._eventId = EventId;
             this._syncData = syncData;
             this._syncSettings = syncSettings;
-            this._syncBoxId = SyncBoxId;
+            this._syncboxId = SyncboxId;
             this._isValid = true;
             this._tempDownloadFolderPath = TempDownloadFolderPath;
         }

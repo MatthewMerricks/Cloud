@@ -1,22 +1,22 @@
-﻿/// \mainpage SyncBoxes made easy!
+﻿/// \mainpage Syncboxes made easy!
 ///
 /// \section intro_sec Introduction
 ///
 /// The Cloud Windows Client SDK allows your application to easily support real time file synchronization services.
 ///
-/// A SyncBox can be thought of as a folder with a hierarchical directory structure.  Any files placed in a SyncBox can be automatically
-/// synced to the same SyncBox on all of your other devices (Windows, Mac, iOS and Android, etc.).
+/// A Syncbox can be thought of as a folder with a hierarchical directory structure.  Any files placed in a Syncbox can be automatically
+/// synced to the same Syncbox on all of your other devices (Windows, Mac, iOS and Android, etc.).
 ///
-/// An application can have a SyncBox which can have multiple devices. The ID of a device should be unique within a particular SyncBox.
-/// A physical computer (e.g., a local Windows Machine) may have multiple SyncBoxes running under multiple applications in different or possibly overlapping local directories.
+/// An application can have a Syncbox which can have multiple devices. The ID of a device should be unique within a particular Syncbox.
+/// A physical computer (e.g., a local Windows Machine) may have multiple Syncboxes running under multiple applications in different or possibly overlapping local directories.  Each of the SyncboxId-DeviceId pairs must be unique on a given machine.
 ///
-/// In desktop environments, a SyncBox is tied to a particular local disk directory.  e.g., on Windows, "C:\\Users\\<UserName>\\<YourSyncBoxName>".
+/// In desktop environments, a Syncbox is tied to a particular local disk directory.  e.g., on Windows, "C:\\Users\\<UserName>\\<YourSyncboxName>".
 ///
 /// To begin syncing, you will need to:     
 /// - Specify your credential.
 /// - Specify the path to be synced.
-/// - Create a SyncBox object with the above information.
-/// - Create an instance of a SyncBox engine and start it with the SyncBox object.
+/// - Create a Syncbox object with the above information.
+/// - Create an instance of a Syncbox engine and start it with the Syncbox object.
 /// .
 ///
 /// See how easy it is:
@@ -41,18 +41,19 @@
 ///            
 ///             // create the minimal settings using just the path to the folder
 ///             CLSyncSettings syncSettings = new CLSyncSettings(
-///                 syncRoot: "<Full path of the folder to sync>");
+///                 syncRoot: "<Full path of the folder to sync>",
+///                 deviceId: "<device name unique in the Syncbox>");
 ///
-///             CLSyncBox syncBox; // declare sync box
-///             CLSyncBoxCreationStatus syncBoxStatus; // declare status enumeration
-///             CLSyncBox.CreateAndInitialize( // run the creation method for an existing sync box id (also returns CLError)
+///             CLSyncbox syncbox; // declare sync box
+///             CLSyncboxCreationStatus syncboxStatus; // declare status enumeration
+///             CLSyncbox.CreateAndInitialize( // run the creation method for an existing sync box id (also returns CLError)
 ///                 Credential: credential, // created above
-///                 SyncBoxId: <id of SyncBox>, //The ID created for this SyncBox on the Cloud developer Dashboard
-///                 syncBox: out syncBox, // output the created sync box here
-///                 status: out syncBoxStatus, // output the status from creating sync box
+///                 SyncboxId: <id of Syncbox>, //The ID created for this Syncbox on the Cloud developer Dashboard
+///                 syncbox: out syncbox, // output the created sync box here
+///                 status: out syncboxStatus, // output the status from creating sync box
 ///                 Settings: syncSettings); // live syncing requires a settings interface containing a SyncRoot (created above)
 ///
-///             // optionally check syncBoxStatus/returned CLError here before continuing
+///             // optionally check syncboxStatus/returned CLError here before continuing
 ///
 ///             // create the sync engine which will run live syncing
 ///             CLSyncEngine syncEngine = new CLSyncEngine();
@@ -60,7 +61,7 @@
 ///             // start the engine
 ///             CLSyncStartStatus startStatus; // declare status enumeration
 ///             syncEngine.Start( // starting sync returns a CLError which can be checked
-///                 SyncBox: syncBox, // created above
+///                 Syncbox: syncbox, // created above
 ///                 Status: out startStatus); // output the status from starting to sync
 ///
 ///             // optionally check startStatus/returned CLError here to see if it worked
@@ -77,7 +78,7 @@
 ///         }
 /// \endcode
 ///
-/// The code above will automatically sync files in the "SyncRoot" directory with your other devices in this SyncBox, and with the SyncBox on Cloud.
+/// The code above will automatically sync files in the "SyncRoot" directory with your other devices in this Syncbox, and with the Syncbox on Cloud.
 ///
 /// \section install_sec SDK Installation
 ///
@@ -135,25 +136,26 @@
 /// Run the sample app to see the main window below:
 /// \image html SampleAppMainWindow.jpg "Sample App Main Window"
 /// You will enter information into the following Required Settings fields:
-/// - SyncBox Folder: This is the full path of the folder on your computer that will be synced.  The folder must be on a locally-attached drive.  Typically you will specify a folder in your user directory. You may use the Browse button to locate the folder to be synced.
+/// - Syncbox Folder: This is the full path of the folder on your computer that will be synced.  The folder must be on a locally-attached drive.  Typically you will specify a folder in your user directory. You may use the Browse button to locate the folder to be synced.
 /// - Key:  Paste this key from your Cloud developer DashBoard web page (https://dashboard.cloudstaging.us \internal https://dashboard.cliff.cloudburrito.com \endinternal).  This key uniquely identifies your application.
 /// - Secret:  Paste this private key from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this private key from a secure location.
 /// - Token:  Paste this session token from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this token from a secure location.
 /// \note If the Token field is specified, then the Key, Secret and Token form a temporary session credential.  Otherwise, the Key and Secret form the permanent credential of your app.
-/// - SyncBox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the SyncBox.  It represents a folder that will be synced across all of your devices, and to Cloud.
-/// - (Optional) Unique Device ID: Choose a unique name (within this SyncBox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If you do not specify the device ID, it will default to a unique ID.
+/// - Syncbox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the Syncbox.  It represents a folder that will be synced across all of your devices, and to Cloud.
+/// - Unique Device ID: Choose a unique name (within this Syncbox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If multiple sync engines are running on this machine, then each engine's
+/// pair of SyncboxId-DeviceId must be unique on the machine.  You may click the Generate button to generate a unique DeviceId that includes the computer name.
 /// .
 /// 
 /// Buttons:
 /// - Advanced Options: Click this button to see the advanced options dialog (described below).
 /// - Save Settings:  Click this button to save the Required Settings and any Advanced Options you have set.  You can start syncing after valid settings have been saved. 
-/// - Reset Sync:  Click this button to reset the persisted sync status.  The local sync status will be recreated via a full scan of the SyncBox folder.
+/// - Reset Sync:  Click this button to reset the persisted sync status.  The local sync status will be recreated via a full scan of the Syncbox folder.
 /// - Install Badging: Click this button to install the badging Explorer shell extension (BadgeCom.dll).  This is discussed below.  Installation of the badging DLL involves stopping Explorer, registering BadgeCom.dll and restarting Explorer.  Clicking this button
 /// multiple times will have no additional effect.  The installation of badging support is optional.
 /// - Uninstall Badging:  Click this button to uninstall the badging shell extension dll.  Again, this involves stopping Explorer, unregistering BadgeCom.dll and restarting Explorer.  Clicking this button twice will result in an error message because the dll has
 /// already been unregistered on the second attempt.
-/// - Start Syncing: Click this button to start syncing the SyncBox folder.
-/// - Stop Syncing: Click this button to stop syncing the SyncBox folder.
+/// - Start Syncing: Click this button to start syncing the Syncbox folder.
+/// - Stop Syncing: Click this button to stop syncing the Syncbox folder.
 /// - Sync Status:  Click this button to see the sync status window (discussed below).
 /// - Exit: Click this button to exit the sample app.  If syncing has been started, it will be stopped first.
 /// .
@@ -161,7 +163,7 @@
 /// The Advanced Options dialog is displayed when you click the Advanced Options button on the main window:
 /// \image html SampleAppAdvancedOptionsDialog.jpg "Sample App Advanced Options Dialog"
 /// Enter the following information:
-/// - Folder for Temporary Download Files: (Optional) This is the full path of a folder to be used to store files that are being actively downloaded.  When the download is complete, the files are moved to their permanent position in the SyncBox folder.
+/// - Folder for Temporary Download Files: (Optional) This is the full path of a folder to be used to store files that are being actively downloaded.  When the download is complete, the files are moved to their permanent position in the Syncbox folder.
 /// - Folder for Database File: (Optional) This is the full path of a folder to be used to store the sync database file.
 /// - Badging Enabled: This is a checkbox that will enable or disable badging.  Badging must installed (main window) and enabled before badges will appear.
 /// - Trace Folder: (Optional) This is the full path to store trace files.  There are several types of trace files stored there.  This field is required if Log Errors (below) is checked.
@@ -171,7 +173,7 @@
 /// public enum TraceType : int
 /// {
 ///     /// <summary>
-///     /// No general trace (errors are handled seperately)
+///     /// No general trace (errors are handled separately)
 ///     /// </summary>
 ///     NotEnabled = 0x00,
 ///     /// <summary>
@@ -226,41 +228,79 @@
 /// See the example below:
 /// \image html SampleAppBadgingExample.jpg "Explorer Sync Badges"
 ///
-/// The badging support is provided by modules in Cloud.dll and in BadgeCom.dll.  Badging support will be activated if BadgeCom.dll is registered as a shell extension, and if Badging Enabled has been selected.  If badgning is not enabled, syncing will occur normally.
+/// The badging support is provided by modules in Cloud.dll and in BadgeCom.dll.  Badging support will be activated if BadgeCom.dll is registered as a shell extension, and if Badging Enabled has been selected.  If badging is not enabled, syncing will occur normally.
 ///
 /// Because BadgeCom.dll is a shell extension, it requires special installation support.  When installing this DLL, you must perform the following steps:
 /// - Stop all Explorer processes
-/// - Run "regsvr32 <installation path>\\BadgeCom.dll"
+///		+ On a 64-bit platform
+///			- Run "C:\Windows\System32\regsvr32.exe <installation path>\\CloudSdk\\amd64\\BadgeCom.dll"
+///			- Run "C:\Windows\SysWow64\regsvr32.exe <installation path>\\CloudSdk\\x86\\BadgeCom.dll"
+///			.
+///		+ On a 32-bit platform
+///			- Run "C:\Windows\SysWow64\regsvr32.exe <installation path>\\CloudSdk\\x86\\BadgeCom.dll"
+///			.
+///		.
 /// - Restart Explorer
 /// .
 ///
 /// Uninstalling BadgeCom.dll involves the following steps:
 /// - Stop all Explorer processes
-/// - Run "regsvr32 /u <installation path>\\BadgeCom.dll"
+///		+ On a 64-bit platform
+///			- Run "C:\Windows\System32\regsvr32.exe /u <installation path>\\CloudSdk\\amd64\\BadgeCom.dll"
+///			- Run "C:\Windows\SysWow64\regsvr32.exe /u <installation path>\\CloudSdk\\x86\\BadgeCom.dll"
+///			.
+///		+ On a 32-bit platform
+///			- Run "C:\Windows\SysWow64\regsvr32.exe /u <installation path>\\CloudSdk\\x86\\BadgeCom.dll"
+///			.
+///		.
 /// - Restart Explorer
-/// - Delete the file BadgeCom.dll
 /// .
 ///
-/// A problem may occur when you attempt to delete the BadgeCom.dll file in the last step above.  You may find that the file is still locked because other processes that use Explorer may have BadgeCom.dll loaded.
+/// BadgeCom.dll should be treated as a shared resource and you should consider not unregistering or deleting the file during the uninstall process.  Other developer's applications may have registered the same version of the file.
+/// If you decide to delete the file,  
+/// a problem may occur when you attempt the delete operation.  You may find that the file is still locked because other processes that use Explorer may have BadgeCom.dll loaded.
 /// You can use Restart Manager (http://msdn.microsoft.com/en-us/magazine/cc163450.aspx) to request that the process unload BadgeCom.dll.  If that doesn't work, you can ask the user to close the process that has the file locked.  Failing that, you can kill
-/// the process (with the user's permission).  Then the file can be deleted.
+/// the process (with the user's permission).  Then the file can be deleted.  As a last resort, you could request the user to reboot the system.
 /// \subsection sampleapp-startingsync-subsec Starting Sync
 /// Here are the steps used to start sync.  Refer to MainViewModel:StartSyncing().
 /// - Verify settings:  Sample code can be found in MainViewModel:SaveSettings().  If the settings are incorrect, the sync functions will return errors.
 /// - Create an instance of CLCredential with your credential information.
-/// - Create an instance of CLSyncBox with the path on disk to be synced, and with the instance of CLCredential.
+/// - Create an instance of CLSyncbox with the path on disk to be synced, and with the instance of CLCredential.
 /// - Create an instance of CLSyncEngine.
-/// - Verify that the SyncBox folder or authorization information has not changed.  If it has, you should reset the sync database by calling \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.SyncReset SyncReset() \endlink or \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.WipeIndex WipeIndex() \endlink.
+/// - Verify that the Syncbox folder or authorization information has not changed.  If it has, you should reset the sync database by calling \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.SyncReset SyncReset() \endlink or \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.WipeIndex WipeIndex() \endlink.
 /// - Call \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink to start syncing.  This function takes the sync settings and some additional optional parameters.
 /// - Inspect the out parameter (\link Cloud.CLSyncStartStatus startStatus \endlink) which is an output of \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink.  Handle an error if the output is not \link Cloud.CLSyncStartStatus CLSyncStartStatus \endlink.Success.
 /// .
 /// \subsection sampleapp-settings-subsec The Settings Interfaces
-///The 5th parameter to CreateAndInitialize() is ICLSyncSettings.  That is an interface that has only a single property; the path of the SyncBox on the disk.  There are actually multiple Settings definitions that are related:
+///The 5th parameter to CreateAndInitialize() is ICLSyncSettings.  That is an interface that has only a single property; the path of the Syncbox on the disk.  There are actually multiple Settings definitions that are related:
 ///             Cloud.Interfaces: public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLAddTraceSettings
 ///
 ///You can pass any interface that is derived from ICLSyncSettings as the 5th parameter.  The sample app passes an implementation of ICLSyncSettingsAdvanced because it is demonstrating how to use ALL of the settings (ICLSettingsAdvanced (which includes ICLAddTraceSettings and ICLSyncSettings).
 ///
-///In fact, you can pass a very simple parameter here if all you want to pass is the SyncBox path.  In that case, just pass “new CLSyncSettings(‘full path of the SyncBox’)”.
+///In fact, you can pass a very simple parameter here if all you want to pass is the Syncbox path.  In that case, just pass “new CLSyncSettings(‘full path of the Syncbox’)”.
+/// \subsection sampleapp-sessiontokenexpiration-subsec Session Token Expiration
+/// A CLCredential may be created with an app key and secret, or with a session key, secret and temporary token.  All HTTP REST calls to the server check the credential.  Therefore, when using a temporary credential token, it is normal for any of the HTTP REST requests to fail with a
+/// 401 NotAuthorized status.  When this occurs, the application must allocate a new temporary session key, secret and token via the server, and use that information to create a new CLCredential.
+/// \code
+/// CloudApiPublic.CLSyncEngine.GetEngineCurrentStatus can now be used to determine if the engine halted due to expired credentials:
+///     public CLError GetEngineCurrentStatus(out CLSyncCurrentStatus status);
+/// 
+/// CloudApiPublic.Static.CLSyncCurrentState has a new flagged enumeration value (HaltedOnExpiredCredentials):
+///     Idle
+///     CommunicatingChanges
+///     UploadingFiles
+///     DownloadingFiles
+///     HaltedOnConnectionFailure
+///     HaltedOnExpiredCredentials
+/// \endcode
+/// 
+/// Look for the HaltedOnExpiredCredentials flag.  Handling when this status is found should be as follows:
+/// \par
+/// If the enumeration has one and only one flag and that flag is HaltedOnExpiredCredentials then a client can stop the engine, grab a new credential from the server, and restart the engine with the new credential.
+/// \par
+/// However, if the enumeration also has an activity flag such as CommuncatingChanges, UploadingFiles, or DownloadingFiles, then the client should wait until a subsequent 
+/// callback from the System.Threading.WaitCallback passed as optional input parameter StatusUpdated when the CloudApiPublic.CLSyncEngine was last started. The reason is because we do not wish to cancel a large file transfer in progress.
+/// 
 /// \subsection sampleapp-sqlceinstallation-subsec Installation Issues Involving SQL CE
 /// When you write your own app using the SDK, you will need to provide an installer that will install the required SQL CE V4.0 along with your app.
 ///
@@ -351,7 +391,7 @@
 /// - ListFilesUploading
 /// - ListMessages
 /// .\n
-/// An IEventMessageReceiver implementation requires subscribing in \link Cloud.Static.MessageEvents Cloud.Static.MessageEvents \endlink for each SyncBox\Device combination.
+/// An IEventMessageReceiver implementation requires subscribing in \link Cloud.Static.MessageEvents Cloud.Static.MessageEvents \endlink for each Syncbox\DeviceId combination.
 /// Also, you may unsubscribe when you no longer which to receive event callbacks.
 ///
 /// The ListFilesDownloading and ListFilesUploading collections expose the following properties:
@@ -455,7 +495,7 @@
 ///
 /// Primary components:\n
 /// \link Cloud.CLCredential CLCredential \endlink stores authentication information for all communication and services.\n
-/// \link Cloud.CLSyncBox CLSyncBox \endlink represents a SyncBox in Cloud where everything is stored.\n
+/// \link Cloud.CLSyncbox CLSyncbox \endlink represents a Syncbox in Cloud where everything is stored.\n
 /// \link Cloud.CLSyncEngine CLSyncEngine \endlink performs active sync of files and folders within a specified path to a syncbox in Cloud.\n
 /// \internal \link Cloud.PushNotification.CLNotification PushNotification.CLNotification \endlink allows manual subscription to push notifications and is used internally by \link Cloud.CLSync CLSync \endlink.\n \endinternal
 /// \internal \link Cloud.REST.CLHttpRest REST.CLHttpRest \endlink allows manual access to Cloud communication methods for file\folder queries, posting changes, and file transfer. It is used internally by \link Cloud.CLSync CLSync \endlink.\n \endinternal

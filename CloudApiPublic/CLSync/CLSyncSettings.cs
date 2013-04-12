@@ -32,13 +32,25 @@ namespace Cloud
         private readonly string _syncRoot = null;
 
         /// <summary>
+        /// The ID of this device, unique within the Syncbox.
+        /// </summary>
+        public string DeviceId
+        {
+            get
+            {
+                return _deviceId;
+            }
+        }
+        private readonly string _deviceId;
+
+        /// <summary>
         /// Creates a simple implementation of ICLSyncSettings with only SyncRoot
         /// </summary>
         /// <param name="syncRoot">Full path to the directory to be synced (do not include a trailing slash except for a drive root)</param>
-        public CLSyncSettings(
-                    string syncRoot)
+        public CLSyncSettings(string syncRoot, string deviceId)
         {
             this._syncRoot = syncRoot;
+            this._deviceId = deviceId;
         }
     }
 
@@ -106,7 +118,7 @@ namespace Cloud
         private readonly int _traceLevel;
 
         /// <summary>
-        /// The ID of this device, unique within the SyncBox.
+        /// The ID of this device, unique within the Syncbox.
         /// </summary>
         public string DeviceId
         {
@@ -141,23 +153,14 @@ namespace Cloud
         }
         private readonly string _tempDownloadFolderFullPath = null;
 
-        public string ClientVersion
+        public string ClientDescription
         {
             get
             {
-                return _clientVersion;
+                return _clientDescription;
             }
         }
-        private readonly string _clientVersion = null;
-
-        public string FriendlyName
-        {
-            get
-            {
-                return _friendlyName;
-            }
-        }
-        private readonly string _friendlyName = null;
+        private readonly string _clientDescription = null;
 
         public string SyncRoot
         {
@@ -185,11 +188,10 @@ namespace Cloud
                 null,
                 true,
                 0,
-                Environment.MachineName + Guid.NewGuid().ToString("N"),
+                null,
                 true,
                 null,
-                "SimpleClient01",
-                Environment.MachineName,
+                String.Empty,
                 null,
                 null);
         }
@@ -207,11 +209,10 @@ namespace Cloud
                 null,
                 true,
                 0,
-                Environment.MachineName + Guid.NewGuid().ToString("N"),
+                null,
                 true,
                 null,
-                "SimpleClient01",
-                Environment.MachineName,
+                String.Empty,
                 syncSettings.SyncRoot,
                 null);
         }
@@ -225,11 +226,19 @@ namespace Cloud
                     string deviceId,
                     bool badgingEnabled,
                     string tempDownloadFolderFullPath,
-                    string clientVersion,
-                    string friendlyName,
+                    string clientDescription,
                     string syncRoot,
                     string databaseFolder)
         {
+            if (clientDescription.Length > CLDefinitions.MaxClientDescriptionLength)
+            {
+                throw new ArgumentException("ClientDescription must have 32 or fewer characters");
+            }
+            if (clientDescription.Contains(","))
+            {
+                throw new ArgumentException("ClientDescription must not contain commas");
+            }
+
             this._logErrors = logErrors;
             this._traceType = traceType;
             this._traceLocation = traceLocation;
@@ -238,8 +247,7 @@ namespace Cloud
             this._deviceId = deviceId;
             this._badgingEnabled = badgingEnabled;
             this._tempDownloadFolderFullPath = tempDownloadFolderFullPath;
-            this._clientVersion = clientVersion;
-            this._friendlyName = friendlyName;
+            this._clientDescription = clientDescription;
             this._syncRoot = syncRoot;
             this._databaseFolder = databaseFolder;
         }
@@ -259,11 +267,10 @@ namespace Cloud
                 toCopy.TraceLocation,
                 toCopy.TraceExcludeAuthorization,
                 toCopy.TraceLevel,
-                String.IsNullOrWhiteSpace(toCopy.DeviceId) ? Environment.MachineName + Guid.NewGuid().ToString("N") : toCopy.DeviceId,
+                toCopy.DeviceId,
                 toCopy.BadgingEnabled,
                 toCopy.TempDownloadFolderFullPath,
-                toCopy.ClientVersion,
-                toCopy.FriendlyName,
+                toCopy.ClientDescription,
                 toCopy.SyncRoot,
                 toCopy.DatabaseFolder);
         }

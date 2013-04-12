@@ -59,7 +59,7 @@ namespace Cloud.Model
         }
         private ISyncDataObject _syncData;
 
-        public CLSyncBox SyncBox
+        public CLSyncbox Syncbox
         {
             get
             {
@@ -68,10 +68,10 @@ namespace Cloud.Model
                 {
                     throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableFileChangeWithSyncData");
                 }
-                return _syncBox;
+                return _syncbox;
             }
         }
-        private CLSyncBox _syncBox;
+        private CLSyncbox _syncbox;
 
         public string TempDownloadFolderPath
         {
@@ -152,15 +152,15 @@ namespace Cloud.Model
         }
         private bool _isValid;
 
-        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, CLSyncBox SyncBox, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
+        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, CLSyncbox Syncbox, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
         {
             if (SyncData == null)
             {
                 throw new NullReferenceException("SyncData cannot be null");
             }
-            if (SyncBox == null)
+            if (Syncbox == null)
             {
-                throw new NullReferenceException("SyncBox cannot be null");
+                throw new NullReferenceException("Syncbox cannot be null");
             }
             if (DownloadErrorTimer == null)
             {
@@ -173,7 +173,7 @@ namespace Cloud.Model
 
             this._fileChange = FileChange;
             this._syncData = SyncData;
-            this._syncBox = SyncBox;
+            this._syncbox = Syncbox;
             this._tempDownloadFolderPath = TempDownloadFolderPath;
             this._tempDownloadFileId = TempDownloadFileId;
             this._isValid = true;

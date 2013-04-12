@@ -33,8 +33,8 @@ namespace Cloud.Model.EventMessages
         }
         private readonly EventMessageLevel _importance;
 
-        internal InformationalMessage(string Message, EventMessageLevel Importance, Nullable<long> SyncBoxId, string DeviceId)
-            : base(EventMessageType.Informational, SyncBoxId, DeviceId)
+        internal InformationalMessage(string Message, EventMessageLevel Importance, Nullable<long> SyncboxId, string DeviceId)
+            : base(EventMessageType.Informational, SyncboxId, DeviceId)
         {
             this._message = Message;
             this._importance = Importance;

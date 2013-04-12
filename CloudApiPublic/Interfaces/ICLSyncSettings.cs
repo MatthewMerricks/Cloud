@@ -50,6 +50,11 @@ namespace Cloud.Interfaces
         /// Full path to the directory to be synced (do not include a trailing slash except for a drive root)
         /// </summary>
         string SyncRoot { get; }
+        /// <summary>
+        /// Device id (each Syncbox may contain multiple devices, each with a unique id within the Syncbox).
+        /// When running multiple instances of the sync engine on one machine, each combination of SyncboxId and DeviceId used with an engine must be unique on the machine.
+        /// </summary>
+        string DeviceId { get; }
     }
 
     /// <summary>
@@ -63,31 +68,23 @@ namespace Cloud.Interfaces
         bool BadgingEnabled { get; }
         /// <summary>
         /// Location to store temporary downloads before they complete downloading and get moved to the final location;
-        /// Use a different download folder path for each SyncBox or SyncEngine (the SyncEngine will clean out existing files in the provided directory);
+        /// Use a different download folder path for each Syncbox or SyncEngine (the SyncEngine will clean out existing files in the provided directory);
         /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
         /// </summary>
         string TempDownloadFolderFullPath { get; }
         /// <summary>
-        /// Friendly name of the current device (we use computer name)
-        /// </summary>
-        string FriendlyName { get; }
-        /// <summary>
-        /// Full path to a folder location where the database will be stored when using a SyncBox (you must handle your own database when using SyncEngine directly); If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory.  The file will be IndexDB.sdf.
+        /// Full path to a folder location where the database will be stored when using a Syncbox (you must handle your own database when using SyncEngine directly); If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory.  The file will be IndexDB.sdf.
         /// </summary>
         string DatabaseFolder { get; }
-        /// <summary>
-        /// Device id (each SyncBox may contain multiple devices, each with a unique id within the SyncBox).
-        /// </summary>
-        string DeviceId { get; }
     }
 
-    public interface ICLAddClientVersion
+    public interface ICLAddClientDescription
     {
         /// <summary>
-        /// Version letters/numbers used in communication with the server to identify the type of client (i.e. "MyClient01"); do not mimic values passed by other Cloud applications
+        /// Client description.  Limited to 32-characters with no commas. (e.g., "MyClient01"); do not mimic values passed by other Cloud applications
         /// </summary>
-        string ClientVersion { get; }
+        string ClientDescription { get; }
     }
 
-    public interface ICLCredentialSettings : ICLAddTraceSettings, ICLAddClientVersion { }
+    public interface ICLCredentialSettings : ICLAddTraceSettings, ICLAddClientDescription { }
 }

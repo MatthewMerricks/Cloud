@@ -50,10 +50,22 @@ namespace Cloud.Model
                 {
                     throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableAndPossiblyPreexistingErrorFileChange");
                 }
-                return _stream;
+                return _streamContext == null ? null : _streamContext.Stream;
             }
         }
-        private Stream _stream;
+
+        public StreamContext StreamContext
+        {
+            get
+            {
+                if (!_isValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableAndPossiblyPreexistingErrorFileChange");
+                }
+                return _streamContext;
+            }
+        }
+        private StreamContext _streamContext;
 
         public bool IsValid
         {
@@ -64,7 +76,7 @@ namespace Cloud.Model
         }
         private bool _isValid;
 
-        public PossiblyStreamableAndPossiblyPreexistingErrorFileChange(bool IsPreexisting, FileChange FileChange, Stream Stream)
+        public PossiblyStreamableAndPossiblyPreexistingErrorFileChange(bool IsPreexisting, FileChange FileChange, StreamContext streamContext)
         {
             if (FileChange == null)
             {
@@ -73,7 +85,7 @@ namespace Cloud.Model
 
             this._fileChange = FileChange;
             this._isPreexisting = IsPreexisting;
-            this._stream = Stream;
+            this._streamContext = streamContext;
             this._isValid = true;
         }
     }

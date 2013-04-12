@@ -23,10 +23,10 @@ namespace Cloud.JsonContracts
     //[DataContract]
     //public sealed class UsedBytes
     //{
-    //    [DataMember(Name = CLDefinitions.CLSyncBoxStoredBytes, IsRequired = false)]
+    //    [DataMember(Name = CLDefinitions.CLSyncboxStoredBytes, IsRequired = false)]
     //    public Nullable<long> StoredBytes { get; set; }
 
-    //    [DataMember(Name = CLDefinitions.CLSyncBoxPendingBytes, IsRequired = false)]
+    //    [DataMember(Name = CLDefinitions.CLSyncboxPendingBytes, IsRequired = false)]
     //    public Nullable<long> PendingBytes { get; set; }
     //}
 }

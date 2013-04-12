@@ -588,9 +588,9 @@ namespace Cloud.Static
 
         private int threadIdField;
 
-        private long syncBoxIdField;
+        private long syncboxIdField;
 
-        private bool syncBoxIdFieldSpecified;
+        private bool syncboxIdFieldSpecified;
 
         /// <remarks/>
         public int Type
@@ -645,29 +645,29 @@ namespace Cloud.Static
         }
 
         /// <remarks/>
-        public long SyncBoxId
+        public long SyncboxId
         {
             get
             {
-                return this.syncBoxIdField;
+                return this.syncboxIdField;
             }
             set
             {
-                this.syncBoxIdField = value;
+                this.syncboxIdField = value;
             }
         }
 
         /// <remarks/>
         [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool SyncBoxIdSpecified
+        public bool SyncboxIdSpecified
         {
             get
             {
-                return this.syncBoxIdFieldSpecified;
+                return this.syncboxIdFieldSpecified;
             }
             set
             {
-                this.syncBoxIdFieldSpecified = value;
+                this.syncboxIdFieldSpecified = value;
             }
         }
     }

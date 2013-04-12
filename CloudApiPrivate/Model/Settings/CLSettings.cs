@@ -479,13 +479,13 @@ namespace CloudApiPrivate.Model.Settings
             }
         }
 
-        private string _syncBoxId;
-        public string SyncBoxId
+        private string _syncboxId;
+        public string SyncboxId
         {
-            get { return _syncBoxId; }
+            get { return _syncboxId; }
             set
             {
-                _syncBoxId = value;
+                _syncboxId = value;
                 SettingsBase.Write<string>(kUuid, value);
             }
         }
@@ -915,7 +915,7 @@ namespace CloudApiPrivate.Model.Settings
     
             // Account
             _akey = ""; // only available when registered.
-            _syncBoxId = ""; // only available when registered.
+            _syncboxId = ""; // only available when registered.
             _deviceId = "";
             _badgingEnabled = true;
             _userName = "";
@@ -1131,7 +1131,7 @@ namespace CloudApiPrivate.Model.Settings
             isPresent = SettingsBase.ReadIfPresent<string>(kUuid, out tempString);
             if (isPresent)
             {
-                _syncBoxId = tempString;
+                _syncboxId = tempString;
             }
 
             isPresent = SettingsBase.ReadIfPresent<string>(kUserName, out tempString);
@@ -1287,7 +1287,7 @@ namespace CloudApiPrivate.Model.Settings
             //UserFullName = (string)accountInfo[kUserFullName];
             DeviceName = (string)accountInfo[kDeviceName];
             Akey = (string)accountInfo[kAKey];
-            SyncBoxId = (string)accountInfo[kUuid];
+            SyncboxId = (string)accountInfo[kUuid];
             DeviceId = (string)accountInfo[kUdid];
         }
 

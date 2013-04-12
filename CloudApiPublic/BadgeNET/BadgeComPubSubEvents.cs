@@ -223,7 +223,7 @@ namespace Cloud.BadgeNET
                     string outFullPath;
                     uint outPublisherProcessId;
                     Guid outGuidPublisher;
-                    _trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Call Subscribe.");
+                    //_trace.writeToLog(9, "BadgeComPubSubEvents: SubscribingThreadProc: Call Subscribe.");
                     EnumPubSubServerSubscribeReturnCodes result = _pubSubServer.Subscribe(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscriber, _knSubscriptionTimeoutMs,
                                  out outEventSubType, out outBadgeType, out outFullPath, out outPublisherProcessId, out outGuidPublisher);
                     if (result == EnumPubSubServerSubscribeReturnCodes.RC_SUBSCRIBE_GOT_EVENT)
@@ -321,9 +321,9 @@ namespace Cloud.BadgeNET
                 {
                     // Wait letting the subscribing thread work.
                     fRestartSubscribingThread = false;
-                    _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Wait for next look.");
+                    //_trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Wait for next look.");
                     _semWatcher.WaitOne(_knTimeBetweenWatchingThreadChecksMs);
-                    _trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Out of wait.  Check the subscribing thread.");
+                    //_trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Out of wait.  Check the subscribing thread.");
 
                     // Exit if we should
                     if (_fRequestWatchingThreadExit || _fTerminating)
