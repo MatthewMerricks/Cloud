@@ -736,6 +736,29 @@ namespace Cloud.Static
         }
 
         /// <summary>
+        /// Pulls the version of the currently running application; first from the executing assembly's GetName() and then from the Process' file version
+        /// </summary>
+        /// <returns></returns>
+        public static string GetVersionStringFromApplication()
+        {
+            try
+            {
+                return System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
+            }
+            catch
+            {
+                try
+                {
+                    return System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Diagnostics.Process.GetCurrentProcess().StartInfo.FileName).FileVersion;
+                }
+                catch
+                {
+                    return "0.0.0.0";
+                }
+            }
+        }
+
+        /// <summary>
         /// Parses a hexadecimal string into an array of bytes to return, string must contain only multiples of 2 hexadecimal characters or be null/empty for a null return
         /// </summary>
         /// <param name="hashString">Hexadecimal characters to parse or null/empty</param>

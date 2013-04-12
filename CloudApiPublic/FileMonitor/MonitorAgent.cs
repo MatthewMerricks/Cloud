@@ -1886,7 +1886,7 @@ namespace Cloud.FileMonitor
                         {
                             CLError updateSQLError = Indexer.MergeEventsIntoDatabase(
                                 removeFromSql.Select(currentToRemove => new FileChangeMerge(null, currentToRemove)),
-                                true);
+                                alreadyObtainedLock: true);
                             if (updateSQLError != null)
                             {
                                 // condition for all the exceptions being keys which were not found to delete (possible if we end up deleting the same event id twice, which isn't really an error)
@@ -1932,7 +1932,9 @@ namespace Cloud.FileMonitor
                             {
                                 LaterChange.Type = FileChangeType.Created;
 
-                                CLError updateLaterChangeAsCreatedError = SyncData.mergeToSql(new[] { new FileChangeMerge(LaterChange) });
+                                // RksChange: We need to say we already hold the CELocker ReaderWriterLockerSlim in write mode.
+                                // Old: CLError updateLaterChangeAsCreatedError = SyncData.mergeToSql(new[] { new FileChangeMerge(LaterChange) });
+                                CLError updateLaterChangeAsCreatedError = Indexer.MergeEventsIntoDatabase(new[] { new FileChangeMerge(LaterChange) }, alreadyObtainedLock: true);
                                 if (updateLaterChangeAsCreatedError != null)
                                 {
                                     throw new AggregateException("Error updating LaterChange in CreationModificationDependencyCheck to Created Type", updateLaterChangeAsCreatedError.GrabExceptions());
@@ -2063,7 +2065,7 @@ namespace Cloud.FileMonitor
                                 {
                                     _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: NewPath equals OldPath."));
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
-                                    CLError updateSqlError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentEarlierChange, null) }, true);
+                                    CLError updateSqlError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentEarlierChange, null) }, alreadyObtainedLock: true);
                                     if (updateSqlError != null)
                                     {
                                         toReturn += new AggregateException("Error updating SQL after replacing NewPath", updateSqlError.GrabExceptions());
@@ -2128,7 +2130,7 @@ namespace Cloud.FileMonitor
                                         {
                                             _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: renamedOverlap equals later change OldPath: {0}. Merge earlier change to SQL.", LaterChange.OldPath.Name));
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
-                                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentEarlierChange, null) }, true);
+                                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentEarlierChange, null) }, alreadyObtainedLock: true);
                                             if (replacePathPortionError != null)
                                             {
                                                 toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
@@ -2254,7 +2256,9 @@ namespace Cloud.FileMonitor
                             if (FilePathComparer.Instance.Equals(renamedOverlap, CurrentEarlierChange.NewPath))
                             {
                                 renamedOverlapChild.Parent = CurrentEarlierChange.OldPath;
-                                CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(LaterChange, null) });
+                                // RksChange: Indicate that we already hold the CELocker ReaderWriterLockerSlim in write mode.
+                                // Old: CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(LaterChange, null) });
+                                CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(LaterChange, null) }, alreadyObtainedLock: true);
                                 if (replacePathPortionError != null)
                                 {
                                     toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
@@ -2663,7 +2667,7 @@ namespace Cloud.FileMonitor
                                                                 newCreationTime,
                                                                 countFileSize);
 
-                                                            CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentDependencyTree.DependencyFileChange, null) });
+                                                            CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(new FileChangeMerge[] { new FileChangeMerge(CurrentDependencyTree.DependencyFileChange, null) }, alreadyObtainedLock: false);
                                                             if (writeNewMetadataError != null)
                                                             {
                                                                 throw new AggregateException("Error writing updated file upload metadata to SQL", writeNewMetadataError.GrabExceptions());
@@ -2711,7 +2715,7 @@ namespace Cloud.FileMonitor
                             }
                         }
 
-                        CLError queuedChangesSqlError = Indexer.MergeEventsIntoDatabase(queuedChangesNeedMergeToSql.Select(currentQueuedChangeToSql => currentQueuedChangeToSql.Key));
+                        CLError queuedChangesSqlError = Indexer.MergeEventsIntoDatabase(queuedChangesNeedMergeToSql.Select(currentQueuedChangeToSql => currentQueuedChangeToSql.Key), alreadyObtainedLock: false);
                         if (queuedChangesSqlError != null)
                         {
                             toReturn += new AggregateException("Error adding QueuedChanges within processing/failed changes dependency tree to SQL", queuedChangesSqlError.GrabExceptions());
@@ -4865,7 +4869,7 @@ namespace Cloud.FileMonitor
                             new GeneralErrorInfo());
                     }
 
-                    CLError mergeError = Indexer.MergeEventsIntoDatabase(mergeBatch.Select(currentMerge => new FileChangeMerge(currentMerge, null)));
+                    CLError mergeError = Indexer.MergeEventsIntoDatabase(mergeBatch.Select(currentMerge => new FileChangeMerge(currentMerge, null)), alreadyObtainedLock: false);
                     if (mergeError != null)
                     {
                         // forces logging even if the setting is turned off in the severe case since a message box had to appear

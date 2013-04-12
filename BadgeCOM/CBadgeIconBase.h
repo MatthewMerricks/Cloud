@@ -60,6 +60,8 @@ private:
     GUID _guidPublisher;
     std::string _strBaseBadgeType;
     boost::recursive_mutex _mutexBadgeDatabase;
+	CHAR _szOutProcessName[MAX_PATH];
+
 
     // Private methods
     void OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeType badgeType, ULONG processId, GUID guidPublisher);
