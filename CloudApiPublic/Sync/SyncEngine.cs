@@ -2936,7 +2936,7 @@ namespace Cloud.Sync
                         (innerData, innerErrorToAccumulate) =>
                         {
                             // if the runningUpDownChangesDict has not already been initialized, then initialize it and fill it out
-                            if (innerData.runningUpChangesDict == null)
+                            if (innerData.runningUpChangesDict.Value == null)
                             {
                                 // create a list to store the changes which are currently uploading or downloading
                                 List<FileChange> runningUpChanges = new List<FileChange>();
