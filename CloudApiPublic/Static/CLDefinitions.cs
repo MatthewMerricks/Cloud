@@ -6,10 +6,11 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 // Back end definitions
-// @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
-//#define PRODUCTION_BACKEND 
+// @@@@@@@@@ AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
+//#define PRODUCTION_BACKEND    // cloud.com
 #define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
 //#define STAGING_BACKEND       // cloudstaging.us
+// @@@@@@@@@ END AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 
 // URL definitions
 // @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
