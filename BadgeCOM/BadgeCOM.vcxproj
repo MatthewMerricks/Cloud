@@ -1952,18 +1952,30 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=7
-echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
-copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=8
-echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
-copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
+echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)
+copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=8
+set ErrorTracker=9
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=10
+echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)
+copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=11
 echo regsvr32.exe /u /s $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll
 regsvr32.exe /u /s $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll
 REM do not jump to error condition and reset error level since it is fine if regsvr32.exe fails to unregister dll
@@ -3304,8 +3316,26 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=4
-echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)\
-copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)\
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=5
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)
+copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=6
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=7
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
+copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ---- PLACE THIS CODE AT THE END

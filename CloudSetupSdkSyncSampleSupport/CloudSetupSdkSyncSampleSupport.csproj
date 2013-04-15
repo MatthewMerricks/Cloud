@@ -45,7 +45,8 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNoSSL|AnyCPU'">
     <OutputPath>bin\ReleaseNoSSL\</OutputPath>
@@ -85,7 +86,6 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <None Include="app.manifest" />
-    <None Include="CloudPlatformCodeSigning.pfx" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -332,61 +332,10 @@ echo xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin
 xcopy /Y /S /v $(SolutionDir)amd64\*.* $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
 if errorlevel 1 goto BuildEventFailed
 
-REM ***** Delete extra files in the amd64 directory
-REM ----- Delete the bin\Debug\amd64\sql*.dll in the zip file -----------------
-set ErrorTracker=34
-echo 7z d CloudSdkSyncSampleSource.zip bin\Debug\amd64\sql*.dll
-7z d SampleLiveSyncSource.zip bin\Debug\amd64\sql*.dll
-echo 7z DeleteErrorLevel: %25errorlevel%25
-if errorlevel 1 goto BuildEventFailed
-
-REM ----- Delete the bin\Release\amd64\sql*.dll files in the zip file -----------------
-set ErrorTracker=35
-echo 7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
-7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
-echo 7z DeleteErrorLevel: %25errorlevel%25
-if errorlevel 1 goto BuildEventFailed
-
 REM ----- Delete the bin\Debug\amd64\*.pdb in the zip file -----------------
 set ErrorTracker=36
 echo 7z d SampleLiveSyncSource.zip bin\Debug\amd64\*.pdb
 7z d SampleLiveSyncSource.zip bin\Debug\amd64\*.pdb
-echo 7z DeleteErrorLevel: %25errorlevel%25
-if errorlevel 1 goto BuildEventFailed
-
-REM ----- Delete the bin\Release\amd64\sql*.dll files in the zip file -----------------
-set ErrorTracker=37
-echo 7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
-7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
-echo 7z DeleteErrorLevel: %25errorlevel%25
-if errorlevel 1 goto BuildEventFailed
-
-REM ----- Delete the bin\Debug\amd64\Microsoft* directory in the zip file -----------------
-set ErrorTracker=38
-echo 7z d SampleLiveSyncSource.zip bin\Debug\amd64\Microsoft.VC90.CRT\
-7z d SampleLiveSyncSource.zip bin\Debug\amd64\Microsoft.VC90.CRT\
-echo 7z DeleteErrorLevel: %25errorlevel%25
-if errorlevel 1 goto BuildEventFailed
-
-REM ----- Delete the bin\Release\amd64\Microsoft* directory in the zip file -----------------
-set ErrorTracker=39
-echo 7z d SampleLiveSyncSource.zip bin\Release\amd64\Microsoft.VC90.CRT\
-7z d SampleLiveSyncSource.zip bin\Release\amd64\Microsoft.VC90.CRT\
-echo 7z DeleteErrorLevel: %25errorlevel%25
-if errorlevel 1 goto BuildEventFailed
-
-REM ***** Delete extra files in the x86 directory
-REM ----- Delete the bin\Debug\x86\sql*.dll in the zip file -----------------
-set ErrorTracker=40
-echo 7z d SampleLiveSyncSource.zip bin\Debug\x86\sql*.dll
-7z d SampleLiveSyncSource.zip bin\Debug\x86\sql*.dll
-echo 7z DeleteErrorLevel: %25errorlevel%25
-if errorlevel 1 goto BuildEventFailed
-
-REM ----- Delete the bin\Release\x86\sql*.dll files in the zip file -----------------
-set ErrorTracker=41
-echo 7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
-7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
@@ -397,26 +346,79 @@ echo 7z d SampleLiveSyncSource.zip bin\Debug\x86\*.pdb
 echo 7z DeleteErrorLevel: %25errorlevel%25
 if errorlevel 1 goto BuildEventFailed
 
-REM ----- Delete the bin\Release\x86\sql*.dll files in the zip file -----------------
-set ErrorTracker=43
-echo 7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
-7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
-echo 7z DeleteErrorLevel: %25errorlevel%25
-if errorlevel 1 goto BuildEventFailed
+REM SQL CE deprecated by Microsoft so switched to SQLite which does not have unmanaged bit-specific DLLs in the inner amd64 and x86 directories
 
-REM ----- Delete the bin\Debug\x86\Microsoft* directory in the zip file -----------------
-set ErrorTracker=44
-echo 7z d SampleLiveSyncSource.zip bin\Debug\x86\Microsoft.VC90.CRT\
-7z d SampleLiveSyncSource.zip bin\Debug\x86\Microsoft.VC90.CRT\
-echo 7z DeleteErrorLevel: %25errorlevel%25
-if errorlevel 1 goto BuildEventFailed
+REM REM ***** Delete extra files in the amd64 directory
+REM REM ----- Delete the bin\Debug\amd64\sql*.dll in the zip file -----------------
+REM set ErrorTracker=34
+REM echo 7z d CloudSdkSyncSampleSource.zip bin\Debug\amd64\sql*.dll
+REM 7z d SampleLiveSyncSource.zip bin\Debug\amd64\sql*.dll
+REM echo 7z DeleteErrorLevel: %25errorlevel%25
+REM if errorlevel 1 goto BuildEventFailed
 
-REM ----- Delete the bin\Release\x86\Microsoft* directory in the zip file -----------------
-set ErrorTracker=45
-echo 7z d SampleLiveSyncSource.zip bin\Release\x86\Microsoft.VC90.CRT\
-7z d SampleLiveSyncSource.zip bin\Release\x86\Microsoft.VC90.CRT\
-echo 7z DeleteErrorLevel: %25errorlevel%25
-if errorlevel 1 goto BuildEventFailed
+REM REM ----- Delete the bin\Release\amd64\sql*.dll files in the zip file -----------------
+REM set ErrorTracker=35
+REM echo 7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
+REM 7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
+REM echo 7z DeleteErrorLevel: %25errorlevel%25
+REM if errorlevel 1 goto BuildEventFailed
+
+REM REM ----- Delete the bin\Release\amd64\sql*.dll files in the zip file -----------------
+REM set ErrorTracker=37
+REM echo 7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
+REM 7z d SampleLiveSyncSource.zip bin\Release\amd64\sql*.dll
+REM echo 7z DeleteErrorLevel: %25errorlevel%25
+REM if errorlevel 1 goto BuildEventFailed
+
+REM REM ----- Delete the bin\Debug\amd64\Microsoft* directory in the zip file -----------------
+REM set ErrorTracker=38
+REM echo 7z d SampleLiveSyncSource.zip bin\Debug\amd64\Microsoft.VC90.CRT\
+REM 7z d SampleLiveSyncSource.zip bin\Debug\amd64\Microsoft.VC90.CRT\
+REM echo 7z DeleteErrorLevel: %25errorlevel%25
+REM if errorlevel 1 goto BuildEventFailed
+
+REM REM ----- Delete the bin\Release\amd64\Microsoft* directory in the zip file -----------------
+REM set ErrorTracker=39
+REM echo 7z d SampleLiveSyncSource.zip bin\Release\amd64\Microsoft.VC90.CRT\
+REM 7z d SampleLiveSyncSource.zip bin\Release\amd64\Microsoft.VC90.CRT\
+REM echo 7z DeleteErrorLevel: %25errorlevel%25
+REM if errorlevel 1 goto BuildEventFailed
+
+REM REM ***** Delete extra files in the x86 directory
+REM REM ----- Delete the bin\Debug\x86\sql*.dll in the zip file -----------------
+REM set ErrorTracker=40
+REM echo 7z d SampleLiveSyncSource.zip bin\Debug\x86\sql*.dll
+REM 7z d SampleLiveSyncSource.zip bin\Debug\x86\sql*.dll
+REM echo 7z DeleteErrorLevel: %25errorlevel%25
+REM if errorlevel 1 goto BuildEventFailed
+
+REM REM ----- Delete the bin\Release\x86\sql*.dll files in the zip file -----------------
+REM set ErrorTracker=41
+REM echo 7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
+REM 7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
+REM echo 7z DeleteErrorLevel: %25errorlevel%25
+REM if errorlevel 1 goto BuildEventFailed
+
+REM REM ----- Delete the bin\Release\x86\sql*.dll files in the zip file -----------------
+REM set ErrorTracker=43
+REM echo 7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
+REM 7z d SampleLiveSyncSource.zip bin\Release\x86\sql*.dll
+REM echo 7z DeleteErrorLevel: %25errorlevel%25
+REM if errorlevel 1 goto BuildEventFailed
+
+REM REM ----- Delete the bin\Debug\x86\Microsoft* directory in the zip file -----------------
+REM set ErrorTracker=44
+REM echo 7z d SampleLiveSyncSource.zip bin\Debug\x86\Microsoft.VC90.CRT\
+REM 7z d SampleLiveSyncSource.zip bin\Debug\x86\Microsoft.VC90.CRT\
+REM echo 7z DeleteErrorLevel: %25errorlevel%25
+REM if errorlevel 1 goto BuildEventFailed
+
+REM REM ----- Delete the bin\Release\x86\Microsoft* directory in the zip file -----------------
+REM set ErrorTracker=45
+REM echo 7z d SampleLiveSyncSource.zip bin\Release\x86\Microsoft.VC90.CRT\
+REM 7z d SampleLiveSyncSource.zip bin\Release\x86\Microsoft.VC90.CRT\
+REM echo 7z DeleteErrorLevel: %25errorlevel%25
+REM if errorlevel 1 goto BuildEventFailed
 
 REM *****************  Delete the sample app .exe files in bin\release and bin\debug
 REM ----- Delete the bin\Debug\Sample-Live-Sync*.* in the zip file -----------------

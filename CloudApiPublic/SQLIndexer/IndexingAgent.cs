@@ -106,91 +106,103 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns any error which occurred querying the database, if any</returns>
         public CLError QueryFileChangeByEventId(long eventId, out FileChange queryResult, out bool isPending, out FileChangeQueryStatus status)
         {
-            throw new NotImplementedException("1");
-            //try
-            //{
-            //    using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
-            //    {
-            //        FileSystemObject[] resultSet = SqlAccessor<FileSystemObject>.SelectResultSet(
-            //            indexDB,
-            //            "SELECT " +
-            //                SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-            //                SqlAccessor<Event>.GetSelectColumns("Event") + " " +
-            //                "FROM [FileSystemObjects] " +
-            //                "INNER JOIN [Events] ON [FileSystemObjects].[EventId] = [Events].[EventId] " +
-            //                "WHERE [Events].[EventId] = " + eventId.ToString() +
-            //                "ORDER BY [FileSystemObjects].[FileSystemObjectId] DESC",
-            //            includes: new[]
-            //            {
-            //                "Event"
-            //            }).ToArray();
+            try
+            {
+                if (eventId <= 0)
+                {
+                    throw new ArgumentException("eventId cannot be equal to or less than zero");
+                }
 
-            //        if (resultSet.Length == 0)
-            //        {
-            //            status = FileChangeQueryStatus.ErrorNotFound;
-            //            queryResult = null;
-            //            isPending = false;
-            //        }
-            //        else
-            //        {
-            //            string previousSyncRoot;
-            //            if (resultSet[0].SyncCounter == null)
-            //            {
-            //                previousSyncRoot = indexedPath;
-            //            }
-            //            else
-            //            {
-            //                previousSyncRoot = 
-            //                    SqlAccessor<SqlSync>.SelectResultSet(
-            //                        indexDB,
-            //                        "SELECT * FROM [Syncs] " +
-            //                        "WHERE [Syncs].[SyncCounter] = " + ((long)resultSet[0].SyncCounter).ToString())
-            //                        .SingleOrDefault().RootPath;
-            //            }
+                using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
+                {
+                    bool resultFound = false;
+                    queryResult = null;
+                    isPending = false;
 
-            //            queryResult = new FileChange()
-            //            {
-            //                Direction = (resultSet[0].Event.SyncFrom ? SyncDirection.From : SyncDirection.To),
-            //                EventId = eventId,
-            //                Metadata = new FileMetadata()
-            //                {
-            //                    // TODO: add server id
-            //                    HashableProperties = new FileMetadataHashableProperties(resultSet[0].IsFolder,
-            //                        resultSet[0].LastTime,
-            //                        resultSet[0].CreationTime,
-            //                        resultSet[0].Size),
-            //                    LinkTargetPath = resultSet[0].TargetPath,
-            //                    Revision = resultSet[0].Revision,
-            //                    StorageKey = resultSet[0].StorageKey,
-            //                },
-            //                NewPath = indexedPath + ((FilePath)resultSet[0].Path).GetRelativePath(previousSyncRoot, false),
-            //                OldPath = (string.IsNullOrEmpty(resultSet[0].Event.PreviousPath)
-            //                    ? null
-            //                    : indexedPath + ((FilePath)resultSet[0].Event.PreviousPath).GetRelativePath(previousSyncRoot, false)),
-            //                Type = changeEnums[resultSet[0].Event.FileChangeTypeEnumId],
-            //            };
+                    foreach (Event existingEvent in SqlAccessor<Event>.SelectResultSet(
+                            indexDB,
+                            "SELECT " +
+                                SqlAccessor<Event>.GetSelectColumns() + ", " +
+                                SqlAccessor<FileSystemObject>.GetSelectColumns("FileSystemObject") + ", " +
+                                SqlAccessor<FileSystemObject>.GetSelectColumns("Previous", "Previouses") +
+                                " FROM Events" +
+                                " INNER JOIN FileSystemObjects ON Events.EventId = FileSystemObjects.EventId" +
+                                " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = FileSystemObjects.FileSystemObjectId" +
+                                " WHERE Events.EventId = ?" +
+                                " ORDER BY" +
+                                " CASE WHEN FileSystemObjects.EventOrder IS NULL" +
+                                " THEN 0" +
+                                " ELSE FileSystemObjects.EventOrder" +
+                                " END DESC",
+                            new[]
+                            {
+                                "FileSystemObject",
+                                "Previous"
+                            },
+                            selectParameters: Helpers.EnumerateSingleItem(eventId)))
+                    {
+                        if (resultFound)
+                        {
+                            status = FileChangeQueryStatus.ErrorMultipleResults;
+                            return SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Multiple objects found for given eventId");
+                        }
 
-            //            if (resultSet.Length == 1)
-            //            {
-            //                isPending = resultSet[0].SyncCounter == null;
-            //                status = FileChangeQueryStatus.Success;
-            //            }
-            //            else
-            //            {
-            //                isPending = resultSet.Any(currentResult => currentResult.SyncCounter == null);
-            //                status = FileChangeQueryStatus.ErrorMultipleResults;
-            //            }
-            //        }
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    status = FileChangeQueryStatus.ErrorUnknown;
-            //    queryResult = Helpers.DefaultForType<FileChange>();
-            //    isPending = Helpers.DefaultForType<bool>();
-            //    return ex;
-            //}
-            //return null;
+                        resultFound = true;
+                        
+                        queryResult = new FileChange()
+                        {
+                            Direction = (existingEvent.SyncFrom ? SyncDirection.From : SyncDirection.To),
+                            EventId = existingEvent.EventId,
+                            Metadata = new FileMetadata()
+                            {
+                                EventTime = new DateTime(existingEvent.FileSystemObject.EventTimeUTCTicks, DateTimeKind.Utc),
+                                HashableProperties = new FileMetadataHashableProperties(
+                                    existingEvent.FileSystemObject.IsFolder,
+                                    (existingEvent.FileSystemObject.LastTimeUTCTicks == null
+                                        ? (Nullable<DateTime>)null
+                                        : new DateTime((long)existingEvent.FileSystemObject.LastTimeUTCTicks, DateTimeKind.Utc)),
+                                    (existingEvent.FileSystemObject.CreationTimeUTCTicks == null
+                                        ? (Nullable<DateTime>)null
+                                        : new DateTime((long)existingEvent.FileSystemObject.CreationTimeUTCTicks, DateTimeKind.Utc)),
+                                    existingEvent.FileSystemObject.Size),
+                                IsShare = existingEvent.FileSystemObject.IsShare,
+                                MimeType = existingEvent.FileSystemObject.MimeType,
+                                Permissions = (existingEvent.FileSystemObject.Permissions == null
+                                    ? (Nullable<POSIXPermissions>)null
+                                    : (POSIXPermissions)((int)existingEvent.FileSystemObject.Permissions)),
+                                Revision = existingEvent.FileSystemObject.Revision,
+                                ServerUid = existingEvent.FileSystemObject.ServerUid,
+                                StorageKey = existingEvent.FileSystemObject.StorageKey,
+                                Version = existingEvent.FileSystemObject.Version
+                            },
+                            NewPath = existingEvent.FileSystemObject.CalculatedFullPath,
+                            OldPath = (existingEvent.Previous == null
+                                ? null
+                                : existingEvent.Previous.CalculatedFullPath),
+                            Type = changeEnums[existingEvent.FileChangeTypeEnumId]
+                        };
+                        queryResult.SetMD5(existingEvent.FileSystemObject.MD5);
+                        isPending = existingEvent.FileSystemObject.Pending;
+                    }
+
+                    if (!resultFound)
+                    {
+                        status = FileChangeQueryStatus.ErrorNotFound;
+                    }
+                    else
+                    {
+                        status = FileChangeQueryStatus.Success;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                queryResult = Helpers.DefaultForType<FileChange>();
+                isPending = Helpers.DefaultForType<bool>();
+                status = FileChangeQueryStatus.ErrorUnknown;
+                return ex;
+            }
+            return null;
         }
 
         /// <summary>
@@ -517,144 +529,134 @@ namespace Cloud.SQLIndexer
 
         public CLError GetMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata)
         {
-            throw new NotImplementedException("3");
-            //ExternalSQLLocker.EnterReadLock();
-            //try
-            //{
-            //    if (string.IsNullOrEmpty(path))
-            //    {
-            //        throw new NullReferenceException("path cannot be null");
-            //    }
+            try
+            {
+                if (string.IsNullOrEmpty(path))
+                {
+                    throw new NullReferenceException("path cannot be null");
+                }
 
-            //    using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
-            //    {
-            //        // Grab the most recent sync from the database to pull sync states
-            //        SqlSync lastSync = SqlAccessor<SqlSync>
-            //            .SelectResultSet(indexDB,
-            //                "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
-            //            .SingleOrDefault();
+                using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
+                {
+                    FileSystemObject existingNonPending = SqlAccessor<FileSystemObject>.SelectResultSet(
+                            indexDB,
+                            "SELECT * " +
+                                "FROM FileSystemObjects " +
+                                "WHERE CalculatedFullPath = ? " + // <-- parameter 1
+                                (revision == null
+                                    ? string.Empty
+                                    : "AND Revision = ?") + // <-- conditional parameter 2
+                                "ORDER BY " +
+                                "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                                "THEN 0 " +
+                                "ELSE FileSystemObjects.EventOrder " +
+                                "END DESC " +
+                                "LIMIT 1",
+                                selectParameters: (revision == null ? Helpers.EnumerateSingleItem(path) : new[] { path, revision }))
+                        .SingleOrDefault();
 
-            //        if (lastSync == null)
-            //        {
-            //            metadata = null;
-            //        }
-            //        else
-            //        {
-            //            int pathCRC = StringCRC.Crc(path);
+                    if (existingNonPending == null)
+                    {
+                        throw new KeyNotFoundException("Unable to find existing FileSystemObject by path" + (revision == null ? string.Empty : " and revision"));
+                    }
 
-            //            // TODO: need to add back the null check on revision below when server fixes the issue with the 'revision' field on file renames
-
-            //            FileSystemObject foundSync = SqlAccessor<FileSystemObject>
-            //                .SelectResultSet(indexDB,
-            //                    "SELECT TOP 1 * " +
-            //                    "FROM [FileSystemObjects] " +
-            //                    "WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter.ToString() + " " +
-            //                    "AND [FileSystemObjects].[PathChecksum] = " + pathCRC.ToString() + " " +
-            //                    (revision == null
-            //                        ? string.Empty//"AND [FileSystemObjects].[Revision] IS NULL " <--- temporarily removed since server stopped sending 'revision' in metadata on file renames
-            //                        : "AND [FileSystemObjects].[Revision] = '" + revision.Replace("'", "''").ToLowerInvariant() + "'") +
-            //                    " ORDER BY [FileSystemObjects].[EventId] DESC")
-            //                .SingleOrDefault(parent => parent.Path == path); // run in memory since Path field is not indexable
-
-            //            if (foundSync != null)
-            //            {
-            //                metadata = new FileMetadata()
-            //                {
-            //                    // TODO: add server id
-            //                    HashableProperties = new FileMetadataHashableProperties(foundSync.IsFolder,
-            //                        foundSync.LastTime,
-            //                        foundSync.CreationTime,
-            //                        foundSync.Size),
-            //                    LinkTargetPath = foundSync.TargetPath,
-            //                    Revision = foundSync.Revision,
-            //                    StorageKey = foundSync.StorageKey
-            //                };
-            //            }
-            //            else
-            //            {
-            //                metadata = null;
-            //            }
-            //        }
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    metadata = Helpers.DefaultForType<FileMetadata>();
-            //    return ex;
-            //}
-            //finally
-            //{
-            //    ExternalSQLLocker.ExitReadLock();
-            //}
-            //return null;
+                    metadata = new FileMetadata()
+                    {
+                        EventTime = new DateTime(existingNonPending.EventTimeUTCTicks, DateTimeKind.Utc),
+                        HashableProperties = new FileMetadataHashableProperties(
+                            existingNonPending.IsFolder,
+                            (existingNonPending.LastTimeUTCTicks == null
+                                ? (Nullable<DateTime>)null
+                                : new DateTime((long)existingNonPending.LastTimeUTCTicks, DateTimeKind.Utc)),
+                            (existingNonPending.CreationTimeUTCTicks == null
+                                ? (Nullable<DateTime>)null
+                                : new DateTime((long)existingNonPending.CreationTimeUTCTicks, DateTimeKind.Utc)),
+                            existingNonPending.Size),
+                        IsShare = existingNonPending.IsShare,
+                        MimeType = existingNonPending.MimeType,
+                        Permissions = (existingNonPending.Permissions == null
+                            ? (Nullable<POSIXPermissions>)null
+                            : (POSIXPermissions)((int)existingNonPending.Permissions)),
+                        Revision = existingNonPending.Revision,
+                        ServerUid = existingNonPending.ServerUid,
+                        StorageKey = existingNonPending.StorageKey,
+                        Version = existingNonPending.Version
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                metadata = Helpers.DefaultForType<FileMetadata>();
+                return ex;
+            }
+            return null;
         }
 
-        /// <summary>
-        /// Retrieves all unprocessed events that occurred since the last sync
-        /// </summary>
-        /// <param name="changeEvents">Outputs the unprocessed events</param>
-        /// <returns>Returns an error that occurred filling the unprocessed events, if any</returns>
-        public CLError GetPendingEvents(out List<KeyValuePair<FilePath, FileChange>> changeEvents)
-        {
-            throw new NotImplementedException("4");
-            //ExternalSQLLocker.EnterReadLock();
-            //try
-            //{
-            //    using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
-            //    {
-            //        // Create the output list
-            //        changeEvents = new List<KeyValuePair<FilePath, FileChange>>();
+        ///// <summary>
+        ///// Retrieves all unprocessed events that occurred since the last sync
+        ///// </summary>
+        ///// <param name="changeEvents">Outputs the unprocessed events</param>
+        ///// <returns>Returns an error that occurred filling the unprocessed events, if any</returns>
+        //public CLError GetPendingEvents(out List<KeyValuePair<FilePath, FileChange>> changeEvents)
+        //{
+        //    ExternalSQLLocker.EnterReadLock();
+        //    try
+        //    {
+        //        using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
+        //        {
+        //            // Create the output list
+        //            changeEvents = new List<KeyValuePair<FilePath, FileChange>>();
 
-            //        // Loop through all the events in the database after the last sync (if any)
-            //        foreach (Event currentChange in
-            //            SqlAccessor<Event>
-            //                .SelectResultSet(indexDB,
-            //                    "SELECT " +
-            //                    SqlAccessor<Event>.GetSelectColumns() + ", " +
-            //                    SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) +
-            //                    "FROM [Events] " +
-            //                    "INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
-            //                    "WHERE [FileSystemObjects].[SyncCounter] IS NULL " +
-            //                    "ORDER BY [Events].[EventId]",
-            //                    new string[]
-            //                    {
-            //                        FileSystemObject.Name
-            //                    }))
-            //        {
-            //            // For each event since the last sync (if any), add to the output dictionary
-            //            changeEvents.Add(new KeyValuePair<FilePath, FileChange>(currentChange.FileSystemObject.Path,
-            //                new FileChange()
-            //                {
-            //                    NewPath = currentChange.FileSystemObject.Path,
-            //                    OldPath = currentChange.PreviousPath,
-            //                    Type = changeEnums[currentChange.FileChangeTypeEnumId],
-            //                    Metadata = new FileMetadata()
-            //                    {
-            //                        // TODO: add server id
-            //                        HashableProperties = new FileMetadataHashableProperties(currentChange.FileSystemObject.IsFolder,
-            //                            currentChange.FileSystemObject.LastTime,
-            //                            currentChange.FileSystemObject.CreationTime,
-            //                            currentChange.FileSystemObject.Size),
-            //                        Revision = currentChange.FileSystemObject.Revision,
-            //                        StorageKey = currentChange.FileSystemObject.StorageKey,
-            //                        LinkTargetPath = currentChange.FileSystemObject.TargetPath
-            //                    },
-            //                    Direction = (currentChange.SyncFrom ? SyncDirection.From : SyncDirection.To)
-            //                }));
-            //        }
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    changeEvents = Helpers.DefaultForType<List<KeyValuePair<FilePath, FileChange>>>();
-            //    return ex;
-            //}
-            //finally
-            //{
-            //    ExternalSQLLocker.ExitReadLock();
-            //}
-            //return null;
-        }
+        //            // Loop through all the events in the database after the last sync (if any)
+        //            foreach (Event currentChange in
+        //                SqlAccessor<Event>
+        //                    .SelectResultSet(indexDB,
+        //                        "SELECT " +
+        //                        SqlAccessor<Event>.GetSelectColumns() + ", " +
+        //                        SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) +
+        //                        "FROM [Events] " +
+        //                        "INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
+        //                        "WHERE [FileSystemObjects].[SyncCounter] IS NULL " +
+        //                        "ORDER BY [Events].[EventId]",
+        //                        new string[]
+        //                        {
+        //                            FileSystemObject.Name
+        //                        }))
+        //            {
+        //                // For each event since the last sync (if any), add to the output dictionary
+        //                changeEvents.Add(new KeyValuePair<FilePath, FileChange>(currentChange.FileSystemObject.Path,
+        //                    new FileChange()
+        //                    {
+        //                        NewPath = currentChange.FileSystemObject.Path,
+        //                        OldPath = currentChange.PreviousPath,
+        //                        Type = changeEnums[currentChange.FileChangeTypeEnumId],
+        //                        Metadata = new FileMetadata()
+        //                        {
+        //                            // TODO: add server id
+        //                            HashableProperties = new FileMetadataHashableProperties(currentChange.FileSystemObject.IsFolder,
+        //                                currentChange.FileSystemObject.LastTime,
+        //                                currentChange.FileSystemObject.CreationTime,
+        //                                currentChange.FileSystemObject.Size),
+        //                            Revision = currentChange.FileSystemObject.Revision,
+        //                            StorageKey = currentChange.FileSystemObject.StorageKey,
+        //                            LinkTargetPath = currentChange.FileSystemObject.TargetPath
+        //                        },
+        //                        Direction = (currentChange.SyncFrom ? SyncDirection.From : SyncDirection.To)
+        //                    }));
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        changeEvents = Helpers.DefaultForType<List<KeyValuePair<FilePath, FileChange>>>();
+        //        return ex;
+        //    }
+        //    finally
+        //    {
+        //        ExternalSQLLocker.ExitReadLock();
+        //    }
+        //    return null;
+        //}
 
         /// <summary>
         /// Adds an unprocessed change since the last sync as a new event to the database,
@@ -1481,77 +1483,16 @@ namespace Cloud.SQLIndexer
         /// <returns></returns>
         public CLError WipeIndex(string newRootPath)
         {
-            throw new NotImplementedException("9");
-            //try
-            //{
-            //    ExternalSQLLocker.EnterWriteLock();
-            //    try
-            //    {
-            //        using (SqlCeConnection indexDB = new SqlCeConnection(buildConnectionString(this.indexDBLocation)))
-            //        {
-            //            indexDB.Open();
-
-            //            using (SqlCeTransaction indexTransaction = indexDB.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
-            //            {
-            //                // It does not matter functionally if there was an error deleting an event (it may be orphaned without causing a problem),
-            //                // so we delete events outside of the main transaction which can be allowed to fail
-            //                IEnumerable<Event> deleteEvents;
-            //                    IEnumerable<int> unableToFindIndexes;
-
-            //                try
-            //                {
-            //                    IEnumerable<FileSystemObject> pendingToDelete = SqlAccessor<FileSystemObject>.SelectResultSet(indexDB,
-            //                        "SELECT " + SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-            //                            SqlAccessor<Event>.GetSelectColumns("Event") + " " +
-            //                            "FROM [FileSystemObjects] " +
-            //                            "LEFT OUTER JOIN [Events] ON [FileSystemObjects].[EventId] = [Events].[EventId] " +
-            //                            "WHERE  [FileSystemObjects].[SyncCounter] IS NULL ",
-            //                        new string[] { "Event" },
-            //                        indexTransaction).ToArray();
-
-            //                    SqlAccessor<FileSystemObject>.DeleteRows(indexDB,
-            //                        pendingToDelete,
-            //                        out unableToFindIndexes,
-            //                        transaction: indexTransaction);
-
-            //                    deleteEvents = pendingToDelete.Where(toDelete => toDelete.EventId != null)
-            //                        .Select(toDelete => toDelete.Event);
-
-            //                    SqlAccessor<SqlSync>.InsertRow(indexDB,
-            //                        new SqlSync()
-            //                        {
-            //                            SyncId = IdForEmptySync,
-            //                            RootPath = newRootPath
-            //                        },
-            //                        transaction: indexTransaction);
-
-            //                    indexTransaction.Commit(CommitMode.Immediate);
-            //                }
-            //                catch
-            //                {
-            //                    indexTransaction.Rollback();
-
-            //                    throw;
-            //                }
-
-            //                SqlAccessor<Event>.DeleteRows(indexDB,
-            //                    deleteEvents,
-            //                    out unableToFindIndexes);
-            //            }
-            //        }
-            //    }
-            //    finally
-            //    {
-            //        ExternalSQLLocker.ExitWriteLock();
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    return ex;
-            //}
-            //return null;
+            try
+            {
+                InitializeDatabase(newRootPath, createEvenIfExisting: true);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
-        private const string IdForEmptySync = "0";
 
         /// <summary>
         /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
@@ -2491,40 +2432,44 @@ namespace Cloud.SQLIndexer
             return toReturn;
         }
 
-        private void MarkBadgeSyncedAfterEventCompletion(FileChangeType storeExistingChangeType, string storeNewPath, string storeOldPath, bool storeWhetherEventIsASyncFrom)
+        /// <summary>
+        /// Call this when the location of the sync folder has changed (while syncing is stopped) to update the entire index to all new paths based in the new root folder
+        /// </summary>
+        public CLError ChangeSyncRoot(string newSyncRoot)
         {
-            Action<FilePath> setBadgeSynced = syncedPath =>
+            try
             {
-                MessageEvents.QueueSetBadge(this, new SetBadge(PathState.Synced, syncedPath));   // Message to invoke BadgeNet.IconOverlay.QueueSetBadge(PathState.Synced, syncedPath);
-            };
+                if (string.IsNullOrEmpty(newSyncRoot))
+                {
+                    throw new NullReferenceException("newSyncRoot cannot be null");
+                }
 
-            // Adjust the badge for this completed event.
-            switch (storeExistingChangeType)
-            {
-                case FileChangeType.Created:
-                case FileChangeType.Modified:
-                    setBadgeSynced(storeNewPath);
-                    break;
-                case FileChangeType.Deleted:
-                    if (storeWhetherEventIsASyncFrom)
+                // initializing the database may create the database starting at the newSyncRoot so no setting is required;
+                // otherwise, still need to set the root
+                if (!InitializeDatabase(newSyncRoot))
+                {
+                    using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                     {
-                        bool isDeleted;
-                        MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(storeNewPath), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(currentEvent.FileSystemObject.Path, out isDeleted);
-                    }
-                    else
-                    {
-                        setBadgeSynced(storeNewPath);
-                    }
-                    break;
-                case FileChangeType.Renamed:
-                    if (storeWhetherEventIsASyncFrom)
-                    {
-                        MessageEvents.RenameBadgePath(this, new RenameBadgePath(storeOldPath, storeNewPath));   // Message to invoke BadgeNet.IconOverlay.RenameBadgePath(currentEvent.PreviousPath, currentEvent.FileSystemObject.Path);
-                    }
+                        using (ISQLiteCommand changeRoot = indexDB.CreateCommand())
+                        {
+                            changeRoot.CommandText = "UPDATE FileSystemObjects " +
+                                "SET Name = ? " + // <-- parameter 1
+                                "WHERE ParentFolderId IS NULL"; // condition for root folder object
 
-                    setBadgeSynced(storeNewPath);
-                    break;
+                            ISQLiteParameter newRootParam = changeRoot.CreateParameter();
+                            newRootParam.Value = newSyncRoot;
+                            changeRoot.Parameters.Add(newRootParam);
+
+                            changeRoot.ExecuteNonQuery();
+                        }
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
         #endregion
 
@@ -2552,7 +2497,7 @@ namespace Cloud.SQLIndexer
             this.syncbox = syncbox;
         }
 
-        private void InitializeDatabase(string syncRoot)
+        private bool InitializeDatabase(string syncRoot, bool createEvenIfExisting = false)
         {
             FileInfo dbInfo = new FileInfo(indexDBLocation);
 
@@ -2561,67 +2506,75 @@ namespace Cloud.SQLIndexer
 
             if (dbInfo.Exists)
             {
-                try
+                if (createEvenIfExisting)
                 {
-                    using (ISQLiteConnection verifyAndUpdateConnection = CreateAndOpenCipherConnection())
-                    {
-                        CheckIntegrity(verifyAndUpdateConnection);
-
-                        int existingVersion;
-
-                        using (ISQLiteCommand getVersionCommand = verifyAndUpdateConnection.CreateCommand())
-                        {
-                            getVersionCommand.CommandText = "PRAGMA user_version;";
-                            existingVersion = Convert.ToInt32(getVersionCommand.ExecuteScalar());
-                        }
-
-                        if (existingVersion < 2)
-                        {
-                            // database was never finalized (version is changed from 1 to [current database version] via the last initialization script, which identifies successful creation)
-                            // the very first implementation of this database will be version 2 so we can compare on less than 2
-
-                            createDB = true;
-                            deleteDB = true;
-                        }
-                        else
-                        {
-                            int newVersion = -1;
-
-                            foreach (KeyValuePair<int, IMigration> currentDBMigration in MigrationList.GetMigrationsAfterVersion(existingVersion))
-                            {
-                                currentDBMigration.Value.Apply(
-                                    verifyAndUpdateConnection,
-                                    indexDBPassword);
-
-                                newVersion = currentDBMigration.Key;
-                            }
-
-                            if (newVersion > existingVersion)
-                            {
-                                using (ISQLiteCommand updateVersionCommand = verifyAndUpdateConnection.CreateCommand())
-                                {
-                                    updateVersionCommand.CommandText = "PRAGMA user_version = " + newVersion.ToString();
-                                    updateVersionCommand.ExecuteNonQuery();
-                                }
-                            }
-
-                            createDB = false;
-                            deleteDB = false;
-                        }
-                    }
-                }
-                catch (SQLiteExceptionBase ex)
-                {
-                    // notify database replaced due to corruption
-                    MessageEvents.FireNewEventMessage(
-                        "Database corruption found on initializing index. Replacing database with a fresh one. Files and folders changed while offline will be grabbed again from server. Error message: " + ex.Message,
-                        EventMessageLevel.Important,
-                        new GeneralErrorInfo(),
-                        syncbox.SyncboxId,
-                        syncbox.CopiedSettings.DeviceId);
-
                     deleteDB = true;
                     createDB = true;
+                }
+                else
+                {
+                    try
+                    {
+                        using (ISQLiteConnection verifyAndUpdateConnection = CreateAndOpenCipherConnection())
+                        {
+                            CheckIntegrity(verifyAndUpdateConnection);
+
+                            int existingVersion;
+
+                            using (ISQLiteCommand getVersionCommand = verifyAndUpdateConnection.CreateCommand())
+                            {
+                                getVersionCommand.CommandText = "PRAGMA user_version;";
+                                existingVersion = Convert.ToInt32(getVersionCommand.ExecuteScalar());
+                            }
+
+                            if (existingVersion < 2)
+                            {
+                                // database was never finalized (version is changed from 1 to [current database version] via the last initialization script, which identifies successful creation)
+                                // the very first implementation of this database will be version 2 so we can compare on less than 2
+
+                                createDB = true;
+                                deleteDB = true;
+                            }
+                            else
+                            {
+                                int newVersion = -1;
+
+                                foreach (KeyValuePair<int, IMigration> currentDBMigration in MigrationList.GetMigrationsAfterVersion(existingVersion))
+                                {
+                                    currentDBMigration.Value.Apply(
+                                        verifyAndUpdateConnection,
+                                        indexDBPassword);
+
+                                    newVersion = currentDBMigration.Key;
+                                }
+
+                                if (newVersion > existingVersion)
+                                {
+                                    using (ISQLiteCommand updateVersionCommand = verifyAndUpdateConnection.CreateCommand())
+                                    {
+                                        updateVersionCommand.CommandText = "PRAGMA user_version = " + newVersion.ToString();
+                                        updateVersionCommand.ExecuteNonQuery();
+                                    }
+                                }
+
+                                createDB = false;
+                                deleteDB = false;
+                            }
+                        }
+                    }
+                    catch (SQLiteExceptionBase ex)
+                    {
+                        // notify database replaced due to corruption
+                        MessageEvents.FireNewEventMessage(
+                            "Database corruption found on initializing index. Replacing database with a fresh one. Files and folders changed while offline will be grabbed again from server. Error message: " + ex.Message,
+                            EventMessageLevel.Important,
+                            new GeneralErrorInfo(),
+                            syncbox.SyncboxId,
+                            syncbox.CopiedSettings.DeviceId);
+
+                        deleteDB = true;
+                        createDB = true;
+                    }
                 }
             }
             else
@@ -2740,55 +2693,108 @@ namespace Cloud.SQLIndexer
                 }
             }
 
-            int changeEnumsCount = System.Enum.GetNames(typeof(FileChangeType)).Length;
-            changeEnums = new Dictionary<long, FileChangeType>(changeEnumsCount);
-            changeEnumsBackward = new Dictionary<FileChangeType, long>(changeEnumsCount);
-
-            using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
+            lock (changeEnumsLocker)
             {
-                long storeCategoryId = -1;
-                foreach (EnumCategory currentCategory in SqlAccessor<EnumCategory>
-                    .SelectResultSet(indexDB,
-                        "SELECT * FROM EnumCategories WHERE Name = '" + typeof(FileChangeType).Name.Replace("'", "''") + "'"))
+                if (changeEnums == null)
                 {
-                    if (storeCategoryId == -1)
+                    try
                     {
-                        storeCategoryId = currentCategory.EnumCategoryId;
+                        int changeEnumsCount = System.Enum.GetNames(typeof(FileChangeType)).Length;
+                        changeEnums = new Dictionary<long, FileChangeType>(changeEnumsCount);
+                        changeEnumsBackward = new Dictionary<FileChangeType, long>(changeEnumsCount);
+
+                        using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
+                        {
+                            long storeCategoryId = -1;
+                            foreach (EnumCategory currentCategory in SqlAccessor<EnumCategory>
+                                .SelectResultSet(indexDB,
+                                    "SELECT * FROM EnumCategories WHERE Name = '" + typeof(FileChangeType).Name.Replace("'", "''") + "'"))
+                            {
+                                if (storeCategoryId == -1)
+                                {
+                                    storeCategoryId = currentCategory.EnumCategoryId;
+                                }
+                                else
+                                {
+                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "More than one type with name FileChangeType found");
+                                }
+                            }
+
+                            if (storeCategoryId == -1)
+                            {
+                                throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "No EnumCategory found with name FileChangeType");
+                            }
+
+                            foreach (SqlEnum currentChangeEnum in SqlAccessor<SqlEnum>
+                                .SelectResultSet(indexDB,
+                                    "SELECT * FROM Enums WHERE Enums.EnumCategoryId = " + storeCategoryId.ToString()))
+                            {
+                                changeCategoryId = currentChangeEnum.EnumCategoryId;
+                                long forwardKey = currentChangeEnum.EnumId;
+
+                                FileChangeType forwardValue;
+                                if (!System.Enum.TryParse<FileChangeType>(currentChangeEnum.Name, out forwardValue))
+                                {
+                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Name of Enum for FileChangeType EnumCategory does not parse as a FileChangeType");
+                                }
+
+                                changeEnums.Add(forwardKey,
+                                    forwardValue);
+                                changeEnumsBackward.Add(forwardValue,
+                                    forwardKey);
+                            }
+                        }
+
+                        if (changeEnums.Count != changeEnumsCount)
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "FileChangeType enumerated values do not match count with names in the database");
+                        }
                     }
-                    else
+                    catch
                     {
-                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "More than one type with name FileChangeType found");
+                        changeEnums = null; // used as condition to rebuild the static dictionaries
+
+                        throw;
                     }
-                }
-
-                if (storeCategoryId == -1)
-                {
-                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "No EnumCategory found with name FileChangeType");
-                }
-
-                foreach (SqlEnum currentChangeEnum in SqlAccessor<SqlEnum>
-                    .SelectResultSet(indexDB,
-                        "SELECT * FROM Enums WHERE Enums.EnumCategoryId = " + storeCategoryId.ToString()))
-                {
-                    changeCategoryId = currentChangeEnum.EnumCategoryId;
-                    long forwardKey = currentChangeEnum.EnumId;
-
-                    FileChangeType forwardValue;
-                    if (!System.Enum.TryParse<FileChangeType>(currentChangeEnum.Name, out forwardValue))
-                    {
-                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Name of Enum for FileChangeType EnumCategory does not parse as a FileChangeType");
-                    }
-
-                    changeEnums.Add(forwardKey,
-                        forwardValue);
-                    changeEnumsBackward.Add(forwardValue,
-                        forwardKey);
                 }
             }
 
-            if (changeEnums.Count != changeEnumsCount)
+            return createDB;
+        }
+
+        private void MarkBadgeSyncedAfterEventCompletion(FileChangeType storeExistingChangeType, string storeNewPath, string storeOldPath, bool storeWhetherEventIsASyncFrom)
+        {
+            Action<FilePath> setBadgeSynced = syncedPath =>
             {
-                throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "FileChangeType enumerated values do not match count with names in the database");
+                MessageEvents.QueueSetBadge(this, new SetBadge(PathState.Synced, syncedPath));   // Message to invoke BadgeNet.IconOverlay.QueueSetBadge(PathState.Synced, syncedPath);
+            };
+
+            // Adjust the badge for this completed event.
+            switch (storeExistingChangeType)
+            {
+                case FileChangeType.Created:
+                case FileChangeType.Modified:
+                    setBadgeSynced(storeNewPath);
+                    break;
+                case FileChangeType.Deleted:
+                    if (storeWhetherEventIsASyncFrom)
+                    {
+                        bool isDeleted;
+                        MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(storeNewPath), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(currentEvent.FileSystemObject.Path, out isDeleted);
+                    }
+                    else
+                    {
+                        setBadgeSynced(storeNewPath);
+                    }
+                    break;
+                case FileChangeType.Renamed:
+                    if (storeWhetherEventIsASyncFrom)
+                    {
+                        MessageEvents.RenameBadgePath(this, new RenameBadgePath(storeOldPath, storeNewPath));   // Message to invoke BadgeNet.IconOverlay.RenameBadgePath(currentEvent.PreviousPath, currentEvent.FileSystemObject.Path);
+                    }
+
+                    setBadgeSynced(storeNewPath);
+                    break;
             }
         }
 

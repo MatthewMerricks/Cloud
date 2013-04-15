@@ -25,7 +25,7 @@ namespace win_client.Common
 
         public CLBalloonTooltipNotification()
         {
-            throw new NotImplementedException("Default constructor not supported.");
+            throw new NotSupportedException("Default constructor not supported.");
         }
 
         public CLBalloonTooltipNotification(string title, string text, BalloonIcon iconType, Icon customIcon)

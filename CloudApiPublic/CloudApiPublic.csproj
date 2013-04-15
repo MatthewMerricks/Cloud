@@ -49,7 +49,8 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNoSSL|AnyCPU'">
     <OutputPath>bin\ReleaseNoSSL\</OutputPath>
@@ -391,7 +392,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="CloudPlatformCodeSigning.pfx" />
     <None Include="Docs\MainPage.dox" />
     <None Include="FileMonitor\FileMonitorMemory.xsd">
       <SubType>Designer</SubType>

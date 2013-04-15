@@ -321,11 +321,14 @@ namespace CloudSetupSdkSyncSampleSupport
                 // Install all of the DLLs required for the sample in the gac.
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call InstallDllsToGac.");
                 InstallDllsToGac(pathInstall);
-
-                // Install SQL CE V4.0.
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call InstallSqlCe.");
-                InstallSqlCe(pathInstall);
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Back from InstallSqlCe.");
+                
+                //// SQL CE has been deprecated by Microsoft. We have replaced it with a version of SQLite which uses mixed-mode DLLs instead of any unmanaged DLLs.
+                //// - David
+                //
+                //// Install SQL CE V4.0.
+                //_trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call InstallSqlCe.");
+                //InstallSqlCe(pathInstall);
+                //_trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Back from InstallSqlCe.");
 
                 // Schedule cleanup of the files in the installation directory.
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Call ScheduleCleanup.");
@@ -342,62 +345,68 @@ namespace CloudSetupSdkSyncSampleSupport
             return rcToReturn;
         }
 
-        /// <summary>
-        /// Install SQL CE.
-        /// </summary>
-        /// <param name="pathInstall">The installation path (program files\Cloud.com).</param>
-        private static void InstallSqlCe(string pathInstall)
-        {
-            try
-            {
-                // Determine whether an installation is required.
-                if (IsSqlCeV40Installed())
-                {
-                    // Not required to install
-                    _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Installation not required.");
-                }
-                else
-                {
-                    // Create a flag file for CloudSetupSdkSyncSampleInstallCleanup to actually do the installation.
-                    _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Request installation.");
-                    System.IO.File.WriteAllText(pathInstall + "\\Support\\InstallSqlCe.flg", "Flag file");
-                }
-            }
-            catch (Exception ex)
-            {
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: ERROR: Exception. Msg: {0}.", ex.Message);
-            }
-        }
+        //// SQL CE has been deprecated by Microsoft. We have replaced it with a version of SQLite which uses mixed-mode DLLs instead of any unmanaged DLLs.
+        //// - David
+        //
+        ///// <summary>
+        ///// Install SQL CE.
+        ///// </summary>
+        ///// <param name="pathInstall">The installation path (program files\Cloud.com).</param>
+        //private static void InstallSqlCe(string pathInstall)
+        //{
+        //    try
+        //    {
+        //        // Determine whether an installation is required.
+        //        if (IsSqlCeV40Installed())
+        //        {
+        //            // Not required to install
+        //            _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Installation not required.");
+        //        }
+        //        else
+        //        {
+        //            // Create a flag file for CloudSetupSdkSyncSampleInstallCleanup to actually do the installation.
+        //            _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: Request installation.");
+        //            System.IO.File.WriteAllText(pathInstall + "\\Support\\InstallSqlCe.flg", "Flag file");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallSqlCe: ERROR: Exception. Msg: {0}.", ex.Message);
+        //    }
+        //}
 
-        /// <summary>
-        /// Determine whether SQL CE V4.0 is installed.
-        /// From ErikEJ: http://stackoverflow.com/questions/10534158/how-to-detect-if-sql-server-ce-4-0-is-installed
-        /// </summary>
-        /// <returns>bool: True: It is installed.</returns>
-        public static bool IsSqlCeV40Installed()
-        {
-            try
-            {
-                System.Reflection.Assembly.Load("System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL");
-            }
-            catch (Exception ex)
-            {
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: IsSqlCeV40Installed: Exception. Msg: {0}.", ex.Message);
-                return false;
-            }
+        //// SQL CE has been deprecated by Microsoft. We have replaced it with a version of SQLite which uses mixed-mode DLLs instead of any unmanaged DLLs.
+        //// - David
+        //
+        ///// <summary>
+        ///// Determine whether SQL CE V4.0 is installed.
+        ///// From ErikEJ: http://stackoverflow.com/questions/10534158/how-to-detect-if-sql-server-ce-4-0-is-installed
+        ///// </summary>
+        ///// <returns>bool: True: It is installed.</returns>
+        //public static bool IsSqlCeV40Installed()
+        //{
+        //    try
+        //    {
+        //        System.Reflection.Assembly.Load("System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: IsSqlCeV40Installed: Exception. Msg: {0}.", ex.Message);
+        //        return false;
+        //    }
 
-            try
-            {
-                var factory = System.Data.Common.DbProviderFactories.GetFactory("System.Data.SqlServerCe.4.0");
-            }
-            catch (Exception ex)
-            {
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: IsSqlCeV40Installed: Exception. Msg(2): {0}.", ex.Message);
-                return false;
-            }
+        //    try
+        //    {
+        //        var factory = System.Data.Common.DbProviderFactories.GetFactory("System.Data.SqlServerCe.4.0");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: IsSqlCeV40Installed: Exception. Msg(2): {0}.", ex.Message);
+        //        return false;
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
 
         /// <summary>
         /// Install of the DLLs required by the sample app to the gac.  These DLLs must all be signed with:
@@ -422,11 +431,16 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Cloud.dll to the gac.");
                 p.GacInstall(pathSdk + "\\Cloud.dll");
 
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy ErikEJ.SqlCe40.CSDK.dll to the gac.");
-                p.GacInstall(pathSdk + "\\ErikEJ.SqlCe40.CSDK.dll");
+                //// SQL CE has been deprecated by Microsoft. We have replaced it with a version of SQLite which uses mixed-mode DLLs instead of any unmanaged DLLs.
+                //// - David
+                //
+                //_trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy ErikEJ.SqlCe40.CSDK.dll to the gac.");
+                //p.GacInstall(pathSdk + "\\ErikEJ.SqlCe40.CSDK.dll");
 
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.CSharp.dll to the gac.");
-                p.GacInstall(pathSdk + "\\Microsoft.CSharp.dll");
+                //// part of .NET Framework 4 Client Profile
+                //
+                //_trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.CSharp.dll to the gac.");
+                //p.GacInstall(pathSdk + "\\Microsoft.CSharp.dll");
 
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy Microsoft.Net.Http.CSDK.dll to the gac.");
                 p.GacInstall(pathSdk + "\\Microsoft.Net.Http.CSDK.dll");
@@ -443,9 +457,29 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy SimpleJson.CSDK.dll to the gac.");
                 p.GacInstall(pathSdk + "\\SimpleJson.CSDK.dll");
 
-                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy System.Dynamic.dll to the gac.");
-                p.GacInstall(pathSdk + "\\System.Dynamic.dll");
-    	    }
+                //// I don't know what this was for, gonna test with this GAC install ignored
+                //// -David
+                //
+                //_trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy System.Dynamic.dll to the gac.");
+                //p.GacInstall(pathSdk + "\\System.Dynamic.dll");
+
+                #region sqlite
+                // new SQLite libraries
+                // -David
+
+                // install 32 bit dll even on 64 bit operating system in case a program is running in 32-bit mode
+                _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy System.Data.SQLite32.dll to the gac.");
+                p.GacInstall(pathSdk + "\\System.Data.SQLite32.dll");
+
+                // no need to install a 64 bit dll on a 32 bit system
+                if (Environment.Is64BitOperatingSystem)
+                {
+                    _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: Copy System.Data.SQLite64.dll to the gac.");
+                    p.GacInstall(pathSdk + "\\System.Data.SQLite64.dll");
+                }
+
+                #endregion
+            }
 	        catch (Exception ex)
 	        {
                 _trace.writeToLog(1, "CloudSetupSdkSyncSampleSupport: InstallDllsToGac: ERROR: Exception: Msg: {0}.", ex.Message);

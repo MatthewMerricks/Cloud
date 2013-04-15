@@ -322,7 +322,25 @@ namespace Cloud.JsonContracts
             public void Add(KeyValuePair<string, object> item) { inner.Add(item.Key, (T)item.Value); }
             public void Clear() { inner.Clear(); }
             public bool Contains(KeyValuePair<string, object> item) { return inner.Contains(new KeyValuePair<string, T>(item.Key, (T)item.Value)); }
-            public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex) { throw new NotImplementedException(); }
+            public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
+            {
+                if (array == null)
+                {
+                    throw new NullReferenceException("array cannot be null");
+                }
+                if (arrayIndex < 0)
+                {
+                    throw new ArgumentException("arrayIndex cannot be negative");
+                }
+                if (inner.Count > (array.Length - arrayIndex))
+                {
+                    throw new ArgumentException("not enough room in array starting at arrayIndex for the full length of the inner dictionary");
+                }
+                foreach (KeyValuePair<string, T> currentItem in inner)
+                {
+                    array[arrayIndex++] = new KeyValuePair<string, object>(currentItem.Key, currentItem.Value);
+                }
+            }
             public int Count { get { return inner.Count; } }
             public bool IsReadOnly { get { return false; } }
             public bool Remove(KeyValuePair<string, object> item) { return inner.Remove(item.Key); }
