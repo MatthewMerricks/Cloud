@@ -162,7 +162,7 @@ namespace SampleLiveSync.Models
         {
             get
             {
-                return null;
+                return Properties.Settings.Default.TempDownloadFolderFullPath;
             }
         }
         /// <summary>
@@ -194,7 +194,7 @@ namespace SampleLiveSync.Models
         {
             get
             {
-                return null;
+                return Properties.Settings.Default.DatabaseFolderFullPath;
             }
         }
     }
