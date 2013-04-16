@@ -2813,6 +2813,37 @@ namespace Cloud.Sync
                             out getRootStatus,
                             out rootResponse);
 
+                        // possible condition if sync box id has never been initialized on the server,
+                        // fixed with sync from of sid "0" and then repeat metadata query
+                        if (getRootStatus == CLHttpRestStatus.NoContent)
+                        {
+                            CLHttpRestStatus initialSyncStatus;
+                            JsonContracts.PushResponse initialSyncResponse;
+                            CLError initialSyncError = Data.commonThisEngine.httpRestClient.SyncFromCloud(
+                                new Push()
+                                {
+                                    DeviceId = Data.commonThisEngine.syncbox.CopiedSettings.DeviceId,
+                                    LastSyncId = "0", // special condition for initial sync
+                                    RelativeRootPath = "/", // sync at root
+                                    SyncboxId = Data.commonThisEngine.syncbox.SyncboxId
+                                },
+                                Data.commonThisEngine.HttpTimeoutMilliseconds,
+                                out initialSyncStatus,
+                                out initialSyncResponse);
+
+                            if (initialSyncStatus != CLHttpRestStatus.Success)
+                            {
+                                throw new NullReferenceException("Error getting initial sync response");
+                            }
+
+                            rootError = Data.commonThisEngine.httpRestClient.GetMetadata(
+                                rootPath,
+                                /* isFolder */ true,
+                                Data.commonThisEngine.HttpTimeoutMilliseconds,
+                                out getRootStatus,
+                                out rootResponse);
+                        }
+
                         if (getRootStatus != CLHttpRestStatus.Success)
                         {
                             const string rootErrorString = "Error getting folder contents for root object";
