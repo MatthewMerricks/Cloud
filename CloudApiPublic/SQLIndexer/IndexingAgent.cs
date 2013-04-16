@@ -2325,7 +2325,7 @@ namespace Cloud.SQLIndexer
 
             this.indexDBLocation = (string.IsNullOrEmpty(syncBox.CopiedSettings.DatabaseFolder)
                 ? Helpers.GetDefaultDatabasePath(syncBox.CopiedSettings.DeviceId, syncBox.SyncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
-                : syncBox.CopiedSettings.DatabaseFolder);
+                : syncBox.CopiedSettings.DatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
         }
 
         /// <summary>
