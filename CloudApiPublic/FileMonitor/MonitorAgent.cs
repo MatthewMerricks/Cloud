@@ -1276,7 +1276,6 @@ namespace Cloud.FileMonitor
                                                         //noop;
                                                     }
 
-
                                                     FileInfo oldPathInfo = new FileInfo(fileMoveState.oldPathString);
                                                     FileInfo newPathInfo = new FileInfo(fileMoveState.newPathString);
                                                     DateTime oldPathCreation = oldPathInfo.CreationTimeUtc;
@@ -4292,7 +4291,7 @@ namespace Cloud.FileMonitor
         {
             if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
-                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, new FileChange[] { toChange });
+                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, Helpers.EnumerateSingleItem(toChange));
             }
 
             // lock on queue to prevent conflicting updates/reads

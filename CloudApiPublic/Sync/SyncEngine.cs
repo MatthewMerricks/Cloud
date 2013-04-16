@@ -4519,6 +4519,13 @@ namespace Cloud.Sync
             // try/catch to perform the whole FileChange, returning any exception to the calling method
             try
             {
+                // found a case when a change made it to DownloadForTask and failed on ComTrace due to a null NewPath which should never happen,
+                // check it first here
+                if (toComplete.FileChange.NewPath == null)
+                {
+                    throw new NullReferenceException("toComplete FileChange NewPath cannot be null");
+                }
+
                 // Except for file uploads/downloads, complete the FileChange synhronously, otherwise queue them appropriately;
                 // If it completes synchronously and successfully, set the immediateSuccessEventId to toComplete.EventId, in all other cases set to null;
                 // If it is supposed to run asynchrounously, set asyncTask with the task to complete, otherwise set it to null

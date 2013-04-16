@@ -148,7 +148,7 @@ namespace Cloud.SQLIndexer
                         }
 
                         resultFound = true;
-                        
+
                         queryResult = new FileChange()
                         {
                             Direction = (existingEvent.SyncFrom ? SyncDirection.From : SyncDirection.To),
@@ -1094,7 +1094,7 @@ namespace Cloud.SQLIndexer
                         foreach (KeyValuePair<FileChange, GenericHolder<long>> currentAddedEvent in orderToChange.Values)
                         {
                             currentAddedEvent.Key.EventId = currentAddedEvent.Value.Value;
-                        	_trace.writeToMemory(() => _trace.trcFmtStr(2, "IndexingAgent: AddEvents: Call MessageEvents.ApplyFileChangeMergeToChangeState."));
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "IndexingAgent: AddEvents: Call MessageEvents.ApplyFileChangeMergeToChangeState."));
                             MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentAddedEvent.Key, null));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentAddedEvent.Key, null)
                         }
                     }
@@ -1224,6 +1224,7 @@ namespace Cloud.SQLIndexer
                                 {
                                     // start multiple delete query
 
+                                    deleteIdsToFind = new HashSet<long>();
                                     deleteIdsToFind.Add((long)storeLastDelete);
 
                                     multipleDeleteQuery = new StringBuilder(
@@ -1241,8 +1242,11 @@ namespace Cloud.SQLIndexer
                                 }
                                 else
                                 {
-                                    // append current item
-                                    multipleDeleteQuery.Append(",?");
+                                    if (deleteIdsToFind.Add((long)storeLastDelete))
+                                    {
+                                        // append current item
+                                        multipleDeleteQuery.Append(",?");
+                                    }
                                 }
                             }
                         }
@@ -1396,16 +1400,16 @@ namespace Cloud.SQLIndexer
                             newSync.SyncCounter,
                             communicatedChanges.OrderBy(currentCommunicatedChange => currentCommunicatedChange.ResultOrder)
                                 .Where(currentCommunicatedChange =>
+                                {
+                                    if (currentCommunicatedChange.Changed)
                                     {
-                                        if (currentCommunicatedChange.Changed)
-                                        {
-                                            currentCommunicatedChange.FileChange.DoNotAddToSQLIndex = false;
-                                            return true;
-                                        }
+                                        currentCommunicatedChange.FileChange.DoNotAddToSQLIndex = false;
+                                        return true;
+                                    }
 
-                                        notMarkedAsChanged.Add(currentCommunicatedChange.FileChange.EventId);
-                                        return false;
-                                    })
+                                    notMarkedAsChanged.Add(currentCommunicatedChange.FileChange.EventId);
+                                    return false;
+                                })
                                 .Select(currentCommunicatedChange => new FileChangeMerge(currentCommunicatedChange.FileChange))
                                 .ToArray(), // ToArray prevents multiple enumeration from running select logic a second time
                             connAndTran);
@@ -2236,14 +2240,17 @@ namespace Cloud.SQLIndexer
                     castTransaction.sqlTransaction,
                     (new[] { (long)existingEventObject.ParentFolderId, (object)existingEventObject.Name })))
                 {
-                    switch (storeExistingChangeType)
-                    {
-                        case FileChangeType.Created:
-                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a create");
+                    //// The following cases below seemed to happen under normal use and we don't wish to kill the sync engine,
+                    //// it would be better if we fixed the causes of the conditions below from happening
+                    //
+                    //switch (storeExistingChangeType)
+                    //{
+                    //    case FileChangeType.Created:
+                    //        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a create");
 
-                        case FileChangeType.Renamed:
-                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a rename");
-                    }
+                    //    case FileChangeType.Renamed:
+                    //        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a rename");
+                    //}
 
                     moveObjectsToNewParent.TypedData.oldId.Value = existingNonPendingIdToMerge;
                     moveObjectsToNewParent.TypedData.newId.Value = existingEventObject.FileSystemObjectId;
@@ -2277,17 +2284,20 @@ namespace Cloud.SQLIndexer
                         },
                         castTransaction.sqlTransaction);
                 }
-                else
-                {
-                    switch (storeExistingChangeType)
-                    {
-                        case FileChangeType.Modified:
-                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a modify");
+                //// The following cases below seemed to happen under normal use and we don't wish to kill the sync engine,
+                //// it would be better if we fixed the causes of the conditions below from happening
+                //
+                //else
+                //{
+                //    switch (storeExistingChangeType)
+                //    {
+                //        case FileChangeType.Modified:
+                //            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a modify");
 
-                        case FileChangeType.Deleted:
-                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a delete");
-                    }
-                }
+                //        case FileChangeType.Deleted:
+                //            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a delete");
+                //    }
+                //}
 
                 switch (storeExistingChangeType)
                 {
@@ -2365,7 +2375,7 @@ namespace Cloud.SQLIndexer
                         {
                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to disconnect rename event from previous id in order to delete it");
                         }
-                            
+
                         moveObjectsToNewParent.TypedData.oldId.Value = storePreviousId;
                         moveObjectsToNewParent.TypedData.newId.Value = existingEventObject.FileSystemObjectId;
                         moveObjectsToNewParent.Process();
@@ -2987,26 +2997,26 @@ namespace Cloud.SQLIndexer
                             Direction = (currentObject.Value.Event.SyncFrom ? SyncDirection.From : SyncDirection.To),
                             EventId = currentObject.Value.Event.EventId,
                             Metadata = new FileMetadata()
-                                {
-                                    EventTime = new DateTime(currentObject.Value.EventTimeUTCTicks, DateTimeKind.Utc),
-                                    HashableProperties = new FileMetadataHashableProperties(
-                                        isFolder: currentObject.Value.IsFolder,
-                                        lastTime: (currentObject.Value.LastTimeUTCTicks == null
-                                            ? (Nullable<DateTime>)null
-                                            : new DateTime((long)currentObject.Value.LastTimeUTCTicks, DateTimeKind.Utc)),
-                                        creationTime: (currentObject.Value.CreationTimeUTCTicks == null
-                                            ? (Nullable<DateTime>)null
-                                            : new DateTime((long)currentObject.Value.CreationTimeUTCTicks, DateTimeKind.Utc)),
-                                        size: currentObject.Value.Size),
-                                    IsShare = currentObject.Value.IsShare,
-                                    MimeType = currentObject.Value.MimeType,
-                                    Permissions = (currentObject.Value.Permissions == null ? (Nullable<POSIXPermissions>)null : (POSIXPermissions)((int)currentObject.Value.Permissions)),
-                                    Revision = currentObject.Value.Revision,
-                                    ServerUid = currentObject.Value.ServerUid,
-                                    ParentFolderServerUid = (currentObject.Value.Parent == null ? null : currentObject.Value.Parent.ServerUid),
-                                    StorageKey = currentObject.Value.StorageKey,
-                                    Version = currentObject.Value.Version
-                                },
+                            {
+                                EventTime = new DateTime(currentObject.Value.EventTimeUTCTicks, DateTimeKind.Utc),
+                                HashableProperties = new FileMetadataHashableProperties(
+                                    isFolder: currentObject.Value.IsFolder,
+                                    lastTime: (currentObject.Value.LastTimeUTCTicks == null
+                                        ? (Nullable<DateTime>)null
+                                        : new DateTime((long)currentObject.Value.LastTimeUTCTicks, DateTimeKind.Utc)),
+                                    creationTime: (currentObject.Value.CreationTimeUTCTicks == null
+                                        ? (Nullable<DateTime>)null
+                                        : new DateTime((long)currentObject.Value.CreationTimeUTCTicks, DateTimeKind.Utc)),
+                                    size: currentObject.Value.Size),
+                                IsShare = currentObject.Value.IsShare,
+                                MimeType = currentObject.Value.MimeType,
+                                Permissions = (currentObject.Value.Permissions == null ? (Nullable<POSIXPermissions>)null : (POSIXPermissions)((int)currentObject.Value.Permissions)),
+                                Revision = currentObject.Value.Revision,
+                                ServerUid = currentObject.Value.ServerUid,
+                                ParentFolderServerUid = (currentObject.Value.Parent == null ? null : currentObject.Value.Parent.ServerUid),
+                                StorageKey = currentObject.Value.StorageKey,
+                                Version = currentObject.Value.Version
+                            },
                             NewPath = currentObject.Value.CalculatedFullPath,
                             OldPath = (currentObject.Value.Event.PreviousId == null
                                 ? null
@@ -3203,7 +3213,7 @@ namespace Cloud.SQLIndexer
 
                 foreach (FilePath initiallySyncedBadge in indexPaths.Keys)
                 {
-                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "IndexingAgent: BuildIndex: Call MessageEvents.SetPathState synced.")); 
+                    _trace.writeToMemory(() => _trace.trcFmtStr(1, "IndexingAgent: BuildIndex: Call MessageEvents.SetPathState synced."));
                     MessageEvents.SetPathState(this, new SetBadge(PathState.Synced, initiallySyncedBadge));
                 }
 
@@ -3365,10 +3375,10 @@ namespace Cloud.SQLIndexer
                         }
 
                         FileMetadata newDirectoryMetadata = new FileMetadata()
-                            {
-                                HashableProperties = compareProperties,
-                                ParentFolderServerUid = parentFolderServerUid
-                            };
+                        {
+                            HashableProperties = compareProperties,
+                            ParentFolderServerUid = parentFolderServerUid
+                        };
 
                         changeList.Add(new FileChange()
                         {
@@ -3429,14 +3439,14 @@ namespace Cloud.SQLIndexer
                             }
 
                             FileMetadata modifiedMetadata = new FileMetadata()
-                                {
-                                    ServerUid = existingFileMetadata.ServerUid,
-                                    HashableProperties = compareProperties,
-                                    Revision = existingFileMetadata.Revision,
-                                    ParentFolderServerUid = parentFolderServerUid/*,
+                            {
+                                ServerUid = existingFileMetadata.ServerUid,
+                                HashableProperties = compareProperties,
+                                Revision = existingFileMetadata.Revision,
+                                ParentFolderServerUid = parentFolderServerUid/*,
                                     StorageKey = existingFileMetadata.StorageKey*/
-                                    // DO NOT copy StorageKey because this metadata is for a modified change which would therefore require a new StorageKey
-                                };
+                                // DO NOT copy StorageKey because this metadata is for a modified change which would therefore require a new StorageKey
+                            };
 
                             changeList.Add(new FileChange()
                             {
@@ -3464,11 +3474,11 @@ namespace Cloud.SQLIndexer
                         }
 
                         FileMetadata fileCreatedMetadata = new FileMetadata()
-                            {
-                                HashableProperties = compareProperties,
-                                ParentFolderServerUid = parentFolderServerUid//,
-                                //LinkTargetPath = //Todo: needs to read target path
-                            };
+                        {
+                            HashableProperties = compareProperties,
+                            ParentFolderServerUid = parentFolderServerUid//,
+                            //LinkTargetPath = //Todo: needs to read target path
+                        };
 
                         changeList.Add(new FileChange()
                         {
