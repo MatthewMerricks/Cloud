@@ -1228,11 +1228,13 @@ namespace SampleLiveSync.ViewModels
                                 // create a Syncbox from an existing SyncboxId
                                 CLSyncboxCreationStatus syncBoxStatus;
                                 CLError errorCreateSyncbox = CLSyncbox.CreateAndInitialize(
-                                    syncCredential,
-                                    (long)SettingsAdvancedImpl.Instance.SyncboxId,
-                                    out syncBox,
-                                    out syncBoxStatus,
-                                    SettingsAdvancedImpl.Instance);
+                                    Credential: syncCredential,
+                                    SyncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
+                                    syncBox: out syncBox,
+                                    status: out syncBoxStatus,
+                                    Settings: SettingsAdvancedImpl.Instance,
+                                    getNewCredentialCallback: ReplaceExpiredCredentialCallback,
+                                    getNewCredentialCallbackUserState: this);
 
                                 if (errorCreateSyncbox != null)
                                 {
@@ -1368,6 +1370,15 @@ namespace SampleLiveSync.ViewModels
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
+        }
+
+        /// <summary>
+        /// Called by the Syncbox to request a new credential when the previous credential has expired.
+        /// </summary>
+        /// <param name="userState"></param>
+        /// <returns></returns>
+        CLCredential ReplaceExpiredCredentialCallback(object userState)
+        {
         }
 
         /// <summary>
