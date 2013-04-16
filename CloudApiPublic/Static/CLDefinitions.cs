@@ -99,10 +99,12 @@ namespace Cloud.Static
         // Method Path
 #if DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 #if URL_API
-        public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud";                                    // POST
+        // switched to "_new" for testing latest server logic
+        public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud_new";                                    // POST
         public const string MethodPathDownload = VersionPrefix + "/sync/file/download";                                 // POST
         public const string MethodPathUpload = VersionPrefix + "/sync/file/upload";                                     // POST
-        public const string MethodPathSyncTo = VersionPrefix + "/sync/to_cloud";                                        // POST
+        // switched to "_new" for testing latest server logic
+        public const string MethodPathSyncTo = VersionPrefix + "/sync/to_cloud_new";                                        // POST
         public const string MethodPathPurgePending = VersionPrefix + "/sync/file/purge_pending";                        // POST
         public const string MethodPathGetPending = VersionPrefix + "/sync/file/pending";                                // GET
         public const string MethodPathGetFileMetadata = VersionPrefix + "/sync/file/metadata";                          // GET
