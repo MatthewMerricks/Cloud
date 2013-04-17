@@ -2087,7 +2087,7 @@ namespace Cloud.Static
         /// <summary>
         /// forwards to the main HTTP REST routine helper method which processes the actual communication, but only where the return type is object
         /// </summary>
-        internal static object ProcessHttp(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+        internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
             string serverUrl, // the server URL
             string serverMethodPath, // the server method path
             requestMethod method, // type of HTTP method (get vs. put vs. post)
@@ -2097,10 +2097,10 @@ namespace Cloud.Static
             ref CLHttpRestStatus status, // reference to the successful/failed state of communication
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredential Credential, // contains key/secret for authorization
-            Nullable<long> SyncboxId, // unique id for the sync box on the server
-            RequestNewCredentialInfo RequestNewCredentialInfo = null)
+            Nullable<long> SyncboxId) // unique id for the sync box on the server
+            where T : class // restrict T to an object type to allow default null return
         {
-            return ProcessHttp<object>(requestContent,
+            return ProcessHttpInner<T>(requestContent,
                 serverUrl,
                 serverMethodPath,
                 method,
@@ -2110,10 +2110,9 @@ namespace Cloud.Static
                 ref status,
                 CopiedSettings,
                 Credential,
-                SyncboxId,
-                RequestNewCredentialInfo);
+                SyncboxId);
         }
-        
+
         /// <summary>
         /// HTTP REST routine helper method which handles temporary credential extension and retries of the original request.
         /// T should be the type of the JSON contract object which an be deserialized from the return response of the server if any, otherwise use string/object type which will be filled in as the entire string response
@@ -2127,35 +2126,45 @@ namespace Cloud.Static
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
             ref CLHttpRestStatus status, // reference to the successful/failed state of communication
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
-            CLCredential Credential, // contains key/secret for authorization
             Nullable<long> SyncboxId,  // unique id for the sync box on the server
-            RequestNewCredentialInfo RequestNewCredentialInfo = null)
+            RequestNewCredentialInfo RequestNewCredentialInfo) // gets the credential and renews a credential if needed
             where T : class // restrict T to an object type to allow default null return
         {
             // Part 1 of the "request new credential" processing.  This processing is invoked when temporary token credentials time out.
             // In Part 1, we validate the caller's extra parameters, and we add this thread to a dictionary provided by the caller.
             // The information added to the dictionary will be used in parrt 2 below.
             int threadId = Thread.CurrentThread.ManagedThreadId;
-            if (RequestNewCredentialInfo != null)
+
+            if (RequestNewCredentialInfo == null)
             {
-                // The caller wants to handle requests for new a new temporary credential.  Validate the parameters.
-                if (RequestNewCredentialInfo.GetCurrentCredentialCallback == null)
-                {
-                    throw new ArgumentNullException("The GetCurrentCredentialCallback must not be null");
-                }
-                if (RequestNewCredentialInfo.GetNewCredentialCallback == null)
-                {
-                    throw new ArgumentNullException("The GetNewCredentialCallback must not be null");
-                }
-                if (RequestNewCredentialInfo.SetCurrentCredentialCallback == null)
-                {
-                    throw new ArgumentNullException("The SetNewCredentialCallback must not be null");
-                }
+                throw new ArgumentNullException("RequestNewCredentialInfo must not be null");
+            }
+
+            // The caller wants to handle requests for new a new temporary credential.  Validate the parameters.
+            if (RequestNewCredentialInfo.GetCurrentCredentialCallback == null)
+            {
+                throw new ArgumentNullException("RequestNewCredentialInfo GetCurrentCredentialCallback must not be null");
+            }
+            if (RequestNewCredentialInfo.GetNewCredentialCallback == null)
+            {
+                //// allow get new credential callback to be null if user only uses one credential ever
+                //throw new ArgumentNullException("RequestNewCredentialInfo GetNewCredentialCallback must not be null");
+            }
+            else
+            {
                 if (RequestNewCredentialInfo.ProcessingStateByThreadId == null)
                 {
-                    throw new ArgumentNullException("The ProcessingStateByThreadId must not be null");
+                    throw new ArgumentNullException("RequestNewCredentialInfo ProcessingStateByThreadId must not be null");
                 }
-
+            }
+            if (RequestNewCredentialInfo.SetCurrentCredentialCallback == null)
+            {
+                throw new ArgumentNullException("RequestNewCredentialInfo SetNewCredentialCallback must not be null");
+            }
+            
+            CLCredential Credential;
+            if (RequestNewCredentialInfo.GetNewCredentialCallback != null)
+            {
                 lock (RequestNewCredentialInfo.ProcessingStateByThreadId)
                 {
                     // Get the current credential under the lock.  It may have changed.
@@ -2165,100 +2174,122 @@ namespace Cloud.Static
                     RequestNewCredentialInfo.ProcessingStateByThreadId[threadId] = EnumRequestNewCredentialStates.RequestNewCredential_NotSet;
                 }
             }
-
-            // Now call the original core processHttp.
-            T toReturn = ProcessHttpInner<T>(requestContent,
-                        serverUrl,
-                        serverMethodPath,
-                        method,
-                        timeoutMilliseconds,
-                        uploadDownload,
-                        validStatusCodes,
-                        ref status,
-                        CopiedSettings,
-                        Credential,
-                        SyncboxId);
-
-            // Part 2 of the "request new credential" processing.  This processing is invoked when temporary token credentials time out.
-            // Here we watch for the "token expired" error.  We will ask the caller for a new temporary credential 
-            if (RequestNewCredentialInfo != null)
+            else
             {
-                EnumRequestNewCredentialStates localThreadState;
+                Credential = RequestNewCredentialInfo.GetCurrentCredentialCallback();
+            }
 
-                lock (RequestNewCredentialInfo.ProcessingStateByThreadId)
+            try
+            {
+                // Now call the original core processHttp.
+                T toReturn = ProcessHttpInner<T>(requestContent,
+                    serverUrl,
+                    serverMethodPath,
+                    method,
+                    timeoutMilliseconds,
+                    uploadDownload,
+                    validStatusCodes,
+                    ref status,
+                    CopiedSettings,
+                    Credential,
+                    SyncboxId);
+
+                if (RequestNewCredentialInfo.GetNewCredentialCallback != null)
                 {
-
-                    // Get this thread's value entry in ProcessingStateByThreadId
-                    localThreadState = RequestNewCredentialInfo.ProcessingStateByThreadId[threadId];
-
                     // Remove this thread's entry from the ProcessingStateByThreadId dictionary
                     RequestNewCredentialInfo.ProcessingStateByThreadId.Remove(threadId);
+                }
 
-                    // Special handling if this is a 401 NotAuthorized code with the "expired credentials" error enumeration.
-                    if (status == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
+                return toReturn;
+            }
+            catch (Exception ex)
+            {
+                // Part 2 of the "request new credential" processing.  This processing is invoked when temporary token credentials time out.
+                // Here we watch for the "token expired" error.  We will ask the caller for a new temporary credential 
+                EnumRequestNewCredentialStates localThreadState;
+
+                if (RequestNewCredentialInfo.GetNewCredentialCallback == null)
+                {
+                    throw ex;
+                }
+                else
+                {
+                    lock (RequestNewCredentialInfo.ProcessingStateByThreadId)
                     {
-                        // If this thread's state is RequestNewCredential_NotSet, then this thread is the first in under the
-                        // lock to handle this expired credential.
-                        if (localThreadState == EnumRequestNewCredentialStates.RequestNewCredential_NotSet)
+                        // Get this thread's value entry in ProcessingStateByThreadId
+                        localThreadState = RequestNewCredentialInfo.ProcessingStateByThreadId[threadId];
+
+                        // Remove this thread's entry from the ProcessingStateByThreadId dictionary
+                        RequestNewCredentialInfo.ProcessingStateByThreadId.Remove(threadId);
+
+                        // Special handling if this is a 401 NotAuthorized code with the "expired credentials" error enumeration.
+                        if (status == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
                         {
-                            // We will call back to the caller to have them go off to a server and produce new credentials.
-                            bool fErrorOccured = false;
-                            try
+                            // If this thread's state is RequestNewCredential_NotSet, then this thread is the first in under the
+                            // lock to handle this expired credential.
+                            if (localThreadState == EnumRequestNewCredentialStates.RequestNewCredential_NotSet)
                             {
-                                // Call back to the caller to get a new credential
-                                Credential = RequestNewCredentialInfo.GetNewCredentialCallback(RequestNewCredentialInfo.GetNewCredentialCallbackUserState);
+                                // We will call back to the caller to have them go off to a server and produce new credentials.
+                                bool fErrorOccured = false;
+                                try
+                                {
+                                    // Call back to the caller to get a new credential
+                                    Credential = RequestNewCredentialInfo.GetNewCredentialCallback(RequestNewCredentialInfo.GetNewCredentialCallbackUserState);
 
-                                // Set the credential back to the caller.
-                                RequestNewCredentialInfo.SetCurrentCredentialCallback(Credential);
-                            }
-                            catch (Exception ex)
-                            {
-                                CLTrace.Instance.writeToLog(1, "Helpers: ProcessHttp<>: ERROR. Exception from GetNewCredentialCallback.  Msg: <{0}>.", ex.Message);
-                                fErrorOccured = true;
-                            }
+                                    // Set the credential back to the caller.
+                                    RequestNewCredentialInfo.SetCurrentCredentialCallback(Credential);
+                                }
+                                catch (Exception innerEx)
+                                {
+                                    CLTrace.Instance.writeToLog(1, "Helpers: ProcessHttp<>: ERROR. Exception from GetNewCredentialCallback.  Msg: <{0}>.", innerEx.Message);
+                                    fErrorOccured = true;
+                                }
 
-                            // If an error occurred, we will bubble the original 401 status back to the caller.  We will also tell all other threads
-                            // to bubble their statuses back to the caller as well.
-                            EnumRequestNewCredentialStates newStateToSet;
-                            if (fErrorOccured)
-                            {
-                                newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_BubbleResult;
-                            }
-                            // Otherwise, we retrieved a new credential successfully.  We will retry ourselves, and we will tell all other threads to retry as well.
-                            else
-                            {
-                                newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_Retry;
-                            }
+                                // If an error occurred, we will bubble the original 401 status back to the caller.  We will also tell all other threads
+                                // to bubble their statuses back to the caller as well.
+                                EnumRequestNewCredentialStates newStateToSet;
+                                if (fErrorOccured)
+                                {
+                                    newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_BubbleResult;
+                                }
+                                // Otherwise, we retrieved a new credential successfully.  We will retry ourselves, and we will tell all other threads to retry as well.
+                                else
+                                {
+                                    newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_Retry;
+                                }
 
-                            // Set this new state for everyone.
-                            localThreadState = newStateToSet;
-                            foreach (KeyValuePair<int, EnumRequestNewCredentialStates> pair in RequestNewCredentialInfo.ProcessingStateByThreadId)
-                            {
-                                RequestNewCredentialInfo.ProcessingStateByThreadId[pair.Key] = newStateToSet;
+                                // Set this new state for everyone.
+                                localThreadState = newStateToSet;
+                                foreach (KeyValuePair<int, EnumRequestNewCredentialStates> pair in RequestNewCredentialInfo.ProcessingStateByThreadId)
+                                {
+                                    RequestNewCredentialInfo.ProcessingStateByThreadId[pair.Key] = newStateToSet;
+                                }
                             }
                         }
                     }
-                }
 
-                // Here we will retry the original operation if we decided to do that under the lock.
-                if (localThreadState == EnumRequestNewCredentialStates.RequestNewCredential_Retry)
-                {
-                    // Retry the original operation.
-                    toReturn = ProcessHttpInner<T>(requestContent,
-                                serverUrl,
-                                serverMethodPath,
-                                method,
-                                timeoutMilliseconds,
-                                uploadDownload,
-                                validStatusCodes,
-                                ref status,
-                                CopiedSettings,
-                                Credential,
-                                SyncboxId);
+                    // Here we will retry the original operation if we decided to do that under the lock.
+                    if (localThreadState == EnumRequestNewCredentialStates.RequestNewCredential_Retry)
+                    {
+                        // Retry the original operation.
+                        return ProcessHttpInner<T>(requestContent,
+                            serverUrl,
+                            serverMethodPath,
+                            method,
+                            timeoutMilliseconds,
+                            uploadDownload,
+                            validStatusCodes,
+                            ref status,
+                            CopiedSettings,
+                            Credential,
+                            SyncboxId);
+                    }
+                    else
+                    {
+                        throw ex;
+                    }
                 }
-            }
-
-            return toReturn;
+            } // <-- end catch
         }
 
         /// <summary>

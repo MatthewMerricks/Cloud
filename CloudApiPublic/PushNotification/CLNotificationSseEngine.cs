@@ -773,10 +773,19 @@ namespace Cloud.PushNotification
                 CLNotificationSseEngine castState = userState as CLNotificationSseEngine;
                 if (castState != null)
                 {
+                    if (castState._syncBox == null)
+                    {
+                        throw new NullReferenceException("_syncBox must not be null");
+                    }
+                    if (castState._syncBox.HttpRestClient == null)
+                    {
+                        throw new NullReferenceException("_syncBox.HttpRestClient must not be null");
+                    }
+
                     // Send an unsubscribe to the server.  Allow just 200 ms for this to complete.
                     CLHttpRestStatus status;
                     JsonContracts.NotificationUnsubscribeResponse response;
-                    CLError errorFromUnsubscribe = SendUnsubscribeToServer(200, out status, out response, castState._syncBox);
+                    CLError errorFromUnsubscribe = _syncBox.HttpRestClient.SendUnsubscribeToServer(200, out status, out response, castState._syncBox);
                     if (errorFromUnsubscribe != null)
                     {
                         _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}.", errorFromUnsubscribe.errorDescription);
@@ -824,83 +833,6 @@ namespace Cloud.PushNotification
                 error.LogErrors(_syncBox.CopiedSettings.TraceLocation, _syncBox.CopiedSettings.LogErrors);
             }
             _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Exit.");
-        }
-
-        /// <summary>
-        /// Unsubscribe this Syncbox/Device ID from Sync notifications.Add a Sync box on the server for the current application
-        /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <param name="syncBox">the Syncbox to use.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        private CLError SendUnsubscribeToServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.NotificationUnsubscribeResponse response,
-                    CLSyncbox syncBox)
-        {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
-            // try/catch to process the metadata query, on catch return the error
-            try
-            {
-                // check input parameters
-                _trace.writeToLog(9, "CLNotificationSseEngine: SendUnsubscribeToServer: Entry.");
-                if (!(timeoutMilliseconds > 0))
-                {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
-                }
-
-                if (syncBox == null)
-                {
-                    throw new ArgumentException("syncBox must not be null");
-                }
-
-                if (syncBox.CopiedSettings == null)
-                {
-                    throw new NullReferenceException("syncBox.CopiedSettings must not be null");
-                }
-
-                // copy settings so they don't change while processing; this also defaults some values
-                ICLSyncSettingsAdvanced copiedSettings = syncBox.CopiedSettings.CopySettings();
-
-                JsonContracts.NotificationUnsubscribeRequest request = new JsonContracts.NotificationUnsubscribeRequest()
-                {
-                    DeviceId = copiedSettings.DeviceId,
-                    SyncboxId = syncBox.SyncboxId
-                };
-
-
-                // Build the query string.
-                string query = Helpers.QueryStringBuilder(
-                    new[]
-                    {
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncBox.SyncboxId.ToString()), // no need to escape string characters since the source is an integer
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
-                    });
-
-
-                _trace.writeToLog(9, "CLNotificationSseEngine: SendUnsubscribeToServer: Send unsubscribe.");
-                response = Helpers.ProcessHttp<JsonContracts.NotificationUnsubscribeResponse>(
-                    null,           // no body needed
-                    CLDefinitions.CLPlatformAuthServerURL,
-                    CLDefinitions.MethodPathPushUnsubscribe + query,
-                    Helpers.requestMethod.post,
-                    timeoutMilliseconds,
-                    null, // not an upload nor download
-                    Helpers.HttpStatusesOkAccepted,
-                    ref status,
-                    copiedSettings,
-                    syncBox.Credential,
-                    syncBox.SyncboxId);
-            }
-            catch (Exception ex)
-            {
-                _trace.writeToLog(1, "CLNotificationSseEngine: SendUnsubscribeToServer: ERROR: Exception: Msg: {0}.", ex.Message);
-                response = Helpers.DefaultForType<JsonContracts.NotificationUnsubscribeResponse>();
-                return ex;
-            }
-
-            _trace.writeToLog(9, "CLNotificationSseEngine: SendUnsubscribeToServer: Return OK.");
-            return null;
         }
 
         #endregion

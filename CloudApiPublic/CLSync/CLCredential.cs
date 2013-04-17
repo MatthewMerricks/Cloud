@@ -516,17 +516,18 @@ namespace Cloud
                     });
 
                 response = Helpers.ProcessHttp<JsonContracts.SyncboxHolder>(
-                    inputBox,
-                    CLDefinitions.CLPlatformAuthServerURL,
-                    CLDefinitions.MethodPathAuthCreateSyncbox,
-                    Helpers.requestMethod.post,
-                    timeoutMilliseconds,
-                    null, // not an upload nor download
-                    Helpers.HttpStatusesOkAccepted,
-                    ref status,
-                    copiedSettings,
-                    this,
-                    null);
+                    requestContent: inputBox,
+                    serverUrl: CLDefinitions.CLPlatformAuthServerURL,
+                    serverMethodPath: CLDefinitions.MethodPathAuthCreateSyncbox,
+                    method: Helpers.requestMethod.post,
+                    timeoutMilliseconds: timeoutMilliseconds,
+                    uploadDownload: null, // not an upload nor download
+                    validStatusCodes: Helpers.HttpStatusesOkAccepted,
+                    status: ref status,
+                    CopiedSettings: copiedSettings,
+                    Credential: this,
+                    SyncboxId: null);
+
             }
             catch (Exception ex)
             {
@@ -710,17 +711,17 @@ namespace Cloud
                 }
 
                 response = Helpers.ProcessHttp<JsonContracts.ListSyncboxes>(
-                    null, // no request body for listing sync boxes
-                    CLDefinitions.CLPlatformAuthServerURL,
-                    CLDefinitions.MethodPathAuthListSyncboxes,
-                    Helpers.requestMethod.post,
-                    timeoutMilliseconds,
-                    null, // not an upload nor download
-                    Helpers.HttpStatusesOkAccepted,
-                    ref status,
-                    copiedSettings,
-                    this,
-                    null);
+                    requestContent: null, // no request body for listing sync boxes
+                    serverUrl: CLDefinitions.CLPlatformAuthServerURL,
+                    serverMethodPath: CLDefinitions.MethodPathAuthListSyncboxes,
+                    method: Helpers.requestMethod.post,
+                    timeoutMilliseconds: timeoutMilliseconds,
+                    uploadDownload: null, // not an upload nor download
+                    validStatusCodes: Helpers.HttpStatusesOkAccepted,
+                    status: ref status,
+                    CopiedSettings: copiedSettings,
+                    Credential: this,
+                    SyncboxId: null);
             }
             catch (Exception ex)
             {
@@ -1098,17 +1099,17 @@ namespace Cloud
                 }
 
                 response = Helpers.ProcessHttp<JsonContracts.ListSessionsResponse>(
-                    null, // no request body for listing sessions
+                    /* requestContent */ null, // no request body for listing sessions
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthListSessions,
                     Helpers.requestMethod.post,
                     timeoutMilliseconds,
-                    null, // not an upload nor download
+                    /* uploadDownload */ null, // not an upload nor download
                     Helpers.HttpStatusesOkAccepted,
                     ref status,
                     copiedSettings,
-                    this,
-                    null);
+                    Credential: this,
+                    SyncboxId: null);
             }
             catch (Exception ex)
             {

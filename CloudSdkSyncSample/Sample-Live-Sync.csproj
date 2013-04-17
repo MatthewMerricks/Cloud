@@ -50,7 +50,7 @@
   <ItemGroup>
     <!--AUTO-BUILD CLOUD.DLL TAG-->
     <Reference Include="Cloud, Version=0.2.2.1, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-		<SpecificVersion>False</SpecificVersion>
+      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="RateBar.CSDK, Version=1.0.4810.27162, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\RateBar.CSDK.dll</HintPath>
@@ -97,11 +97,19 @@
     <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="Static\Helpers.cs" />
+    <Compile Include="ViewModels\GetNewCredentialViewModel.cs" />
     <Compile Include="ViewModels\SyncStatusViewModel.cs" />
+    <Compile Include="Views\GetNewCredentialView.xaml.cs">
+      <DependentUpon>GetNewCredentialView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SyncStatusView.xaml.cs">
       <DependentUpon>SyncStatusView.xaml</DependentUpon>
     </Compile>
     <Page Include="Views\AdvancedOptionsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\GetNewCredentialView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

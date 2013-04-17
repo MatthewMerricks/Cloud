@@ -562,7 +562,7 @@ namespace Cloud.Static
         // REST Response Syncbox
         public const string RESTResponseSyncbox = "sync_box";
         public const string RESTResponseSyncboxes = "sync_boxes";
-        public const string RESTResponseSyncboxId = "sync_box_id";
+        public const string RESTResponseSyncboxId = "id";
         public const string RESTResponseSyncboxPlanId = "plan_id";
         public const string RESTResponseSyncboxStorageQuota = "storage_quota";
         public const string RESTResponseSyncboxStorageQuotaUpdateOnly = "quota_size";
@@ -593,7 +593,7 @@ namespace Cloud.Static
         public const string RESTResponseSession_ExpiresAt = "expires_at";
         public const string RESTResponseSession_Key = "key";
         public const string RESTResponseSession_Secret = "secret";
-        public const string RESTResponseSession_Token = "token";
+        public const string RESTResponseSession_Token = "session_token";
         public const string RESTResponseSession_SyncboxIds = "sync_box_ids";
         public const string RESTResponseSession_AllowAll = "allow_all";
         public const string RESTResponseSession_Sessions = "sessions";

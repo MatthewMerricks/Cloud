@@ -18,8 +18,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using System.Threading;
 using System.Management;
-using System.Reflection;  //&&&&& remove
-using System.Text;   //&&&&& remove
+using System.Text;
 
 namespace SampleLiveSync.ViewModels
 {
@@ -48,6 +47,10 @@ namespace SampleLiveSync.ViewModels
         private bool _windowClosed = false;
         private CLSyncEngine _syncEngine = null;
         private SyncStatusView _winSyncStatus = null;
+        private ManualResetEvent _mreTest = new ManualResetEvent(false);   // &&&&&&&&&&&&&&&&&&&&&&&  DEBUG ONLY.  Remove
+        private CLCredential _credentialTest = null;            // &&&&&&&&&&&&&& DEBUG ONLY.  Remove.
+        private CLSyncbox _syncboxTest = null;              // &&&&&&&&&&&&&&&7 DEBUG ONLY.  Remove.
+        private long _planIdTest = 0;                   // &&&&&&&&&&&&&&&&&&7 DEBUG ONLY.  Remove.
 
         private static readonly object _locker = new object();
         private static readonly CLTrace _trace = CLTrace.Instance;
@@ -1225,6 +1228,55 @@ namespace SampleLiveSync.ViewModels
                             }
                             else
                             {
+                                //&&&&&&&&&&&&&& DEBUG CODE.  REMOVE &&&&&&&&&&&&&&&&&&&
+                                MessageBox.Show("Debug Code.  Don't run.");
+
+                                // Synchronous list plans
+                                CLHttpRestStatus status;
+                                Cloud.JsonContracts.ListPlansResponse responseListPlans;
+                                CLError error = syncCredential.ListPlans(5000, out status, out responseListPlans, SettingsAdvancedImpl.Instance);
+
+                                // Synchronous list sessions
+                                Cloud.JsonContracts.ListSessionsResponse responseListSessions;
+                                error = syncCredential.ListSessions(5000, out status, out responseListSessions, SettingsAdvancedImpl.Instance);
+
+                                // Synchronous delete session
+                                if (error == null && responseListSessions.Sessions.Length > 0)
+                                {
+                                    Cloud.JsonContracts.SessionDeleteResponse responseDeleteSession;
+                                    error = syncCredential.DeleteSession(5000, out status, out responseDeleteSession,
+                                            responseListSessions.Sessions[responseListSessions.Sessions.Length - 1].Key, SettingsAdvancedImpl.Instance);
+                                }
+
+                                // Synchronous show session
+                                Cloud.JsonContracts.SessionShowResponse responseShowSession;
+                                error = syncCredential.ShowSession(5000, out status, out responseShowSession,
+                                        "e440c16b86e762d16996c849673bbe0b250ce3f165598e1142c84e7031938cdc", SettingsAdvancedImpl.Instance);
+
+                                // Synchronous /1/auth/session/create tests.
+                                // Create a new session associating it with 3 syncbox IDs.  Set the token duration to 60 hours.
+                                Cloud.JsonContracts.SessionCreateResponse responseSessionCreate;
+                                HashSet<long> syncBoxIds = new HashSet<long>() { 4, 38, 50 };
+                                CLError errorSessionCreate = syncCredential.CreateSession(5000, out status, out responseSessionCreate,
+                                        syncBoxIds, 60 * 60, SettingsAdvancedImpl.Instance);
+
+                                // Create a new session associating it with all syncboxes in the application.  Set the token duration to 70 hours.
+                                Cloud.JsonContracts.SessionCreateResponse responseSessionCreate2;
+                                CLError errorSessionCreate2 = syncCredential.CreateSession(5000, out status, out responseSessionCreate2,
+                                        null, 70 * 60, SettingsAdvancedImpl.Instance);
+
+                                // Create a new session associating it with a single syncbox.  Let the token duration default to 5 minutes.
+                                HashSet<long> syncBoxIds2 = new HashSet<long>() { 1440 };
+                                Cloud.JsonContracts.SessionCreateResponse responseSessionCreate3;
+                                CLError errorSessionCreate3 = syncCredential.CreateSession(5000, out status, out responseSessionCreate3,
+                                        syncBoxIds2, 5, SettingsAdvancedImpl.Instance);
+
+                                // Remember the current credential for the aynchronous tests.
+                                _credentialTest = syncCredential;
+
+
+                                //&&&&&&&&&&&&&& DEBUG CODE.  REMOVE &&&&&&&&&&&&&&&&&&&
+
                                 // create a Syncbox from an existing SyncboxId
                                 CLSyncboxCreationStatus syncBoxStatus;
                                 CLError errorCreateSyncbox = CLSyncbox.CreateAndInitialize(
@@ -1379,6 +1431,93 @@ namespace SampleLiveSync.ViewModels
         /// <returns></returns>
         CLCredential ReplaceExpiredCredentialCallback(object userState)
         {
+            CLCredential toReturn = null;
+
+            try
+            {
+                using (ManualResetEvent myReset = new ManualResetEvent(initialState: false))
+                {
+                    GetNewCredentialView viewWindow = null;
+                    GetNewCredentialViewModel viewModel = null;
+                    object monitorWaitForUi = new object();
+                    bool fUserSaidOk = false;
+
+                    // Show the dialog.
+                    Dispatcher dispatcher = Application.Current.Dispatcher;
+                    dispatcher.BeginInvoke(((Action<GetNewCredentialView, GetNewCredentialViewModel, Window>)((innerViewWindow, innerViewModel, innerMainWindow) =>
+                        {
+                            // Show the GetNewCredential modal dialog.
+                            viewWindow = new GetNewCredentialView();
+                            viewWindow.Owner = _mainWindow;
+                            viewWindow.ShowInTaskbar = false;
+                            viewWindow.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner;
+                            viewWindow.ResizeMode = ResizeMode.NoResize;
+
+                            // Create the ViewModel to which the view binds.
+                            viewModel = new GetNewCredentialViewModel(_mainWindow);
+
+                            // When the ViewModel asks to be closed, close the window.
+                            EventHandler handler = null;
+                            handler = delegate
+                            {
+                                viewModel.RequestClose -= handler;
+                                viewWindow.Close();
+                            };
+                            viewModel.RequestClose += handler;
+
+                            // Allow all controls in the window to bind to the ViewModel by setting the 
+                            // DataContext, which propagates down the element tree.
+                            viewWindow.DataContext = viewModel;
+
+                            Boolean? fLocalUserSaidOk = ((Window)viewWindow).ShowDialog();
+                            if (fLocalUserSaidOk != null && fLocalUserSaidOk == true)
+                            {
+                                fUserSaidOk = true;
+                            }
+
+                            // Let the callback thread go.
+                            myReset.Set();
+                        })),
+                    /* innerViewWindow */ viewWindow,
+                    /* innerViewModel */ viewModel,
+                    /* innerMainWindow */ _mainWindow);
+
+                    // Wait for the UI to complete
+                    myReset.WaitOne();
+                }
+
+                // Return the result
+                if (fUserSaidOk)
+                {
+                    CLCredential credential = null;
+                    CLCredentialCreationStatus credentialStatus;
+                    CLError errorCredential = CLCredential.CreateAndInitialize(viewModel.Key, viewModel.Secret, out credential, out credentialStatus, viewModel.Token);
+                    if (credentialStatus == CLCredentialCreationStatus.Success)
+                    {
+                        _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: Got credential to return.");
+                        toReturn = credential;
+                    }
+                    else
+                    {
+                        errorCredential.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                        _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: ERROR: Exception: Msg: <{0}>.", errorCredential.errorDescription);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorCredential, Message = String.Format("Error: {0}.", errorCredential.errorDescription) });
+                    }
+
+                }
+                {
+                    _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: User cancelled.");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
+            }
+
+            return toReturn;
         }
 
         /// <summary>
