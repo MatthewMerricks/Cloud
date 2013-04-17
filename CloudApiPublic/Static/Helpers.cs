@@ -2390,7 +2390,7 @@ namespace Cloud.Static
         /// main HTTP REST routine helper method which processes the actual communication
         /// T should be the type of the JSON contract object which an be deserialized from the return response of the server if any, otherwise use string/object type which will be filled in as the entire string response
         /// </summary>
-        internal static T ProcessHttpInner<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+        private static T ProcessHttpInner<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
             string serverUrl, // the server URL
             string serverMethodPath, // the server method path
             requestMethod method, // type of HTTP method (get vs. put vs. post)
@@ -2511,6 +2511,37 @@ namespace Cloud.Static
                             }
 
                             requestString = SimpleJsonBase.SimpleJson.SimpleJson.SerializeObject(myDeserialized);
+                        }
+                        else
+                        {
+                            // remove null fields from request
+
+                            bool nullsChecked = false;
+
+                            object deserializedRequest = SimpleJsonBase.SimpleJson.SimpleJson.DeserializeObject(requestString);
+                            if (deserializedRequest != null)
+                            {
+                                SimpleJsonBase.SimpleJson.JsonObject deserializedRequestObject = deserializedRequest as SimpleJsonBase.SimpleJson.JsonObject;
+                                if (deserializedRequestObject != null)
+                                {
+                                    RemoveNullJsonFields(deserializedRequestObject);
+                                    nullsChecked = true;
+                                }
+                                else
+                                {
+                                    SimpleJsonBase.SimpleJson.JsonArray deserializedRequestArray = deserializedRequest as SimpleJsonBase.SimpleJson.JsonArray;
+                                    if (deserializedRequestArray != null)
+                                    {
+                                        RemoveNullJsonFields(deserializedRequestArray);
+                                        nullsChecked = true;
+                                    }
+                                }
+                            }
+
+                            if (nullsChecked)
+                            {
+                                requestString = SimpleJsonBase.SimpleJson.SimpleJson.SerializeObject(deserializedRequest);
+                            }
                         }
                     }
 
@@ -2671,12 +2702,13 @@ namespace Cloud.Static
                         }
 
                         UploadStreamContext uploadStreamContext = ((uploadParams)uploadDownload).UploadStreamContext;
-                        StreamReaderAdapter reader = (uploadStreamContext == null) ? new StreamReaderAdapter(((uploadParams)uploadDownload).Stream) /// no upload stream verification
-                                                                                    : new HashedStreamReaderAdapter(((uploadParams)uploadDownload).Stream, /// verify against a pre-hashed upload stream
-                                                                                                                    FileConstants.MaxUploadIntermediateHashBytesSize,
-                                                                                                                    uploadStreamContext.IntermediateHashes, 
-                                                                                                                    uploadStreamContext.Hash,
-                                                                                                                    uploadStreamContext.FileSize ?? 0);
+                        StreamReaderAdapter reader = (uploadStreamContext == null
+                            ? new StreamReaderAdapter(((uploadParams)uploadDownload).Stream) // no upload stream verification
+                            : new HashedStreamReaderAdapter(((uploadParams)uploadDownload).Stream, // verify against a pre-hashed upload stream
+                                FileConstants.MaxUploadIntermediateHashBytesSize,
+                                uploadStreamContext.IntermediateHashes,
+                                uploadStreamContext.Hash,
+                                (uploadStreamContext.FileSize ?? 0)));
 
                         try
                         {
@@ -3523,6 +3555,69 @@ namespace Cloud.Static
                     }
                     catch
                     {
+                    }
+                }
+            }
+        }
+
+        private static void RemoveNullJsonFields(SimpleJsonBase.SimpleJson.JsonObject toClean)
+        {
+            List<string> keysToRemove = null;
+            foreach (KeyValuePair<string, object> currentPair in toClean)
+            {
+                if (currentPair.Value == null)
+                {
+                    if (keysToRemove == null)
+                    {
+                        keysToRemove = new List<string>(EnumerateSingleItem(currentPair.Key));
+                    }
+                    else
+                    {
+                        keysToRemove.Add(currentPair.Key);
+                    }
+                }
+                else
+                {
+                    SimpleJsonBase.SimpleJson.JsonObject innerObject = currentPair.Value as SimpleJsonBase.SimpleJson.JsonObject;
+                    if (innerObject != null)
+                    {
+                        RemoveNullJsonFields(innerObject);
+                    }
+                    else
+                    {
+                        SimpleJsonBase.SimpleJson.JsonArray innerArray = currentPair.Value as SimpleJsonBase.SimpleJson.JsonArray;
+                        if (innerArray != null)
+                        {
+                            RemoveNullJsonFields(innerArray);
+                        }
+                    }
+                }
+            }
+
+            if (keysToRemove != null)
+            {
+                foreach (string currentToRemove in keysToRemove)
+                {
+                    toClean.Remove(currentToRemove);
+                }
+            }
+        }
+
+        private static void RemoveNullJsonFields(SimpleJsonBase.SimpleJson.JsonArray toClean)
+        {
+            foreach (object toCleanElement in toClean)
+            {
+                SimpleJsonBase.SimpleJson.JsonObject innerObject = toCleanElement as SimpleJsonBase.SimpleJson.JsonObject;
+                if (innerObject != null)
+                {
+                    RemoveNullJsonFields(innerObject);
+                }
+                else
+                {
+                    SimpleJsonBase.SimpleJson.JsonArray innerArray = toCleanElement as SimpleJsonBase.SimpleJson.JsonArray;
+                    if (innerArray != null)
+                    {
+                        RemoveNullJsonFields(innerArray);
                     }
                 }
             }
