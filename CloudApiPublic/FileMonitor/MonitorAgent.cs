@@ -1216,7 +1216,7 @@ namespace Cloud.FileMonitor
                                                 if (oldPathCreationTime.Ticks != FileConstants.InvalidUtcTimeTicks
                                                     && oldPathCreationTime.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
                                                     && Directory.Exists(newPathString)
-                                                    && !Directory.Exists(oldPathString)
+                                                    && (newPathString == oldPathString || !Directory.Exists(oldPathString))
                                                     && DateTime.Compare(Directory.GetCreationTimeUtc(newPathString), oldPathCreationTime) == 0)
                                                 {
                                                     // folder move actually worked even though it threw an exception
