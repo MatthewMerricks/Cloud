@@ -3387,7 +3387,8 @@ namespace Cloud.FileMonitor
                                             for (int movedFolderIdx = 0; movedFolderIdx < addFolderAlreadyExistingCreationTimePaths.Length; movedFolderIdx++)
                                             {
                                                 FilePath currentDeletedPath = addFolderAlreadyExistingCreationTimePaths[movedFolderIdx];
-                                                if (AllPaths.ContainsKey(currentDeletedPath)
+                                                if (!FilePathComparer.Instance.Equals(currentDeletedPath, pathObject)
+                                                    && AllPaths.ContainsKey(currentDeletedPath)
                                                     && !Directory.Exists(currentDeletedPath.ToString()))
                                                 {
                                                     matchedDelete = movedFolderIdx;
@@ -3479,6 +3480,7 @@ namespace Cloud.FileMonitor
                                         {
                                             oldPath = newPath;
                                             newPath = firstFoundMatchingTime.Value.FullName;
+                                            pathObject = folder = new DirectoryInfo(newPath);
                                             changeType = WatcherChangeTypes.Renamed;
                                             exists = true; // exists was previously calculated as the 'deletion' of 'new path' which is now the old path, so exists should now be true since we found a folder at the 'renamed' 'new path'
                                         }
