@@ -2099,18 +2099,12 @@ namespace Cloud.FileMonitor
                                         toReturn += new AggregateException("Error updating SQL after replacing NewPath", updateSqlError.GrabExceptions());
                                     }
 
-                                    if (LaterChange.EventId == 0)
-                                    {
-                                        Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange)), sqlTran);
-                                    }
-                                    Indexer.SwapOrderBetweenTwoEventIds(CurrentEarlierChange.EventId, LaterChange.EventId, sqlTran);
-
                                     if (CurrentEarlierChange.Type == FileChangeType.Created)
                                     {
                                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change is Created."));
                                         if (DisposeChanges == null)
                                         {
-                                            DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { LaterChange });
+                                            DisposeChanges = new List<FileChangeWithDependencies>(Helpers.EnumerateSingleItem(LaterChange));
                                         }
                                         else
                                         {
@@ -2135,17 +2129,13 @@ namespace Cloud.FileMonitor
                                     }
                                     else if (!DependenciesAddedToLaterChange)
                                     {
-                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange (2)."));
-                                        LaterChange.AddDependency(CurrentEarlierChange);
-                                        if (DependencyDebugging)
+                                        if (LaterChange.EventId == 0)
                                         {
-                                            Helpers.CheckFileChangeDependenciesForDuplicates(LaterChange);
+                                            Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange)), sqlTran);
                                         }
-                                        PulledChanges.Add(CurrentEarlierChange);
-                                        DependenciesAddedToLaterChange = true;
-                                    }
-                                    else if (!DependenciesAddedToLaterChange)
-                                    {
+                                        Indexer.SwapOrderBetweenTwoEventIds(CurrentEarlierChange.EventId, LaterChange.EventId, sqlTran);
+
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange (2)."));
                                         LaterChange.AddDependency(CurrentEarlierChange);
                                         if (DependencyDebugging)
                                         {
