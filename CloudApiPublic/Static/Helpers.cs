@@ -2196,8 +2196,11 @@ namespace Cloud.Static
 
                 if (RequestNewCredentialInfo.GetNewCredentialCallback != null)
                 {
-                    // Remove this thread's entry from the ProcessingStateByThreadId dictionary
-                    RequestNewCredentialInfo.ProcessingStateByThreadId.Remove(threadId);
+                    lock (RequestNewCredentialInfo.ProcessingStateByThreadId)
+                    {
+                        // Remove this thread's entry from the ProcessingStateByThreadId dictionary
+                        RequestNewCredentialInfo.ProcessingStateByThreadId.Remove(threadId);
+                    }
                 }
 
                 return toReturn;
@@ -2225,45 +2228,52 @@ namespace Cloud.Static
                         // Special handling if this is a 401 NotAuthorized code with the "expired credentials" error enumeration.
                         if (status == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
                         {
-                            // If this thread's state is RequestNewCredential_NotSet, then this thread is the first in under the
-                            // lock to handle this expired credential.
-                            if (localThreadState == EnumRequestNewCredentialStates.RequestNewCredential_NotSet)
+                            switch (localThreadState)
                             {
-                                // We will call back to the caller to have them go off to a server and produce new credentials.
-                                bool fErrorOccured = false;
-                                try
-                                {
-                                    // Call back to the caller to get a new credential
-                                    Credential = RequestNewCredentialInfo.GetNewCredentialCallback(RequestNewCredentialInfo.GetNewCredentialCallbackUserState);
+                                // If this thread's state is RequestNewCredential_NotSet, then this thread is the first in under the
+                                // lock to handle this expired credential.
+                                case EnumRequestNewCredentialStates.RequestNewCredential_NotSet:
+                                    // We will call back to the caller to have them go off to a server and produce new credentials.
+                                    bool fErrorOccured = false;
+                                    try
+                                    {
+                                        // Call back to the caller to get a new credential
+                                        Credential = RequestNewCredentialInfo.GetNewCredentialCallback(RequestNewCredentialInfo.GetNewCredentialCallbackUserState);
 
-                                    // Set the credential back to the caller.
-                                    RequestNewCredentialInfo.SetCurrentCredentialCallback(Credential);
-                                }
-                                catch (Exception innerEx)
-                                {
-                                    CLTrace.Instance.writeToLog(1, "Helpers: ProcessHttp<>: ERROR. Exception from GetNewCredentialCallback.  Msg: <{0}>.", innerEx.Message);
-                                    fErrorOccured = true;
-                                }
+                                        // Set the credential back to the caller.
+                                        RequestNewCredentialInfo.SetCurrentCredentialCallback(Credential);
+                                    }
+                                    catch (Exception innerEx)
+                                    {
+                                        CLTrace.Instance.writeToLog(1, "Helpers: ProcessHttp<>: ERROR. Exception from GetNewCredentialCallback.  Msg: <{0}>.", innerEx.Message);
+                                        fErrorOccured = true;
+                                    }
 
-                                // If an error occurred, we will bubble the original 401 status back to the caller.  We will also tell all other threads
-                                // to bubble their statuses back to the caller as well.
-                                EnumRequestNewCredentialStates newStateToSet;
-                                if (fErrorOccured || Credential == null)
-                                {
-                                    newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_BubbleResult;
-                                }
-                                // Otherwise, we retrieved a new credential successfully.  We will retry ourselves, and we will tell all other threads to retry as well.
-                                else
-                                {
-                                    newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_Retry;
-                                }
+                                    // If an error occurred, we will bubble the original 401 status back to the caller.  We will also tell all other threads
+                                    // to bubble their statuses back to the caller as well.
+                                    EnumRequestNewCredentialStates newStateToSet;
+                                    if (fErrorOccured || Credential == null)
+                                    {
+                                        newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_BubbleResult;
+                                    }
+                                    // Otherwise, we retrieved a new credential successfully.  We will retry ourselves, and we will tell all other threads to retry as well.
+                                    else
+                                    {
+                                        newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_Retry;
+                                    }
 
-                                // Set this new state for everyone.
-                                localThreadState = newStateToSet;
-                                foreach (KeyValuePair<int, EnumRequestNewCredentialStates> pair in RequestNewCredentialInfo.ProcessingStateByThreadId)
-                                {
-                                    RequestNewCredentialInfo.ProcessingStateByThreadId[pair.Key] = newStateToSet;
-                                }
+                                    // Set this new state for everyone.
+                                    localThreadState = newStateToSet;
+                                    foreach (int currentKey in RequestNewCredentialInfo.ProcessingStateByThreadId.Keys.ToArray())
+                                    {
+                                        RequestNewCredentialInfo.ProcessingStateByThreadId[currentKey] = newStateToSet;
+                                    }
+                                    break;
+
+                                case EnumRequestNewCredentialStates.RequestNewCredential_Retry:
+                                    // another thread updated the credentials and marked this thread available to retry, use the new credentials
+                                    Credential = RequestNewCredentialInfo.GetCurrentCredentialCallback();
+                                    break;
                             }
                         }
                     }
