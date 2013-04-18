@@ -2196,6 +2196,20 @@ namespace Cloud.FileMonitor
                                     }
                                 }
                             }
+                            // case when something is already synced with the server and a folder is created seperately and then the thing that already existed is moved into that new folder;
+                            // needs to make the thing moved into the new folder dependent on the creation of the folder
+                            else if (EarlierChange.Type == FileChangeType.Created
+                                && EarlierChange.Metadata != null
+                                && EarlierChange.Metadata.HashableProperties.IsFolder
+                                && LaterChange.NewPath.Contains(EarlierChange.NewPath))
+                            {
+                                EarlierChange.AddDependency(LaterChange);
+                                if (DependencyDebugging)
+                                {
+                                    Helpers.CheckFileChangeDependenciesForDuplicates(EarlierChange);
+                                }
+                                PulledChanges.Add(LaterChange);
+                            }
                             break;
                         case FileChangeType.Deleted:// possible error condition, I am not sure this case should ever hit
                             _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: Earlier change is Deleted."));

@@ -1080,9 +1080,9 @@ namespace Cloud.Static
         private static void WriteLogEntry(Entry logEntry, string traceLocation, string UserDeviceId, Nullable<long> SyncboxId)
         {
             string logLocation = Helpers.CheckLogFileExistance(traceLocation, SyncboxId, UserDeviceId, "Sync", "xml",
-                new Action<TextWriter, string, Nullable<long>, string>((logWriter, finalLocation, innerSyncboxId, innerDeviceId) =>
+                new Action<TextWriter, string, Nullable<long>, string, string>((logWriter, finalLocation, innerSyncboxId, innerDeviceId, cloudVersion) =>
                 {
-                    logWriter.Write(LogXmlStart(finalLocation, "UDid: {" + innerDeviceId + "}, SyncboxId: {" + innerSyncboxId + "}"));
+                    logWriter.Write(LogXmlStart(finalLocation, "UDid: {" + (new System.Xml.Linq.XElement("e", innerDeviceId)).Nodes().Single().ToString(System.Xml.Linq.SaveOptions.DisableFormatting) + "}, SyncboxId: {" + innerSyncboxId + "}, Cloud: {" + cloudVersion + "}"));
                 }),
                 new Action<TextWriter>((logWriter) =>
                 {

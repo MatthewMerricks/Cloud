@@ -1293,7 +1293,7 @@ namespace Cloud.Static
         /// <param name="OnPreviousCompletion">An action that will be driven on the old trace file when a trace file rolls over.</param>
         /// <param name="SyncboxId">The relevant sync box id, or null</param>
         /// <returns>string: The full path and filename.ext of the trace file to use.</returns>
-        internal static string CheckLogFileExistance(string TraceLocation, Nullable<long> SyncboxId, string UserDeviceId, string TraceCategory, string FileExtensionWithoutPeriod, Action<TextWriter, string, Nullable<long>, string> OnNewTraceFile, Action<TextWriter> OnPreviousCompletion)
+        internal static string CheckLogFileExistance(string TraceLocation, Nullable<long> SyncboxId, string UserDeviceId, string TraceCategory, string FileExtensionWithoutPeriod, Action<TextWriter, string, Nullable<long>, string, string> OnNewTraceFile, Action<TextWriter> OnPreviousCompletion)
         {
             // Get the last day we created a trace file for this category
             if (String.IsNullOrWhiteSpace(TraceCategory))
@@ -1481,7 +1481,7 @@ namespace Cloud.Static
                         {
                             using (TextWriter logWriter = File.CreateText(finalLocation))
                             {
-                                OnNewTraceFile(logWriter, finalLocation, SyncboxId, UserDeviceId);
+                                OnNewTraceFile(logWriter, finalLocation, SyncboxId, UserDeviceId, CloudVersion);
                                 //logWriter.Write(LogXmlStart(finalLocation,
                                 //    "DeviceUuid: {" + UserDeviceId + "}, SyncboxId: {" + UniqueUserId + "}"));
                             }
@@ -1542,6 +1542,29 @@ namespace Cloud.Static
             parameterData.Item1.BeginInvoke(parameterData.Item3, parameterData.Item4);
         }
         #endregion
+
+        public static string CloudVersion
+        {
+            get
+            {
+                lock (_cloudVersion)
+                {
+                    if (_cloudVersion.Value == null)
+                    {
+                        try
+                        {
+                            typeof(Helpers).Assembly.GetName().Version.ToString();
+                        }
+                        catch
+                        {
+                            _cloudVersion.Value = "0.0.0.0";
+                        }
+                    }
+                    return _cloudVersion.Value;
+                }
+            }
+        }
+        private static readonly GenericHolder<string> _cloudVersion = new GenericHolder<string>();
 
         /// <summary>
         /// Extend string to format a user-viewable string to represent a number of bytes.
