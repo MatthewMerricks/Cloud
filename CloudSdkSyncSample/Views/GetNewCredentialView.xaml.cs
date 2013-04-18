@@ -42,7 +42,13 @@ namespace SampleLiveSync.Views
             if (vm != null)
             {
                 vm.NotifyException += OnNotifyException;
+                vm.NotifyDialogResult += vm_NotifyDialogResult;
             }
+        }
+
+        void vm_NotifyDialogResult(object sender, Support.NotificationEventArgs<Cloud.Model.GenericHolder<bool>> e)
+        {
+            this.DialogResult = e.Data.Value;
         }
 
         private void OnGetNewCredentialView_Unloaded(object sender, RoutedEventArgs e)
@@ -51,6 +57,7 @@ namespace SampleLiveSync.Views
             if (vm != null)
             {
                 vm.NotifyException -= OnNotifyException;
+                vm.NotifyDialogResult -= vm_NotifyDialogResult;
             }
         }
 

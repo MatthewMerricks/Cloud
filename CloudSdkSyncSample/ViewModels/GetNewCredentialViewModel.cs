@@ -20,10 +20,6 @@ namespace SampleLiveSync.ViewModels
     {
         #region Fields
         
-        // RelayCommands
-        RelayCommand<object> _commandOk;
-        RelayCommand<object> _commandCancel;
-
         // Private fields
         private Window _mainWindow = null;
         private bool _windowClosed = false;
@@ -35,6 +31,7 @@ namespace SampleLiveSync.ViewModels
         #region Events
 
         public event EventHandler<NotificationEventArgs<CLError>> NotifyException;
+        public event EventHandler<NotificationEventArgs<GenericHolder<bool>>> NotifyDialogResult;
 		 
 	    #endregion
 
@@ -190,6 +187,7 @@ namespace SampleLiveSync.ViewModels
                 return _commandOk;
             }
         }
+        RelayCommand<object> _commandOk;
 
         /// <summary>
         /// Returns a command that cancels and exits the dialog
@@ -208,6 +206,7 @@ namespace SampleLiveSync.ViewModels
                 return _commandCancel;
             }
         }
+        RelayCommand<object> _commandCancel;
 
         #endregion
 
@@ -255,9 +254,9 @@ namespace SampleLiveSync.ViewModels
                     return;
                 }
 
-                // Close the window
-                _windowClosed = true;
-                CloseCommand.Execute(null);
+                // Set the result of this dialog.  Setting DialogResult on the window forces an immediate close.
+                _windowClosed = true;                       // allow the window to close.
+                NotifyDialogResult(this, new NotificationEventArgs<GenericHolder<bool>>() { Data = new GenericHolder<bool>(true), Message = null });
             }
             catch (Exception ex)
             {
@@ -275,9 +274,9 @@ namespace SampleLiveSync.ViewModels
         {
             try
             {
-                // Close the window
-                _windowClosed = true;
-                CloseCommand.Execute(null);
+                // Set the result of this dialog.  Setting DialogResult on the window forces an immediate close.
+                _windowClosed = true;       // allow the window to close
+                NotifyDialogResult(this, new NotificationEventArgs<GenericHolder<bool>>() { Data = new GenericHolder<bool>(false), Message = null });
             }
             catch (Exception ex)
             {

@@ -2248,7 +2248,7 @@ namespace Cloud.Static
                                 // If an error occurred, we will bubble the original 401 status back to the caller.  We will also tell all other threads
                                 // to bubble their statuses back to the caller as well.
                                 EnumRequestNewCredentialStates newStateToSet;
-                                if (fErrorOccured)
+                                if (fErrorOccured || Credential == null)
                                 {
                                     newStateToSet = EnumRequestNewCredentialStates.RequestNewCredential_BubbleResult;
                                 }
