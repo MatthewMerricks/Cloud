@@ -18,8 +18,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using System.Threading;
 using System.Management;
-using System.Reflection;  //&&&&& remove
-using System.Text;   //&&&&& remove
+using System.Text;
 
 namespace SampleLiveSync.ViewModels
 {
@@ -1228,11 +1227,13 @@ namespace SampleLiveSync.ViewModels
                                 // create a Syncbox from an existing SyncboxId
                                 CLSyncboxCreationStatus syncBoxStatus;
                                 CLError errorCreateSyncbox = CLSyncbox.CreateAndInitialize(
-                                    syncCredential,
-                                    (long)SettingsAdvancedImpl.Instance.SyncboxId,
-                                    out syncBox,
-                                    out syncBoxStatus,
-                                    SettingsAdvancedImpl.Instance);
+                                    Credential: syncCredential,
+                                    SyncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
+                                    syncBox: out syncBox,
+                                    status: out syncBoxStatus,
+                                    Settings: SettingsAdvancedImpl.Instance,
+                                    getNewCredentialCallback: ReplaceExpiredCredentialCallback,
+                                    getNewCredentialCallbackUserState: this);
 
                                 if (errorCreateSyncbox != null)
                                 {
@@ -1368,6 +1369,100 @@ namespace SampleLiveSync.ViewModels
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
+        }
+
+        /// <summary>
+        /// Called by the Syncbox to request a new credential when the previous credential has expired.
+        /// </summary>
+        /// <param name="userState"></param>
+        /// <returns></returns>
+        CLCredential ReplaceExpiredCredentialCallback(object userState)
+        {
+            CLCredential toReturn = null;
+
+            try
+            {
+                GetNewCredentialView viewWindow = null;
+                GetNewCredentialViewModel viewModel = null;
+                GenericHolder<bool> userSaidOk = new GenericHolder<bool>(false);
+
+                using (ManualResetEvent resetEvent = new ManualResetEvent(initialState: false))
+                {
+                    // Show the dialog.
+                    Dispatcher dispatcher = Application.Current.Dispatcher;
+                    dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            // Show the GetNewCredential modal dialog.
+                            viewWindow = new GetNewCredentialView();
+                            viewWindow.Owner = _mainWindow;
+                            viewWindow.ShowInTaskbar = false;
+                            viewWindow.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner;
+                            viewWindow.ResizeMode = ResizeMode.NoResize;
+
+                            // Create the ViewModel to which the view binds.
+                            viewModel = new GetNewCredentialViewModel(_mainWindow);
+
+                            // When the ViewModel asks to be closed, close the window.
+                            EventHandler handler = null;
+                            handler = delegate
+                            {
+                                viewModel.RequestClose -= handler;
+                                viewWindow.Close();
+                            };
+                            viewModel.RequestClose += handler;
+
+                            // Allow all controls in the window to bind to the ViewModel by setting the 
+                            // DataContext, which propagates down the element tree.
+                            viewWindow.DataContext = viewModel;
+
+                            Boolean? fLocalUserSaidOk = ((Window)viewWindow).ShowDialog();
+                            if (fLocalUserSaidOk != null && fLocalUserSaidOk == true)
+                            {
+                                userSaidOk.Value = true;
+                            }
+
+                            // Let the callback thread go.
+                            resetEvent.Set();
+                        }));
+
+                    // Wait for the UI to complete
+                    resetEvent.WaitOne();
+                }
+
+                // Return the result
+                if (userSaidOk.Value)
+                {
+                    // User supplied credential info.  Create one.
+                    CLCredential credential = null;
+                    CLCredentialCreationStatus credentialStatus;
+                    CLError errorCredential = CLCredential.CreateAndInitialize(viewModel.Key, viewModel.Secret, out credential, out credentialStatus, viewModel.Token);
+                    if (credentialStatus == CLCredentialCreationStatus.Success)
+                    {
+                        _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: Got credential to return.");
+                        toReturn = credential;
+                    }
+                    else
+                    {
+                        errorCredential.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                        _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: ERROR: Exception: Msg: <{0}>.", errorCredential.errorDescription);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorCredential, Message = String.Format("Error: {0}.", errorCredential.errorDescription) });
+                    }
+
+                }
+                else
+                {
+                    _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: User cancelled.");
+                }
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
+            }
+
+            return toReturn;
         }
 
         /// <summary>

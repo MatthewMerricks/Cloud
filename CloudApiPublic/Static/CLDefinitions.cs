@@ -6,10 +6,11 @@
 //  Copyright (c) Cloud.com. All rights reserved.
 
 // Back end definitions
-// @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
-//#define PRODUCTION_BACKEND 
+// @@@@@@@@@ AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
+//#define PRODUCTION_BACKEND    // cloud.com
 #define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
 //#define STAGING_BACKEND       // cloudstaging.us
+// @@@@@@@@@ END AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 
 // URL definitions
 // @@@@@@@@@ EXACTLY ONE OF THE FOLLOWING MUST BE DEFINED @@@@@@@@@@@@@@@@@
@@ -561,7 +562,7 @@ namespace Cloud.Static
         // REST Response Syncbox
         public const string RESTResponseSyncbox = "sync_box";
         public const string RESTResponseSyncboxes = "sync_boxes";
-        public const string RESTResponseSyncboxId = "sync_box_id";
+        public const string RESTResponseSyncboxId = "id";
         public const string RESTResponseSyncboxPlanId = "plan_id";
         public const string RESTResponseSyncboxStorageQuota = "storage_quota";
         public const string RESTResponseSyncboxStorageQuotaUpdateOnly = "quota_size";
@@ -592,7 +593,7 @@ namespace Cloud.Static
         public const string RESTResponseSession_ExpiresAt = "expires_at";
         public const string RESTResponseSession_Key = "key";
         public const string RESTResponseSession_Secret = "secret";
-        public const string RESTResponseSession_Token = "token";
+        public const string RESTResponseSession_Token = "session_token";
         public const string RESTResponseSession_SyncboxIds = "sync_box_ids";
         public const string RESTResponseSession_AllowAll = "allow_all";
         public const string RESTResponseSession_Sessions = "sessions";

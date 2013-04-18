@@ -61,6 +61,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <!-- AUTO-BUILD TAG FOR BadgeComLib -->
     <Reference Include="BadgeCOMLib, Version=0.2.2.1, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
@@ -129,7 +130,7 @@
     <Compile Include="BadgeNET\IconOverlay.cs" />
     <Compile Include="CLSync\CLCredential.cs" />
     <Compile Include="CLSync\CLCredentialSettings.cs" />
-    <Compile Include="CLSync\CLSyncBox.cs" />
+    <Compile Include="CLSync\CLSyncbox.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
     <Compile Include="CLSync\CLSyncStartStatus.cs" />
