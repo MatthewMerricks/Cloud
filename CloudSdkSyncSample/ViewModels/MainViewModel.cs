@@ -1227,7 +1227,7 @@ namespace SampleLiveSync.ViewModels
                             {
                                 // create a Syncbox from an existing SyncboxId
                                 CLSyncboxCreationStatus syncboxStatus;
-                                CLError errorCreateSyncbox = CLSyncbox.CreateAndInitialize(
+                                CLError errorCreateSyncbox = CLSyncbox.AllocAndInit(
                                     Credentials: syncCredentials,
                                     SyncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
                                     syncbox: out syncbox,
@@ -1238,7 +1238,7 @@ namespace SampleLiveSync.ViewModels
 
                                 if (errorCreateSyncbox != null)
                                 {
-                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncbox.errorDescription);
+                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.AllocAndInit: Msg: <{0}>.", errorCreateSyncbox.errorDescription);
                                 }
                                 if (syncboxStatus != CLSyncboxCreationStatus.Success)
                                 {
@@ -1327,7 +1327,7 @@ namespace SampleLiveSync.ViewModels
 
                                 // Get a ViewModel to provide some of the status information to use on our status window.
                                 EventMessageReceiver.EventMessageReceiver vm;
-                                CLError errorCreateVM = EventMessageReceiver.EventMessageReceiver.CreateAndInitialize(
+                                CLError errorCreateVM = EventMessageReceiver.EventMessageReceiver.AllocAndInit(
                                     SyncboxId: syncbox.SyncboxId, // filter by current sync box
                                     DeviceId: syncbox.CopiedSettings.DeviceId, // filter by current device
                                     receiver: out vm, // output the created view model
@@ -1339,7 +1339,7 @@ namespace SampleLiveSync.ViewModels
 
                                 if (errorCreateVM != null)
                                 {
-                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From EventMessageReceiver.CreateAndInitialize: Msg: <{0}>.", errorCreateVM.errorDescription);
+                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From EventMessageReceiver.AllocAndInit: Msg: <{0}>.", errorCreateVM.errorDescription);
                                 }
                                 else
                                 {

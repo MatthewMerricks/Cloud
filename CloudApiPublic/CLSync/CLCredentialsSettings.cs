@@ -1,4 +1,10 @@
-﻿using System;
+﻿//
+// CLCredentialsSettings.cs
+// Cloud Windows
+//
+// Created By DavidBruck.
+// Copyright (c) Cloud.com. All rights reserved.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +13,7 @@ using Cloud.Static;
 
 namespace Cloud
 {
-    internal sealed class CLCredentialSettings : ICLCredentialsSettings
+    internal sealed class CLCredentialsSettings : ICLCredentialsSettings
     {
         /// <summary>
         /// Set to true if errors should be logged.
@@ -79,7 +85,7 @@ namespace Cloud
         }
         private readonly string _clientDescription = null;
 
-        public CLCredentialSettings(bool LogErrors, TraceType TraceType, string TraceLocation, bool TraceExcludeAuthorization, int TraceLevel, string ClientDescription)
+        public CLCredentialsSettings(bool LogErrors, TraceType TraceType, string TraceLocation, bool TraceExcludeAuthorization, int TraceLevel, string ClientDescription)
         {
             this._logErrors = LogErrors;
             this._traceType = TraceType;

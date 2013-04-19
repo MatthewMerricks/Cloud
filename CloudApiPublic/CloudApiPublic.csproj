@@ -130,7 +130,7 @@
     <Compile Include="BadgeNET\Enums.cs" />
     <Compile Include="BadgeNET\IconOverlay.cs" />
     <Compile Include="CLSync\CLCredentials.cs" />
-    <Compile Include="CLSync\CLCredentialSettings.cs" />
+    <Compile Include="CLSync\CLCredentialsSettings.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />

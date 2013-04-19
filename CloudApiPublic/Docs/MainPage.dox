@@ -47,7 +47,7 @@
 ///
 ///             CLSyncbox syncbox; // declare sync box
 ///             CLSyncboxCreationStatus syncboxStatus; // declare status enumeration
-///             CLSyncbox.CreateAndInitialize( // run the creation method for an existing sync box id (also returns CLError)
+///             CLSyncbox.AllocAndInit( // run the creation method for an existing sync box id (also returns CLError)
 ///                 Credentials: credentials, // created above
 ///                 SyncboxId: <id of Syncbox>, //The ID created for this Syncbox on the Cloud developer Dashboard
 ///                 syncbox: out syncbox, // output the created sync box here
@@ -273,7 +273,7 @@
 /// - Inspect the out parameter (\link Cloud.CLSyncStartStatus startStatus \endlink) which is an output of \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink.  Handle an error if the output is not \link Cloud.CLSyncStartStatus CLSyncStartStatus \endlink.Success.
 /// .
 /// \subsection sampleapp-settings-subsec The Settings Interfaces
-///The 5th parameter to CreateAndInitialize() is ICLSyncSettings.  That is an interface that has only a single property; the path of the Syncbox on the disk.  There are actually multiple Settings definitions that are related:
+///The 5th parameter to AllocAndInit() is ICLSyncSettings.  That is an interface that has only a single property; the path of the Syncbox on the disk.  There are actually multiple Settings definitions that are related:
 ///             Cloud.Interfaces: public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLAddTraceSettings
 ///
 ///You can pass any interface that is derived from ICLSyncSettings as the 5th parameter.  The sample app passes an implementation of ICLSyncSettingsAdvanced because it is demonstrating how to use ALL of the settings (ICLSettingsAdvanced (which includes ICLAddTraceSettings and ICLSyncSettings).

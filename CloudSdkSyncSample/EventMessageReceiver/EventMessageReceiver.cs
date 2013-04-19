@@ -236,7 +236,7 @@ namespace SampleLiveSync.EventMessageReceiver
         /// <param name="OverrideImportanceFilterErrors">(optional) A parameter to filter the number of error messages you will receive.</param>
         /// <param name="OverrideDefaultMaxStatusMessages">(optional) The maximum number of messages that will be maintained in ListMessages.</param>
         /// <returns>CLError: Any error that occurs, with exception information, or null.</returns>
-        public static CLError CreateAndInitialize(
+        public static CLError AllocAndInit(
             long SyncboxId,
             string DeviceId,
             out EventMessageReceiver receiver,

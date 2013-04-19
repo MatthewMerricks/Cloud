@@ -137,7 +137,7 @@ namespace Cloud
         /// <param name="getNewCredentialsCallback">(optional) A callback that will be called to provide new credentials when the current credentials token expires.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
         /// <returns>Returns any error which occurred during creation, if any</returns>
-        public static CLError CreateAndInitialize(
+        public static CLError AllocAndInit(
             CLCredentials Credentials,
             long SyncboxId,
             out CLSyncbox syncbox,

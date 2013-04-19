@@ -331,4 +331,34 @@ namespace Cloud.Static
         RequestNewCredentials_BubbleResult,
         RequestNewCredentials_Retry,
     }
+
+    /// <summary>
+    /// Used as a parameter to CLSyncBox.BeginSync.  These values describe how the syncbox will be synced:
+    ///   - CLSyncModeLive: All files, folders and metadata will be synced all the time (live).
+    ///   - CLSyncModeLiveWithShellExt: As above, with shell extension (badging).
+    ///   - CLSyncModeOnDemand: Only the metadata is synced.  File downloads are on-demand.
+    /// </summary>
+    public enum CLSyncMode : int
+    {
+        CLSyncModeLive,
+        CLSyncModeLiveWithShellExt,
+        CLSyncModeOnDemand
+    }
+
+    /// <summary>
+    /// Event Status provided by the syncbox:
+    ///   - CLSyncboxStatusSyncingBegan: The syncbox was started.
+    ///   - CLSyncboxStatusSyncingPaused: The syncbox was paused.
+    ///   - CLSyncboxStatusSyncing: The syncbox is syncing.
+    ///   - CLSyncboxStatusSyncingEnded: The syncbox was stopped.
+    ///   
+    /// </summary>
+    public enum CLSyncboxStatus : int
+    {
+        CLSyncboxStatusSyncingBegan,
+        CLSyncboxStatusSyncingPaused,
+        CLSyncboxStatusSyncing,
+        CLSyncboxStatusSyncingEnded
+    }
+
 }
