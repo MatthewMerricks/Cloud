@@ -1196,29 +1196,29 @@ namespace SampleLiveSync.ViewModels
                         }
                         else
                         {
-                            // create credential
-                            CLCredential syncCredential;
-                            CLCredentialCreationStatus syncCredentialStatus;
-                            CLError errorCreateSyncCredential = CLCredential.CreateAndInitialize(
+                            // create credentials
+                            CLCredentials syncCredentials;
+                            CLCredentialsCreationStatus syncCredentialsStatus;
+                            CLError errorCreateSyncCredentials = CLCredentials.AllocAndInit(
                                 SettingsAdvancedImpl.Instance.Key,
                                 SettingsAdvancedImpl.Instance.Secret,
-                                out syncCredential,
-                                out syncCredentialStatus,
+                                out syncCredentials,
+                                out syncCredentialsStatus,
                                 SettingsAdvancedImpl.Instance.Token);
 
-                            if (errorCreateSyncCredential != null)
+                            if (errorCreateSyncCredentials != null)
                             {
-                                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLCredential.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncCredential.errorDescription);
+                                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLCredentials.AllocAndInit: Msg: <{0}>.", errorCreateSyncCredentials.errorDescription);
                             }
-                            if (syncCredentialStatus != CLCredentialCreationStatus.Success)
+                            if (syncCredentialsStatus != CLCredentialsCreationStatus.Success)
                             {
                                 if (NotifyException != null)
                                 {
                                     NotifyException(this, new NotificationEventArgs<CLError>()
                                     {
-                                        Data = errorCreateSyncCredential,
-                                        Message = "syncCredentialStatus: " + syncCredentialStatus.ToString() + ":" + Environment.NewLine +
-                                            errorCreateSyncCredential.errorDescription
+                                        Data = errorCreateSyncCredentials,
+                                        Message = "syncCredentialsStatus: " + syncCredentialsStatus.ToString() + ":" + Environment.NewLine +
+                                            errorCreateSyncCredentials.errorDescription
                                     });
                                 }
                             }
@@ -1227,13 +1227,13 @@ namespace SampleLiveSync.ViewModels
                                 // create a Syncbox from an existing SyncboxId
                                 CLSyncboxCreationStatus syncboxStatus;
                                 CLError errorCreateSyncbox = CLSyncbox.CreateAndInitialize(
-                                    Credential: syncCredential,
+                                    Credentials: syncCredentials,
                                     SyncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
                                     syncbox: out syncbox,
                                     status: out syncboxStatus,
                                     Settings: SettingsAdvancedImpl.Instance,
-                                    getNewCredentialCallback: ReplaceExpiredCredentialCallback,
-                                    getNewCredentialCallbackUserState: this);
+                                    getNewCredentialsCallback: ReplaceExpiredCredentialsCallback,
+                                    getNewCredentialsCallbackUserState: this);
 
                                 if (errorCreateSyncbox != null)
                                 {
@@ -1372,18 +1372,18 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// Called by the Syncbox to request a new credential when the previous credential has expired.
+        /// Called by the Syncbox to request new credentials when the previous credentials have expired.
         /// </summary>
         /// <param name="userState"></param>
         /// <returns></returns>
-        CLCredential ReplaceExpiredCredentialCallback(object userState)
+        CLCredentials ReplaceExpiredCredentialsCallback(object userState)
         {
-            CLCredential toReturn = null;
+            CLCredentials toReturn = null;
 
             try
             {
-                GetNewCredentialView viewWindow = null;
-                GetNewCredentialViewModel viewModel = null;
+                GetNewCredentialsView viewWindow = null;
+                GetNewCredentialsViewModel viewModel = null;
                 GenericHolder<bool> userSaidOk = new GenericHolder<bool>(false);
 
                 using (ManualResetEvent resetEvent = new ManualResetEvent(initialState: false))
@@ -1392,15 +1392,15 @@ namespace SampleLiveSync.ViewModels
                     Dispatcher dispatcher = Application.Current.Dispatcher;
                     dispatcher.BeginInvoke(new Action(() =>
                         {
-                            // Show the GetNewCredential modal dialog.
-                            viewWindow = new GetNewCredentialView();
+                            // Show the GetNewCredentials modal dialog.
+                            viewWindow = new GetNewCredentialsView();
                             viewWindow.Owner = _mainWindow;
                             viewWindow.ShowInTaskbar = false;
                             viewWindow.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner;
                             viewWindow.ResizeMode = ResizeMode.NoResize;
 
                             // Create the ViewModel to which the view binds.
-                            viewModel = new GetNewCredentialViewModel(_mainWindow);
+                            viewModel = new GetNewCredentialsViewModel(_mainWindow);
 
                             // When the ViewModel asks to be closed, close the window.
                             EventHandler handler = null;
@@ -1432,33 +1432,33 @@ namespace SampleLiveSync.ViewModels
                 // Return the result
                 if (userSaidOk.Value)
                 {
-                    // User supplied credential info.  Create one.
-                    CLCredential credential = null;
-                    CLCredentialCreationStatus credentialStatus;
-                    CLError errorCredential = CLCredential.CreateAndInitialize(viewModel.Key, viewModel.Secret, out credential, out credentialStatus, viewModel.Token);
-                    if (credentialStatus == CLCredentialCreationStatus.Success)
+                    // User supplied credentials.  Create one.
+                    CLCredentials credentials = null;
+                    CLCredentialsCreationStatus credentialsStatus;
+                    CLError errorCredentials = CLCredentials.AllocAndInit(viewModel.Key, viewModel.Secret, out credentials, out credentialsStatus, viewModel.Token);
+                    if (credentialsStatus == CLCredentialsCreationStatus.Success)
                     {
-                        _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: Got credential to return.");
-                        toReturn = credential;
+                        _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialsCallback: Got credentials to return.");
+                        toReturn = credentials;
                     }
                     else
                     {
-                        errorCredential.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                        _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: ERROR: Exception: Msg: <{0}>.", errorCredential.errorDescription);
-                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorCredential, Message = String.Format("Error: {0}.", errorCredential.errorDescription) });
+                        errorCredentials.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                        _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialsCallback: ERROR: Exception: Msg: <{0}>.", errorCredentials.errorDescription);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorCredentials, Message = String.Format("Error: {0}.", errorCredentials.errorDescription) });
                     }
 
                 }
                 else
                 {
-                    _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: User cancelled.");
+                    _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialsCallback: User cancelled.");
                 }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialsCallback: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
 

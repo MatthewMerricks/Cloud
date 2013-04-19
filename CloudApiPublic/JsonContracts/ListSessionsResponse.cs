@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLCredential.ListSesions"/>
+    /// Result from <see cref="Cloud.CLCredentials.ListSesions"/>
     /// </summary>
     [DataContract]
     public sealed class ListSessionsResponse

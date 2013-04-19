@@ -8,27 +8,27 @@ using System.Windows.Data;
 namespace SampleLiveSync.Views
 {
     /// <summary>
-    /// Interaction logic for GetNewCredentialView.xaml
+    /// Interaction logic for GetNewCredentialsView.xaml
     /// </summary>
-    public partial class GetNewCredentialView : Window
+    public partial class GetNewCredentialsView : Window
     {
         #region Constructors
 
-        public GetNewCredentialView()
+        public GetNewCredentialsView()
         {
             InitializeComponent();
-            Loaded += OnGetNewCredentialView_Loaded;
-            Unloaded += OnGetNewCredentialView_Unloaded;
-            Closing += OnGetNewCredentialView_Closing;
+            Loaded += OnGetNewCredentialsView_Loaded;
+            Unloaded += OnGetNewCredentialsView_Unloaded;
+            Closing += OnGetNewCredentialsView_Closing;
         }
 
         #endregion
 
         #region Event Handlers
 
-        void OnGetNewCredentialView_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        void OnGetNewCredentialsView_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            GetNewCredentialViewModel vm = (GetNewCredentialViewModel)DataContext;
+            GetNewCredentialsViewModel vm = (GetNewCredentialsViewModel)DataContext;
             if (vm != null)
             {
                 bool shouldCancel = vm.OnWindowClosing();
@@ -36,9 +36,9 @@ namespace SampleLiveSync.Views
             }
         }
 
-        private void OnGetNewCredentialView_Loaded(object sender, RoutedEventArgs e)
+        private void OnGetNewCredentialsView_Loaded(object sender, RoutedEventArgs e)
         {
-            GetNewCredentialViewModel vm = (GetNewCredentialViewModel)DataContext;
+            GetNewCredentialsViewModel vm = (GetNewCredentialsViewModel)DataContext;
             if (vm != null)
             {
                 vm.NotifyException += OnNotifyException;
@@ -51,9 +51,9 @@ namespace SampleLiveSync.Views
             this.DialogResult = e.Data.Value;
         }
 
-        private void OnGetNewCredentialView_Unloaded(object sender, RoutedEventArgs e)
+        private void OnGetNewCredentialsView_Unloaded(object sender, RoutedEventArgs e)
         {
-            GetNewCredentialViewModel vm = (GetNewCredentialViewModel)DataContext;
+            GetNewCredentialsViewModel vm = (GetNewCredentialsViewModel)DataContext;
             if (vm != null)
             {
                 vm.NotifyException -= OnNotifyException;

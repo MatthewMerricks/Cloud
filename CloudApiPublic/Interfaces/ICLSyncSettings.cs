@@ -60,7 +60,7 @@ namespace Cloud.Interfaces
     /// <summary>
     /// Advanced settings for active sync (<see cref="Cloud.CLSyncEngine"/>). The addition over basic settings is <see cref="ICLAddTraceSettings"/>.
     /// </summary>
-    public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLCredentialSettings
+    public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLCredentialsSettings
     {
         /// <summary>
         /// True: Enable badging.
@@ -86,5 +86,5 @@ namespace Cloud.Interfaces
         string ClientDescription { get; }
     }
 
-    public interface ICLCredentialSettings : ICLAddTraceSettings, ICLAddClientDescription { }
+    public interface ICLCredentialsSettings : ICLAddTraceSettings, ICLAddClientDescription { }
 }

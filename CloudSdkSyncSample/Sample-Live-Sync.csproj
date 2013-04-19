@@ -96,10 +96,10 @@
     <Compile Include="Static\Enums.cs" />
     <Compile Include="Static\NativeMethods.cs" />
     <Compile Include="Static\Helpers.cs" />
-    <Compile Include="ViewModels\GetNewCredentialViewModel.cs" />
+    <Compile Include="ViewModels\GetNewCredentialsViewModel.cs" />
     <Compile Include="ViewModels\SyncStatusViewModel.cs" />
-    <Compile Include="Views\GetNewCredentialView.xaml.cs">
-      <DependentUpon>GetNewCredentialView.xaml</DependentUpon>
+    <Compile Include="Views\GetNewCredentialsView.xaml.cs">
+      <DependentUpon>GetNewCredentialsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SyncStatusView.xaml.cs">
       <DependentUpon>SyncStatusView.xaml</DependentUpon>
@@ -108,7 +108,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\GetNewCredentialView.xaml">
+    <Page Include="Views\GetNewCredentialsView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

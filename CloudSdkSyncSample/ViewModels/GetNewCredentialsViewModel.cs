@@ -16,7 +16,7 @@ using System.Windows.Threading;
 
 namespace SampleLiveSync.ViewModels
 {
-    public class GetNewCredentialViewModel : WorkspaceViewModel
+    public class GetNewCredentialsViewModel : WorkspaceViewModel
     {
         #region Fields
         
@@ -37,7 +37,7 @@ namespace SampleLiveSync.ViewModels
 
         #region Constructors
 
-        public GetNewCredentialViewModel(Window mainWindow)
+        public GetNewCredentialsViewModel(Window mainWindow)
         {
             if (mainWindow == null)
             {
@@ -51,7 +51,7 @@ namespace SampleLiveSync.ViewModels
             CLTrace.Initialize(Properties.Settings.Default.TraceFolderFullPath, "SampleLiveSync", "log", Properties.Settings.Default.TraceLevel, Properties.Settings.Default.LogErrors);
         }
 
-        public GetNewCredentialViewModel()
+        public GetNewCredentialsViewModel()
         {
             throw new NotSupportedException("Default constructor not supported.");
         }
@@ -262,7 +262,7 @@ namespace SampleLiveSync.ViewModels
             {
                 CLError error = ex;
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                _trace.writeToLog(1, "GetNewCredentialViewModel: SaveSettings: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "GetNewCredentialsViewModel: SaveSettings: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
         }
@@ -282,7 +282,7 @@ namespace SampleLiveSync.ViewModels
             {
                 CLError error = ex;
                 error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                _trace.writeToLog(1, "GetNewCredentialViewModel: Exit: ERROR: Exception: Msg: <{0}>.", ex.Message);
+                _trace.writeToLog(1, "GetNewCredentialsViewModel: Exit: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
 

@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLCredential.DeleteSession"/>
+    /// Result from <see cref="Cloud.CLCredentials.DeleteSession"/>
     /// </summary>
     [DataContract]
     internal sealed class SessionDeleteRequest

@@ -262,15 +262,15 @@ namespace Cloud.PushNotification
                 sseRequest.Headers[CLDefinitions.CLClientVersionHeaderName] = OSVersionInfo.GetClientVersionHttpHeader(_copiedSettings.ClientDescription); // set client version
                 sseRequest.Headers[CLDefinitions.HeaderKeyAuthorization] = CLDefinitions.HeaderAppendCWS0 +
                                     CLDefinitions.HeaderAppendKey +
-                                    _syncbox.Credential.Key + ", " +
+                                    _syncbox.Credentials.Key + ", " +
                                     CLDefinitions.HeaderAppendSignature +
                                             Helpers.GenerateAuthorizationHeaderToken(
-                                                _syncbox.Credential.Secret,
+                                                _syncbox.Credentials.Secret,
                                                 httpMethod: sseRequest.Method,
                                                 pathAndQueryStringAndFragment: CLDefinitions.MethodPathPushSubscribe + query) +
                     // Add token if specified
-                                                (!String.IsNullOrEmpty(_syncbox.Credential.Token) ?
-                                                        CLDefinitions.HeaderAppendToken + _syncbox.Credential.Token :
+                                                (!String.IsNullOrEmpty(_syncbox.Credentials.Token) ?
+                                                        CLDefinitions.HeaderAppendToken + _syncbox.Credentials.Token :
                                                         String.Empty);
                 sseRequest.SendChunked = false; // do not send chunked
                 sseRequest.Timeout = CLDefinitions.HttpTimeoutDefaultMilliseconds; // set timeout.  The timeout does not apply to the amount of time the readStream stays open to read server events.

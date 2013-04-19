@@ -129,7 +129,7 @@
     <Compile Include="BadgeNET\BadgeComPubSubEvents.cs" />
     <Compile Include="BadgeNET\Enums.cs" />
     <Compile Include="BadgeNET\IconOverlay.cs" />
-    <Compile Include="CLSync\CLCredential.cs" />
+    <Compile Include="CLSync\CLCredentials.cs" />
     <Compile Include="CLSync\CLCredentialSettings.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
@@ -436,9 +436,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\26FileSystemObjects_EventOrder.index.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="WindowsSdkReleaseNotes.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -93,8 +93,8 @@ namespace Cloud.Sync
         private static readonly object InternetConnectedLocker = new object();
         #endregion
 
-        private readonly GenericHolder<CredentialErrorType> CredentialErrorDetected = new GenericHolder<CredentialErrorType>(CredentialErrorType.NoError);
-        private enum CredentialErrorType : byte
+        private readonly GenericHolder<CredentialsErrorType> CredentialsErrorDetected = new GenericHolder<CredentialsErrorType>(CredentialsErrorType.NoError);
+        private enum CredentialsErrorType : byte
         {
             NoError,
             ExpiredCredentials,
@@ -1302,8 +1302,8 @@ namespace Cloud.Sync
             GenericHolder<string> commonNewSyncId = new GenericHolder<string>(null);
             GenericHolder<string> commonRootFolderServerUid = new GenericHolder<string>(null);
 
-            CredentialErrorType credentialsError;
-            GenericHolder<Nullable<CredentialErrorType>> commonCredentialsError = new GenericHolder<Nullable<CredentialErrorType>>(null);
+            CredentialsErrorType credentialsError;
+            GenericHolder<Nullable<CredentialsErrorType>> commonCredentialsError = new GenericHolder<Nullable<CredentialsErrorType>>(null);
 
             GenericHolder<IEnumerable<FileChange>> commonTopLevelErrors = new GenericHolder<IEnumerable<FileChange>>(null);
 
@@ -1328,21 +1328,21 @@ namespace Cloud.Sync
                         return new ObjectDisposedException("SyncEngine already halted from server connection failure");
                     }
 
-                    lock (Data.commonThisEngine.CredentialErrorDetected)
+                    lock (Data.commonThisEngine.CredentialsErrorDetected)
                     {
-                        switch (Data.commonThisEngine.CredentialErrorDetected.Value)
+                        switch (Data.commonThisEngine.CredentialsErrorDetected.Value)
                         {
-                            case CredentialErrorType.ExpiredCredentials:
+                            case CredentialsErrorType.ExpiredCredentials:
                                 return new ObjectDisposedException("SyncEngine already halted from an expired token");
 
-                            case CredentialErrorType.OtherError:
+                            case CredentialsErrorType.OtherError:
                                 return new ObjectDisposedException("SyncEngine already halted from authorization credentials error");
 
-                            case CredentialErrorType.NoError:
+                            case CredentialsErrorType.NoError:
                                 return null;
 
                             default:
-                                return new InvalidOperationException("SyncEngine credential error value is of unknown type: " + Data.commonThisEngine.CredentialErrorDetected.Value.ToString());
+                                return new InvalidOperationException("SyncEngine credentials error value is of unknown type: " + Data.commonThisEngine.CredentialsErrorDetected.Value.ToString());
                         }
                     }
                 },
@@ -3067,29 +3067,29 @@ namespace Cloud.Sync
                 (Data, errorToAccumulate) =>
                 {
                     if (Data.commonCredentialsError.Value == null
-                        || ((CredentialErrorType)Data.commonCredentialsError.Value) != CredentialErrorType.NoError)
+                        || ((CredentialsErrorType)Data.commonCredentialsError.Value) != CredentialsErrorType.NoError)
                     {
-                        lock (Data.commonThisEngine.CredentialErrorDetected)
+                        lock (Data.commonThisEngine.CredentialsErrorDetected)
                         {
-                            Data.commonThisEngine.CredentialErrorDetected.Value = Data.commonCredentialsError.Value ?? CredentialErrorType.OtherError;
+                            Data.commonThisEngine.CredentialsErrorDetected.Value = Data.commonCredentialsError.Value ?? CredentialsErrorType.OtherError;
                         }
 
                         try
                         {
                             string errorMessage;
-                            switch (Data.commonCredentialsError.Value ?? CredentialErrorType.OtherError)
+                            switch (Data.commonCredentialsError.Value ?? CredentialsErrorType.OtherError)
                             {
-                                case CredentialErrorType.ExpiredCredentials:
+                                case CredentialsErrorType.ExpiredCredentials:
                                     errorMessage = "SyncEngine halted after credentials expired";
                                     break;
 
-                                case CredentialErrorType.OtherError:
+                                case CredentialsErrorType.OtherError:
                                     errorMessage = "SyncEngine halted after failing to authenticate";
                                     break;
 
                                 //case CredentialErrorType.NoError: // should not happen since we already checked for no error
                                 default:
-                                    errorMessage = "SyncEngine halted after unknown credentials error: " + ((CredentialErrorType)Data.commonCredentialsError.Value).ToString();
+                                    errorMessage = "SyncEngine halted after unknown credentials error: " + ((CredentialsErrorType)Data.commonCredentialsError.Value).ToString();
                                     break;
                             }
 
@@ -3097,7 +3097,7 @@ namespace Cloud.Sync
                                 errorMessage,
                                 EventMessageLevel.Important,
                                 /*Error*/new HaltSyncEngineOnAuthenticationFailureErrorInfo(TokenExpired:
-                                    Data.commonCredentialsError.Value != null && ((CredentialErrorType)Data.commonCredentialsError.Value) == CredentialErrorType.ExpiredCredentials),
+                                    Data.commonCredentialsError.Value != null && ((CredentialsErrorType)Data.commonCredentialsError.Value) == CredentialsErrorType.ExpiredCredentials),
                                 Data.commonThisEngine.syncbox.SyncboxId,
                                 Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                         }
@@ -4199,20 +4199,20 @@ namespace Cloud.Sync
                 }
                 if (!halted)
                 {
-                    lock (CredentialErrorDetected)
+                    lock (CredentialsErrorDetected)
                     {
-                        switch (CredentialErrorDetected.Value)
+                        switch (CredentialsErrorDetected.Value)
                         {
-                            case CredentialErrorType.ExpiredCredentials:
+                            case CredentialsErrorType.ExpiredCredentials:
                                 halted = true;
                                 expiredCredentials = true;
                                 break;
 
-                            case CredentialErrorType.NoError:
+                            case CredentialsErrorType.NoError:
                                 expiredCredentials = false;
                                 break;
 
-                            //case CredentialErrorType.OtherError:
+                            //case CredentialsErrorType.OtherError:
                             default:
                                 halted = true;
                                 expiredCredentials = false;
@@ -6655,10 +6655,10 @@ namespace Cloud.Sync
             out IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange> incompleteChanges,
             out IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError> changesInError,
             out string newSyncId,
-            out CredentialErrorType credentialsError,
+            out CredentialsErrorType credentialsError,
             out string syncRootUid)
         {
-            credentialsError = CredentialErrorType.NoError;
+            credentialsError = CredentialsErrorType.NoError;
             syncRootUid = null;
 
             // try/catch to perform all communication with the server (or no communication if not needed), on catch return the exception
@@ -6962,11 +6962,11 @@ namespace Cloud.Sync
                     }
                     else if (purgeStatus == CLHttpRestStatus.NotAuthorized)
                     {
-                        credentialsError = CredentialErrorType.OtherError;
+                        credentialsError = CredentialsErrorType.OtherError;
                     }
                     else if (purgeStatus == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
                     {
-                        credentialsError = CredentialErrorType.ExpiredCredentials;
+                        credentialsError = CredentialsErrorType.ExpiredCredentials;
                     }
                     else
                     {
@@ -7453,11 +7453,11 @@ namespace Cloud.Sync
                         }
                         else if (syncToStatus == CLHttpRestStatus.NotAuthorized)
                         {
-                            credentialsError = CredentialErrorType.OtherError;
+                            credentialsError = CredentialsErrorType.OtherError;
                         }
                         else if (syncToStatus == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
                         {
-                            credentialsError = CredentialErrorType.ExpiredCredentials;
+                            credentialsError = CredentialsErrorType.ExpiredCredentials;
                         }
                         else
                         {
@@ -9609,11 +9609,11 @@ namespace Cloud.Sync
                         }
                         else if (syncFromStatus == CLHttpRestStatus.NotAuthorized)
                         {
-                            credentialsError = CredentialErrorType.OtherError;
+                            credentialsError = CredentialsErrorType.OtherError;
                         }
                         else if (syncFromStatus == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
                         {
-                            credentialsError = CredentialErrorType.ExpiredCredentials;
+                            credentialsError = CredentialsErrorType.ExpiredCredentials;
                         }
                         else
                         {

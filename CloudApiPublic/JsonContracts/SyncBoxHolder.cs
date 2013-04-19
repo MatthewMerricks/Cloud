@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLCredential.AddSyncboxOnServer"/>, <see cref="Cloud.CLSyncbox.SyncboxUpdateExtendedMetadata"/>,
+    /// Result from <see cref="Cloud.CLCredentials.AddSyncboxOnServer"/>, <see cref="Cloud.CLSyncbox.SyncboxUpdateExtendedMetadata"/>,
     /// <see cref="Cloud.CLSyncbox.DeleteSyncbox"/>, and
     /// <see cref="Cloud.CLSyncbox.GetSyncboxStatus"/>
     /// </summary>

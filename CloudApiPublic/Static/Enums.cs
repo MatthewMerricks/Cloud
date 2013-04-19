@@ -325,10 +325,10 @@ namespace Cloud.Static
     /// <summary>
     /// Used to determine what an individual thread will do when handling token expired errors in Helpers.processHttp.
     /// </summary>
-    internal enum EnumRequestNewCredentialStates : byte
+    internal enum EnumRequestNewCredentialsStates : byte
     {
-        RequestNewCredential_NotSet = 0,
-        RequestNewCredential_BubbleResult,
-        RequestNewCredential_Retry,
+        RequestNewCredentials_NotSet = 0,
+        RequestNewCredentials_BubbleResult,
+        RequestNewCredentials_Retry,
     }
 }

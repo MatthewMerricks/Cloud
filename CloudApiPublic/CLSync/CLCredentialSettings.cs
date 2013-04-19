@@ -7,7 +7,7 @@ using Cloud.Static;
 
 namespace Cloud
 {
-    internal sealed class CLCredentialSettings : ICLCredentialSettings
+    internal sealed class CLCredentialSettings : ICLCredentialsSettings
     {
         /// <summary>
         /// Set to true if errors should be logged.
@@ -92,7 +92,7 @@ namespace Cloud
 
     internal static class CLCredentialSettingsExtensions
     {
-        public static AdvancedSyncSettings CopySettings(this ICLCredentialSettings toCopy)
+        public static AdvancedSyncSettings CopySettings(this ICLCredentialsSettings toCopy)
         {
             if (toCopy == null)
             {

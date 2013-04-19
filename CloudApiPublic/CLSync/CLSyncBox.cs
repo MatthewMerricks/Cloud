@@ -61,34 +61,25 @@ namespace Cloud
         /// <summary>
         /// Contains authentication information required for all communication and services
         /// </summary>
-        //public CLCredential Credential
-        //{
-        //    get
-        //    {
-        //        return _credential;
-        //    }
-        //}
-        //private readonly CLCredential _credential;
-
-        internal CLCredential Credential
+        internal CLCredentials Credentials
         {
             get
             {
-                lock (_credentialHolder)
+                lock (_credentialsHolder)
                 {
 
-                    return _credentialHolder.Value;
+                    return _credentialsHolder.Value;
                 }
             }
             set
             {
-                lock (_credentialHolder)
+                lock (_credentialsHolder)
                 {
-                    _credentialHolder.Value = value;
+                    _credentialsHolder.Value = value;
                 }
             }
         }
-        private readonly GenericHolder<CLCredential> _credentialHolder = new GenericHolder<CLCredential>();
+        private readonly GenericHolder<CLCredentials> _credentialsHolder = new GenericHolder<CLCredentials>();
 
         /// <summary>
         /// The unique ID of this Syncbox assigned by Cloud
@@ -143,17 +134,17 @@ namespace Cloud
         /// <param name="syncbox">(output) Created local object representation of Syncbox</param>
         /// <param name="status">(output) Status of creation, should be checked for success</param>
         /// <param name="Settings">(optional) Settings to allow use of the Syncbox in CLSyncEngine for active syncing and/or to allow tracing or other options</param>
-        /// <param name="getNewCredentialCallback">(optional) A callback that will be called to provide a new credential when the current credential token expires.</param>
-        /// <param name="getNewCredentialCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialCallback delegate.</param>
+        /// <param name="getNewCredentialsCallback">(optional) A callback that will be called to provide new credentials when the current credentials token expires.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
         /// <returns>Returns any error which occurred during creation, if any</returns>
         public static CLError CreateAndInitialize(
-            CLCredential Credential,
+            CLCredentials Credentials,
             long SyncboxId,
             out CLSyncbox syncbox,
             out CLSyncboxCreationStatus status,
             ICLSyncSettings Settings = null,
-            Helpers.ReplaceExpiredCredential getNewCredentialCallback = null,
-            object getNewCredentialCallbackUserState = null)
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+            object getNewCredentialsCallbackUserState = null)
         {
             status = CLSyncboxCreationStatus.ErrorUnknown;
 
@@ -165,12 +156,12 @@ namespace Cloud
                 }
 
                 syncbox = new CLSyncbox(
-                    Credential,
+                    Credentials,
                     SyncboxId,
                     Settings,
                     ref status,
-                    getNewCredentialCallback,
-                    getNewCredentialCallbackUserState);
+                    getNewCredentialsCallback,
+                    getNewCredentialsCallbackUserState);
             }
             catch (Exception ex)
             {
@@ -182,16 +173,16 @@ namespace Cloud
             return null;
         }
 
-        private CLSyncbox(CLCredential Credential,
+        private CLSyncbox(CLCredentials Credentials,
             long SyncboxId,
             ICLSyncSettings Settings,
             ref CLSyncboxCreationStatus status,
-            Helpers.ReplaceExpiredCredential getNewCredentialCallback = null,
-            object getNewCredentialCallbackUserState = null)
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+            object getNewCredentialsCallbackUserState = null)
         {
             // check input parameters
 
-            this._credentialHolder.Value = Credential;
+            this._credentialsHolder.Value = Credentials;
             this._syncboxId = SyncboxId;
             if (Settings == null)
             {
@@ -206,23 +197,23 @@ namespace Cloud
             CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
             _trace.writeToLog(1, "CLSyncbox: Constructing...");
 
-            if (Credential == null)
+            if (Credentials == null)
             {
-                const string credentialError = "Credential cannot be null";
-                status = CLSyncboxCreationStatus.ErrorNullCredential;
-                _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: {0}.", credentialError);
-                throw new NullReferenceException(credentialError);
+                const string credentialsError = "Credentials cannot be null";
+                status = CLSyncboxCreationStatus.ErrorNullCredentials;
+                _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: {0}.", credentialsError);
+                throw new NullReferenceException(credentialsError);
             }
 
             // Create the http rest client
             _trace.writeToLog(9, "CLSyncbox: Start: Create rest client.");
             CLError createRestClientError = CLHttpRest.CreateAndInitialize(
-                            credential: this.Credential, 
+                            credentials: this.Credentials, 
                             syncbox: this, 
                             client: out _httpRestClient, 
                             settings: this._copiedSettings, 
-                            getNewCredentialCallback: getNewCredentialCallback,
-                            getNewCredentialCallbackUserState: getNewCredentialCallbackUserState);
+                            getNewCredentialsCallback: getNewCredentialsCallback,
+                            getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
             if (createRestClientError != null)
             {
                 _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());
@@ -1880,7 +1871,7 @@ namespace Cloud
     public enum CLSyncboxCreationStatus : byte
     {
         Success = 0,
-        ErrorNullCredential = 1,
+        ErrorNullCredentials = 1,
         ErrorUnknown = 2,
         ErrorCreatingRestClient = 3,
     }
