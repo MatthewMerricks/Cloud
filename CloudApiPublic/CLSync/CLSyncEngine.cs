@@ -145,21 +145,9 @@ namespace Cloud
         // \endcond
         #endregion
 
-        //// Not sure if we want to expose access to the contained Syncbox since it is set on Start and not on construction (it changes during usage)s
-        //
         ///// <summary>
         ///// Retrieves a currently attached Syncbox, or null if one isn't attached
         ///// </summary>
-        //public CLSyncbox Syncbox
-        //{
-        //    get
-        //    {
-        //        lock (_locker)
-        //        {
-        //            return _syncbox;
-        //        }
-        //    }
-        //}
         private CLSyncbox _syncbox = null;
         /// <summary>
         /// Event fired when a serious notification error has occurred.  Push notification is
@@ -794,6 +782,7 @@ namespace Cloud
                                 return ex;
                             }
                         }
+                        _isStarted = true;
                     }
                 }
 
@@ -1010,6 +999,7 @@ namespace Cloud
             lock (_locker)
             {
                 _syncbox = null; // set this to null after logging errors (which requires the settings)
+                _isStarted = false;
             }
             return toReturn;
         }
