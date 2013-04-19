@@ -1176,7 +1176,7 @@ namespace SampleLiveSync.ViewModels
                 bool startSyncbox = false;
 
                 // Store Syncbox.  It will be set under the locker which checks the _syncEngine, but started afterwards if it was set
-                CLSyncbox syncBox = null;
+                CLSyncbox syncbox = null;
                 lock (_locker)
                 {
                     if (_syncEngine == null)
@@ -1225,12 +1225,12 @@ namespace SampleLiveSync.ViewModels
                             else
                             {
                                 // create a Syncbox from an existing SyncboxId
-                                CLSyncboxCreationStatus syncBoxStatus;
+                                CLSyncboxCreationStatus syncboxStatus;
                                 CLError errorCreateSyncbox = CLSyncbox.CreateAndInitialize(
                                     Credential: syncCredential,
                                     SyncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
-                                    syncBox: out syncBox,
-                                    status: out syncBoxStatus,
+                                    syncbox: out syncbox,
+                                    status: out syncboxStatus,
                                     Settings: SettingsAdvancedImpl.Instance,
                                     getNewCredentialCallback: ReplaceExpiredCredentialCallback,
                                     getNewCredentialCallbackUserState: this);
@@ -1239,14 +1239,14 @@ namespace SampleLiveSync.ViewModels
                                 {
                                     _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncbox.errorDescription);
                                 }
-                                if (syncBoxStatus != CLSyncboxCreationStatus.Success)
+                                if (syncboxStatus != CLSyncboxCreationStatus.Success)
                                 {
                                     if (NotifyException != null)
                                     {
                                         NotifyException(this, new NotificationEventArgs<CLError>()
                                         {
                                             Data = errorCreateSyncbox,
-                                            Message = "syncBoxStatus: " + syncBoxStatus.ToString() + ":" + Environment.NewLine +
+                                            Message = "syncboxStatus: " + syncboxStatus.ToString() + ":" + Environment.NewLine +
                                                 errorCreateSyncbox.errorDescription
                                         });
                                     }
@@ -1259,7 +1259,7 @@ namespace SampleLiveSync.ViewModels
                                     // Reset the sync database if we should
                                     if (Properties.Settings.Default.ShouldResetSync)
                                     {
-                                        CLError errorFromSyncReset = _syncEngine.SyncReset(syncBox);
+                                        CLError errorFromSyncReset = _syncEngine.SyncReset(syncbox);
                                         if (errorFromSyncReset != null)
                                         {
                                             _syncEngine = null;
@@ -1287,12 +1287,12 @@ namespace SampleLiveSync.ViewModels
                 }
 
                 if (startSyncbox
-                    && syncBox != null)
+                    && syncbox != null)
                 {
                     // start syncing
                     CLSyncStartStatus startStatus;
                     CLError errorFromSyncboxStart = _syncEngine.Start(
-                        Syncbox: syncBox, // syncbox to sync (contains required settings)
+                        Syncbox: syncbox, // syncbox to sync (contains required settings)
                         Status: out startStatus, // The completion status of the Start() function
                         StatusUpdated: OnSyncStatusUpdated, // called when sync status is updated
                         StatusUpdatedUserState: _syncEngine); // the user state passed to the callback above
@@ -1327,8 +1327,8 @@ namespace SampleLiveSync.ViewModels
                                 // Get a ViewModel to provide some of the status information to use on our status window.
                                 EventMessageReceiver.EventMessageReceiver vm;
                                 CLError errorCreateVM = EventMessageReceiver.EventMessageReceiver.CreateAndInitialize(
-                                    syncBox.SyncboxId, // filter by current sync box
-                                    syncBox.CopiedSettings.DeviceId, // filter by current device
+                                    syncbox.SyncboxId, // filter by current sync box
+                                    syncbox.CopiedSettings.DeviceId, // filter by current device
                                     out vm, // output the created view model
                                     OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the engine
                                     OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the engine
@@ -1772,7 +1772,7 @@ namespace SampleLiveSync.ViewModels
 
             //// all messages have properties to identify the unique combination of SyncboxId and DeviceId,
             //// but some messages can be fired without a sync box and thus both will be null
-            //Nullable<long> syncBoxId = e.Message.SyncboxId;
+            //Nullable<long> syncboxId = e.Message.SyncboxId;
             //string deviceId = e.Message.DeviceId;
 
             // switch on the message type for the special cases we wish to handle here

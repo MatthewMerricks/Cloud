@@ -410,12 +410,12 @@ namespace Cloud.JsonContracts
             {
                 lock (SyncboxUsageSerializerLocker)
                 {
-                    return _syncBoxUsageSerializer
-                        ?? (_syncBoxUsageSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUsage)));
+                    return _syncboxUsageSerializer
+                        ?? (_syncboxUsageSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUsage)));
                 }
             }
         }
-        private static DataContractJsonSerializer _syncBoxUsageSerializer = null;
+        private static DataContractJsonSerializer _syncboxUsageSerializer = null;
         private static readonly object SyncboxUsageSerializerLocker = new object();
 
         public static DataContractJsonSerializer SyncboxUpdatePlanResponseSerializer
@@ -424,12 +424,12 @@ namespace Cloud.JsonContracts
             {
                 lock (SyncboxUpdatePlanResponseSerializerLocker)
                 {
-                    return _syncBoxUpdatePlanResponseSerializer
-                        ?? (_syncBoxUpdatePlanResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUpdatePlanResponse)));
+                    return _syncboxUpdatePlanResponseSerializer
+                        ?? (_syncboxUpdatePlanResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUpdatePlanResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _syncBoxUpdatePlanResponseSerializer = null;
+        private static DataContractJsonSerializer _syncboxUpdatePlanResponseSerializer = null;
         private static readonly object SyncboxUpdatePlanResponseSerializerLocker = new object();
 
         public static DataContractJsonSerializer SessionCreateResponseSerializer
@@ -452,12 +452,12 @@ namespace Cloud.JsonContracts
             {
                 lock (SyncboxUpdateResponseSerializerLocker)
                 {
-                    return _syncBoxUpdateResponseSerializer
-                        ?? (_syncBoxUpdateResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxHolder)));
+                    return _syncboxUpdateResponseSerializer
+                        ?? (_syncboxUpdateResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxHolder)));
                 }
             }
         }
-        private static DataContractJsonSerializer _syncBoxUpdateResponseSerializer = null;
+        private static DataContractJsonSerializer _syncboxUpdateResponseSerializer = null;
         private static readonly object SyncboxUpdateResponseSerializerLocker = new object();
 
         public static DataContractJsonSerializer SyncboxUpdatePlanRequestSerializer
@@ -466,12 +466,12 @@ namespace Cloud.JsonContracts
             {
                 lock (SyncboxUpdatePlanRequestSerializerLocker)
                 {
-                    return _syncBoxUpdatePlanRequestSerializer
-                        ?? (_syncBoxUpdatePlanRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUpdatePlanRequest)));
+                    return _syncboxUpdatePlanRequestSerializer
+                        ?? (_syncboxUpdatePlanRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUpdatePlanRequest)));
                 }
             }
         }
-        private static DataContractJsonSerializer _syncBoxUpdatePlanRequestSerializer = null;
+        private static DataContractJsonSerializer _syncboxUpdatePlanRequestSerializer = null;
         private static readonly object SyncboxUpdatePlanRequestSerializerLocker = new object();
 
         public static DataContractJsonSerializer SyncboxUpdateRequestSerializer
@@ -480,12 +480,12 @@ namespace Cloud.JsonContracts
             {
                 lock (SyncboxUpdateRequestSerializerLocker)
                 {
-                    return _syncBoxUpdateRequestSerializer
-                        ?? (_syncBoxUpdateRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUpdateRequest)));
+                    return _syncboxUpdateRequestSerializer
+                        ?? (_syncboxUpdateRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUpdateRequest)));
                 }
             }
         }
-        private static DataContractJsonSerializer _syncBoxUpdateRequestSerializer = null;
+        private static DataContractJsonSerializer _syncboxUpdateRequestSerializer = null;
         private static readonly object SyncboxUpdateRequestSerializerLocker = new object();
 
         public static DataContractJsonSerializer SessionCreateRequestSerializer
@@ -679,12 +679,12 @@ namespace Cloud.JsonContracts
             {
                 lock (SyncboxMetadataSerializerLocker)
                 {
-                    return _syncBoxMetadataSerializer
-                        ?? (_syncBoxMetadataSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxMetadata)));
+                    return _syncboxMetadataSerializer
+                        ?? (_syncboxMetadataSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxMetadata)));
                 }
             }
         }
-        private static DataContractJsonSerializer _syncBoxMetadataSerializer = null;
+        private static DataContractJsonSerializer _syncboxMetadataSerializer = null;
         private static readonly object SyncboxMetadataSerializerLocker = new object();
 
         public static DataContractJsonSerializer SyncboxQuotaSerializer
@@ -693,12 +693,12 @@ namespace Cloud.JsonContracts
             {
                 lock (SyncboxQuotaSerializerLocker)
                 {
-                    return _syncBoxQuotaSerializer
-                        ?? (_syncBoxQuotaSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxQuota)));
+                    return _syncboxQuotaSerializer
+                        ?? (_syncboxQuotaSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxQuota)));
                 }
             }
         }
-        private static DataContractJsonSerializer _syncBoxQuotaSerializer = null;
+        private static DataContractJsonSerializer _syncboxQuotaSerializer = null;
         private static readonly object SyncboxQuotaSerializerLocker = new object();
 
         public static DataContractJsonSerializer SyncboxDeleteSerializer
@@ -707,12 +707,12 @@ namespace Cloud.JsonContracts
             {
                 lock (SyncboxDeleteSerializerLocker)
                 {
-                    return _syncBoxDeleteSerializer
-                        ?? (_syncBoxDeleteSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxIdOnly)));
+                    return _syncboxDeleteSerializer
+                        ?? (_syncboxDeleteSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxIdOnly)));
                 }
             }
         }
-        private static DataContractJsonSerializer _syncBoxDeleteSerializer = null;
+        private static DataContractJsonSerializer _syncboxDeleteSerializer = null;
         private static readonly object SyncboxDeleteSerializerLocker = new object();
 
         public static DataContractJsonSerializer UserRegistrationRequestSerializer
@@ -805,12 +805,12 @@ namespace Cloud.JsonContracts
             {
                 lock (SyncboxAuthResponseSerializerLocker)
                 {
-                    return _syncBoxAuthResponseSerializer
-                        ?? (_syncBoxAuthResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxAuthResponse)));
+                    return _syncboxAuthResponseSerializer
+                        ?? (_syncboxAuthResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxAuthResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _syncBoxAuthResponseSerializer = null;
+        private static DataContractJsonSerializer _syncboxAuthResponseSerializer = null;
         private static readonly object SyncboxAuthResponseSerializerLocker = new object();
 
         public static DataContractJsonSerializer LinkDeviceRequestSerializer

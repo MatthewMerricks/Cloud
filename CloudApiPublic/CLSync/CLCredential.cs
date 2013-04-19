@@ -1127,14 +1127,14 @@ namespace Cloud
         /// <param name="aCallback">Callback method to fire when operation completes</param>
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="syncBoxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
+        /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public IAsyncResult BeginCreateSession(AsyncCallback aCallback,
             object aState,
             int timeoutMilliseconds,
-            HashSet<long> syncBoxIds = null,
+            HashSet<long> syncboxIds = null,
             Nullable<long> tokenDurationMinutes = null,
             ICLCredentialSettings settings = null)
         {
@@ -1148,7 +1148,7 @@ namespace Cloud
                 new Tuple<GenericAsyncResult<SessionCreateResult>, int, HashSet<long>, Nullable<long>, ICLCredentialSettings>(
                     toReturn,
                     timeoutMilliseconds,
-                    syncBoxIds,
+                    syncboxIds,
                     tokenDurationMinutes,
                     settings);
 
@@ -1280,13 +1280,13 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
-        /// <param name="syncBoxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
+        /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError CreateSession(int timeoutMilliseconds, out CLHttpRestStatus status, 
                     out JsonContracts.SessionCreateResponse response, 
-                    HashSet<long> syncBoxIds = null,
+                    HashSet<long> syncboxIds = null,
                     Nullable<long> tokenDurationMinutes = null,
                     ICLCredentialSettings settings = null)
         {
@@ -1307,10 +1307,10 @@ namespace Cloud
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                // Determine the request JSON contract to use.  If the syncBoxIds parameter is null, use the "all"
+                // Determine the request JSON contract to use.  If the syncboxIds parameter is null, use the "all"
                 // contract.  Otherwise, build the contract that includes an array of SyncboxIds.
                 object requestContract = null;
-                if (syncBoxIds == null)
+                if (syncboxIds == null)
                 {
                     Cloud.JsonContracts.SessionCreateAllRequest sessionCreateAll = new JsonContracts.SessionCreateAllRequest()
                     {
@@ -1323,7 +1323,7 @@ namespace Cloud
                 {
                     Cloud.JsonContracts.SessionCreateRequest sessionCreate = new JsonContracts.SessionCreateRequest()
                     {
-                        SessionIds = syncBoxIds.ToArray<long>(),
+                        SessionIds = syncboxIds.ToArray<long>(),
                         TokenDuration = tokenDurationMinutes
                     };
                     requestContract = sessionCreate;
@@ -1535,10 +1535,7 @@ namespace Cloud
 
                 // Build the query string.
                 string query = Helpers.QueryStringBuilder(
-                    new[]
-                    {
-                        new KeyValuePair<string, string>(CLDefinitions.RESTRequestSession_KeyId, Uri.EscapeDataString(key))
-                    });
+                    Helpers.EnumerateSingleItem(new KeyValuePair<string, string>(CLDefinitions.RESTRequestSession_KeyId, Uri.EscapeDataString(key))));
 
                 response = Helpers.ProcessHttp<JsonContracts.SessionShowResponse>(
                     null,

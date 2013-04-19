@@ -142,10 +142,10 @@ namespace SampleLiveSync.Models
         {
             get
             {
-                long syncBoxIdParsed;
-                if (long.TryParse(Properties.Settings.Default.SyncboxId, out syncBoxIdParsed))
+                long syncboxIdParsed;
+                if (long.TryParse(Properties.Settings.Default.SyncboxId, out syncboxIdParsed))
                 {
-                    return syncBoxIdParsed;
+                    return syncboxIdParsed;
                 }
                 else
                 {

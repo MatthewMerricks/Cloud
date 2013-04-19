@@ -100,10 +100,12 @@ namespace Cloud.Static
         // Method Path
 #if DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 #if URL_API
-        public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud";                                    // POST
+        // switched to "_new" for testing latest server logic
+        public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud_new";                                    // POST
         public const string MethodPathDownload = VersionPrefix + "/sync/file/download";                                 // POST
         public const string MethodPathUpload = VersionPrefix + "/sync/file/upload";                                     // POST
-        public const string MethodPathSyncTo = VersionPrefix + "/sync/to_cloud";                                        // POST
+        // switched to "_new" for testing latest server logic
+        public const string MethodPathSyncTo = VersionPrefix + "/sync/to_cloud_new";                                        // POST
         public const string MethodPathPurgePending = VersionPrefix + "/sync/file/purge_pending";                        // POST
         public const string MethodPathGetPending = VersionPrefix + "/sync/file/pending";                                // GET
         public const string MethodPathGetFileMetadata = VersionPrefix + "/sync/file/metadata";                          // GET
@@ -483,6 +485,10 @@ namespace Cloud.Static
         public const string CLMetadataIsDirectory = "is_folder";
         public const string CLMetadataFileIsLink = "is_link";
         public const string CLMetadataFileSize = "file_size";
+        public const string CLMetadataName = "name";
+        public const string CLMetadataToName = "to_name";
+        public const string CLMetadataParentUid = "parent_uid";
+        public const string CLMetadataToParentUid = "to_parent_uid";
         /// <summary>
         /// Be careful, this may be the wrong key name, you may need the inverse of <see cref="CLDefinitions.CLMetadataIsStored"/>
         /// </summary>
@@ -548,7 +554,7 @@ namespace Cloud.Static
 
         // Folder and file names
         public const string kTempDownloadFolderName = "DownloadTemp";   // the folder to hold temporary downloaded files before moving them to their permanent location.
-        public const string kSyncDatabaseFileName = "IndexDB.sdf";
+        public const string kSyncDatabaseFileName = "index.db";
         public const int kMaxTraceFilenameExtLength = 60;               // maximum length of trace filenames (including the extension).
 
         // REST Response Status "status"

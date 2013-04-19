@@ -78,8 +78,8 @@ namespace Cloud.BadgeNET
         /// </summary>
         /// <param name="initialList">(optional) list to start with for badged objects, filepaths in keys must not be null nor empty</param>
         /// <param name="syncSettings">The settings to use for this instance.</param>
-        /// <param name="syncBoxId">The syncBoxId to use for this instance.</param>
-        public CLError Initialize(ICLSyncSettings syncSettings, long syncBoxId, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
+        /// <param name="syncboxId">The syncboxId to use for this instance.</param>
+        public CLError Initialize(ICLSyncSettings syncSettings, long syncboxId, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
@@ -102,7 +102,7 @@ namespace Cloud.BadgeNET
                 }
 
                 _trace.writeToLog(9, "IconOverlay: Initialize: Entry.");
-                return pInitialize(syncBoxId, initialList);
+                return pInitialize(syncboxId, initialList);
             }
             catch (Exception ex)
             {
@@ -112,7 +112,7 @@ namespace Cloud.BadgeNET
                 return ex;
             }
         }
-        private CLError pInitialize(long syncBoxId, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
+        private CLError pInitialize(long syncboxId, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
         {
             try
             {
@@ -227,7 +227,7 @@ namespace Cloud.BadgeNET
                                 Message: "Explorer icon badging has failed",
                                 Level: EventMessageLevel.Important,
                                 Error: null,
-                                SyncboxId: syncBoxId,
+                                SyncboxId: syncboxId,
                                 DeviceId: _syncSettings.DeviceId);
                         }
                         _trace.writeToLog(9, "IconOverlay: threadInit: Exit thread.");
@@ -319,7 +319,7 @@ namespace Cloud.BadgeNET
                     Message: "Explorer icon badging has failed",
                     Level: EventMessageLevel.Important,
                     Error: null,
-                    SyncboxId: syncBoxId,
+                    SyncboxId: syncboxId,
                     DeviceId: _syncSettings.DeviceId);
                 return ex;
             }
@@ -635,8 +635,8 @@ namespace Cloud.BadgeNET
         /// </summary>
         /// <param name="initialList">list to start with for badged objects, all filepaths in keys must not be null nor empty</param>
         /// <param name="pathRootDirectory">The full path to the Cloud root directory.</param>
-        /// <param name="syncBoxId">The Syncbox ID.</param>
-        public CLError InitializeOrReplace(string pathRootDirectory, long syncBoxId, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList)
+        /// <param name="syncboxId">The Syncbox ID.</param>
+        public CLError InitializeOrReplace(string pathRootDirectory, long syncboxId, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList)
         {
             try
             {
@@ -650,7 +650,7 @@ namespace Cloud.BadgeNET
                     if (!isInitialized)
                     {
                         _trace.writeToLog(9, "IconOverlay: InitializeOrReplace. Not initialized yet.  Initialize.");
-                        pInitialize(syncBoxId, initialList);
+                        pInitialize(syncboxId, initialList);
                         // store that list was already processed by initialization
                         listProcessed = true;
                     }

@@ -29,15 +29,16 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using Cloud.SQLIndexer.Model;
+using System.Windows;
+using System.Security.Principal;
 
 namespace Cloud.Static
 {
     extern alias SimpleJsonBase;
-    using System.ComponentModel;
-    using System.Runtime.InteropServices;
-    using Cloud.SQLIndexer.Model;
-    using System.Windows;
-    using System.Security.Principal;
+
     /// <summary>
     /// Class containing commonly usable static helper methods
     /// </summary>
@@ -152,6 +153,100 @@ namespace Cloud.Static
                 null,
                 new Type[] { typeof(Type) },
                 null);
+
+        /// <summary>
+        /// Creates an empty list using a typed instance as template. It does not matter if the input is null; regardless, the list will be created empty.
+        /// </summary>
+        public static List<T> CreateEmptyListFromTemplate<T>(T template) where T : class
+        {
+            return new List<T>();
+        }
+
+        /// <summary>
+        /// Attempts to create a FilePathDictionary and returns any associated error creating it using a typed instance as templace. It does not matter if the input is null; regardless, the dictionary will be created empty.
+        /// </summary>
+        internal static KeyValuePair<FilePathDictionary<T>, CLError> CreateEmptyFilePathDictionaryFromTemplate<T>(
+            FilePath rootPath,
+            T template,
+            Action<FilePath, T, FilePath> recursiveDeleteCallback = null,
+            Action<FilePath, FilePath, T, FilePath, FilePath> recursiveRenameCallback = null,
+            T valueAtFolder = null) where T : class
+        {
+            FilePathDictionary<T> toReturnKey;
+            CLError toReturnValue = FilePathDictionary<T>.CreateAndInitialize(
+                rootPath,
+                out toReturnKey,
+                recursiveDeleteCallback,
+                recursiveRenameCallback,
+                valueAtFolder);
+
+            return new KeyValuePair<FilePathDictionary<T>, CLError>(toReturnKey, toReturnValue);
+        }
+
+        /// <summary>
+        /// Calls TryGetValue on an IDictionary of generic type, or simply returns no object with no success on null dictionary input. Returns both whether it was successful and the value.
+        /// </summary>
+        public static DictionaryTryGetValueResult<TValue> DictionaryTryGetValue<TKey, TValue>(IDictionary<TKey, TValue> dict, TKey search)
+        {
+            if (dict == null)
+            {
+                return new DictionaryTryGetValueResult<TValue>(success: false, value: Helpers.DefaultForType<TValue>());
+            }
+
+            TValue toReturnValue;
+            bool toReturnSuccess = dict.TryGetValue(search, out toReturnValue);
+
+            return new DictionaryTryGetValueResult<TValue>(success: toReturnSuccess, value: toReturnValue);
+        }
+        /// <summary>
+        /// Holds whether a call to a IDictionary TryGetValue was succesful and also the output value. Do not use the public, default constructor.
+        /// </summary>
+        public struct DictionaryTryGetValueResult<TValue>
+        {
+            public bool Success
+            {
+                get
+                {
+                    if (!_isValid)
+                    {
+                        throw new ArgumentException("Cannot retrieve property values on an invalid DictionaryTryGetValueResult");
+                    }
+
+                    return _success;
+                }
+            }
+            private readonly bool _success;
+
+            public TValue Value
+            {
+                get
+                {
+                    if (!_isValid)
+                    {
+                        throw new ArgumentException("Cannot retrieve property values on an invalid DictionaryTryGetValueResult");
+                    }
+
+                    return _value;
+                }
+            }
+            private readonly TValue _value;
+
+            public bool IsValid
+            {
+                get
+                {
+                    return _isValid;
+                }
+            }
+            private readonly bool _isValid;
+
+            internal DictionaryTryGetValueResult(bool success, TValue value)
+            {
+                this._success = success;
+                this._value = value;
+                this._isValid = true;
+            }
+        }
 
         //private static readonly char[] ValidDateTimeStringChars = new char[]
         //{
@@ -357,6 +452,7 @@ namespace Cloud.Static
             }
             ms.Position = 0;
             inputStream.Close();
+
             return ms;
         }
 
@@ -373,6 +469,21 @@ namespace Cloud.Static
                 T toReturn = toDequeue.First();
                 toDequeue.RemoveFirst();
                 yield return toReturn;
+            }
+        }
+
+        /// <summary>
+        /// Extension to return an enumerable created for an instance's type which will enumerate and only return the input instance, if any
+        /// </summary>
+        public static IEnumerable<T> EnumerateSingleItem<T>(T toEnumerate)
+        {
+            if (toEnumerate == null)
+            {
+                yield break;
+            }
+            else
+            {
+                yield return toEnumerate;
             }
         }
 
@@ -413,22 +524,24 @@ namespace Cloud.Static
             }
 
             StringBuilder toReturn = null;
-            IEnumerator<KeyValuePair<string, string>> queryEnumerator = queryStrings.GetEnumerator();
-            while (queryEnumerator.MoveNext())
+            using (IEnumerator<KeyValuePair<string, string>> queryEnumerator = queryStrings.GetEnumerator())
             {
-                if (queryEnumerator.Current.Key != null
-                    || queryEnumerator.Current.Value != null)
+                while (queryEnumerator.MoveNext())
                 {
-                    if (toReturn == null)
+                    if (queryEnumerator.Current.Key != null
+                        || queryEnumerator.Current.Value != null)
                     {
-                        toReturn = new StringBuilder("?");
-                    }
-                    else
-                    {
-                        toReturn.Append("&");
-                    }
+                        if (toReturn == null)
+                        {
+                            toReturn = new StringBuilder("?");
+                        }
+                        else
+                        {
+                            toReturn.Append("&");
+                        }
 
-                    toReturn.Append(queryEnumerator.Current.Key + "=" + queryEnumerator.Current.Value);
+                        toReturn.Append(queryEnumerator.Current.Key + "=" + queryEnumerator.Current.Value);
+                    }
                 }
             }
 
@@ -654,6 +767,18 @@ namespace Cloud.Static
         public static object ConvertTo(object toConvert, Type newType)
         {
             if (toConvert == null)
+            {
+                return null;
+            }
+
+            if ((newType == typeof(Guid)
+                    || newType == typeof(Nullable<Guid>))
+                && toConvert is byte[]
+                && ((byte[])toConvert).Length == 16)
+            {
+                return new Guid((byte[])toConvert);
+            }
+            else if (newType == typeof(Nullable<Guid>))
             {
                 return null;
             }
@@ -1168,7 +1293,7 @@ namespace Cloud.Static
         /// <param name="OnPreviousCompletion">An action that will be driven on the old trace file when a trace file rolls over.</param>
         /// <param name="SyncboxId">The relevant sync box id, or null</param>
         /// <returns>string: The full path and filename.ext of the trace file to use.</returns>
-        internal static string CheckLogFileExistance(string TraceLocation, Nullable<long> SyncboxId, string UserDeviceId, string TraceCategory, string FileExtensionWithoutPeriod, Action<TextWriter, string, Nullable<long>, string> OnNewTraceFile, Action<TextWriter> OnPreviousCompletion)
+        internal static string CheckLogFileExistance(string TraceLocation, Nullable<long> SyncboxId, string UserDeviceId, string TraceCategory, string FileExtensionWithoutPeriod, Action<TextWriter, string, Nullable<long>, string, string> OnNewTraceFile, Action<TextWriter> OnPreviousCompletion)
         {
             // Get the last day we created a trace file for this category
             if (String.IsNullOrWhiteSpace(TraceCategory))
@@ -1356,7 +1481,7 @@ namespace Cloud.Static
                         {
                             using (TextWriter logWriter = File.CreateText(finalLocation))
                             {
-                                OnNewTraceFile(logWriter, finalLocation, SyncboxId, UserDeviceId);
+                                OnNewTraceFile(logWriter, finalLocation, SyncboxId, UserDeviceId, CloudVersion);
                                 //logWriter.Write(LogXmlStart(finalLocation,
                                 //    "DeviceUuid: {" + UserDeviceId + "}, SyncboxId: {" + UniqueUserId + "}"));
                             }
@@ -1417,6 +1542,29 @@ namespace Cloud.Static
             parameterData.Item1.BeginInvoke(parameterData.Item3, parameterData.Item4);
         }
         #endregion
+
+        public static string CloudVersion
+        {
+            get
+            {
+                lock (_cloudVersion)
+                {
+                    if (_cloudVersion.Value == null)
+                    {
+                        try
+                        {
+                            typeof(Helpers).Assembly.GetName().Version.ToString();
+                        }
+                        catch
+                        {
+                            _cloudVersion.Value = "0.0.0.0";
+                        }
+                    }
+                    return _cloudVersion.Value;
+                }
+            }
+        }
+        private static readonly GenericHolder<string> _cloudVersion = new GenericHolder<string>();
 
         /// <summary>
         /// Extend string to format a user-viewable string to represent a number of bytes.
@@ -1778,10 +1926,10 @@ namespace Cloud.Static
         /// Get the full path of the folder which will be used to store files while they are downloading.
         /// </summary>
         /// <param name="settings">The settings to use.</param>
-        /// <param name="syncBoxId">ID of the Syncbox</param>
+        /// <param name="syncboxId">ID of the Syncbox</param>
         /// <returns>string: The full path of the temp download directory.</returns>
         /// <remarks>Can throw.</remarks>
-        internal static string GetTempFileDownloadPath(ICLSyncSettingsAdvanced settings, long syncBoxId)
+        internal static string GetTempFileDownloadPath(ICLSyncSettingsAdvanced settings, long syncboxId)
         {
             string toReturn = "";
             try
@@ -1798,7 +1946,7 @@ namespace Cloud.Static
                 // Gather the path info
                 string sAppName = Helpers.GetDefaultNameFromApplicationName().Trim();
                 string sLocalDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create).Trim();
-                string sUniqueFolderName = syncBoxId.ToString() +"-" + settings.DeviceId.Trim();
+                string sUniqueFolderName = syncboxId.ToString() +"-" + settings.DeviceId.Trim();
                 string sDataDir = sLocalDir + "\\" + sAppName + "\\" + sUniqueFolderName;
                 string sTempDownloadDir = sDataDir + "\\" + CLDefinitions.kTempDownloadFolderName;
 
@@ -2056,7 +2204,7 @@ namespace Cloud.Static
         /// <summary>
         /// event handler fired upon transfer buffer clears for uploads/downloads to relay to the global event
         /// </summary>
-        internal static void HandleUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource, Nullable<long> syncBoxId, string deviceId)
+        internal static void HandleUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource, Nullable<long> syncboxId, string deviceId)
         {
             // validate parameter which can throw an exception in this method
 
@@ -2071,7 +2219,7 @@ namespace Cloud.Static
                 MessageEvents.UpdateFileUpload(
                     eventId: eventSource.EventId, // the id for the event
                     parameters: status, // the event arguments describing the status change
-                    SyncboxId: syncBoxId,
+                    SyncboxId: syncboxId,
                     DeviceId: deviceId);
             }
             else
@@ -2079,7 +2227,7 @@ namespace Cloud.Static
                 MessageEvents.UpdateFileDownload(
                     eventId: eventSource.EventId, // the id for the event
                     parameters: status,  // the event arguments describing the status change
-                    SyncboxId: syncBoxId,
+                    SyncboxId: syncboxId,
                     DeviceId: deviceId);
             }
         }
@@ -2296,7 +2444,7 @@ namespace Cloud.Static
         /// main HTTP REST routine helper method which processes the actual communication
         /// T should be the type of the JSON contract object which an be deserialized from the return response of the server if any, otherwise use string/object type which will be filled in as the entire string response
         /// </summary>
-        internal static T ProcessHttpInner<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+        private static T ProcessHttpInner<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
             string serverUrl, // the server URL
             string serverMethodPath, // the server method path
             requestMethod method, // type of HTTP method (get vs. put vs. post)
@@ -2417,6 +2565,37 @@ namespace Cloud.Static
                             }
 
                             requestString = SimpleJsonBase.SimpleJson.SimpleJson.SerializeObject(myDeserialized);
+                        }
+                        else
+                        {
+                            // remove null fields from request
+
+                            bool nullsChecked = false;
+
+                            object deserializedRequest = SimpleJsonBase.SimpleJson.SimpleJson.DeserializeObject(requestString);
+                            if (deserializedRequest != null)
+                            {
+                                SimpleJsonBase.SimpleJson.JsonObject deserializedRequestObject = deserializedRequest as SimpleJsonBase.SimpleJson.JsonObject;
+                                if (deserializedRequestObject != null)
+                                {
+                                    RemoveNullJsonFields(deserializedRequestObject);
+                                    nullsChecked = true;
+                                }
+                                else
+                                {
+                                    SimpleJsonBase.SimpleJson.JsonArray deserializedRequestArray = deserializedRequest as SimpleJsonBase.SimpleJson.JsonArray;
+                                    if (deserializedRequestArray != null)
+                                    {
+                                        RemoveNullJsonFields(deserializedRequestArray);
+                                        nullsChecked = true;
+                                    }
+                                }
+                            }
+
+                            if (nullsChecked)
+                            {
+                                requestString = SimpleJsonBase.SimpleJson.SimpleJson.SerializeObject(deserializedRequest);
+                            }
                         }
                     }
 
@@ -2577,12 +2756,13 @@ namespace Cloud.Static
                         }
 
                         UploadStreamContext uploadStreamContext = ((uploadParams)uploadDownload).UploadStreamContext;
-                        StreamReaderAdapter reader = (uploadStreamContext == null) ? new StreamReaderAdapter(((uploadParams)uploadDownload).Stream) /// no upload stream verification
-                                                                                    : new HashedStreamReaderAdapter(((uploadParams)uploadDownload).Stream, /// verify against a pre-hashed upload stream
-                                                                                                                    FileConstants.MaxUploadIntermediateHashBytesSize,
-                                                                                                                    uploadStreamContext.IntermediateHashes, 
-                                                                                                                    uploadStreamContext.Hash,
-                                                                                                                    uploadStreamContext.FileSize ?? 0);
+                        StreamReaderAdapter reader = (uploadStreamContext == null
+                            ? new StreamReaderAdapter(((uploadParams)uploadDownload).Stream) // no upload stream verification
+                            : new HashedStreamReaderAdapter(((uploadParams)uploadDownload).Stream, // verify against a pre-hashed upload stream
+                                FileConstants.MaxUploadIntermediateHashBytesSize,
+                                uploadStreamContext.IntermediateHashes,
+                                uploadStreamContext.Hash,
+                                (uploadStreamContext.FileSize ?? 0)));
 
                         try
                         {
@@ -3434,6 +3614,69 @@ namespace Cloud.Static
             }
         }
 
+        private static void RemoveNullJsonFields(SimpleJsonBase.SimpleJson.JsonObject toClean)
+        {
+            List<string> keysToRemove = null;
+            foreach (KeyValuePair<string, object> currentPair in toClean)
+            {
+                if (currentPair.Value == null)
+                {
+                    if (keysToRemove == null)
+                    {
+                        keysToRemove = new List<string>(EnumerateSingleItem(currentPair.Key));
+                    }
+                    else
+                    {
+                        keysToRemove.Add(currentPair.Key);
+                    }
+                }
+                else
+                {
+                    SimpleJsonBase.SimpleJson.JsonObject innerObject = currentPair.Value as SimpleJsonBase.SimpleJson.JsonObject;
+                    if (innerObject != null)
+                    {
+                        RemoveNullJsonFields(innerObject);
+                    }
+                    else
+                    {
+                        SimpleJsonBase.SimpleJson.JsonArray innerArray = currentPair.Value as SimpleJsonBase.SimpleJson.JsonArray;
+                        if (innerArray != null)
+                        {
+                            RemoveNullJsonFields(innerArray);
+                        }
+                    }
+                }
+            }
+
+            if (keysToRemove != null)
+            {
+                foreach (string currentToRemove in keysToRemove)
+                {
+                    toClean.Remove(currentToRemove);
+                }
+            }
+        }
+
+        private static void RemoveNullJsonFields(SimpleJsonBase.SimpleJson.JsonArray toClean)
+        {
+            foreach (object toCleanElement in toClean)
+            {
+                SimpleJsonBase.SimpleJson.JsonObject innerObject = toCleanElement as SimpleJsonBase.SimpleJson.JsonObject;
+                if (innerObject != null)
+                {
+                    RemoveNullJsonFields(innerObject);
+                }
+                else
+                {
+                    SimpleJsonBase.SimpleJson.JsonArray innerArray = toCleanElement as SimpleJsonBase.SimpleJson.JsonArray;
+                    if (innerArray != null)
+                    {
+                        RemoveNullJsonFields(innerArray);
+                    }
+                }
+            }
+        }
+
         private static void CleanTypeKeys(object valueToClean)
         {
             SimpleJsonBase.SimpleJson.JsonObject recurseJson;
@@ -4218,9 +4461,9 @@ namespace Cloud.Static
         /// </summary>
         /// <param name="status">The parameters which describe the progress itself</param>
         /// <param name="eventSource">The FileChange describing the change to upload or download</param>
-        /// <param name="syncBoxId">The unique id of the sync box on the server</param>
+        /// <param name="syncboxId">The unique id of the sync box on the server</param>
         /// <param name="deviceId">The id of this device</param>
-        internal delegate void SendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource, Nullable<long> syncBoxId, string deviceId);
+        internal delegate void SendUploadDownloadStatus(CLStatusFileTransferUpdateParameters status, FileChange eventSource, Nullable<long> syncboxId, string deviceId);
 
         /// <summary>
         /// Handler called before a download starts with the temporary file id (used as filename for the download in the temp download folder) and passes through UserState

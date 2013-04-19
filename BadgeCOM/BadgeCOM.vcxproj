@@ -1952,18 +1952,30 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=7
-echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
-copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)\$(TargetName).dll
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=8
-echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
-copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)\$(TargetName).dll
+echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)
+copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\release\$(PlatformShortName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=8
+set ErrorTracker=9
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=10
+echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)
+copy $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\debug\$(PlatformShortName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=11
 echo regsvr32.exe /u /s $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll
 regsvr32.exe /u /s $(SolutionDir)3rdParty\bin\$(Configuration)\$(TargetName).dll
 REM do not jump to error condition and reset error level since it is fine if regsvr32.exe fails to unregister dll
@@ -2016,35 +2028,61 @@ if not "$(Configuration)" == "Release" goto NotRelease
   if exist $(SolutionDir)CloudSdkSyncSample\bin\Release\x86\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Release\x86\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
   if %ERRORLEVEL% == 1 goto BuildEventFailed
 
+  REM ----------------------------------------------------------------
+  set ErrorTracker=5
+  set ERRORLEVEL=
+  echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll $(windir)\syswow64\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll
+  if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll $(windir)\syswow64\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll
+  if errorlevel 6 goto BuildEventFailed
+
+  set ErrorTracker=6
+  set ERRORLEVEL=
+  echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
+  if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
+  if %ERRORLEVEL% == 1 goto BuildEventFailed
+
   goto AfterConfigurationCheck
 :NotRelease
   REM This is 64-bit
 
   REM ----------------------------------------------------------------
-  set ErrorTracker=5
+  set ErrorTracker=7
   set ERRORLEVEL=
   echo if exist $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll
   if exist $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll
   if errorlevel 6 goto BuildEventFailed
 
   REM ----------------------------------------------------------------
-  set ErrorTracker=6
+  set ErrorTracker=8
   set ERRORLEVEL=
   echo if exist $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
   if exist $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
   if %ERRORLEVEL% == 1 goto BuildEventFailed
 
   REM ----------------------------------------------------------------
-  set ErrorTracker=7
+  set ErrorTracker=9
   set ERRORLEVEL=
   echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll
   if exist $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll
   if errorlevel 6 goto BuildEventFailed
 
-  set ErrorTracker=8
+  set ErrorTracker=10
   set ERRORLEVEL=
   echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
   if exist $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
+  if %ERRORLEVEL% == 1 goto BuildEventFailed
+
+  REM ----------------------------------------------------------------
+  set ErrorTracker=11
+  set ERRORLEVEL=
+  echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll
+  if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll
+  if errorlevel 6 goto BuildEventFailed
+
+  set ErrorTracker=12
+  set ERRORLEVEL=
+  echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
+  if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
   if %ERRORLEVEL% == 1 goto BuildEventFailed
 
 :AfterConfigurationCheck
@@ -3304,8 +3342,26 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=4
-echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)\
-copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)\
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=5
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)
+copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Release\$(PlatformShortName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=6
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName) mkdir $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=7
+echo copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
+copy $(OutDir)$(TargetName).dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ---- PLACE THIS CODE AT THE END
@@ -3354,35 +3410,61 @@ if not "$(Configuration)" == "Release" goto NotRelease
   if exist $(SolutionDir)CloudSdkSyncSample\bin\Release\x86\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Release\x86\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
   if %ERRORLEVEL% == 1 goto BuildEventFailed
 
+  REM ----------------------------------------------------------------
+  set ErrorTracker=5
+  set ERRORLEVEL=
+  echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll $(windir)\syswow64\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll
+  if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll $(windir)\syswow64\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll
+  if errorlevel 6 goto BuildEventFailed
+
+  set ErrorTracker=6
+  set ERRORLEVEL=
+  echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
+  if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Debug\x86\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
+  if %ERRORLEVEL% == 1 goto BuildEventFailed
+
   goto AfterConfigurationCheck
 :NotRelease
   REM This is 64-bit
 
   REM ----------------------------------------------------------------
-  set ErrorTracker=5
+  set ErrorTracker=7
   set ERRORLEVEL=
   echo if exist $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll
   if exist $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll
   if errorlevel 6 goto BuildEventFailed
 
   REM ----------------------------------------------------------------
-  set ErrorTracker=6
+  set ErrorTracker=8
   set ERRORLEVEL=
   echo if exist $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
   if exist $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)3rdParty\bin\Release64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
   if %ERRORLEVEL% == 1 goto BuildEventFailed
 
   REM ----------------------------------------------------------------
-  set ErrorTracker=7
+  set ErrorTracker=9
   set ERRORLEVEL=
   echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll
   if exist $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll
   if errorlevel 6 goto BuildEventFailed
 
-  set ErrorTracker=8
+  set ErrorTracker=10
   set ERRORLEVEL=
   echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
   if exist $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Release\amd64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
+  if %ERRORLEVEL% == 1 goto BuildEventFailed
+
+  REM ----------------------------------------------------------------
+  set ErrorTracker=11
+  set ERRORLEVEL=
+  echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll
+  if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll $(windir)\system32\regsvr32 /u /s $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll
+  if errorlevel 6 goto BuildEventFailed
+
+  set ErrorTracker=12
+  set ERRORLEVEL=
+  echo if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
+  if exist $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll for /f %%i in ('del $(SolutionDir)CloudSdkSyncSample\bin\Debug\amd64\$(TargetName).dll 2^&gt;^&amp;1') do set ERRORLEVEL=1
   if %ERRORLEVEL% == 1 goto BuildEventFailed
 
 :AfterConfigurationCheck

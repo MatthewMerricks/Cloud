@@ -958,12 +958,20 @@ namespace Cloud.Static
 
                             currentArray[currentIndex] = new TraceFileChange()
                             {
-                                ServerId = currentChange.Metadata.ServerId,
+                                ServerUid = currentChange.Metadata.ServerUid,
                                 EventId = currentChange.EventId,
                                 EventIdSpecified = currentChange.EventId != 0,
                                 NewPath = currentChange.NewPath.ToString(),
                                 OldPath = (currentChange.OldPath == null ? null : currentChange.OldPath.ToString()),
                                 IsFolder = currentChange.Metadata.HashableProperties.IsFolder,
+                                IsShare = currentChange.Metadata.IsShare ?? false,
+                                IsShareSpecified = currentChange.Metadata.IsShare != null,
+                                Version = currentChange.Metadata.Version ?? 0,
+                                VersionSpecified = currentChange.Metadata.Version != null,
+                                ParentServerUid = currentChange.Metadata.ParentFolderServerUid,
+                                MimeType = currentChange.Metadata.MimeType,
+                                Permissions = (int)(currentChange.Metadata.Permissions ?? POSIXPermissions.NoPermission),
+                                PermissionsSpecified = currentChange.Metadata.Permissions != null,
                                 Type = convertedCurrentType,
                                 LastTime = currentChange.Metadata.HashableProperties.LastTime.ToUniversalTime(),
                                 LastTimeSpecified = currentChange.Metadata.HashableProperties.LastTime.Ticks != FileConstants.InvalidUtcTimeTicks,
@@ -973,7 +981,6 @@ namespace Cloud.Static
                                 SizeSpecified = currentChange.Metadata.HashableProperties.Size != null,
                                 IsSyncFrom = IsSyncFromBySyncDirection(currentChange.Direction),
                                 MD5 = PullMD5(currentChange),
-                                LinkTargetPath = (currentChange.Metadata.LinkTargetPath == null ? null : currentChange.Metadata.LinkTargetPath.ToString()),
                                 Revision = currentChange.Metadata.Revision,
                                 StorageKey = currentChange.Metadata.StorageKey,
                                 Dependencies = innerTraceArray
@@ -1073,9 +1080,9 @@ namespace Cloud.Static
         private static void WriteLogEntry(Entry logEntry, string traceLocation, string UserDeviceId, Nullable<long> SyncboxId)
         {
             string logLocation = Helpers.CheckLogFileExistance(traceLocation, SyncboxId, UserDeviceId, "Sync", "xml",
-                new Action<TextWriter, string, Nullable<long>, string>((logWriter, finalLocation, innerSyncboxId, innerDeviceId) =>
+                new Action<TextWriter, string, Nullable<long>, string, string>((logWriter, finalLocation, innerSyncboxId, innerDeviceId, cloudVersion) =>
                 {
-                    logWriter.Write(LogXmlStart(finalLocation, "UDid: {" + innerDeviceId + "}, SyncboxId: {" + innerSyncboxId + "}"));
+                    logWriter.Write(LogXmlStart(finalLocation, "UDid: {" + (new System.Xml.Linq.XElement("e", innerDeviceId)).Nodes().Single().ToString(System.Xml.Linq.SaveOptions.DisableFormatting) + "}, SyncboxId: {" + innerSyncboxId + "}, Cloud: {" + cloudVersion + "}"));
                 }),
                 new Action<TextWriter>((logWriter) =>
                 {

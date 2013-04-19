@@ -110,7 +110,7 @@ namespace Cloud.Model
             base.SetMD5(previousMD5Bytes);
             base.Type = baseChange.Type;
 
-            this._dependencies = new List<FileChange>(initialDependencies ?? new FileChange[0]);
+            this._dependencies = (initialDependencies == null ? new List<FileChange>() : new List<FileChange>(initialDependencies));
         }
 
         /// <summary>

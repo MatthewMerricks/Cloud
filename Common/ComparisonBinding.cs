@@ -213,7 +213,7 @@ namespace win_client.Common
             object parameter,
             System.Globalization.CultureInfo culture)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
     }
 }

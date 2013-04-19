@@ -22,7 +22,7 @@ namespace Cloud.JsonContracts
         public string DeviceId { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataServerId, IsRequired = false)]
-        public string ServerId { get; set; }
+        public string ServerUid { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataCloudPath, IsRequired = false)]
         public string RelativePath { get; set; }

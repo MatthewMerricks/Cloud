@@ -715,7 +715,8 @@ EXCLUDE_PATTERNS       = */CloudApiPublic/Sync* \
                          */CloudApiPublic/EventMessageReceiver/Status* \
                          */CloudApiPublic/REST* \
                          */CloudApiPublic/JsonContracts* \
-                         */CloudApiPublic/Support*
+                         */CloudApiPublic/Support* \
+                         */CloudApiPublic/Model/Sync*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -763,7 +764,8 @@ EXCLUDE_SYMBOLS        = Cloud::Interfaces::ISyncDataObject \
                          Cloud::JsonContracts::SyncBoxAuthResponse \
                          Cloud::JsonContracts::LinkDeviceRequest \
                          Cloud::JsonContracts::LinkDeviceResponse \
-                         Cloud::JsonContracts::UnlinkDeviceRequest
+                         Cloud::JsonContracts::UnlinkDeviceRequest \
+                         Cloud::Model::Sync::PossiblyChangedFileChange
 						 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see

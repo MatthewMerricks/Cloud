@@ -15,5 +15,7 @@ namespace Cloud.SQLIndexer.SqlModel
     internal static class Constants
     {
         public const string SqlEnumName = "Enum";
+        public const string FileSystemObjectName = "FileSystemObject";
+        public const string SpecialNameRoot = "\\";
     }
 }

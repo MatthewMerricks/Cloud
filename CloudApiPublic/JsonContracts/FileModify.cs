@@ -25,7 +25,7 @@ namespace Cloud.JsonContracts
         public string RelativePath { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataServerId, IsRequired = false)]
-        public string ServerId { get; set; }
+        public string ServerUid { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataFileHash, IsRequired = false)]
         public string Hash { get; set; }

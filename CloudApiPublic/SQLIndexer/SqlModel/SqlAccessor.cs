@@ -6,12 +6,12 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Cloud.Model;
+using Cloud.SQLProxies;
 using Cloud.Static;
-using ErikEJ.SqlCe;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlServerCe;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -26,16 +26,14 @@ namespace Cloud.SQLIndexer.SqlModel
         private static readonly Type CurrentGenericType = typeof(T);
 
         // Dictionary to store the compiled and uncompiled parser expressions, keyed by the combination of includes as a space-seperated string
-        private static readonly Dictionary<string, KeyValuePair<Expression<Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>> ResultParsers =
-            new Dictionary<string, KeyValuePair<Expression<Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>>();
+        private static readonly Dictionary<string, KeyValuePair<Expression<Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>> ResultParsers =
+            new Dictionary<string, KeyValuePair<Expression<Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>>();
 
         #region columns
         // Array of insertable columns (used to build DataTable for bulk insert or to find column names), set via FindInsertColumns
         private static KeyValuePair<string, PropertyInfo>[] InsertColumns = null;
         // Array of identity columns (used in addition to InsertableColumns for identity insert), set via FindInsertColumns
         private static KeyValuePair<string, PropertyInfo>[] IdentityColumns = null;
-        // String in the format "SELECT TOP 0 * FROM [TableName]", set via FindInsertColumns
-        private static string InsertSelectTopZero = null;
         // Object to lock on for reading/writing to fields in this 'columns' group
         private static readonly object InsertLocker = new object();
         #endregion
@@ -78,18 +76,52 @@ namespace Cloud.SQLIndexer.SqlModel
         // Locker for reading or writing the calculated table name
         private static readonly object TableNameLocker = new object();
         #endregion
-
-        #region primary key
-        // PropertyInfoes to access the generic typed object which correspond to the primary keys to lookup rows in the table, set via GetPrimaryKeyColumnValues
-        private static PropertyInfo[] primaryKeyValues = null;
-        // Name of the PrimaryKey index, for use with TableDirect access, set via GetPrimaryKeyColumnValues
-        private static string primaryKeyIndexName = null;
-        // Locker for reading or writing fields in this 'primary key' group
-        private static readonly object PrimaryKeyOrdinalsLocker = new object();
-        #endregion
         #endregion
 
         #region public static methods
+        public static bool TrySelectScalar<TKey>(ISQLiteConnection connection, string select, out TKey result, ISQLiteTransaction transaction = null, IEnumerable selectParameters = null)
+        {
+            using (ISQLiteCommand scalarCommand = connection.CreateCommand())
+            {
+                scalarCommand.CommandText = select;
+                
+                if (selectParameters != null)
+                {
+                    foreach (object selectParameter in selectParameters)
+                    {
+                        ISQLiteParameter currentParameter = scalarCommand.CreateParameter();
+                        scalarCommand.Parameters.Add(currentParameter);
+
+                        if (selectParameter is Guid)
+                        {
+                            currentParameter.Value = ((Guid)selectParameter).ToByteArray();
+                        }
+                        else
+                        {
+                            currentParameter.Value = selectParameter;
+                        }
+                    }
+                }
+
+                if (transaction != null)
+                {
+                    scalarCommand.Transaction = transaction;
+                }
+
+                object responseObject = scalarCommand.ExecuteScalar();
+
+                if (responseObject == null
+                    || responseObject is DBNull)
+                {
+                    result = Helpers.DefaultForType<TKey>();
+                    return false;
+                }
+
+                result = Helpers.ConvertTo<TKey>(responseObject);
+                return true;
+            }
+        }
+
         /// <summary>
         /// Gets a single result set by provided select statement and yield returns records converted to the current generic type
         /// </summary>
@@ -97,23 +129,36 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="select">Select statement</param>
         /// <param name="includes">List of joined children with dot syntax for multiple levels deep</param>
         /// <returns>Yield-returned converted database results as current generic type</returns>
-        public static IEnumerable<T> SelectResultSet(SqlCeConnection connection, string select, IEnumerable<string> includes = null, SqlCeTransaction transaction = null)
+        public static IEnumerable<T> SelectResultSet(ISQLiteConnection connection, string select, IEnumerable<string> includes = null, ISQLiteTransaction transaction = null, IEnumerable selectParameters = null)
         {
-            if (connection.State != System.Data.ConnectionState.Open)
-            {
-                connection.Open();
-            }
-
             // grab the function that takes the values out of the current database row to produce the current generic type
-            Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>> currentParser = GetResultParser(string.Empty,
+            Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>> currentParser = GetResultParser(string.Empty,
                     includes == null ? new string[0] : ((includes as string[]) ?? includes.ToArray())).Value;
 
             // new command to run select
-            SqlCeCommand selectCommand = connection.CreateCommand();
+            ISQLiteCommand selectCommand = connection.CreateCommand();
             try
             {
                 // set command to run as select statement
                 selectCommand.CommandText = select;
+
+                if (selectParameters != null)
+                {
+                    foreach (object selectParameter in selectParameters)
+                    {
+                        ISQLiteParameter currentParameter = selectCommand.CreateParameter();
+                        selectCommand.Parameters.Add(currentParameter);
+
+                        if (selectParameter is Guid)
+                        {
+                            currentParameter.Value = ((Guid)selectParameter).ToByteArray();
+                        }
+                        else
+                        {
+                            currentParameter.Value = selectParameter;
+                        }
+                    }
+                }
 
                 if (transaction != null)
                 {
@@ -121,7 +166,7 @@ namespace Cloud.SQLIndexer.SqlModel
                 }
 
                 // execute select command as a reader
-                SqlCeDataReader selectResult = selectCommand.ExecuteReader(CommandBehavior.SingleResult);
+                ISQLiteDataReader selectResult = selectCommand.ExecuteReader(CommandBehavior.SingleResult);
                 try
                 {
                     // loop through database rows until there are no more left to read
@@ -155,12 +200,17 @@ namespace Cloud.SQLIndexer.SqlModel
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="toInsert">Generic typed objects to insert</param>
-        public static void InsertRows(SqlCeConnection connection, IEnumerable<T> toInsert, bool identityInsert = false, SqlCeTransaction transaction = null)
+        public static void InsertRows(ISQLiteConnection connection, IEnumerable<T> toInsert, bool identityInsert = false, ISQLiteTransaction transaction = null)
         {
-            if (connection.State != ConnectionState.Open)
-            {
-                connection.Open();
-            }
+            InsertRows<object>(connection, toInsert, identityInsert, transaction, returnLastIdentity: false);
+        }
+
+        /// <summary>
+        /// Helper insert method for the public InsertRow(s) methods
+        /// </summary>
+        private static TKey InsertRows<TKey>(ISQLiteConnection connection, IEnumerable<T> toInsert, bool identityInsert, ISQLiteTransaction transaction, bool returnLastIdentity)
+        {
+            TKey toReturn = Helpers.DefaultForType<TKey>();
 
             // If list of rows to insert exists,
             // then insert list of rows
@@ -172,232 +222,115 @@ namespace Cloud.SQLIndexer.SqlModel
                 // Group of fields to pull from 'columns' group
                 KeyValuePair<string, PropertyInfo>[] columns;
                 KeyValuePair<string, PropertyInfo>[] identities;
-                string selectTopZero;
 
                 // Fill in the 'columns' group fields
-                FindInsertColumns(connection, insertTableName, out columns, out identities, out selectTopZero, transaction);
+                FindInsertColumns(connection, insertTableName, out columns, out identities);
 
-                // Store whether more than one row is set for insert, defaulting with false
-                bool foundMultiple = false;
-
-                // Define a generic typed object that will be used to store the first object to be inserted
-                T saveSingle;
-
-                // Get enumerator for the objects to insert
-                using (IEnumerator<T> singleEnumerator = toInsert.GetEnumerator())
+                using (ISQLiteCommand insertCommand = connection.CreateCommand())
                 {
-                    // If the enumerator has a first object,
-                    // then set the first object found and check for multiple objects
-                    if (singleEnumerator.MoveNext())
-                    {
-                        // set the first object found
-                        saveSingle = singleEnumerator.Current;
+                    StringBuilder columnNames = null;
+                    StringBuilder valueMarks = null;
 
-                        // if there is a second object,
-                        // then set that there was multiple objects
-                        if (singleEnumerator.MoveNext())
+                    List<KeyValuePair<ISQLiteParameter, PropertyInfo>> paramPairs = new List<KeyValuePair<ISQLiteParameter, PropertyInfo>>();
+
+                    if (identityInsert)
+                    {
+                        foreach (KeyValuePair<string, PropertyInfo> identity in identities)
                         {
-                            foundMultiple = true;
-                        }
-                    }
-                    // else if the enumerator does not have a first object,
-                    // set the first object as null
-                    else
-                    {
-                        saveSingle = null;
-                    }
-                }
-
-                // if multiple (more than one) object was found,
-                // then use the SQL Compact Bulk Insert Library (3rd party) to add the objects as rows
-                if (foundMultiple)
-                {
-                    SqlCeCommand identityOnCommand = null;
-                    SqlCeCommand identityOffCommand = null;
-
-                    try
-                    {
-                        if (identityInsert)
-                        {
-                            identityOnCommand = connection.CreateCommand();
-
-                            identityOnCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] ON";
-
-                            if (transaction != null)
+                            if (columnNames == null)
                             {
-                                identityOnCommand.Transaction = transaction;
+                                columnNames = new StringBuilder(identity.Key);
+                                valueMarks = new StringBuilder("?");
+                            }
+                            else
+                            {
+                                columnNames.Append(",");
+                                columnNames.Append(identity.Key);
+                                valueMarks.Append(",?");
                             }
 
-                            identityOnCommand.ExecuteNonQuery();
+                            ISQLiteParameter identityParam = insertCommand.CreateParameter();
+                            insertCommand.Parameters.Add(identityParam);
+                            paramPairs.Add(new KeyValuePair<ISQLiteParameter, PropertyInfo>(identityParam, identity.Value));
+                        }
+                    }
+
+                    foreach (KeyValuePair<string, PropertyInfo> column in columns)
+                    {
+                        if (columnNames == null)
+                        {
+                            columnNames = new StringBuilder(column.Key);
+                            valueMarks = new StringBuilder("?");
+                        }
+                        else
+                        {
+                            columnNames.Append(",");
+                            columnNames.Append(column.Key);
+                            valueMarks.Append(",?");
                         }
 
-                        // Create a new SQL Compact Bulk Inserter, preserving null values
-                        using (SqlCeBulkCopy bulkCopy = (transaction == null
-                            ? new SqlCeBulkCopy(connection, SqlCeBulkCopyOptions.KeepNulls)
-                            : new SqlCeBulkCopy(connection, SqlCeBulkCopyOptions.KeepNulls, transaction)))
+                        ISQLiteParameter columnParam = insertCommand.CreateParameter();
+                        insertCommand.Parameters.Add(columnParam);
+                        paramPairs.Add(new KeyValuePair<ISQLiteParameter, PropertyInfo>(columnParam, column.Value));
+                    }
+
+                    StringBuilder insertStringBuilder = new StringBuilder("INSERT INTO ");
+                    insertStringBuilder.Append(insertTableName);
+                    insertStringBuilder.Append("(");
+                    insertStringBuilder.Append(columnNames.ToString());
+                    insertStringBuilder.Append(") VALUES(");
+                    insertStringBuilder.Append(valueMarks.ToString());
+                    insertStringBuilder.Append(")");
+
+                    insertCommand.CommandText = insertStringBuilder.ToString();
+
+                    T storeLast = null;
+                    using (IEnumerator<T> insertEnumerator = toInsert.GetEnumerator())
+                    {
+                        bool lastInsert;
+                        while (!(lastInsert = !insertEnumerator.MoveNext()) || storeLast != null)
                         {
-                            // Create a new DataTable to hold all the columns and rows to add
-                            DataTable insertTable = new DataTable();
-
-                            // Define the enumerable of types to retrieve
-                            IEnumerable<PropertyInfo> values = columns.Select(currentColumn => currentColumn.Value);
-
-                            // Add new DataColumns to match the list of columns
-                            foreach (KeyValuePair<string, PropertyInfo> currentColumn in columns)
+                            if (storeLast != null)
                             {
-                                insertTable.Columns.Add(new DataColumn(currentColumn.Key, Nullable.GetUnderlyingType(currentColumn.Value.PropertyType) ?? currentColumn.Value.PropertyType));
-                            }
-                            if (identityInsert)
-                            {
-                                values = values.Concat(identities.Select(currentIdentity => currentIdentity.Value));
-
-                                foreach (KeyValuePair<string, PropertyInfo> currentIdentity in identities)
+                                if (lastInsert && returnLastIdentity)
                                 {
-                                    insertTable.Columns.Add(new DataColumn(currentIdentity.Key, Nullable.GetUnderlyingType(currentIdentity.Value.PropertyType) ?? currentIdentity.Value.PropertyType));
+                                    insertCommand.CommandText += ";SELECT last_insert_rowid()";
                                 }
-                            }
 
-                            // Loop through all objects to insert
-                            foreach (T currentInsert in toInsert)
-                            {
                                 // Add a new row to the DataTable with all insertable column values set
-                                insertTable.Rows.Add(values.Select(currentValue => currentValue.GetValue(currentInsert, null) ?? DBNull.Value).ToArray());
-                            }
-
-                            // Set the table to insert into
-                            bulkCopy.DestinationTableName = insertTableName;
-
-                            // Write the DataTable with all the columns and objects to the database
-                            bulkCopy.WriteToServer(insertTable);
-                        }
-
-                        if (identityInsert)
-                        {
-                            identityOffCommand = connection.CreateCommand();
-
-                            identityOffCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] OFF";
-
-                            if (transaction != null)
-                            {
-                                identityOffCommand.Transaction = transaction;
-                            }
-
-                            identityOffCommand.ExecuteNonQuery();
-                        }
-                    }
-                    finally
-                    {
-                        if (identityOnCommand != null)
-                        {
-                            identityOnCommand.Dispose();
-                        }
-                        if (identityOffCommand != null)
-                        {
-                            identityOffCommand.Dispose();
-                        }
-                    }
-                }
-                // else if only a sinle object was found,
-                // then write the object via updatable SqlCeResultSet
-                else if (saveSingle != null)
-                {
-                    SqlCeCommand identityOnCommand = null;
-                    SqlCeCommand identityOffCommand = null;
-
-                    try
-                    {
-                        if (identityInsert)
-                        {
-                            identityOnCommand = connection.CreateCommand();
-
-                            identityOnCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] ON";
-
-                            if (transaction != null)
-                            {
-                                identityOnCommand.Transaction = transaction;
-                            }
-
-                            identityOnCommand.ExecuteNonQuery();
-                        }
-
-                        // create the command for querying the table to insert into
-                        SqlCeCommand singleCommand = connection.CreateCommand();
-                        try
-                        {
-                            // set the select statement with a zero row query on the current table
-                            singleCommand.CommandText = selectTopZero;
-
-                            if (transaction != null)
-                            {
-                                singleCommand.Transaction = transaction;
-                            }
-
-                            // execute a result set (empty) for the current table as updatable
-                            SqlCeResultSet singleResult = singleCommand.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable);
-                            try
-                            {
-                                // create the new database row
-                                SqlCeUpdatableRecord singleUpdate = singleResult.CreateRecord();
-
-                                // loop through the insertable columns
-                                for (int columnIndex = 0; columnIndex < columns.Length; columnIndex++)
+                                foreach (KeyValuePair<ISQLiteParameter, PropertyInfo> currentParam in paramPairs)
                                 {
-                                    // set the value in the new database row from the matching property in the current object to insert
-                                    singleUpdate.SetValue(singleResult.GetOrdinal(columns[columnIndex].Key),
-                                        columns[columnIndex].Value.GetValue(saveSingle, null) ?? DBNull.Value);
-                                }
+                                    object valueToSet = currentParam.Value.GetValue(storeLast, index: null);
 
-                                if (identityInsert)
-                                {
-                                    // loop through the identity columns
-                                    for (int identityIndex = 0; identityIndex < identities.Length; identityIndex++)
+                                    if (valueToSet is Guid)
                                     {
-                                        // set the value in the new database row from the matching property in the current object to insert
-                                        singleUpdate.SetValue(singleResult.GetOrdinal(identities[identityIndex].Key),
-                                            identities[identityIndex].Value.GetValue(saveSingle, null) ?? DBNull.Value);
+                                        currentParam.Key.Value = ((Guid)valueToSet).ToByteArray();
+                                    }
+                                    else
+                                    {
+                                        currentParam.Key.Value = valueToSet;
                                     }
                                 }
 
-                                // add the new database row to the database
-                                singleResult.Insert(singleUpdate);
-                            }
-                            finally
-                            {
-                                singleResult.Dispose();
-                            }
-                        }
-                        finally
-                        {
-                            singleCommand.Dispose();
-                        }
-
-                        if (identityInsert)
-                        {
-                            identityOffCommand = connection.CreateCommand();
-
-                            identityOffCommand.CommandText = "SET IDENTITY_INSERT [" + insertTableName + "] OFF";
-
-                            if (transaction != null)
-                            {
-                                identityOffCommand.Transaction = transaction;
+                                if (lastInsert && returnLastIdentity)
+                                {
+                                    toReturn = Helpers.ConvertTo<TKey>(insertCommand.ExecuteScalar());
+                                }
+                                else
+                                {
+                                    insertCommand.ExecuteNonQuery();
+                                }
                             }
 
-                            identityOffCommand.ExecuteNonQuery();
-                        }
-                    }
-                    finally
-                    {
-                        if (identityOnCommand != null)
-                        {
-                            identityOnCommand.Dispose();
-                        }
-                        if (identityOffCommand != null)
-                        {
-                            identityOffCommand.Dispose();
+                            storeLast = (lastInsert
+                                ? null
+                                : insertEnumerator.Current);
                         }
                     }
                 }
             }
+
+            return toReturn;
         }
 
         /// <summary>
@@ -407,30 +340,10 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="connection">Database connection</param>
         /// <param name="toInsert">Object to insert into database</param>
         /// <returns>Returns the identity of the inserted row</returns>
-        public static TKey InsertRow<TKey>(SqlCeConnection connection, T toInsert, bool identityInsert = false, SqlCeTransaction transaction = null)
+        public static TKey InsertRow<TKey>(ISQLiteConnection connection, T toInsert, bool identityInsert = false, ISQLiteTransaction transaction = null)
         {
             // Call to InsertRows which actually does the database insert
-            InsertRows(connection, new T[] { toInsert }, identityInsert, transaction);
-
-            // Create a command for selecting the identity
-            SqlCeCommand identityCommand = connection.CreateCommand();
-            try
-            {
-                // Set the command text to return the identity
-                identityCommand.CommandText = "SELECT @@IDENTITY";
-
-                if (transaction != null)
-                {
-                    identityCommand.Transaction = transaction;
-                }
-
-                // Run the identity selection command, convert the result to the generic type, and return it
-                return Helpers.ConvertTo<TKey>(identityCommand.ExecuteScalar());
-            }
-            finally
-            {
-                identityCommand.Dispose();
-            }
+            return InsertRows<TKey>(connection, new T[] { toInsert }, identityInsert, transaction, returnLastIdentity: true);
         }
 
         /// <summary>
@@ -438,10 +351,10 @@ namespace Cloud.SQLIndexer.SqlModel
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="toInsert">Object to insert into database</param>
-        public static void InsertRow(SqlCeConnection connection, T toInsert, bool identityInsert = false, SqlCeTransaction transaction = null)
+        public static void InsertRow(ISQLiteConnection connection, T toInsert, bool identityInsert = false, ISQLiteTransaction transaction = null)
         {
             // Call to InsertRows which actually does the database insert
-            InsertRows(connection, new T[] { toInsert }, identityInsert, transaction);
+            InsertRows<object>(connection, new T[] { toInsert }, identityInsert, transaction, returnLastIdentity: false);
         }
 
         /// <summary>
@@ -477,7 +390,7 @@ namespace Cloud.SQLIndexer.SqlModel
                             // Get public instance properties on the current generic type that have one and only one ISqlAccess attribute
                             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                             .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<ISqlAccess>>(currentProp, currentProp.GetCustomAttributes(typeof(SqlAccess.PropertyAttribute), true).Cast<ISqlAccess>()))
-                            .Where(currentProp => currentProp.Value.Any(currentAttrib => !currentAttrib.IsChild))
+                            .Where(currentProp => currentProp.Value.Any(currentAttrib => currentAttrib.Type != SqlAccess.FieldType.JoinedTable))
                             .Select(currentProp => new KeyValuePair<PropertyInfo, ISqlAccess>(currentProp.Key, currentProp.Value.Single()))
 
                             // For each of these ISqlAccess properties
@@ -520,13 +433,11 @@ namespace Cloud.SQLIndexer.SqlModel
         /// </summary>
         /// <param name="connection">Database connection</param>
         /// <param name="toUpdate">Object corresponding to row to update</param>
-        /// <param name="searchCaseSensitive">Whether to search the row's primary key via a case-sensitive search</param>
-        /// <param name="updateCaseSensitive">Whether to check for a column's difference to update by case-sensitive comparison</param>
         /// <returns>Returns whether the row was found to be updated</returns>
-        public static bool UpdateRow(SqlCeConnection connection, T toUpdate, bool searchCaseSensitive = true, bool updateCaseSensitive = true, SqlCeTransaction transaction = null)
+        public static bool UpdateRow(ISQLiteConnection connection, T toUpdate, ISQLiteTransaction transaction = null)
         {
             IEnumerable<int> unableToFindIndexes;
-            UpdateRows(connection, new T[] { toUpdate }, out unableToFindIndexes, searchCaseSensitive, updateCaseSensitive, transaction);
+            UpdateRows(connection, new T[] { toUpdate }, out unableToFindIndexes, transaction);
             return !(unableToFindIndexes ?? Enumerable.Empty<int>()).Any();
         }
 
@@ -536,15 +447,8 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="connection">Database connection</param>
         /// <param name="toUpdate">List of objects corresponding to rows to update</param>
         /// <param name="unableToFindIndexes">(output) List of indexes that were not found to update correlating to the index in the list of objects to update</param>
-        /// <param name="searchCaseSensitive">Whether to search the row's primary key via a case-sensitive search</param>
-        /// <param name="updateCaseSensitive">Whether to check for a column's difference to update by case-sensitive comparison</param>
-        public static void UpdateRows(SqlCeConnection connection, IEnumerable<T> toUpdate, out IEnumerable<int> unableToFindIndexes, bool searchCaseSensitive = true, bool updateCaseSensitive = true, SqlCeTransaction transaction = null)
+        public static void UpdateRows(ISQLiteConnection connection, IEnumerable<T> toUpdate, out IEnumerable<int> unableToFindIndexes, ISQLiteTransaction transaction = null)
         {
-            if (connection.State != ConnectionState.Open)
-            {
-                connection.Open();
-            }
-
             // if there are no rows to update,
             // then there were no indexes that weren't found, return
             if (toUpdate == null
@@ -560,180 +464,116 @@ namespace Cloud.SQLIndexer.SqlModel
             // Group of fields to pull from 'columns' group
             KeyValuePair<string, PropertyInfo>[] columns;
             KeyValuePair<string, PropertyInfo>[] identities;
-            string selectTopZero;
 
             // Fill in the 'columns' group fields
-            FindInsertColumns(connection, updateTableName, out columns, out identities, out selectTopZero, transaction);
+            FindInsertColumns(connection, updateTableName, out columns, out identities);
 
             // build an array of the types of properties which will be checked for update
             Type[] valueTypes = columns.Select(currentValue => currentValue.Value.PropertyType).ToArray();
-
-            // get the primary key name and the properties which will retrieve values for the primary key search
-            string primaryKeyName;
-            PropertyInfo[] keyValues = GetPrimaryKeyColumnValues(connection, updateTableName, out primaryKeyName, transaction);
 
             // start a new list to store indexes which were not found to update
             List<int> unableToFindList = new List<int>();
 
             // create a new database command that will pull the existing rows as updatable
-            using (SqlCeCommand retrieveExisting = connection.CreateCommand())
+            using (ISQLiteCommand updateCommand = connection.CreateCommand())
             {
-                // query database table by TableDirect
-                retrieveExisting.CommandType = CommandType.TableDirect;
-                // set the table by the current name
-                retrieveExisting.CommandText = updateTableName;
-                // provide the primary key index name for searching
-                retrieveExisting.IndexName = primaryKeyName;
+                List<KeyValuePair<ISQLiteParameter, PropertyInfo>> paramPairs = new List<KeyValuePair<ISQLiteParameter, PropertyInfo>>();
+
+                StringBuilder updateStringBuilder = new StringBuilder("UPDATE ");
+                updateStringBuilder.Append(updateTableName);
+
+                bool firstColumn = true;
+
+                foreach (KeyValuePair<string, PropertyInfo> column in columns)
+                {
+                    if (firstColumn)
+                    {
+                        updateStringBuilder.Append(" SET ");
+
+                        firstColumn = false;
+                    }
+                    else
+                    {
+                        updateStringBuilder.Append(", ");
+                    }
+
+                    updateStringBuilder.Append(column.Key);
+                    updateStringBuilder.Append(" = ?");
+
+                    ISQLiteParameter columnParam = updateCommand.CreateParameter();
+                    updateCommand.Parameters.Add(columnParam);
+                    paramPairs.Add(new KeyValuePair<ISQLiteParameter, PropertyInfo>(columnParam, column.Value));
+                }
+
+                firstColumn = true;
+
+                foreach (KeyValuePair<string, PropertyInfo> identity in identities)
+                {
+                    if (firstColumn)
+                    {
+                        updateStringBuilder.Append(" WHERE ");
+
+                        firstColumn = false;
+                    }
+                    else
+                    {
+                        updateStringBuilder.Append(" AND ");
+                    }
+
+                    updateStringBuilder.Append(identity.Key);
+                    updateStringBuilder.Append(" = ?");
+
+                    ISQLiteParameter identityParam = updateCommand.CreateParameter();
+                    updateCommand.Parameters.Add(identityParam);
+                    paramPairs.Add(new KeyValuePair<ISQLiteParameter, PropertyInfo>(identityParam, identity.Value));
+                }
+
+                updateStringBuilder.Append("; SELECT changes()");
+
+                updateCommand.CommandText = updateStringBuilder.ToString();
 
                 if (transaction != null)
                 {
-                    retrieveExisting.Transaction = transaction;
+                    updateCommand.Transaction = transaction;
                 }
+                
+                // define a counter to keep track of which object is in the process of being updated
+                int updateIndex = 0;
 
-                // retrieve a result set to allow primary key searching and updates
-                using (SqlCeResultSet retrievedExisting = retrieveExisting.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable
-                    | (searchCaseSensitive
-                        ? ResultSetOptions.Sensitive
-                        : ResultSetOptions.Insensitive)))
+                // loop through all the objects to update
+                foreach (T currentUpdate in toUpdate)
                 {
-                    // define a counter to keep track of which object is in the process of being updated
-                    int updateIndex = 0;
-
-                    // loop through all the objects to update
-                    foreach (T currentUpdate in toUpdate)
+                    // Add a new row to the DataTable with all insertable column values set
+                    foreach (KeyValuePair<ISQLiteParameter, PropertyInfo> currentParam in paramPairs)
                     {
-                        // if the result set can seek to the primary key values in the current object to update,
-                        // then continue updating the current object
-                        if (retrievedExisting.Seek(DbSeekOptions.FirstEqual,
-                            keyValues.Select(currentKey => currentKey.GetValue(currentUpdate, null))
-                                .ToArray()))
+                        object valueToSet = currentParam.Value.GetValue(currentUpdate, index: null);
+
+                        if (valueToSet is Guid)
                         {
-                            // if the result set can read the row to update,
-                            // then continue updating the current object
-                            if (retrievedExisting.Read())
-                            {
-                                // store a boolean for whether a single difference or more required changing a value, defaulting to false
-                                bool anyChangeFound = false;
-
-                                // for each updateable column
-                                for (int columnIndex = 0; columnIndex < columns.Length; columnIndex++)
-                                {
-                                    // get the column position of the current named updateble column
-                                    int columnOrdinal = retrievedExisting.GetOrdinal(columns[columnIndex].Key);
-
-                                    // get the value that will be checked against the current column
-                                    object valueToUpdate = columns[columnIndex].Value.GetValue(currentUpdate, null);
-
-                                    // store a boolean for whether a difference was found requiring the column to be updated, defaulting to false
-                                    bool foundDifference = false;
-
-                                    // get the value already in the database for comparison
-                                    object originalValue = retrievedExisting.GetValue(columnOrdinal);
-
-                                    // if the value already in the database is null,
-                                    // then check if the new value is not null and thus different
-                                    if (originalValue == null
-                                        || originalValue is DBNull)
-                                    {
-                                        if (valueToUpdate != null)
-                                        {
-                                            foundDifference = true;
-                                        }
-                                    }
-                                    // else if the value in the database is not null
-                                    // and the new value is null,
-                                    // then they are different
-                                    else if (valueToUpdate == null
-                                        || valueToUpdate is DBNull)
-                                    {
-                                        foundDifference = true;
-                                    }
-                                    // else if neither the value in the database is null nor the new value is null
-                                    // and the types match,
-                                    // then see if the values match to define a difference
-                                    else if (originalValue.GetType().Equals(valueTypes[columnIndex]))
-                                    {
-                                        // if the current type to check is a string and a case-insensitive update was specified,
-                                        // then a difference was only found if a case-insensitive string comparison gave a difference
-                                        if (originalValue is string
-                                            && !updateCaseSensitive)
-                                        {
-                                            if (!((string)originalValue).Equals((string)valueToUpdate, StringComparison.InvariantCultureIgnoreCase))
-                                            {
-                                                foundDifference = true;
-                                            }
-                                        }
-                                        // else if the current type to check is not a string or a case-sensitive update was specificed,
-                                        // then use the type's overriden Equals method comparer to see if there is a difference
-                                        else if (!object.Equals(originalValue, valueToUpdate))
-                                        {
-                                            foundDifference = true;
-                                        }
-                                    }
-                                    // else if neither the value in the datase is null nor the new value is null
-                                    // and the types do not match,
-                                    // then convert the values to match before checking if the values match to define a difference
-                                    else
-                                    {
-                                        // convert the value in the database to the type of the new value
-                                        originalValue = Helpers.ConvertTo(originalValue, valueTypes[columnIndex]);
-
-
-                                        // if the current type to check is a string and a case-insensitive update was specified,
-                                        // then a difference was only found if a case-insensitive string comparison gave a difference
-                                        if (originalValue is string
-                                            && !updateCaseSensitive)
-                                        {
-                                            if (!((string)originalValue).Equals((string)valueToUpdate, StringComparison.InvariantCultureIgnoreCase))
-                                            {
-                                                foundDifference = true;
-                                            }
-                                        }
-                                        // else if the current type to check is not a string or a case-sensitive update was specificed,
-                                        // then use the type's overriden Equals method comparer to see if there is a difference
-                                        else if (!object.Equals(originalValue, valueToUpdate))
-                                        {
-                                            foundDifference = true;
-                                        }
-                                    }
-
-                                    // if a difference was found for the current column in the current row,
-                                    // then set the column in the row to the new value
-                                    if (foundDifference)
-                                    {
-                                        // set the value in the column to the new value
-                                        retrievedExisting.SetValue(columnOrdinal,
-                                            valueToUpdate ?? DBNull.Value);
-
-                                        // store that a change was to be made to at least one of the columns in the current row
-                                        anyChangeFound = true;
-                                    }
-                                }
-
-                                // if a change was made to any of the columns in the current row,
-                                // then update the database with the changes
-                                if (anyChangeFound)
-                                {
-                                    retrievedExisting.Update();
-                                }
-                            }
-                            // else if the currently-seeked row could not be read,
-                            // then add the current updateIndex to signify an object that couldn't be updated
-                            else
-                            {
-                                unableToFindList.Add(updateIndex);
-                            }
+                            currentParam.Key.Value = ((Guid)valueToSet).ToByteArray();
                         }
-                        // else if a row could not be seeked for the provided primary key values,
-                        // then add the current updateIndex to signify an object that couldn't be updated
                         else
                         {
-                            unableToFindList.Add(updateIndex);
+                            currentParam.Key.Value = valueToSet;
                         }
-                        
-                        // incremement the counter of objects that have been checked to update
-                        updateIndex++;
                     }
+
+                    switch (Convert.ToInt32(updateCommand.ExecuteScalar()))
+                    {
+                        case 0:
+                            unableToFindList.Add(updateIndex);
+                            break;
+
+                        case 1:
+                            // normal case, one set of primary keys with one row affected
+                            break;
+
+                        default:
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "UPDATE affected more than 1 row for table " + updateTableName);
+                    }
+
+                    // incremement the counter of objects that have been checked to update
+                    updateIndex++;
                 }
             }
 
@@ -748,10 +588,10 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="toDelete">Object to delete from database</param>
         /// <param name="caseSensitive">Whether the primary key will be searched as case-sensitive</param>
         /// <returns>Returns whether the row was deleted</returns>
-        public static bool DeleteRow(SqlCeConnection connection, T toDelete, bool caseSensitive = true, SqlCeTransaction transaction = null)
+        public static bool DeleteRow(ISQLiteConnection connection, T toDelete, ISQLiteTransaction transaction = null)
         {
             IEnumerable<int> unableToFindIndexes;
-            DeleteRows(connection, new T[] { toDelete }, out unableToFindIndexes, caseSensitive, transaction);
+            DeleteRows(connection, new T[] { toDelete }, out unableToFindIndexes, transaction);
             return !(unableToFindIndexes ?? Enumerable.Empty<int>()).Any();
         }
 
@@ -762,15 +602,10 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="toDelete">List of objects to delete</param>
         /// <param name="unableToFindIndexes">(output) List of indexes that were not found to delete correlating to the index in the list of objects to delete</param>
         /// <param name="caseSensitive">Whether the primary key will be searched as case-sensitive</param>
-        public static void DeleteRows(SqlCeConnection connection, IEnumerable<T> toDelete, out IEnumerable<int> unableToFindIndexes, bool caseSensitive = true, SqlCeTransaction transaction = null)
+        public static void DeleteRows(ISQLiteConnection connection, IEnumerable<T> toDelete, out IEnumerable<int> unableToFindIndexes, ISQLiteTransaction transaction = null)
         {
-            if (connection.State != ConnectionState.Open)
-            {
-                connection.Open();
-            }
-
-            // If there are no objects to delete,
-            // then set the output list of indexes that could not be found to delete as empty, return
+            // if there are no rows to delete,
+            // then there were no indexes that weren't found, return
             if (toDelete == null
                 || !toDelete.Any())
             {
@@ -778,177 +613,108 @@ namespace Cloud.SQLIndexer.SqlModel
                 return;
             }
 
-            // Get the table name
+            // get the current table name
             string deleteTableName = TableName;
 
             // Group of fields to pull from 'columns' group
             KeyValuePair<string, PropertyInfo>[] columns;
             KeyValuePair<string, PropertyInfo>[] identities;
-            string selectTopZero;
 
             // Fill in the 'columns' group fields
-            FindInsertColumns(connection, deleteTableName, out columns, out identities, out selectTopZero, transaction);
+            FindInsertColumns(connection, deleteTableName, out columns, out identities);
 
-            // Get the primary key name and PropertyInfoes for accesing the primary key values from current generic typed objects
-            string primaryKeyName;
-            PropertyInfo[] keyValues = GetPrimaryKeyColumnValues(connection, deleteTableName, out primaryKeyName, transaction);
+            // build an array of the types of properties which will be checked for delete
+            Type[] valueTypes = columns.Select(currentValue => currentValue.Value.PropertyType).ToArray();
 
-            // Create the list for indexes that were unable to be found to delete
+            // start a new list to store indexes which were not found to delete
             List<int> unableToFindList = new List<int>();
 
-            // Create the command for retrieving an updatable result set to search for rows to delete
-            using (SqlCeCommand retrieveExisting = connection.CreateCommand())
+            // create a new database command that will delete rows
+            using (ISQLiteCommand deleteCommand = connection.CreateCommand())
             {
-                // Set the comand type as TableDirect
-                retrieveExisting.CommandType = CommandType.TableDirect;
-                // Set the table as the current table
-                retrieveExisting.CommandText = deleteTableName;
-                // Set the index as the primary key index for searching rows
-                retrieveExisting.IndexName = primaryKeyName;
+                List<KeyValuePair<ISQLiteParameter, PropertyInfo>> paramPairs = new List<KeyValuePair<ISQLiteParameter, PropertyInfo>>();
+
+                StringBuilder deleteStringBuilder = new StringBuilder("DELETE FROM ");
+                deleteStringBuilder.Append(deleteTableName);
+
+                bool firstColumn = true;
+
+                foreach (KeyValuePair<string, PropertyInfo> identity in identities)
+                {
+                    if (firstColumn)
+                    {
+                        deleteStringBuilder.Append(" WHERE ");
+
+                        firstColumn = false;
+                    }
+                    else
+                    {
+                        deleteStringBuilder.Append(" AND ");
+                    }
+
+                    deleteStringBuilder.Append(identity.Key);
+                    deleteStringBuilder.Append(" = ?");
+
+                    ISQLiteParameter identityParam = deleteCommand.CreateParameter();
+                    deleteCommand.Parameters.Add(identityParam);
+                    paramPairs.Add(new KeyValuePair<ISQLiteParameter, PropertyInfo>(identityParam, identity.Value));
+                }
+
+                deleteStringBuilder.Append("; SELECT changes()");
+
+                deleteCommand.CommandText = deleteStringBuilder.ToString();
 
                 if (transaction != null)
                 {
-                    retrieveExisting.Transaction = transaction;
+                    deleteCommand.Transaction = transaction;
                 }
 
-                // Retrieve an updatable result set to search for rows to delete
-                using (SqlCeResultSet retrievedExisting = retrieveExisting.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Updatable
-                    | (caseSensitive
-                        ? ResultSetOptions.Sensitive
-                        : ResultSetOptions.Insensitive)))
-                {
-                    // Start an index counter for which object is being deleted
-                    int deleteIndex = 0;
+                // define a counter to keep track of which object is in the process of being deleted
+                int deleteIndex = 0;
 
-                    // Loop through the objects to delete
-                    foreach (T currentDelete in toDelete)
+                // loop through all the objects to delete
+                foreach (T currentUpdate in toDelete)
+                {
+                    // Add a new row to the DataTable with all insertable column values set
+                    foreach (KeyValuePair<ISQLiteParameter, PropertyInfo> currentParam in paramPairs)
                     {
-                        // If the retrieved result set can seek with the primary key values from the current object to delete,
-                        // then continue to delete the current object
-                        if (retrievedExisting.Seek(DbSeekOptions.FirstEqual,
-                            keyValues.Select(currentKey => currentKey.GetValue(currentDelete, null))
-                                .ToArray()))
+                        object valueToSet = currentParam.Value.GetValue(currentUpdate, index: null);
+
+                        if (valueToSet is Guid)
                         {
-                            // If the retrieved result can read the seeked object,
-                            // then delete the row
-                            if (retrievedExisting.Read())
-                            {
-                                retrievedExisting.Delete();
-                            }
-                            // Else if the retrieved result could not read the seeked object,
-                            // then add the current object index to the list that couldn't be found to delete
-                            else
-                            {
-                                unableToFindList.Add(deleteIndex);
-                            }
+                            currentParam.Key.Value = ((Guid)valueToSet).ToByteArray();
                         }
-                        // Else if the retrieved result could not be seeked for the current object,
-                        // then add the current object index to the list that couldn't be found to delete
                         else
                         {
-                            unableToFindList.Add(deleteIndex);
+                            currentParam.Key.Value = valueToSet;
                         }
-
-                        // Increment the counter for objects checked for delete
-                        deleteIndex++;
                     }
+
+                    switch (Convert.ToInt32(deleteCommand.ExecuteScalar()))
+                    {
+                        case 0:
+                            unableToFindList.Add(deleteIndex);
+                            break;
+
+                        case 1:
+                            // normal case, one set of primary keys with one row affected
+                            break;
+
+                        default:
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "DELETE affected more than 1 row for table " + deleteTableName);
+                    }
+
+                    // incremement the counter of objects that have been checked to delete
+                    deleteIndex++;
                 }
             }
 
-            // Output the list of indexes not found to delete
+            // set the output list of unable to find indexes
             unableToFindIndexes = unableToFindList;
         }
         #endregion
 
-        #region private static methods
-        // Get and sets as necessary, the fields in the 'primary key' group for the primary key index name and property infoes to access primary key values in current generic typed objects
-        private static PropertyInfo[] GetPrimaryKeyColumnValues(SqlCeConnection connection, string tableName, out string primaryKeyName, SqlCeTransaction transaction)
-        {
-            // Lock for getting/setting fields in the 'primary key' group
-            lock (PrimaryKeyOrdinalsLocker)
-            {
-                // If the fields in the 'primary key' group have not been set,
-                // then calculate them
-                if (primaryKeyValues == null)
-                {
-                    // Create the command for finding the primary key name and columns for the current table
-                    SqlCeCommand ordinalCommand = connection.CreateCommand();
-                    try
-                    {
-                        // Set the command for finding the primary key name and columns for the current table
-                        ordinalCommand.CommandText = "SELECT [INFORMATION_SCHEMA].[INDEXES].[ORDINAL_POSITION], " +
-                            "[INFORMATION_SCHEMA].[INDEXES].[INDEX_NAME], " +
-                            "[INFORMATION_SCHEMA].[INDEXES].[COLUMN_NAME] " +
-                            "FROM [INFORMATION_SCHEMA].[INDEXES] " +
-                            "WHERE [INFORMATION_SCHEMA].[INDEXES].[TABLE_NAME] = '" + tableName.Replace("'", "''") + "' " +
-                            "AND [INFORMATION_SCHEMA].[INDEXES].[PRIMARY_KEY] = 1";
-
-                        if (transaction != null)
-                        {
-                            ordinalCommand.Transaction = transaction;
-                        }
-
-                        // Execute the result set for finding the primary key name and columns for the current table
-                        SqlCeResultSet ordinals = ordinalCommand.ExecuteResultSet(ResultSetOptions.Insensitive | ResultSetOptions.Scrollable);
-
-                        try
-                        {
-                            // store the names of the columns in the primary key in the order of their ordinal positions while setting the primary key name
-                            string[] indexNames = ordinals.Cast<SqlCeUpdatableRecord>()
-                                .ToArray()
-                                .OrderBy(currentOrdinal => currentOrdinal.GetInt32(ordinals.GetOrdinal("ORDINAL_POSITION")))
-                                .Select(currentOrdinal => new KeyValuePair<string, string>(currentOrdinal.GetString(ordinals.GetOrdinal("COLUMN_NAME")),
-                                    (primaryKeyIndexName = currentOrdinal.GetString(ordinals.GetOrdinal("INDEX_NAME")))).Key)
-                                .ToArray();
-
-                            // Create the dictionary to map primary key column names to their order in the list of columns using a case-insensitive key comparison
-                            Dictionary<string, int> primaryKeyColumnNames = new Dictionary<string, int>(indexNames.Length, StringComparer.InvariantCultureIgnoreCase);
-
-                            // Add each column name with its position the primary key column name dictionary
-                            for (int nameIndex = 0; nameIndex < indexNames.Length; nameIndex++)
-                            {
-                                primaryKeyColumnNames.Add(indexNames[nameIndex], nameIndex);
-                            }
-
-                            // Set the PropertyInfoes in a current generic typed object used to access the primary key values
-                            primaryKeyValues = CurrentGenericType
-                                
-                                // Filter the current generic type's properties by those with one and only one ISqlAccess attribute
-                                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<ISqlAccess>>(currentProp,
-                                    currentProp.GetCustomAttributes(typeof(SqlAccess.PropertyAttribute), true)
-                                        .Cast<ISqlAccess>()))
-                                .Where(currentProp => currentProp.Value.Any())
-                                .Select(currentProp => new KeyValuePair<PropertyInfo, ISqlAccess>(currentProp.Key, currentProp.Value.Single()))
-
-                                // Filter the ISqlAccess properties to those in the primary key (case-insensitive comparison)
-                                .Where(currentProp => primaryKeyColumnNames.ContainsKey(currentProp.Value.SqlName ?? currentProp.Key.Name))
-
-                                // Order according to the order of the primary key columns in the index
-                                .OrderBy(currentProp => primaryKeyColumnNames[currentProp.Value.SqlName ?? currentProp.Key.Name])
-
-                                // Select just the PropertyInfoes as an array
-                                .Select(currentProp => currentProp.Key)
-                                .ToArray();
-                        }
-                        finally
-                        {
-                            ordinals.Dispose();
-                        }
-                    }
-                    finally
-                    {
-                        ordinalCommand.Dispose();
-                    }
-                }
-
-                // Get the already queried index name for the primary key
-                primaryKeyName = primaryKeyIndexName;
-                // Return the PropertyInfoes for accessing the primary key values in current generic typed objects
-                return primaryKeyValues;
-            }
-        }
-
+        #region private static method
         // Helper function to reduce expression complexity which returns the recursed parser expression of an inner child
         private static Expression GetParserExpression(string parentName, string[] includes)
         {
@@ -961,7 +727,7 @@ namespace Cloud.SQLIndexer.SqlModel
         /// <param name="parentName">The part of the column names that precedes the current levels property names (i.e. "FileSystemObjects." before the "Path" property)</param>
         /// <param name="includes">The list of included inner objects</param>
         /// <returns>Returns the compiled and noncompiled expressions which build a new generic typed object by a database row</returns>
-        private static KeyValuePair<Expression<Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>> GetResultParser(string parentName, params string[] includes)
+        private static KeyValuePair<Expression<Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>> GetResultParser(string parentName, params string[] includes)
         {
             // lock to prevent simultaneously reading for existing parser functions and creating new ones when needed
             lock (ResultParsers)
@@ -978,7 +744,7 @@ namespace Cloud.SQLIndexer.SqlModel
 
                 // if the current parser function cannot be found in the dictionary,
                 // then it needs to be created
-                KeyValuePair<Expression<Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>> currentParser;
+                KeyValuePair<Expression<Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>> currentParser;
                 if (!ResultParsers.TryGetValue(currentParserKey, out currentParser))
                 {
                     // Get all the properties in the current generic type which can be set from the database
@@ -1034,7 +800,7 @@ namespace Cloud.SQLIndexer.SqlModel
                         
                         // Filter current generic typed object properties so they are either columns in the current table or children objects which are to be included
                         sqlProps
-                        .Where(sqlProp => !sqlProp.Value.Value.IsChild
+                        .Where(sqlProp => sqlProp.Value.Value.Type != SqlAccess.FieldType.JoinedTable
                             || includeSet.Contains(sqlProp.Value.Value.SqlName ?? sqlProp.Value.Key.Name))
 
                         // For each property, return the MemberAssignment
@@ -1047,7 +813,7 @@ namespace Cloud.SQLIndexer.SqlModel
                                 
                                 // If the current property is a child object,
                                 // then invoke a recursed inner expression that will construct the inner object
-                                (sqlProp.Value.Value.IsChild
+                                (sqlProp.Value.Value.Type == SqlAccess.FieldType.JoinedTable
 
                                     // invoke recursed inner expression that will construct the inner object
                                     ? (Expression)Expression.Invoke(
@@ -1264,7 +1030,7 @@ namespace Cloud.SQLIndexer.SqlModel
                             Expression.Constant((short)propCounter)));
 
                     // Create lambda from construction of current generic typed object using input parameters
-                    Expression<Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>> parserExpression = Expression.Lambda<Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>(
+                    Expression<Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>> parserExpression = Expression.Lambda<Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>(
 
                         // Construction of current generic typed object
                         returnPairExpression,
@@ -1279,7 +1045,7 @@ namespace Cloud.SQLIndexer.SqlModel
                         nullCounterExpression);
 
                     // Join the parser expression with its compiled method into a KeyValuePair, also sets the value to return on this function call
-                    currentParser = new KeyValuePair<Expression<Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, SqlCeDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>(
+                    currentParser = new KeyValuePair<Expression<Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>, Func<string, ISQLiteDataReader, GenericHolder<short>, KeyValuePair<T, bool>>>(
                         parserExpression,
                         parserExpression.Compile());
 
@@ -1292,15 +1058,9 @@ namespace Cloud.SQLIndexer.SqlModel
             }
         }
 
-        // Gets and sets as necessary, lists of the updatable columns and corresponding PropertyInfoes to access the values in the current generic typed objects;
-        // also creates a select statement that pulls zero rows with all the columns for the current table
-        private static void FindInsertColumns(SqlCeConnection connection, string TableName, out KeyValuePair<string, PropertyInfo>[] columns, out KeyValuePair<string, PropertyInfo>[] identities, out string selectTopZero, SqlCeTransaction transaction)
+        // Gets and sets as necessary, lists of the updatable columns and corresponding PropertyInfoes to access the values in the current generic typed objects
+        private static void FindInsertColumns(ISQLiteConnection connection, string TableName, out KeyValuePair<string, PropertyInfo>[] columns, out KeyValuePair<string, PropertyInfo>[] identities)
         {
-            if (connection.State != ConnectionState.Open)
-            {
-                connection.Open();
-            }
-
             // Lock for getting/setting fields in the 'colummns' group
             lock (InsertLocker)
             {
@@ -1312,40 +1072,39 @@ namespace Cloud.SQLIndexer.SqlModel
                     HashSet<string> hashedIdentities = new HashSet<string>();
 
                     // Create command to search for identity columns in the current table
-                    SqlCeCommand identityCommand = connection.CreateCommand();
+                    ISQLiteCommand identityCommand = connection.CreateCommand();
                     try
                     {
                         // Set the command text to query identity columns based on a table with the current table name
-                        identityCommand.CommandText = "SELECT [INFORMATION_SCHEMA].[COLUMNS].[COLUMN_NAME] " +
-                            "FROM [INFORMATION_SCHEMA].[COLUMNS] " +
-                            "WHERE [INFORMATION_SCHEMA].[COLUMNS].[TABLE_NAME] = '" + TableName.Replace("'", "''") + "' " +
-                            "AND [INFORMATION_SCHEMA].[COLUMNS].[AUTOINC_SEED] IS NOT NULL";
+                        identityCommand.CommandText =
+                            "PRAGMA table_info(" + TableName + ")";
 
-                        if (transaction != null)
-                        {
-                            identityCommand.Transaction = transaction;
-                        }
-                        
                         // Create a result set of the selected column names of identity columns
-                        SqlCeResultSet identitySet = identityCommand.ExecuteResultSet(ResultSetOptions.Scrollable | ResultSetOptions.Insensitive);
+                        ISQLiteDataReader identityReader = identityCommand.ExecuteReader(CommandBehavior.SingleResult);
                         try
                         {
-                            // For each identity column name in the result set
-                            foreach (SqlCeUpdatableRecord identityRecord in identitySet.OfType<SqlCeUpdatableRecord>())
+                            Dictionary<string, int> columnOrdinals = new Dictionary<string, int>();
+
+                            // loop through columns
+                            while (identityReader.Read())
                             {
-                                // Add the current column name to the HashSet
-                                hashedIdentities.Add(identityRecord.GetString(0));
+                                // For each identity column name in the result set
+                                if (Convert.ToBoolean(identityReader["pk"]))
+                                {
+                                    // Add the current column name to the HashSet
+                                    hashedIdentities.Add(Convert.ToString(identityReader["name"]));
+                                }
                             }
-                            
+
                             // Set the PropertyInfoes for the current generic typed object of Sql columns which are not identities
                             IEnumerable<KeyValuePair<PropertyInfo, ISqlAccess>> sqlProps = CurrentGenericType
-                                
+
                                 // Get properties which have one and only one ISqlAccess attribute
                                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                                 .Select(currentProp => new KeyValuePair<PropertyInfo, IEnumerable<ISqlAccess>>(currentProp,
                                     currentProp.GetCustomAttributes(typeof(SqlAccess.PropertyAttribute), true)
                                         .Cast<ISqlAccess>()))
-                                .Where(currentProp => currentProp.Value.Any(currentAttrib => !currentAttrib.IsChild))
+                                .Where(currentProp => currentProp.Value.Any(currentAttrib => currentAttrib.Type == SqlAccess.FieldType.Normal))
                                 .Select(currentProp => new KeyValuePair<PropertyInfo, ISqlAccess>(currentProp.Key, currentProp.Value.Single()));
 
 
@@ -1366,13 +1125,10 @@ namespace Cloud.SQLIndexer.SqlModel
                                 .Select(currentProp => new KeyValuePair<string, PropertyInfo>((currentProp.Value.SqlName ?? currentProp.Key.Name),
                                     currentProp.Key))
                                 .ToArray();
-
-                            // Build the select statement that pulls zero rows with all the columns for the current table
-                            InsertSelectTopZero = "SELECT TOP 0 * FROM [" + TableName + "]";
                         }
                         finally
                         {
-                            identitySet.Dispose();
+                            identityReader.Dispose();
                         }
                     }
                     finally
@@ -1384,7 +1140,6 @@ namespace Cloud.SQLIndexer.SqlModel
                 // Set the return fields from the 'columns' group
                 columns = InsertColumns;
                 identities = IdentityColumns;
-                selectTopZero = InsertSelectTopZero;
             }
         }
         #endregion
@@ -1398,9 +1153,9 @@ namespace Cloud.SQLIndexer.SqlModel
         string SqlName { get; }
 
         /// <summary>
-        /// Whether a property represents a child object from another SQL table
+        /// Whether a property represents a child object from another SQL table or if it is readonly
         /// </summary>
-        bool IsChild { get; }
+        Cloud.SQLIndexer.SqlModel.SqlAccess.FieldType Type { get; }
     }
 
     /// <summary>
@@ -1419,15 +1174,34 @@ namespace Cloud.SQLIndexer.SqlModel
             {
                 base._sqlName = sqlName;
             }
-            public PropertyAttribute(bool isChild)
+            public PropertyAttribute(FieldType type)
             {
-                base._isChild = isChild;
+                base._type = type;
             }
-            public PropertyAttribute(string sqlName, bool isChild)
+            public PropertyAttribute(string sqlName, FieldType type)
             {
                 base._sqlName = sqlName;
-                base._isChild = isChild;
+                base._type = type;
             }
+        }
+
+        /// <summary>
+        /// Whether a property represents a child object from another SQL table or if it is readonly
+        /// </summary>
+        public enum FieldType : byte
+        {
+            /// <summary>
+            /// Normal, read and writable fields
+            /// </summary>
+            Normal,
+            /// <summary>
+            /// Fields which should never be inserted nor updated, such as calculated fields
+            /// </summary>
+            ReadOnly,
+            /// <summary>
+            /// Objects which represent a relationship with another table, such as through foreign key constraints
+            /// </summary>
+            JoinedTable
         }
 
         [AttributeUsage(AttributeTargets.Class)]
@@ -1461,21 +1235,21 @@ namespace Cloud.SQLIndexer.SqlModel
             protected string _sqlName = null;
 
             /// <summary>
-            /// Whether a property represents a child object from another SQL table
+            /// Whether a property represents a child object from another SQL table or if it is readonly
             /// </summary>
-            public bool IsChild
+            public FieldType Type
             {
                 get
                 {
-                    return _isChild;
+                    return _type;
                 }
             }
-            // Default to false
-            protected bool _isChild = false;
+            // Default to normal
+            protected FieldType _type = FieldType.Normal;
         }
 
         // find all the needed Types which are used more than once in GetParserExpression
-        internal static readonly Type recordType = typeof(SqlCeDataReader);
+        internal static readonly Type recordType = typeof(ISQLiteDataReader);
         internal static readonly Type typeType = typeof(Type);
         internal static readonly Type stringType = typeof(string);
         internal static readonly Type counterType = typeof(GenericHolder<short>);

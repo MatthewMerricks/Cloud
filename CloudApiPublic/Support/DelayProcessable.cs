@@ -211,14 +211,15 @@ namespace Cloud.Support
                         {
                             StartedProcessingTime = MinDateTime;
 
-                            DelayQueue.AddFirst(thisNodeValue);
+                            // no longer AddFirst if ResetCounter surpassed;
+                            // if a file becomes out of order to be earlier than its parent folder event it will throw an error adding to database without parent
                         }
                         else
                         {
                             StartedProcessingTime = DateTime.UtcNow;
-
-                            DelayQueue.AddLast(thisNodeValue);
                         }
+
+                        DelayQueue.AddLast(thisNodeValue);
                     }
                 }
             }

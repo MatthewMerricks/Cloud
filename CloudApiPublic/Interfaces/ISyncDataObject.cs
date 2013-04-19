@@ -6,6 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Cloud.Model;
+using Cloud.SQLIndexer.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,17 +26,6 @@ namespace Cloud.Interfaces
         /// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
         /// <returns>Returns any error that occurred while wiping the database index</returns>
         CLError WipeIndex(string newRootPath);
-        
-        /// <summary>
-        /// Writes a new set of sync states to the database after a sync completes,
-        /// requires newRootPath to be set on the first sync or on any sync with a new root path
-        /// </summary>
-        /// <param name="syncId">New sync Id from server</param>
-        /// <param name="syncedEventIds">Enumerable of event ids processed in sync</param>
-        /// <param name="syncCounter">Output sync counter local identity</param>
-        /// <param name="newRootPath">Optional new root path for location of sync root, must be set on first sync</param>
-        /// <returns>Returns an error that occurred during recording the sync, if any</returns>
-        CLError RecordCompletedSync(string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, FilePath newRootPath = null);
 
         /// <summary>
         /// Callback from SyncEngine to retrieve events to process, with dependencies assigned;
@@ -51,16 +41,23 @@ namespace Cloud.Interfaces
         /// <returns>Should return any error that occured while grabbing events, should not throw the exception</returns>
         CLError grabChangesFromFileSystemMonitor(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
+            out int outputChangesCount,
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
+            out int outputChangesInErrorCount,
             out bool nullChangeFound,
             List<FileChange> failedOutChanges = null);
+
+        /// <summary>
+        /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
+        /// </summary>
+        SQLTransactionalBase GetNewTransaction();
 
         /// <summary>
         /// Callback from SyncEngine for updating database with changes to FileChanges
         /// </summary>
         /// <param name="mergeToFroms">Enumerable of FileChanges to merge into database</param>
         /// <returns>Should return any error that occurred while updating the database, should not throw the exception</returns>
-        CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms);
+        CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null);
 
         /// <summary>
         /// Callback from SyncEngine for adding reprocessing failures or previously dependent FileChanges to queue for next SyncEngine Run
@@ -85,10 +82,7 @@ namespace Cloud.Interfaces
         /// <param name="syncCounter">(output) Incrementing counter to record all syncs</param>
         /// <param name="newRootPath">(optional) If provided and different from the previous root, make sure to update accordingly</param>
         /// <returns>Should return any error that occurred while marking sync completion, should not throw the exception</returns>
-        CLError completeSyncSql(string syncId,
-            IEnumerable<long> syncedEventIds,
-            out long syncCounter,
-            string newRootPath = null);
+        CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null);
 
         /// <summary>
         /// Should return the latest recorded sync id (from latest callback of completeSyncSql), return null or "0" if no syncs have been previously recorded
@@ -147,5 +141,11 @@ namespace Cloud.Interfaces
         /// <param name="metadata">(output) The retrieved metadata for the file</param>
         /// <returns>Should return any error that occurred while retrieving the file metadata, should not throw any exception</returns>
         CLError getMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata);
+
+        CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath, Nullable<long> excludedEventId = null);
+
+        CLError GetServerUidByNewPath(string newPath, out string serverUid);
+
+        //void SwapOrderBetweenTwoEventIds(long eventIdA, long eventIdB, SQLTransactionalBase requiredTransaction);
     }
 }

@@ -3,7 +3,7 @@
 //  Cloud Windows
 //
 //  Created by BobS.
-//  Copyright (c) Cloud.com. All rights reserved.using System;
+//  Copyright (c) Cloud.com. All rights reserved.
 //
 using System.Collections.Generic;
 using System.Linq;
@@ -87,11 +87,7 @@ namespace Cloud.Model
         {
             return (((object)Value) == null ? 0 : Value.GetHashCode());
         }
-        
-        private static ParameterExpression firstExpression = null;
-        private static ParameterExpression secondExpression = null;
 
-        private static BinaryExpression equalityExpression = null;
         private static Func<T, T, bool> _runEquality = null;
 
         private static Func<T, T, bool> RunEquality
@@ -102,10 +98,10 @@ namespace Cloud.Model
                 {
                     if (_runEquality == null)
                     {
-                        firstExpression = Expression.Parameter(typeof(T), "first");
-                        secondExpression = Expression.Parameter(typeof(T), "second");
+                        ParameterExpression firstExpression = Expression.Parameter(typeof(T), "first");
+                        ParameterExpression secondExpression = Expression.Parameter(typeof(T), "second");
 
-                        equalityExpression = Expression.Equal(firstExpression, secondExpression);
+                        BinaryExpression equalityExpression = Expression.Equal(firstExpression, secondExpression);
 
                         _runEquality = (Func<T, T, bool>)Expression.Lambda(equalityExpression,
                             new ParameterExpression[]

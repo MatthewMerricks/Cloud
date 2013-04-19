@@ -43,6 +43,11 @@ namespace Cloud.Model
             }
         }
         private volatile FilePath _newPath = null;
+
+        ///// <summary>
+        ///// Server-mapped path of file system object for use in communication to and from the server
+        ///// </summary>
+        //public FilePath ServerNewPath { get; set; }
         /// <summary>
         /// For rename events only, this is the old path
         /// </summary>
@@ -60,6 +65,7 @@ namespace Cloud.Model
         /// Event ID
         /// </summary>
         public long EventId { get; set; }
+
         /// <summary>
         /// Direction of sync (Sync To or Sync From),
         /// defaults to "To"

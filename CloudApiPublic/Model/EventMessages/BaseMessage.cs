@@ -30,10 +30,10 @@ namespace Cloud.Model.EventMessages
         {
             get
             {
-                return _syncBoxId;
+                return _syncboxId;
             }
         }
-        private readonly Nullable<long> _syncBoxId;
+        private readonly Nullable<long> _syncboxId;
 
         public string DeviceId
         {
@@ -47,7 +47,7 @@ namespace Cloud.Model.EventMessages
         internal protected BaseMessage(EventMessageType Type, Nullable<long> SyncboxId, string DeviceId)
         {
             this._type = Type;
-            this._syncBoxId = SyncboxId;
+            this._syncboxId = SyncboxId;
             this._deviceId = DeviceId;
         }
     }

@@ -44,16 +44,16 @@
 ///                 syncRoot: "<Full path of the folder to sync>",
 ///                 deviceId: "<device name unique in the Syncbox>");
 ///
-///             CLSyncbox syncBox; // declare sync box
-///             CLSyncboxCreationStatus syncBoxStatus; // declare status enumeration
+///             CLSyncbox syncbox; // declare sync box
+///             CLSyncboxCreationStatus syncboxStatus; // declare status enumeration
 ///             CLSyncbox.CreateAndInitialize( // run the creation method for an existing sync box id (also returns CLError)
 ///                 Credential: credential, // created above
 ///                 SyncboxId: <id of Syncbox>, //The ID created for this Syncbox on the Cloud developer Dashboard
-///                 syncBox: out syncBox, // output the created sync box here
-///                 status: out syncBoxStatus, // output the status from creating sync box
+///                 syncbox: out syncbox, // output the created sync box here
+///                 status: out syncboxStatus, // output the status from creating sync box
 ///                 Settings: syncSettings); // live syncing requires a settings interface containing a SyncRoot (created above)
 ///
-///             // optionally check syncBoxStatus/returned CLError here before continuing
+///             // optionally check syncboxStatus/returned CLError here before continuing
 ///
 ///             // create the sync engine which will run live syncing
 ///             CLSyncEngine syncEngine = new CLSyncEngine();
@@ -61,7 +61,7 @@
 ///             // start the engine
 ///             CLSyncStartStatus startStatus; // declare status enumeration
 ///             syncEngine.Start( // starting sync returns a CLError which can be checked
-///                 Syncbox: syncBox, // created above
+///                 Syncbox: syncbox, // created above
 ///                 Status: out startStatus); // output the status from starting to sync
 ///
 ///             // optionally check startStatus/returned CLError here to see if it worked
