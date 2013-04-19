@@ -2800,7 +2800,7 @@ namespace Cloud.FileMonitor
                         outputChanges = OutputChangesList;
                         outputChangesCount = OutputChangesList.Count;
                         outputChangesInError = OutputFailuresList;
-                        outputChangesInErrorCount = outputChangesInErrorCount = OutputFailuresList.Count;
+                        outputChangesInErrorCount = OutputFailuresList.Count;
                     }
                 }
             }
