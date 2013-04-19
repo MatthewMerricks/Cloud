@@ -32,6 +32,7 @@ namespace Cloud
     /// </summary>
     public sealed class CLCredentials
     {
+        #region Internal Properties
         /// <summary>
         /// The public key that identifies this application or session.
         /// </summary>
@@ -68,21 +69,32 @@ namespace Cloud
         }
         private readonly string _token;
 
+        #endregion
+
+        #region Private Fields
+
+        private ICLSyncSettingsAdvanced _copiedSettings = null;
+
+        #endregion
+
+        #region Public Credentials Factory
+
         /// <summary>
         /// Outputs a new credentials object from key/secret
         /// </summary>
-        /// <param name="Key">The public key that identifies this application.</param>
-        /// <param name="Secret">The application secret private key.</param>
+        /// <param name="key">The public key that identifies this application or session.</param>
+        /// <param name="secret">The application or session private secret.</param>
         /// <param name="credentials">(output) Created credentials object</param>
         /// <param name="status">(output) Status of creation, check this for Success</param>
-        /// <param name="Token">(optional) The temporary token to use.  Default: null.</param>
+        /// <param name="token">(optional) The temporary token to use.  Default: null.</param>
         /// <returns>Returns any error that occurred in construction, if any, or null.</returns>
         public static CLError AllocAndInit(
-            string Key,
-            string Secret,
+            string key,
+            string secret,
             out CLCredentials credentials,
             out CLCredentialsCreationStatus status,
-            string Token = null)
+            string token = null,
+            ICLCredentialsSettings settings = null)
         {
             status = CLCredentialsCreationStatus.ErrorUnknown;
 
@@ -94,10 +106,11 @@ namespace Cloud
                 }
 
                 credentials = new CLCredentials(
-                    Key,
-                    Secret,
-                    Token,
-                    ref status);
+                    key,
+                    secret,
+                    token,
+                    ref status,
+                    settings);
             }
             catch (Exception ex)
             {
@@ -109,6 +122,9 @@ namespace Cloud
             return null;
         }
 
+        #endregion
+
+
         /// <summary>
         /// Private constructor
         /// </summary>
@@ -116,7 +132,8 @@ namespace Cloud
             string Key,
             string Secret,
             string Token, 
-            ref CLCredentialsCreationStatus status)
+            ref CLCredentialsCreationStatus status,
+            ICLCredentialsSettings settings = null)
         {
             // check input parameters
 
@@ -141,6 +158,11 @@ namespace Cloud
             this._secret = Secret;
             
             this._token = Token;
+
+            // copy settings so they don't change while processing; this also defaults some values
+            _copiedSettings = (settings == null
+                ? NullSyncRoot.Instance.CopySettings()
+                : settings.CopySettings());
         }
 
         /// <summary>

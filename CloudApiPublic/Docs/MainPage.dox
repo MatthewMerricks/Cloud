@@ -31,11 +31,12 @@
 ///             CLCredentials credentials; // declare credentials object
 ///             CLCredentialsCreationStatus credentialsStatus; // declare status enumeration
 ///             CLCredential.AllocAndInit( // creation returns a CLError which can be checked
-///                     Key: "My key from the Cloud developer Dashboard",
-///                     Secret: "My secret from the Cloud developer Dashboard",
+///                     key: "My key from the Cloud developer Dashboard",
+///                     secret: "My secret from the Cloud developer Dashboard",
 ///                     credentials: out credentials, // output the created credentials object here
 ///                     status: out credentialsStatus,  // output the status from creating credentials
-///                     Token: "My session token from the Cloud developer Dashboard"); // (optional)
+///                     token: "My session token from the Cloud developer Dashboard", // (optional)
+///                     settings);   // (optional settings)
 ///
 ///             // optionally check credentialsStatus/returned CLError here before continuing
 ///            

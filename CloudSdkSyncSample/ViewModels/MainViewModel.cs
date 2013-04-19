@@ -1200,11 +1200,12 @@ namespace SampleLiveSync.ViewModels
                             CLCredentials syncCredentials;
                             CLCredentialsCreationStatus syncCredentialsStatus;
                             CLError errorCreateSyncCredentials = CLCredentials.AllocAndInit(
-                                SettingsAdvancedImpl.Instance.Key,
-                                SettingsAdvancedImpl.Instance.Secret,
-                                out syncCredentials,
-                                out syncCredentialsStatus,
-                                SettingsAdvancedImpl.Instance.Token);
+                                key: SettingsAdvancedImpl.Instance.Key,
+                                secret: SettingsAdvancedImpl.Instance.Secret,
+                                credentials: out syncCredentials,
+                                status: out syncCredentialsStatus,
+                                token: SettingsAdvancedImpl.Instance.Token,
+                                settings: SettingsAdvancedImpl.Instance);
 
                             if (errorCreateSyncCredentials != null)
                             {
@@ -1327,14 +1328,14 @@ namespace SampleLiveSync.ViewModels
                                 // Get a ViewModel to provide some of the status information to use on our status window.
                                 EventMessageReceiver.EventMessageReceiver vm;
                                 CLError errorCreateVM = EventMessageReceiver.EventMessageReceiver.CreateAndInitialize(
-                                    syncbox.SyncboxId, // filter by current sync box
-                                    syncbox.CopiedSettings.DeviceId, // filter by current device
-                                    out vm, // output the created view model
-                                    OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the engine
-                                    OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the engine
-                                    EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages
-                                    EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages
-                                    500); // optional to restrict the number of messages in the EventMessageReceiver ListMessages
+                                    SyncboxId: syncbox.SyncboxId, // filter by current sync box
+                                    DeviceId: syncbox.CopiedSettings.DeviceId, // filter by current device
+                                    receiver: out vm, // output the created view model
+                                    getHistoricBandwidthSettings: OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the engine
+                                    setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the engine
+                                    OverrideImportanceFilterNonErrors: EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages
+                                    OverrideImportanceFilterErrors: EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages
+                                    OverrideDefaultMaxStatusMessages: 500); // optional to restrict the number of messages in the EventMessageReceiver ListMessages
 
                                 if (errorCreateVM != null)
                                 {
