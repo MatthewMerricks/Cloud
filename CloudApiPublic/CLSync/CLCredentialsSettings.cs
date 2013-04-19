@@ -115,7 +115,6 @@ namespace Cloud
                     toCopy.TraceLevel,
                     Environment.MachineName + Guid.NewGuid().ToString("N"),
                     false,
-                    null,
                     toCopy.ClientDescription,
                     null,
                     null);

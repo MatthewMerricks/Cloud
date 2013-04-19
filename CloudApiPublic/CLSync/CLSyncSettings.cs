@@ -20,18 +20,6 @@ namespace Cloud
     public sealed class CLSyncSettings : ICLSyncSettings
     {
         /// <summary>
-        /// Full path to the directory to be synced (do not include a trailing slash except for a drive root)
-        /// </summary>
-        public string SyncRoot
-        {
-            get
-            {
-                return _syncRoot;
-            }
-        }
-        private readonly string _syncRoot = null;
-
-        /// <summary>
         /// The ID of this device, unique within the Syncbox.
         /// </summary>
         public string DeviceId
@@ -44,12 +32,11 @@ namespace Cloud
         private readonly string _deviceId;
 
         /// <summary>
-        /// Creates a simple implementation of ICLSyncSettings with only SyncRoot
+        /// Creates a simple implementation of ICLSyncSettings with only DeviceId
         /// </summary>
-        /// <param name="syncRoot">Full path to the directory to be synced (do not include a trailing slash except for a drive root)</param>
-        public CLSyncSettings(string syncRoot, string deviceId)
+        /// <param name="deviceId">The device ID.</param>
+        public CLSyncSettings(string deviceId)
         {
-            this._syncRoot = syncRoot;
             this._deviceId = deviceId;
         }
     }
@@ -192,7 +179,6 @@ namespace Cloud
                 true,
                 null,
                 String.Empty,
-                null,
                 null);
         }
 
@@ -213,7 +199,6 @@ namespace Cloud
                 true,
                 null,
                 String.Empty,
-                syncSettings.SyncRoot,
                 null);
         }
 
@@ -227,7 +212,6 @@ namespace Cloud
                     bool badgingEnabled,
                     string tempDownloadFolderFullPath,
                     string clientDescription,
-                    string syncRoot,
                     string databaseFolder)
         {
             if (clientDescription.Length > CLDefinitions.MaxClientDescriptionLength)
@@ -248,7 +232,6 @@ namespace Cloud
             this._badgingEnabled = badgingEnabled;
             this._tempDownloadFolderFullPath = tempDownloadFolderFullPath;
             this._clientDescription = clientDescription;
-            this._syncRoot = syncRoot;
             this._databaseFolder = databaseFolder;
         }
     }
@@ -271,7 +254,6 @@ namespace Cloud
                 toCopy.BadgingEnabled,
                 toCopy.TempDownloadFolderFullPath,
                 toCopy.ClientDescription,
-                toCopy.SyncRoot,
                 toCopy.DatabaseFolder);
         }
 

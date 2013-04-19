@@ -723,12 +723,12 @@ namespace Cloud.FileMonitor
 
             try
             {
-                if (string.IsNullOrWhiteSpace(syncbox.CopiedSettings.SyncRoot))
+                if (string.IsNullOrWhiteSpace(syncbox.Path))
                 {
                     throw new ArgumentException("Folder path cannot be null or empty");
                 }
 
-                DirectoryInfo folderInfo = new DirectoryInfo(syncbox.CopiedSettings.SyncRoot);
+                DirectoryInfo folderInfo = new DirectoryInfo(syncbox.Path);
                 if (!folderInfo.Exists)
                 {
                     throw new Exception("Folder not found at provided folder path");
@@ -745,7 +745,7 @@ namespace Cloud.FileMonitor
                 }
 
                 // Initialize folder paths
-                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = syncbox.CopiedSettings.SyncRoot;
+                newAgent.CurrentFolderPath = newAgent.InitialFolderPath = syncbox.Path;
 
                 // assign local fields with optional initialization parameters
                 newAgent.OnQueueing = onQueueingCallback;

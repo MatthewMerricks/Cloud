@@ -47,10 +47,6 @@ namespace Cloud.Interfaces
     public interface ICLSyncSettings
     {
         /// <summary>
-        /// Full path to the directory to be synced (do not include a trailing slash except for a drive root)
-        /// </summary>
-        string SyncRoot { get; }
-        /// <summary>
         /// Device id (each Syncbox may contain multiple devices, each with a unique id within the Syncbox).
         /// When running multiple instances of the sync engine on one machine, each combination of SyncboxId and DeviceId used with an engine must be unique on the machine.
         /// </summary>

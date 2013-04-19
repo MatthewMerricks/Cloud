@@ -2347,7 +2347,7 @@ namespace Cloud.Sync
                     Data.commonThisEngine.FileTransferQueued(Data.asyncTask.Value.Task.ThreadId,
                         Data.asyncTask.Value.FileChange.FileChange.EventId,
                         Data.asyncTask.Value.Task.Direction,
-                        Data.asyncTask.Value.FileChange.FileChange.NewPath.GetRelativePath(Data.commonThisEngine.syncbox.CopiedSettings.SyncRoot, false),
+                        Data.asyncTask.Value.FileChange.FileChange.NewPath.GetRelativePath(Data.commonThisEngine.syncbox.Path, false),
                         (long)Data.asyncTask.Value.FileChange.FileChange.Metadata.HashableProperties.Size);
 
                     // try/catch to start the async task, or removing the UpDownEvent handler and rethrowing on exception
@@ -2802,7 +2802,7 @@ namespace Cloud.Sync
                 {
                     try
                     {
-                        FilePath rootPath = Data.commonThisEngine.syncbox.CopiedSettings.SyncRoot;
+                        FilePath rootPath = Data.commonThisEngine.syncbox.Path;
 
                         CLHttpRestStatus getRootStatus;
                         JsonContracts.Metadata rootResponse;
@@ -2992,7 +2992,7 @@ namespace Cloud.Sync
 
                                 FilePathDictionary<FileChange> runningUpChangesDict;
                                 // initialize the runningUpDownChangesDict and store any error that occurs in the process
-                                CLError createUpDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncbox.CopiedSettings.SyncRoot ?? string.Empty),
+                                CLError createUpDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncbox.Path ?? string.Empty),
                                     out runningUpChangesDict);
                                 // if an error occurred initializing the runningUpDownChangesDict, then rethrow the error
                                 if (createUpDictError != null)
@@ -4968,7 +4968,7 @@ namespace Cloud.Sync
                                         castState.ThreadId, // threadId
                                         castState.FileToUpload.EventId, // eventId
                                         SyncDirection.To, // direction
-                                        castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false), // relativePath
+                                        castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.Path, false), // relativePath
                                         (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
                                         (long)castState.FileToUpload.Metadata.HashableProperties.Size, // totalByteSize
                                         true); // error occurred
@@ -5036,7 +5036,7 @@ namespace Cloud.Sync
                             castState.ThreadId, // threadId
                             castState.FileToUpload.EventId, // eventId
                             SyncDirection.To, // direction
-                            castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false), // relativePath
+                            castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.Path, false), // relativePath
                             (long)castState.FileToUpload.Metadata.HashableProperties.Size, // byteProgress
                             (long)castState.FileToUpload.Metadata.HashableProperties.Size, // totalByteSize
                             true); // error occurred
@@ -5055,7 +5055,7 @@ namespace Cloud.Sync
                                                 new CLStatusFileTransferUpdateParameters(
                                                         DateTime.Now,   // use the current local time as the start time, since we never really got started.
                                                         (long)castState.FileToUpload.Metadata.HashableProperties.Size,
-                                                        castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false),
+                                                        castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.Path, false),
                                                         (long)castState.FileToUpload.Metadata.HashableProperties.Size
                                                 ),
                                                 castState.FileToUpload,
@@ -5712,7 +5712,7 @@ namespace Cloud.Sync
                             castState.ThreadId, // threadId
                             castState.FileToDownload.EventId, // eventId
                             SyncDirection.From, // direction
-                            castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false), // relativePath
+                            castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.Path, false), // relativePath
                             (long)castState.FileToDownload.Metadata.HashableProperties.Size, // byteProgress
                             (long)castState.FileToDownload.Metadata.HashableProperties.Size, // totalByteSize
                             true); // error occurred
@@ -5732,7 +5732,7 @@ namespace Cloud.Sync
                                                 new CLStatusFileTransferUpdateParameters(
                                                         DateTime.Now,   // use the current local time as the start time, since we never really got started.
                                                         (long)castState.FileToDownload.Metadata.HashableProperties.Size,
-                                                        castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.CopiedSettings.SyncRoot, false),
+                                                        castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.Path, false),
                                                         (long)castState.FileToDownload.Metadata.HashableProperties.Size
                                                 ),
                                                 castState.FileToDownload,
@@ -5771,7 +5771,7 @@ namespace Cloud.Sync
                                     ? string.Empty
                                     : castState.Syncbox.CopiedSettings == null
                                         ? castState.FileToDownload.NewPath.ToString()
-                                        : castState.FileToDownload.NewPath.GetRelativePath((castState.Syncbox.CopiedSettings.SyncRoot ?? string.Empty), false) ?? string.Empty),
+                                        : castState.FileToDownload.NewPath.GetRelativePath((castState.Syncbox.Path ?? string.Empty), false) ?? string.Empty),
 
                                 // need to send a total downloaded bytes which matches the file size so they are equal to cancel the status
                                 (castState.FileToDownload.Metadata == null
@@ -6697,7 +6697,7 @@ namespace Cloud.Sync
                     if (failuresDict == null)
                     {
                         // initialize the failuresDict and store any error that occurs in the process
-                        CLError createFailuresDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncbox.CopiedSettings.SyncRoot ?? string.Empty),
+                        CLError createFailuresDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncbox.Path ?? string.Empty),
                             out failuresDict);
                         // if an error occurred initializing the failuresDict, then rethrow the error
                         if (createFailuresDictError != null)
@@ -6750,7 +6750,7 @@ namespace Cloud.Sync
                             runningUpDownChanges);
 
                         // initialize the runningUpDownChangesDict and store any error that occurs in the process
-                        CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncbox.CopiedSettings.SyncRoot ?? string.Empty),
+                        CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncbox.Path ?? string.Empty),
                             out runningUpDownChangesDict);
                         // if an error occurred initializing the runningUpDownChangesDict, then rethrow the error
                         if (createUpDownDictError != null)
@@ -7030,7 +7030,7 @@ namespace Cloud.Sync
 
                 Dictionary<string, FilePath> serverUidsToPath = new Dictionary<string, FilePath>();
                 FilePathDictionary<string> pathsToServerUid;
-                CLError createPathsToServerUid = FilePathDictionary<string>.CreateAndInitialize((syncbox.CopiedSettings.SyncRoot ?? string.Empty),
+                CLError createPathsToServerUid = FilePathDictionary<string>.CreateAndInitialize((syncbox.Path ?? string.Empty),
                     out pathsToServerUid,
                     recursiveDeleteCallback: delegate(FilePath recursivePathBeingDeleted, string serverUidRenamed, FilePath originalDeletedPath)
                     {
@@ -7562,8 +7562,8 @@ namespace Cloud.Sync
                                 if (isRootFolder)
                                 {
                                     syncRootUid = currentEvent.Metadata.ServerUid;
-                                    serverUidsToPath[currentEvent.Metadata.ServerUid] = syncbox.CopiedSettings.SyncRoot;
-                                    pathsToServerUid[syncbox.CopiedSettings.SyncRoot] = currentEvent.Metadata.ServerUid;
+                                    serverUidsToPath[currentEvent.Metadata.ServerUid] = syncbox.Path;
+                                    pathsToServerUid[syncbox.Path] = currentEvent.Metadata.ServerUid;
                                 }
 
                                 if (currentEvent.Metadata == null || !isRootFolder)
@@ -7706,7 +7706,7 @@ namespace Cloud.Sync
                     // declare a dictionary for already visited Sync From renames so if metadata was found for a rename in an event then later renames can carry forward the metadata
                     FilePathDictionary<FileMetadata> alreadyVisitedRenames;
                     // initialize the visited renames dictionary, storing any error that occurs
-                    CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncbox.CopiedSettings.SyncRoot ?? string.Empty),
+                    CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncbox.Path ?? string.Empty),
                         out alreadyVisitedRenames);
 
                     // create a dictionary mapping event id to changes which were moved as dependencies under new pseudo-Sync From changes (i.e. conflict)
@@ -7811,8 +7811,8 @@ namespace Cloud.Sync
                             if (isRootFolder)
                             {
                                 syncRootUid = currentEvent.Metadata.ServerUid;
-                                serverUidsToPath[currentEvent.Metadata.ServerUid] = syncbox.CopiedSettings.SyncRoot;
-                                pathsToServerUid[syncbox.CopiedSettings.SyncRoot] = currentEvent.Metadata.ServerUid;
+                                serverUidsToPath[currentEvent.Metadata.ServerUid] = syncbox.Path;
+                                pathsToServerUid[syncbox.Path] = currentEvent.Metadata.ServerUid;
                             }
 
                             if (currentEvent.Metadata == null || !isRootFolder)
@@ -9662,8 +9662,8 @@ namespace Cloud.Sync
                             if (currentEventName == string.Empty && string.IsNullOrEmpty(currentEventToName))
                             {
                                 storeUid.Value = currentEventUid;
-                                innerServerUidsToPath[currentEventUid] = syncbox.CopiedSettings.SyncRoot;
-                                pathsToServerUid[syncbox.CopiedSettings.SyncRoot] = currentEventUid;
+                                innerServerUidsToPath[currentEventUid] = syncbox.Path;
+                                pathsToServerUid[syncbox.Path] = currentEventUid;
                                 return true;
                             }
 
@@ -9787,7 +9787,7 @@ namespace Cloud.Sync
                         // declare a dictionary for already visited Sync From renames so if metadata was found for a rename in an event then later renames can carry forward the metadata
                         FilePathDictionary<FileMetadata> alreadyVisitedRenames;
                         // initialize the visited renames dictionary, storing any error that occurs
-                        CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncbox.CopiedSettings.SyncRoot ?? string.Empty),
+                        CLError createVisitedRenames = FilePathDictionary<FileMetadata>.CreateAndInitialize((syncbox.Path ?? string.Empty),
                             out alreadyVisitedRenames);
 
                         // loop through the Sync From changes where the type is a rename event and select just the FileChange

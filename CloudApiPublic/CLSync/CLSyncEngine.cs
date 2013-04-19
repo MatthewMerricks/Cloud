@@ -300,7 +300,7 @@ namespace Cloud
                 CLTrace.Initialize(syncbox.CopiedSettings.TraceLocation, "Cloud", "log", syncbox.CopiedSettings.TraceLevel, syncbox.CopiedSettings.LogErrors);
                 _trace.writeToLog(1, "CLSyncEngine: SyncReset: Entry.");
 
-                CLError checkBadPath = Helpers.CheckForBadPath(syncbox.CopiedSettings.SyncRoot);
+                CLError checkBadPath = Helpers.CheckForBadPath(syncbox.Path);
                 if (checkBadPath != null)
                 {
                     _trace.writeToLog(1, "CLSyncEngine: SyncReset: ERROR: {0}.", checkBadPath.errorDescription);
@@ -308,7 +308,7 @@ namespace Cloud
                 }
 
                 int tooLongChars;
-                CLError checkPathLength = Helpers.CheckSyncRootLength(syncbox.CopiedSettings.SyncRoot, out tooLongChars);
+                CLError checkPathLength = Helpers.CheckSyncRootLength(syncbox.Path, out tooLongChars);
                 if (checkPathLength != null)
                 {
                     _trace.writeToLog(1, "CLSyncEngine: SyncReset: ERROR: {0}.", checkPathLength.errorDescription);
@@ -491,7 +491,7 @@ namespace Cloud
                 if (!String.IsNullOrWhiteSpace(this._syncbox.CopiedSettings.DatabaseFolder))
                 {
                     FilePath fpDatabase = this._syncbox.CopiedSettings.DatabaseFolder;
-                    FilePath fpSyncbox = this._syncbox.CopiedSettings.SyncRoot;
+                    FilePath fpSyncbox = this._syncbox.Path;
                     if (fpDatabase.Contains(fpSyncbox, insensitiveNameSearch: true))
                     {
                         const string verifyDatabaseError = "Syncbox settings DatabaseFolder cannot be inside the Syncbox settings SyncRoot";
@@ -504,7 +504,7 @@ namespace Cloud
                 if (!string.IsNullOrWhiteSpace(this._syncbox.CopiedSettings.TraceLocation))
                 {
                     FilePath fpTraceLocation = this._syncbox.CopiedSettings.TraceLocation;
-                    FilePath fpSyncbox = this._syncbox.CopiedSettings.SyncRoot;
+                    FilePath fpSyncbox = this._syncbox.Path;
                     if (fpTraceLocation.Contains(fpSyncbox, insensitiveNameSearch: true))
                     {
                         const string verifyTraceLocationError = "Syncbox settings TraceLocation cannot be inside the Syncbox settings SyncRoot";
@@ -517,7 +517,7 @@ namespace Cloud
                 if (!String.IsNullOrWhiteSpace(this._syncbox.CopiedSettings.TempDownloadFolderFullPath))
                 {
                     FilePath fpTemp = this._syncbox.CopiedSettings.TempDownloadFolderFullPath;
-                    FilePath fpSyncbox = this._syncbox.CopiedSettings.SyncRoot;
+                    FilePath fpSyncbox = this._syncbox.Path;
                     if (fpTemp.Contains(fpSyncbox, insensitiveNameSearch: true))
                     {
                         const string verifyTempDownloadFolderError = "Syncbox settings TempDownloadFolderFullPath cannot be inside the Syncbox settings SyncRoot";
@@ -527,7 +527,7 @@ namespace Cloud
                     }
                 }
 
-                CLError checkBadPath = Helpers.CheckForBadPath(this._syncbox.CopiedSettings.SyncRoot);
+                CLError checkBadPath = Helpers.CheckForBadPath(this._syncbox.Path);
                 if (checkBadPath != null)
                 {
                     if (reservedSyncbox
@@ -542,7 +542,7 @@ namespace Cloud
                 }
 
                 int tooLongChars;
-                CLError checkPathLength = Helpers.CheckSyncRootLength(this._syncbox.CopiedSettings.SyncRoot, out tooLongChars);
+                CLError checkPathLength = Helpers.CheckSyncRootLength(this._syncbox.Path, out tooLongChars);
                 if (checkPathLength != null)
                 {
                     if (reservedSyncbox
@@ -574,7 +574,7 @@ namespace Cloud
 
                 // Create the Syncbox directory if it doesn't exist
                 bool alreadyExists = true;
-                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncbox.CopiedSettings.SyncRoot);
+                System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncbox.Path);
                 if (!rootInfo.Exists)
                 {
                     alreadyExists = false;
@@ -582,7 +582,7 @@ namespace Cloud
                 }
 
                 bool caseMatches;
-                CLError caseCheckError = Helpers.DirectoryMatchesCaseWithDisk(_syncbox.CopiedSettings.SyncRoot,
+                CLError caseCheckError = Helpers.DirectoryMatchesCaseWithDisk(_syncbox.Path,
                     out caseMatches);
 
                 if (caseCheckError != null)
@@ -613,7 +613,7 @@ namespace Cloud
                 {
                     _iconOverlay = new IconOverlay();
                 }
-                CLError iconOverlayError = _iconOverlay.Initialize(this._syncbox.CopiedSettings, this._syncbox.SyncboxId);
+                CLError iconOverlayError = _iconOverlay.Initialize(this._syncbox.CopiedSettings, this._syncbox);
                 if (iconOverlayError != null)
                 {
                     // Failure to start badging does not prevent syncing.  Just log it.

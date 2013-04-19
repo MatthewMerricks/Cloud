@@ -86,7 +86,7 @@ namespace Cloud.SQLIndexer
 
             try
             {
-                newIndexer.InitializeDatabase(syncbox.CopiedSettings.SyncRoot);
+                newIndexer.InitializeDatabase(syncbox.Path);
             }
             catch (Exception ex)
             {

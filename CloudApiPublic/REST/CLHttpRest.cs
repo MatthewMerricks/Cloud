@@ -110,9 +110,9 @@ namespace Cloud.REST
                 this._copiedSettings = settings.CopySettings();
             }
 
-            if (!string.IsNullOrEmpty(this._copiedSettings.SyncRoot))
+            if (!string.IsNullOrEmpty(this._syncbox.Path))
             {
-                CLError syncRootError = Helpers.CheckForBadPath(this._copiedSettings.SyncRoot);
+                CLError syncRootError = Helpers.CheckForBadPath(this._syncbox.Path);
                 if (syncRootError != null)
                 {
                     throw new AggregateException("settings SyncRoot represents a bad path", syncRootError.GrabExceptions());
@@ -534,7 +534,7 @@ namespace Cloud.REST
                     Helpers.HandleUploadDownloadStatus, // private event handler to relay status change events
                     changeToDownload, // the FileChange describing the download
                     shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
-                    _copiedSettings.SyncRoot, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
+                    _syncbox.Path, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
                     aCallback, // asynchronous callback to fire on progress changes if called via async wrapper
                     aResult, // asynchronous result to pass when firing the asynchronous callback
                     progress, // holder for progress data which can be queried by user if called via async wrapper
@@ -920,7 +920,7 @@ namespace Cloud.REST
                         Helpers.HandleUploadDownloadStatus, // private event handler to relay status change events
                         changeToUpload, // the FileChange describing the upload
                         shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
-                        _copiedSettings.SyncRoot, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
+                        _syncbox.Path, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
                         aCallback, // asynchronous callback to fire on progress changes if called via async wrapper
                         aResult, // asynchronous result to pass when firing the asynchronous callback
                         progress, // holder for progress data which can be queried by user if called via async wrapper
@@ -1194,12 +1194,12 @@ namespace Cloud.REST
                         throw new AggregateException("fullPath is not in the proper format", pathError.GrabExceptions());
                     }
 
-                    if (string.IsNullOrEmpty(_copiedSettings.SyncRoot))
+                    if (string.IsNullOrEmpty(_syncbox.Path))
                     {
                         throw new NullReferenceException("settings SyncRoot cannot be null");
                     }
 
-                    if (!fullPath.Contains(_copiedSettings.SyncRoot))
+                    if (!fullPath.Contains(_syncbox.Path))
                     {
                         throw new ArgumentException("fullPath does not contain settings SyncRoot");
                     }
@@ -1218,7 +1218,7 @@ namespace Cloud.REST
                     {
                         (string.IsNullOrEmpty(serverId)
                             ? // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                                new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((_copiedSettings.SyncRoot ?? string.Empty), true) + (isFolder ? "/" : string.Empty)))
+                                new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((_syncbox.Path ?? string.Empty), true) + (isFolder ? "/" : string.Empty)))
 
                             : // query string parameter for the unique id to the file or folder on the server, escaped since it is a server opaque field of undefined format
                                 new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(serverId))),
@@ -1649,7 +1649,7 @@ namespace Cloud.REST
                 {
                     throw new NullReferenceException("settings DeviceId cannot be null");
                 }
-                if (_copiedSettings.SyncRoot == null)
+                if (_syncbox.Path == null)
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -1684,7 +1684,7 @@ namespace Cloud.REST
                             {
                                 CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
                                 DeviceId = _copiedSettings.DeviceId,
-                                RelativePath = toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true) + "/",
+                                RelativePath = toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true) + "/",
                                 SyncboxId = _syncbox.SyncboxId
                             };
                         }
@@ -1718,7 +1718,7 @@ namespace Cloud.REST
                                 Hash = addHashString,
                                 MimeType = toCommunicate.Metadata.MimeType,
                                 ModifiedDate = toCommunicate.Metadata.HashableProperties.LastTime,
-                                RelativePath = toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true),
+                                RelativePath = toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true),
                                 Size = toCommunicate.Metadata.HashableProperties.Size,
                                 SyncboxId = _syncbox.SyncboxId
                             };
@@ -1741,7 +1741,7 @@ namespace Cloud.REST
                             DeviceId = _copiedSettings.DeviceId,
                             RelativePath = (toCommunicate.NewPath == null
                                 ? null
-                                : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true) +
+                                : toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true) +
                                     (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
                             ServerUid = toCommunicate.Metadata.ServerUid,
                             SyncboxId = _syncbox.SyncboxId
@@ -1795,7 +1795,7 @@ namespace Cloud.REST
                             ModifiedDate = toCommunicate.Metadata.HashableProperties.LastTime,
                             RelativePath = (toCommunicate.NewPath == null
                                 ? null
-                                : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true)),
+                                : toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true)),
                             Revision = toCommunicate.Metadata.Revision,
                             ServerUid = toCommunicate.Metadata.ServerUid,
                             Size = toCommunicate.Metadata.HashableProperties.Size,
@@ -1823,11 +1823,11 @@ namespace Cloud.REST
                         requestContent = new JsonContracts.FileOrFolderMove()
                         {
                             DeviceId = _copiedSettings.DeviceId,
-                            RelativeFromPath = toCommunicate.OldPath.GetRelativePath(_copiedSettings.SyncRoot, true) +
+                            RelativeFromPath = toCommunicate.OldPath.GetRelativePath(_syncbox.Path, true) +
                                 (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty),
                             RelativeToPath = (toCommunicate.NewPath == null
                                 ? null
-                                : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true)
+                                : toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true)
                                     + (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
                             ServerUid = toCommunicate.Metadata.ServerUid,
                             SyncboxId = _syncbox.SyncboxId
@@ -2057,7 +2057,7 @@ namespace Cloud.REST
                 {
                     throw new ArgumentException("deletionChange is not of Type Deletion");
                 }
-                if (_copiedSettings.SyncRoot == null)
+                if (_syncbox.Path == null)
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -2364,7 +2364,7 @@ namespace Cloud.REST
                 {
                     throw new NullReferenceException("Either pathToFile must not be null or fileServerId must not be null or both must not be null");
                 }
-                if (_copiedSettings.SyncRoot == null)
+                if (_syncbox.Path == null)
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -2389,7 +2389,7 @@ namespace Cloud.REST
                         // query string parameter for the path to the file to check, only filled in if it's not null
                         (pathToFile == null
                             ? new KeyValuePair<string, string>()
-                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(pathToFile.GetRelativePath(_copiedSettings.SyncRoot, true)))),
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(pathToFile.GetRelativePath(_syncbox.Path, true)))),
 
                         // query string parameter for whether to include delete versions in the check, but only set if it's not default (if it's false)
                         (includeDeletedVersions
@@ -2884,7 +2884,7 @@ namespace Cloud.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (_copiedSettings.SyncRoot == null)
+                if (_syncbox.Path == null)
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -2919,8 +2919,8 @@ namespace Cloud.REST
                         ServerId = fileServerId, // unique id on server
                         RelativePath = (pathToFile == null
                             ? null
-                            : pathToFile.GetRelativePath(_copiedSettings.SyncRoot, true)), // path of existing file to copy
-                        RelativeToPath = copyTargetPath.GetRelativePath(_copiedSettings.SyncRoot, true), // location to copy file to
+                            : pathToFile.GetRelativePath(_syncbox.Path, true)), // path of existing file to copy
+                        RelativeToPath = copyTargetPath.GetRelativePath(_syncbox.Path, true), // location to copy file to
                         SyncboxId = _syncbox.SyncboxId // id of sync box
                     },
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
@@ -4327,7 +4327,7 @@ namespace Cloud.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (string.IsNullOrEmpty(_copiedSettings.SyncRoot))
+                if (string.IsNullOrEmpty(_syncbox.Path))
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -4342,7 +4342,7 @@ namespace Cloud.REST
 
                         (hierarchyRoot == null
                             ? new KeyValuePair<string, string>() // do not add extra query string parameter if path is not set
-                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(hierarchyRoot.GetRelativePath(_copiedSettings.SyncRoot, true) + "/"))) // query string parameter for optional path with escaped value
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(hierarchyRoot.GetRelativePath(_syncbox.Path, true) + "/"))) // query string parameter for optional path with escaped value
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -4566,7 +4566,7 @@ namespace Cloud.REST
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-                if (string.IsNullOrEmpty(_copiedSettings.SyncRoot))
+                if (string.IsNullOrEmpty(_syncbox.Path))
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
@@ -4585,7 +4585,7 @@ namespace Cloud.REST
 
                         (contentsRoot == null
                             ? new KeyValuePair<string, string>() // do not add extra query string parameter if path is not set
-                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.GetRelativePath(_copiedSettings.SyncRoot, true) + "/"))), // query string parameter for optional path with escaped value
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.GetRelativePath(_syncbox.Path, true) + "/"))), // query string parameter for optional path with escaped value
 
                         (includeDeleted
                             ? new KeyValuePair<string, string>() // do not add extra query string parameter if parameter is already the default
