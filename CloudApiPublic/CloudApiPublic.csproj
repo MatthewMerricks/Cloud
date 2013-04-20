@@ -176,7 +176,7 @@
     <Compile Include="JsonContracts\SyncBoxUpdatePlanRequest.cs" />
     <Compile Include="JsonContracts\SyncBoxUpdatePlanResponse.cs" />
     <Compile Include="JsonContracts\ListPlansResponse.cs" />
-    <Compile Include="JsonContracts\Plan.cs" />
+    <Compile Include="JsonContracts\CLStoragePlan.cs" />
     <Compile Include="JsonContracts\SyncBoxIdOnly.cs" />
     <Compile Include="JsonContracts\SyncBoxHolder.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />

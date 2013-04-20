@@ -74,13 +74,24 @@ namespace Cloud.Interfaces
         string DatabaseFolder { get; }
     }
 
-    public interface ICLAddClientDescription
+    /// <summary>
+    /// Additional sync options.
+    /// </summary>
+    public interface ICLAddSyncOptions
     {
         /// <summary>
-        /// Client description.  Limited to 32-characters with no commas. (e.g., "MyClient01"); do not mimic values passed by other Cloud applications
+        /// Client description.  Limited to 32-characters with no commas. (e.g., "My Product Name"); do not mimic values passed by other Cloud applications
         /// </summary>
         string ClientDescription { get; }
+        /// <summary>
+        /// Http timeout in milliseconds.
+        /// </summary>
+        /// <remarks>Return CLDefinitions.HttpTimeoutDefaultMilliseconds to use the SDK default.</remarks>
+        int HttpTimeoutMilliseconds { get; }
     }
 
-    public interface ICLCredentialsSettings : ICLAddTraceSettings, ICLAddClientDescription { }
+    /// <summary>
+    /// Settings required for CLCredentials.
+    /// </summary>
+    public interface ICLCredentialsSettings : ICLAddTraceSettings, ICLAddSyncOptions { }
 }

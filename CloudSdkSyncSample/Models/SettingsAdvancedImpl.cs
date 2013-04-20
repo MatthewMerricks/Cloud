@@ -176,6 +176,16 @@ namespace SampleLiveSync.Models
             }
         }
         /// <summary>
+        /// Provide the timeout in milliseconds to use with HTTP REST requests.  Return Cloud.CLDefinitions.HttpTimeoutMilliseconds to use the SDK default.
+        /// </summary>
+        public int HttpTimeoutMilliseconds
+        {
+            get
+            {
+                return CLDefinitions.HttpTimeoutDefaultMilliseconds;
+            }
+        }
+        /// <summary>
         /// The full path of the folder to be synced.
         /// </summary>
         public string SyncRoot

@@ -149,6 +149,15 @@ namespace Cloud
         }
         private readonly string _clientDescription = null;
 
+        public int HttpTimeoutMilliseconds
+        {
+            get
+            {
+                return _httpTimeoutMilliseconds;
+            }
+        }
+        private readonly int _httpTimeoutMilliseconds = CLDefinitions.HttpTimeoutDefaultMilliseconds;
+
         public string SyncRoot
         {
             get
@@ -179,6 +188,7 @@ namespace Cloud
                 true,
                 null,
                 String.Empty,
+                CLDefinitions.HttpTimeoutDefaultMilliseconds,
                 null);
         }
 
@@ -199,6 +209,7 @@ namespace Cloud
                 true,
                 null,
                 String.Empty,
+                CLDefinitions.HttpTimeoutDefaultMilliseconds,
                 null);
         }
 
@@ -212,6 +223,7 @@ namespace Cloud
                     bool badgingEnabled,
                     string tempDownloadFolderFullPath,
                     string clientDescription,
+                    int httpTimeoutMilliseconds,
                     string databaseFolder)
         {
             if (clientDescription.Length > CLDefinitions.MaxClientDescriptionLength)
@@ -221,6 +233,10 @@ namespace Cloud
             if (clientDescription.Contains(","))
             {
                 throw new ArgumentException("ClientDescription must not contain commas");
+            }
+            if (httpTimeoutMilliseconds < 10000)
+            {
+                throw new ArgumentException("HttpTimeoutMilliseconds is too small");
             }
 
             this._logErrors = logErrors;
@@ -232,6 +248,7 @@ namespace Cloud
             this._badgingEnabled = badgingEnabled;
             this._tempDownloadFolderFullPath = tempDownloadFolderFullPath;
             this._clientDescription = clientDescription;
+            this._httpTimeoutMilliseconds = httpTimeoutMilliseconds;
             this._databaseFolder = databaseFolder;
         }
     }
@@ -254,6 +271,7 @@ namespace Cloud
                 toCopy.BadgingEnabled,
                 toCopy.TempDownloadFolderFullPath,
                 toCopy.ClientDescription,
+                toCopy.HttpTimeoutMilliseconds,
                 toCopy.DatabaseFolder);
         }
 

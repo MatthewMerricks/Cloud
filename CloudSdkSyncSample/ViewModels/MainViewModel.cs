@@ -46,7 +46,6 @@ namespace SampleLiveSync.ViewModels
         private bool _syncStarted = false;
         private bool _windowClosed = false;
         private SyncStatusView _winSyncStatus = null;
-        private CLSyncbox _syncbox = null;
 
         private static readonly object _locker = new object();
         private static readonly CLTrace _trace = CLTrace.Instance;
@@ -174,6 +173,13 @@ namespace SampleLiveSync.ViewModels
                 base.OnPropertyChanged("SyncboxId");
             }
         }
+
+        public CLSyncbox Syncbox
+        {
+            get { return _syncbox; }
+        }
+        private CLSyncbox _syncbox = null;
+
 
         public string DeviceId
         {
@@ -1235,7 +1241,7 @@ namespace SampleLiveSync.ViewModels
                                     getNewCredentialsCallback: ReplaceExpiredCredentialsCallback,
                                     getNewCredentialsCallbackUserState: this,
                                     statusChangedCallback: OnSyncStatusUpdated, // called when sync status is updated
-                                    statusChangedCallbackUserState: _syncbox); // the user state passed to the callback above
+                                    statusChangedCallbackUserState: this); // the user state passed to the callback above
 
                                 if (errorCreateSyncbox != null)
                                 {
@@ -1289,7 +1295,7 @@ namespace SampleLiveSync.ViewModels
                     && _syncbox != null)
                 {
                     // start syncing
-                    CLError errorFromSyncboxStart = _syncbox.StartSync(CLSyncMode.CLSyncModeLive);
+                    CLError errorFromSyncboxStart = _syncbox.BeginSync(CLSyncMode.CLSyncModeLive);
                     if (errorFromSyncboxStart != null)
                     {
                         _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.Start: Msg: <{0}>.", errorFromSyncboxStart.errorDescription);
@@ -1495,9 +1501,9 @@ namespace SampleLiveSync.ViewModels
         /// <param name="userState">This is the instance of CLSync.</param>
         private void OnSyncStatusUpdated(object userState)
         {
-            if (_winSyncStatus != null)
+            if (_winSyncStatus != null && _syncbox != null)
             {
-                _winSyncStatus.OnSyncStatusUpdated(userState);
+                _winSyncStatus.OnSyncStatusUpdated(_syncbox);
             }
         }
 
@@ -1550,7 +1556,7 @@ namespace SampleLiveSync.ViewModels
                     {
                         SetSyncboxStartedState(isStartedStateToSet: false);
                         _syncStarted = false;
-                        _syncbox.StopSync();
+                        _syncbox.EndSync();
                     }
                 }
             }

@@ -1,5 +1,5 @@
 ﻿//
-// Plan.cs
+// CLStoragePlan.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -19,25 +19,28 @@ namespace Cloud.JsonContracts
     /// Contains actual response properties for <see cref="ListPlansResponse"/>
     /// </summary>
     [DataContract]
-    public sealed class Plan
+    public sealed class CLStoragePlan
     {
         [DataMember(Name = CLDefinitions.RESTResponsePlan_Id, IsRequired = false)]
         public Nullable<long> Id { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponsePlan_PlanName, IsRequired = false)]
-        public string FriendlyPlanName { get; set; }
+        public string Name { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponsePlan_ApplicationPlanTierId, IsRequired = false)]
-        public Nullable<long> ApplicationPlanTierId { get; set; }
+        public Nullable<long> Tier { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponsePlan_ClientApplicationId, IsRequired = false)]
         public Nullable<long> ClientApplicationId { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponsePlan_MaxTransferBytes, IsRequired = false)]
-        public Nullable<long> MaxTransferBytes { get; set; }
+        public Nullable<long> BandwidthQuota { get; set; }
+
+        [DataMember(Name = CLDefinitions.RESTResponsePlan_StorageSize, IsRequired = false)]
+        public Nullable<long> StorageQuota { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponsePlan_IsDefault, IsRequired = false)]
-        public Nullable<bool> IsDefault { get; set; }
+        public Nullable<bool> IsDefaultPlan { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponsePlan_CreatedAt, IsRequired = false)]
         public string CreatedAtString

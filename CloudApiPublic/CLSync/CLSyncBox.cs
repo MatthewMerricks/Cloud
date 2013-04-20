@@ -7,6 +7,7 @@
 
 using Cloud.Interfaces;
 using Cloud.Model;
+using Cloud.Model.EventMessages.ErrorInfo;
 using Cloud.PushNotification;
 using Cloud.REST;
 using Cloud.Static;
@@ -16,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Cloud
 {
@@ -49,40 +51,6 @@ namespace Cloud
         private bool _isStarted = false;
 
         #endregion
-
-        internal bool ReservedForActiveSync
-        {
-            get
-            {
-                lock (_reservedForActiveSync)
-                {
-                    return _reservedForActiveSync.Value;
-                }
-            }
-        }
-        internal bool TryReserveForActiveSync()
-        {
-            if (!_httpRestClient.IsModifyingSyncboxViaPublicAPICalls)
-            {
-                lock (_reservedForActiveSync)
-                {
-                    if (!_reservedForActiveSync.Value)
-                    {
-                        _reservedForActiveSync.Value = true;
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-        internal void ResetReserveForActiveSync()
-        {
-            lock (_reservedForActiveSync)
-            {
-                _reservedForActiveSync.Value = false;
-            }
-        }
-        private readonly GenericHolder<bool> _reservedForActiveSync = new GenericHolder<bool>(false);
 
         /// <summary>
         /// Contains authentication information required for all communication and services
@@ -170,7 +138,93 @@ namespace Cloud
             }
         }
 
-        #region Life Cycle
+        #region Private Constructor
+
+        private CLSyncbox(
+            long syncboxId,
+            CLCredentials credentials,
+            string path,
+            ref CLSyncboxCreationStatus status,
+            ICLSyncSettings Settings,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+            object getNewCredentialsCallbackUserState = null,
+            System.Threading.WaitCallback statusChangedCallback = null,
+            object statusChangedCallbackUserState = null
+            )
+        {
+            // check input parameters
+
+            if (syncboxId == 0)
+            {
+                status = CLSyncboxCreationStatus.ErrorSyncboxIdZero;
+                throw new ArgumentException("syncboxId must not be null.");
+            }
+            if (String.IsNullOrWhiteSpace(path))
+            {
+                status = CLSyncboxCreationStatus.ErrorPathNotSpecified;
+                throw new ArgumentException("path must be specified.");
+            }
+            if (credentials == null)
+            {
+                status = CLSyncboxCreationStatus.ErrorNullCredentials;
+                throw new NullReferenceException("Credentials cannot be null");
+            }
+
+            // Copy the settings so the user can't change them.
+            if (Settings == null)
+            {
+                this._copiedSettings = AdvancedSyncSettings.CreateDefaultSettings();
+            }
+            else
+            {
+                this._copiedSettings = Settings.CopySettings();
+            }
+
+            // Set up the syncbox
+            lock (_startLocker)
+            {
+                // Save the parameters in properties.
+                this._credentialsHolder.Value = credentials;
+                this._syncboxId = syncboxId;
+                this._path = path;
+                this._statusChangedCallback = statusChangedCallback;
+                this._statusChangedCallbackUserState = statusChangedCallbackUserState;
+
+                // Initialize trace in case it is not already initialized.
+                CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
+                _trace.writeToLog(1, "CLSyncbox: Constructing...");
+
+                // Create the http rest client
+                _trace.writeToLog(9, "CLSyncbox: Start: Create rest client.");
+                CLError createRestClientError = CLHttpRest.CreateAndInitialize(
+                                credentials: this.Credentials,
+                                syncbox: this,
+                                client: out _httpRestClient,
+                                settings: this._copiedSettings,
+                                getNewCredentialsCallback: getNewCredentialsCallback,
+                                getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
+                if (createRestClientError != null)
+                {
+                    _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());
+                    status = CLSyncboxCreationStatus.ErrorCreatingRestClient;
+                    throw new AggregateException("Error creating REST HTTP client", createRestClientError.GrabExceptions());
+                }
+                if (_httpRestClient == null)
+                {
+                    const string nullRestClient = "Unknown error creating HTTP REST client";
+                    _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}.", nullRestClient);
+                    status = CLSyncboxCreationStatus.ErrorCreatingRestClient;
+                    throw new NullReferenceException(nullRestClient);
+                }
+
+                // Create the sync engine
+                _syncEngine = new CLSyncEngine();
+            }
+        }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Creates an object which represents a Syncbox in Cloud, and associates the syncbox with a folder on the local disk.
@@ -229,87 +283,239 @@ namespace Cloud
             return null;
         }
 
-        private CLSyncbox(
-            long syncboxId,
+        #region Create (create syncbox in the cloud)
+
+        /// <summary>
+        /// Asynchronously starts creating a new Syncbox in the cloud for the current application
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
+        /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+        /// <param name="planId">The ID of the plan to use with this Syncbox.  If null, the default plan will be used.</param>
+        /// <param name="name">Name of the Syncbox.  If null, a default name will be created.</param>
+        /// <param name="credentials">The credentials to use with this request.</param>
+        /// <param name="settings">(optional) settings to use with this method.</param>
+        //
+        //// The following metadata parameter was temporarily removed until the server checks for it for this call
+        //
+        ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+        public static IAsyncResult BeginCreate(
+            AsyncCallback callback,
+            object callbackUserState,
+            Nullable<long> planId,
+            string name,
             CLCredentials credentials,
-            string path,
-            ref CLSyncboxCreationStatus status,
-            ICLSyncSettings Settings,
-            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
-            object getNewCredentialsCallbackUserState = null,
-			System.Threading.WaitCallback statusChangedCallback = null,
-			object statusChangedCallbackUserState = null
-            )
+            ICLCredentialsSettings settings = null
+            /*,  \/ last parameter temporarily removed since the server is not checking for it for this call; add back wherever commented out within this method when it works
+            JsonContracts.MetadataDictionary metadata = null*/)
         {
-            // check input parameters
+            // create the asynchronous result to return
+            GenericAsyncResult<CreateSyncboxResult> toReturn = new GenericAsyncResult<CreateSyncboxResult>(
+                callback,
+                callbackUserState);
 
-            if (syncboxId == 0)
-            {
-                status = CLSyncboxCreationStatus.ErrorSyncboxIdZero;
-                throw new ArgumentException("syncboxId must not be null.");
-            }
-            if (String.IsNullOrWhiteSpace(path))
-            {
-                status = CLSyncboxCreationStatus.ErrorPathNotSpecified;
-                throw new ArgumentException("path must be specified.");
-            }
-            if (credentials == null)
-            {
-                status = CLSyncboxCreationStatus.ErrorNullCredentials;
-                throw new NullReferenceException("Credentials cannot be null");
-            }
+            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+            Tuple<GenericAsyncResult<CreateSyncboxResult>, Nullable<long>, string, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/> asyncParams =
+                new Tuple<GenericAsyncResult<CreateSyncboxResult>, Nullable<long>, string, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/>(
+                    toReturn,
+                    planId,
+                    name,
+                    credentials,
+                    settings/*,
+                    metadata*/);
 
-            // Copy the settings so the user can't change them.
-            if (Settings == null)
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ParameterizedThreadStart(state =>
             {
-                this._copiedSettings = AdvancedSyncSettings.CreateDefaultSettings();
-            }
-            else
-            {
-                this._copiedSettings = Settings.CopySettings();
-            }
-
-            // Set up the syncbox
-            lock (_startLocker)
-            {
-                // Save the parameters in properties.
-                this._credentialsHolder.Value = credentials;
-                this._syncboxId = syncboxId;
-                this._path = path;
-        		this._statusChangedCallback = statusChangedCallback;
-                this._statusChangedCallbackUserState = statusChangedCallbackUserState;
-
-                // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
-                _trace.writeToLog(1, "CLSyncbox: Constructing...");
-
-                // Create the http rest client
-                _trace.writeToLog(9, "CLSyncbox: Start: Create rest client.");
-                CLError createRestClientError = CLHttpRest.CreateAndInitialize(
-                                credentials: this.Credentials,
-                                syncbox: this,
-                                client: out _httpRestClient,
-                                settings: this._copiedSettings,
-                                getNewCredentialsCallback: getNewCredentialsCallback,
-                                getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
-                if (createRestClientError != null)
+                // try cast the state as the object with all the input parameters
+                Tuple<GenericAsyncResult<CreateSyncboxResult>, Nullable<long>, string, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/> castState =
+                    state as Tuple<GenericAsyncResult<CreateSyncboxResult>, Nullable<long>, string, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/>;
+                // if the try cast failed, then show a message box for this unrecoverable error
+                if (castState == null)
                 {
-                    _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());
-                    status = CLSyncboxCreationStatus.ErrorCreatingRestClient;
-                    throw new AggregateException("Error creating REST HTTP client", createRestClientError.GrabExceptions());
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
                 }
-                if (_httpRestClient == null)
+                // else if the try cast did not fail, then start processing with the input parameters
+                else
                 {
-                    const string nullRestClient = "Unknown error creating HTTP REST client";
-                    _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}.", nullRestClient);
-                    status = CLSyncboxCreationStatus.ErrorCreatingRestClient;
-                    throw new NullReferenceException(nullRestClient);
-                }
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLHttpRestStatus status;
+                        // declare the specific type of result for this operation
+                        JsonContracts.SyncboxHolder response;
+                        // run the download of the file with the passed parameters, storing any error that occurs
+                        CLError processError = Create(
+                            castState.Item2,  // planId
+                            castState.Item3,  // name
+                            castState.Item4,  // credentials
+                            out status,  // CLHttpRestStatus
+                            out response,  // HTTP response
+                            castState.Item5);  // settings
 
-                // Create the sync engine
-                _syncEngine = new CLSyncEngine();
-            }
+                        // if there was an asynchronous result in the parameters, then complete it with a new result object
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.Complete(
+                                new CreateSyncboxResult(
+                                    processError, // any error that may have occurred during processing
+                                    status, // the output status of communication
+                                    response), // the specific type of result for this operation
+                                    sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // if there was an asynchronous result in the parameters, then pass through the exception to it
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.HandleException(
+                                ex, // the exception which was not handled correctly by the CLError wrapping
+                                sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                }
+            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+
+            // return the asynchronous result
+            return toReturn;
         }
+
+        /// <summary>
+        /// Finishes creating a Syncbox in the cloud for the current application if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting creating the syncbox</param>
+        /// <param name="result">(output) The result from creating the syncbox</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public static CLError EndCreate(IAsyncResult aResult, out CreateSyncboxResult result)
+        {
+            // declare the specific type of asynchronous result
+            GenericAsyncResult<CreateSyncboxResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the specific result type and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the specific result type
+                castAResult = aResult as GenericAsyncResult<CreateSyncboxResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<CreateSyncboxResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Create a Syncbox in the cloud for the current application.  This is a synchronous method.
+        /// </summary>
+        /// <param name="planId">the ID of the plan to use with this Syncbox.  Specify null for the default name.</param>
+        /// <param name="name">the name of the Syncbox.  Specify null for the default name.</param>
+        /// <param name="credentials">The credentials to use for this request.</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="settings">(optional) the settings to use with this method</param>
+        //
+        //// The following metadata parameter was temporarily removed until the server checks for it for this call
+        //
+        ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public static CLError Create(
+                    Nullable<long> planId,
+                    string name,
+                    CLCredentials credentials,
+                    out CLHttpRestStatus status,
+                    out JsonContracts.SyncboxHolder response,
+                    ICLCredentialsSettings settings = null/*, JsonContracts.MetadataDictionary metadata = null*/)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the metadata query, on catch return the error
+            try
+            {
+                // copy settings so they don't change while processing; this also defaults some values
+                ICLSyncSettingsAdvanced copiedSettings = (settings == null
+                    ? AdvancedSyncSettings.CreateDefaultSettings()
+                    : settings.CopySettings());
+
+                // check input parameters
+                JsonContracts.SyncboxHolder inputBox = (/*metadata == null
+                        && */string.IsNullOrEmpty(name)
+                    ? null
+                    : new JsonContracts.SyncboxHolder()
+                    {
+                        Syncbox = new JsonContracts.Syncbox()
+                        {
+                            FriendlyName = (string.IsNullOrEmpty(name)
+                                ? null
+                                : name),
+                            PlanId = planId/*,
+                            Metadata = metadata*/
+                        }
+                    });
+
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxHolder>(
+                    requestContent: inputBox,
+                    serverUrl: CLDefinitions.CLPlatformAuthServerURL,
+                    serverMethodPath: CLDefinitions.MethodPathAuthCreateSyncbox,
+                    method: Helpers.requestMethod.post,
+                    timeoutMilliseconds: copiedSettings.HttpTimeoutMilliseconds,
+                    uploadDownload: null, // not an upload nor download
+                    validStatusCodes: Helpers.HttpStatusesOkAccepted,
+                    status: ref status,
+                    CopiedSettings: copiedSettings,
+                    Credentials: credentials,
+                    SyncboxId: null);
+
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion
 
         /// <summary>
         /// Start syncing according to the requested sync mode.
@@ -317,7 +523,7 @@ namespace Cloud
         /// <remarks>Note that only SyncMode.CLSyncModeLive is currently supported.</remarks>
         /// <param name="mode">The sync mode to start.</param>
         /// <returns></returns>
-        public CLError StartSync(CLSyncMode mode)
+        public CLError BeginSync(CLSyncMode mode)
         {
             CLError toReturn = null;
 
@@ -365,7 +571,7 @@ namespace Cloud
         /// Stop syncing.
         /// </summary>
         /// <remarks>Note that after stopping it is possible to call BeginSync() again to restart syncing.</remarks>
-        public void StopSync()
+        public void EndSync()
         {
             try
             {
@@ -551,6 +757,40 @@ namespace Cloud
         #endregion
 
         #region Support Functions
+
+        internal bool ReservedForActiveSync
+        {
+            get
+            {
+                lock (_reservedForActiveSync)
+                {
+                    return _reservedForActiveSync.Value;
+                }
+            }
+        }
+        internal bool TryReserveForActiveSync()
+        {
+            if (!_httpRestClient.IsModifyingSyncboxViaPublicAPICalls)
+            {
+                lock (_reservedForActiveSync)
+                {
+                    if (!_reservedForActiveSync.Value)
+                    {
+                        _reservedForActiveSync.Value = true;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        internal void ResetReserveForActiveSync()
+        {
+            lock (_reservedForActiveSync)
+            {
+                _reservedForActiveSync.Value = false;
+            }
+        }
+        private readonly GenericHolder<bool> _reservedForActiveSync = new GenericHolder<bool>(false);
 
         /// <summary>
         /// A serious notification error has occurred.  Push notification is no longer functioning.

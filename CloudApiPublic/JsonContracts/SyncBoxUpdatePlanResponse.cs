@@ -29,7 +29,7 @@ namespace Cloud.JsonContracts
         public string Message { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponsePlan, IsRequired = false)]
-        public Plan Plan { get; set; }
+        public CLStoragePlan Plan { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseSyncbox, IsRequired = false)]
         public Syncbox Syncbox { get; set; }

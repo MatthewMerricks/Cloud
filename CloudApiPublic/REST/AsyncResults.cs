@@ -70,10 +70,10 @@ namespace Cloud.REST
         private readonly T _result;
 
         // construct with all readonly properties
-        protected internal BaseCLHttpRestResult(CLError Error, CLHttpRestStatus Status, T Result)
+        protected internal BaseCLHttpRestResult(CLError Error, CLHttpRestStatus Status, T Response)
             : base(Error, Status)
         {
-            this._result = Result;
+            this._result = Response;
         }
     }
     #endregion
@@ -113,8 +113,8 @@ namespace Cloud.REST
     public sealed class GetMetadataResult : BaseCLHttpRestResult<JsonContracts.Metadata>
     {
         // construct with all readonly properties
-        internal GetMetadataResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Metadata Result)
-            : base(Error, Status, Result) { }
+        internal GetMetadataResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Metadata Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -123,8 +123,8 @@ namespace Cloud.REST
     public sealed class GetAllPendingResult : BaseCLHttpRestResult<JsonContracts.PendingResponse>
     {
         // construct with all readonly properties
-        internal GetAllPendingResult(CLError Error, CLHttpRestStatus Status, JsonContracts.PendingResponse Result)
-            : base(Error, Status, Result) { }
+        internal GetAllPendingResult(CLError Error, CLHttpRestStatus Status, JsonContracts.PendingResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -133,8 +133,8 @@ namespace Cloud.REST
     public sealed class PostFileChangeResult : BaseCLHttpRestResult<JsonContracts.Event>
     {
         // construct with all readonly properties
-        internal PostFileChangeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Event Result)
-            : base(Error, Status, Result) { }
+        internal PostFileChangeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Event Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -143,8 +143,8 @@ namespace Cloud.REST
     public sealed class UndoDeletionFileChangeResult : BaseCLHttpRestResult<JsonContracts.Event>
     {
         // construct with all readonly properties
-        internal UndoDeletionFileChangeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Event Result)
-            : base(Error, Status, Result) { }
+        internal UndoDeletionFileChangeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Event Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -153,8 +153,8 @@ namespace Cloud.REST
     public sealed class GetFileVersionsResult : BaseCLHttpRestResult<JsonContracts.FileVersion[]>
     {
         // construct with all readonly properties
-        internal GetFileVersionsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.FileVersion[] Result)
-            : base(Error, Status, Result) { }
+        internal GetFileVersionsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.FileVersion[] Response)
+            : base(Error, Status, Response) { }
     }
 
     //// GetUsedBytes is deprecated
@@ -165,8 +165,8 @@ namespace Cloud.REST
     //public sealed class GetUsedBytesResult : BaseCLHttpRestResult<JsonContracts.UsedBytes>
     //{
     //    // construct with all readonly properties
-    //    internal GetUsedBytesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.UsedBytes Result)
-    //        : base(Error, Status, Result) { }
+    //    internal GetUsedBytesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.UsedBytes Response)
+    //        : base(Error, Status, Response) { }
     //}
 
     /// <summary>
@@ -175,8 +175,8 @@ namespace Cloud.REST
     public sealed class CopyFileResult : BaseCLHttpRestResult<JsonContracts.Event>
     {
         // construct with all readonly properties
-        internal CopyFileResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Event Result)
-            : base(Error, Status, Result) { }
+        internal CopyFileResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Event Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -185,8 +185,8 @@ namespace Cloud.REST
     public sealed class GetPicturesResult : BaseCLHttpRestResult<JsonContracts.Pictures>
     {
         // construct with all readonly properties
-        internal GetPicturesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Pictures Result)
-            : base(Error, Status, Result) { }
+        internal GetPicturesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Pictures Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -195,8 +195,8 @@ namespace Cloud.REST
     public sealed class GetVideosResult : BaseCLHttpRestResult<JsonContracts.Videos>
     {
         // construct with all readonly properties
-        internal GetVideosResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Videos Result)
-            : base(Error, Status, Result) { }
+        internal GetVideosResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Videos Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -205,8 +205,8 @@ namespace Cloud.REST
     public sealed class GetAudiosResult : BaseCLHttpRestResult<JsonContracts.Audios>
     {
         // construct with all readonly properties
-        internal GetAudiosResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Audios Result)
-            : base(Error, Status, Result) { }
+        internal GetAudiosResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Audios Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -215,8 +215,8 @@ namespace Cloud.REST
     public sealed class GetArchivesResult : BaseCLHttpRestResult<JsonContracts.Archives>
     {
         // construct with all readonly properties
-        internal GetArchivesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Archives Result)
-            : base(Error, Status, Result) { }
+        internal GetArchivesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Archives Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -225,8 +225,8 @@ namespace Cloud.REST
     public sealed class GetRecentsResult : BaseCLHttpRestResult<JsonContracts.Recents>
     {
         // construct with all readonly properties
-        internal GetRecentsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Recents Result)
-            : base(Error, Status, Result) { }
+        internal GetRecentsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Recents Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -235,8 +235,8 @@ namespace Cloud.REST
     public sealed class GetSyncboxUsageResult : BaseCLHttpRestResult<JsonContracts.SyncboxUsage>
     {
         // construct with all readonly properties
-        internal GetSyncboxUsageResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxUsage Result)
-            : base(Error, Status, Result) { }
+        internal GetSyncboxUsageResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxUsage Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -245,8 +245,8 @@ namespace Cloud.REST
     public sealed class GetFolderHierarchyResult : BaseCLHttpRestResult<JsonContracts.Folders>
     {
         // construct with all readonly properties
-        internal GetFolderHierarchyResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Folders Result)
-            : base(Error, Status, Result) { }
+        internal GetFolderHierarchyResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Folders Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -255,8 +255,8 @@ namespace Cloud.REST
     public sealed class GetFolderContentsResult : BaseCLHttpRestResult<JsonContracts.FolderContents>
     {
         // construct with all readonly properties
-        internal GetFolderContentsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.FolderContents Result)
-            : base(Error, Status, Result) { }
+        internal GetFolderContentsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.FolderContents Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -265,18 +265,18 @@ namespace Cloud.REST
     public sealed class PurgePendingResult : BaseCLHttpRestResult<JsonContracts.PendingResponse>
     {
         // construct with all readonly properties
-        internal PurgePendingResult(CLError Error, CLHttpRestStatus Status, JsonContracts.PendingResponse Result)
-            : base(Error, Status, Result) { }
+        internal PurgePendingResult(CLError Error, CLHttpRestStatus Status, JsonContracts.PendingResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class AddSyncboxOnServerResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
+    public sealed class CreateSyncboxResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
     {
         // construct with all readonly properties
-        internal AddSyncboxOnServerResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Result)
-            : base(Error, Status, Result) { }
+        internal CreateSyncboxResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -285,8 +285,8 @@ namespace Cloud.REST
     public sealed class ListSyncboxesResult : BaseCLHttpRestResult<JsonContracts.ListSyncboxes>
     {
         // construct with all readonly properties
-        internal ListSyncboxesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListSyncboxes Result)
-            : base(Error, Status, Result) { }
+        internal ListSyncboxesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListSyncboxes Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -295,8 +295,8 @@ namespace Cloud.REST
     public sealed class ListPlansResult : BaseCLHttpRestResult<JsonContracts.ListPlansResponse>
     {
         // construct with all readonly properties
-        internal ListPlansResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListPlansResponse Result)
-            : base(Error, Status, Result) { }
+        internal ListPlansResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListPlansResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -305,8 +305,8 @@ namespace Cloud.REST
     public sealed class ListSessionsResult : BaseCLHttpRestResult<JsonContracts.ListSessionsResponse>
     {
         // construct with all readonly properties
-        internal ListSessionsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListSessionsResponse Result)
-            : base(Error, Status, Result) { }
+        internal ListSessionsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListSessionsResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -315,8 +315,8 @@ namespace Cloud.REST
     public sealed class SessionCreateResult : BaseCLHttpRestResult<JsonContracts.SessionCreateResponse>
     {
         // construct with all readonly properties
-        internal SessionCreateResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionCreateResponse Result)
-            : base(Error, Status, Result) { }
+        internal SessionCreateResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionCreateResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -325,8 +325,8 @@ namespace Cloud.REST
     public sealed class SessionShowResult : BaseCLHttpRestResult<JsonContracts.SessionShowResponse>
     {
         // construct with all readonly properties
-        internal SessionShowResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionShowResponse Result)
-            : base(Error, Status, Result) { }
+        internal SessionShowResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionShowResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -335,8 +335,8 @@ namespace Cloud.REST
     public sealed class SessionDeleteResult : BaseCLHttpRestResult<JsonContracts.SessionDeleteResponse>
     {
         // construct with all readonly properties
-        internal SessionDeleteResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionDeleteResponse Result)
-            : base(Error, Status, Result) { }
+        internal SessionDeleteResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionDeleteResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -345,8 +345,8 @@ namespace Cloud.REST
     public sealed class SyncboxUpdateExtendedMetadataResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
     {
         // construct with all readonly properties
-        internal SyncboxUpdateExtendedMetadataResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Result)
-            : base(Error, Status, Result) { }
+        internal SyncboxUpdateExtendedMetadataResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -355,8 +355,8 @@ namespace Cloud.REST
     public sealed class LinkDeviceFirstTimeResult : BaseCLHttpRestResult<JsonContracts.LinkDeviceFirstTimeResponse>
     {
         // construct with all readonly properties
-        internal LinkDeviceFirstTimeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.LinkDeviceFirstTimeResponse Result)
-            : base(Error, Status, Result) { }
+        internal LinkDeviceFirstTimeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.LinkDeviceFirstTimeResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -365,8 +365,8 @@ namespace Cloud.REST
     public sealed class LinkDeviceResult : BaseCLHttpRestResult<JsonContracts.LinkDeviceResponse>
     {
         // construct with all readonly properties
-        internal LinkDeviceResult(CLError Error, CLHttpRestStatus Status, JsonContracts.LinkDeviceResponse Result)
-            : base(Error, Status, Result) { }
+        internal LinkDeviceResult(CLError Error, CLHttpRestStatus Status, JsonContracts.LinkDeviceResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -375,8 +375,8 @@ namespace Cloud.REST
     public sealed class UnlinkDeviceResult : BaseCLHttpRestResult<JsonContracts.UnlinkDeviceResponse>
     {
         // construct with all readonly properties
-        internal UnlinkDeviceResult(CLError Error, CLHttpRestStatus Status, JsonContracts.UnlinkDeviceResponse Result)
-            : base(Error, Status, Result) { }
+        internal UnlinkDeviceResult(CLError Error, CLHttpRestStatus Status, JsonContracts.UnlinkDeviceResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     #region UpdateSyncboxQuota (deprecated)
@@ -386,8 +386,8 @@ namespace Cloud.REST
     //public sealed class UpdateSyncboxQuotaResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
     //{
     //    // construct with all readonly properties
-    //    internal UpdateSyncboxQuotaResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Result)
-    //        : base(Error, Status, Result) { }
+    //    internal UpdateSyncboxQuotaResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+    //        : base(Error, Status, Response) { }
     //}
     #endregion
 
@@ -398,8 +398,8 @@ namespace Cloud.REST
     public sealed class SyncboxUpdateResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
     {
         // construct with all readonly properties
-        internal SyncboxUpdateResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Result)
-            : base(Error, Status, Result) { }
+        internal SyncboxUpdateResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+            : base(Error, Status, Response) { }
     }
     #endregion
 
@@ -409,8 +409,8 @@ namespace Cloud.REST
     public sealed class SyncboxUpdatePlanResult : BaseCLHttpRestResult<JsonContracts.SyncboxUpdatePlanResponse>
     {
         // construct with all readonly properties
-        internal SyncboxUpdatePlanResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxUpdatePlanResponse Result)
-            : base(Error, Status, Result) { }
+        internal SyncboxUpdatePlanResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxUpdatePlanResponse Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -419,8 +419,8 @@ namespace Cloud.REST
     public sealed class DeleteSyncboxResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
     {
         // construct with all readonly properties
-        internal DeleteSyncboxResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Result)
-            : base(Error, Status, Result) { }
+        internal DeleteSyncboxResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+            : base(Error, Status, Response) { }
     }
 
     /// <summary>
@@ -429,7 +429,7 @@ namespace Cloud.REST
     public sealed class GetSyncboxStatusResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
     {
         // construct with all readonly properties
-        internal GetSyncboxStatusResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Result)
-            : base(Error, Status, Result) { }
+        internal GetSyncboxStatusResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+            : base(Error, Status, Response) { }
     }
 }

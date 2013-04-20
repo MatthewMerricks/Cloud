@@ -28,6 +28,6 @@ namespace Cloud.JsonContracts
         public string Message { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponsePlan_Plans, IsRequired = false)]
-        public Plan[] Plans { get; set; }
+        public CLStoragePlan[] Plans { get; set; }
     }
 }

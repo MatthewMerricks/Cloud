@@ -85,7 +85,23 @@ namespace Cloud
         }
         private readonly string _clientDescription = null;
 
-        public CLCredentialsSettings(bool LogErrors, TraceType TraceType, string TraceLocation, bool TraceExcludeAuthorization, int TraceLevel, string ClientDescription)
+        public int HttpTimeoutMilliseconds
+        {
+            get
+            {
+                return _httpTimeoutMilliseconds;
+            }
+        }
+        private readonly int _httpTimeoutMilliseconds = CLDefinitions.HttpTimeoutDefaultMilliseconds;
+
+        public CLCredentialsSettings(
+                bool LogErrors, 
+                TraceType TraceType, 
+                string TraceLocation, 
+                bool TraceExcludeAuthorization, 
+                int TraceLevel, 
+                string ClientDescription,
+                int HttpTimeoutMilliseconds)
         {
             this._logErrors = LogErrors;
             this._traceType = TraceType;
@@ -93,6 +109,7 @@ namespace Cloud
             this._traceExcludeAuthorization = TraceExcludeAuthorization;
             this._traceLevel = TraceLevel;
             this._clientDescription = ClientDescription;
+            this._httpTimeoutMilliseconds = HttpTimeoutMilliseconds;
         }
     }
 
@@ -115,9 +132,10 @@ namespace Cloud
                     toCopy.TraceLevel,
                     Environment.MachineName + Guid.NewGuid().ToString("N"),
                     false,
+                    String.Empty,
                     toCopy.ClientDescription,
-                    null,
-                    null);
+                    toCopy.HttpTimeoutMilliseconds,
+                    String.Empty);
             }
             else
             {
