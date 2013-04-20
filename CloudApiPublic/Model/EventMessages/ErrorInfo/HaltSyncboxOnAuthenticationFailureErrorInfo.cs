@@ -1,5 +1,5 @@
 ﻿//
-// HaltSyncEngineOnAuthenticationFailureErrorInfo.cs
+// HaltSyncboxOnAuthenticationFailureErrorInfo.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -13,7 +13,7 @@ using System.Text;
 
 namespace Cloud.Model.EventMessages.ErrorInfo
 {
-    public sealed class HaltSyncEngineOnAuthenticationFailureErrorInfo : BaseErrorInfo
+    public sealed class HaltSyncboxOnAuthenticationFailureErrorInfo : BaseErrorInfo
     {
         public bool TokenExpired
         {
@@ -24,8 +24,8 @@ namespace Cloud.Model.EventMessages.ErrorInfo
         }
         private readonly bool _tokenExpired;
 
-        internal HaltSyncEngineOnAuthenticationFailureErrorInfo(bool TokenExpired)
-            : base(ErrorMessageType.HaltSyncEngineOnAuthenticationFailure)
+        internal HaltSyncboxOnAuthenticationFailureErrorInfo(bool TokenExpired)
+            : base(ErrorMessageType.HaltSyncboxOnAuthenticationFailure)
         {
             this._tokenExpired = TokenExpired;
         }

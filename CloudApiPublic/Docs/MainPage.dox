@@ -16,7 +16,7 @@
 /// - Specify your credentials.
 /// - Specify the path to be synced.
 /// - Create a Syncbox object with the above information.
-/// - Create an instance of a Syncbox engine and start it with the Syncbox object.
+/// - Start the Syncbox.
 /// .
 ///
 /// See how easy it is:
@@ -56,26 +56,22 @@
 ///
 ///             // optionally check syncboxStatus/returned CLError here before continuing
 ///
-///             // create the sync engine which will run live syncing
-///             CLSyncEngine syncEngine = new CLSyncEngine();
-///
-///             // start the engine
+///             // start the syncbox
 ///             CLSyncStartStatus startStatus; // declare status enumeration
-///             syncEngine.Start( // starting sync returns a CLError which can be checked
-///                 Syncbox: syncbox, // created above
-///                 Status: out startStatus); // output the status from starting to sync
+///             syncbox.StartSync( // starting sync returns a CLError which can be checked
+///                 CLSyncMode.CLSyncModeLive);  // start live syncing
 ///
 ///             // optionally check startStatus/returned CLError here to see if it worked
 ///
 ///             // ...
 ///
 ///             // Stop syncing
-///             syncEngine.Stop();
+///             syncbox.StopSync();
 ///
 ///             // ... Need to shutdown application
 ///
 ///             // Shutdown schedulers to immediately stop anything active like an upload or download
-///             CLSyncEngine.Shutdown();
+///             CLSyncbox.Shutdown();
 ///         }
 /// \endcode
 ///
@@ -143,7 +139,7 @@
 /// - Token:  Paste this session token from your Cloud Developer DashBoard web page.  Note:  This is just for demonstration purposes.  You would normally access this token from a secure location.
 /// \note If the Token field is specified, then the Key, Secret and Token form temporary session credentials.  Otherwise, the Key and Secret form the permanent credentials of your app.
 /// - Syncbox ID: Paste this ID from your Cloud Developer DashBoard web page.  This is the unique identity of the Syncbox.  It represents a folder that will be synced across all of your devices, and to Cloud.
-/// - Unique Device ID: Choose a unique name (within this Syncbox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If multiple sync engines are running on this machine, then each engine's
+/// - Unique Device ID: Choose a unique name (within this Syncbox ID) for this device.  The name must not include any characters that are not allowed in a Windows folder name.  If multiple syncboxes are running on this machine, then each syncbox's
 /// pair of SyncboxId-DeviceId must be unique on the machine.  You may click the Generate button to generate a unique DeviceId that includes the computer name.
 /// .
 /// 
@@ -267,10 +263,9 @@
 /// - Verify settings:  Sample code can be found in MainViewModel:SaveSettings().  If the settings are incorrect, the sync functions will return errors.
 /// - Create an instance of CLCredentials with your credentials information.
 /// - Create an instance of CLSyncbox with the path on disk to be synced, and with the instance of CLCredentials.
-/// - Create an instance of CLSyncEngine.
-/// - Verify that the Syncbox folder or authorization information has not changed.  If it has, you should reset the sync database by calling \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.SyncReset SyncReset() \endlink or \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.WipeIndex WipeIndex() \endlink.
-/// - Call \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink to start syncing.  This function takes the sync settings and some additional optional parameters.
-/// - Inspect the out parameter (\link Cloud.CLSyncStartStatus startStatus \endlink) which is an output of \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink.  Handle an error if the output is not \link Cloud.CLSyncStartStatus CLSyncStartStatus \endlink.Success.
+/// - Verify that the Syncbox folder or authorization information has not changed.  If it has, you should reset the sync database by calling \link Cloud.CLSyncbox _syncbox\endlink.\link Cloud.CLSyncbox.ResetLocalCache ResetLocalCache() \endlink or \link Cloud.CLSyncbox _syncbox\endlink.\link Cloud.CLSyncbox.WipeIndex WipeIndex() \endlink.
+/// - Call \link Cloud.CLSyncbox _syncbox\endlink.\link Cloud.CLSyncbox.StartSync StartSync() \endlink to start syncing.  This function takes the sync mode.
+/// - Check for syncbox start errors and handle any that occur.
 /// .
 /// \subsection sampleapp-settings-subsec The Settings Interfaces
 ///The 5th parameter to AllocAndInit() is ICLSyncSettings.  That is an interface that has only a single property; the path of the Syncbox on the disk.  There are actually multiple Settings definitions that are related:
@@ -283,8 +278,8 @@
 /// CLCredentials may be created with an app key and secret, or with a session key, secret and temporary token.  All HTTP REST calls to the server check the credentials.  Therefore, when using a temporary credentials token, it is normal for any of the HTTP REST requests to fail with a
 /// 401 NotAuthorized status.  When this occurs, the application must allocate a new temporary session key, secret and token via the server, and use that information to create a new CLCredentials.
 /// \code
-/// CloudApiPublic.CLSyncEngine.GetEngineCurrentStatus can now be used to determine if the engine halted due to expired credentials:
-///     public CLError GetEngineCurrentStatus(out CLSyncCurrentStatus status);
+/// CloudApiPublic.CLSyncbox.GetSyncboxCurrentStatus can now be used to determine if syncing halted due to expired credentials:
+///     public CLError GetSyncboxCurrentStatus(out CLSyncCurrentStatus status);
 /// 
 /// CloudApiPublic.Static.CLSyncCurrentState has a new flagged enumeration value (HaltedOnExpiredCredentials):
 ///     Idle
@@ -297,10 +292,10 @@
 /// 
 /// Look for the HaltedOnExpiredCredentials flag.  Handling when this status is found should be as follows:
 /// \par
-/// If the enumeration has one and only one flag and that flag is HaltedOnExpiredCredentials then a client can stop the engine, grab new credentials from the server, and restart the engine with the new credentials.
+/// If the enumeration has one and only one flag and that flag is HaltedOnExpiredCredentials then a client can stop sync, grab new credentials from the server, and restart sync with the new credentials.
 /// \par
 /// However, if the enumeration also has an activity flag such as CommuncatingChanges, UploadingFiles, or DownloadingFiles, then the client should wait until a subsequent 
-/// callback from the System.Threading.WaitCallback passed as optional input parameter StatusUpdated when the CloudApiPublic.CLSyncEngine was last started. The reason is because we do not wish to cancel a large file transfer in progress.
+/// callback from the System.Threading.WaitCallback passed as optional input parameter StatusUpdated when the CloudApiPublic.CLSyncbox was last started. The reason is because we do not wish to cancel a large file transfer in progress.
 /// 
 /// \subsection sampleapp-sqlceinstallation-subsec Installation Issues Involving SQL CE
 /// When you write your own app using the SDK, you will need to provide an installer that will install the required SQL CE V4.0 along with your app.
@@ -359,7 +354,7 @@
 /// \subsection sampleapp-stoppingsync-subsec Stopping Sync
 /// Here are the steps to stop sync.  Refer to MainViewModel:StopSyncing() in the sample app code.
 /// - Close and dispose your sync status implementation.
-/// - Call \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Stop Stop() \endlink;
+/// - Call \link Cloud.CLSyncbox _syncbox\endlink.\link Cloud.CLSyncbox.StopSync StopSync() \endlink;
 /// .
 /// \subsection sampleapp-clerror-subsec The CLError Class
 /// CLError is a class that represents an error, perhaps containing aggregated exceptions.  Most of the sync public methods return a CLError object.  If the returned object is null, no error occurred.  Otherwise you can
@@ -452,16 +447,16 @@
 ///
 /// The SyncStatusView object uses two ViewModels (EventMessageReceiver for binding to the ObservableCollections of data, and SyncStatusViewModel to handle the UI ICommand button actions and aggregate additional summary information).
 ///
-/// This view is instantiated at \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink by the sample app, and it runs until \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Stop Stop() \endlink.  Buttons simply show and hide the window.
+/// This view is instantiated at \link Cloud.CLSyncbox _syncbox\endlink.\link Cloud.CLSyncbox.StartSync StartSync() \endlink by the sample app, and it runs until \link Cloud.CLSyncbox _syncbox\endlink.\link Cloud.CLSyncbox.StopSync StopSync() \endlink.  Buttons simply show and hide the window.
 /// Your view can instantiate and dispose your view (and the related EventMessageReceiver ViewModel) at any time, but the data collection will not begin until you instantiate the class.
 /// \subsection sampleapp-summarystatus-subsec Overall Summary Sync Status
-/// Two of the optional parameters on the \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink function (StatusUpdated and StatusUpdatedUserState) can be used to receive a callback when overall sync summary status has changed.
+/// Two of the optional parameters on the \link Cloud.CLSyncbox _syncbox\endlink.\link Cloud.CLSyncbox.AllocAndInit AllocAndInit() \endlink function (StatusUpdated and StatusUpdatedUserState) can be used to receive a callback when overall sync summary status has changed.
 /// 
 /// StatusUpdated represents your callback function that will be driven each time sync status changes.
 ///
 /// StatusUpdatedUserState is your own object representing user state information to be passed to the StatusUpdated callback function.
 ///
-/// When the StatusUpdated callback is called by the engine, you can call \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.GetEngineCurrentStatus GetEngineCurrentStatus() \endlink to get the current sync summary status.
+/// When the StatusUpdated callback is called by the syncbox, you can call \link Cloud.CLSyncbox _syncbox\endlink.\link Cloud.CLSyncbox.GetSyncboxCurrentStatus GetSyncboxCurrentStatus() \endlink to get the current sync summary status.
 /// You need to aggregate this information for display.
 /// See \link SampleLiveSync.SyncStatusViewModel.OnSyncStatusUpdated SyncStatusViewModel.OnSyncStatusUpdated() \endlink.
 /// \subsection sampleapp-syncchangeevents-subsec Sync Change Events
@@ -496,8 +491,7 @@
 ///
 /// Primary components:\n
 /// \link Cloud.CLCredentials CLCredentials \endlink stores authentication information for all communication and services.\n
-/// \link Cloud.CLSyncbox CLSyncbox \endlink represents a Syncbox in Cloud where everything is stored.\n
-/// \link Cloud.CLSyncEngine CLSyncEngine \endlink performs active sync of files and folders within a specified path to a syncbox in Cloud.\n
+/// \link Cloud.CLSyncbox CLSyncbox \endlink represents a Syncbox in Cloud where everything is stored, and performs active sync of files and folders within a specified path to a syncbox in Cloud.\n
 /// \internal \link Cloud.PushNotification.CLNotification PushNotification.CLNotification \endlink allows manual subscription to push notifications and is used internally by \link Cloud.CLSync CLSync \endlink.\n \endinternal
 /// \internal \link Cloud.REST.CLHttpRest REST.CLHttpRest \endlink allows manual access to Cloud communication methods for file\folder queries, posting changes, and file transfer. It is used internally by \link Cloud.CLSync CLSync \endlink.\n \endinternal
 /// \link Cloud.Support.CLTrace Support.CLTrace \endlink writes a message to log from a required format string and any object parameter arguments. It is used conditionally by other public API classes when instantiated with advanced settings for trace.
@@ -533,5 +527,5 @@
 /// \namespace CloudSamples
 /// \brief Contains sample code which implements \link Cloud Cloud \endlink library and uses it to allow single folder active sync; it also can display status changes.
 ///
-/// \link CloudSamples.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes. \link Cloud.CLSyncEngine  Cloud.CLSyncEngine \endlink fires event callbacks upon changes.\n
+/// \link CloudSamples.EventMessageReceiver.EventMessageReceiver EventMessageReceiver.EventMessageReceiver \endlink acts as a view model for status changes such as growls and sync status messages. It also exposes events for messages and status changes. \link Cloud.CLSyncbox  Cloud.CLSyncbox \endlink fires event callbacks upon changes.\n
 ///

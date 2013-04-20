@@ -45,8 +45,8 @@ namespace SampleLiveSync.ViewModels
         private Window _mainWindow = null;
         private bool _syncStarted = false;
         private bool _windowClosed = false;
-        private CLSyncEngine _syncEngine = null;
         private SyncStatusView _winSyncStatus = null;
+        private CLSyncbox _syncbox = null;
 
         private static readonly object _locker = new object();
         private static readonly CLTrace _trace = CLTrace.Instance;
@@ -478,7 +478,7 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// Returns a command that resets the sync engine.
+        /// Returns a command that resets the syncbox.
         /// </summary>
         public ICommand CommandResetSync
         {
@@ -1175,11 +1175,9 @@ namespace SampleLiveSync.ViewModels
             {
                 bool startSyncbox = false;
 
-                // Store Syncbox.  It will be set under the locker which checks the _syncEngine, but started afterwards if it was set
-                CLSyncbox syncbox = null;
                 lock (_locker)
                 {
-                    if (_syncEngine == null)
+                    if (!_syncStarted)
                     {
                         if (SettingsAdvancedImpl.Instance.SyncboxId == null)
                         {
@@ -1231,11 +1229,13 @@ namespace SampleLiveSync.ViewModels
                                     syncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
                                     credentials: syncCredentials,
                                     path: SettingsAdvancedImpl.Instance.SyncRoot,
-                                    syncbox: out syncbox,
+                                    syncbox: out _syncbox,
                                     status: out syncboxStatus,
                                     settings: SettingsAdvancedImpl.Instance,
                                     getNewCredentialsCallback: ReplaceExpiredCredentialsCallback,
-                                    getNewCredentialsCallbackUserState: this);
+                                    getNewCredentialsCallbackUserState: this,
+                                    statusChangedCallback: OnSyncStatusUpdated, // called when sync status is updated
+                                    statusChangedCallbackUserState: _syncbox); // the user state passed to the callback above
 
                                 if (errorCreateSyncbox != null)
                                 {
@@ -1255,18 +1255,15 @@ namespace SampleLiveSync.ViewModels
                                 }
                                 else
                                 {
-                                    _syncEngine = new CLSyncEngine();
+                                    // The syncbox was created and it is currently stopped.  Reset the sync database if we should.
                                     startSyncbox = true;
-
-                                    // Reset the sync database if we should
                                     if (Properties.Settings.Default.ShouldResetSync)
                                     {
-                                        CLError errorFromSyncReset = _syncEngine.SyncReset(syncbox);
+                                        CLError errorFromSyncReset = _syncbox.ResetLocalCache();
                                         if (errorFromSyncReset != null)
                                         {
-                                            _syncEngine = null;
                                             startSyncbox = false;
-                                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.SyncReset: Msg: <{0}.", errorFromSyncReset.errorDescription);
+                                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.ResetLocalCache: Msg: <{0}.", errorFromSyncReset.errorDescription);
                                             if (NotifyException != null)
                                             {
                                                 NotifyException(this, new NotificationEventArgs<CLError>()
@@ -1289,37 +1286,31 @@ namespace SampleLiveSync.ViewModels
                 }
 
                 if (startSyncbox
-                    && syncbox != null)
+                    && _syncbox != null)
                 {
                     // start syncing
-                    CLSyncStartStatus startStatus;
-                    CLError errorFromSyncboxStart = _syncEngine.Start(
-                        Syncbox: syncbox, // syncbox to sync (contains required settings)
-                        Status: out startStatus, // The completion status of the Start() function
-                        StatusUpdated: OnSyncStatusUpdated, // called when sync status is updated
-                        StatusUpdatedUserState: _syncEngine); // the user state passed to the callback above
-
+                    CLError errorFromSyncboxStart = _syncbox.StartSync(CLSyncMode.CLSyncModeLive);
                     if (errorFromSyncboxStart != null)
                     {
-                        _syncEngine = null;
                         _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.Start: Msg: <{0}>.", errorFromSyncboxStart.errorDescription);
-                    }
-                    if (startStatus != CLSyncStartStatus.Success)
-                    {
                         if (NotifyException != null)
                         {
-                            NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorFromSyncboxStart, Message = String.Format("Error starting the Syncbox: {0}.", startStatus.ToString()) });
+                            NotifyException(this, new NotificationEventArgs<CLError>() 
+                            {
+                                Data = errorFromSyncboxStart, 
+                                Message = String.Format("Error starting the Syncbox: {0}.", errorFromSyncboxStart.errorDescription) 
+                            });
                         }
                     }
                     else
                     {
+                        // Sync has started
                         lock (_locker)
                         {
-                            // Sync has started
                             SetSyncboxStartedState(isStartedStateToSet: true);
 
                             // Watch for push notification errors
-                            _syncEngine.PushNotificationError += OnPushNotificationError;
+                            _syncbox.PushNotificationError += OnPushNotificationError;
 
                             // Start an instance of the sync status window and start it hidden.
                             if (_winSyncStatus == null)
@@ -1329,18 +1320,19 @@ namespace SampleLiveSync.ViewModels
                                 // Get a ViewModel to provide some of the status information to use on our status window.
                                 EventMessageReceiver.EventMessageReceiver vm;
                                 CLError errorCreateVM = EventMessageReceiver.EventMessageReceiver.AllocAndInit(
-                                    SyncboxId: syncbox.SyncboxId, // filter by current sync box
-                                    DeviceId: syncbox.CopiedSettings.DeviceId, // filter by current device
+                                    SyncboxId: _syncbox.SyncboxId, // filter by current sync box
+                                    DeviceId: _syncbox.CopiedSettings.DeviceId, // filter by current device
                                     receiver: out vm, // output the created view model
-                                    getHistoricBandwidthSettings: OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the engine
-                                    setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the engine
-                                    OverrideImportanceFilterNonErrors: EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages
-                                    OverrideImportanceFilterErrors: EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages
+                                    getHistoricBandwidthSettings: OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the syncbox.
+                                    setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the syncbox.
+                                    OverrideImportanceFilterNonErrors: EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages.
+                                    OverrideImportanceFilterErrors: EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages.
                                     OverrideDefaultMaxStatusMessages: 500); // optional to restrict the number of messages in the EventMessageReceiver ListMessages
 
                                 if (errorCreateVM != null)
                                 {
                                     _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From EventMessageReceiver.AllocAndInit: Msg: <{0}>.", errorCreateVM.errorDescription);
+                                    throw new Exception(String.Format("Error starting the sync status window: {0}.", errorCreateVM.errorDescription));
                                 }
                                 else
                                 {
@@ -1468,7 +1460,7 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// Reset the sync engine.
+        /// Reset the syncbox.
         /// </summary>
         private void ResetSync()
         {
@@ -1476,13 +1468,13 @@ namespace SampleLiveSync.ViewModels
             {
                 lock (_locker)
                 {
-                    // Don't do this if the sync engine has already been started.
-                    if (_syncEngine != null)
+                    // Don't do this if the syncbox has already been started.
+                    if (_syncStarted)
                     {
                         return;
                     }
 
-                    // Request that the sync engine be reset the next time it starts.
+                    // Request that the syncbox be reset the next time it starts.
                     Properties.Settings.Default.ShouldResetSync = true;
                     Properties.Settings.Default.Save();
                 }
@@ -1554,12 +1546,11 @@ namespace SampleLiveSync.ViewModels
                         _winSyncStatus = null;
                     }
 
-                    if (_syncEngine != null)
+                    if (_syncbox != null)
                     {
                         SetSyncboxStartedState(isStartedStateToSet: false);
                         _syncStarted = false;
-                        _syncEngine.Stop();
-                        _syncEngine = null;
+                        _syncbox.StopSync();
                     }
                 }
             }
@@ -1609,7 +1600,10 @@ namespace SampleLiveSync.ViewModels
                 {
                     // Stop syncing if it has been started.
                     StopSyncing();
-                    CLSyncEngine.Shutdown(); // kills constant scheduling threads which run forever and prevent application shutdown
+
+                    // Kill constant scheduling threads which run forever and prevent application shutdown.
+                    CLSyncbox.Shutdown();
+                    _syncbox = null;
 
                     // Close the window
                     _windowClosed = true;
@@ -1654,7 +1648,7 @@ namespace SampleLiveSync.ViewModels
         }
 
         /// <summary>
-        /// Returns true if the sync engine can be reset.
+        /// Returns true if the syncbox can be reset.
         /// </summary>
         private bool CanResetSync
         {
@@ -1791,7 +1785,7 @@ namespace SampleLiveSync.ViewModels
                     // switch on ErrorInfo ErrorType for the types we wish to handle
                     switch (errMessage.ErrorInfo.ErrorType)
                     {
-                        case ErrorMessageType.HaltAllOfCloudSDK: // entire SDK halted type (unrecoverable error requiring restarting the process running the Cloud SDK and possibly a call to [instance of CLSyncEngine].ResetSync)
+                        case ErrorMessageType.HaltAllOfCloudSDK: // entire SDK halted type (unrecoverable error requiring restarting the process running the Cloud SDK and possibly a call to [instance of CLSyncbox].ResetSync)
                             // cast as halt all info
                             Cloud.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo haltAllInfo = (Cloud.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo)errMessage.ErrorInfo;
 
@@ -1807,9 +1801,9 @@ namespace SampleLiveSync.ViewModels
                             }
                             break;
 
-                        case ErrorMessageType.HaltSyncEngineOnAuthenticationFailure: // authentication failure type
+                        case ErrorMessageType.HaltSyncboxOnAuthenticationFailure: // authentication failure type
                             // cast as authentication info
-                            Cloud.Model.EventMessages.ErrorInfo.HaltSyncEngineOnAuthenticationFailureErrorInfo authInfo = (Cloud.Model.EventMessages.ErrorInfo.HaltSyncEngineOnAuthenticationFailureErrorInfo)errMessage.ErrorInfo;
+                            Cloud.Model.EventMessages.ErrorInfo.HaltSyncboxOnAuthenticationFailureErrorInfo authInfo = (Cloud.Model.EventMessages.ErrorInfo.HaltSyncboxOnAuthenticationFailureErrorInfo)errMessage.ErrorInfo;
 
                             // authentication failure has additional data in its info
                             // so switch on whether the authentication failure was due to an expired token
@@ -1850,9 +1844,9 @@ namespace SampleLiveSync.ViewModels
                             }
                             break;
 
-                        case ErrorMessageType.HaltSyncEngineOnConnectionFailure: // unable to establish route to server type
+                        case ErrorMessageType.HaltSyncboxOnConnectionFailure: // unable to establish route to server type
                             // cast as connection failure info
-                            Cloud.Model.EventMessages.ErrorInfo.HaltSyncEngineOnConnectionFailureErrorInfo connInfo = (Cloud.Model.EventMessages.ErrorInfo.HaltSyncEngineOnConnectionFailureErrorInfo)errMessage.ErrorInfo;
+                            Cloud.Model.EventMessages.ErrorInfo.HaltSyncboxOnConnectionFailureErrorInfo connInfo = (Cloud.Model.EventMessages.ErrorInfo.HaltSyncboxOnConnectionFailureErrorInfo)errMessage.ErrorInfo;
 
                             if (NotifyException != null)
                             {
@@ -1930,7 +1924,7 @@ namespace SampleLiveSync.ViewModels
                     //// cast as upload progress
                     //Cloud.Model.EventMessages.UploadProgressMessage uploadProgressMessage = (Cloud.Model.EventMessages.UploadProgressMessage)e.Message;
 
-                    //// the unique id for the upload change on the client, can be used in method [CLSyncEngine instance].QueryFileChangeByEventId to lookup additional event details
+                    //// the unique id for the upload change on the client, can be used in method [CLSyncbox instance].QueryFileChangeByEventId to lookup additional event details
                     //uploadProgressMessage.EventId
 
                     //// additional parameters to signify a file's transfer progress
@@ -1945,7 +1939,7 @@ namespace SampleLiveSync.ViewModels
                     //// cast as download progress
                     //Cloud.Model.EventMessages.DownloadProgressMessage downloadProgressMessage = (Cloud.Model.EventMessages.DownloadProgressMessage)e.Message;
 
-                    //// the unique id for the upload change on the client, can be used in method [CLSyncEngine instance].QueryFileChangeByEventId to lookup additional event details
+                    //// the unique id for the upload change on the client, can be used in method [CLSyncbox instance].QueryFileChangeByEventId to lookup additional event details
                     //downloadProgressMessage.EventId
 
                     //// additional parameters to signify a file's transfer progress

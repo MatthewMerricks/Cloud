@@ -149,11 +149,6 @@ namespace Cloud
         ///// Retrieves a currently attached Syncbox, or null if one isn't attached
         ///// </summary>
         private CLSyncbox _syncbox = null;
-        /// <summary>
-        /// Event fired when a serious notification error has occurred.  Push notification is
-        /// no longer functional.
-        /// </summary>
-        public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
 
         /// <summary>
         /// Output the current status of syncing
@@ -814,12 +809,10 @@ namespace Cloud
         /// <param name="e">Arguments including the manual poll and/or web sockets errors (possibly aggregated).</param>
         private void OnNotificationConnectionError(object sender, NotificationErrorEventArgs e)
         {
-            // Tell the application
-            _trace.writeToLog(1, "CLSyncEngine: OnConnectionError: Entry. ERROR: Manual poll error: <{0}>. Web socket error: <{1}>.", e.ErrorStillDisconnectedPing.errorDescription, e.ErrorWebSockets.errorDescription);
-            if (PushNotificationError != null)
+            // Forward this notification to the syncbox.
+            if (_syncbox != null)
             {
-                _trace.writeToLog(1, "CLSyncEngine: OnConnectionError: Notify the application.");
-                PushNotificationError(this, e);
+                _syncbox.OnPushNotificationConnectionError(sender, e);
             }
         }
 
@@ -1026,22 +1019,5 @@ namespace Cloud
             ReleaseResources();
         }
 
-        /// <summary>
-        /// Call when application is shutting down.
-        /// </summary>
-        public static void Shutdown()
-        {
-            // Write out any development debug traces
-            _trace.closeMemoryTrace();
-
-            // Shuts down the HttpScheduler; after shutdown it cannot be used again
-            HttpScheduler.DisposeBothSchedulers();
-
-            // Shuts down the sync FileChange delay processing
-            DelayProcessable<FileChange>.TerminateAllProcessing();
-
-            // Stops network change monitoring
-            NetworkMonitor.DisposeInstance();
-        }
     }
 }

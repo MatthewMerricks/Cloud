@@ -3096,7 +3096,7 @@ namespace Cloud.Sync
                             MessageEvents.FireNewEventMessage(
                                 errorMessage,
                                 EventMessageLevel.Important,
-                                /*Error*/new HaltSyncEngineOnAuthenticationFailureErrorInfo(TokenExpired:
+                                /*Error*/new HaltSyncboxOnAuthenticationFailureErrorInfo(TokenExpired:
                                     Data.commonCredentialsError.Value != null && ((CredentialsErrorType)Data.commonCredentialsError.Value) == CredentialsErrorType.ExpiredCredentials),
                                 Data.commonThisEngine.syncbox.SyncboxId,
                                 Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
@@ -4143,7 +4143,7 @@ namespace Cloud.Sync
                 MessageEvents.FireNewEventMessage(
                     "SyncEngine halted after repeated failure to communicate over one of the Cloud server domains",
                     EventMessageLevel.Important,
-                    /*Error*/new HaltSyncEngineOnConnectionFailureErrorInfo(),
+                    /*Error*/new HaltSyncboxOnConnectionFailureErrorInfo(),
                     syncbox.SyncboxId,
                     syncbox.CopiedSettings.DeviceId);
 

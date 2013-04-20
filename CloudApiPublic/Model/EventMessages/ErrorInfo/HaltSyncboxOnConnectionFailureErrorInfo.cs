@@ -1,5 +1,5 @@
 ﻿//
-// HaltSyncEngineOnConnectionFailureErrorInfo.cs
+// HaltSyncboxOnConnectionFailureErrorInfo.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -13,9 +13,9 @@ using System.Text;
 
 namespace Cloud.Model.EventMessages.ErrorInfo
 {
-    public sealed class HaltSyncEngineOnConnectionFailureErrorInfo : BaseErrorInfo
+    public sealed class HaltSyncboxOnConnectionFailureErrorInfo : BaseErrorInfo
     {
-        internal HaltSyncEngineOnConnectionFailureErrorInfo()
-            : base(ErrorMessageType.HaltSyncEngineOnConnectionFailure) { }
+        internal HaltSyncboxOnConnectionFailureErrorInfo()
+            : base(ErrorMessageType.HaltSyncboxOnConnectionFailure) { }
     }
 }

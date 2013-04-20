@@ -210,8 +210,8 @@
     <Compile Include="Model\EventMessages\DownloadProgressMessage.cs" />
     <Compile Include="Model\EventMessages\ErrorInfo\BaseErrorInfo.cs" />
     <Compile Include="Model\EventMessages\ErrorMessage.cs" />
-    <Compile Include="Model\EventMessages\ErrorInfo\HaltSyncEngineOnAuthenticationFailureErrorInfo.cs" />
-    <Compile Include="Model\EventMessages\ErrorInfo\HaltSyncEngineOnConnectionFailureErrorInfo.cs" />
+    <Compile Include="Model\EventMessages\ErrorInfo\HaltSyncboxOnAuthenticationFailureErrorInfo.cs" />
+    <Compile Include="Model\EventMessages\ErrorInfo\HaltSyncboxOnConnectionFailureErrorInfo.cs" />
     <Compile Include="Model\EventMessages\ErrorInfo\GeneralErrorInfo.cs" />
     <Compile Include="Model\EventMessages\ErrorInfo\HaltAllOfCloudSDKErrorInfo.cs" />
     <Compile Include="Model\EventMessages\InformationalMessage.cs" />

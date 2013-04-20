@@ -126,8 +126,8 @@ namespace Cloud.Static
     public enum ErrorMessageType : byte
     {
         General = 1,
-        HaltSyncEngineOnConnectionFailure = 2,
-        HaltSyncEngineOnAuthenticationFailure = 3,
+        HaltSyncboxOnConnectionFailure = 2,
+        HaltSyncboxOnAuthenticationFailure = 3,
         HaltAllOfCloudSDK = 4
     }
 

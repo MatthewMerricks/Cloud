@@ -7,9 +7,11 @@
 
 using Cloud.Interfaces;
 using Cloud.Model;
+using Cloud.PushNotification;
 using Cloud.REST;
 using Cloud.Static;
 using Cloud.Support;
+using Cloud.Sync;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +19,19 @@ using System.Text;
 
 namespace Cloud
 {
+    /// <summary>
+    /// Status of creation of <see cref="CLSyncbox"/>
+    /// </summary>
+    public enum CLSyncboxCreationStatus : byte
+    {
+        Success = 0,
+        ErrorNullCredentials = 1,
+        ErrorUnknown = 2,
+        ErrorCreatingRestClient = 3,
+        ErrorSyncboxIdZero = 4,
+        ErrorPathNotSpecified = 5,
+    }
+
     /// <summary>
     /// Represents a Syncbox in Cloud where everything is stored
     /// </summary>
@@ -26,9 +41,9 @@ namespace Cloud
         
         private static CLTrace _trace = CLTrace.Instance;
         private static readonly List<CLSyncEngine> _startedSyncEngines = new List<CLSyncEngine>();
+        private static readonly object _startLocker = new object();
 
-        private readonly CLSyncEngine _syncEngine = null;
-        private readonly object _startLocker = new object();
+        private CLSyncEngine _syncEngine = null;
 		private readonly System.Threading.WaitCallback _statusChangedCallback = null;
         private readonly object _statusChangedCallbackUserState = null;
         private bool _isStarted = false;
@@ -127,6 +142,12 @@ namespace Cloud
             }
         }
         private readonly ICLSyncSettingsAdvanced _copiedSettings;
+
+        /// <summary>
+        /// Event fired when a serious notification error has occurred.  Push notification is
+        /// no longer functional.
+        /// </summary>
+        public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -296,7 +317,7 @@ namespace Cloud
         /// <remarks>Note that only SyncMode.CLSyncModeLive is currently supported.</remarks>
         /// <param name="mode">The sync mode to start.</param>
         /// <returns></returns>
-        public CLError BeginSync(CLSyncMode mode)
+        public CLError StartSync(CLSyncMode mode)
         {
             CLError toReturn = null;
 
@@ -311,20 +332,21 @@ namespace Cloud
 
                     // Start the sync engine
                     CLSyncStartStatus startStatus;
-                    CLError errorFromSyncboxStart = _syncEngine.Start(
+                    toReturn = _syncEngine.Start(
                         Syncbox: this, // syncbox to sync (contains required settings)
                         Status: out startStatus, // The completion status of the Start() function
                         StatusUpdated: this._statusChangedCallback, // called when sync status is updated
                         StatusUpdatedUserState: this._statusChangedCallbackUserState); // the user state passed to the callback above
 
-                    if (errorFromSyncboxStart != null)
+                    if (toReturn != null)
                     {
-                        string errMsg = String.Format("Error starting sync engine. Msg: {0}. Reason: {0}.", errorFromSyncboxStart.errorDescription, startStatus.ToString());
-                        toReturn += new AggregateException(errMsg, errorFromSyncboxStart.GrabExceptions());
-                        _trace.writeToLog(1, "CLSyncbox: BeginSync: ERROR: From sync engine start: Msg: <{0}>.", errMsg);
+                        _trace.writeToLog(1, "Error starting sync engine. Msg: {0}. Reason: {0}.", toReturn.errorDescription, startStatus.ToString());
+                        toReturn.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
                     }
                     else
                     {
+                        // The sync engines started with syncboxes must be tracked statically so we can stop them all when the application terminates (in the ShutDown) method.
+                        _startedSyncEngines.Add(_syncEngine);
                         _isStarted = true;
                     }
                 }
@@ -333,7 +355,7 @@ namespace Cloud
             {
                 toReturn += ex;
                 toReturn.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                _trace.writeToLog(9, "CLSyncbox: BeginSync: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", toReturn.errorDescription, ((int)toReturn.code).ToString());
+                _trace.writeToLog(1, "CLSyncbox: StartSync: ERROR.  Exception.  Msg: {0}. Code: {1}.", toReturn.errorDescription, ((int)toReturn.code).ToString());
             }
 
             return toReturn;
@@ -343,7 +365,7 @@ namespace Cloud
         /// Stop syncing.
         /// </summary>
         /// <remarks>Note that after stopping it is possible to call BeginSync() again to restart syncing.</remarks>
-        public void EndSync()
+        public void StopSync()
         {
             try
             {
@@ -360,15 +382,20 @@ namespace Cloud
                     }
 
                     // Stop the sync engine.
+                    _syncEngine.Stop();
+
+                    // Remove this engine from the tracking list.
+                    _startedSyncEngines.Remove(_syncEngine);
 
                     _isStarted = false;
+                    _syncEngine = null;
                 }
             }
             catch (Exception ex)
             {
-                toReturn += ex;
-                toReturn.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                _trace.writeToLog(9, "CLSyncbox: BeginSync: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", toReturn.errorDescription, ((int)toReturn.code).ToString());
+                CLError error = ex;
+                error.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                _trace.writeToLog(1, "CLSyncbox: StopSync: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
             }
         }
 
@@ -378,9 +405,134 @@ namespace Cloud
         /// </summary>
         public CLError ResetLocalCache()
         {
-           
+            CLError toReturn = null;
+
+            try
+            {
+                lock (_startLocker)
+                {
+                    if (_isStarted)
+                    {
+                        throw new InvalidOperationException("Stop the syncbox first.");
+                    }
+
+                    // Reset the sync engine
+                    toReturn = _syncEngine.SyncReset(this);
+                    if (toReturn != null)
+                    {
+                        _trace.writeToLog(1, "CLSyncbox: ResetLocalCache: ERROR: From syncEngine.SyncReset: Msg: {0}.", toReturn.errorDescription);
+                        toReturn.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                toReturn += ex;
+                toReturn.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                _trace.writeToLog(1, "CLSyncbox: ResetLocalCache: ERROR.  Exception.  Msg: {0}. Code: {1}.", toReturn.errorDescription, ((int)toReturn.code).ToString());
+            }
+
+            return toReturn;
         }
 
+        /// <summary>
+        /// Call when application is shutting down.
+        /// </summary>
+        public static void Shutdown()
+        {
+            try
+            {
+                // Stop all of the active sync engines
+                lock (_startLocker)
+                {
+                    foreach (CLSyncEngine engine in _startedSyncEngines)
+                    {
+                        try
+                        {
+                            engine.Stop();
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+
+                // Write out any development debug traces
+                try
+                {
+                    _trace.closeMemoryTrace();
+                }
+                catch
+                {
+                }
+
+                // Shuts down the HttpScheduler; after shutdown it cannot be used again
+                try
+                {
+                    HttpScheduler.DisposeBothSchedulers();
+                }
+                catch
+                {
+                }
+
+                // Shuts down the sync FileChange delay processing
+                try
+                {
+                    DelayProcessable<FileChange>.TerminateAllProcessing();
+                }
+                catch
+                {
+                }
+
+                // Stops network change monitoring
+                try
+                {
+                    NetworkMonitor.DisposeInstance();
+                }
+                catch
+                {
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
+                lock (_startLocker)
+                {
+                    if (_startedSyncEngines != null)
+                    {
+                        _startedSyncEngines.Clear();
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Support Functions
+
+        /// <summary>
+        /// A serious notification error has occurred.  Push notification is no longer functioning.
+        /// </summary>
+        /// <param name="sender">The sending object.</param>
+        /// <param name="e">Arguments including the manual poll and/or web sockets errors (possibly aggregated).</param>
+        internal void OnPushNotificationConnectionError(object sender, NotificationErrorEventArgs e)
+        {
+            try
+            {
+                // Tell the application
+                _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Manual poll error: <{0}>. Web socket error: <{1}>.", e.ErrorStillDisconnectedPing.errorDescription, e.ErrorWebSockets.errorDescription);
+                if (PushNotificationError != null)
+                {
+                    _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Notify the application.");
+                    PushNotificationError(this, e);
+                }
+            }
+            catch
+            {
+            }
+        }
 
         #endregion
 
@@ -2019,17 +2171,5 @@ namespace Cloud
         }
         #endregion
         #endregion
-    }
-    /// <summary>
-    /// Status of creation of <see cref="CLSyncbox"/>
-    /// </summary>
-    public enum CLSyncboxCreationStatus : byte
-    {
-        Success = 0,
-        ErrorNullCredentials = 1,
-        ErrorUnknown = 2,
-        ErrorCreatingRestClient = 3,
-        ErrorSyncboxIdZero = 4,
-        ErrorPathNotSpecified = 5,
     }
 }
