@@ -151,41 +151,6 @@ namespace Cloud
         private CLSyncbox _syncbox = null;
 
         /// <summary>
-        /// Output the current status of syncing
-        /// </summary>
-        /// <param name="status">(output) Current status of syncing</param>
-        /// <returns>Returns any error which occurred in retrieving the sync status, if any</returns>
-        public CLError GetEngineCurrentStatus(out CLSyncCurrentStatus status)
-        {
-            try
-            {
-                if (Helpers.AllHaltedOnUnrecoverableError)
-                {
-                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
-                }
-
-                lock (_locker)
-                {
-                    if (_syncEngine == null)
-                    {
-                        //throw new NullReferenceException("Sync not started");
-                        status = new CLSyncCurrentStatus(CLSyncCurrentState.Idle, null);
-                        return null;
-                    }
-                    else
-                    {
-                        return _syncEngine.GetCurrentStatus(out status);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                status = Helpers.DefaultForType<CLSyncCurrentStatus>();
-                return ex;
-            }
-        }
-
-        /// <summary>
         /// Queries database by eventId to return latest metadata and path as a FileChange and whether or not the event is still pending
         /// </summary>
         /// <param name="eventId">EventId key to lookup</param>
@@ -231,7 +196,7 @@ namespace Cloud
         /// </summary>
         /// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
         /// <returns>Returns any error that occurred while wiping the database index</returns>
-        public CLError WipeIndex()
+        internal CLError WipeIndex()
         {
             lock (_locker)
             {
@@ -265,7 +230,7 @@ namespace Cloud
         /// </summary>
         /// <param name="syncbox">Syncbox to reset</param>
         /// <returns>Returns any error that occurred deleting the index database file, if any</returns>
-        public CLError SyncReset(CLSyncbox syncbox)
+        internal CLError SyncReset(CLSyncbox syncbox)
         {
             try
             {
@@ -391,7 +356,7 @@ namespace Cloud
         /// <param name="StatusUpdated">(optional) Callback to fire whenever the status of the SyncEngine has been updated</param>
         /// <param name="StatusUpdatedUserState">(optional) Userstate to pass when firing the statusUpdated callback</param>
         /// <returns>Returns any error which occurred starting to sync, if any</returns>
-        public CLError Start(
+        internal CLError Start(
 			CLSyncbox Syncbox,
 			out CLSyncStartStatus Status,
 			System.Threading.WaitCallback StatusUpdated = null,
@@ -800,6 +765,21 @@ namespace Cloud
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Get the current status of this sync engine
+        /// </summary>
+        /// <param name="status">(output) Status of this SyncEngine</param>
+        /// <returns>Returns any error that occurred retrieving the status (usually shutdown), if any</returns>
+        internal CLError GetCurrentStatus(out CLSyncCurrentStatus status)
+        {
+            if (_syncEngine == null)
+            {
+                throw new InvalidOperationException("Start syncing first");
+            }
+
+            return (_syncEngine.GetCurrentStatus(out status));
         }
 
         /// <summary>

@@ -4167,7 +4167,7 @@ namespace Cloud.Sync
         /// </summary>
         /// <param name="status">(output) Status of this SyncEngine</param>
         /// <returns>Returns any error that occurred retrieving the status (usually shutdown), if any</returns>
-        public CLError GetCurrentStatus(out CLSyncCurrentStatus status)
+        internal CLError GetCurrentStatus(out CLSyncCurrentStatus status)
         {
             try
             {

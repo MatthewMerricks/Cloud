@@ -436,6 +436,46 @@ namespace Cloud
         }
 
         /// <summary>
+        /// Output the current status of syncing
+        /// </summary>
+        /// <param name="status">(output) Current status of syncing</param>
+        /// <returns>Returns any error which occurred in retrieving the sync status, if any</returns>
+        public CLError GetSyncboxCurrentStatus(out CLSyncCurrentStatus status)
+        {
+            try
+            {
+                if (Helpers.AllHaltedOnUnrecoverableError)
+                {
+                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                }
+
+                lock (_startLocker)
+                {
+                    if (!_isStarted)
+                    {
+                        throw new InvalidOperationException("Start the syncbox first.");
+                    }
+
+                    if (_syncEngine == null)
+                    {
+                        //throw new NullReferenceException("Sync not started");
+                        status = new CLSyncCurrentStatus(CLSyncCurrentState.Idle, null);
+                        return null;
+                    }
+                    else
+                    {
+                        return _syncEngine.GetCurrentStatus(out status);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                status = Helpers.DefaultForType<CLSyncCurrentStatus>();
+                return ex;
+            }
+        }
+
+        /// <summary>
         /// Call when application is shutting down.
         /// </summary>
         public static void Shutdown()

@@ -190,12 +190,12 @@ namespace SampleLiveSync.ViewModels
         /// <param name="userState">This is the instance of the Syncbox (CLSync) whose status has changed.</param>
         public void OnSyncStatusUpdated(object userState)
         {
-            CLSyncEngine syncEngine = userState as CLSyncEngine;
-            if (syncEngine != null)
+            CLSyncbox syncbox = userState as CLSyncbox;
+            if (syncbox != null)
             {
                 // Set the overall sync status
                 CLSyncCurrentStatus currentStatus;
-                CLError errorFromGetEngineCurrentStatus = syncEngine.GetEngineCurrentStatus(out currentStatus);
+                CLError errorFromGetEngineCurrentStatus = syncbox.GetSyncboxCurrentStatus(out currentStatus);
                 if (errorFromGetEngineCurrentStatus != null || currentStatus == null)
                 {
                     return;
