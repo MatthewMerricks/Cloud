@@ -606,17 +606,17 @@ namespace Cloud
         #region Create (create a syncbox in the cloud)
 
         /// <summary>
-        /// Asynchronously starts creating a new Syncbox in the cloud for the current application
+        /// Asynchronously starts creating a new Syncbox in the cloud.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
         /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
-        /// <param name="friendlyName">Name of the Syncbox.</param>
+        /// <param name="friendlyName">The friendly name of the Syncbox.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
-        //
+        ////
         //// The following metadata parameter was temporarily removed until the server checks for it for this call
-        //
+        ////
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginCreate(
@@ -716,7 +716,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes creating a Syncbox in the cloud for the current application if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes creating a Syncbox in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting creating the syncbox</param>
@@ -779,12 +779,12 @@ namespace Cloud
         /// <summary>
         /// Create a Syncbox in the cloud for the current application.  This is a synchronous method.
         /// </summary>
-        /// <param name="planId">the storage plan to use with this Syncbox.</param>
-        /// <param name="name">the friendly name of the Syncbox.</param>
+        /// <param name="plan">The storage plan to use with this Syncbox.</param>
+        /// <param name="name"The friendly name of the Syncbox.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
-        /// <param name="status">(output) success/failure status of communication</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <param name="settings">(optional) the settings to use with this method</param>
+        /// <param name="status">(output) Success/failure status of communication</param>
+        /// <param name="response">(output) Response object from communication</param>
+        /// <param name="settings">(optional) The settings to use with this method</param>
         //
         //// The following metadata parameter was temporarily removed until the server checks for it for this call
         //
@@ -851,22 +851,22 @@ namespace Cloud
         #region Delete (delete a syncbox in the cloud)
 
         /// <summary>
-        /// Asynchronously starts deleting a new Syncbox in the cloud for the current application
+        /// Asynchronously starts deleting a new Syncbox in the cloud.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+        /// <param name="callbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
         /// <param name="syncboxId">The ID of syncbox to delete.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
-        //
+        ////
         //// The following metadata parameter was temporarily removed until the server checks for it for this call
-        //
+        ////
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginDelete(
             AsyncCallback callback,
             object callbackUserState,
-            Nullable<long> syncboxId,
+            long syncboxId,
             CLCredentials credentials,
             ICLCredentialsSettings settings = null
             /*,  \/ last parameter temporarily removed since the server is not checking for it for this call; add back wherever commented out within this method when it works
@@ -878,8 +878,8 @@ namespace Cloud
                 callbackUserState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<DeleteSyncboxResult>, Nullable<long>, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/> asyncParams =
-                new Tuple<GenericAsyncResult<DeleteSyncboxResult>, Nullable<long>, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/>(
+            Tuple<GenericAsyncResult<DeleteSyncboxResult>, long, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/> asyncParams =
+                new Tuple<GenericAsyncResult<DeleteSyncboxResult>, long, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/>(
                     toReturn,
                     syncboxId,
                     credentials,
@@ -890,8 +890,8 @@ namespace Cloud
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<DeleteSyncboxResult>, Nullable<long>, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/> castState =
-                    state as Tuple<GenericAsyncResult<DeleteSyncboxResult>, Nullable<long>, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/>;
+                Tuple<GenericAsyncResult<DeleteSyncboxResult>, long, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/> castState =
+                    state as Tuple<GenericAsyncResult<DeleteSyncboxResult>, long, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -947,7 +947,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes deleting a Syncbox in the cloud for the current application if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes deleting a Syncbox in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the asynchronous operation</param>
@@ -1021,7 +1021,7 @@ namespace Cloud
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public static CLError Delete(
-                    Nullable<long> syncboxId,
+                    long syncboxId,
                     CLCredentials credentials,
                     out CLHttpRestStatus status,
                     out JsonContracts.SyncboxHolder response,
@@ -1038,13 +1038,10 @@ namespace Cloud
                     : settings.CopySettings());
 
                 // check input parameters
-                JsonContracts.SyncboxIdOnly inputBox = (/*metadata == null
-                        && */syncboxId == null
-                    ? null
-                    : new JsonContracts.SyncboxIdOnly()
+                JsonContracts.SyncboxIdOnly inputBox = new JsonContracts.SyncboxIdOnly()
                     {
                         Id = syncboxId
-                    });
+                    };
 
                 response = Helpers.ProcessHttp<JsonContracts.SyncboxHolder>(
                     requestContent: inputBox,
@@ -1072,15 +1069,15 @@ namespace Cloud
         #region List (list syncboxes in the cloud)
 
         /// <summary>
-        /// Asynchronously starts listing syncboxes in the cloud for the current application
+        /// Asynchronously starts listing syncboxes in the cloud.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+        /// <param name="callbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
-        //
+        ////
         //// The following metadata parameter was temporarily removed until the server checks for it for this call
-        //
+        ////
         ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginList(
@@ -1162,7 +1159,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes listing syncboxes in the cloud for the current application if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes listing syncboxes in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the asynchronous operation</param>
@@ -2857,7 +2854,7 @@ namespace Cloud
         #endregion  // end UpdateFriendlyName (Update the friendly namd for a syncbox in the cloud)
 
         #region DeleteSyncbox
-        /// <summary>
+        /// <summary>l
         /// ¡¡ Do not use lightly !! Asynchronously deletes a sync box
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
