@@ -1024,6 +1024,206 @@ namespace Cloud
         }
         #endregion
 
+        #region List (list syncboxes in the cloud)
+
+        /// <summary>
+        /// Asynchronously starts listing syncboxes in the cloud for the current application
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
+        /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+        /// <param name="credentials">The credentials to use with this request.</param>
+        /// <param name="settings">(optional) settings to use with this method.</param>
+        //
+        //// The following metadata parameter was temporarily removed until the server checks for it for this call
+        //
+        ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+        public static IAsyncResult BeginList(
+            AsyncCallback callback,
+            object callbackUserState,
+            CLCredentials credentials,
+            ICLCredentialsSettings settings = null)
+        {
+            // create the asynchronous result to return
+            GenericAsyncResult<ListSyncboxesResult> toReturn = new GenericAsyncResult<ListSyncboxesResult>(
+                callback,
+                callbackUserState);
+
+            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+            Tuple<GenericAsyncResult<ListSyncboxesResult>, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/> asyncParams =
+                new Tuple<GenericAsyncResult<ListSyncboxesResult>, CLCredentials, ICLCredentialsSettings/*, JsonContracts.MetadataDictionary*/>(
+                    toReturn,
+                    credentials,
+                    settings/*,
+                    metadata*/);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ParameterizedThreadStart(state =>
+            {
+                // try cast the state as the object with all the input parameters
+                Tuple<GenericAsyncResult<ListSyncboxesResult>, CLCredentials, ICLCredentialsSettings> castState =
+                    state as Tuple<GenericAsyncResult<ListSyncboxesResult>, CLCredentials, ICLCredentialsSettings>;
+                // if the try cast failed, then show a message box for this unrecoverable error
+                if (castState == null)
+                {
+                    MessageEvents.FireNewEventMessage(
+                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
+                }
+                // else if the try cast did not fail, then start processing with the input parameters
+                else
+                {
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLHttpRestStatus status;
+                        // declare the specific type of result for this operation
+                        JsonContracts.ListSyncboxes response;
+                        // run the download of the file with the passed parameters, storing any error that occurs
+                        CLError processError = List(
+                            castState.Item2,  // credentials
+                            out status,  // CLHttpRestStatus
+                            out response,  // HTTP response
+                            castState.Item3);  // settings
+
+                        // if there was an asynchronous result in the parameters, then complete it with a new result object
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.Complete(
+                                new ListSyncboxesResult(
+                                    processError, // any error that may have occurred during processing
+                                    status, // the output status of communication
+                                    response), // the specific type of result for this operation
+                                    sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // if there was an asynchronous result in the parameters, then pass through the exception to it
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.HandleException(
+                                ex, // the exception which was not handled correctly by the CLError wrapping
+                                sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                }
+            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+
+            // return the asynchronous result
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Finishes listing syncboxes in the cloud for the current application if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the asynchronous operation</param>
+        /// <param name="result">(output) The result from the asynchronous operation</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public static CLError EndList(IAsyncResult aResult, out ListSyncboxesResult result)
+        {
+            // declare the specific type of asynchronous result
+            GenericAsyncResult<ListSyncboxesResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the specific result type and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the specific result type
+                castAResult = aResult as GenericAsyncResult<ListSyncboxesResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<ListSyncboxesResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// List syncboxes in the cloud for these credentials.  This is a synchronous method.
+        /// </summary>
+        /// <param name="credentials">The credentials to use for this request.</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <param name="settings">(optional) the settings to use with this method</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public static CLError List(
+                    CLCredentials credentials,
+                    out CLHttpRestStatus status,
+                    out JsonContracts.ListSyncboxes response,
+                    ICLCredentialsSettings settings = null)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the metadata query, on catch return the error
+            try
+            {
+                // copy settings so they don't change while processing; this also defaults some values
+                ICLSyncSettingsAdvanced copiedSettings = (settings == null
+                    ? AdvancedSyncSettings.CreateDefaultSettings()
+                    : settings.CopySettings());
+
+                response = Helpers.ProcessHttp<JsonContracts.ListSyncboxes>(
+                    requestContent: null,
+                    serverUrl: CLDefinitions.CLPlatformAuthServerURL,
+                    serverMethodPath: CLDefinitions.MethodPathAuthListSyncboxes,
+                    method: Helpers.requestMethod.post,
+                    timeoutMilliseconds: copiedSettings.HttpTimeoutMilliseconds,
+                    uploadDownload: null, // not an upload nor download
+                    validStatusCodes: Helpers.HttpStatusesOkAccepted,
+                    status: ref status,
+                    CopiedSettings: copiedSettings,
+                    Credentials: credentials,
+                    SyncboxId: null);
+
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.ListSyncboxes>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion  // end List (list syncboxes in the cloud)
+
         #endregion  // end Public Static HTTP REST Methods
 
         #region Private Instance Support Functions
