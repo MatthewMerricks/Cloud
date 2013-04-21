@@ -2141,7 +2141,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileCopy), JsonContractHelpers.FileCopySerializer },
 
             #region platform management
-            { typeof(JsonContracts.SyncboxHolder), JsonContractHelpers.CreateSyncboxSerializer },
+            { typeof(JsonContracts.SyncboxResponse), JsonContractHelpers.CreateSyncboxSerializer },
             { typeof(JsonContracts.SyncboxMetadata), JsonContractHelpers.SyncboxMetadataSerializer },
             { typeof(JsonContracts.SyncboxQuota), JsonContractHelpers.SyncboxQuotaSerializer },
             { typeof(JsonContracts.SyncboxIdOnly), JsonContractHelpers.SyncboxDeleteSerializer },
@@ -2182,7 +2182,7 @@ namespace Cloud.Static
             //{ typeof(JsonContracts.AuthenticationErrorMessage), JsonContractHelpers.AuthenticationErrorMessageSerializer }, // deprecated
 
             #region platform management
-            { typeof(JsonContracts.SyncboxHolder), JsonContractHelpers.CreateSyncboxSerializer },
+            { typeof(JsonContracts.SyncboxResponse), JsonContractHelpers.CreateSyncboxSerializer },
             { typeof(JsonContracts.ListSyncboxes), JsonContractHelpers.ListSyncboxesSerializer },
             { typeof(JsonContracts.ListPlansResponse), JsonContractHelpers.ListPlansSerializer },
             { typeof(JsonContracts.SyncboxUpdatePlanResponse), JsonContractHelpers.SyncboxUpdatePlanResponseSerializer },

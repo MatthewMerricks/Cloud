@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Contains actual response properties for <see cref="SyncboxHolder"/>
+    /// Contains actual response properties for <see cref="SyncboxResponse"/>
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary]

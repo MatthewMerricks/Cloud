@@ -232,10 +232,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetSyncboxUsageResult : BaseCLHttpRestResult<JsonContracts.SyncboxUsageResponse>
+    public sealed class SyncboxUsageResult : BaseCLHttpRestResult<JsonContracts.SyncboxUsageResponse>
     {
         // construct with all readonly properties
-        internal GetSyncboxUsageResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxUsageResponse Response)
+        internal SyncboxUsageResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxUsageResponse Response)
             : base(Error, Status, Response) { }
     }
 
@@ -272,10 +272,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class CreateSyncboxResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
+    public sealed class CreateSyncboxResult : BaseCLHttpRestResult<JsonContracts.SyncboxResponse>
     {
         // construct with all readonly properties
-        internal CreateSyncboxResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+        internal CreateSyncboxResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxResponse Response)
             : base(Error, Status, Response) { }
     }
 
@@ -342,10 +342,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxUpdateExtendedMetadataResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
+    public sealed class SyncboxUpdateExtendedMetadataResult : BaseCLHttpRestResult<JsonContracts.SyncboxResponse>
     {
         // construct with all readonly properties
-        internal SyncboxUpdateExtendedMetadataResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+        internal SyncboxUpdateExtendedMetadataResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxResponse Response)
             : base(Error, Status, Response) { }
     }
 
@@ -395,10 +395,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxUpdateResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
+    public sealed class SyncboxUpdateFriendlyNameResult : BaseCLHttpRestResult<JsonContracts.SyncboxResponse>
     {
         // construct with all readonly properties
-        internal SyncboxUpdateResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+        internal SyncboxUpdateFriendlyNameResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxResponse Response)
             : base(Error, Status, Response) { }
     }
     #endregion
@@ -416,20 +416,20 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class DeleteSyncboxResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
+    public sealed class DeleteSyncboxResult : BaseCLHttpRestResult<JsonContracts.SyncboxResponse>
     {
         // construct with all readonly properties
-        internal DeleteSyncboxResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+        internal DeleteSyncboxResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxResponse Response)
             : base(Error, Status, Response) { }
     }
 
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetSyncboxStatusResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
+    public sealed class SyncboxStatusResult : BaseCLHttpRestResult<JsonContracts.SyncboxResponse>
     {
         // construct with all readonly properties
-        internal GetSyncboxStatusResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxHolder Response)
+        internal SyncboxStatusResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxResponse Response)
             : base(Error, Status, Response) { }
     }
 }

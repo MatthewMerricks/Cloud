@@ -22,7 +22,7 @@ namespace Cloud.JsonContracts
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary] // within Syncbox Syncbox
-    public sealed class SyncboxHolder
+    public sealed class SyncboxResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }

@@ -453,7 +453,7 @@ namespace Cloud.JsonContracts
                 lock (SyncboxUpdateResponseSerializerLocker)
                 {
                     return _syncboxUpdateResponseSerializer
-                        ?? (_syncboxUpdateResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxHolder)));
+                        ?? (_syncboxUpdateResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxResponse)));
                 }
             }
         }
@@ -596,7 +596,7 @@ namespace Cloud.JsonContracts
                 lock (CreateSyncboxSerializerLocker)
                 {
                     return _createSyncboxSerializer
-                        ?? (_createSyncboxSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxHolder)));
+                        ?? (_createSyncboxSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxResponse)));
                 }
             }
         }

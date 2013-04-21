@@ -3971,13 +3971,13 @@ namespace Cloud.REST
             int timeoutMilliseconds)
         {
             // create the asynchronous result to return
-            GenericAsyncResult<GetSyncboxUsageResult> toReturn = new GenericAsyncResult<GetSyncboxUsageResult>(
+            GenericAsyncResult<SyncboxUsageResult> toReturn = new GenericAsyncResult<SyncboxUsageResult>(
                 aCallback,
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetSyncboxUsageResult>, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetSyncboxUsageResult>, int>(
+            Tuple<GenericAsyncResult<SyncboxUsageResult>, int> asyncParams =
+                new Tuple<GenericAsyncResult<SyncboxUsageResult>, int>(
                     toReturn,
                     timeoutMilliseconds);
 
@@ -3985,7 +3985,7 @@ namespace Cloud.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetSyncboxUsageResult>, int> castState = state as Tuple<GenericAsyncResult<GetSyncboxUsageResult>, int>;
+                Tuple<GenericAsyncResult<SyncboxUsageResult>, int> castState = state as Tuple<GenericAsyncResult<SyncboxUsageResult>, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -4014,7 +4014,7 @@ namespace Cloud.REST
                         if (castState.Item1 != null)
                         {
                             castState.Item1.Complete(
-                                new GetSyncboxUsageResult(
+                                new SyncboxUsageResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
                                     result), // the specific type of result for this operation
@@ -4045,16 +4045,16 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting getting sync box usage</param>
         /// <param name="result">(output) The result from getting sync box usage</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndGetSyncboxUsage(IAsyncResult aResult, out GetSyncboxUsageResult result)
+        internal CLError EndGetSyncboxUsage(IAsyncResult aResult, out SyncboxUsageResult result)
         {
             // declare the specific type of asynchronous result for getting sync box usage
-            GenericAsyncResult<GetSyncboxUsageResult> castAResult;
+            GenericAsyncResult<SyncboxUsageResult> castAResult;
 
             // try/catch to try casting the asynchronous result as the type for getting sync box usage and pull the result (possibly incomplete), on catch default the output and return the error
             try
             {
                 // try cast the asynchronous result as the type for getting sync box usage
-                castAResult = aResult as GenericAsyncResult<GetSyncboxUsageResult>;
+                castAResult = aResult as GenericAsyncResult<SyncboxUsageResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -4067,7 +4067,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                result = Helpers.DefaultForType<GetSyncboxUsageResult>();
+                result = Helpers.DefaultForType<SyncboxUsageResult>();
                 return ex;
             }
 
@@ -4878,7 +4878,7 @@ namespace Cloud.REST
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.SyncboxHolder result;
+                        JsonContracts.SyncboxResponse result;
                         // purge pending files with the passed parameters, storing any error that occurs
                         CLError processError = UpdateSyncboxExtendedMetadata(
                             castState.Item2,
@@ -4961,7 +4961,7 @@ namespace Cloud.REST
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.SyncboxHolder result;
+                        JsonContracts.SyncboxResponse result;
                         // purge pending files with the passed parameters, storing any error that occurs
                         CLError processError = UpdateSyncboxExtendedMetadata(
                             castState.Item2,
@@ -5066,7 +5066,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        public CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
             try
             {
@@ -5081,7 +5081,7 @@ namespace Cloud.REST
             catch (Exception ex)
             {
                 status = CLHttpRestStatus.BadRequest;
-                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return ex;
             }
         }
@@ -5094,7 +5094,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncboxExtendedMetadata(MetadataDictionary metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        public CLError UpdateSyncboxExtendedMetadata(MetadataDictionary metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -5118,7 +5118,7 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                response = Helpers.ProcessHttp<JsonContracts.SyncboxHolder>(new JsonContracts.SyncboxMetadata() // json contract object for extended sync box metadata
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxResponse>(new JsonContracts.SyncboxMetadata() // json contract object for extended sync box metadata
                     {
                         Id = _syncbox.SyncboxId,
                         Metadata = metadata
@@ -5136,7 +5136,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return ex;
             }
             return null;
@@ -5716,16 +5716,16 @@ namespace Cloud.REST
             bool reservedForActiveSync)
         {
             // create the asynchronous result to return
-            GenericAsyncResult<SyncboxUpdateResult> toReturn = new GenericAsyncResult<SyncboxUpdateResult>(
+            GenericAsyncResult<SyncboxUpdateFriendlyNameResult> toReturn = new GenericAsyncResult<SyncboxUpdateFriendlyNameResult>(
                 aCallback,
                 aState);
 
             if (reservedForActiveSync)
             {
                 CLHttpRestStatus unusedStatus;
-                JsonContracts.SyncboxHolder unusedResult;
+                JsonContracts.SyncboxResponse unusedResult;
                 toReturn.Complete(
-                    new SyncboxUpdateResult(
+                    new SyncboxUpdateFriendlyNameResult(
                         UpdateSyncbox(
                             friendlyName,
                             timeoutMilliseconds,
@@ -5739,8 +5739,8 @@ namespace Cloud.REST
             else
             {
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-                Tuple<GenericAsyncResult<SyncboxUpdateResult>, string, int> asyncParams =
-                    new Tuple<GenericAsyncResult<SyncboxUpdateResult>, string, int>(
+                Tuple<GenericAsyncResult<SyncboxUpdateFriendlyNameResult>, string, int> asyncParams =
+                    new Tuple<GenericAsyncResult<SyncboxUpdateFriendlyNameResult>, string, int>(
                         toReturn,
                         friendlyName,
                         timeoutMilliseconds);
@@ -5749,7 +5749,7 @@ namespace Cloud.REST
                 (new Thread(new ParameterizedThreadStart(state =>
                 {
                     // try cast the state as the object with all the input parameters
-                    Tuple<GenericAsyncResult<SyncboxUpdateResult>, string, int> castState = state as Tuple<GenericAsyncResult<SyncboxUpdateResult>, string, int>;
+                    Tuple<GenericAsyncResult<SyncboxUpdateFriendlyNameResult>, string, int> castState = state as Tuple<GenericAsyncResult<SyncboxUpdateFriendlyNameResult>, string, int>;
                     // if the try cast failed, then show a message box for this unrecoverable error
                     if (castState == null)
                     {
@@ -5767,7 +5767,7 @@ namespace Cloud.REST
                             // declare the output status for communication
                             CLHttpRestStatus status;
                             // declare the specific type of result for this operation
-                            JsonContracts.SyncboxHolder result;
+                            JsonContracts.SyncboxResponse result;
                             // purge pending files with the passed parameters, storing any error that occurs
                             CLError processError = UpdateSyncbox(
                                 castState.Item2,
@@ -5779,7 +5779,7 @@ namespace Cloud.REST
                             if (castState.Item1 != null)
                             {
                                 castState.Item1.Complete(
-                                    new SyncboxUpdateResult(
+                                    new SyncboxUpdateFriendlyNameResult(
                                         processError, // any error that may have occurred during processing
                                         status, // the output status of communication
                                         result), // the specific type of result for this operation
@@ -5811,16 +5811,16 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting updating the properties</param>
         /// <param name="result">(output) The result from updating the properties</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndUpdateSyncbox(IAsyncResult aResult, out SyncboxUpdateResult result)
+        internal CLError EndUpdateSyncbox(IAsyncResult aResult, out SyncboxUpdateFriendlyNameResult result)
         {
             // declare the specific type of asynchronous result for updating the properties
-            GenericAsyncResult<SyncboxUpdateResult> castAResult;
+            GenericAsyncResult<SyncboxUpdateFriendlyNameResult> castAResult;
 
             // try/catch to try casting the asynchronous result as the type for updating the properties and pull the result (possibly incomplete), on catch default the output and return the error
             try
             {
                 // try cast the asynchronous result as the type for setting the properties of the syncbox
-                castAResult = aResult as GenericAsyncResult<SyncboxUpdateResult>;
+                castAResult = aResult as GenericAsyncResult<SyncboxUpdateFriendlyNameResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -5833,7 +5833,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                result = Helpers.DefaultForType<SyncboxUpdateResult>();
+                result = Helpers.DefaultForType<SyncboxUpdateFriendlyNameResult>();
                 return ex;
             }
 
@@ -5873,7 +5873,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError UpdateSyncbox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        internal CLError UpdateSyncbox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
             return UpdateSyncbox(friendlyName, timeoutMilliseconds, out status, out response, reservedForActiveSync: false);
         }
@@ -5886,12 +5886,12 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError UpdateSyncbox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response, bool reservedForActiveSync)
+        internal CLError UpdateSyncbox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response, bool reservedForActiveSync)
         {
             if (reservedForActiveSync)
             {
                 status = CLHttpRestStatus.ReservedForActiveSync;
-                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return new Exception("Current Syncbox cannot be modified while in use in active syncing");
             }
 
@@ -5925,7 +5925,7 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                response = Helpers.ProcessHttp<JsonContracts.SyncboxHolder>(new JsonContracts.SyncboxUpdateRequest() // json contract object for sync box update request
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxResponse>(new JsonContracts.SyncboxUpdateRequest() // json contract object for sync box update request
                 {
                     SyncboxId = _syncbox.SyncboxId,
                     Syncbox = new JsonContracts.SyncboxForUpdateRequest()
@@ -5946,7 +5946,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return ex;
             }
             finally
@@ -5992,7 +5992,7 @@ namespace Cloud.REST
             if (reservedForActiveSync)
             {
                 CLHttpRestStatus unusedStatus;
-                JsonContracts.SyncboxHolder unusedResult;
+                JsonContracts.SyncboxResponse unusedResult;
                 toReturn.Complete(
                     new DeleteSyncboxResult(
                         DeleteSyncbox(
@@ -6034,7 +6034,7 @@ namespace Cloud.REST
                             // declare the output status for communication
                             CLHttpRestStatus status;
                             // declare the specific type of result for this operation
-                            JsonContracts.SyncboxHolder result;
+                            JsonContracts.SyncboxResponse result;
                             // purge pending files with the passed parameters, storing any error that occurs
                             CLError processError = DeleteSyncbox(
                                 castState.Item2,
@@ -6138,7 +6138,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteSyncbox(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        public CLError DeleteSyncbox(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
             return DeleteSyncbox(timeoutMilliseconds, out status, out response, reservedForActiveSync: false);
         }
@@ -6150,12 +6150,12 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError DeleteSyncbox(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response, bool reservedForActiveSync)
+        internal CLError DeleteSyncbox(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response, bool reservedForActiveSync)
         {
             if (reservedForActiveSync)
             {
                 status = CLHttpRestStatus.ReservedForActiveSync;
-                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return new Exception("Current Syncbox cannot be modified while in use in active syncing");
             }
 
@@ -6184,7 +6184,7 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                response = Helpers.ProcessHttp<JsonContracts.SyncboxHolder>(new JsonContracts.SyncboxIdOnly() // json contract object for deleting sync boxes
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxResponse>(new JsonContracts.SyncboxIdOnly() // json contract object for deleting sync boxes
                     {
                         Id = _syncbox.SyncboxId
                     },
@@ -6201,7 +6201,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return ex;
             }
             finally
@@ -6225,13 +6225,13 @@ namespace Cloud.REST
             int timeoutMilliseconds)
         {
             // create the asynchronous result to return
-            GenericAsyncResult<GetSyncboxStatusResult> toReturn = new GenericAsyncResult<GetSyncboxStatusResult>(
+            GenericAsyncResult<SyncboxStatusResult> toReturn = new GenericAsyncResult<SyncboxStatusResult>(
                 aCallback,
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetSyncboxStatusResult>, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetSyncboxStatusResult>, int>(
+            Tuple<GenericAsyncResult<SyncboxStatusResult>, int> asyncParams =
+                new Tuple<GenericAsyncResult<SyncboxStatusResult>, int>(
                     toReturn,
                     timeoutMilliseconds);
 
@@ -6239,7 +6239,7 @@ namespace Cloud.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetSyncboxStatusResult>, int> castState = state as Tuple<GenericAsyncResult<GetSyncboxStatusResult>, int>;
+                Tuple<GenericAsyncResult<SyncboxStatusResult>, int> castState = state as Tuple<GenericAsyncResult<SyncboxStatusResult>, int>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -6257,7 +6257,7 @@ namespace Cloud.REST
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.SyncboxHolder result;
+                        JsonContracts.SyncboxResponse result;
                         // purge pending files with the passed parameters, storing any error that occurs
                         CLError processError = GetSyncboxStatus(
                             castState.Item2,
@@ -6268,7 +6268,7 @@ namespace Cloud.REST
                         if (castState.Item1 != null)
                         {
                             castState.Item1.Complete(
-                                new GetSyncboxStatusResult(
+                                new SyncboxStatusResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
                                     result), // the specific type of result for this operation
@@ -6299,16 +6299,16 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting getting sync box status</param>
         /// <param name="result">(output) The result from getting sync box status</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetSyncboxStatus(IAsyncResult aResult, out GetSyncboxStatusResult result)
+        public CLError EndGetSyncboxStatus(IAsyncResult aResult, out SyncboxStatusResult result)
         {
             // declare the specific type of asynchronous result for sync box status
-            GenericAsyncResult<GetSyncboxStatusResult> castAResult;
+            GenericAsyncResult<SyncboxStatusResult> castAResult;
 
             // try/catch to try casting the asynchronous result as the type for getting sync box status and pull the result (possibly incomplete), on catch default the output and return the error
             try
             {
                 // try cast the asynchronous result as the type for getting sync box status
-                castAResult = aResult as GenericAsyncResult<GetSyncboxStatusResult>;
+                castAResult = aResult as GenericAsyncResult<SyncboxStatusResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -6321,7 +6321,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                result = Helpers.DefaultForType<GetSyncboxStatusResult>();
+                result = Helpers.DefaultForType<SyncboxStatusResult>();
                 return ex;
             }
 
@@ -6360,7 +6360,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetSyncboxStatus(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        public CLError GetSyncboxStatus(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -6384,7 +6384,7 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                response = Helpers.ProcessHttp<JsonContracts.SyncboxHolder>(new JsonContracts.SyncboxIdOnly() // json contract object for purge pending method
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxResponse>(new JsonContracts.SyncboxIdOnly() // json contract object for purge pending method
                     {
                         Id = _syncbox.SyncboxId
                     },
@@ -6401,7 +6401,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return ex;
             }
             return null;

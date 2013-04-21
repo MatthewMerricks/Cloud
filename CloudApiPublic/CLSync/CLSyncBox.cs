@@ -278,7 +278,7 @@ namespace Cloud
                 // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
                 // properties from the server and set them into this local object's properties.
                 CLHttpRestStatus statusFromStatus;
-                JsonContracts.SyncboxHolder response;
+                JsonContracts.SyncboxResponse response;
                 CLError errorFromStatus = Status(out statusFromStatus, out response);
                 if (errorFromStatus != null)
                 {
@@ -677,7 +677,7 @@ namespace Cloud
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.SyncboxHolder response;
+                        JsonContracts.SyncboxResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = Create(
                             castState.Item2,  // plan
@@ -795,7 +795,7 @@ namespace Cloud
                     string friendlyName,
                     CLCredentials credentials,
                     out CLHttpRestStatus status,
-                    out JsonContracts.SyncboxHolder response,
+                    out JsonContracts.SyncboxResponse response,
                     ICLCredentialsSettings settings = null/*, JsonContracts.MetadataDictionary metadata = null*/)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
@@ -809,11 +809,11 @@ namespace Cloud
                     : settings.CopySettings());
 
                 // check input parameters
-                JsonContracts.SyncboxHolder inputBox = (/*metadata == null
+                JsonContracts.SyncboxResponse inputBox = (/*metadata == null
                         && */string.IsNullOrWhiteSpace(friendlyName)
                         && plan == null
                     ? null
-                    : new JsonContracts.SyncboxHolder()
+                    : new JsonContracts.SyncboxResponse()
                     {
                         Syncbox = new JsonContracts.Syncbox()
                         {
@@ -825,7 +825,7 @@ namespace Cloud
                         }
                     });
 
-                response = Helpers.ProcessHttp<JsonContracts.SyncboxHolder>(
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxResponse>(
                     requestContent: inputBox,
                     serverUrl: CLDefinitions.CLPlatformAuthServerURL,
                     serverMethodPath: CLDefinitions.MethodPathAuthCreateSyncbox,
@@ -841,7 +841,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return ex;
             }
             return null;
@@ -909,7 +909,7 @@ namespace Cloud
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.SyncboxHolder response;
+                        JsonContracts.SyncboxResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = Delete(
                             castState.Item2,  // syncboxId
@@ -1024,7 +1024,7 @@ namespace Cloud
                     long syncboxId,
                     CLCredentials credentials,
                     out CLHttpRestStatus status,
-                    out JsonContracts.SyncboxHolder response,
+                    out JsonContracts.SyncboxResponse response,
                     ICLCredentialsSettings settings = null/*, JsonContracts.MetadataDictionary metadata = null*/)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
@@ -1043,7 +1043,7 @@ namespace Cloud
                         Id = syncboxId
                     };
 
-                response = Helpers.ProcessHttp<JsonContracts.SyncboxHolder>(
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxResponse>(
                     requestContent: inputBox,
                     serverUrl: CLDefinitions.CLPlatformAuthServerURL,
                     serverMethodPath: CLDefinitions.MethodPathAuthDeleteSyncbox,
@@ -1059,7 +1059,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return ex;
             }
             return null;
@@ -1270,6 +1270,11 @@ namespace Cloud
 
         #region Public Instance Methods
 
+        /// <summary>
+        /// Update the credentials for this syncbox.
+        /// </summary>
+        /// <param name="credentials">The new credentials.</param>
+        /// <returns>Nothing</returns>
         public void UpdateCredentials(CLCredentials credentials)
         {
             Credentials = credentials;
@@ -2596,7 +2601,7 @@ namespace Cloud
 
         #region Usage (get the usage information for this syncbox from the cloud)
         /// <summary>
-        /// Asynchronously starts getting the syncbox usage information from the cloud.
+        /// Asynchronously starts getting the usage information for this syncbox from the cloud.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass as a parameter when firing async callback</param>
@@ -2613,7 +2618,7 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the asynchronous request.</param>
         /// <param name="result">(output) The result from the asynchronous request.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndUsage(IAsyncResult aResult, out GetSyncboxUsageResult result)
+        public CLError EndUsage(IAsyncResult aResult, out SyncboxUsageResult result)
         {
             return _httpRestClient.EndGetSyncboxUsage(aResult, out result);
         }
@@ -2683,7 +2688,7 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        public CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
             return _httpRestClient.UpdateSyncboxExtendedMetadata(metadata, timeoutMilliseconds, out status, out response);
         }
@@ -2696,7 +2701,7 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError SyncboxUpdateExtendedMetadata(JsonContracts.MetadataDictionary metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        public CLError SyncboxUpdateExtendedMetadata(JsonContracts.MetadataDictionary metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
             return _httpRestClient.UpdateSyncboxExtendedMetadata(metadata, timeoutMilliseconds, out status, out response);
         }
@@ -2748,19 +2753,19 @@ namespace Cloud
         #region UpdateStoragePlan (changes the storage plan associated with this syncbox in the cloud)
         /// <summary>
         /// Asynchronously updates the storage plan for a syncbox in the cloud.
+        /// Updates this object's StoragePlanId property.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass as a parameter when firing async callback</param>
-        /// <param name="storagePlan">The storage plan to set (new storage plan to use for this syncbox)</param>
+        /// <param name="storagePlan">The new storage plan to use for this syncbox)</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUpdateStoragePlan(AsyncCallback callback,
-            object callbackUserState, CLStoragePlan storagePlan)
+        public IAsyncResult BeginUpdateStoragePlan(AsyncCallback callback, object callbackUserState, CLStoragePlan storagePlan)
         {
             return _httpRestClient.BeginUpdateSyncboxPlan(callback, callbackUserState, storagePlan.Id, _copiedSettings.HttpTimeoutMilliseconds, ReservedForActiveSync);
         }
 
         /// <summary>
-        /// Finishes updating the storage plan for this syncbox, if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes updating the storage plan for this syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the request</param>
@@ -2782,6 +2787,7 @@ namespace Cloud
 
         /// <summary>
         /// Updates the storage plan for a syncbox in the cloud.  This is a synchronous method.
+        /// Updates this object's StoragePlanId property.
         /// </summary>
         /// <param name="storagePlan">The storage plan to set (new storage plan to use for this syncbox)</param>
         /// <param name="status">(output) success/failure status of communication</param>
@@ -2803,28 +2809,26 @@ namespace Cloud
 
         #region UpdateFriendlyName (Update the friendly name for a syncbox in the cloud)
         /// <summary>
-        /// Asynchronously updates the syncbox properties in the cloud.
+        /// Asynchronously updates the friendly name of this syncbox in the cloud.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">User state to pass when firing async callback</param>
-        /// <param name="friendlyName">The friendly name of this syncbox.</param>
+        /// <param name="friendlyName">The new friendly name of this syncbox.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the response</returns>
         /// <remarks>The FriendlyName property of this object will also be updated on success.</remarks>
-        public IAsyncResult BeginUpdateFriendlyName(AsyncCallback callback,
-            object callbackUserState,
-            string friendlyName)
+        public IAsyncResult BeginUpdateFriendlyName(AsyncCallback callback, object callbackUserState, string friendlyName)
         {
             return _httpRestClient.BeginUpdateSyncbox(callback, callbackUserState, friendlyName, _copiedSettings.HttpTimeoutMilliseconds, ReservedForActiveSync);
         }
 
         /// <summary>
-        /// Finishes updating the properties of a syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes updating the friendly name of this syncbox in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the operation</param>
         /// <param name="result">(output) The result from the asynchronous operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputting the result, if any</returns>
-        public CLError EndUpdateFriendlyName(IAsyncResult aResult, out SyncboxUpdateResult result)
+        public CLError EndUpdateFriendlyName(IAsyncResult aResult, out SyncboxUpdateFriendlyNameResult result)
         {
             CLError toReturn =  _httpRestClient.EndUpdateSyncbox(aResult, out result);
             if (toReturn == null && result != null && result.Result != null && result.Result.Syncbox != null)
@@ -2842,7 +2846,7 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         /// <remarks>The FriendlyName property of this object will also be updated on success.</remarks>
-        public CLError UpdateFriendlyName(string friendlyName, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        public CLError UpdateFriendlyName(string friendlyName, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
             CLError toReturn = _httpRestClient.UpdateSyncbox(friendlyName, _copiedSettings.HttpTimeoutMilliseconds, out status, out response, ReservedForActiveSync);
             if (toReturn == null && response != null)
@@ -2887,7 +2891,7 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteSyncbox(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        public CLError DeleteSyncbox(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
             return _httpRestClient.DeleteSyncbox(timeoutMilliseconds, out status, out response, ReservedForActiveSync);
         }
@@ -2900,8 +2904,7 @@ namespace Cloud
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginStatus(AsyncCallback callback,
-            object callbackUserState)
+        public IAsyncResult BeginStatus(AsyncCallback callback, object callbackUserState)
         {
             return _httpRestClient.BeginGetSyncboxStatus(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds);
         }
@@ -2914,7 +2917,7 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) The result from the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndStatus(IAsyncResult aResult, out GetSyncboxStatusResult result)
+        public CLError EndStatus(IAsyncResult aResult, out SyncboxStatusResult result)
         {
             CLError toReturn = _httpRestClient.EndGetSyncboxStatus(aResult, out result);
             if (toReturn == null
@@ -2937,7 +2940,7 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError Status(out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        public CLError Status(out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
             CLError toReturn =  _httpRestClient.GetSyncboxStatus(_copiedSettings.HttpTimeoutMilliseconds, out status, out response);
             if (toReturn == null
