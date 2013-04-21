@@ -2562,39 +2562,37 @@ namespace Cloud
 
         #region GetSyncboxUsage
         /// <summary>
-        /// Asynchronously starts getting sync box usage
+        /// Asynchronously starts getting the syncbox usage information from the cloud.
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="aState">Userstate to pass as a parameter when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetSyncboxUsage(AsyncCallback aCallback, object aState, int timeoutMilliseconds)
+        public IAsyncResult BeginUsage(AsyncCallback aCallback, object aState)
         {
-            return _httpRestClient.BeginGetSyncboxUsage(aCallback, aState, timeoutMilliseconds);
+            return _httpRestClient.BeginGetSyncboxUsage(aCallback, aState, _copiedSettings.HttpTimeoutMilliseconds);
         }
 
         /// <summary>
-        /// Finishes getting sync box usage if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes getting syncbox usage if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting getting sync box usage</param>
-        /// <param name="result">(output) The result from getting sync box usage</param>
+        /// <param name="aResult">The asynchronous result provided upon starting the asynchronous request.</param>
+        /// <param name="result">(output) The result from the asynchronous request.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetSyncboxUsage(IAsyncResult aResult, out GetSyncboxUsageResult result)
+        public CLError EndUsage(IAsyncResult aResult, out GetSyncboxUsageResult result)
         {
             return _httpRestClient.EndGetSyncboxUsage(aResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for sync box usage
+        /// Queries the cloud for syncbox usage information.  This method is synchronous.
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetSyncboxUsage(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxUsage response)
         {
-            return _httpRestClient.GetSyncboxUsage(timeoutMilliseconds, out status, out response);
+            return _httpRestClient.GetSyncboxUsage(_copiedSettings.HttpTimeoutMilliseconds, out status, out response);
         }
         #endregion
 

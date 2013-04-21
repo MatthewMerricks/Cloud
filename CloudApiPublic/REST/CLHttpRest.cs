@@ -3966,7 +3966,7 @@ namespace Cloud.REST
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetSyncboxUsage(AsyncCallback aCallback,
+        internal IAsyncResult BeginGetSyncboxUsage(AsyncCallback aCallback,
             object aState,
             int timeoutMilliseconds)
         {
@@ -4045,7 +4045,7 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting getting sync box usage</param>
         /// <param name="result">(output) The result from getting sync box usage</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetSyncboxUsage(IAsyncResult aResult, out GetSyncboxUsageResult result)
+        internal CLError EndGetSyncboxUsage(IAsyncResult aResult, out GetSyncboxUsageResult result)
         {
             // declare the specific type of asynchronous result for getting sync box usage
             GenericAsyncResult<GetSyncboxUsageResult> castAResult;
@@ -4106,7 +4106,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetSyncboxUsage(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxUsage response)
+        internal CLError GetSyncboxUsage(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxUsage response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -5693,7 +5693,7 @@ namespace Cloud.REST
         /// <param name="friendlyName">The friendly name of the syncbox to set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUpdateSyncbox(AsyncCallback aCallback,
+        internal IAsyncResult BeginUpdateSyncbox(AsyncCallback aCallback,
             object aState,
             string friendlyName,
             int timeoutMilliseconds)
@@ -5811,7 +5811,7 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting updating the properties</param>
         /// <param name="result">(output) The result from updating the properties</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndUpdateSyncbox(IAsyncResult aResult, out SyncboxUpdateResult result)
+        internal CLError EndUpdateSyncbox(IAsyncResult aResult, out SyncboxUpdateResult result)
         {
             // declare the specific type of asynchronous result for updating the properties
             GenericAsyncResult<SyncboxUpdateResult> castAResult;
