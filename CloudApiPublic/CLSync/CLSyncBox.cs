@@ -100,6 +100,18 @@ namespace Cloud
         private readonly string _path;
 
         /// <summary>
+        /// The sync mode used with this syncbox.
+        /// </summary>
+        public CLSyncMode SyncMode
+        {
+            get
+            {
+                return _syncMode;
+            }
+        }
+        private CLSyncMode _syncMode;
+
+        /// <summary>
         /// Settings copied upon creation of this Syncbox
         /// </summary>
         public ICLSyncSettingsAdvanced CopiedSettings
@@ -535,6 +547,13 @@ namespace Cloud
                     {
                         throw new NullReferenceException("syncEngine must not be null");
                     }
+
+                    if (mode == CLSyncMode.CLSyncModeOnDemand)
+                    {
+                        throw new ArgumentException("CLSyncMode.CLSyncModeOnDemand is not supported");
+                    }
+
+                    _syncMode = mode;
 
                     // Start the sync engine
                     CLSyncStartStatus startStatus;

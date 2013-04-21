@@ -59,10 +59,6 @@ namespace Cloud.Interfaces
     public interface ICLSyncSettingsAdvanced : ICLSyncSettings, ICLCredentialsSettings
     {
         /// <summary>
-        /// True: Enable badging.
-        /// </summary>
-        bool BadgingEnabled { get; }
-        /// <summary>
         /// Location to store temporary downloads before they complete downloading and get moved to the final location;
         /// Use a different download folder path for each Syncbox or SyncEngine (the SyncEngine will clean out existing files in the provided directory);
         /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory

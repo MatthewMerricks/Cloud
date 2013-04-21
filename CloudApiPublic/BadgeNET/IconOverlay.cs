@@ -95,7 +95,7 @@ namespace Cloud.BadgeNET
                 CLTrace.Initialize(_syncSettings.TraceLocation, "Cloud", "log", _syncSettings.TraceLevel, _syncSettings.LogErrors);
 
                 // Just exit if badging is not enabled.
-                if (!_syncSettings.BadgingEnabled)
+                if (!(syncbox.SyncMode == CLSyncMode.CLSyncModeLiveWithShellExt))
                 {
                     _trace.writeToLog(9, "IconOverlay: Badging is not enabled. Exit.");
                     return null;

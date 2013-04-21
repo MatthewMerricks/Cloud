@@ -1295,7 +1295,8 @@ namespace SampleLiveSync.ViewModels
                     && _syncbox != null)
                 {
                     // start syncing
-                    CLError errorFromSyncboxStart = _syncbox.BeginSync(CLSyncMode.CLSyncModeLive);
+                    CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithShellExt : CLSyncMode.CLSyncModeLive;
+                    CLError errorFromSyncboxStart = _syncbox.BeginSync(syncMode);
                     if (errorFromSyncboxStart != null)
                     {
                         _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.Start: Msg: <{0}>.", errorFromSyncboxStart.errorDescription);

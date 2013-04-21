@@ -117,18 +117,6 @@ namespace Cloud
         private readonly string _deviceId;
 
         /// <summary>
-        /// True: Enable badging.
-        /// </summary>
-        public bool BadgingEnabled
-        {
-            get
-            {
-                return _badgingEnabled;
-            }
-        }
-        private readonly bool _badgingEnabled;
-
-        /// <summary>
         /// If null, a precalculated value will be used based on the local, non-roaming user's application data in the Cloud subdirectory
         /// </summary>
         public string TempDownloadFolderFullPath
@@ -185,7 +173,6 @@ namespace Cloud
                 true,
                 0,
                 null,
-                true,
                 null,
                 String.Empty,
                 CLDefinitions.HttpTimeoutDefaultMilliseconds,
@@ -206,7 +193,6 @@ namespace Cloud
                 true,
                 0,
                 null,
-                true,
                 null,
                 String.Empty,
                 CLDefinitions.HttpTimeoutDefaultMilliseconds,
@@ -220,7 +206,6 @@ namespace Cloud
                     bool traceExcludeAuthorization,
                     int traceLevel,
                     string deviceId,
-                    bool badgingEnabled,
                     string tempDownloadFolderFullPath,
                     string clientDescription,
                     int httpTimeoutMilliseconds,
@@ -245,7 +230,6 @@ namespace Cloud
             this._traceExcludeAuthorization = traceExcludeAuthorization;
             this._traceLevel = traceLevel;
             this._deviceId = deviceId;
-            this._badgingEnabled = badgingEnabled;
             this._tempDownloadFolderFullPath = tempDownloadFolderFullPath;
             this._clientDescription = clientDescription;
             this._httpTimeoutMilliseconds = httpTimeoutMilliseconds;
@@ -268,7 +252,6 @@ namespace Cloud
                 toCopy.TraceExcludeAuthorization,
                 toCopy.TraceLevel,
                 toCopy.DeviceId,
-                toCopy.BadgingEnabled,
                 toCopy.TempDownloadFolderFullPath,
                 toCopy.ClientDescription,
                 toCopy.HttpTimeoutMilliseconds,
