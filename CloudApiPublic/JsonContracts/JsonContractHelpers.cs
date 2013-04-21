@@ -411,7 +411,7 @@ namespace Cloud.JsonContracts
                 lock (SyncboxUsageSerializerLocker)
                 {
                     return _syncboxUsageSerializer
-                        ?? (_syncboxUsageSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUsage)));
+                        ?? (_syncboxUsageSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUsageResponse)));
                 }
             }
         }

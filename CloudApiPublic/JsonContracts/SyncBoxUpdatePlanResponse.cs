@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.UpdateSyncboxPlan"/>
+    /// Result from <see cref="Cloud.CLSyncbox.UpdateStoragePlan"/>
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary] // within Syncbox Syncbox
@@ -29,7 +29,7 @@ namespace Cloud.JsonContracts
         public string Message { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponsePlan, IsRequired = false)]
-        public CLStoragePlan Plan { get; set; }
+        public CLStoragePlanResponse Plan { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseSyncbox, IsRequired = false)]
         public Syncbox Syncbox { get; set; }

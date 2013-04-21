@@ -4003,7 +4003,7 @@ namespace Cloud.REST
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.SyncboxUsage result;
+                        JsonContracts.SyncboxUsageResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetSyncboxUsage(
                             castState.Item2,
@@ -4106,7 +4106,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError GetSyncboxUsage(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxUsage response)
+        internal CLError GetSyncboxUsage(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxUsageResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -4139,7 +4139,7 @@ namespace Cloud.REST
                 };
 
                 // run the HTTP communication and store the response object to the output parameter
-                response = Helpers.ProcessHttp<JsonContracts.SyncboxUsage>(
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxUsageResponse>(
                     null, // HTTP Get method does not have content
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query synx box usage (dynamic adding query string)
@@ -4154,7 +4154,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SyncboxUsage>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxUsageResponse>();
                 return ex;
             }
             return null;
@@ -5423,7 +5423,7 @@ namespace Cloud.REST
         /// <param name="planId">The ID of the plan to set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUpdateSyncboxPlan(AsyncCallback aCallback,
+        internal IAsyncResult BeginUpdateSyncboxPlan(AsyncCallback aCallback,
             object aState,
             long planId,
             int timeoutMilliseconds)
@@ -5541,7 +5541,7 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting updating the plan</param>
         /// <param name="result">(output) The result from updating the plan</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndUpdateSyncboxPlan(IAsyncResult aResult, out SyncboxUpdatePlanResult result)
+        internal CLError EndUpdateSyncboxPlan(IAsyncResult aResult, out SyncboxUpdatePlanResult result)
         {
             // declare the specific type of asynchronous result for updating the plan
             GenericAsyncResult<SyncboxUpdatePlanResult> castAResult;
@@ -5603,7 +5603,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncboxPlan(long planId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxUpdatePlanResponse response)
+        internal CLError UpdateSyncboxPlan(long planId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxUpdatePlanResponse response)
         {
             return UpdateSyncboxPlan(planId, timeoutMilliseconds, out status, out response, reservedForActiveSync: false);
         }

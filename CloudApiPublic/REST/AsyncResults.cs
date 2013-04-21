@@ -232,10 +232,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetSyncboxUsageResult : BaseCLHttpRestResult<JsonContracts.SyncboxUsage>
+    public sealed class GetSyncboxUsageResult : BaseCLHttpRestResult<JsonContracts.SyncboxUsageResponse>
     {
         // construct with all readonly properties
-        internal GetSyncboxUsageResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxUsage Response)
+        internal GetSyncboxUsageResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxUsageResponse Response)
             : base(Error, Status, Response) { }
     }
 

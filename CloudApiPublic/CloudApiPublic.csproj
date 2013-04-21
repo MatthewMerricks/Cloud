@@ -176,7 +176,7 @@
     <Compile Include="JsonContracts\SyncBoxUpdatePlanRequest.cs" />
     <Compile Include="JsonContracts\SyncBoxUpdatePlanResponse.cs" />
     <Compile Include="JsonContracts\ListPlansResponse.cs" />
-    <Compile Include="JsonContracts\CLStoragePlan.cs" />
+    <Compile Include="JsonContracts\CLStoragePlanResponse.cs" />
     <Compile Include="JsonContracts\SyncBoxIdOnly.cs" />
     <Compile Include="JsonContracts\SyncBoxHolder.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />
@@ -197,9 +197,10 @@
     <Compile Include="JsonContracts\SyncBox.cs" />
     <Compile Include="JsonContracts\SyncBoxMetadata.cs" />
     <Compile Include="JsonContracts\SyncBoxQuota.cs" />
-    <Compile Include="JsonContracts\SyncBoxUsage.cs" />
+    <Compile Include="JsonContracts\SyncBoxUsageResponse.cs" />
     <Compile Include="JsonContracts\UsedBytes.cs" />
     <Compile Include="JsonContracts\Videos.cs" />
+    <Compile Include="Model\CLStoragePlan.cs" />
     <Compile Include="Model\DelegateAndDataHolder.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\BasicMessage.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\IncrementCountMessage.cs" />

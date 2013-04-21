@@ -30,6 +30,6 @@ namespace Cloud.JsonContracts
         public string DeviceId { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseSyncboxQuota, IsRequired = false)]
-        public SyncboxUsage Quota { get; set; }
+        public SyncboxUsageResponse Quota { get; set; }
     }
 }

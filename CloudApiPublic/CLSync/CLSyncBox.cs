@@ -130,10 +130,10 @@ namespace Cloud
         {
             get
             {
-                return _friendlyName;
+                return _friendlyNameHolder.Value;
             }
         }
-        private readonly string _friendlyName;
+        private readonly GenericHolder<string> _friendlyNameHolder;
 
         /// <summary>
         /// The full path on the disk associated with this syncbox.
@@ -148,16 +148,28 @@ namespace Cloud
         private readonly string _path;
 
         /// <summary>
+        /// The ID of the storage plan to use for this syncbox.
+        /// </summary>
+        public long StoragePlanId
+        {
+            get
+            {
+                return _storagePlanIdHolder.Value;
+            }
+        }
+        private readonly GenericHolder<long> _storagePlanIdHolder;
+
+        /// <summary>
         /// The sync mode used with this syncbox.
         /// </summary>
         public CLSyncMode SyncMode
         {
             get
             {
-                return _syncMode;
+                return _syncModeHolder.Value;
             }
         }
-        private CLSyncMode _syncMode;
+        private readonly GenericHolder<CLSyncMode> _syncModeHolder;
 
         /// <summary>
         /// Settings copied upon creation of this Syncbox
@@ -232,7 +244,7 @@ namespace Cloud
                 // Save the parameters in properties.
                 this._credentialsHolder.Value = credentials;
                 this._syncboxId = syncboxId;
-                this._friendlyName = friendlyName;
+                this._friendlyNameHolder.Value = friendlyName;
                 this._path = path;
                 this._statusChangedCallback = statusChangedCallback;
                 this._statusChangedCallbackUserState = statusChangedCallbackUserState;
@@ -361,7 +373,7 @@ namespace Cloud
                         throw new ArgumentException("CLSyncMode.CLSyncModeOnDemand is not supported");
                     }
 
-                    _syncMode = mode;
+                    _syncModeHolder.Value = mode;
 
                     // Start the sync engine
                     CLSyncStartStatus startStatus;
@@ -1242,6 +1254,15 @@ namespace Cloud
         #endregion  // end List (list syncboxes in the cloud)
 
         #endregion  // end Public Static HTTP REST Methods
+
+        #region Public Instance Methods
+
+        public void UpdateCredentials(CLCredentials credentials)
+        {
+            Credentials = credentials;
+        }
+
+        #endregion // end Public Instance Methods
 
         #region Public Instance HTTP REST Methods
 
@@ -2560,16 +2581,16 @@ namespace Cloud
         }
         #endregion
 
-        #region GetSyncboxUsage
+        #region Usage (get the usage information for this syncbox from the cloud)
         /// <summary>
         /// Asynchronously starts getting the syncbox usage information from the cloud.
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass as a parameter when firing async callback</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass as a parameter when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUsage(AsyncCallback aCallback, object aState)
+        public IAsyncResult BeginUsage(AsyncCallback callback, object callbackUserState)
         {
-            return _httpRestClient.BeginGetSyncboxUsage(aCallback, aState, _copiedSettings.HttpTimeoutMilliseconds);
+            return _httpRestClient.BeginGetSyncboxUsage(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds);
         }
 
         /// <summary>
@@ -2590,11 +2611,11 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetSyncboxUsage(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxUsage response)
+        public CLError Usage(out CLHttpRestStatus status, out JsonContracts.SyncboxUsageResponse response)
         {
             return _httpRestClient.GetSyncboxUsage(_copiedSettings.HttpTimeoutMilliseconds, out status, out response);
         }
-        #endregion
+        #endregion  // end (get the usage information for this syncbox from the cloud)
 
         #region UpdateSyncboxExtendedMetadata
         /// <summary>
@@ -2711,61 +2732,73 @@ namespace Cloud
         //}
         #endregion
 
-        #region UpdateSyncboxPlan
+        #region UpdateStoragePlan (changes the storage plan associated with this syncbox in the cloud)
         /// <summary>
-        /// Asynchronously updates the plan on a sync box
+        /// Asynchronously updates the storage plan for a syncbox in the cloud.
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="planId">The ID of the plan to set</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass as a parameter when firing async callback</param>
+        /// <param name="storagePlan">The storage plan to set (new storage plan to use for this syncbox)</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUpdateSyncboxPlan(AsyncCallback aCallback,
-            object aState,
-            long planId,
-            int timeoutMilliseconds)
+        public IAsyncResult BeginUpdateStoragePlan(AsyncCallback callback,
+            object callbackUserState, CLStoragePlan storagePlan)
         {
-            return _httpRestClient.BeginUpdateSyncboxPlan(aCallback, aState, planId, timeoutMilliseconds, ReservedForActiveSync);
+            return _httpRestClient.BeginUpdateSyncboxPlan(callback, callbackUserState, storagePlan.Id, _copiedSettings.HttpTimeoutMilliseconds, ReservedForActiveSync);
         }
 
         /// <summary>
-        /// Finishes updating the storage plan on a sync box if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes updating the storage plan for this syncbox, if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting updating the plan</param>
-        /// <param name="result">(output) The result from updating the plan</param>
+        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) The result from completing the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndUpdateSyncboxPlan(IAsyncResult aResult, out SyncboxUpdatePlanResult result)
+        public CLError EndUpdateStoragePlan(IAsyncResult aResult, out SyncboxUpdatePlanResult result)
         {
-            return _httpRestClient.EndUpdateSyncboxPlan(aResult, out result);
+            CLError toReturn = _httpRestClient.EndUpdateSyncboxPlan(aResult, out result);
+            if (toReturn == null 
+                && result != null 
+                && result.Result != null 
+                && result.Result.Syncbox != null
+                && result.Result.Syncbox.PlanId != null)
+            {
+                this._storagePlanIdHolder.Value = result.Result.Syncbox.PlanId ?? 0;
+            }
+            return toReturn;
         }
 
         /// <summary>
-        /// Updates the plan on a sync box
+        /// Updates the storage plan for a syncbox in the cloud.  This is a synchronous method.
         /// </summary>
-        /// <param name="planId">The ID of the plan to set</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="storagePlan">The storage plan to set (new storage plan to use for this syncbox)</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncboxPlan(long planId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxUpdatePlanResponse response)
+        public CLError UpdateStoragePlan(CLStoragePlan storagePlan, out CLHttpRestStatus status, out JsonContracts.SyncboxUpdatePlanResponse response)
         {
-            return _httpRestClient.UpdateSyncboxPlan(planId, timeoutMilliseconds, out status, out response, ReservedForActiveSync);
+            CLError toReturn =  _httpRestClient.UpdateSyncboxPlan(storagePlan.Id, _copiedSettings.HttpTimeoutMilliseconds, out status, out response, ReservedForActiveSync);
+            if (toReturn == null && response != null && response.Plan != null && response.Plan.Id != null)
+            {
+                this._storagePlanIdHolder.Value = response.Plan.Id ?? 0;
+            }
+            return toReturn;
         }
-        #endregion
+        #endregion  // end (changes the storage plan associated with this syncbox in the cloud)
 
-        #region Update (Update a syncbox in the cloud)
+        #region UpdateFriendlyName (Update the friendly name for a syncbox in the cloud)
         /// <summary>
         /// Asynchronously updates the syncbox properties in the cloud.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">User state to pass when firing async callback</param>
-        /// <remarks>Note: The CLSyncbox.FriendlyName property must be specified.</remarks>
+        /// <param name="friendlyName">The friendly name of this syncbox.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the response</returns>
-        public IAsyncResult BeginUpdateSyncbox(AsyncCallback callback,
-            object callbackUserState)
+        /// <remarks>The FriendlyName property of this object will also be updated on success.</remarks>
+        public IAsyncResult BeginUpdateFriendlyName(AsyncCallback callback,
+            object callbackUserState,
+            string friendlyName)
         {
-            return _httpRestClient.BeginUpdateSyncbox(callback, callbackUserState, this.FriendlyName, _copiedSettings.HttpTimeoutMilliseconds, ReservedForActiveSync);
+            return _httpRestClient.BeginUpdateSyncbox(callback, callbackUserState, friendlyName, _copiedSettings.HttpTimeoutMilliseconds, ReservedForActiveSync);
         }
 
         /// <summary>
@@ -2775,23 +2808,34 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the operation</param>
         /// <param name="result">(output) The result from the asynchronous operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputting the result, if any</returns>
-        public CLError EndUpdateSyncbox(IAsyncResult aResult, out SyncboxUpdateResult result)
+        public CLError EndUpdateFriendlyName(IAsyncResult aResult, out SyncboxUpdateResult result)
         {
-            return _httpRestClient.EndUpdateSyncbox(aResult, out result);
+            CLError toReturn =  _httpRestClient.EndUpdateSyncbox(aResult, out result);
+            if (toReturn == null && result != null && result.Result != null && result.Result.Syncbox != null)
+            {
+                _friendlyNameHolder.Value = result.Result.Syncbox.FriendlyName;   // update our property too
+            }
+            return toReturn;
         }
 
         /// <summary>
         /// Updates the properties of a syncbox in the cloud.  This is a synchronous operation.
         /// </summary>
+        /// <param name="friendlyName">The friendly name of this syncbox.</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
-        /// <remarks>Note: The CLSyncbox.FriendlyName property must be specified.</remarks>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncbox(out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        /// <remarks>The FriendlyName property of this object will also be updated on success.</remarks>
+        public CLError UpdateFriendlyName(string friendlyName, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
         {
-            return _httpRestClient.UpdateSyncbox(this.FriendlyName, _copiedSettings.HttpTimeoutMilliseconds, out status, out response, ReservedForActiveSync);
+            CLError toReturn = _httpRestClient.UpdateSyncbox(friendlyName, _copiedSettings.HttpTimeoutMilliseconds, out status, out response, ReservedForActiveSync);
+            if (toReturn == null && response != null)
+            {
+                _friendlyNameHolder.Value = response.Syncbox.FriendlyName;       // update our local copy
+            }
+            return toReturn;
         }
-        #endregion  // end Update (Update a syncbox in the cloud)
+        #endregion  // end UpdateFriendlyName (Update the friendly namd for a syncbox in the cloud)
 
         #region DeleteSyncbox
         /// <summary>

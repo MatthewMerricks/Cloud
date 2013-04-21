@@ -1,5 +1,5 @@
 ﻿//
-// CLStoragePlan.cs
+// CLStoragePlanResponse.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -19,7 +19,7 @@ namespace Cloud.JsonContracts
     /// Contains actual response properties for <see cref="ListPlansResponse"/>
     /// </summary>
     [DataContract]
-    public sealed class CLStoragePlan
+    public sealed class CLStoragePlanResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponsePlan_Id, IsRequired = false)]
         public Nullable<long> Id { get; set; }
