@@ -5873,7 +5873,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncbox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        internal CLError UpdateSyncbox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
         {
             return UpdateSyncbox(friendlyName, timeoutMilliseconds, out status, out response, reservedForActiveSync: false);
         }
