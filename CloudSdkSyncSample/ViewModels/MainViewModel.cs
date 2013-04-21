@@ -1233,7 +1233,6 @@ namespace SampleLiveSync.ViewModels
                                 CLSyncboxCreationStatus syncboxStatus;
                                 CLError errorCreateSyncbox = CLSyncbox.AllocAndInit(
                                     syncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
-                                    friendlyName: null,
                                     credentials: syncCredentials,
                                     path: SettingsAdvancedImpl.Instance.SyncRoot,
                                     syncbox: out _syncbox,
