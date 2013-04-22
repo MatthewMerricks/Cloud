@@ -2167,7 +2167,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.PendingResponse), JsonContractHelpers.PendingResponseSerializer },
             { typeof(JsonContracts.PushResponse), JsonContractHelpers.PushResponseSerializer },
             { typeof(JsonContracts.To), JsonContractHelpers.ToSerializer },
-            { typeof(JsonContracts.Event), JsonContractHelpers.EventSerializer },
+            { typeof(JsonContracts.FileChangeResponse), JsonContractHelpers.EventSerializer },
             { typeof(JsonContracts.FileVersion[]), JsonContractHelpers.FileVersionsSerializer },
             //{ typeof(JsonContracts.UsedBytes), JsonContractHelpers.UsedBytesSerializer }, // deprecated
             { typeof(JsonContracts.Pictures), JsonContractHelpers.PicturesSerializer },
@@ -2184,7 +2184,7 @@ namespace Cloud.Static
             #region platform management
             { typeof(JsonContracts.SyncboxResponse), JsonContractHelpers.CreateSyncboxSerializer },
             { typeof(JsonContracts.ListSyncboxes), JsonContractHelpers.ListSyncboxesSerializer },
-            { typeof(JsonContracts.ListPlansResponse), JsonContractHelpers.ListPlansSerializer },
+            { typeof(JsonContracts.ListStoragePlansResponse), JsonContractHelpers.ListPlansSerializer },
             { typeof(JsonContracts.SyncboxUpdatePlanResponse), JsonContractHelpers.SyncboxUpdatePlanResponseSerializer },
             { typeof(JsonContracts.SessionCreateResponse), JsonContractHelpers.SessionCreateResponseSerializer },
             { typeof(JsonContracts.ListSessionsResponse), JsonContractHelpers.ListSessionsSerializer },

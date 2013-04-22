@@ -6771,7 +6771,7 @@ namespace Cloud.Sync
                 #region delegate definitions for Sync To
                 convertSyncToEventToFileChangePart1ForNullEventMetadata implementationConvertSyncToEventToFileChangePart1ForNullEventMetadata =
                     delegate(
-                        Event currentEvent,
+                        FileChangeResponse currentEvent,
                         IEnumerable<PossiblyStreamableFileChange> innerToCommunicate,
                         out FilePath findNewPath,
                         out FilePath findOldPath,
@@ -6819,7 +6819,7 @@ namespace Cloud.Sync
                 convertSyncToEventToFileChangePart1ForNonNullEventMetadata implementationConvertSyncToEventToFileChangePart1ForNonNullEventMetadata =
                     delegate(
                         DelegateAndDataHolder findPaths,
-                        Event currentEvent,
+                        FileChangeResponse currentEvent,
                         out FilePath findNewPath,
                         out FilePath findOldPath,
                         out string findHash,
@@ -6867,7 +6867,7 @@ namespace Cloud.Sync
 
                 convertSyncToEventToFileChangePart2 implementationConvertSyncToEventToFileChangePart2 =
                     delegate(
-                        Event currentEvent,
+                        FileChangeResponse currentEvent,
                         FilePath findNewPath,
                         FilePath findOldPath,
                         string findHash,
@@ -7045,7 +7045,7 @@ namespace Cloud.Sync
                     new
                     {
                         commonThisEngine = this,
-                        currentEvent = new GenericHolder<JsonContracts.Event>(null),
+                        currentEvent = new GenericHolder<JsonContracts.FileChangeResponse>(null),
                         serverUidsToPath = serverUidsToPath,
                         pathsToServerUid = pathsToServerUid,
                         matchedChange = new GenericHolder<Nullable<PossiblyStreamableFileChange>>(null)
@@ -7331,7 +7331,7 @@ namespace Cloud.Sync
                             SyncId = syncString, // previous sync id, server should send all newer events
                             Events = currentBatch
                                 .Where((currentEvent, currentEventIndex) => !communicationArrayPrecheckErrorIndexes.Contains(batchNumber * CLDefinitions.SyncConstantsMaximumSyncToEvents + currentEventIndex))
-                                .Select(currentEvent => new Event() // fill in the events from the current batch, requires reselection
+                                .Select(currentEvent => new FileChangeResponse() // fill in the events from the current batch, requires reselection
                                 {
                                     // action is the FileChangeType plus file system object type combined into a string
                                     Action =
@@ -7505,14 +7505,14 @@ namespace Cloud.Sync
                         else
                         {
                             // store the previous events
-                            Event[] previousEvents = deserializedResponse.Events;
+                            FileChangeResponse[] previousEvents = deserializedResponse.Events;
                             // store the current batch events
-                            Event[] newEvents = currentBatchResponse.Events;
+                            FileChangeResponse[] newEvents = currentBatchResponse.Events;
 
                             // use the current batch as the base object to process (will therefore take properties like the sync id from the latest batch)
                             deserializedResponse = currentBatchResponse;
                             // assign a new event array the size of the combined event lengths
-                            deserializedResponse.Events = new Event[previousEvents.Length + newEvents.Length];
+                            deserializedResponse.Events = new FileChangeResponse[previousEvents.Length + newEvents.Length];
                             // copy the first portion of the events from the previous events
                             previousEvents.CopyTo(deserializedResponse.Events, 0);
                             // copy the second portion of the events from the current batch events
@@ -7536,7 +7536,7 @@ namespace Cloud.Sync
 
                     // Create a Dictionary to relate SyncTo conflict events to possible corresponding SyncFrom events.
                     //RKSCHANGE: Begin
-                    Dictionary<Event, Event> syncToConflictEventToSyncFromRelatedEvent = new Dictionary<Event, Event>();
+                    Dictionary<FileChangeResponse, FileChangeResponse> syncToConflictEventToSyncFromRelatedEvent = new Dictionary<FileChangeResponse, FileChangeResponse>();
                     //RKSCHANGE: End
 
                     // if there are events in the response to process, then loop through all events looking for duplicates between Sync From and Sync To
@@ -7555,7 +7555,7 @@ namespace Cloud.Sync
                             try
                             {
                                 // grab the current event
-                                Event currentEvent = deserializedResponse.Events[currentEventIndex];
+                                FileChangeResponse currentEvent = deserializedResponse.Events[currentEventIndex];
 
                                 bool isRootFolder = (currentEvent.Metadata != null && currentEvent.Metadata.Name == string.Empty && string.IsNullOrEmpty(currentEvent.Metadata.ToName)); // special event on SID "0" for root folder
 
@@ -7653,7 +7653,7 @@ namespace Cloud.Sync
                             // try/catch check if the Sync From event is duplicated from a Sync To event, failing silently
                             try
                             {
-                                Event fromEvent = deserializedResponse.Events[currentSyncFromEventIndex];
+                                FileChangeResponse fromEvent = deserializedResponse.Events[currentSyncFromEventIndex];
 
                                 // If the current Sync From event's path is found in the paths for Sync To events, then add the current Sync From event index as duplicate
                                 int outIndex;
@@ -7664,7 +7664,7 @@ namespace Cloud.Sync
                                     // Test specifically if the matched sync from and sync to is for a "conflict" status Sync To.
                                     // We still wish to ignore SyncFrom by adding it to duplicatedEvents below, but we also add the SyncTo(conflict)/SyncFrom events to a dictionary to track this pair of 
                                     // related events for later conflict processing.
-                                    Event syncToConflictEvent = deserializedResponse.Events[outIndex];
+                                    FileChangeResponse syncToConflictEvent = deserializedResponse.Events[outIndex];
                                     if (syncToConflictEvent.Header.Status == CLDefinitions.CLEventTypeConflict
 
                                         // also need to check that the sync from event is usable as a file download
@@ -7712,13 +7712,13 @@ namespace Cloud.Sync
                     // create a dictionary mapping event id to changes which were moved as dependencies under new pseudo-Sync From changes (i.e. conflict)
                     Dictionary<long, PossiblyStreamableFileChange[]> changesConvertedToDependencies = new Dictionary<long, PossiblyStreamableFileChange[]>();
 
-                    Dictionary<Event, FileChangeWithDependencies> syncToConflictEventToSyncFromRelatedFileChange = new Dictionary<Event, FileChangeWithDependencies>();
+                    Dictionary<FileChangeResponse, FileChangeWithDependencies> syncToConflictEventToSyncFromRelatedFileChange = new Dictionary<FileChangeResponse, FileChangeWithDependencies>();
 
                     //RKSCHANGE: Begin
                     // Loop through Dictionary<Event, Event> of SyncFrom events related to matching SyncTo conflict events and build FileChange objects for the SyncFrom Events.
                     // Rebuild a new Dictionary<Event, FileChange> from the SyncTo conflict events and the SyncFrom matching FileChanges.
                     // Build Sync From FileChange via same or similar logic to below, but don't process it
-                    foreach (KeyValuePair<Event, Event> pairSyncToConflictEventToSyncFromRelatedEvent in syncToConflictEventToSyncFromRelatedEvent)
+                    foreach (KeyValuePair<FileChangeResponse, FileChangeResponse> pairSyncToConflictEventToSyncFromRelatedEvent in syncToConflictEventToSyncFromRelatedEvent)
                     {
                         // full path for the destination of the event
                         FilePath findNewPath;
@@ -7804,7 +7804,7 @@ namespace Cloud.Sync
                         if (duplicatedEvents.BinarySearch(currentEventIndex) < 0)
                         {
                             // grab the current event by index
-                            Event currentEvent = deserializedResponse.Events[currentEventIndex];
+                            FileChangeResponse currentEvent = deserializedResponse.Events[currentEventIndex];
 
                             bool isRootFolder = (currentEvent.Metadata != null && currentEvent.Metadata.Name == string.Empty && string.IsNullOrEmpty(currentEvent.Metadata.ToName)); // special event on SID "0" for root folder
 
@@ -8295,7 +8295,7 @@ namespace Cloud.Sync
                                                                             }
 
                                                                             CLHttpRestStatus postDuplicateChangeStatus;
-                                                                            JsonContracts.Event postDuplicateChangeResult;
+                                                                            JsonContracts.FileChangeResponse postDuplicateChangeResult;
                                                                             CLError postDuplicateChange = httpRestClient.PostFileChange(
                                                                                 duplicateChange,
                                                                                 HttpTimeoutMilliseconds,
@@ -9028,7 +9028,7 @@ namespace Cloud.Sync
 
                                                                             if (createOldPathFileChange)
                                                                             {
-                                                                                Event pseudoSyncFromDownloadEvent = new Event()
+                                                                                FileChangeResponse pseudoSyncFromDownloadEvent = new FileChangeResponse()
                                                                                 {
                                                                                     Metadata = oldPathMetadataRevision,
                                                                                     Action = CLDefinitions.CLEventTypeAddFile,
@@ -10089,7 +10089,7 @@ namespace Cloud.Sync
                                                             }
 
                                                             CLHttpRestStatus postDuplicateChangeStatus;
-                                                            JsonContracts.Event postDuplicateChangeResult;
+                                                            JsonContracts.FileChangeResponse postDuplicateChangeResult;
                                                             CLError postDuplicateChange = httpRestClient.PostFileChange(
                                                                 duplicateChange,
                                                                 HttpTimeoutMilliseconds,
@@ -10369,7 +10369,7 @@ namespace Cloud.Sync
             }
         }
         private delegate Nullable<PossiblyStreamableFileChange> convertSyncToEventToFileChangePart1ForNullEventMetadata(
-            Event currentEvent,
+            FileChangeResponse currentEvent,
             IEnumerable<PossiblyStreamableFileChange> toCommunicate,
             out FilePath findNewPath,
             out FilePath findOldPath,
@@ -10382,7 +10382,7 @@ namespace Cloud.Sync
             out string findMimeType);
         private delegate void convertSyncToEventToFileChangePart1ForNonNullEventMetadata(
             DelegateAndDataHolder findPaths,
-            Event currentEvent,
+            FileChangeResponse currentEvent,
             out FilePath findNewPath,
             out FilePath findOldPath,
             out string findHash,
@@ -10393,7 +10393,7 @@ namespace Cloud.Sync
             out string findRevision,
             out string findMimeType);
         private delegate FileChangeWithDependencies convertSyncToEventToFileChangePart2(
-            Event currentEvent,
+            FileChangeResponse currentEvent,
             FilePath findNewPath,
             FilePath findOldPath,
             string findHash,
@@ -10408,11 +10408,11 @@ namespace Cloud.Sync
             string findStorageKey,
             string findMimeType);
 
-        private static void AppendRandomSubSecondTicksToSyncFromFolderCreationTimes(Event[] deserializedResponseEvents)
+        private static void AppendRandomSubSecondTicksToSyncFromFolderCreationTimes(FileChangeResponse[] deserializedResponseEvents)
         {
             // loop through events to add random sub-seconds to creation time for Sync From folder creations so that the time can be used by the
             // FileMonitor MonitorAgent later as a way to compare folder deletions versus creations to convert to moves
-            foreach (JsonContracts.Event toModifyTime in deserializedResponseEvents)
+            foreach (JsonContracts.FileChangeResponse toModifyTime in deserializedResponseEvents)
             {
                 if (toModifyTime.Header != null
                     && string.IsNullOrEmpty(toModifyTime.Header.Status) // condition for SyncFrom

@@ -18,7 +18,7 @@ namespace Cloud.JsonContracts
     internal sealed class PushResponse
     {
         [DataMember(Name = CLDefinitions.CLSyncEvents, IsRequired = false)]
-        public Event[] Events { get; set; }
+        public FileChangeResponse[] Events { get; set; }
 
         [DataMember(Name = CLDefinitions.ResponsePendingCount, IsRequired = false)]
         public Nullable<int> PendingCount { get; set; }

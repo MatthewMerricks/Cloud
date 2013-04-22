@@ -18,7 +18,7 @@ namespace Cloud.JsonContracts
     internal sealed class To
     {
         [DataMember(Name = CLDefinitions.CLSyncEvents)]
-        public Event[] Events { get; set; }
+        public FileChangeResponse[] Events { get; set; }
 
         [DataMember(Name = CLDefinitions.CLSyncID)]
         public string SyncId { get; set; }

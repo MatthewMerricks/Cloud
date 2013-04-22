@@ -130,20 +130,20 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class PostFileChangeResult : BaseCLHttpRestResult<JsonContracts.Event>
+    public sealed class FileChangeResult : BaseCLHttpRestResult<JsonContracts.FileChangeResponse>
     {
         // construct with all readonly properties
-        internal PostFileChangeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Event Response)
+        internal FileChangeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.FileChangeResponse Response)
             : base(Error, Status, Response) { }
     }
 
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class UndoDeletionFileChangeResult : BaseCLHttpRestResult<JsonContracts.Event>
+    public sealed class UndoDeletionFileChangeResult : BaseCLHttpRestResult<JsonContracts.FileChangeResponse>
     {
         // construct with all readonly properties
-        internal UndoDeletionFileChangeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Event Response)
+        internal UndoDeletionFileChangeResult(CLError Error, CLHttpRestStatus Status, JsonContracts.FileChangeResponse Response)
             : base(Error, Status, Response) { }
     }
 
@@ -172,10 +172,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class CopyFileResult : BaseCLHttpRestResult<JsonContracts.Event>
+    public sealed class CopyFileResult : BaseCLHttpRestResult<JsonContracts.FileChangeResponse>
     {
         // construct with all readonly properties
-        internal CopyFileResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Event Response)
+        internal CopyFileResult(CLError Error, CLHttpRestStatus Status, JsonContracts.FileChangeResponse Response)
             : base(Error, Status, Response) { }
     }
 
@@ -292,10 +292,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class ListPlansResult : BaseCLHttpRestResult<JsonContracts.ListPlansResponse>
+    public sealed class ListStoragePlansResult : BaseCLHttpRestResult<JsonContracts.ListStoragePlansResponse>
     {
         // construct with all readonly properties
-        internal ListPlansResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListPlansResponse Response)
+        internal ListStoragePlansResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListStoragePlansResponse Response)
             : base(Error, Status, Response) { }
     }
 

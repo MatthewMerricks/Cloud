@@ -15,7 +15,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// An inner object containing header properties for an <see cref="Event"/>
+    /// An inner object containing header properties for an <see cref="FileChangeResponse"/>
     /// </summary>
     [DataContract]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]

@@ -215,13 +215,13 @@ namespace Cloud
             ICLCredentialsSettings settings = null)
         {
             // create the asynchronous result to return
-            GenericAsyncResult<ListPlansResult> toReturn = new GenericAsyncResult<ListPlansResult>(
+            GenericAsyncResult<ListStoragePlansResult> toReturn = new GenericAsyncResult<ListStoragePlansResult>(
                 aCallback,
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<ListPlansResult>, int, ICLCredentialsSettings> asyncParams =
-                new Tuple<GenericAsyncResult<ListPlansResult>, int, ICLCredentialsSettings>(
+            Tuple<GenericAsyncResult<ListStoragePlansResult>, int, ICLCredentialsSettings> asyncParams =
+                new Tuple<GenericAsyncResult<ListStoragePlansResult>, int, ICLCredentialsSettings>(
                     toReturn,
                     timeoutMilliseconds,
                     settings);
@@ -230,7 +230,7 @@ namespace Cloud
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<ListPlansResult>, int, ICLCredentialsSettings> castState = state as Tuple<GenericAsyncResult<ListPlansResult>, int, ICLCredentialsSettings>;
+                Tuple<GenericAsyncResult<ListStoragePlansResult>, int, ICLCredentialsSettings> castState = state as Tuple<GenericAsyncResult<ListStoragePlansResult>, int, ICLCredentialsSettings>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -248,7 +248,7 @@ namespace Cloud
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.ListPlansResponse result;
+                        JsonContracts.ListStoragePlansResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = ListPlans(
                             castState.Item2,
@@ -260,7 +260,7 @@ namespace Cloud
                         if (castState.Item1 != null)
                         {
                             castState.Item1.Complete(
-                                new ListPlansResult(
+                                new ListStoragePlansResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
                                     result), // the specific type of result for this operation
@@ -291,16 +291,16 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting listing the plans</param>
         /// <param name="result">(output) The result from listing the plans</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndListPlans(IAsyncResult aResult, out ListPlansResult result)
+        public CLError EndListPlans(IAsyncResult aResult, out ListStoragePlansResult result)
         {
             // declare the specific type of asynchronous result for plan listing
-            GenericAsyncResult<ListPlansResult> castAResult;
+            GenericAsyncResult<ListStoragePlansResult> castAResult;
 
             // try/catch to try casting the asynchronous result as the type for plan listing and pull the result (possibly incomplete), on catch default the output and return the error
             try
             {
                 // try cast the asynchronous result as the type for listing plans
-                castAResult = aResult as GenericAsyncResult<ListPlansResult>;
+                castAResult = aResult as GenericAsyncResult<ListStoragePlansResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -313,7 +313,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                result = Helpers.DefaultForType<ListPlansResult>();
+                result = Helpers.DefaultForType<ListStoragePlansResult>();
                 return ex;
             }
 
@@ -353,7 +353,7 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ListPlans(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.ListPlansResponse response, ICLCredentialsSettings settings = null)
+        public CLError ListPlans(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.ListStoragePlansResponse response, ICLCredentialsSettings settings = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -372,7 +372,7 @@ namespace Cloud
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                response = Helpers.ProcessHttp<JsonContracts.ListPlansResponse>(
+                response = Helpers.ProcessHttp<JsonContracts.ListStoragePlansResponse>(
                     null, // no request body for listing plans
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthListPlans,
@@ -387,7 +387,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.ListPlansResponse>();
+                response = Helpers.DefaultForType<JsonContracts.ListStoragePlansResponse>();
                 return ex;
             }
             return null;

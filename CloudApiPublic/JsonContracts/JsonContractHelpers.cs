@@ -93,7 +93,7 @@ namespace Cloud.JsonContracts
                 lock (EventSerializerLocker)
                 {
                     return _eventSerializer
-                        ?? (_eventSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Event)));
+                        ?? (_eventSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileChangeResponse)));
                 }
             }
         }
@@ -624,7 +624,7 @@ namespace Cloud.JsonContracts
                 lock (ListPlansSerializerLocker)
                 {
                     return _listPlansSerializer
-                        ?? (_listPlansSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ListPlansResponse)));
+                        ?? (_listPlansSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ListStoragePlansResponse)));
                 }
             }
         }

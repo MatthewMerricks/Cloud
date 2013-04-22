@@ -205,7 +205,11 @@ namespace Cloud.Static
         /// <summary>
         /// The current Syncbox is actively syncing so cannot make modifications
         /// </summary>
-        ReservedForActiveSync
+        ReservedForActiveSync,
+        /// <summary>
+        /// Internal completion routine failed
+        /// </summary>
+        CompletionFailure
     }
 
     /// <summary>

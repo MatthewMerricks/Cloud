@@ -1,5 +1,5 @@
 //
-// Event.cs
+// FileChangeResponse.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -15,11 +15,11 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.REST.CLHttpRest.PostFileChange"/>, <see cref="Cloud.REST.CLHttpRest.UndoDeletionFileChange"/>, and <see cref="Cloud.REST.CLHttpRest.CopyFile"/>
+    /// Result from <see cref="Cloud.CLSyncbox.SendFileChange"/>, <see cref="Cloud.REST.CLHttpRest.UndoDeletionFileChange"/>, and <see cref="Cloud.REST.CLHttpRest.CopyFile"/>
     /// </summary>
     [DataContract]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public sealed class Event
+    public sealed class FileChangeResponse
     {
         [DataMember(Name = CLDefinitions.CLSyncEvent, IsRequired = false)]
         public string Action { get; set; }
