@@ -119,7 +119,7 @@ namespace Cloud.FileMonitor
         private string CurrentFolderPath;
 
         // Locker allowing simultaneous reads on CurrentFolderPath and only locking on rare condition when root folder path is changed
-        private ReaderWriterLockSlim CurrentFolderPathLocker = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim CurrentFolderPathLocker = new ReaderWriterLockSlim();
 
         // System objects that runs the file system monitoring (FolderWatcher for folder renames, FileWatcher for all files and folders that aren't renamed):
         private FileSystemWatcher FolderWatcher = null;
@@ -3100,6 +3100,34 @@ namespace Cloud.FileMonitor
         {
             if (!this.Disposed)
             {
+                // Run dispose on inner managed objects based on disposing condition
+                if (disposing)
+                {
+                    // cleanup FileSystemWatchers
+                    StopWatchers();
+
+                    try
+                    {
+                        InitialIndexLocker.Dispose();
+                    }
+                    catch
+                    {
+                    }
+
+                    try
+                    {
+                        CurrentFolderPathLocker.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                lock (QueuesTimer.TimerRunningLocker)
+                {
+                    QueuesTimer.TriggerTimerCompletionImmediately();
+                }
+
                 // lock on current object for changing RunningStatus so it cannot be stopped/started simultaneously
                 lock (this)
                 {
@@ -3107,20 +3135,6 @@ namespace Cloud.FileMonitor
                     Disposed = true;
                 }
 
-                // Run dispose on inner managed objects based on disposing condition
-                if (disposing)
-                {
-                    // cleanup FileSystemWatchers
-                    StopWatchers();
-
-                    InitialIndexLocker.Dispose();
-                }
-
-                lock (QueuesTimer.TimerRunningLocker)
-                {
-                    QueuesTimer.TriggerTimerCompletionImmediately();
-                }
-                
                 // Dispose local unmanaged resources last
             }
         }

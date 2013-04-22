@@ -7,6 +7,7 @@
 
 using Cloud.Interfaces;
 using Cloud.REST;
+using Cloud.Static;
 using System;
 
 namespace Cloud.Model

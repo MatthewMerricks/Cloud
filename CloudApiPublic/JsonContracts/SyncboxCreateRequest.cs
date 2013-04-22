@@ -1,8 +1,8 @@
 ﻿//
-// SyncboxForUpdateRequest.cs
+// SyncboxCreateRequest.cs
 // Cloud Windows
 //
-// Created By BobS.
+// Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Cloud.Model;
@@ -16,11 +16,14 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Inner request to change the properties of a sync box.
+    /// Contains properties for a syncbox create request.
     /// </summary>
     [DataContract]
-    public sealed class SyncboxUpdateFriendlyNameRequest
+    public sealed class SyncboxCreateRequest
     {
+        [DataMember(Name = CLDefinitions.RESTResponseSyncboxPlanId, IsRequired = false)]
+        public Nullable<long> PlanId { get; set; }
+
         [DataMember(Name = CLDefinitions.RESTResponseSyncboxFriendlyName, IsRequired = false)]
         public string FriendlyName { get; set; }
     }

@@ -5517,7 +5517,7 @@ namespace Cloud.REST
                 response = Helpers.ProcessHttp<JsonContracts.SyncboxResponse>(new JsonContracts.SyncboxUpdateRequest() // json contract object for sync box update request
                 {
                     SyncboxId = _syncbox.SyncboxId,
-                    Syncbox = new JsonContracts.SyncboxForUpdateRequest()
+                    Syncbox = new JsonContracts.SyncboxUpdateFriendlyNameRequest()
                     {
                         FriendlyName = friendlyName
                     }

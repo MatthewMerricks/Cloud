@@ -1,5 +1,5 @@
 ﻿//
-// SyncboxHolder.cs
+// SyncboxResponse.cs
 // Cloud Windows
 //
 // Created By DavidBruck.

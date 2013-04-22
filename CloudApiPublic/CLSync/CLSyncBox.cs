@@ -42,7 +42,7 @@ namespace Cloud
     /// <summary>
     /// Represents a Syncbox in Cloud where everything is stored
     /// </summary>
-    public sealed class CLSyncbox
+    public sealed class CLSyncbox : IDisposable
     {
         #region Private Fields
         
@@ -51,23 +51,12 @@ namespace Cloud
         private static readonly object _startLocker = new object();
 
         private CLSyncEngine _syncEngine = null;
-		private readonly System.Threading.WaitCallback _statusChangedCallback = null;
-        private readonly object _statusChangedCallbackUserState = null;
         private bool _isStarted = false;
+        private bool Disposed = false;   // This stores if this current instance has been disposed (defaults to not disposed)
+        private ReaderWriterLockSlim _propertyChangeLocker = new ReaderWriterLockSlim();  // for locking any reads and writes to the changeable properties.
+
 
         #endregion  // end Private Fields
-
-        #region Internal Fields
-
-        internal bool IsModifyingSyncboxViaPublicAPICalls
-        {
-            get
-            {
-                return _httpRestClient.IsModifyingSyncboxViaPublicAPICalls;
-            }
-        }
-        
-        #endregion  // end Internal Fields
 
         #region Internal Properties
 
@@ -80,7 +69,6 @@ namespace Cloud
             {
                 lock (_credentialsHolder)
                 {
-
                     return _credentialsHolder.Value;
                 }
             }
@@ -93,6 +81,17 @@ namespace Cloud
             }
         }
         private readonly GenericHolder<CLCredentials> _credentialsHolder = new GenericHolder<CLCredentials>();
+
+        /// <summary>
+        /// true: The user is busy in a public API call that is modifying the syncbox.
+        /// </summary>
+        internal bool IsModifyingSyncboxViaPublicAPICalls
+        {
+            get
+            {
+                return _httpRestClient.IsModifyingSyncboxViaPublicAPICalls;
+            }
+        }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -130,7 +129,11 @@ namespace Cloud
         {
             get
             {
-                return _friendlyNameHolder.Value;
+                _propertyChangeLocker.EnterReadLock();
+                string toReturn = _friendlyNameHolder.Value;
+                _propertyChangeLocker.ExitReadLock();
+
+                return toReturn;
             }
         }
         private readonly GenericHolder<string> _friendlyNameHolder;
@@ -195,36 +198,29 @@ namespace Cloud
 
         #endregion  // end Public Events
 
-        #region Private Constructor
+        #region Private Constructors
 
         private CLSyncbox(
             long syncboxId,
             CLCredentials credentials,
             string path,
-            ref CLSyncboxCreationStatus status,
+            ref CLHttpRestStatus status,
             ICLSyncSettings Settings,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
-            object getNewCredentialsCallbackUserState = null,
-            System.Threading.WaitCallback statusChangedCallback = null,
-            object statusChangedCallbackUserState = null
+            object getNewCredentialsCallbackUserState = null
             )
         {
             // check input parameters
 
             if (syncboxId == 0)
             {
-                status = CLSyncboxCreationStatus.ErrorSyncboxIdZero;
+                status = CLHttpRestStatus.BadRequest;  ///&&&&&&& fix this
                 throw new ArgumentException("syncboxId must not be null.");
-            }
-            if (String.IsNullOrWhiteSpace(path))
-            {
-                status = CLSyncboxCreationStatus.ErrorPathNotSpecified;
-                throw new ArgumentException("path must be specified.");
             }
 
             if (credentials == null)
             {
-                status = CLSyncboxCreationStatus.ErrorNullCredentials;
+                status = CLHttpRestStatus.BadRequest;  ///&&&&&&& fix this
                 throw new NullReferenceException("Credentials cannot be null");
             }
 
@@ -245,8 +241,6 @@ namespace Cloud
                 this.Credentials = credentials;
                 this._syncboxId = syncboxId;
                 this._path = path;
-                this._statusChangedCallback = statusChangedCallback;
-                this._statusChangedCallbackUserState = statusChangedCallbackUserState;
 
                 // Initialize trace in case it is not already initialized.
                 CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
@@ -264,14 +258,14 @@ namespace Cloud
                 if (createRestClientError != null)
                 {
                     _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());
-                    status = CLSyncboxCreationStatus.ErrorCreatingRestClient;
+                    status = CLHttpRestStatus.BadRequest;  ///&&&&&&& fix this
                     throw new AggregateException("Error creating REST HTTP client", createRestClientError.GrabExceptions());
                 }
                 if (_httpRestClient == null)
                 {
                     const string nullRestClient = "Unknown error creating HTTP REST client";
                     _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}.", nullRestClient);
-                    status = CLSyncboxCreationStatus.ErrorCreatingRestClient;
+                    status = CLHttpRestStatus.BadRequest;  ///&&&&&&& fix this
                     throw new NullReferenceException(nullRestClient);
                 }
 
@@ -279,7 +273,7 @@ namespace Cloud
                 // properties from the server and set them into this local object's properties.
                 CLHttpRestStatus statusFromStatus;
                 JsonContracts.SyncboxResponse response;
-                CLError errorFromStatus = Status(out statusFromStatus, out response);
+                CLError errorFromStatus = GetStatus(out statusFromStatus, out response);
                 if (errorFromStatus != null)
                 {
                     throw new AggregateException("Error getting syncbox status from Cloud", errorFromStatus.GrabExceptions());
@@ -290,12 +284,179 @@ namespace Cloud
             }
         }
 
-        #endregion  // end Private Constructor
+        /// <summary>
+        /// Private constructor to create a functional CLSyncbox object from a server response.
+        /// </summary>
+        /// <param name="serverResponse">The server response to use.</param>
+        /// <remarks>All parameters must be tested before calling this constructor.</remarks>
+        private CLSyncbox(
+                    JsonContracts.SyncboxResponse serverResponse,
+                    CLCredentials credentials, 
+                    ref CLHttpRestStatus status, 
+                    ICLSyncSettings settings,
+                    Helpers.ReplaceExpiredCredentials getNewCredentialsCallback,
+                    object getNewCredentialsCallbackUserState
+            )
+            : this
+            (
+                syncboxId: (long)serverResponse.Syncbox.Id,
+                credentials: credentials,
+                path: null,
+                status: ref status,
+                Settings: settings,
+                getNewCredentialsCallback: getNewCredentialsCallback,
+                getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState
+            )
+        {
+        }
+
+        #endregion  // end Private Constructors
 
         #region Public Factory
 
         /// <summary>
-        /// Creates an object which represents a Syncbox in Cloud, and associates the syncbox with a folder on the local disk.
+        /// Asynchronously begins the factory process to construct an instance of CLSyncbox, initialize it and fill in its properties from the cloud, and associates the cloud syncbox with a folder on the local disk.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
+        /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+        /// <param name="syncboxId">The cloud syncbox ID to use.</param>
+        /// <param name="credentials">The credentials to use with this request.</param>
+        /// <param name="path">The full path of the folder on disk to associate with this syncbox.</param>
+        /// <param name="settings">(optional) settings to use with this method.</param>
+        /// <param name="getNewCredentialsCallback">(optional) A delegate which will be called to retrieve a new set of credentials when credentials have expired.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass as a parameter to the delegate above.</param>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+        public static IAsyncResult BeginAllocAndInit(
+            AsyncCallback callback,
+            object callbackUserState,
+            long syncboxId,
+            CLCredentials credentials,
+            string path,
+            ICLSyncSettings settings = null,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+            object getNewCredentialsCallbackUserState = null)
+        {
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxAllocAndInitResult>(
+                        callback,
+                        callbackUserState),
+                    syncboxId = syncboxId,
+                    credentials = credentials,
+                    path = path,
+                    settings = settings,
+                    getNewCredentialsCallback = getNewCredentialsCallback,
+                    getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLSyncboxCreationStatus status;
+                        // declare the specific type of result for this operation
+                        CLSyncbox response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = AllocAndInit(
+                            Data.syncboxId,
+                            Data.credentials,
+                            Data.path,
+                            out response,
+                            out status,
+                            Data.settings,
+                            Data.getNewCredentialsCallback,
+                            Data.getNewCredentialsCallbackUserState);
+
+                        Data.toReturn.Complete(
+                            new SyncboxAllocAndInitResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes creating and initializing a CLSyncbox instance, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting asynchronous request.</param>
+        /// <param name="result">(output) The result from the asynchronous request.</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public static CLError EndAllocAndInit(IAsyncResult aResult, out SyncboxAllocAndInitResult result)
+        {
+            // declare the specific type of asynchronous result
+            GenericAsyncResult<SyncboxAllocAndInitResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the specific result type and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the specific result type
+                castAResult = aResult as GenericAsyncResult<SyncboxAllocAndInitResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException("aResult does not match expected internal type");
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAllocAndInitResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls the End* method for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Creates and initializes a CLSyncbox object which represents a Syncbox in Cloud, and associates the syncbox with a folder on the local disk.
         /// </summary>
         /// <param name="syncboxId">Unique ID of the syncbox generated by Cloud</param>
         /// <param name="credentials">Credentials to use with this request.</param>
@@ -305,8 +466,6 @@ namespace Cloud
         /// <param name="settings">(optional) Settings to use with this request</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate that will be called to provide new credentials when the current credentials token expires.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
-        /// <param name="statusChangedCallback">(optional) A delegate that will be called to provide an indication that status has changed in the syncbox.</param>
-        /// <param name="statusChangedCallbackUserState">(optional) The user state that will be passed back to the statusChangedCallback delegate.</param>
         /// <returns>Returns any error which occurred during object allocation or initialization, if any, or null.</returns>
         public static CLError AllocAndInit(
             long syncboxId,
@@ -316,9 +475,7 @@ namespace Cloud
             out CLSyncboxCreationStatus status,
             ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
-            object getNewCredentialsCallbackUserState = null,
-			System.Threading.WaitCallback statusChangedCallback = null,
-			object statusChangedCallbackUserState = null)
+            object getNewCredentialsCallbackUserState = null)
         {
             status = CLSyncboxCreationStatus.ErrorUnknown;
 
@@ -336,9 +493,7 @@ namespace Cloud
                     status: ref status,
                     Settings: settings,
                     getNewCredentialsCallback: getNewCredentialsCallback,
-                    getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState,
-                    statusChangedCallback: statusChangedCallback,
-                    statusChangedCallbackUserState: statusChangedCallbackUserState
+                    getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState
                     );
             }
             catch (Exception ex)
@@ -361,9 +516,13 @@ namespace Cloud
         /// <remarks>Note that only SyncMode.CLSyncModeLive is currently supported.</remarks>
         /// <param name="mode">The sync mode to start.</param>
         /// <returns></returns>
-        public CLError BeginSync(CLSyncMode mode)
+        public CLError BeginSync(CLSyncMode mode,
+                System.Threading.WaitCallback syncStatusChangedCallback = null,
+                object syncStatusChangedCallbackUserState = null)
         {
             CLError toReturn = null;
+
+            CheckDisposed();
 
             try
             {
@@ -373,10 +532,26 @@ namespace Cloud
                     {
                         throw new NullReferenceException("syncEngine must not be null");
                     }
-
                     if (mode == CLSyncMode.CLSyncModeOnDemand)
                     {
                         throw new ArgumentException("CLSyncMode.CLSyncModeOnDemand is not supported");
+                    }
+                    if (String.IsNullOrWhiteSpace(_path))
+                    {
+                        throw new ArgumentException("path must be specified.");
+                    }
+
+                    int nOutTooLongChars;
+                    CLError errorPathTooLong = Helpers.CheckSyncRootLength(_path, out nOutTooLongChars);
+                    if (errorPathTooLong != null)
+                    {
+                        throw new AggregateException(String.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.GrabExceptions());
+                    }
+
+                    CLError errorBadPath = Helpers.CheckForBadPath(_path);
+                    if (errorBadPath != null)
+                    {
+                        throw new AggregateException("syncbox path contains invalid characters.", errorBadPath.GrabExceptions());
                     }
 
                     _syncModeHolder.Value = mode;
@@ -386,8 +561,8 @@ namespace Cloud
                     toReturn = _syncEngine.Start(
                         Syncbox: this, // syncbox to sync (contains required settings)
                         Status: out startStatus, // The completion status of the Start() function
-                        StatusUpdated: this._statusChangedCallback, // called when sync status is updated
-                        StatusUpdatedUserState: this._statusChangedCallbackUserState); // the user state passed to the callback above
+                        StatusUpdated: syncStatusChangedCallback, // called when sync status is updated
+                        StatusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
 
                     if (toReturn != null)
                     {
@@ -418,6 +593,8 @@ namespace Cloud
         /// <remarks>Note that after stopping it is possible to call BeginSync() again to restart syncing.</remarks>
         public void EndSync()
         {
+            CheckDisposed();
+
             try
             {
                 lock (_startLocker)
@@ -458,6 +635,8 @@ namespace Cloud
         {
             CLError toReturn = null;
 
+            CheckDisposed();
+
             try
             {
                 lock (_startLocker)
@@ -493,6 +672,8 @@ namespace Cloud
         /// <returns>Returns any error which occurred in retrieving the sync status, if any</returns>
         public CLError GetSyncboxCurrentStatus(out CLSyncCurrentStatus status)
         {
+            CheckDisposed();
+
             try
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
@@ -614,20 +795,16 @@ namespace Cloud
         /// <param name="friendlyName">The friendly name of the Syncbox.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
-        ////
-        //// The following metadata parameter was temporarily removed until the server checks for it for this call
-        ////
-        ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginCreate(
-            AsyncCallback callback,
-            object callbackUserState,
-            CLStoragePlan plan,
-            string friendlyName,
-            CLCredentials credentials,
-            ICLCredentialsSettings settings = null
-            /*,  \/ last parameter temporarily removed since the server is not checking for it for this call; add back wherever commented out within this method when it works
-            JsonContracts.MetadataDictionary metadata = null*/)
+                    AsyncCallback callback,
+                    object callbackUserState,
+                    CLStoragePlan plan,
+                    string friendlyName,
+                    CLCredentials credentials,
+                    ICLSyncSettings settings = null,
+                    Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                    object getNewCredentialsCallbackUserState = null)
         {
             // Check the parameters
             if (plan == null)
@@ -638,7 +815,69 @@ namespace Cloud
             {
                 throw new ArgumentException("friendlyName must be specified");
             }
+            if (credentials == null)
+            {
+                throw new ArgumentNullException("credentials must not be null");
+            }
 
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxCreateResult>(
+                        callback,
+                        callbackUserState),
+                    plan = plan,
+                    friendlyName = friendlyName,
+                    credentials = credentials,
+                    settings = settings,
+                    getNewCredentialsCallback = getNewCredentialsCallback,
+                    getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLSyncboxCreationStatus status;
+                        // declare the specific type of result for this operation
+                        CLSyncbox response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = Create(
+                            Data.plan,
+                            Data.friendlyName,
+                            Data.credentials,
+                            out status,
+                            out response,
+                            Data.settings,
+                            Data.getNewCredentialsCallback,
+                            Data.getNewCredentialsCallbackUserState);
+
+                        Data.toReturn.Complete(
+                            new SyncboxCreateResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+            //&&&&&&&&&&&&&&&&&&&
             // create the asynchronous result to return
             GenericAsyncResult<CreateSyncboxResult> toReturn = new GenericAsyncResult<CreateSyncboxResult>(
                 callback,
@@ -785,47 +1024,51 @@ namespace Cloud
         /// <param name="status">(output) Success/failure status of communication</param>
         /// <param name="response">(output) Response object from communication</param>
         /// <param name="settings">(optional) The settings to use with this method</param>
-        //
-        //// The following metadata parameter was temporarily removed until the server checks for it for this call
-        //
-        ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public static CLError Create(
                     CLStoragePlan plan,
                     string friendlyName,
                     CLCredentials credentials,
                     out CLHttpRestStatus status,
-                    out JsonContracts.SyncboxResponse response,
-                    ICLCredentialsSettings settings = null/*, JsonContracts.MetadataDictionary metadata = null*/)
+                    out CLSyncbox response,
+                    ICLSyncSettings settings = null,
+                    Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                    object getNewCredentialsCallbackUserState = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
             try
             {
+                // Check the input parameters.
+                if (plan == null)
+                {
+                    throw new ArgumentNullException("plan must not be null");
+                }
+                if (credentials == null)
+                {
+                    throw new ArgumentNullException("credentials must not be null");
+                }
+
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
                     ? AdvancedSyncSettings.CreateDefaultSettings()
                     : settings.CopySettings());
 
-                // check input parameters
-                JsonContracts.SyncboxResponse inputBox = (/*metadata == null
-                        && */string.IsNullOrWhiteSpace(friendlyName)
-                        && plan == null
+                // Check input parameters and build the query parameters.
+                JsonContracts.SyncboxCreateRequest inputBox = (string.IsNullOrWhiteSpace(friendlyName) && plan == null
                     ? null
-                    : new JsonContracts.SyncboxResponse()
+                    : new JsonContracts.SyncboxCreateRequest()
                     {
-                        Syncbox = new JsonContracts.Syncbox()
-                        {
-                            FriendlyName = (string.IsNullOrWhiteSpace(friendlyName)
-                                ? null
-                                : friendlyName),
-                            PlanId = plan.Id/*,
-                            Metadata = metadata*/
-                        }
+                        FriendlyName = (string.IsNullOrWhiteSpace(friendlyName)
+                            ? null
+                            : friendlyName),
+                        PlanId = plan.Id
                     });
 
-                response = Helpers.ProcessHttp<JsonContracts.SyncboxResponse>(
+                // Create the syncbox on the server and get the response object.
+                JsonContracts.SyncboxResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxResponse>(
                     requestContent: inputBox,
                     serverUrl: CLDefinitions.CLPlatformAuthServerURL,
                     serverMethodPath: CLDefinitions.MethodPathAuthCreateSyncbox,
@@ -837,6 +1080,26 @@ namespace Cloud
                     CopiedSettings: copiedSettings,
                     Credentials: credentials,
                     SyncboxId: null);
+
+                // Check the server response.
+                if (responseFromServer == null)
+                {
+                    throw new NullReferenceException("response from server must not be null");
+                }
+                if (responseFromServer.Syncbox == null)
+                {
+                    throw new NullReferenceException("server response.Syncbox must not be null");
+                }
+
+
+                // Convert the response object to a CLSyncbox and return that.
+                response = new CLSyncbox(
+                    responseFromServer,
+                    credentials,
+                    ref status,
+                    settings,
+                    getNewCredentialsCallback,
+                    getNewCredentialsCallbackUserState);
 
             }
             catch (Exception ex)
@@ -1277,6 +1540,8 @@ namespace Cloud
         /// <returns>Nothing</returns>
         public void UpdateCredentials(CLCredentials credentials)
         {
+            CheckDisposed();
+
             Credentials = credentials;
         }
 
@@ -2608,6 +2873,7 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginUsage(AsyncCallback callback, object callbackUserState)
         {
+            CheckDisposed();
             return _httpRestClient.BeginGetSyncboxUsage(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds);
         }
 
@@ -2620,6 +2886,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndUsage(IAsyncResult aResult, out SyncboxUsageResult result)
         {
+            CheckDisposed();
             return _httpRestClient.EndGetSyncboxUsage(aResult, out result);
         }
 
@@ -2631,6 +2898,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError Usage(out CLHttpRestStatus status, out JsonContracts.SyncboxUsageResponse response)
         {
+            CheckDisposed();
             return _httpRestClient.GetSyncboxUsage(_copiedSettings.HttpTimeoutMilliseconds, out status, out response);
         }
         #endregion  // end (get the usage information for this syncbox from the cloud)
@@ -2761,6 +3029,7 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginUpdateStoragePlan(AsyncCallback callback, object callbackUserState, CLStoragePlan storagePlan)
         {
+            CheckDisposed();
             return _httpRestClient.BeginUpdateSyncboxPlan(callback, callbackUserState, storagePlan.Id, _copiedSettings.HttpTimeoutMilliseconds, ReservedForActiveSync);
         }
 
@@ -2773,14 +3042,15 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndUpdateStoragePlan(IAsyncResult aResult, out SyncboxUpdatePlanResult result)
         {
+            CheckDisposed();
             CLError toReturn = _httpRestClient.EndUpdateSyncboxPlan(aResult, out result);
             if (toReturn == null 
                 && result != null 
-                && result.Result != null 
-                && result.Result.Syncbox != null
-                && result.Result.Syncbox.PlanId != null)
+                && result.Response != null 
+                && result.Response.Syncbox != null
+                && result.Response.Syncbox.PlanId != null)
             {
-                this._storagePlanIdHolder.Value = result.Result.Syncbox.PlanId ?? 0;
+                this._storagePlanIdHolder.Value = result.Response.Syncbox.PlanId ?? 0;
             }
             return toReturn;
         }
@@ -2795,6 +3065,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UpdateStoragePlan(CLStoragePlan storagePlan, out CLHttpRestStatus status, out JsonContracts.SyncboxUpdatePlanResponse response)
         {
+            CheckDisposed();
             CLError toReturn =  _httpRestClient.UpdateSyncboxPlan(storagePlan.Id, _copiedSettings.HttpTimeoutMilliseconds, out status, out response, ReservedForActiveSync);
             if (toReturn == null 
                 && response != null 
@@ -2807,55 +3078,59 @@ namespace Cloud
         }
         #endregion  // end (changes the storage plan associated with this syncbox in the cloud)
 
-        #region UpdateFriendlyName (Update the friendly name for a syncbox in the cloud)
-        /// <summary>
-        /// Asynchronously updates the friendly name of this syncbox in the cloud.
-        /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">User state to pass when firing async callback</param>
-        /// <param name="friendlyName">The new friendly name of this syncbox.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the response</returns>
-        /// <remarks>The FriendlyName property of this object will also be updated on success.</remarks>
-        public IAsyncResult BeginUpdateFriendlyName(AsyncCallback callback, object callbackUserState, string friendlyName)
-        {
-            return _httpRestClient.BeginUpdateSyncbox(callback, callbackUserState, friendlyName, _copiedSettings.HttpTimeoutMilliseconds, ReservedForActiveSync);
-        }
+        // We won't publish this.
+        //#region UpdateFriendlyName (Update the friendly name for a syncbox in the cloud)
+        ///// <summary>
+        ///// Asynchronously updates the friendly name of this syncbox in the cloud.
+        ///// </summary>
+        ///// <param name="callback">Callback method to fire when operation completes</param>
+        ///// <param name="callbackUserState">User state to pass when firing async callback</param>
+        ///// <param name="friendlyName">The new friendly name of this syncbox.</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the response</returns>
+        ///// <remarks>The FriendlyName property of this object will also be updated on success.</remarks>
+        //public IAsyncResult BeginUpdateFriendlyName(AsyncCallback callback, object callbackUserState, string friendlyName)
+        //{
+        //    CheckDisposed();
+        //    return _httpRestClient.BeginUpdateSyncbox(callback, callbackUserState, friendlyName, _copiedSettings.HttpTimeoutMilliseconds, ReservedForActiveSync);
+        //}
 
-        /// <summary>
-        /// Finishes updating the friendly name of this syncbox in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the operation</param>
-        /// <param name="result">(output) The result from the asynchronous operation.</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputting the result, if any</returns>
-        public CLError EndUpdateFriendlyName(IAsyncResult aResult, out SyncboxUpdateFriendlyNameResult result)
-        {
-            CLError toReturn =  _httpRestClient.EndUpdateSyncbox(aResult, out result);
-            if (toReturn == null && result != null && result.Result != null && result.Result.Syncbox != null)
-            {
-                _friendlyNameHolder.Value = result.Result.Syncbox.FriendlyName;   // update our property too
-            }
-            return toReturn;
-        }
+        ///// <summary>
+        ///// Finishes updating the friendly name of this syncbox in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="aResult">The asynchronous result provided upon starting the operation</param>
+        ///// <param name="result">(output) The result from the asynchronous operation.</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputting the result, if any</returns>
+        //public CLError EndUpdateFriendlyName(IAsyncResult aResult, out SyncboxUpdateFriendlyNameResult result)
+        //{
+        //    CheckDisposed();
+        //    CLError toReturn =  _httpRestClient.EndUpdateSyncbox(aResult, out result);
+        //    if (toReturn == null && result != null && result.Result != null && result.Result.Syncbox != null)
+        //    {
+        //        _friendlyNameHolder.Value = result.Result.Syncbox.FriendlyName;   // update our property too
+        //    }
+        //    return toReturn;
+        //}
 
-        /// <summary>
-        /// Updates the properties of a syncbox in the cloud.  This is a synchronous operation.
-        /// </summary>
-        /// <param name="friendlyName">The friendly name of this syncbox.</param>
-        /// <param name="status">(output) success/failure status of communication</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        /// <remarks>The FriendlyName property of this object will also be updated on success.</remarks>
-        public CLError UpdateFriendlyName(string friendlyName, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
-        {
-            CLError toReturn = _httpRestClient.UpdateSyncbox(friendlyName, _copiedSettings.HttpTimeoutMilliseconds, out status, out response, ReservedForActiveSync);
-            if (toReturn == null && response != null)
-            {
-                _friendlyNameHolder.Value = response.Syncbox.FriendlyName;       // update our local copy
-            }
-            return toReturn;
-        }
-        #endregion  // end UpdateFriendlyName (Update the friendly namd for a syncbox in the cloud)
+        ///// <summary>
+        ///// Updates the properties of a syncbox in the cloud.  This is a synchronous operation.
+        ///// </summary>
+        ///// <param name="friendlyName">The friendly name of this syncbox.</param>
+        ///// <param name="status">(output) success/failure status of communication</param>
+        ///// <param name="response">(output) response object from communication</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        ///// <remarks>The FriendlyName property of this object will also be updated on success.</remarks>
+        //public CLError UpdateFriendlyName(string friendlyName, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
+        //{
+        //    CheckDisposed();
+        //    CLError toReturn = _httpRestClient.UpdateSyncbox(friendlyName, _copiedSettings.HttpTimeoutMilliseconds, out status, out response, ReservedForActiveSync);
+        //    if (toReturn == null && response != null)
+        //    {
+        //        _friendlyNameHolder.Value = response.Syncbox.FriendlyName;       // update our local copy
+        //    }
+        //    return toReturn;
+        //}
+        //#endregion  // end UpdateFriendlyName (Update the friendly namd for a syncbox in the cloud)
 
         #region DeleteSyncbox
         /// <summary>l
@@ -2897,14 +3172,14 @@ namespace Cloud
         }
         #endregion
 
-        #region Status
+        #region Status (update the status of this syncbox from the cloud)
         /// <summary>
         /// Asynchronously gets the status of this Syncbox.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginStatus(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetStatus(AsyncCallback callback, object callbackUserState)
         {
             return _httpRestClient.BeginGetSyncboxStatus(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxResponse, object>(StatusCompletion), null);
         }
@@ -2917,21 +3192,8 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) The result from the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndStatus(IAsyncResult aResult, out SyncboxStatusResult result)
+        public CLError EndGetStatus(IAsyncResult aResult, out SyncboxStatusResult result)
         {
-            //CLError toReturn = _httpRestClient.EndGetSyncboxStatus(aResult, out result);
-            //if (toReturn == null
-            //    && result != null
-            //    && result.Result != null
-            //    && result.Result.Syncbox != null
-            //    && result.Result.Syncbox.PlanId != null)
-            //{
-            //    JsonContracts.Syncbox syncbox = result.Result.Syncbox;
-            //    this._friendlyNameHolder.Value = syncbox.FriendlyName;
-            //    this._storagePlanIdHolder.Value = syncbox.PlanId ?? 0;
-            //}
-            //return toReturn;
-
             return _httpRestClient.EndGetSyncboxStatus(aResult, out result);
         }
 
@@ -2942,20 +3204,8 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError Status(out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
+        public CLError GetStatus(out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
         {
-            //CLError toReturn =  _httpRestClient.GetSyncboxStatus(_copiedSettings.HttpTimeoutMilliseconds, out status, out response);
-            //if (toReturn == null
-            //    && response != null
-            //    && response.Syncbox != null
-            //    && response.Syncbox.PlanId != null)
-            //{
-            //    JsonContracts.Syncbox syncbox = response.Syncbox;
-            //    this._friendlyNameHolder.Value = syncbox.FriendlyName;
-            //    this._storagePlanIdHolder.Value = syncbox.PlanId ?? 0;
-            //}
-            //return toReturn;
-
             return _httpRestClient.GetSyncboxStatus(_copiedSettings.HttpTimeoutMilliseconds, out status, out response, new Action<JsonContracts.SyncboxResponse, object>(StatusCompletion), null);
         }
 
@@ -2974,12 +3224,16 @@ namespace Cloud
                 throw new NullReferenceException("response Syncbox PlanId cannot be null");
             }
 
+            this._propertyChangeLocker.EnterWriteLock();
+
             this._friendlyNameHolder.Value = response.Syncbox.FriendlyName;
             this._storagePlanIdHolder.Value = (long)response.Syncbox.PlanId;
-        }
-        #endregion
 
-        #region SendFileChanges (Sends syncbox file and folder sync operations to the cloud) 
+            this._propertyChangeLocker.ExitWriteLock();
+        }
+        #endregion  // end (update the status of this syncbox from the cloud)
+
+        #region SendFileChanges (Sends syncbox file and folder sync operations to the cloud)
         /// <summary>
         /// Asynchronously starts posting a single FileChange to the server
         /// </summary>
@@ -2991,6 +3245,8 @@ namespace Cloud
             object aState,
             FileChange toCommunicate)
         {
+            CheckDisposed();
+
             // create the asynchronous result to return
             GenericAsyncResult<FileChangeResult> toReturn = new GenericAsyncResult<FileChangeResult>(
                 aCallback,
@@ -3070,6 +3326,8 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndSendFileChange(IAsyncResult aResult, out FileChangeResult result)
         {
+            CheckDisposed();
+
             // declare the specific type of asynchronous result for FileChange post
             GenericAsyncResult<FileChangeResult> castAResult;
 
@@ -3133,6 +3391,8 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError SendFileChange(FileChange toCommunicate, out CLHttpRestStatus status, out JsonContracts.FileChangeResponse response)
         {
+            CheckDisposed();
+
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
             // try/catch to process the file change post, on catch return the error
@@ -3449,6 +3709,74 @@ namespace Cloud
 
         #endregion  // end Private Instance Support Functions
 
+        #region IDisposable Support
+		 
+        /// <summary>
+        /// Destructor
+        /// </summary>
+        ~CLSyncbox()
+        {
+            Dispose(false);
+        }
+
+        /// <summary>
+        /// Throw an exception if already disposed
+        /// </summary>
+        private void CheckDisposed()
+        {
+            if (Disposed)
+            {
+                throw new Exception("Object disposed");
+            }
+        }
+
+        // Disposing this object provides no user functionality, so we are hiding Dispose behind its interface.
+        ///// <summary>
+        ///// Call this to cleanup FileSystemWatchers such as on application shutdown,
+        ///// do not start the same monitor instance after it has been disposed 
+        ///// </summary>
+        //public CLError Dispose()
+        //{
+        //    try
+        //    {
+        //        ((IDisposable)this).Dispose();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ex;
+        //    }
+        //    return null;
+        //}
+
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        void IDisposable.Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        // Standard IDisposable implementation based on MSDN System.IDisposable
+        private void Dispose(bool disposing)
+        {
+            if (!this.Disposed)
+            {
+                // Run dispose on inner managed objects based on disposing condition
+                if (disposing)
+                {
+                    // cleanup inner managed objects
+                    if (_propertyChangeLocker != null)
+                    {
+                        _propertyChangeLocker.Dispose();
+                        _propertyChangeLocker = null;
+                    }
+                }
+
+                // Dispose local unmanaged resources last
+
+                Disposed = true;
+            }
+        }
+        #endregion // end IDisposable Support
     }
 
     #endregion  // end Public CLSyncbox Class

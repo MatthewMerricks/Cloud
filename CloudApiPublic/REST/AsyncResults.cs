@@ -60,20 +60,20 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public T Result
+        public T Response
         {
             get
             {
-                return _result;
+                return _response;
             }
         }
-        private readonly T _result;
+        private readonly T _response;
 
         // construct with all readonly properties
         protected internal BaseCLHttpRestResult(CLError Error, CLHttpRestStatus Status, T Response)
             : base(Error, Status)
         {
-            this._result = Response;
+            this._response = Response;
         }
     }
     #endregion
@@ -272,11 +272,151 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class CreateSyncboxResult : BaseCLHttpRestResult<JsonContracts.SyncboxResponse>
+    public sealed class CreateSyncboxResult
     {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLSyncbox Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLSyncbox _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        /// <summary>
+        /// The status resulting from communication
+        /// </summary>
+        public CLSyncboxCreationStatus Status
+        {
+            get
+            {
+                return _status;
+            }
+        }
+        private readonly CLSyncboxCreationStatus _status;
+
         // construct with all readonly properties
-        internal CreateSyncboxResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxResponse Response)
-            : base(Error, Status, Response) { }
+        internal CreateSyncboxResult(CLError Error, CLSyncboxCreationStatus Status, CLSyncbox Response)
+        {
+            this._error = Error;
+            this._status = Status;
+            this._response = Response;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxAllocAndInitResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLSyncbox Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLSyncbox _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        /// <summary>
+        /// The status resulting from communication
+        /// </summary>
+        public CLSyncboxCreationStatus Status
+        {
+            get
+            {
+                return _status;
+            }
+        }
+        private readonly CLSyncboxCreationStatus _status;
+
+        // construct with all readonly properties
+        internal SyncboxAllocAndInitResult(CLError Error, CLSyncboxCreationStatus Status, CLSyncbox Response)
+        {
+            this._error = Error;
+            this._status = Status;
+            this._response = Response;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxCreateResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLSyncbox Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLSyncbox _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        /// <summary>
+        /// The status resulting from communication
+        /// </summary>
+        public CLSyncboxCreationStatus Status
+        {
+            get
+            {
+                return _status;
+            }
+        }
+        private readonly CLSyncboxCreationStatus _status;
+
+        // construct with all readonly properties
+        internal SyncboxCreateResult(CLError Error, CLSyncboxCreationStatus Status, CLSyncbox Response)
+        {
+            this._error = Error;
+            this._status = Status;
+            this._response = Response;
+        }
     }
 
     /// <summary>

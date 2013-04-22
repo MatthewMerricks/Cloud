@@ -16,94 +16,66 @@ namespace Cloud.Model
     {
         #region Public Properties
 
-        public long Id { get; set; }
         public string Name { get; set; }
-        public long Tier { get; set; }
-        public long ClientApplicationId { get; set; }
-        public long BandwidthQuota { get; set; }
-        public long StorageQuota { get; set; }
-        public bool IsDefaultPlan { get; set; }
-        public DateTime PlanCreatedAt { get; set; }
-        public DateTime PlanUpdatedAt { get; set; }
-
-        public bool IsValid
-        {
-            get
-            {
-                if (Id < 1)
-                {
-                    return false;
-                }
-                if (Name == null)
-                {
-                    return false;
-                }
-                if (Tier < 1)
-                {
-                    return false;
-                }
-                if (ClientApplicationId < 1)
-                {
-                    return false;
-                }
-                if (BandwidthQuota < 1)
-                {
-                    return false;
-                }
-                if (StorageQuota < 1)
-                {
-                    return false;
-                }
-                if (PlanCreatedAt == DateTime.MinValue)
-                {
-                    return false;
-                }
-                if (PlanUpdatedAt == DateTime.MinValue)
-                {
-                    return false;
-                }
-
-                return true;
-            }
-        }
+        public string Path { get; set; }
+        public string Revision { get; set; }
+        public long Size { get; set; }
+        public string MimeType { get; set; }
+        public DateTime CreatedTime { get; set; }
+        public DateTime ModifiedTime { get; set; }
+        public string Uid { get; set; }
+        public string ParentUid { get; set; }
+        public bool IsFolder { get; set; }
 
         #endregion  // end Public Properties
 
         #region Constructors
         
         public CLFileItem(
-            long id,
             string name,
-            long tier,
-            long clientApplicationId,
-            long bandwidthQuota,
-            long storageQuota,
-            bool isDefaultPlan,
-            DateTime planCreatedAt,
-            DateTime planUpdatedAt)
+            string path,
+            string revision,
+            long size,
+            string mimeType,
+            DateTime createdTime,
+            DateTime modifiedTime,
+            string uid,
+            string parentUid,
+            bool isFolder)
         {
-            Id = id;
-            Name = name;
-            Tier = tier;
-            ClientApplicationId = clientApplicationId;
-            BandwidthQuota = bandwidthQuota;
-            StorageQuota = storageQuota;
-            IsDefaultPlan = isDefaultPlan;
-            PlanCreatedAt = planCreatedAt;
-            PlanUpdatedAt = planUpdatedAt;
+            this.Name = name;
+            this.Path = path;
+            this.Revision = revision;
+            this.Size = size;
+            this.MimeType = mimeType;
+            this.CreatedTime = createdTime;
+            this.ModifiedTime = modifiedTime;
+            this.Uid = uid;
+            this.ParentUid = parentUid;
+            this.IsFolder = isFolder;
         }
 
-        public CLFileItem(JsonContracts.CLFileItemResponse response)
+        public CLFileItem(JsonContracts.Metadata response)
         {
-            Id = response.Id ?? -1;
-            Name = response.Name;
-            Tier = response.Tier ?? -1;
-            ClientApplicationId = response.ClientApplicationId ?? -1;
-            BandwidthQuota = response.BandwidthQuota ?? -1; ;
-            StorageQuota = response.StorageQuota ?? -1;
-            IsDefaultPlan = response.IsDefaultPlan ?? false;
-            PlanCreatedAt = response.PlanCreatedAt ?? DateTime.MinValue;
-            PlanUpdatedAt = response.PlanUpdatedAt ?? DateTime.MinValue;
+            if (response == null)
+            {
+                throw new NullReferenceException("response must not be null");
+            }
+            if (response.Size == null)
+            {
+                throw new NullReferenceException("size must not be null");
+            }
+
+            this.Name = response.Name;
+            this.Path = response.RelativePath;
+            this.Revision = response.Revision;
+            this.Size = (long)response.Size;
+            this.MimeType = response.MimeType;
+            this.CreatedTime = response.CreatedDate ?? DateTime.MinValue;
+            this.ModifiedTime = response.ModifiedDate ?? DateTime.MinValue;
+            this.Uid = response.ServerUid;
+            this.ParentUid = response.ParentUid;
+            this.IsFolder = response.IsFolder ?? false;
         }
 
         #endregion

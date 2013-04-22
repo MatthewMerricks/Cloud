@@ -25,6 +25,6 @@ namespace Cloud.JsonContracts
         public long SyncboxId { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTRequestSyncbox, IsRequired = false)]
-        public SyncboxForUpdateRequest Syncbox { get; set; }
+        public SyncboxUpdateFriendlyNameRequest Syncbox { get; set; }
     }
 }
