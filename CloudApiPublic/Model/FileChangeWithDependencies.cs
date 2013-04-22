@@ -105,7 +105,7 @@ namespace Cloud.Model
             CLError retrievePreviousMD5Bytes = baseChange.GetMD5Bytes(out previousMD5Bytes);
             if (retrievePreviousMD5Bytes != null)
             {
-                throw retrievePreviousMD5Bytes.GrabFirstException();
+                throw retrievePreviousMD5Bytes.PrimaryException;
             }
             base.SetMD5(previousMD5Bytes);
             base.Type = baseChange.Type;

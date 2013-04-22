@@ -223,7 +223,7 @@ namespace win_client.DragDropServer
                             HookedProcesses.Remove(processArray[i].Id);
                         }
                         CLError error = ex;
-                        _trace.writeToLog(1, "DragDropServer: OnTimerProcessUpdate: ERROR. Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                        _trace.writeToLog(1, "DragDropServer: OnTimerProcessUpdate: ERROR. Exception.  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
                     }
                 }
             }

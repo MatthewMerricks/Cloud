@@ -255,7 +255,7 @@ namespace Cloud.Sync
                         // if an error occurred creating the timer, then rethrow the exception
                         if (timerError != null)
                         {
-                            throw timerError.GrabFirstException();
+                            throw timerError.PrimaryException;
                         }
                     }
                     // return existing or newly created timer
@@ -293,7 +293,7 @@ namespace Cloud.Sync
                         // if an error occurred creating the timer, then rethrow the exception
                         if (timerError != null)
                         {
-                            throw timerError.GrabFirstException();
+                            throw timerError.PrimaryException;
                         }
                     }
                     // return existing or newly created timer
@@ -385,7 +385,7 @@ namespace Cloud.Sync
                             }
                             if (err != null)
                             {
-                                err.LogErrors(storeSettings.TraceLocation, storeSettings.LogErrors);
+                                err.Log(storeSettings.TraceLocation, storeSettings.LogErrors);
                             }
                         }
                         catch
@@ -424,7 +424,7 @@ namespace Cloud.Sync
                 }
                 else
                 {
-                    ((CLError)ex).LogErrors(storeSettings.TraceLocation, storeSettings.LogErrors);
+                    ((CLError)ex).Log(storeSettings.TraceLocation, storeSettings.LogErrors);
                 }
             }
         }
@@ -494,7 +494,7 @@ namespace Cloud.Sync
                             }
                             if (err != null)
                             {
-                                err.LogErrors(storeSettings.TraceLocation, storeSettings.LogErrors);
+                                err.Log(storeSettings.TraceLocation, storeSettings.LogErrors);
                             }
                         }
                         catch
@@ -539,7 +539,7 @@ namespace Cloud.Sync
                 }
                 else
                 {
-                    ((CLError)ex).LogErrors(storeSettings.TraceLocation, storeSettings.LogErrors);
+                    ((CLError)ex).Log(storeSettings.TraceLocation, storeSettings.LogErrors);
                 }
             }
         }
@@ -1230,9 +1230,6 @@ namespace Cloud.Sync
             // declare error which will be aggregated with exceptions and returned
             GenericHolder<CLError> toReturn = new GenericHolder<CLError>();
 
-            // declare a string which provides better line-range information for the last state when an error is logged
-            string syncStatus;
-
             GenericHolder<bool> commonRespondingToPushNotification = new GenericHolder<bool>(respondingToPushNotification);
 
             Guid commonRunThreadId = Guid.NewGuid();
@@ -1893,10 +1890,26 @@ namespace Cloud.Sync
                     CLError completeEventError = Data.commonThisEngine.syncData.completeSingleEvent((long)Data.eventIdToComplete.Value);
                     if (completeEventError != null)
                     {
-                        errorToAccumulate.Value = CLError.AddException(errorToAccumulate.Value, new AggregateException("Error on completeSingleEvent", completeEventError.GrabExceptions()), replaceErrorDescription: true);
+                        try
+                        {
+                            throw new CLException(CLExceptionCode.Syncing_Database, "Error on completeSingleEvent", completeEventError.Exceptions);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (errorToAccumulate.Value == null)
+                            {
+                                errorToAccumulate.Value = ex;
+                            }
+                            else
+                            {
+                                errorToAccumulate.Value.AddException(
+                                    ex,
+                                    replacePrimaryError: true);
+                            }
+                        }
 
                         MessageEvents.FireNewEventMessage(
-                            "syncData.completeSingleEvent returned an error after completing an event: " + completeEventError.errorDescription,
+                            "syncData.completeSingleEvent returned an error after completing an event: " + completeEventError.PrimaryException.Message,
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
 
@@ -2018,8 +2031,8 @@ namespace Cloud.Sync
                             throw new AggregateException(pendingsErrorString,
 
                                 (fireMessageException == null
-                                    ? getAllPendingsError.GrabExceptions()
-                                    : getAllPendingsError.GrabExceptions().Concat(Helpers.EnumerateSingleItem(fireMessageException))));
+                                    ? getAllPendingsError.Exceptions
+                                    : getAllPendingsError.Exceptions.Concat(Helpers.EnumerateSingleItem(fireMessageException))));
                         }
 
                         Data.pendingStorageKeys.Value = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
@@ -2183,7 +2196,7 @@ namespace Cloud.Sync
                             const string fileMetadataErrorString = "Errors occurred finding latest metadata for a preexisting download";
 
                             errorToAccumulate.Value += new AggregateException(fileMetadataErrorString,
-                                latestMetadataError.GrabExceptions());
+                                latestMetadataError.Exceptions);
 
                             try
                             {
@@ -2219,7 +2232,7 @@ namespace Cloud.Sync
                                 const string fileVersionsErrorString = "Errors occurred finding previous versions for a preexisting download";
 
                                 errorToAccumulate.Value += new AggregateException(fileVersionsErrorString,
-                                    fileVersionError.GrabExceptions());
+                                    fileVersionError.Exceptions);
 
                                 try
                                 {
@@ -2336,7 +2349,7 @@ namespace Cloud.Sync
                             // if an error occurred storing the completion, then log it
                             if (sqlCompleteError != null)
                             {
-                                sqlCompleteError.LogErrors(eventCompletion.Result.SyncSettings.TraceLocation, eventCompletion.Result.SyncSettings.LogErrors);
+                                sqlCompleteError.Log(eventCompletion.Result.SyncSettings.TraceLocation, eventCompletion.Result.SyncSettings.LogErrors);
                             }
                         }
                     }, TaskContinuationOptions.NotOnFaulted); // only run continuation if successful
@@ -2458,7 +2471,7 @@ namespace Cloud.Sync
                                 CLError existingFileMD5Error = topLevelChange.FileChange.GetMD5Bytes(out existingFileMD5);
                                 if (existingFileMD5Error != null)
                                 {
-                                    errorToAccumulate.Value += new AggregateException("Error retrieving MD5 from topLevelChange FileChange", existingFileMD5Error.GrabExceptions());
+                                    errorToAccumulate.Value += new AggregateException("Error retrieving MD5 from topLevelChange FileChange", existingFileMD5Error.Exceptions);
                                 }
                                 string existingFilePath = topLevelChange.FileChange.NewPath.ToString();
 
@@ -2854,7 +2867,7 @@ namespace Cloud.Sync
                             }
                             else
                             {
-                                throw new AggregateException(rootErrorString, rootError.GrabExceptions());
+                                throw new AggregateException(rootErrorString, rootError.Exceptions);
                             }
                         }
 
@@ -2915,7 +2928,7 @@ namespace Cloud.Sync
                                         CLError parentServerUidError = Data.commonThisEngine.syncData.GetServerUidByNewPath(currentChangeToCommunicate.FileChange.NewPath.Parent.ToString(), out parentServerUid);
                                         if (parentServerUidError != null)
                                         {
-                                            throw new AggregateException("Error finding parent folder server uid for current event parent folder path", parentServerUidError.GrabExceptions());
+                                            throw new AggregateException("Error finding parent folder server uid for current event parent folder path", parentServerUidError.Exceptions);
                                         }
                                         if (parentServerUid == null)
                                         {
@@ -2997,7 +3010,7 @@ namespace Cloud.Sync
                                 // if an error occurred initializing the runningUpDownChangesDict, then rethrow the error
                                 if (createUpDictError != null)
                                 {
-                                    throw new AggregateException("Error creating upDict", createUpDictError.GrabExceptions());
+                                    throw new AggregateException("Error creating upDict", createUpDictError.Exceptions);
                                 }
                                 innerData.runningUpChangesDict.Value = runningUpChangesDict;
                                 // loop through the events which are uploading or downloading
@@ -3182,10 +3195,10 @@ namespace Cloud.Sync
                     // because this may be at least partially unrecoverable, if there was an error, then show the message
                     if (completeSyncError != null)
                     {
-                        errorToAccumulate.Value += new AggregateException("Error on completeSyncSql", completeSyncError.GrabExceptions());
+                        errorToAccumulate.Value += new AggregateException("Error on completeSyncSql", completeSyncError.Exceptions);
 
                         MessageEvents.FireNewEventMessage(
-                            "syncData.completeSyncSql returned an error after communicating changes: " + completeSyncError.errorDescription,
+                            "syncData.completeSyncSql returned an error after communicating changes: " + completeSyncError.PrimaryException.Message,
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
 
@@ -3367,12 +3380,12 @@ namespace Cloud.Sync
                                 if (Data.commonOutputChanges.Value == null
                                     || Data.commonTopLevelErrors.Value == null)
                                 {
-                                    throw new AggregateException("Error on dependencyAssignment and outputs are not set", postCommunicationDependencyError.GrabExceptions());
+                                    throw new AggregateException("Error on dependencyAssignment and outputs are not set", postCommunicationDependencyError.Exceptions);
                                 }
                                 // else if both outputs were not null, then aggregate the exception to the return error
                                 else
                                 {
-                                    errorToAccumulate.Value += new AggregateException("Error on dependencyAssignment", postCommunicationDependencyError.GrabExceptions());
+                                    errorToAccumulate.Value += new AggregateException("Error on dependencyAssignment", postCommunicationDependencyError.Exceptions);
                                 }
                             }
 
@@ -3661,7 +3674,7 @@ namespace Cloud.Sync
                             // if there was an error queueing dependencies to processing queue in event source, then aggregate error to return error
                             if (queueingError != null)
                             {
-                                errorToAccumulate.Value += new AggregateException("Error adding dependencies to processing queue after sync", queueingError.GrabExceptions());
+                                errorToAccumulate.Value += new AggregateException("Error adding dependencies to processing queue after sync", queueingError.Exceptions);
                             }
                         }
                         // on catch, add dependencies to failure queue
@@ -3732,7 +3745,9 @@ namespace Cloud.Sync
                 new
                 {
                     commonThisEngine = this,
-                    syncStatus = new GenericHolder<string>(null)
+
+                    // declare a string which provides better line-range information for the last state when an error is logged
+                    syncStatus = new GenericHolder<string>("Sync Run entered")
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -3743,35 +3758,22 @@ namespace Cloud.Sync
                     if (errorToAccumulate.Value != null)
                     {
                         // add latest sync status to error so it will appear in error log
-                        errorToAccumulate.Value.errorInfo.Add(CLError.ErrorInfo_Sync_Run_Status, Data.syncStatus.Value);
+                        errorToAccumulate.Value.SyncEngineRunStatus = Data.syncStatus.Value;
                         // dequeue all Streams from the return error and dispose them, storing any error that occurs
                         CLError disposalError = errorToAccumulate.Value.DequeueStreams().DisposeAllStreams();
                         // if there was an error disposing streams, then aggregate all errors to return error
                         if (disposalError != null)
                         {
-                            foreach (Exception disposalException in disposalError.GrabExceptions())
+                            foreach (Exception disposalException in disposalError.Exceptions)
                             {
                                 errorToAccumulate.Value += disposalException;
                             }
                         }
 
-                        // define boolean to store whether the only content of the return error are streams to dispose, defaulting to true
-                        bool onlyErrorIsFileStream = true;
-                        // loop through all exceptions in the return error
-                        foreach (Exception errorException in errorToAccumulate.Value.GrabExceptions())
-                        {
-                            // if the current exception is not the exception added when a stream is added to the return error without an exception,
-                            // then mark that a non-stream content was found in the return error and stop checking
-                            if (errorException.Message != CLError.StreamFirstMessage)
-                            {
-                                onlyErrorIsFileStream = false;
-                                break;
-                            }
-                        }
                         // if there was any error content besides streams to dispose, then log the errors
-                        if (!onlyErrorIsFileStream)
+                        if (!errorToAccumulate.Value.IsExceptionsBackingFieldEmpty)
                         {
-                            errorToAccumulate.Value.LogErrors(Data.commonThisEngine.syncbox.CopiedSettings.TraceLocation, Data.commonThisEngine.syncbox.CopiedSettings.LogErrors);
+                            errorToAccumulate.Value.Log(Data.commonThisEngine.syncbox.CopiedSettings.TraceLocation, Data.commonThisEngine.syncbox.CopiedSettings.LogErrors);
                         }
                     }
                 },
@@ -3795,8 +3797,6 @@ namespace Cloud.Sync
                 {
                     return disconnectedException.Value;
                 }
-
-                syncStatus = "Sync Run entered";
 
                 // try/catch for primary sync logic, exception is aggregated to return
                 try
@@ -3827,7 +3827,7 @@ namespace Cloud.Sync
                         cleanTempDownloads.Process();
                     }
 
-                    syncStatus = "Sync Run temp download files cleaned";
+                    disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run temp download files cleaned";
 
                     SyncStillRunning(commonRunThreadId);
 
@@ -3848,7 +3848,7 @@ namespace Cloud.Sync
                             oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunInitialErrors, commonDequeuedFailuresExcludingNulls.Value.Select(currentInitialError => currentInitialError.FileChange), traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
                             // update last status
-                            syncStatus = "Sync Run dequeued initial failures for dependency check";
+                            disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run dequeued initial failures for dependency check";
 
                             errorGrabbingChanges = !grabFileMonitorChangesAndCombineHierarchyWithErrorsAndReturnWhetherSuccessful.TypedProcess();
                         }
@@ -3870,7 +3870,7 @@ namespace Cloud.Sync
                         // it also contains all FileChanges which have yet to process but are already assumed to be in error until explicitly marked successful or removed from this list
 
                         // update last status
-                        syncStatus = "Sync Run grabbed processed changes (with dependencies and final metadata)";
+                        disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run grabbed processed changes (with dependencies and final metadata)";
 
                         SyncStillRunning(commonRunThreadId);
 
@@ -3896,7 +3896,7 @@ namespace Cloud.Sync
                         // see notes after reprocessForDependencies is defined to see what it does to errorsToQueue and outputChanges
 
                         // update last status
-                        syncStatus = "Sync Run initial operations completed synchronously or queued";
+                        disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run initial operations completed synchronously or queued";
 
                         commonChangesForCommunication.Value = buildChangesForCommunicationArrayAndSetErrorsToQueueToRemainingChanges.TypedProcess();
 
@@ -3908,7 +3908,7 @@ namespace Cloud.Sync
                         oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunChangesForCommunication, (commonChangesForCommunication.Value ?? Enumerable.Empty<PossiblyStreamableFileChange>()).Select(currentChangeForCommunication => currentChangeForCommunication.FileChange), traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
                         // update latest status
-                        syncStatus = "Sync Run errors queued which were not changes that continued to communication";
+                        disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run errors queued which were not changes that continued to communication";
 
                         if (isInitialSyncId.TypedProcess())
                         {
@@ -3958,12 +3958,12 @@ namespace Cloud.Sync
                             RunLocker.Value = true; // sync ran through one time; no longer in initial run state
 
                             // update latest status
-                            syncStatus = "Sync Run communication aborted e.g. Sync To with no events";
+                            disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run communication aborted e.g. Sync To with no events";
                         }
                         else
                         {
                             // update latest status
-                            syncStatus = "Sync Run communication complete";
+                            disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run communication complete";
 
                             // for advanced trace, CommunicationCompletedChanges, CommunicationIncompletedChanges, and CommunicationChangesInError
                             oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.CommunicationCompletedChanges, completedChanges.Select(currentCompletedChange => currentCompletedChange.FileChange), traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
@@ -3982,7 +3982,7 @@ namespace Cloud.Sync
                             appendPostCommunicationErrorsToReturn.Process();
 
                             // update latest status
-                            syncStatus = "Sync Run server values merged into database and new sync point persisted";
+                            disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run server values merged into database and new sync point persisted";
 
                             SyncStillRunning(commonRunThreadId);
 
@@ -4013,7 +4013,7 @@ namespace Cloud.Sync
                             }
 
                             // Update latest status
-                            syncStatus = "Sync Run post-communication dependencies calculated";
+                            disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run post-communication dependencies calculated";
 
                             SyncStillRunning(commonRunThreadId);
 
@@ -4029,7 +4029,7 @@ namespace Cloud.Sync
                             oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.SyncRunPostCommunicationSynchronous, commonSynchronouslyProcessed.Value, traceChangesEnumerableWithFlowState, positionInChangeFlow, changesToTrace);
 
                             // update latest status
-                            syncStatus = "Sync Run synchronous post-communication operations complete";
+                            disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run synchronous post-communication operations complete";
 
                             SyncStillRunning(commonRunThreadId);
 
@@ -4068,7 +4068,7 @@ namespace Cloud.Sync
                             sendFinishedMessage.Process();
 
                             // update latest status
-                            syncStatus = "Sync Run async tasks started after communication (end of Sync)";
+                            disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run async tasks started after communication (end of Sync)";
                         }
                     }
                 }
@@ -4095,7 +4095,6 @@ namespace Cloud.Sync
 
                 // errorsToQueue is no longer used (all its errors were added back to the failure queue)
 
-                disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = syncStatus;
                 disposeErrorStreamsAndLogErrors.Process();
 
                 SyncStoppedRunning(commonRunThreadId);
@@ -4678,7 +4677,7 @@ namespace Cloud.Sync
                             try
                             {
                                 MessageEvents.FireNewEventMessage(
-                                    "Error applying change locally: " + applyChangeError.errorDescription,
+                                    "Error applying change locally: " + applyChangeError.PrimaryException.Message,
                                     EventMessageLevel.Regular,
                                     /*Error*/new GeneralErrorInfo(),
                                     syncbox.SyncboxId,
@@ -4688,7 +4687,7 @@ namespace Cloud.Sync
                             {
                             }
 
-                            throw applyChangeError.GrabFirstException();
+                            throw applyChangeError.PrimaryException;
                         }
                         // event was completed synchronously, output successful event id
                         immediateSuccessEventId = toComplete.FileChange.EventId;
@@ -4988,7 +4987,7 @@ namespace Cloud.Sync
                             }
                         }
 
-                        throw new AggregateException("An error occurred uploading a file: " + uploadError.errorDescription, uploadError.GrabExceptions());
+                        throw new AggregateException("An error occurred uploading a file: " + uploadError.PrimaryException.Message, uploadError.Exceptions);
                     }
 
                     // for advanced trace, UploadDownloadSuccess
@@ -5281,7 +5280,7 @@ namespace Cloud.Sync
             catch (Exception innerEx)
             {
                 // log error that occurred in attempting to clean up the error
-                ((CLError)innerEx).LogErrors(exceptionState.Syncbox.CopiedSettings.TraceLocation, exceptionState.Syncbox.CopiedSettings.LogErrors);
+                ((CLError)innerEx).Log(exceptionState.Syncbox.CopiedSettings.TraceLocation, exceptionState.Syncbox.CopiedSettings.LogErrors);
             }
         }
 
@@ -5654,7 +5653,7 @@ namespace Cloud.Sync
                     // if there was an error while downloading, rethrow the error
                     if (downloadError != null)
                     {
-                        throw new AggregateException("An error occurred downloading a file", downloadError.GrabExceptions());
+                        throw new AggregateException("An error occurred downloading a file", downloadError.Exceptions);
                     }
 
                     // The download was successful (no exceptions), but it may have been cancelled.
@@ -6221,7 +6220,7 @@ namespace Cloud.Sync
             catch (Exception innerEx)
             {
                 // log the error that occurred trying to cleanup after a download error
-                ((CLError)innerEx).LogErrors(exceptionState.Syncbox.CopiedSettings.TraceLocation, exceptionState.Syncbox.CopiedSettings.LogErrors);
+                ((CLError)innerEx).Log(exceptionState.Syncbox.CopiedSettings.TraceLocation, exceptionState.Syncbox.CopiedSettings.LogErrors);
             }
         }
         /// <summary>
@@ -6484,7 +6483,7 @@ namespace Cloud.Sync
             // If an error occurred moving the file from the temp download folder to the final destination, then rethrow the exception
             if (applyError != null)
             {
-                throw applyError.GrabFirstException();
+                throw applyError.PrimaryException;
             }
             // Else if no errors occurred moving the file from the temp download folder to the final destination, then remove the temp download from its list and possibly queue inner dependencies
             else
@@ -6598,8 +6597,8 @@ namespace Cloud.Sync
                         // if there was an error adding the dependencies to the processing queue, then log the error
                         if (err != null)
                         {
-                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: ERROR. Msg: {0}.", err.errorDescription));     
-                            err.LogErrors(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.LogErrors);
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: ERROR. Msg: {0}.", err.PrimaryException.Message));     
+                            err.Log(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.LogErrors);
                         }
                     }
                     catch (Exception ex)
@@ -6633,7 +6632,7 @@ namespace Cloud.Sync
 
                         // log the error
                         ((CLError)new Exception("Error adding dependencies of a completed file download to the processing queue", ex))
-                            .LogErrors(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.LogErrors);
+                            .Log(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.LogErrors);
                     }
                 }
             }
@@ -6702,7 +6701,7 @@ namespace Cloud.Sync
                         // if an error occurred initializing the failuresDict, then rethrow the error
                         if (createFailuresDictError != null)
                         {
-                            throw new AggregateException("Error creating failuresDict", createFailuresDictError.GrabExceptions());
+                            throw new AggregateException("Error creating failuresDict", createFailuresDictError.Exceptions);
                         }
                         // lock on failure queue timer for modifying the failure queue
                         lock (FailureTimer.TimerRunningLocker)
@@ -6755,7 +6754,7 @@ namespace Cloud.Sync
                         // if an error occurred initializing the runningUpDownChangesDict, then rethrow the error
                         if (createUpDownDictError != null)
                         {
-                            throw new AggregateException("Error creating upDownDict", createUpDownDictError.GrabExceptions());
+                            throw new AggregateException("Error creating upDownDict", createUpDownDictError.Exceptions);
                         }
                         // loop through the events which are uploading or downloading
                         foreach (FileChange currentUpDownChange in runningUpDownChanges)
@@ -6798,7 +6797,7 @@ namespace Cloud.Sync
                         // if an error occurred retrieving the hash, then rethrow the exception
                         if (hashRetrievalError != null)
                         {
-                            throw new AggregateException("Error retrieving MD5 hash as lowercase string", hashRetrievalError.GrabExceptions());
+                            throw new AggregateException("Error retrieving MD5 hash as lowercase string", hashRetrievalError.Exceptions);
                         }
                         // set the unique server id
                         findServerUid = nonNullPreviousFileChange.FileChange.Metadata.ServerUid;
@@ -7000,9 +6999,9 @@ namespace Cloud.Sync
                                 ? string.Empty
                                 : " and an error occurred queueing for a new SyncFrom"),
                             (err == null
-                                ? purgePendingError.GrabExceptions()
-                                : purgePendingError.GrabExceptions().Concat(
-                                    err.GrabExceptions())));
+                                ? purgePendingError.Exceptions
+                                : purgePendingError.Exceptions.Concat(
+                                    err.Exceptions)));
                     }
                     #endregion
                 }
@@ -7076,7 +7075,7 @@ namespace Cloud.Sync
                                 (currentEventIsRename ? Data.currentEvent.Value.Header.EventId : null));
                             if (queryDatabaseForPath != null)
                             {
-                                throw new AggregateException("Error grabbing path by server uid", queryDatabaseForPath.GrabExceptions());
+                                throw new AggregateException("Error grabbing path by server uid", queryDatabaseForPath.Exceptions);
                             }
 
                             localDictionaryPath = localDictionaryPathString;
@@ -7112,7 +7111,7 @@ namespace Cloud.Sync
                                     (currentEventIsRename ? Data.currentEvent.Value.Header.EventId : null));
                                 if (queryDatabaseForParentPath != null)
                                 {
-                                    throw new AggregateException("Error grabbing parent path for parent folder server uid", queryDatabaseForParentPath.GrabExceptions());
+                                    throw new AggregateException("Error grabbing parent path for parent folder server uid", queryDatabaseForParentPath.Exceptions);
                                 }
 
                                 if (localDictionaryParentPathString == null)
@@ -7410,7 +7409,7 @@ namespace Cloud.Sync
                                             // if there was an error retrieving the hash, then rethrow the error
                                             if (currentEventMD5Error != null)
                                             {
-                                                throw new AggregateException("Error retrieving currentEvent.GetMD5LowercaseString", currentEventMD5Error.GrabExceptions());
+                                                throw new AggregateException("Error retrieving currentEvent.GetMD5LowercaseString", currentEventMD5Error.Exceptions);
                                             }
                                             // return the retrieved hash (or null)
                                             return currentEventMD5;
@@ -7473,7 +7472,7 @@ namespace Cloud.Sync
                         // if an error occurred performing sync to, rethrow the error
                         if (syncToError != null)
                         {
-                            throw new AggregateException("An error occurred in SyncTo communication", syncToError.GrabExceptions());
+                            throw new AggregateException("An error occurred in SyncTo communication", syncToError.Exceptions);
                         }
 
                         // if sync to was not successful, throw an error
@@ -8039,7 +8038,7 @@ namespace Cloud.Sync
                                                             // if there was an error grabbing the hierarchy, then rethrow the error
                                                             if (grabHierarchyError != null)
                                                             {
-                                                                throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.GrabExceptions());
+                                                                throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.Exceptions);
                                                             }
 
                                                             if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
@@ -8074,7 +8073,7 @@ namespace Cloud.Sync
                                                     if (queryMetadataError != null)
                                                     {
                                                         throw new AggregateException("Error querying SqlIndexer for sync state by path: " + currentChange.OldPath.ToString() +
-                                                            " and revision: " + currentChange.Metadata.Revision, queryMetadataError.GrabExceptions());
+                                                            " and revision: " + currentChange.Metadata.Revision, queryMetadataError.Exceptions);
                                                     }
 
                                                     // if no metadata was returned from the database, then throw an error if the change originated on the client or otherwise try to grab the metadata from the server for a new creation event at the final destination of the rename
@@ -8097,7 +8096,7 @@ namespace Cloud.Sync
                                                             // if an error occurred getting metadata, rethrow the error
                                                             if (getNewMetadataError != null)
                                                             {
-                                                                throw new AggregateException("An error occurred retrieving metadata", getNewMetadataError.GrabExceptions());
+                                                                throw new AggregateException("An error occurred retrieving metadata", getNewMetadataError.Exceptions);
                                                             }
 
                                                             // if the communication was not successful, then throw an error with the bad status
@@ -8127,7 +8126,7 @@ namespace Cloud.Sync
                                                                 if (fileVersionsStatus != CLHttpRestStatus.Success
                                                                     && fileVersionsStatus != CLHttpRestStatus.NoContent)
                                                                 {
-                                                                    throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.GrabExceptions());
+                                                                    throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.Exceptions);
                                                                 }
 
                                                                 JsonContracts.FileVersion lastNonPendingVersion = (fileVersions ?? Enumerable.Empty<JsonContracts.FileVersion>())
@@ -8185,7 +8184,7 @@ namespace Cloud.Sync
                                                             // if an error occurred merging the new FileChange with the event source database, then rethrow the error
                                                             if (newPathCreationError != null)
                                                             {
-                                                                throw new AggregateException("Error merging new file creation change in response to not finding existing metadata at sync from rename old path", newPathCreationError.GrabExceptions());
+                                                                throw new AggregateException("Error merging new file creation change in response to not finding existing metadata at sync from rename old path", newPathCreationError.Exceptions);
                                                             }
 
                                                             // create the change in a new format to add to errors for reprocessing
@@ -8291,7 +8290,7 @@ namespace Cloud.Sync
                                                                             CLError setDuplicateHash = duplicateChange.SetMD5(duplicateHash);
                                                                             if (setDuplicateHash != null)
                                                                             {
-                                                                                throw new AggregateException("Error setting MD5 on duplicateChange: " + setDuplicateHash.errorDescription, setDuplicateHash.GrabExceptions());
+                                                                                throw new AggregateException("Error setting MD5 on duplicateChange: " + setDuplicateHash.PrimaryException.Message, setDuplicateHash.Exceptions);
                                                                             }
 
                                                                             CLHttpRestStatus postDuplicateChangeStatus;
@@ -8303,7 +8302,7 @@ namespace Cloud.Sync
                                                                                 out postDuplicateChangeResult);
                                                                             if (postDuplicateChangeStatus != CLHttpRestStatus.Success)
                                                                             {
-                                                                                throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChange.errorDescription, postDuplicateChange.GrabExceptions());
+                                                                                throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChange.PrimaryException.Message, postDuplicateChange.Exceptions);
                                                                             }
 
                                                                             if (postDuplicateChangeResult == null)
@@ -8338,13 +8337,13 @@ namespace Cloud.Sync
                                                                                 CLError mergeDuplicateChange = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(duplicateChange)));
                                                                                 if (mergeDuplicateChange != null)
                                                                                 {
-                                                                                    throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.errorDescription, mergeDuplicateChange.GrabExceptions());
+                                                                                    throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.PrimaryException.Message, mergeDuplicateChange.Exceptions);
                                                                                 }
 
                                                                                 CLError completeDuplicateChange = syncData.completeSingleEvent(duplicateChange.EventId);
                                                                                 if (completeDuplicateChange != null)
                                                                                 {
-                                                                                    throw new AggregateException("Error marking duplicate file change complete in database: " + completeDuplicateChange.errorDescription, completeDuplicateChange.GrabExceptions());
+                                                                                    throw new AggregateException("Error marking duplicate file change complete in database: " + completeDuplicateChange.PrimaryException.Message, completeDuplicateChange.Exceptions);
                                                                                 }
                                                                             }
                                                                             else if ((new[]
@@ -8359,7 +8358,7 @@ namespace Cloud.Sync
 
                                                                                 if (createCopyDuplicateChange != null)
                                                                                 {
-                                                                                    throw new AggregateException("Error copying duplicate file change for upload processing: " + createCopyDuplicateChange.errorDescription, createCopyDuplicateChange.GrabExceptions());
+                                                                                    throw new AggregateException("Error copying duplicate file change for upload processing: " + createCopyDuplicateChange.PrimaryException.Message, createCopyDuplicateChange.Exceptions);
                                                                                 }
 
                                                                                 AddToIncompleteChanges(incompleteChangesList, copyDuplicateChange, StreamContext.Create(uploadStreamForDuplication), /* different metadata since this is new */true);
@@ -8440,7 +8439,7 @@ namespace Cloud.Sync
                                                         // if there was an error grabbing the hierarchy, then rethrow the error
                                                         if (grabHierarchyError != null)
                                                         {
-                                                            throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.GrabExceptions());
+                                                            throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.Exceptions);
                                                         }
 
                                                         if (currentEvent.Header.Status != CLDefinitions.RESTResponseStatusFailed)
@@ -8641,7 +8640,7 @@ namespace Cloud.Sync
                                                     fileDownloadMoveLocker: ((PossiblyStreamableFileChange)matchedChange).FileChange.fileDownloadMoveLocker);
                                                 if (convertMatchedChangeError != null)
                                                 {
-                                                    throw new AggregateException("Error converting matchedChange to FileChangeWithDependencies", convertMatchedChangeError.GrabExceptions());
+                                                    throw new AggregateException("Error converting matchedChange to FileChangeWithDependencies", convertMatchedChangeError.Exceptions);
                                                 }
                                             }
                                         }
@@ -9141,7 +9140,7 @@ namespace Cloud.Sync
                                                                 // if an error occurred creating the FileChange for the rename operation, rethrow the error
                                                                 if (reparentCreateError != null)
                                                                 {
-                                                                    throw new AggregateException("Error creating reparentConflict", reparentCreateError.GrabExceptions());
+                                                                    throw new AggregateException("Error creating reparentConflict", reparentCreateError.Exceptions);
                                                                 }
                                                                 else if (DependencyDebugging)
                                                                 {
@@ -9204,7 +9203,7 @@ namespace Cloud.Sync
                                                                     // if an error occurred removing the previous conflict change, then rethrow the error
                                                                     if (removalOfPreviousChange != null)
                                                                     {
-                                                                        throw new AggregateException("Error removing the existing FileChange for a conflict", removalOfPreviousChange.GrabExceptions());
+                                                                        throw new AggregateException("Error removing the existing FileChange for a conflict", removalOfPreviousChange.Exceptions);
                                                                     }
 
                                                                     // add the local rename change to the event source database, storing any error that occurred
@@ -9218,7 +9217,7 @@ namespace Cloud.Sync
                                                                         currentChange.Metadata.ParentFolderServerUid = storeServerParentUid;
                                                                         currentChange.Metadata.Revision = storeRevision;
 
-                                                                        throw new AggregateException("Error adding a rename FileChange for a conflicted file", addRenameToConflictPath.GrabExceptions());
+                                                                        throw new AggregateException("Error adding a rename FileChange for a conflicted file", addRenameToConflictPath.Exceptions);
                                                                     }
 
                                                                     // store the current event id in case it needs to be reverted
@@ -9239,7 +9238,7 @@ namespace Cloud.Sync
                                                                         currentChange.Metadata.ParentFolderServerUid = storeServerParentUid;
                                                                         currentChange.Metadata.Revision = storeRevision;
 
-                                                                        throw new AggregateException("Error adding a new creation FileChange at the new conflict path", addModifiedConflictAsCreate.GrabExceptions());
+                                                                        throw new AggregateException("Error adding a new creation FileChange at the new conflict path", addModifiedConflictAsCreate.Exceptions);
                                                                     }
 
                                                                     sqlTran.Commit();
@@ -9638,9 +9637,9 @@ namespace Cloud.Sync
                                     ? string.Empty
                                     : " and an error occurred queueing for a new SyncFrom"),
                                 (err == null
-                                    ? syncFromError.GrabExceptions()
-                                    : syncFromError.GrabExceptions().Concat(
-                                        err.GrabExceptions())));
+                                    ? syncFromError.Exceptions
+                                    : syncFromError.Exceptions.Concat(
+                                        err.Exceptions)));
                         }
 
                         if (deserializedResponse == null)
@@ -9870,7 +9869,7 @@ namespace Cloud.Sync
                                             // if there was an error grabbing the hierarchy, then rethrow the error
                                             if (grabHierarchyError != null)
                                             {
-                                                throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.GrabExceptions());
+                                                throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.Exceptions);
                                             }
                                             // if there was a hierarchy found at the old path for the rename, then apply a rename to the dictionary based on the current rename
                                             if (renameHierarchy != null)
@@ -9900,7 +9899,7 @@ namespace Cloud.Sync
                                         if (queryMetadataError != null)
                                         {
                                             throw new AggregateException("Error querying SqlIndexer for sync state by path: " + currentChange.OldPath.ToString() +
-                                                " and revision: " + currentChange.Metadata.Revision, queryMetadataError.GrabExceptions());
+                                                " and revision: " + currentChange.Metadata.Revision, queryMetadataError.Exceptions);
                                         }
 
                                         // if no metadata was returned from the database, then throw an error if the change originated on the client or otherwise try to grab the metadata from the server for a new creation event at the final destination of the rename
@@ -9920,7 +9919,7 @@ namespace Cloud.Sync
                                             // if an error occurred getting metadata, rethrow the error
                                             if (getNewMetadataError != null)
                                             {
-                                                throw new AggregateException("An error occurred retrieving metadata", getNewMetadataError.GrabExceptions());
+                                                throw new AggregateException("An error occurred retrieving metadata", getNewMetadataError.Exceptions);
                                             }
 
                                             // if the communication was not successful, then throw an error with the bad status
@@ -9950,7 +9949,7 @@ namespace Cloud.Sync
                                                 if (fileVersionsStatus != CLHttpRestStatus.Success
                                                     && fileVersionsStatus != CLHttpRestStatus.NoContent)
                                                 {
-                                                    throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.GrabExceptions());
+                                                    throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.Exceptions);
                                                 }
 
                                                 JsonContracts.FileVersion lastNonPendingVersion = (fileVersions ?? Enumerable.Empty<JsonContracts.FileVersion>())
@@ -10005,7 +10004,7 @@ namespace Cloud.Sync
                                             // if an error occurred merging the new FileChange with the event source database, then rethrow the error
                                             if (newPathCreationError != null)
                                             {
-                                                throw new AggregateException("Error merging new file creation change in response to not finding existing metadata at sync from rename old path", newPathCreationError.GrabExceptions());
+                                                throw new AggregateException("Error merging new file creation change in response to not finding existing metadata at sync from rename old path", newPathCreationError.Exceptions);
                                             }
 
                                             // add the pseudo Sync From creation event to the list to be used as changes in error, wrap it first as the correct type
@@ -10085,7 +10084,7 @@ namespace Cloud.Sync
                                                             CLError setDuplicateHash = duplicateChange.SetMD5(duplicateHash);
                                                             if (setDuplicateHash != null)
                                                             {
-                                                                throw new AggregateException("Error setting MD5 on duplicateChange: " + setDuplicateHash.errorDescription, setDuplicateHash.GrabExceptions());
+                                                                throw new AggregateException("Error setting MD5 on duplicateChange: " + setDuplicateHash.PrimaryException.Message, setDuplicateHash.Exceptions);
                                                             }
 
                                                             CLHttpRestStatus postDuplicateChangeStatus;
@@ -10097,7 +10096,7 @@ namespace Cloud.Sync
                                                                 out postDuplicateChangeResult);
                                                             if (postDuplicateChangeStatus != CLHttpRestStatus.Success)
                                                             {
-                                                                throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChange.errorDescription, postDuplicateChange.GrabExceptions());
+                                                                throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChange.PrimaryException.Message, postDuplicateChange.Exceptions);
                                                             }
 
                                                             if (postDuplicateChangeResult == null)
@@ -10132,13 +10131,13 @@ namespace Cloud.Sync
                                                                 CLError mergeDuplicateChange = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(duplicateChange)));
                                                                 if (mergeDuplicateChange != null)
                                                                 {
-                                                                    throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.errorDescription, mergeDuplicateChange.GrabExceptions());
+                                                                    throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.PrimaryException.Message, mergeDuplicateChange.Exceptions);
                                                                 }
 
                                                                 CLError completeDuplicateChange = syncData.completeSingleEvent(duplicateChange.EventId);
                                                                 if (completeDuplicateChange != null)
                                                                 {
-                                                                    throw new AggregateException("Error marking duplicate file change complete in database: " + completeDuplicateChange.errorDescription, completeDuplicateChange.GrabExceptions());
+                                                                    throw new AggregateException("Error marking duplicate file change complete in database: " + completeDuplicateChange.PrimaryException.Message, completeDuplicateChange.Exceptions);
                                                                 }
                                                             }
                                                             else if ((new[]
@@ -10230,7 +10229,7 @@ namespace Cloud.Sync
                                             // if there was an error grabbing the hierarchy, then rethrow the error
                                             if (grabHierarchyError != null)
                                             {
-                                                throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.GrabExceptions());
+                                                throw new AggregateException("Error grabbing renameHierarchy from alreadyVisitedRenames", grabHierarchyError.Exceptions);
                                             }
                                             // if there was a hierarchy found at the old path for the rename, then apply a rename to the dictionary based on the current rename
                                             if (renameHierarchy != null)
@@ -10465,7 +10464,7 @@ namespace Cloud.Sync
             // if an error occurred setting the MD5, then rethrow the error
             if (setHashError != null)
             {
-                throw new AggregateException("Error setting MD5 via hashString on baseChange", setHashError.GrabExceptions());
+                throw new AggregateException("Error setting MD5 via hashString on baseChange", setHashError.Exceptions);
             }
 
             // try cast the input changes as one with dependencies
@@ -10483,7 +10482,7 @@ namespace Cloud.Sync
             // if an error occurred creating the FileChange with dependencies for return, then rethrow the error
             if (changeConversionError != null)
             {
-                throw new AggregateException("Error converting baseChange to a FileChangeWithDependencies", changeConversionError.GrabExceptions());
+                throw new AggregateException("Error converting baseChange to a FileChangeWithDependencies", changeConversionError.Exceptions);
             }
             else if (DependencyDebugging
                 && castBase != null

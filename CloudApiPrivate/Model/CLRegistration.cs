@@ -403,8 +403,8 @@ namespace CloudApiPrivate.Model
                     // The server returned an errlr
                     retVal = false;
                     error = new CLError();
-                    //CloudAppBuild:((int)error.code).ToString() = 1400;
-                    error.errorDescription = String.Format((string)returnDictionary["message"], 1400) + ".";
+                    //CloudAppBuild:error.PrimaryException.Code = 1400;
+                    error.PrimaryException.Message = String.Format((string)returnDictionary["message"], 1400) + ".";
                     //CloudAppBuild:error.errorDomain = CLError.ErrorDomain_Application;
                 }
                 else
@@ -440,8 +440,8 @@ namespace CloudApiPrivate.Model
                 // JSON parse error
                 retVal = false;
                 error = new CLError();
-                //CloudAppBuild:((int)error.code).ToString() = 1400;
-                error.errorDescription = String.Format(/*CloudAppBuild:Cloud.Resources.Resources.ExceptionCreatingUserRegistrationWithCode*/"", 1400);
+                //CloudAppBuild:error.PrimaryException.Code = 1400;
+                error.PrimaryException.Message = String.Format(/*CloudAppBuild:Cloud.Resources.Resources.ExceptionCreatingUserRegistrationWithCode*/"", 1400);
                 //CloudAppBuild:error.errorDomain = CLError.ErrorDomain_Application;
             }
 
@@ -816,8 +816,8 @@ namespace CloudApiPrivate.Model
                     // The server returned an errlr
                     retVal = false;
                     error = new CLError();
-                    //CloudAppBuild:((int)error.code).ToString() = 1400;
-                    error.errorDescription = String.Format((string)returnDictionary["message"], 1400) + ".";
+                    //CloudAppBuild:error.PrimaryException.Code = 1400;
+                    error.PrimaryException.Message = String.Format((string)returnDictionary["message"], 1400) + ".";
                     //CloudAppBuild:error.errorDomain = CLError.ErrorDomain_Application;
                 }
                 else
@@ -853,8 +853,8 @@ namespace CloudApiPrivate.Model
                 // JSON parse error
                 retVal = false;
                 error = new CLError();
-                //CloudAppBuild:((int)error.code).ToString() = 1400;
-                error.errorDescription = String.Format(/*CloudAppBuild:Cloud.Resources.Resources.ExceptionLoggingInWithCode*/"", 1400);
+                //CloudAppBuild:error.PrimaryException.Code = 1400;
+                error.PrimaryException.Message = String.Format(/*CloudAppBuild:Cloud.Resources.Resources.ExceptionLoggingInWithCode*/"", 1400);
                 //CloudAppBuild:error.errorDomain = CLError.ErrorDomain_Application;
             }
 
@@ -1128,8 +1128,8 @@ namespace CloudApiPrivate.Model
             catch (Exception ex)
             {
                 error += ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                _trace.writeToLog(1, "CLRegistration: UnlinkDeviceWithAccessKey: ERROR: Exception. Msg: <{0}>. Code: {1}", error.errorDescription, ((int)error.code).ToString());
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                _trace.writeToLog(1, "CLRegistration: UnlinkDeviceWithAccessKey: ERROR: Exception. Msg: <{0}>. Code: {1}", error.PrimaryException.Message, error.PrimaryException.Code);
             }
 
             return isSuccess;

@@ -1150,7 +1150,7 @@ namespace Cloud.Static
             CLError getMD5Error = toPull.GetMD5LowercaseString(out toReturn);
             if (getMD5Error != null)
             {
-                throw new AggregateException("Failed to retrieve MD5 lowercase string", getMD5Error.GrabExceptions());
+                throw new AggregateException("Failed to retrieve MD5 lowercase string", getMD5Error.Exceptions);
             }
             return toReturn;
         }

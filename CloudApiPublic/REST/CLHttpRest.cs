@@ -115,7 +115,7 @@ namespace Cloud.REST
                 CLError syncRootError = Helpers.CheckForBadPath(this._copiedSettings.SyncRoot);
                 if (syncRootError != null)
                 {
-                    throw new AggregateException("settings SyncRoot represents a bad path", syncRootError.GrabExceptions());
+                    throw new AggregateException("settings SyncRoot represents a bad path", syncRootError.Exceptions);
                 }
             }
 
@@ -508,7 +508,7 @@ namespace Cloud.REST
                 // if the temp download folder is a bad path rethrow the error
                 if (badTempFolderError != null)
                 {
-                    throw new AggregateException("The customDownloadFolderFullPath is bad", badTempFolderError.GrabExceptions());
+                    throw new AggregateException("The customDownloadFolderFullPath is bad", badTempFolderError.Exceptions);
                 }
 
                 // if the folder path for downloads is too long, then throw an exception
@@ -1191,7 +1191,7 @@ namespace Cloud.REST
                     CLError pathError = Helpers.CheckForBadPath(fullPath);
                     if (pathError != null)
                     {
-                        throw new AggregateException("fullPath is not in the proper format", pathError.GrabExceptions());
+                        throw new AggregateException("fullPath is not in the proper format", pathError.Exceptions);
                     }
 
                     if (string.IsNullOrEmpty(_copiedSettings.SyncRoot))
@@ -1695,7 +1695,7 @@ namespace Cloud.REST
                             CLError addHashStringError = toCommunicate.GetMD5LowercaseString(out addHashString);
                             if (addHashStringError != null)
                             {
-                                throw new AggregateException("Error retrieving toCommunicate MD5 lowercase string", addHashStringError.GrabExceptions());
+                                throw new AggregateException("Error retrieving toCommunicate MD5 lowercase string", addHashStringError.Exceptions);
                             }
 
                             // check additional parameters for file creation
@@ -1761,7 +1761,7 @@ namespace Cloud.REST
                         CLError modifyHashStringError = toCommunicate.GetMD5LowercaseString(out modifyHashString);
                         if (modifyHashStringError != null)
                         {
-                            throw new AggregateException("Error retrieving toCommunicate MD5 lowercase string", modifyHashStringError.GrabExceptions());
+                            throw new AggregateException("Error retrieving toCommunicate MD5 lowercase string", modifyHashStringError.Exceptions);
                         }
 
                         // check additional parameters for file modification

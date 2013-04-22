@@ -266,7 +266,7 @@ namespace Cloud
                     catch (Exception ex)
                     {
                         CLError error = ex;
-                        error.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
+                        error.Log(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
                         return ex;
                     }
                 }
@@ -303,16 +303,16 @@ namespace Cloud
                 CLError checkBadPath = Helpers.CheckForBadPath(syncbox.CopiedSettings.SyncRoot);
                 if (checkBadPath != null)
                 {
-                    _trace.writeToLog(1, "CLSyncEngine: SyncReset: ERROR: {0}.", checkBadPath.errorDescription);
-                    return new ArgumentException("CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath", checkBadPath.GrabFirstException());
+                    _trace.writeToLog(1, "CLSyncEngine: SyncReset: ERROR: {0}.", checkBadPath.PrimaryException.Message);
+                    return new ArgumentException("CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath", checkBadPath.PrimaryException);
                 }
 
                 int tooLongChars;
                 CLError checkPathLength = Helpers.CheckSyncRootLength(syncbox.CopiedSettings.SyncRoot, out tooLongChars);
                 if (checkPathLength != null)
                 {
-                    _trace.writeToLog(1, "CLSyncEngine: SyncReset: ERROR: {0}.", checkPathLength.errorDescription);
-                    return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.GrabFirstException());
+                    _trace.writeToLog(1, "CLSyncEngine: SyncReset: ERROR: {0}.", checkPathLength.PrimaryException.Message);
+                    return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.PrimaryException);
                 }
 
                 // Determine the database file with full path
@@ -333,13 +333,13 @@ namespace Cloud
                 if (errorFromDelete != null)
                 {
                     // Just trace this error
-                    _trace.writeToLog(1, "CLSyncEngine: SyncReset: ERROR: From DeleteEverythingInDirectory.  Message: {0}.", errorFromDelete.errorDescription);
+                    _trace.writeToLog(1, "CLSyncEngine: SyncReset: ERROR: From DeleteEverythingInDirectory.  Message: {0}.", errorFromDelete.PrimaryException.Message);
                 }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.LogErrors);
+                error.Log(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.LogErrors);
                 _trace.writeToLog(1, "CLSyncEngine: SyncReset: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 return ex;
             }
@@ -536,9 +536,9 @@ namespace Cloud
                         Syncbox.ResetReserveForActiveSync();
                     }
 
-                    _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkBadPath.errorDescription);
+                    _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkBadPath.PrimaryException.Message);
                     Status = CLSyncStartStatus.ErrorBadRootPath;
-                    return new ArgumentException("CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath", checkBadPath.GrabFirstException());
+                    return new ArgumentException("CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath", checkBadPath.PrimaryException);
                 }
 
                 int tooLongChars;
@@ -551,9 +551,9 @@ namespace Cloud
                         Syncbox.ResetReserveForActiveSync();
                     }
 
-                    _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkPathLength.errorDescription);
+                    _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkPathLength.PrimaryException.Message);
                     Status = CLSyncStartStatus.ErrorLongRootPath;
-                    return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.GrabFirstException());
+                    return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.PrimaryException);
                 }
 
                 // Don't start twice.
@@ -567,7 +567,7 @@ namespace Cloud
                     }
 
                     CLError error = new Exception("Already started");
-                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: {0}.", error.errorDescription);
+                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: {0}.", error.PrimaryException.Message);
                     Status = CLSyncStartStatus.ErrorAlreadyStarted;
                     return error;
                 }
@@ -587,9 +587,9 @@ namespace Cloud
 
                 if (caseCheckError != null)
                 {
-                    _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkBadPath.errorDescription);
+                    _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkBadPath.PrimaryException.Message);
                     Status = CLSyncStartStatus.ErrorBadRootPath;
-                    return new ArgumentException("CloudRoot in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk", caseCheckError.GrabFirstException());
+                    return new ArgumentException("CloudRoot in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk", caseCheckError.PrimaryException);
                 }
 
                 if (!caseMatches)
@@ -617,7 +617,10 @@ namespace Cloud
                 if (iconOverlayError != null)
                 {
                     // Failure to start badging does not prevent syncing.  Just log it.
-                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception. Msg: {0}. Code: {1}.", iconOverlayError.errorDescription, ((int)iconOverlayError.code).ToString());
+                    _trace.writeToLog(1,
+                        "CLSyncEngine: Start: ERROR: Exception. Msg: {0}. Code: {1}.",
+                        iconOverlayError.PrimaryException.Message,
+                        iconOverlayError.PrimaryException.Code);
                 }
 
                 // Start the indexer.
@@ -635,7 +638,10 @@ namespace Cloud
                         Syncbox.ResetReserveForActiveSync();
                     }
 
-                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, ((int)indexCreationError.code).ToString());
+                    _trace.writeToLog(1,
+                        "CLSyncEngine: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.",
+                        indexCreationError.PrimaryException.Message,
+                        indexCreationError.PrimaryException.Code);
                     ReleaseResources();
                     Status = CLSyncStartStatus.ErrorIndexCreation;
                     return indexCreationError;
@@ -662,9 +668,9 @@ namespace Cloud
                         }
                         else
                         {
-                            error = new AggregateException("An error occurred starting push notification", getNotificationError.GrabExceptions());
+                            error = new AggregateException("An error occurred starting push notification", getNotificationError.Exceptions);
                         }
-                        _trace.writeToLog(1, "CLSyncEngine: Start: ERROR(2): {0}.", error.errorDescription);
+                        _trace.writeToLog(1, "CLSyncEngine: Start: ERROR(2): {0}.", error.PrimaryException.Message);
                         ReleaseResources();
                         Status = CLSyncStartStatus.ErrorStartingNotification;
                         return error;
@@ -712,7 +718,10 @@ namespace Cloud
                         Syncbox.ResetReserveForActiveSync();
                     }
 
-                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR(4): Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, ((int)fileMonitorCreationError.code).ToString());
+                    _trace.writeToLog(1,
+                        "CLSyncEngine: Start: ERROR(4): Msg: {0}. Code: {1}.",
+                        fileMonitorCreationError.PrimaryException.Message,
+                        fileMonitorCreationError.PrimaryException.Code);
                     lock (_locker)
                     {
                         _indexer.Dispose();
@@ -755,7 +764,10 @@ namespace Cloud
                                         Syncbox.ResetReserveForActiveSync();
                                     }
 
-                                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, ((int)fileMonitorStartError.code).ToString());
+                                    _trace.writeToLog(1,
+                                        "CLSyncEngine: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.",
+                                        fileMonitorStartError.PrimaryException.Message,
+                                        fileMonitorCreationError.PrimaryException.Code);
                                     ReleaseResources();
                                     Status = CLSyncStartStatus.ErrorStartingFileMonitor;
                                     return fileMonitorStartError;
@@ -772,7 +784,10 @@ namespace Cloud
                                         Syncbox.ResetReserveForActiveSync();
                                     }
 
-                                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, ((int)indexerStartError.code).ToString());
+                                    _trace.writeToLog(1,
+                                        "CLSyncEngine: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.",
+                                        indexerStartError.PrimaryException.Message,
+                                        indexerStartError.PrimaryException.Code);
                                     ReleaseResources();
                                     Status = CLSyncStartStatus.ErrorStartingInitialIndexing;
                                     return indexerStartError;
@@ -787,7 +802,7 @@ namespace Cloud
                                 }
 
                                 CLError error = ex;
-                                error.LogErrors(this._syncbox.CopiedSettings.TraceLocation, this._syncbox.CopiedSettings.LogErrors);
+                                error.Log(this._syncbox.CopiedSettings.TraceLocation, this._syncbox.CopiedSettings.LogErrors);
                                 _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(5).  Msg: <{0}>.", ex.Message);
                                 ReleaseResources();
                                 Status = CLSyncStartStatus.ErrorExceptionStartingFileMonitor;
@@ -808,7 +823,7 @@ namespace Cloud
                 }
 
                 CLError error = ex;
-                error.LogErrors(this._syncbox.CopiedSettings.TraceLocation, this._syncbox.CopiedSettings.LogErrors);
+                error.Log(this._syncbox.CopiedSettings.TraceLocation, this._syncbox.CopiedSettings.LogErrors);
                 _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(6).  Msg: <{0}>.", ex.Message);
                 ReleaseResources();
                 Status = CLSyncStartStatus.ErrorGeneralSyncStartException;
@@ -826,7 +841,7 @@ namespace Cloud
         private void OnNotificationConnectionError(object sender, NotificationErrorEventArgs e)
         {
             // Tell the application
-            _trace.writeToLog(1, "CLSyncEngine: OnConnectionError: Entry. ERROR: Manual poll error: <{0}>. Web socket error: <{1}>.", e.ErrorStillDisconnectedPing.errorDescription, e.ErrorWebSockets.errorDescription);
+            _trace.writeToLog(1, "CLSyncEngine: OnConnectionError: Entry. ERROR: Manual poll error: <{0}>. Web socket error: <{1}>.", e.ErrorStillDisconnectedPing.PrimaryException.Message, e.ErrorWebSockets.PrimaryException.Message);
             if (PushNotificationError != null)
             {
                 _trace.writeToLog(1, "CLSyncEngine: OnConnectionError: Notify the application.");
@@ -1004,7 +1019,7 @@ namespace Cloud
 
             if (toReturn != null)
             {
-                toReturn.LogErrors(storeSyncbox.CopiedSettings.TraceLocation, storeSyncbox.CopiedSettings.LogErrors);
+                toReturn.Log(storeSyncbox.CopiedSettings.TraceLocation, storeSyncbox.CopiedSettings.LogErrors);
             }
 
             lock (_locker)

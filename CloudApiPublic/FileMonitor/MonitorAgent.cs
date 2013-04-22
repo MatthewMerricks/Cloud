@@ -892,7 +892,7 @@ namespace Cloud.FileMonitor
                             KeyValuePair<FilePathDictionary<List<FileChange>>, CLError> upDownsPair = Data.thisAgent.GetUploadDownloadTransfersInProgress(Data.innerRootPath.Value);
                             if (upDownsPair.Value != null)
                             {
-                                throw new AggregateException("Error in GetUploadDownloadTransfersInProgress", upDownsPair.Value.GrabExceptions());
+                                throw new AggregateException("Error in GetUploadDownloadTransfersInProgress", upDownsPair.Value.Exceptions);
                             }
                             if (upDownsPair.Key == null)
                             {
@@ -1048,7 +1048,7 @@ namespace Cloud.FileMonitor
                                                     Directory.Delete(creationPathString);
                                                     try
                                                     {
-                                                        throw new AggregateException("Error updating creation time for folder to event in database", updateCreationTimeError.GrabExceptions());
+                                                        throw new AggregateException("Error updating creation time for folder to event in database", updateCreationTimeError.Exceptions);
                                                     }
                                                     catch (Exception ex)
                                                     {
@@ -1089,7 +1089,7 @@ namespace Cloud.FileMonitor
                                     CLError deletedHierarchyError = upDownsForDeleted.GrabHierarchyForPath(toApply.NewPath, out deletedHierarchy, suppressException: true);
                                     if (deletedHierarchyError != null)
                                     {
-                                        throw new AggregateException("Error grabbing hierarchy from upDownsForDeleted", deletedHierarchyError.GrabExceptions());
+                                        throw new AggregateException("Error grabbing hierarchy from upDownsForDeleted", deletedHierarchyError.Exceptions);
                                     }
 
                                     recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = deletedHierarchy;
@@ -1167,7 +1167,7 @@ namespace Cloud.FileMonitor
                                         CLError renamedHierarchyError = upDownsForRenamed.GrabHierarchyForPath(toApply.OldPath, out renamedHierarchy, suppressException: true);
                                         if (renamedHierarchyError != null)
                                         {
-                                            throw new AggregateException("Error grabbing hierarchy from upDownsForRenamed", renamedHierarchyError.GrabExceptions());
+                                            throw new AggregateException("Error grabbing hierarchy from upDownsForRenamed", renamedHierarchyError.Exceptions);
                                         }
 
                                         recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = renamedHierarchy;
@@ -1841,21 +1841,21 @@ namespace Cloud.FileMonitor
                                                 ContinueProcessing = true;
                                                 if (creationModificationCheckError != null)
                                                 {
-                                                    toReturn += new AggregateException("Error in CreationModificationDependencyCheck", creationModificationCheckError.GrabExceptions());
+                                                    toReturn += new AggregateException("Error in CreationModificationDependencyCheck", creationModificationCheckError.Exceptions);
                                                 }
                                                 break;
                                             case FileChangeType.Renamed:
                                                 CLError renameCheckError = RenameDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran);
                                                 if (renameCheckError != null)
                                                 {
-                                                    toReturn += new AggregateException("Error in RenameDependencyCheck", renameCheckError.GrabExceptions());
+                                                    toReturn += new AggregateException("Error in RenameDependencyCheck", renameCheckError.Exceptions);
                                                 }
                                                 break;
                                             case FileChangeType.Deleted:
                                                 CLError deleteCheckError = DeleteDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing);
                                                 if (deleteCheckError != null)
                                                 {
-                                                    toReturn += new AggregateException("Error in DeleteDependencyCheck", deleteCheckError.GrabExceptions());
+                                                    toReturn += new AggregateException("Error in DeleteDependencyCheck", deleteCheckError.Exceptions);
                                                 }
                                                 break;
                                             default:
@@ -1919,10 +1919,10 @@ namespace Cloud.FileMonitor
                                 if (updateSQLError != null)
                                 {
                                 	// condition for all the exceptions being keys which were not found to delete (possible if we end up deleting the same event id twice, which isn't really an error)
-                                	if (!updateSQLError.GrabExceptions()
+                                	if (!updateSQLError.Exceptions
                                         /* ! */.All(currentAggregate => currentAggregate is AggregateException && ((AggregateException)currentAggregate).InnerExceptions.All(currentInnerException => currentInnerException is KeyNotFoundException)))
                                 	{
-                                    	toReturn += new AggregateException("Error updating SQL", updateSQLError.GrabExceptions());
+                                    	toReturn += new AggregateException("Error updating SQL", updateSQLError.Exceptions);
                                 	}
                                 }
                             }
@@ -1965,7 +1965,7 @@ namespace Cloud.FileMonitor
                                 CLError updateLaterChangeAsCreatedError = SyncData.mergeToSql(new[] { new FileChangeMerge(LaterChange) });
                                 if (updateLaterChangeAsCreatedError != null)
                                 {
-                                    throw new AggregateException("Error updating LaterChange in CreationModificationDependencyCheck to Created Type", updateLaterChangeAsCreatedError.GrabExceptions());
+                                    throw new AggregateException("Error updating LaterChange in CreationModificationDependencyCheck to Created Type", updateLaterChangeAsCreatedError.Exceptions);
                                 }
                             }
 
@@ -2096,7 +2096,7 @@ namespace Cloud.FileMonitor
                                     CLError updateSqlError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange)), sqlTran);
                                     if (updateSqlError != null)
                                     {
-                                        toReturn += new AggregateException("Error updating SQL after replacing NewPath", updateSqlError.GrabExceptions());
+                                        toReturn += new AggregateException("Error updating SQL after replacing NewPath", updateSqlError.Exceptions);
                                     }
 
                                     if (CurrentEarlierChange.Type == FileChangeType.Created)
@@ -2167,7 +2167,7 @@ namespace Cloud.FileMonitor
                                             CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange)), sqlTran);
                                             if (replacePathPortionError != null)
                                             {
-                                                toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
+                                                toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.Exceptions);
                                             }
 
                                             if (LaterChange.EventId == 0)
@@ -2242,7 +2242,7 @@ namespace Cloud.FileMonitor
 
             if (toReturn != null)
             {
-                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: ERROR: {0}.", toReturn.errorDescription));
+                _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: RenameDependencyCheck: ERROR: {0}.", toReturn.PrimaryException.Message));
             }
             return toReturn;
         }
@@ -2313,7 +2313,7 @@ namespace Cloud.FileMonitor
                                 CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange, null)));
                                 if (replacePathPortionError != null)
                                 {
-                                    toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
+                                    toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.Exceptions);
                                 }
                                 break;
                             }
@@ -2363,7 +2363,7 @@ namespace Cloud.FileMonitor
                             fileDownloadMoveLocker: inputChange.FileChange.fileDownloadMoveLocker);
                         if (conversionError != null)
                         {
-                            throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
+                            throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.Exceptions);
                         }
                         originalChangeMappings[outputChange] = new KeyValuePair<FileChange, FileChangeSource>(inputChange.FileChange, originalSource);
                         streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
@@ -2481,7 +2481,7 @@ namespace Cloud.FileMonitor
                                     fileDownloadMoveLocker: toConvert.Value.Value.fileDownloadMoveLocker);
                                 if (conversionError != null)
                                 {
-                                    throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
+                                    throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.Exceptions);
                                 }
                                 else if (DependencyDebugging
                                     && (toConvert.Value.Value is FileChangeWithDependencies)
@@ -2676,7 +2676,7 @@ namespace Cloud.FileMonitor
                                                     CLError retrieveMD5Error = CurrentDependencyTree.DependencyFileChange.GetMD5Bytes(out previousMD5Bytes);
                                                     if (retrieveMD5Error != null)
                                                     {
-                                                        throw new AggregateException("Error retrieving previousMD5Bytes", retrieveMD5Error.GrabExceptions());
+                                                        throw new AggregateException("Error retrieving previousMD5Bytes", retrieveMD5Error.Exceptions);
                                                     }
 
                                                     Model.Md5Hasher hasher = new Model.Md5Hasher(FileConstants.MaxUploadIntermediateHashBytesSize);
@@ -2713,7 +2713,7 @@ namespace Cloud.FileMonitor
                                                             CLError setMD5Error = CurrentDependencyTree.DependencyFileChange.SetMD5(newMD5Bytes);
                                                             if (setMD5Error != null)
                                                             {
-                                                                throw new AggregateException("Error setting DependenyFileChange MD5", setMD5Error.GrabExceptions());
+                                                                throw new AggregateException("Error setting DependenyFileChange MD5", setMD5Error.Exceptions);
                                                             }
 
                                                             CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties = new FileMetadataHashableProperties(false,
@@ -2724,7 +2724,7 @@ namespace Cloud.FileMonitor
                                                             CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentDependencyTree.DependencyFileChange)));
                                                             if (writeNewMetadataError != null)
                                                             {
-                                                                throw new AggregateException("Error writing updated file upload metadata to SQL", writeNewMetadataError.GrabExceptions());
+                                                                throw new AggregateException("Error writing updated file upload metadata to SQL", writeNewMetadataError.Exceptions);
                                                             }
                                                         }
                                                     }
@@ -2772,7 +2772,7 @@ namespace Cloud.FileMonitor
                         CLError queuedChangesSqlError = Indexer.MergeEventsIntoDatabase(queuedChangesNeedMergeToSql.Select(currentQueuedChangeToSql => currentQueuedChangeToSql.Key));
                         if (queuedChangesSqlError != null)
                         {
-                            toReturn += new AggregateException("Error adding QueuedChanges within processing/failed changes dependency tree to SQL", queuedChangesSqlError.GrabExceptions());
+                            toReturn += new AggregateException("Error adding QueuedChanges within processing/failed changes dependency tree to SQL", queuedChangesSqlError.Exceptions);
                         }
                         foreach (KeyValuePair<FileChangeMerge, FileChange> mergedToSql in queuedChangesNeedMergeToSql)
                         {
@@ -2823,7 +2823,7 @@ namespace Cloud.FileMonitor
                         CLError createSelectedError = FileChangeWithDependencies.CreateAndInitialize(removeDependencies, /* initialDependencies */ null, out selectedWithoutDependencies);
                         if (createSelectedError != null)
                         {
-                            throw new AggregateException("Creating selectedWithDependencies returned an error", createSelectedError.GrabExceptions());
+                            throw new AggregateException("Creating selectedWithDependencies returned an error", createSelectedError.Exceptions);
                         }
                         return selectedWithoutDependencies;
                     }))(currentQueuedChange.Key.MergeTo)));
@@ -3961,7 +3961,7 @@ namespace Cloud.FileMonitor
                                         CLError existingHierarchyError = AllPaths.GrabHierarchyForPath(oldPathObject, out oldPathHierarchy, suppressException: true);
                                         if (existingHierarchyError != null)
                                         {
-                                            throw new AggregateException("Error grabbing hierarchy for oldPath from AllPaths", existingHierarchyError.GrabExceptions());
+                                            throw new AggregateException("Error grabbing hierarchy for oldPath from AllPaths", existingHierarchyError.Exceptions);
                                         }
                                         if (oldPathHierarchy != null)
                                         {
@@ -4919,7 +4919,7 @@ namespace Cloud.FileMonitor
                                 else
                                 {
                                     MessageEvents.FireNewEventMessage(
-                                        "Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database: " + matchedHierarchyError.errorDescription,
+                                        "Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database: " + matchedHierarchyError.PrimaryException.Message,
                                         EventMessageLevel.Important,
                                         new GeneralErrorInfo());
                                 }
@@ -4929,7 +4929,7 @@ namespace Cloud.FileMonitor
                     else
                     {
                         MessageEvents.FireNewEventMessage(
-                            "An error occurred checking against uploads or downloads in progress before merging new events into the database: " + (upDownsWrapped.Value == null ? "{null}" : upDownsWrapped.Value.errorDescription),
+                            "An error occurred checking against uploads or downloads in progress before merging new events into the database: " + (upDownsWrapped.Value == null ? "{null}" : upDownsWrapped.Value.PrimaryException.Message),
                             EventMessageLevel.Important,
                             new GeneralErrorInfo());
                     }
@@ -4938,14 +4938,14 @@ namespace Cloud.FileMonitor
                     if (mergeError != null)
                     {
                         // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                        mergeError.LogErrors(_syncbox.CopiedSettings.TraceLocation, true);
+                        mergeError.Log(_syncbox.CopiedSettings.TraceLocation, true);
 
                         // errors may be more common now that our database is hierarchichal and simple event ordering problems could throw an error adding to database (file before parent folder),
                         // TODO: better error recovery instead of halting whole SDK
                         MessageEvents.FireNewEventMessage(
                             "An error occurred adding a file system event to the database:" + Environment.NewLine +
                                 string.Join(Environment.NewLine,
-                                    mergeError.GrabExceptions().Select(currentError => (currentError is AggregateException
+                                    mergeError.Exceptions.Select(currentError => (currentError is AggregateException
                                         ? string.Join(Environment.NewLine, ((AggregateException)currentError).Flatten().InnerExceptions.Select(innerError => innerError.Message).ToArray())
                                         : currentError.Message)).ToArray()),
                             EventMessageLevel.Important,
@@ -4974,7 +4974,7 @@ namespace Cloud.FileMonitor
                                     nextMerge.ToString() + " " + (nextMerge.NewPath == null ? "nullPath" : nextMerge.NewPath.ToString());
 
                                 // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                                ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncbox.CopiedSettings.TraceLocation, true);
+                                ((CLError)new Exception(noEventIdErrorMessage)).Log(_syncbox.CopiedSettings.TraceLocation, true);
 
                                 MessageEvents.FireNewEventMessage(
                                     noEventIdErrorMessage,

@@ -1210,6 +1210,27 @@ namespace Cloud.Static
         }
 
         /// <summary>
+        /// Marks each item for removal one at a time and completes removal after the last item is enumerated. Each item is returned immediately upon marking for removal.
+        /// </summary>
+        /// <typeparam name="T">Type of item in List</typeparam>
+        /// <param name="removeSource">List of items to enumerate</param>
+        /// <param name="conditionalRemoval">Optionally provide a condition if not all items are supposed to be removed and returned, otherwise all will be removed and returned</param>
+        /// <returns>Returns the enumeration of removed items</returns>
+        public static IEnumerable<T> RemoveAllFromList<T>(List<T> removeSource, Predicate<T> conditionalRemoval = null)
+        {
+            using (IEnumerator<T> removeIterator = new ListRemoveAllEnumerator<T>(removeSource,
+                (conditionalRemoval == null
+                    ? currentToRemove => true
+                    : conditionalRemoval)))
+            {
+                while (removeIterator.MoveNext())
+                {
+                    yield return removeIterator.Current;
+                }
+            }
+        }
+
+        /// <summary>
         /// Checks for a bad full path for sync (does not check if path was too long for root which must be done after this check);
         /// Path cannot have empty directory portions (i.e. C:\NextWillBeEmpty\\LastWasEmpty;
         /// Path cannot have a trailing slash (i.e. C:\SeeNextSlash\);
@@ -1698,7 +1719,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 _trace.writeToLog(1, "Helpers: WriteResourceFileToFilesystemFile: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 return 4;
             }
@@ -1851,7 +1872,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 CLTrace.Instance.writeToLog(1, "Helpers: Gen: ERROR. Exception.  Msg: <{0}>.", ex.Message);
             }
 
@@ -1915,7 +1936,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "Helpers: DeleteEverythingInDirectory: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 return error;
             }
@@ -1966,7 +1987,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 CLTrace.Instance.writeToLog(1, "Helpers: GetTempFileDownloadPath: ERROR. Exception.  Msg: <{0}>.", ex.Message);
                 throw ex;
             }
@@ -1999,7 +2020,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 CLTrace.Instance.writeToLog(1, "Helpers: GetTempFileDownloadPath: ERROR. Exception.  Msg: <{0}>.", ex.Message);
                 throw ex;
             }
@@ -2067,7 +2088,7 @@ namespace Cloud.Static
         /// Debug function to assert whether a tree of dependencies for a FileChange has a change with an equivalent dependency;
         /// throws an InvalidOperationException of a duplicate is found as dependent to itself
         /// </summary>
-        public static void CheckFileChangeDependenciesForDuplicates(FileChange toCheck)
+        internal static void CheckFileChangeDependenciesForDuplicates(FileChange toCheck)
         {
             FileChangeWithDependencies castToCheck = toCheck as FileChangeWithDependencies;
             if (castToCheck != null
@@ -2083,6 +2104,21 @@ namespace Cloud.Static
                         CheckFileChangeDependenciesForDuplicates(innerDependency);
                     });
             }
+        }
+
+        /// <summary>
+        /// function to build spaces by tab count (4 spaces per tab)
+        /// </summary>
+        public static string MakeTabs(int tabCount = 1)
+        {
+            if (tabCount <= 0)
+            {
+                return string.Empty;
+            }
+
+            return new string(
+                ' ', // components of the tab are spaces
+                4 * tabCount); // the "4 *" multiplier means each tab is 4 spaces
         }
 
         #region ProcessHttp
@@ -4443,7 +4479,7 @@ namespace Cloud.Static
                 CLError retrieveHashError = this.ChangeToTransfer.GetMD5LowercaseString(out this._hash);
                 if (retrieveHashError != null)
                 {
-                    throw new AggregateException("Unable to retrieve MD5 from ChangeToTransfer", retrieveHashError.GrabExceptions());
+                    throw new AggregateException("Unable to retrieve MD5 from ChangeToTransfer", retrieveHashError.Exceptions);
                 }
                 if (this._hash == null)
                 {
@@ -4566,7 +4602,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "Helpers: IsAdministrator: ERROR: Exception: Msg: <{0}>. Return false.", ex.Message);
                 return false;
             }
