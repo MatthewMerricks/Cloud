@@ -2145,7 +2145,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxMetadata), JsonContractHelpers.SyncboxMetadataSerializer },
             { typeof(JsonContracts.SyncboxQuota), JsonContractHelpers.SyncboxQuotaSerializer },
             { typeof(JsonContracts.SyncboxIdOnly), JsonContractHelpers.SyncboxDeleteSerializer },
-            { typeof(JsonContracts.SyncboxUpdatePlanRequest), JsonContractHelpers.SyncboxUpdatePlanRequestSerializer },
+            { typeof(JsonContracts.SyncboxUpdateStoragePlanRequest), JsonContractHelpers.SyncboxUpdatePlanRequestSerializer },
             { typeof(JsonContracts.SyncboxUpdateRequest), JsonContractHelpers.SyncboxUpdateRequestSerializer },
             { typeof(JsonContracts.SessionCreateRequest), JsonContractHelpers.SessionCreateRequestSerializer },
             { typeof(JsonContracts.SessionCreateAllRequest), JsonContractHelpers.SessionCreateAllRequestSerializer },
@@ -2183,9 +2183,9 @@ namespace Cloud.Static
 
             #region platform management
             { typeof(JsonContracts.SyncboxResponse), JsonContractHelpers.CreateSyncboxSerializer },
-            { typeof(JsonContracts.ListSyncboxes), JsonContractHelpers.ListSyncboxesSerializer },
-            { typeof(JsonContracts.ListStoragePlansResponse), JsonContractHelpers.ListPlansSerializer },
-            { typeof(JsonContracts.SyncboxUpdatePlanResponse), JsonContractHelpers.SyncboxUpdatePlanResponseSerializer },
+            { typeof(JsonContracts.SyncboxListResponse), JsonContractHelpers.ListSyncboxesSerializer },
+            { typeof(JsonContracts.StoragePlanListResponse), JsonContractHelpers.ListPlansSerializer },
+            { typeof(JsonContracts.SyncboxUpdateStoragePlanResponse), JsonContractHelpers.SyncboxUpdatePlanResponseSerializer },
             { typeof(JsonContracts.SessionCreateResponse), JsonContractHelpers.SessionCreateResponseSerializer },
             { typeof(JsonContracts.ListSessionsResponse), JsonContractHelpers.ListSessionsSerializer },
             { typeof(JsonContracts.SessionShowResponse), JsonContractHelpers.SessionShowSerializer },

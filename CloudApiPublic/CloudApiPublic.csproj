@@ -150,6 +150,8 @@
     <Compile Include="JsonContracts\AuthenticationErrorMessage.cs" />
     <Compile Include="JsonContracts\AuthenticationErrorResponse.cs" />
     <Compile Include="JsonContracts\ContainsMetadataDictionaryAttribute.cs" />
+    <Compile Include="JsonContracts\SyncboxStatusResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxDeleteResponse.cs" />
     <Compile Include="JsonContracts\SyncboxCreateRequest.cs" />
     <Compile Include="JsonContracts\SyncboxAuthResponse.cs" />
     <Compile Include="JsonContracts\SyncboxForUpdateRequest.cs" />
@@ -157,8 +159,8 @@
     <Compile Include="JsonContracts\SyncboxMetadata.cs" />
     <Compile Include="JsonContracts\SyncboxQuota.cs" />
     <Compile Include="JsonContracts\SyncboxResponse.cs" />
-    <Compile Include="JsonContracts\SyncboxUpdatePlanRequest.cs" />
-    <Compile Include="JsonContracts\SyncboxUpdatePlanResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxUpdateStoragePlanRequest.cs" />
+    <Compile Include="JsonContracts\SyncboxUpdateStoragePlanResponse.cs" />
     <Compile Include="JsonContracts\SyncboxUpdateRequest.cs" />
     <Compile Include="JsonContracts\SyncboxUsageResponse.cs" />
     <Compile Include="JsonContracts\UnlinkDeviceResponse.cs" />
@@ -181,7 +183,7 @@
     <Compile Include="JsonContracts\SessionCreateRequest.cs" />
     <Compile Include="JsonContracts\SessionCreateResponse.cs" />
     <Compile Include="JsonContracts\Session.cs" />
-    <Compile Include="JsonContracts\ListStoragePlansResponse.cs" />
+    <Compile Include="JsonContracts\StoragePlanListResponse.cs" />
     <Compile Include="JsonContracts\StoragePlanResponse.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />
     <Compile Include="JsonContracts\FileCopy.cs" />
@@ -194,7 +196,7 @@
     <Compile Include="JsonContracts\FolderContents.cs" />
     <Compile Include="JsonContracts\Folders.cs" />
     <Compile Include="JsonContracts\ItemCount.cs" />
-    <Compile Include="JsonContracts\ListSyncBoxes.cs" />
+    <Compile Include="JsonContracts\SyncboxListResponse.cs" />
     <Compile Include="JsonContracts\MetadataDictionary.cs" />
     <Compile Include="JsonContracts\Pictures.cs" />
     <Compile Include="JsonContracts\Recents.cs" />

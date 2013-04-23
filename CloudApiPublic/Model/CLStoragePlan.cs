@@ -9,6 +9,8 @@ using Cloud.Interfaces;
 using Cloud.REST;
 using Cloud.Static;
 using System;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace Cloud.Model
 {
@@ -137,78 +139,60 @@ namespace Cloud.Model
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this request</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginList(AsyncCallback callback, object callbackUserState, ICLCredentialsSettings settings = null)
+        public static IAsyncResult BeginListStoragePlansWithCredentials(AsyncCallback callback, object callbackUserState, CLCredentials credentials, ICLCredentialsSettings settings = null)
         {
-            // create the asynchronous result to return
-            GenericAsyncResult<ListStoragePlansResult> toReturn = new GenericAsyncResult<ListStoragePlansResult>(
-                callback,
-                callbackUserState);
-
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<ListStoragePlansResult>, int, ICLCredentialsSettings> asyncParams =
-                new Tuple<GenericAsyncResult<ListStoragePlansResult>, int, ICLCredentialsSettings>(
-                    toReturn,
-                    timeoutMilliseconds,
-                    settings);
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<ListStoragePlansResult>, int, ICLCredentialsSettings> castState = state as Tuple<GenericAsyncResult<ListStoragePlansResult>, int, ICLCredentialsSettings>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
                 {
-                    MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<ListStoragePlansResult>(
+                        callback,
+                        callbackUserState),
+                    credentials = credentials,
+                    settings = settings
+                },
+                (Data, errorToAccumulate) =>
                 {
+                    // The ThreadProc.
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
                         // declare the output status for communication
-                        CLHttpRestStatus status;
+                        CLHttpRestStatus status;   // &&&& fix this
                         // declare the specific type of result for this operation
-                        JsonContracts.ListStoragePlansResponse result;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = ListPlans(
-                            castState.Item2,
+                        CLStoragePlan[] response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = ListStoragePlansWithCredentials(
+                            Data.credentials,
                             out status,
-                            out result,
-                            castState.Item3);
-
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new ListStoragePlansResult(
-                                    processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
-                                    result), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
+                            out response,
+                            Data.settings);
+                         
+                        Data.toReturn.Complete(
+                            new ListStoragePlansResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
                     {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
                     }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
 
             // return the asynchronous result
-            return toReturn;
+            return asyncThread.TypedData.toReturn;
         }
 
         /// <summary>
@@ -218,7 +202,7 @@ namespace Cloud.Model
         /// <param name="aResult">The asynchronous result provided upon starting listing the plans</param>
         /// <param name="result">(output) The result from listing the plans</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndList(IAsyncResult aResult, out ListStoragePlansResult result)
+        public static CLError EndListStoragePlansWithCredentials(IAsyncResult aResult, out ListStoragePlansResult result)
         {
             // declare the specific type of asynchronous result for plan listing
             GenericAsyncResult<ListStoragePlansResult> castAResult;
@@ -240,7 +224,7 @@ namespace Cloud.Model
             }
             catch (Exception ex)
             {
-                result = Helpers.DefaultForType<ListPlansResult>();
+                result = Helpers.DefaultForType<ListStoragePlansResult>();
                 return ex;
             }
 
@@ -277,10 +261,11 @@ namespace Cloud.Model
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="response">(output) An array of storage plans from the cloud.</param>
+        /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError List(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.ListStoragePlansResponse response, ICLCredentialsSettings settings = null)
+        public static CLError ListStoragePlansWithCredentials(CLCredentials credentials, out CLHttpRestStatus status, out CLStoragePlan[] response, ICLCredentialsSettings settings = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -289,32 +274,49 @@ namespace Cloud.Model
             {
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? AdvancedSyncSettings.CreateDefaultSettings()
                     : settings.CopySettings());
 
                 // check input parameters
+                if (credentials == null)
+                {
+                    throw new ArgumentNullException("credentials must not be null");
+                }
 
-                if (!(timeoutMilliseconds > 0))
+                if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                response = Helpers.ProcessHttp<JsonContracts.ListPlansResponse>(
+                // Query the server and get the response.
+                JsonContracts.StoragePlanListResponse serverResponse;
+                serverResponse = Helpers.ProcessHttp<JsonContracts.StoragePlanListResponse>(
                     null, // no request body for listing plans
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthListPlans,
                     Helpers.requestMethod.get,
-                    timeoutMilliseconds,
+                    copiedSettings.HttpTimeoutMilliseconds,
                     null, // not an upload nor download
                     Helpers.HttpStatusesOkAccepted,
                     ref status,
                     copiedSettings,
-                    this,
+                    credentials,
                     null);
+
+                // Convert the server response to the output response.
+                List<CLStoragePlan> listPlans = new List<CLStoragePlan>();
+                if (serverResponse != null && serverResponse.Plans != null)
+                {
+                    foreach (JsonContracts.StoragePlanResponse plan in serverResponse.Plans)
+                    {
+                        listPlans.Add(new CLStoragePlan(plan));
+                    }
+                }
+                response = listPlans.ToArray();
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.ListPlansResponse>();
+                response = Helpers.DefaultForType<CLStoragePlan []>();
                 return ex;
             }
             return null;

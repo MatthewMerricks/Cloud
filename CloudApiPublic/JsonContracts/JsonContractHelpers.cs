@@ -425,7 +425,7 @@ namespace Cloud.JsonContracts
                 lock (SyncboxUpdatePlanResponseSerializerLocker)
                 {
                     return _syncboxUpdatePlanResponseSerializer
-                        ?? (_syncboxUpdatePlanResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUpdatePlanResponse)));
+                        ?? (_syncboxUpdatePlanResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUpdateStoragePlanResponse)));
                 }
             }
         }
@@ -467,7 +467,7 @@ namespace Cloud.JsonContracts
                 lock (SyncboxUpdatePlanRequestSerializerLocker)
                 {
                     return _syncboxUpdatePlanRequestSerializer
-                        ?? (_syncboxUpdatePlanRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUpdatePlanRequest)));
+                        ?? (_syncboxUpdatePlanRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxUpdateStoragePlanRequest)));
                 }
             }
         }
@@ -610,7 +610,7 @@ namespace Cloud.JsonContracts
                 lock (ListSyncboxesSerializerLocker)
                 {
                     return _listSyncboxesSerializer
-                        ?? (_listSyncboxesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ListSyncboxes)));
+                        ?? (_listSyncboxesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxListResponse)));
                 }
             }
         }
@@ -624,7 +624,7 @@ namespace Cloud.JsonContracts
                 lock (ListPlansSerializerLocker)
                 {
                     return _listPlansSerializer
-                        ?? (_listPlansSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ListStoragePlansResponse)));
+                        ?? (_listPlansSerializer = new DataContractJsonSerializer(typeof(JsonContracts.StoragePlanListResponse)));
                 }
             }
         }

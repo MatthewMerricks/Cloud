@@ -50,8 +50,10 @@ Trace* Trace::getInstance()
                 _single->_fTraceEnabled = true;
             }
 
-            // Add a "Starting..." record to the trace.
-            _single->write(0, "Starting... TraceEnabled: %d. MaxPriority: %d.", _single->_fTraceEnabled, _single->_nMaxPriorityToTrace);
+            // Add a "Starting..." record to the trace.  Get the name of this process.
+			char buffer[MAX_PATH];
+			GetModuleFileNameA(NULL, buffer, sizeof(buffer));
+            _single->write(0, "Starting... TraceEnabled: %d. MaxPriority: %d.  Process name: %s.", _single->_fTraceEnabled, _single->_nMaxPriorityToTrace, buffer);
         }
     }
     catch (...)

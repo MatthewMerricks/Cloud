@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Contains actual response properties for <see cref="ListStoragePlansResponse"/>
+    /// Contains actual response properties for <see cref="StoragePlanListResponse"/>
     /// </summary>
     [DataContract]
     public sealed class StoragePlanResponse

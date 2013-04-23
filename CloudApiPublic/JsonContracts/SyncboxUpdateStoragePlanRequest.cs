@@ -1,5 +1,5 @@
 ﻿//
-// SyncboxUpdatePlanRequest.cs
+// SyncboxUpdateStoragePlanRequest.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -19,7 +19,7 @@ namespace Cloud.JsonContracts
     /// Request to update the plan used by a sync box.
     /// </summary>
     [DataContract]
-    internal sealed class SyncboxUpdatePlanRequest
+    internal sealed class SyncboxUpdateStoragePlanRequest
     {
         [DataMember(Name = CLDefinitions.RESTResponseSyncboxId, IsRequired = false)]
         public long SyncboxId { get; set; }

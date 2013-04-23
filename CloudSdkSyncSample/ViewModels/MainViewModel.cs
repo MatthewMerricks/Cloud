@@ -1230,24 +1230,22 @@ namespace SampleLiveSync.ViewModels
                             else
                             {
                                 // create a Syncbox from an existing SyncboxId
-                                CLSyncboxCreationStatus syncboxStatus;
+                                CLHttpRestStatus syncboxStatus;    // &&&& fix this.
                                 CLError errorCreateSyncbox = CLSyncbox.AllocAndInit(
                                     syncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
                                     credentials: syncCredentials,
-                                    path: SettingsAdvancedImpl.Instance.SyncRoot,
                                     syncbox: out _syncbox,
                                     status: out syncboxStatus,
+                                    path: SettingsAdvancedImpl.Instance.SyncRoot,
                                     settings: SettingsAdvancedImpl.Instance,
                                     getNewCredentialsCallback: ReplaceExpiredCredentialsCallback,
-                                    getNewCredentialsCallbackUserState: this,
-                                    statusChangedCallback: OnSyncStatusUpdated, // called when sync status is updated
-                                    statusChangedCallbackUserState: this); // the user state passed to the callback above
+                                    getNewCredentialsCallbackUserState: this);
 
                                 if (errorCreateSyncbox != null)
                                 {
                                     _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.AllocAndInit: Msg: <{0}>.", errorCreateSyncbox.errorDescription);
                                 }
-                                if (syncboxStatus != CLSyncboxCreationStatus.Success)
+                                if (syncboxStatus != CLHttpRestStatus.Success)   // &&&& fix this
                                 {
                                     if (NotifyException != null)
                                     {
@@ -1296,7 +1294,10 @@ namespace SampleLiveSync.ViewModels
                 {
                     // start syncing
                     CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithShellExt : CLSyncMode.CLSyncModeLive;
-                    CLError errorFromSyncboxStart = _syncbox.BeginSync(syncMode);
+                    CLError errorFromSyncboxStart = _syncbox.BeginSync(
+                        syncMode,
+                        syncStatusChangedCallback: OnSyncStatusUpdated, // called when sync status is updated
+                        syncStatusChangedCallbackUserState: this); // the user state passed to the callback above
                     if (errorFromSyncboxStart != null)
                     {
                         _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.Start: Msg: <{0}>.", errorFromSyncboxStart.errorDescription);

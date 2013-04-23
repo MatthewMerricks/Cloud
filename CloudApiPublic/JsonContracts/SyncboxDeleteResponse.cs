@@ -1,8 +1,8 @@
 ﻿//
-// ListSyncboxes.cs
+// SyncboxDeleteResponse.cs
 // Cloud Windows
 //
-// Created By DavidBruck.
+// Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Cloud.Model;
@@ -16,19 +16,15 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLCredentials.ListSyncboxes"/>
+    /// Result from <see cref="Cloud.CLSyncbox.Delete"/>
     /// </summary>
     [DataContract]
-    [ContainsMetadataDictionary] // within Syncbox[] Syncboxes
-    public sealed class ListSyncboxes
+    public sealed class SyncboxDeleteResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
         public string Message { get; set; }
-
-        [DataMember(Name = CLDefinitions.RESTResponseSyncboxes, IsRequired = false)]
-        public Syncbox[] Syncboxes { get; set; }
     }
 }
