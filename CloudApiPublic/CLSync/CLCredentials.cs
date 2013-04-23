@@ -136,7 +136,6 @@ namespace Cloud
             ICLCredentialsSettings settings = null)
         {
             // check input parameters
-
             if (string.IsNullOrEmpty(Key))
             {
                 status = CLCredentialsCreationStatus.ErrorNullKey;
@@ -158,6 +157,36 @@ namespace Cloud
             this._secret = Secret;
             
             this._token = Token;
+
+            // copy settings so they don't change while processing; this also defaults some values
+            _copiedSettings = (settings == null
+                ? NullSyncRoot.Instance.CopySettings()
+                : settings.CopySettings());
+        }
+
+        private CLCredentials(JsonContracts.Session session, ICLCredentialsSettings settings = null)
+        {
+            // check input parameters
+            if (string.IsNullOrEmpty(session.Key))
+            {
+                throw new NullReferenceException("Key cannot be null");
+            }
+            if (string.IsNullOrEmpty(session.Secret))
+            {
+                throw new NullReferenceException("Secret cannot be null");
+            }
+
+            // Since we allow null then reverse-null coalesce from empty string
+            string token = session.Token;
+            if (token == string.Empty)
+            {
+                token = null;
+            }
+
+            this._key = Key;
+            this._secret = Secret;
+
+            this._token = token;
 
             // copy settings so they don't change while processing; this also defaults some values
             _copiedSettings = (settings == null
@@ -202,86 +231,64 @@ namespace Cloud
 
         #region ListSessions
         /// <summary>
-        /// Asynchronously starts listing the sessions on the server for the current application
+        /// Asynchronously starts listing the sessions on the server for the current credentials.
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="settings">(optional) Settings to use with this request.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginListSessions(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds,
+        public IAsyncResult BeginListSessions(
+            AsyncCallback callback,
+            object callbackUserState,
             ICLCredentialsSettings settings = null)
         {
-            // create the asynchronous result to return
-            GenericAsyncResult<ListSessionsResult> toReturn = new GenericAsyncResult<ListSessionsResult>(
-                aCallback,
-                aState);
-
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<ListSessionsResult>, int, ICLCredentialsSettings> asyncParams =
-                new Tuple<GenericAsyncResult<ListSessionsResult>, int, ICLCredentialsSettings>(
-                    toReturn,
-                    timeoutMilliseconds,
-                    settings);
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<ListSessionsResult>, int, ICLCredentialsSettings> castState = state as Tuple<GenericAsyncResult<ListSessionsResult>, int, ICLCredentialsSettings>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
                 {
-                    MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<CredentialsListSessionsResult>(
+                        callback,
+                        callbackUserState),
+                    settings = settings
+                },
+                (Data, errorToAccumulate) =>
                 {
+                    // The ThreadProc.
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
                         // declare the output status for communication
-                        CLHttpRestStatus status;
+                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
-                        JsonContracts.ListSessionsResponse result;
-                        // run the download of the file with the passed parameters, storing any error that occurs
+                        CLCredentials [] response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = ListSessions(
-                            castState.Item2,
                             out status,
-                            out result,
-                            castState.Item3);
+                            out response,
+                            Data.settings);
 
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new ListSessionsResult(
-                                    processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
-                                    result), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.Complete(
+                            new CredentialsListSessionsResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
                     {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
                     }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
 
             // return the asynchronous result
-            return toReturn;
+            return asyncThread.TypedData.toReturn;
         }
 
         /// <summary>
@@ -291,16 +298,16 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting listing the sessions</param>
         /// <param name="result">(output) The result from listing the sessions</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndListSessions(IAsyncResult aResult, out ListSessionsResult result)
+        public CLError EndListSessions(IAsyncResult aResult, out CredentialsListSessionsResult result)
         {
             // declare the specific type of asynchronous result for session listing
-            GenericAsyncResult<ListSessionsResult> castAResult;
+            GenericAsyncResult<CredentialsListSessionsResult> castAResult;
 
             // try/catch to try casting the asynchronous result as the type for session listing and pull the result (possibly incomplete), on catch default the output and return the error
             try
             {
                 // try cast the asynchronous result as the type for listing sessions
-                castAResult = aResult as GenericAsyncResult<ListSessionsResult>;
+                castAResult = aResult as GenericAsyncResult<CredentialsListSessionsResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -313,7 +320,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                result = Helpers.DefaultForType<ListSessionsResult>();
+                result = Helpers.DefaultForType<CredentialsListSessionsResult>();
                 return ex;
             }
 
@@ -348,12 +355,11 @@ namespace Cloud
         /// <summary>
         /// Lists the sessions boxes on the server for the current application
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="response">(output) An array of CLCredential objects representing the sessions in the cloud.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ListSessions(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.ListSessionsResponse response, ICLCredentialsSettings settings = null)
+        public CLError ListSessions(out CLHttpRestStatus status, out CLCredentials [] response, ICLCredentialsSettings settings = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -366,28 +372,41 @@ namespace Cloud
                     : settings.CopySettings());
 
                 // check input parameters
-
-                if (!(timeoutMilliseconds > 0))
+                if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                response = Helpers.ProcessHttp<JsonContracts.ListSessionsResponse>(
+                // Communicate with the server.
+                JsonContracts.CredentialsListSessionsResponse serverResponse;
+                serverResponse = Helpers.ProcessHttp<JsonContracts.CredentialsListSessionsResponse>(
                     /* requestContent */ null, // no request body for listing sessions
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthListSessions,
                     Helpers.requestMethod.post,
-                    timeoutMilliseconds,
+                    copiedSettings.HttpTimeoutMilliseconds,
                     /* uploadDownload */ null, // not an upload nor download
                     Helpers.HttpStatusesOkAccepted,
                     ref status,
                     copiedSettings,
                     Credentials: this,
                     SyncboxId: null);
+
+                // Convert the server response into an array of CLCredentials to return.
+                List<CLCredentials> listCredentials = new List<CLCredentials>();
+                if (serverResponse != null && serverResponse.Sessions != null)
+                {
+                    foreach (JsonContracts.Session session in serverResponse.Sessions)
+                    {
+                        listCredentials.Add(new CLCredentials(session, copiedSettings));
+                    }
+                }
+                response = listCredentials.ToArray();
+
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.ListSessionsResponse>();
+                response = Helpers.DefaultForType<CLCredentials []>();
                 return ex;
             }
             return null;

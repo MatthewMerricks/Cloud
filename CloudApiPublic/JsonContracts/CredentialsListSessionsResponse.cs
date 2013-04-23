@@ -19,7 +19,7 @@ namespace Cloud.JsonContracts
     /// Result from <see cref="Cloud.CLCredentials.ListSesions"/>
     /// </summary>
     [DataContract]
-    public sealed class ListSessionsResponse
+    public sealed class CredentialsListSessionsResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }

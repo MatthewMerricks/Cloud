@@ -638,7 +638,7 @@ namespace Cloud.JsonContracts
                 lock (ListSessionsSerializerLocker)
                 {
                     return _listSessionsSerializer
-                        ?? (_listSessionsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ListSessionsResponse)));
+                        ?? (_listSessionsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsListSessionsResponse)));
                 }
             }
         }

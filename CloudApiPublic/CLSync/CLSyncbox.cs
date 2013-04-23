@@ -316,7 +316,7 @@ namespace Cloud
 
         #endregion  // end Private Constructors
 
-        #region Public Factory
+        #region Public CLSyncbox Factory
 
         /// <summary>
         /// Asynchronously begins the factory process to construct an instance of CLSyncbox, initialize it and fill in its properties from the cloud, and associates the cloud syncbox with a folder on the local disk.
@@ -510,10 +510,10 @@ namespace Cloud
             return null;
         }
 
-        #endregion  // end Public Factory
+        #endregion  // end Public CLSyncbox Factory
 
         #region Public Instance Life Cycle Methods
-        
+
         /// <summary>
         /// Start syncing according to the requested sync mode.
         /// </summary>
@@ -2736,14 +2736,14 @@ namespace Cloud
         }
         #endregion
 
-        #region Usage (get the usage information for this syncbox from the cloud)
+        #region GetDataUsage (get the usage information for this syncbox from the cloud)
         /// <summary>
         /// Asynchronously starts getting the usage information for this syncbox from the cloud.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass as a parameter when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUsage(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetDataUsage(AsyncCallback callback, object callbackUserState)
         {
             CheckDisposed();
             return _httpRestClient.BeginGetSyncboxUsage(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds);
@@ -2756,7 +2756,7 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the asynchronous request.</param>
         /// <param name="result">(output) The result from the asynchronous request.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndUsage(IAsyncResult aResult, out SyncboxUsageResult result)
+        public CLError EndGetDataUsage(IAsyncResult aResult, out SyncboxUsageResult result)
         {
             CheckDisposed();
             return _httpRestClient.EndGetSyncboxUsage(aResult, out result);
@@ -2768,12 +2768,12 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError Usage(out CLHttpRestStatus status, out JsonContracts.SyncboxUsageResponse response)
+        public CLError GetDataUsage(out CLHttpRestStatus status, out JsonContracts.SyncboxUsageResponse response)
         {
             CheckDisposed();
             return _httpRestClient.GetSyncboxUsage(_copiedSettings.HttpTimeoutMilliseconds, out status, out response);
         }
-        #endregion  // end (get the usage information for this syncbox from the cloud)
+        #endregion  // end GetDataUsage (get the usage information for this syncbox from the cloud)
 
         #region UpdateSyncboxExtendedMetadata
         /// <summary>
@@ -2984,7 +2984,7 @@ namespace Cloud
         //}
         //#endregion  // end UpdateFriendlyName (Update the friendly namd for a syncbox in the cloud)
 
-        #region Status (update the status of this syncbox from the cloud)
+        #region GetCurrentStatus (update the status of this syncbox from the cloud)
         /// <summary>
         /// Asynchronously gets the status of this Syncbox.
         /// </summary>
@@ -3048,7 +3048,7 @@ namespace Cloud
 
             this._propertyChangeLocker.ExitWriteLock();
         }
-        #endregion  // end (update the status of this syncbox from the cloud)
+        #endregion  // end GetCurrentStatus (update the status of this syncbox from the cloud)
 
         #endregion  // end Public Instance HTTP REST Methods
 

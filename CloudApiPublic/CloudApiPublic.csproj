@@ -178,7 +178,7 @@
     <Compile Include="JsonContracts\SessionDeleteResponse.cs" />
     <Compile Include="JsonContracts\SessionDeleteRequest.cs" />
     <Compile Include="JsonContracts\SessionShowResponse.cs" />
-    <Compile Include="JsonContracts\ListSessionsResponse.cs" />
+    <Compile Include="JsonContracts\CredentialsListSessionsResponse.cs" />
     <Compile Include="JsonContracts\SessionCreateAllRequest.cs" />
     <Compile Include="JsonContracts\SessionCreateRequest.cs" />
     <Compile Include="JsonContracts\SessionCreateResponse.cs" />

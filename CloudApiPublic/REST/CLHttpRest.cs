@@ -1473,7 +1473,7 @@ namespace Cloud.REST
         /// <param name="toCommunicate">Single FileChange to send</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginPostFileChange(AsyncCallback aCallback,
+        internal IAsyncResult BeginPostFileChange(AsyncCallback aCallback,
             object aState,
             FileChange toCommunicate,
             int timeoutMilliseconds)
@@ -1555,7 +1555,7 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting the FileChange post</param>
         /// <param name="result">(output) The result from the FileChange post</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndPostFileChange(IAsyncResult aResult, out FileChangeResult result)
+        internal CLError EndPostFileChange(IAsyncResult aResult, out FileChangeResult result)
         {
             // declare the specific type of asynchronous result for FileChange post
             GenericAsyncResult<FileChangeResult> castAResult;
@@ -1619,7 +1619,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError PostFileChange(FileChange toCommunicate, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.FileChangeResponse response)
+        internal CLError PostFileChange(FileChange toCommunicate, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.FileChangeResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;

@@ -2187,7 +2187,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.StoragePlanListResponse), JsonContractHelpers.ListPlansSerializer },
             { typeof(JsonContracts.SyncboxUpdateStoragePlanResponse), JsonContractHelpers.SyncboxUpdatePlanResponseSerializer },
             { typeof(JsonContracts.SessionCreateResponse), JsonContractHelpers.SessionCreateResponseSerializer },
-            { typeof(JsonContracts.ListSessionsResponse), JsonContractHelpers.ListSessionsSerializer },
+            { typeof(JsonContracts.CredentialsListSessionsResponse), JsonContractHelpers.ListSessionsSerializer },
             { typeof(JsonContracts.SessionShowResponse), JsonContractHelpers.SessionShowSerializer },
             { typeof(JsonContracts.SessionDeleteResponse), JsonContractHelpers.SessionDeleteSerializer },
             { typeof(JsonContracts.NotificationUnsubscribeResponse), JsonContractHelpers.NotificationUnsubscribeResponseSerializer },

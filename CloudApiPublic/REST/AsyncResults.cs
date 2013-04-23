@@ -472,20 +472,60 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxListResult : BaseCLHttpRestResult<JsonContracts.SyncboxListResponse>
+    public sealed class CredentialsListSessionsResult
     {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLCredentials[] Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLCredentials[] _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        /// <summary>
+        /// The status resulting from communication
+        /// </summary>
+        public CLHttpRestStatus Status  // &&&& fix this
+        {
+            get
+            {
+                return _status;
+            }
+        }
+        private readonly CLHttpRestStatus _status;  // &&&& fix this
+
         // construct with all readonly properties
-        internal SyncboxListResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxListResponse Response)
-            : base(Error, Status, Response) { }
+        internal CredentialsListSessionsResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLCredentials[] Response)
+        {
+            this._error = Error;
+            this._status = Status;
+            this._response = Response;
+        }
     }
 
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class ListSessionsResult : BaseCLHttpRestResult<JsonContracts.ListSessionsResponse>
+    public sealed class SyncboxListResult : BaseCLHttpRestResult<JsonContracts.SyncboxListResponse>
     {
         // construct with all readonly properties
-        internal ListSessionsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.ListSessionsResponse Response)
+        internal SyncboxListResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxListResponse Response)
             : base(Error, Status, Response) { }
     }
 
