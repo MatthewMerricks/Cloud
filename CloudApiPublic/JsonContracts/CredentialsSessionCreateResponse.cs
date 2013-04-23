@@ -16,10 +16,10 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLCredentials.CreateSession"/>
+    /// Result from <see cref="Cloud.CLCredentials.CreateSessionWithParameters"/>
     /// </summary>
     [DataContract]
-    public sealed class SessionCreateResponse
+    public sealed class CredentialsSessionCreateResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }

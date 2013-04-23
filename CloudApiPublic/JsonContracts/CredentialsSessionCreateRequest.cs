@@ -19,7 +19,7 @@ namespace Cloud.JsonContracts
     /// Request to create a session.
     /// </summary>
     [DataContract]
-    internal sealed class SessionCreateRequest
+    internal sealed class CredentialsSessionCreateRequest
     {
         [DataMember(Name = CLDefinitions.RESTRequestSession_TokenDuration, IsRequired = false)]
         public Nullable<long> TokenDuration { get; set; }

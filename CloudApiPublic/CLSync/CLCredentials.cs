@@ -164,6 +164,11 @@ namespace Cloud
                 : settings.CopySettings());
         }
 
+        /// <summary>
+        /// Private constructor to create CLCredentials from JsonContracts.Session.
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="settings"></param>
         private CLCredentials(JsonContracts.Session session, ICLCredentialsSettings settings = null)
         {
             // check input parameters
@@ -237,7 +242,7 @@ namespace Cloud
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="settings">(optional) Settings to use with this request.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginListSessions(
+        public IAsyncResult BeginListAllActiveSessions(
             AsyncCallback callback,
             object callbackUserState,
             ICLCredentialsSettings settings = null)
@@ -260,10 +265,10 @@ namespace Cloud
                     {
                         // declare the output status for communication
                         CLHttpRestStatus status;    // &&&&& Fix this
-                        // declare the specific type of result for this operation
+                        // declare the specific type of response for this operation
                         CLCredentials [] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = ListSessions(
+                        CLError processError = ListAllActiveSessions(
                             out status,
                             out response,
                             Data.settings);
@@ -272,7 +277,7 @@ namespace Cloud
                             new CredentialsListSessionsResult(
                                 processError, // any error that may have occurred during processing
                                 status, // the output status of communication
-                                response), // the specific type of result for this operation
+                                response), // the specific type of response for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -298,7 +303,7 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting listing the sessions</param>
         /// <param name="result">(output) The result from listing the sessions</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndListSessions(IAsyncResult aResult, out CredentialsListSessionsResult result)
+        public CLError EndListAllActiveSessions(IAsyncResult aResult, out CredentialsListSessionsResult result)
         {
             // declare the specific type of asynchronous result for session listing
             GenericAsyncResult<CredentialsListSessionsResult> castAResult;
@@ -359,7 +364,7 @@ namespace Cloud
         /// <param name="response">(output) An array of CLCredential objects representing the sessions in the cloud.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ListSessions(out CLHttpRestStatus status, out CLCredentials [] response, ICLCredentialsSettings settings = null)
+        public CLError ListAllActiveSessions(out CLHttpRestStatus status, out CLCredentials [] response, ICLCredentialsSettings settings = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -413,97 +418,74 @@ namespace Cloud
         }
         #endregion
 
-        #region CreateSession
+        #region CreateSessionWithParameters (create a new set of session credentials using the current credentials)
         /// <summary>
         /// Asynchronously starts creating a session on the server for the current application
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginCreateSession(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginCreateSessionWithParameters(AsyncCallback callback,
+            object callbackUserState,
             int timeoutMilliseconds,
             HashSet<long> syncboxIds = null,
             Nullable<long> tokenDurationMinutes = null,
             ICLCredentialsSettings settings = null)
         {
-            // create the asynchronous result to return
-            GenericAsyncResult<SessionCreateResult> toReturn = new GenericAsyncResult<SessionCreateResult>(
-                aCallback,
-                aState);
-
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<SessionCreateResult>, int, HashSet<long>, Nullable<long>, ICLCredentialsSettings> asyncParams =
-                new Tuple<GenericAsyncResult<SessionCreateResult>, int, HashSet<long>, Nullable<long>, ICLCredentialsSettings>(
-                    toReturn,
-                    timeoutMilliseconds,
-                    syncboxIds,
-                    tokenDurationMinutes,
-                    settings);
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<SessionCreateResult>, int, HashSet<long>, Nullable<long>, ICLCredentialsSettings> castState =
-                            state as Tuple<GenericAsyncResult<SessionCreateResult>, int, HashSet<long>, Nullable<long>, ICLCredentialsSettings>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
                 {
-                    MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<CredentialsSessionCreateResult>(
+                        callback,
+                        callbackUserState),
+                    settings = settings,
+                    syncboxIds = syncboxIds,
+                    tokenDurationMinutes = tokenDurationMinutes
+                },
+                (Data, errorToAccumulate) =>
                 {
+                    // The ThreadProc.
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
                         // declare the output status for communication
-                        CLHttpRestStatus status;
-                        // declare the specific type of result for this operation
-                        JsonContracts.SessionCreateResponse result;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = CreateSession(
-                            castState.Item2,
+                        CLHttpRestStatus status;    // &&&&& Fix this
+                        // declare the specific type of response for this operation
+                        CLCredentials response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = CreateSessionWithParameters(
                             out status,
-                            out result,
-                            castState.Item3,
-                            castState.Item4,
-                            castState.Item5);
+                            out response,
+                            Data.syncboxIds,
+                            Data.tokenDurationMinutes,
+                            Data.settings);
 
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new SessionCreateResult(
-                                    processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
-                                    result), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.Complete(
+                            new CredentialsSessionCreateResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of response for this operation
+                            sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
                     {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
                     }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
 
             // return the asynchronous result
-            return toReturn;
+            return asyncThread.TypedData.toReturn;
         }
 
         /// <summary>
@@ -513,16 +495,16 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the creation of the session</param>
         /// <param name="result">(output) The result from creating the session</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndCreateSession(IAsyncResult aResult, out SessionCreateResult result)
+        public CLError EndCreateSessionWithParameters(IAsyncResult aResult, out CredentialsSessionCreateResult result)
         {
             // declare the specific type of asynchronous result for session creation
-            GenericAsyncResult<SessionCreateResult> castAResult;
+            GenericAsyncResult<CredentialsSessionCreateResult> castAResult;
 
             // try/catch to try casting the asynchronous result as the type for session create result and pull the result (possibly incomplete), on catch default the output and return the error
             try
             {
                 // try cast the asynchronous result as the type for creating a session
-                castAResult = aResult as GenericAsyncResult<SessionCreateResult>;
+                castAResult = aResult as GenericAsyncResult<CredentialsSessionCreateResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -535,7 +517,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                result = Helpers.DefaultForType<SessionCreateResult>();
+                result = Helpers.DefaultForType<CredentialsSessionCreateResult>();
                 return ex;
             }
 
@@ -570,15 +552,15 @@ namespace Cloud
         /// <summary>
         /// Creates a session on the server for the current application
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError CreateSession(int timeoutMilliseconds, out CLHttpRestStatus status, 
-                    out JsonContracts.SessionCreateResponse response, 
+        public CLError CreateSessionWithParameters(
+                    out CLHttpRestStatus status, 
+                    out CLCredentials response,
                     HashSet<long> syncboxIds = null,
                     Nullable<long> tokenDurationMinutes = null,
                     ICLCredentialsSettings settings = null)
@@ -595,7 +577,7 @@ namespace Cloud
 
                 // check input parameters
 
-                if (!(timeoutMilliseconds > 0))
+                if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
@@ -605,7 +587,7 @@ namespace Cloud
                 object requestContract = null;
                 if (syncboxIds == null)
                 {
-                    Cloud.JsonContracts.SessionCreateAllRequest sessionCreateAll = new JsonContracts.SessionCreateAllRequest()
+                    Cloud.JsonContracts.CredentialsSessionCreateAllRequest sessionCreateAll = new JsonContracts.CredentialsSessionCreateAllRequest()
                     {
                         SessionIds = CLDefinitions.RESTRequestSession_SyncboxIdsAll,
                         TokenDuration = tokenDurationMinutes
@@ -614,7 +596,7 @@ namespace Cloud
                 }
                 else
                 {
-                    Cloud.JsonContracts.SessionCreateRequest sessionCreate = new JsonContracts.SessionCreateRequest()
+                    Cloud.JsonContracts.CredentialsSessionCreateRequest sessionCreate = new JsonContracts.CredentialsSessionCreateRequest()
                     {
                         SessionIds = syncboxIds.ToArray<long>(),
                         TokenDuration = tokenDurationMinutes
@@ -622,27 +604,40 @@ namespace Cloud
                     requestContract = sessionCreate;
                 }
 
-                response = Helpers.ProcessHttp<JsonContracts.SessionCreateResponse>(
+                // Communicate with the server
+                JsonContracts.CredentialsSessionCreateResponse serverResponse;
+                serverResponse = Helpers.ProcessHttp<JsonContracts.CredentialsSessionCreateResponse>(
                     requestContract, 
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthCreateSession,
                     Helpers.requestMethod.post,
-                    timeoutMilliseconds,
+                    copiedSettings.HttpTimeoutMilliseconds,
                     null, // not an upload nor download
                     Helpers.HttpStatusesOkCreatedNotModifiedNoContent,
                     ref status,
                     copiedSettings,
                     this,
                     null);
+
+                // Convert the server response to a CLCredentials object and pass that back as the response.
+                if (serverResponse.Session != null)
+                {
+                    response = new CLCredentials(serverResponse.Session);
+                }
+                else
+                {
+                    throw new Exception("No session returned from server");
+                }
+
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SessionCreateResponse>();
+                response = Helpers.DefaultForType<CLCredentials>();
                 return ex;
             }
             return null;
         }
-        #endregion
+        #endregion  // end CreateSessionWithParameters (create a new set of session credentials using the current credentials)
 
         #region ShowSession
         /// <summary>
@@ -695,13 +690,13 @@ namespace Cloud
                     {
                         // declare the output status for communication
                         CLHttpRestStatus status;
-                        // declare the specific type of result for this operation
-                        JsonContracts.SessionShowResponse result;
+                        // declare the specific type of response for this operation
+                        JsonContracts.SessionShowResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = ShowSession(
                             castState.Item2,
                             out status,
-                            out result,
+                            out response,
                             castState.Item3,
                             castState.Item4);
 
@@ -712,7 +707,7 @@ namespace Cloud
                                 new SessionShowResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
-                                    result), // the specific type of result for this operation
+                                    response), // the specific type of response for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
                     }
@@ -903,13 +898,13 @@ namespace Cloud
                     {
                         // declare the output status for communication
                         CLHttpRestStatus status;
-                        // declare the specific type of result for this operation
-                        JsonContracts.SessionDeleteResponse result;
+                        // declare the specific type of response for this operation
+                        JsonContracts.SessionDeleteResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = DeleteSession(
                             castState.Item2,
                             out status,
-                            out result,
+                            out response,
                             castState.Item3,
                             castState.Item4);
 
@@ -920,7 +915,7 @@ namespace Cloud
                                 new SessionDeleteResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
-                                    result), // the specific type of result for this operation
+                                    response), // the specific type of response for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
                     }
@@ -1113,14 +1108,14 @@ namespace Cloud
                     {
                         // declare the output status for communication
                         CLHttpRestStatus status;
-                        // declare the specific type of result for this operation
-                        JsonContracts.LinkDeviceFirstTimeResponse result;
+                        // declare the specific type of response for this operation
+                        JsonContracts.LinkDeviceFirstTimeResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = LinkDeviceFirstTime(
                             request,
                             castState.Item2,
                             out status,
-                            out result,
+                            out response,
                             castState.Item3);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -1130,7 +1125,7 @@ namespace Cloud
                                 new LinkDeviceFirstTimeResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
-                                    result), // the specific type of result for this operation
+                                    response), // the specific type of response for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
                     }
@@ -1341,14 +1336,14 @@ namespace Cloud
                     {
                         // declare the output status for communication
                         CLHttpRestStatus status;
-                        // declare the specific type of result for this operation
-                        JsonContracts.LinkDeviceResponse result;
+                        // declare the specific type of response for this operation
+                        JsonContracts.LinkDeviceResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = LinkDevice(
                             request,
                             castState.Item2,
                             out status,
-                            out result,
+                            out response,
                             castState.Item3);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -1358,7 +1353,7 @@ namespace Cloud
                                 new LinkDeviceResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
-                                    result), // the specific type of result for this operation
+                                    response), // the specific type of response for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
                     }
@@ -1559,14 +1554,14 @@ namespace Cloud
                     {
                         // declare the output status for communication
                         CLHttpRestStatus status;
-                        // declare the specific type of result for this operation
-                        JsonContracts.UnlinkDeviceResponse result;
+                        // declare the specific type of response for this operation
+                        JsonContracts.UnlinkDeviceResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = UnlinkDevice(
                             request,
                             castState.Item2,
                             out status,
-                            out result,
+                            out response,
                             castState.Item3);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -1576,7 +1571,7 @@ namespace Cloud
                                 new UnlinkDeviceResult(
                                     processError, // any error that may have occurred during processing
                                     status, // the output status of communication
-                                    result), // the specific type of result for this operation
+                                    response), // the specific type of response for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
                     }

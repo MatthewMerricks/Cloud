@@ -19,7 +19,7 @@ namespace Cloud.JsonContracts
     /// Request to create a session and associate all of the application's sync boxes.
     /// </summary>
     [DataContract]
-    internal sealed class SessionCreateAllRequest
+    internal sealed class CredentialsSessionCreateAllRequest
     {
         [DataMember(Name = CLDefinitions.RESTRequestSession_TokenDuration, IsRequired = false)]
         public Nullable<long> TokenDuration { get; set; }

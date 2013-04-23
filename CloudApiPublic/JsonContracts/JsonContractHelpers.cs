@@ -439,7 +439,7 @@ namespace Cloud.JsonContracts
                 lock (SessionCreateResponseSerializerLocker)
                 {
                     return _sessionCreateResponseSerializer
-                        ?? (_sessionCreateResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SessionCreateResponse)));
+                        ?? (_sessionCreateResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsSessionCreateResponse)));
                 }
             }
         }
@@ -495,7 +495,7 @@ namespace Cloud.JsonContracts
                 lock (SessionCreateRequestSerializerLocker)
                 {
                     return _sessionCreateRequestSerializer
-                        ?? (_sessionCreateRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SessionCreateRequest)));
+                        ?? (_sessionCreateRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsSessionCreateRequest)));
                 }
             }
         }
@@ -509,7 +509,7 @@ namespace Cloud.JsonContracts
                 lock (SessionCreateAllRequestSerializerLocker)
                 {
                     return _sessionCreateAllRequestSerializer
-                        ?? (_sessionCreateAllRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SessionCreateAllRequest)));
+                        ?? (_sessionCreateAllRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsSessionCreateAllRequest)));
                 }
             }
         }
