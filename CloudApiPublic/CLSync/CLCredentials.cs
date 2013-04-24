@@ -322,6 +322,7 @@ namespace Cloud
         /// <param name="response">(output) An array of CLCredential objects representing the sessions in the cloud.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
         public CLError ListAllActiveSessions(out CLHttpRestStatus status, out CLCredentials [] response, ICLCredentialsSettings settings = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status

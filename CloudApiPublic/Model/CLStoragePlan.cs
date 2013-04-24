@@ -34,7 +34,7 @@ namespace Cloud.Model
         /// <summary>
         /// The ID of the tier that this storage plan belongs to.
         /// </summary>
-        public long Tier { get; private set; }
+        public Nullable<long> Tier { get; private set; }
 
         /// <summary>
         /// The client application ID associated with this storage plan.
@@ -44,12 +44,12 @@ namespace Cloud.Model
         /// <summary>
         /// The maximum bandwidth allowed for this plan.
         /// </summary>
-        public long BandwidthQuota { get; private set; }
+        public Nullable<long> BandwidthQuota { get; private set; }
 
         /// <summary>
         /// The maximum storage allowed for this plan.
         /// </summary>
-        public long StorageQuota { get; private set; }
+        public Nullable<long> StorageQuota { get; private set; }
 
         /// <summary>
         /// Indicates whether this is the default plan for this application.
@@ -59,12 +59,12 @@ namespace Cloud.Model
         /// <summary>
         /// UTC time when this storage plan was created in the cloud.
         /// </summary>
-        public DateTime PlanCreatedAt { get; private set; }
+        public Nullable<DateTime> PlanCreatedAt { get; private set; }
 
         /// <summary>
         /// Last UTC time when this storage plan was updated in the cloud.
         /// </summary>
-        public DateTime PlanUpdatedAt { get; private set; }
+        public Nullable<DateTime> PlanUpdatedAt { get; private set; }
 
         #endregion  // end Public Properties
 
@@ -93,14 +93,23 @@ namespace Cloud.Model
         private CLStoragePlan(
             long id,
             string name,
-            long tier,
+            Nullable<long> tier,
             long clientApplicationId,
-            long bandwidthQuota,
-            long storageQuota,
+            Nullable<long> bandwidthQuota,
+            Nullable<long> storageQuota,
             bool isDefaultPlan,
-            DateTime planCreatedAt,
-            DateTime planUpdatedAt)
+            Nullable<DateTime> planCreatedAt,
+            Nullable<DateTime> planUpdatedAt)
         {
+            if (id == 0)
+            {
+                throw new NullReferenceException("id must not be zero");
+            }
+            if (clientApplicationId == 0)
+            {
+                throw new NullReferenceException("clientApplicationId must not be zero");
+            }
+
             Id = id;
             Name = name;
             Tier = tier;
@@ -118,15 +127,25 @@ namespace Cloud.Model
         /// <param name="response">The HTTP REST response to use to create the object.</param>
         internal CLStoragePlan(JsonContracts.StoragePlanResponse response)
         {
-            Id = response.Id ?? -1;
+            if (response.Id == null)
+            {
+                throw new NullReferenceException("response Id must not be null");
+            }
+            if (response.ClientApplicationId == null)
+            {
+                throw new NullReferenceException("response ClientApplicationId must not be null");
+            }
+
+
+            Id = (long)response.Id;
             Name = response.Name;
-            Tier = response.Tier ?? -1;
-            ClientApplicationId = response.ClientApplicationId ?? -1;
-            BandwidthQuota = response.BandwidthQuota ?? -1; ;
-            StorageQuota = response.StorageQuota ?? -1;
+            Tier = response.Tier;
+            ClientApplicationId = (long)response.ClientApplicationId;
+            BandwidthQuota = (long)response.BandwidthQuota;
+            StorageQuota = (long)response.StorageQuota;
             IsDefaultPlan = response.IsDefaultPlan ?? false;
-            PlanCreatedAt = response.PlanCreatedAt ?? DateTime.MinValue;
-            PlanUpdatedAt = response.PlanUpdatedAt ?? DateTime.MinValue;
+            PlanCreatedAt = response.PlanCreatedAt;
+            PlanUpdatedAt = response.PlanUpdatedAt;
         }
 
         #endregion  // end Constructors
@@ -142,7 +161,11 @@ namespace Cloud.Model
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this request</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public static IAsyncResult BeginListStoragePlansWithCredentials(AsyncCallback callback, object callbackUserState, CLCredentials credentials, ICLCredentialsSettings settings = null)
+        public static IAsyncResult BeginListStoragePlansWithCredentials(
+            AsyncCallback callback, 
+            object callbackUserState, 
+            CLCredentials credentials, 
+            ICLCredentialsSettings settings = null)
         {
             var asyncThread = DelegateAndDataHolder.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -204,56 +227,7 @@ namespace Cloud.Model
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndListStoragePlansWithCredentials(IAsyncResult aResult, out ListStoragePlansResult result)
         {
-            // declare the specific type of asynchronous result for plan listing
-            GenericAsyncResult<ListStoragePlansResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the type for plan listing and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for listing plans
-                castAResult = aResult as GenericAsyncResult<ListStoragePlansResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException("aResult does not match expected internal type");
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<ListStoragePlansResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<ListStoragePlansResult>(aResult, out result);
         }
 
         /// <summary>
@@ -289,8 +263,8 @@ namespace Cloud.Model
                 }
 
                 // Query the server and get the response.
-                JsonContracts.StoragePlanListResponse serverResponse;
-                serverResponse = Helpers.ProcessHttp<JsonContracts.StoragePlanListResponse>(
+                JsonContracts.StoragePlanListResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.StoragePlanListResponse>(
                     null, // no request body for listing plans
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthListPlans,
@@ -304,15 +278,26 @@ namespace Cloud.Model
                     null);
 
                 // Convert the server response to the output response.
-                List<CLStoragePlan> listPlans = new List<CLStoragePlan>();
-                if (serverResponse != null && serverResponse.Plans != null)
+                if (responseFromServer != null && responseFromServer.Plans != null)
                 {
-                    foreach (JsonContracts.StoragePlanResponse plan in serverResponse.Plans)
+                    List<CLStoragePlan> listPlans = new List<CLStoragePlan>();
+                    foreach (JsonContracts.StoragePlanResponse plan in responseFromServer.Plans)
                     {
-                        listPlans.Add(new CLStoragePlan(plan));
+                        if (plan != null)
+                        {
+                            listPlans.Add(new CLStoragePlan(plan));
+                        }
+                        else
+                        {
+                            listPlans.Add(null);
+                        }
                     }
+                    response = listPlans.ToArray();
                 }
-                response = listPlans.ToArray();
+                else
+                {
+                    throw new NullReferenceException("Server responded without an array of Plans");
+                }
             }
             catch (Exception ex)
             {

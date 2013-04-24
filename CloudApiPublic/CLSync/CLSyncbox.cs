@@ -209,7 +209,7 @@ namespace Cloud
             CLCredentials credentials,
             string path,
             ref CLHttpRestStatus status,
-            ICLSyncSettings Settings,
+            ICLSyncSettings settings,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null
             )
@@ -229,13 +229,13 @@ namespace Cloud
             }
 
             // Copy the settings so the user can't change them.
-            if (Settings == null)
+            if (settings == null)
             {
                 this._copiedSettings = AdvancedSyncSettings.CreateDefaultSettings();
             }
             else
             {
-                this._copiedSettings = Settings.CopySettings();
+                this._copiedSettings = settings.CopySettings();
             }
 
             // Set up the syncbox
@@ -289,34 +289,87 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Private constructor to create a functional CLSyncbox object from a server response.
+        /// Private constructor to create a functional CLSyncbox object from a JsonContracts.Syncbox.
         /// </summary>
-        /// <param name="syncboxId">The syncbox ID.</param>
+        /// <param name="syncboxContract">The syncbox contract to use.</param>
         /// <param name="credentials">The credentials to use.</param>
-        /// <param name="status">The (ref) status returned.</param>
         /// <param name="settings">The settings to use.</param>
         /// <param name="getNewCredentialsCallback">The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">The user state to pass to the delegate above.</param>
-        /// <remarks>All parameters must be tested before calling this constructor.</remarks>
         private CLSyncbox(
-                    long syncboxId,
-                    CLCredentials credentials, 
-                    ref CLHttpRestStatus status, 
-                    ICLSyncSettings settings,
-                    Helpers.ReplaceExpiredCredentials getNewCredentialsCallback,
-                    object getNewCredentialsCallbackUserState
-            )
-            : this
-            (
-                syncboxId: syncboxId,
-                credentials: credentials,
-                path: null,
-                status: ref status,
-                Settings: settings,
-                getNewCredentialsCallback: getNewCredentialsCallback,
-                getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState
-            )
+            JsonContracts.Syncbox syncboxContract,
+            CLCredentials credentials,
+            ICLSyncSettings settings,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+            object getNewCredentialsCallbackUserState = null)
         {
+            // check input parameters
+
+            if (syncboxContract == null)
+            {
+                throw new NullReferenceException("syncboxContract must not be null");
+            }
+            if (syncboxContract.Id == null)
+            {
+                throw new NullReferenceException("syncboxContract Id must not be null");
+            }
+            if (syncboxContract.PlanId == null)
+            {
+                throw new NullReferenceException("syncboxContract Id must not be null");
+            }
+            if (credentials == null)
+            {
+                throw new NullReferenceException("credentials must not be null");
+            }
+
+            // Copy the settings so the user can't change them.
+            if (settings == null)
+            {
+                this._copiedSettings = AdvancedSyncSettings.CreateDefaultSettings();
+            }
+            else
+            {
+                this._copiedSettings = settings.CopySettings();
+            }
+
+            // Set up the syncbox
+            lock (_startLocker)
+            {
+                // Save the parameters in properties.
+                this.Credentials = credentials;
+                this._syncboxId = (long)syncboxContract.Id;
+                this._path = null;      // the server doesn't know the local path.  The user must provide that later.
+                this._storagePlanId = (long)syncboxContract.PlanId;
+                this._friendlyName = syncboxContract.FriendlyName;
+
+                // Initialize trace in case it is not already initialized.
+                CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
+                _trace.writeToLog(1, "CLSyncbox: Constructing from contract...");
+
+                // Create the http rest client
+                _trace.writeToLog(9, "CLSyncbox: CLSyncbox(contract): Create rest client.");
+                CLError createRestClientError = CLHttpRest.CreateAndInitialize(
+                                credentials: this.Credentials,
+                                syncbox: this,
+                                client: out _httpRestClient,
+                                settings: this._copiedSettings,
+                                getNewCredentialsCallback: getNewCredentialsCallback,
+                                getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
+                if (createRestClientError != null)
+                {
+                    _trace.writeToLog(1, "CLSyncbox: CLSyncbox(contract): ERROR: Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());
+                    throw new AggregateException("Error creating REST HTTP client", createRestClientError.GrabExceptions());
+                }
+                if (_httpRestClient == null)
+                {
+                    const string nullRestClient = "Unknown error creating HTTP REST client";
+                    _trace.writeToLog(1, "CLSyncbox: CLSyncbox(contract): ERROR: Msg: {0}.", nullRestClient);
+                    throw new NullReferenceException(nullRestClient);
+                }
+
+                // Create the sync engine
+                _syncEngine = new CLSyncEngine();
+            }
         }
 
         #endregion  // end Private Constructors
@@ -452,7 +505,7 @@ namespace Cloud
                     credentials: credentials,
                     path: path,
                     status: ref status,
-                    Settings: settings,
+                    settings: settings,
                     getNewCredentialsCallback: getNewCredentialsCallback,
                     getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState
                     );
@@ -923,20 +976,9 @@ namespace Cloud
                 {
                     throw new NullReferenceException("Server response syncbox must not be null");
                 }
-                if (responseFromServer.Syncbox.Id == null)
-                {
-                    throw new NullReferenceException("Server response syncbox ID must not be null");
-                }
 
                 // Convert the response object to a CLSyncbox and return that.
-                syncbox = new CLSyncbox(
-                    (long)responseFromServer.Syncbox.Id,
-                    credentials,
-                    ref status,
-                    settings,
-                    getNewCredentialsCallback,
-                    getNewCredentialsCallbackUserState);
-
+                syncbox = new CLSyncbox(responseFromServer.Syncbox, credentials, copiedSettings, getNewCredentialsCallback, getNewCredentialsCallbackUserState);
             }
             catch (Exception ex)
             {
@@ -1089,7 +1131,7 @@ namespace Cloud
         }
         #endregion
 
-        #region List (list syncboxes in the cloud)
+        #region ListAllSyncboxesWithCredentials (list syncboxes in the cloud)
 
         /// <summary>
         /// Asynchronously starts listing syncboxes in the cloud.
@@ -1099,7 +1141,7 @@ namespace Cloud
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public static IAsyncResult BeginList(
+        public static IAsyncResult BeginListAllSyncboxesWithCredentials(
             AsyncCallback callback,
             object callbackUserState,
             CLCredentials credentials,
@@ -1125,9 +1167,9 @@ namespace Cloud
                         // declare the output status for communication
                         CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
-                        JsonContracts.SyncboxListResponse response;
+                        CLSyncbox [] response;
                         // Call the synchronous version of this method.
-                        CLError processError = List(
+                        CLError processError = ListAllSyncboxesWithCredentials(
                             Data.credentials,
                             out status,
                             out response,
@@ -1163,7 +1205,7 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the asynchronous operation</param>
         /// <param name="result">(output) The result from the asynchronous operation</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public static CLError EndList(IAsyncResult aResult, out SyncboxListResult result)
+        public static CLError EndListAllSyncboxesWithCredentials(IAsyncResult aResult, out SyncboxListResult result)
         {
             return Helpers.EndAsyncOperation<SyncboxListResult>(aResult, out result);
         }
@@ -1175,12 +1217,16 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">(optional) the settings to use with this method</param>
+        /// <param name="getNewCredentialsCallback">The delegate to call for getting new temporary credentials.</param>
+        /// <param name="getNewCredentialsCallbackUserState">The user state to pass to the delegate above.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public static CLError List(
+        public static CLError ListAllSyncboxesWithCredentials(
                     CLCredentials credentials,
                     out CLHttpRestStatus status,
-                    out JsonContracts.SyncboxListResponse response,
-                    ICLCredentialsSettings settings = null)
+                    out CLSyncbox [] response,
+                    ICLCredentialsSettings settings = null,
+                    Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                    object getNewCredentialsCallbackUserState = null)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -1192,7 +1238,9 @@ namespace Cloud
                     ? AdvancedSyncSettings.CreateDefaultSettings()
                     : settings.CopySettings());
 
-                response = Helpers.ProcessHttp<JsonContracts.SyncboxListResponse>(
+                // Communicate with the server.
+                JsonContracts.SyncboxListResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxListResponse>(
                     requestContent: null,
                     serverUrl: CLDefinitions.CLPlatformAuthServerURL,
                     serverMethodPath: CLDefinitions.MethodPathAuthListSyncboxes,
@@ -1205,10 +1253,32 @@ namespace Cloud
                     Credentials: credentials,
                     SyncboxId: null);
 
+                // Convert the server response to a list of initialized CLSyncboxes.
+                if (responseFromServer != null && responseFromServer.Syncboxes != null)
+                {
+                    List<CLSyncbox> listSyncboxes = new List<CLSyncbox>();
+                    foreach (JsonContracts.Syncbox syncbox in responseFromServer.Syncboxes)
+                    {
+                        if (syncbox != null)
+                        {
+                            listSyncboxes.Add(new CLSyncbox(syncbox, credentials, copiedSettings, getNewCredentialsCallback, getNewCredentialsCallbackUserState));
+                        }
+                        else
+                        {
+                            listSyncboxes.Add(null);
+                        }
+                    }
+                    response = listSyncboxes.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException("Server responded without an array of Sessions");
+                }
+
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SyncboxListResponse>();
+                response = Helpers.DefaultForType<CLSyncbox[]>();
                 return ex;
             }
             return null;
