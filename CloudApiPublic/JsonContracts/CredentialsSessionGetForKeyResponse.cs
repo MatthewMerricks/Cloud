@@ -1,5 +1,5 @@
 ﻿//
-// SessionShowResponse.cs
+// CredentialsSessionGetForKeyResponse.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -19,7 +19,7 @@ namespace Cloud.JsonContracts
     /// Result from <see cref="Cloud.CLCredentials.ShowSession"/>
     /// </summary>
     [DataContract]
-    public sealed class SessionShowResponse
+    public sealed class CredentialsSessionGetForKeyResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }

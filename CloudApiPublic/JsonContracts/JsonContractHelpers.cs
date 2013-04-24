@@ -652,7 +652,7 @@ namespace Cloud.JsonContracts
                 lock (SessionShowSerializerLocker)
                 {
                     return _sessionShowSerializer
-                        ?? (_sessionShowSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SessionShowResponse)));
+                        ?? (_sessionShowSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsSessionGetForKeyResponse)));
                 }
             }
         }

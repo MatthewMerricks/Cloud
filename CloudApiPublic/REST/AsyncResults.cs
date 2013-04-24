@@ -572,6 +572,56 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    public sealed class CredentialsSessionGetForKeyResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLCredentials Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLCredentials _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        /// <summary>
+        /// The status resulting from communication
+        /// </summary>
+        public CLHttpRestStatus Status  // &&&& fix this
+        {
+            get
+            {
+                return _status;
+            }
+        }
+        private readonly CLHttpRestStatus _status;  // &&&& fix this
+
+        // construct with all readonly properties
+        internal CredentialsSessionGetForKeyResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLCredentials Response)
+        {
+            this._error = Error;
+            this._status = Status;
+            this._response = Response;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
     public sealed class SyncboxListResult : BaseCLHttpRestResult<JsonContracts.SyncboxListResponse>
     {
         // construct with all readonly properties
@@ -582,10 +632,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SessionShowResult : BaseCLHttpRestResult<JsonContracts.SessionShowResponse>
+    public sealed class SessionShowResult : BaseCLHttpRestResult<JsonContracts.CredentialsSessionGetForKeyResponse>
     {
         // construct with all readonly properties
-        internal SessionShowResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionShowResponse Response)
+        internal SessionShowResult(CLError Error, CLHttpRestStatus Status, JsonContracts.CredentialsSessionGetForKeyResponse Response)
             : base(Error, Status, Response) { }
     }
 
