@@ -4593,6 +4593,8 @@ namespace Cloud.Static
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         internal static CLError EndAsyncOperation<TResult>(IAsyncResult aResult, out TResult result) where TResult : class
         {
+            CheckHalted();
+
             // declare the specific type of asynchronous result for session creation
             GenericAsyncResult<TResult> castAResult;
 
@@ -4643,6 +4645,17 @@ namespace Cloud.Static
                 return ex;
             }
             return null;
+        }
+
+        #endregion
+
+        #region CheckHalted
+        internal static void CheckHalted()
+        {
+            if (AllHaltedOnUnrecoverableError)
+            {
+                throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+            }
         }
 
         #endregion

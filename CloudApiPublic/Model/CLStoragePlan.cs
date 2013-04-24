@@ -101,6 +101,8 @@ namespace Cloud.Model
             Nullable<DateTime> planCreatedAt,
             Nullable<DateTime> planUpdatedAt)
         {
+            Helpers.CheckHalted();
+
             if (id == 0)
             {
                 throw new NullReferenceException("id must not be zero");
@@ -167,6 +169,8 @@ namespace Cloud.Model
             CLCredentials credentials, 
             ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             var asyncThread = DelegateAndDataHolder.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -227,6 +231,8 @@ namespace Cloud.Model
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndListStoragePlansWithCredentials(IAsyncResult aResult, out ListStoragePlansResult result)
         {
+            Helpers.CheckHalted();
+
             return Helpers.EndAsyncOperation<ListStoragePlansResult>(aResult, out result);
         }
 
@@ -239,8 +245,11 @@ namespace Cloud.Model
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <remarks>The output response array may be null, empty, or may contain null items.</remarks>
         public static CLError ListStoragePlansWithCredentials(CLCredentials credentials, out CLHttpRestStatus status, out CLStoragePlan[] response, ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error

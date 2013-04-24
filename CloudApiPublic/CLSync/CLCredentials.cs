@@ -100,10 +100,7 @@ namespace Cloud
 
             try
             {
-                if (Helpers.AllHaltedOnUnrecoverableError)
-                {
-                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
-                }
+                Helpers.CheckHalted();
 
                 credentials = new CLCredentials(
                     key,
@@ -136,6 +133,8 @@ namespace Cloud
             ref CLCredentialsCreationStatus status,
             ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // check input parameters
             if (string.IsNullOrEmpty(Key))
             {
@@ -172,6 +171,8 @@ namespace Cloud
         /// <param name="settings"></param>
         private CLCredentials(JsonContracts.Session session, ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // check input parameters
             if (string.IsNullOrEmpty(session.Key))
             {
@@ -254,6 +255,8 @@ namespace Cloud
             object callbackUserState,
             ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             var asyncThread = DelegateAndDataHolder.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -312,6 +315,8 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndListAllActiveSessions(IAsyncResult aResult, out CredentialsListSessionsResult result)
         {
+            Helpers.CheckHalted();
+
             return Helpers.EndAsyncOperation<CredentialsListSessionsResult>(aResult, out result);
         }
 
@@ -325,6 +330,8 @@ namespace Cloud
         /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
         public CLError ListAllActiveSessions(out CLHttpRestStatus status, out CLCredentials [] response, ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
@@ -403,6 +410,8 @@ namespace Cloud
             Nullable<long> tokenDurationMinutes = null,
             ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             var asyncThread = DelegateAndDataHolder.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -465,6 +474,8 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndCreateSessionForSyncboxIds(IAsyncResult aResult, out CredentialsSessionCreateResult result)
         {
+            Helpers.CheckHalted();
+
             return Helpers.EndAsyncOperation<CredentialsSessionCreateResult>(aResult, out result);
         }
 
@@ -484,6 +495,8 @@ namespace Cloud
                     Nullable<long> tokenDurationMinutes = null,
                     ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
@@ -574,6 +587,8 @@ namespace Cloud
             string key,
             ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             var asyncThread = DelegateAndDataHolder.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -634,6 +649,8 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetSessionForKey(IAsyncResult aResult, out CredentialsSessionGetForKeyResult result)
         {
+            Helpers.CheckHalted();
+
             return Helpers.EndAsyncOperation<CredentialsSessionGetForKeyResult>(aResult, out result);
         }
 
@@ -652,6 +669,8 @@ namespace Cloud
                     string key,
                     ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
@@ -723,6 +742,8 @@ namespace Cloud
             string key,
             ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             var asyncThread = DelegateAndDataHolder.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -783,6 +804,8 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDeleteSessionWithKey(IAsyncResult aResult, out CredentialsSessionDeleteResult result)
         {
+            Helpers.CheckHalted();
+
             return Helpers.EndAsyncOperation<CredentialsSessionDeleteResult>(aResult, out result);
         }
 
@@ -800,6 +823,8 @@ namespace Cloud
             out JsonContracts.CredentialsSessionDeleteResponse response, 
             ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
@@ -867,6 +892,8 @@ namespace Cloud
             JsonContracts.LinkDeviceFirstTimeRequest request,
             ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // create the asynchronous result to return
             GenericAsyncResult<LinkDeviceFirstTimeResult> toReturn = new GenericAsyncResult<LinkDeviceFirstTimeResult>(
                 aCallback,
@@ -949,6 +976,8 @@ namespace Cloud
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError EndLinkDeviceFirstTime(IAsyncResult aResult, out LinkDeviceFirstTimeResult result)
         {
+            Helpers.CheckHalted();
+
             return Helpers.EndAsyncOperation<LinkDeviceFirstTimeResult>(aResult, out result);
         }
 
@@ -970,6 +999,8 @@ namespace Cloud
                     out JsonContracts.LinkDeviceFirstTimeResponse response,
                     ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
 
@@ -1046,6 +1077,8 @@ namespace Cloud
             JsonContracts.LinkDeviceRequest request,
             ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // create the asynchronous result to return
             GenericAsyncResult<LinkDeviceResult> toReturn = new GenericAsyncResult<LinkDeviceResult>(
                 aCallback,
@@ -1128,6 +1161,8 @@ namespace Cloud
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError EndLinkDevice(IAsyncResult aResult, out LinkDeviceResult result)
         {
+            Helpers.CheckHalted();
+
             return Helpers.EndAsyncOperation<LinkDeviceResult>(aResult, out result);
         }
 
@@ -1148,6 +1183,8 @@ namespace Cloud
                     out JsonContracts.LinkDeviceResponse response,
                     ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
 
@@ -1215,6 +1252,8 @@ namespace Cloud
             JsonContracts.UnlinkDeviceRequest request,
             ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // create the asynchronous result to return
             GenericAsyncResult<UnlinkDeviceResult> toReturn = new GenericAsyncResult<UnlinkDeviceResult>(
                 aCallback,
@@ -1297,6 +1336,8 @@ namespace Cloud
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError EndUnlinkDevice(IAsyncResult aResult, out UnlinkDeviceResult result)
         {
+            Helpers.CheckHalted();
+
             return Helpers.EndAsyncOperation<UnlinkDeviceResult>(aResult, out result);
         }
 
@@ -1317,6 +1358,8 @@ namespace Cloud
                     out JsonContracts.UnlinkDeviceResponse response,
                     ICLCredentialsSettings settings = null)
         {
+            Helpers.CheckHalted();
+
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
 

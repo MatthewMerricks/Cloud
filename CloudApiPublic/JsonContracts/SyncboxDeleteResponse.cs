@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.Delete"/>
+    /// Result from <see cref="Cloud.CLSyncbox.DeleteSyncbox"/>
     /// </summary>
     [DataContract]
     public sealed class SyncboxDeleteResponse
