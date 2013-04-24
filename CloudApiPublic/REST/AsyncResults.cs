@@ -592,10 +592,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SessionDeleteResult : BaseCLHttpRestResult<JsonContracts.SessionDeleteResponse>
+    public sealed class CredentialsSessionDeleteResult : BaseCLHttpRestResult<JsonContracts.CredentialsSessionDeleteResponse>
     {
         // construct with all readonly properties
-        internal SessionDeleteResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SessionDeleteResponse Response)
+        internal CredentialsSessionDeleteResult(CLError Error, CLHttpRestStatus Status, JsonContracts.CredentialsSessionDeleteResponse Response)
             : base(Error, Status, Response) { }
     }
 

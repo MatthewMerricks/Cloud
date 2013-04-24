@@ -523,7 +523,7 @@ namespace Cloud.JsonContracts
                 lock (SessionDeleteRequestSerializerLocker)
                 {
                     return _sessionDeleteRequestSerializer
-                        ?? (_sessionDeleteRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SessionDeleteRequest)));
+                        ?? (_sessionDeleteRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsSessionDeleteRequest)));
                 }
             }
         }
@@ -666,7 +666,7 @@ namespace Cloud.JsonContracts
                 lock (SessionDeleteSerializerLocker)
                 {
                     return _sessionDeleteSerializer
-                        ?? (_sessionDeleteSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SessionDeleteResponse)));
+                        ?? (_sessionDeleteSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsSessionDeleteResponse)));
                 }
             }
         }

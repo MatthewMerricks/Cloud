@@ -19,7 +19,7 @@ namespace Cloud.JsonContracts
     /// Result from <see cref="Cloud.CLCredentials.DeleteSession"/>
     /// </summary>
     [DataContract]
-    public sealed class SessionDeleteResponse
+    public sealed class CredentialsSessionDeleteResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }

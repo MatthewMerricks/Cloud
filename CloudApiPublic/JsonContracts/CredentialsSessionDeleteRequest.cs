@@ -19,7 +19,7 @@ namespace Cloud.JsonContracts
     /// Result from <see cref="Cloud.CLCredentials.DeleteSession"/>
     /// </summary>
     [DataContract]
-    internal sealed class SessionDeleteRequest
+    internal sealed class CredentialsSessionDeleteRequest
     {
         [DataMember(Name = CLDefinitions.RESTRequestSession_Key, IsRequired = false)]
         public string Key { get; set; }

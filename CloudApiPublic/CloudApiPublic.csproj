@@ -175,8 +175,8 @@
     <Compile Include="JsonContracts\UserRegistrationRequest.cs" />
     <Compile Include="JsonContracts\NotificationUnsubscribeResponse.cs" />
     <Compile Include="JsonContracts\NotificationUnsubscribeRequest.cs" />
-    <Compile Include="JsonContracts\SessionDeleteResponse.cs" />
-    <Compile Include="JsonContracts\SessionDeleteRequest.cs" />
+    <Compile Include="JsonContracts\CredentialsSessionDeleteResponse.cs" />
+    <Compile Include="JsonContracts\CredentialsSessionDeleteRequest.cs" />
     <Compile Include="JsonContracts\SessionShowResponse.cs" />
     <Compile Include="JsonContracts\CredentialsListSessionsResponse.cs" />
     <Compile Include="JsonContracts\CredentialsSessionCreateAllRequest.cs" />
