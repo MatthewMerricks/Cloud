@@ -408,55 +408,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndAllocAndInit(IAsyncResult aResult, out SyncboxAllocAndInitResult result)
         {
-            // declare the specific type of asynchronous result
-            GenericAsyncResult<SyncboxAllocAndInitResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the specific result type and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the specific result type
-                castAResult = aResult as GenericAsyncResult<SyncboxAllocAndInitResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException("aResult does not match expected internal type");
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<SyncboxAllocAndInitResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls the End* method for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<SyncboxAllocAndInitResult>(aResult, out result);
         }
 
         /// <summary>
@@ -888,56 +840,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndCreate(IAsyncResult aResult, out CreateSyncboxResult result)
         {
-            // declare the specific type of asynchronous result
-            GenericAsyncResult<CreateSyncboxResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the specific result type and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the specific result type
-                castAResult = aResult as GenericAsyncResult<CreateSyncboxResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException("aResult does not match expected internal type");
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<CreateSyncboxResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<CreateSyncboxResult>(aResult, out result);
         }
 
         /// <summary>
@@ -1116,55 +1019,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndDelete(IAsyncResult aResult, out SyncboxDeleteResult result)
         {
-            // declare the specific type of asynchronous result
-            GenericAsyncResult<SyncboxDeleteResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the specific result type and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the specific result type
-                castAResult = aResult as GenericAsyncResult<SyncboxDeleteResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException("aResult does not match expected internal type");
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<SyncboxDeleteResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<SyncboxDeleteResult>(aResult, out result);
         }
 
         /// <summary>
@@ -1302,56 +1157,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndList(IAsyncResult aResult, out SyncboxListResult result)
         {
-            // declare the specific type of asynchronous result
-            GenericAsyncResult<SyncboxListResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the specific result type and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the specific result type
-                castAResult = aResult as GenericAsyncResult<SyncboxListResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException("aResult does not match expected internal type");
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<SyncboxListResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<SyncboxListResult>(aResult, out result);
         }
 
         /// <summary>
