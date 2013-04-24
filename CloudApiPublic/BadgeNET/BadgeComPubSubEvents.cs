@@ -407,19 +407,29 @@ namespace Cloud.BadgeNET
 
                 _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Entry.");
                 bool fThreadSubscribingInstantiated = false;
+                bool fPubSubServerInstantiated = false;
+
                 lock (_locker)
                 {
                     if (_pubSubServer != null)
                     {
-                        // Cancel the subscription the thread may be waiting on.
-                        _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Call CancelWaitingSubscription.");
-                        EnumPubSubServerCancelWaitingSubscriptionReturnCodes result = _pubSubServer.CancelWaitingSubscription(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscriber);
-                        if (result != EnumPubSubServerCancelWaitingSubscriptionReturnCodes.RC_CANCEL_OK)
-                        {
-                            _trace.writeToLog(1, "BadgeComPubSubEvents: KillSubscribingThread: ERROR: Cancelling. Result: {0}.", result.ToString());
-                        }
+                        fPubSubServerInstantiated = true;
                     }
+                }
 
+                if (fPubSubServerInstantiated)
+                {
+                    // Cancel the subscription the thread may be waiting on.
+                    _trace.writeToLog(9, "BadgeComPubSubEvents: KillSubscribingThread: Call CancelWaitingSubscription.");
+                    EnumPubSubServerCancelWaitingSubscriptionReturnCodes result = _pubSubServer.CancelWaitingSubscription(EnumEventType.BadgeCom_To_BadgeNet, _guidSubscriber);
+                    if (result != EnumPubSubServerCancelWaitingSubscriptionReturnCodes.RC_CANCEL_OK)
+                    {
+                        _trace.writeToLog(1, "BadgeComPubSubEvents: KillSubscribingThread: ERROR: Cancelling. Result: {0}.", result.ToString());
+                    }
+                }
+
+                lock (_locker)
+                {
                     if (_threadSubscribing != null)
                     {
                         fThreadSubscribingInstantiated = true;

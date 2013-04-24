@@ -178,6 +178,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		try
 		{
 			// Locate the inner map for this event type.
+			CLTRACE(9, "PubSubServer: Publish: Inside lock.");
 			pszExceptionStateTracker = "Locate inner map";
 			eventtype_map_guid_subscription_map::iterator itMapOuter = pBase->subscriptions_.find(EventType);
 			if (itMapOuter != pBase->subscriptions_.end())
@@ -211,6 +212,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 			pBase->mutexSharedMemory_.unlock();
 			nResult = RC_PUBLISH_ERROR;
 		}
+		CLTRACE(9, "PubSubServer: Publish: Outside lock.");
 
 		// Now iterate through the subscribers attempting to deliver the event to each.
 		pszExceptionStateTracker = "Iterate thru subscribers";
@@ -226,6 +228,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 				try
 				{
 					// Deliver this event to the subscription identified by this itGuid and the parameter EventType.
+					CLTRACE(9, "PubSubServer: Publish: Inside lock 2.");
 					eventtype_map_guid_subscription_map::iterator outItEventType2GuidSubscriptionMap;
 					guid_subscription_map::iterator outItGuidSubscriptionPair;
 					offset_ptr<Subscription> outOptrFoundSubscription;
@@ -306,6 +309,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 					pBase->mutexSharedMemory_.unlock();
 					nResult = RC_PUBLISH_ERROR;
 				}
+				CLTRACE(9, "PubSubServer: Publish: Outside lock 2.");
 
 				if (fEventDelivered || fSubscriptionRemoved || fSubscriptionNotFound)
 				{
@@ -559,6 +563,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			fWaitRequired = false;
 			nResult = RC_SUBSCRIBE_ERROR;
 		}
+		CLTRACE(9, "PubSubServer: Subscribe: Outside lock.");
 
 		// Wait if we should.
 		if (fWaitRequired)
@@ -598,6 +603,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			try
 			{
 				// The subscriptions may have moved.  Locate our subscription again.
+				CLTRACE(9, "PubSubServer: Subscribe: Inside lock 2.");
 				eventtype_map_guid_subscription_map::iterator outItEventType2GuidSubscriptionMap;
 				guid_subscription_map::iterator outItGuidSubscriptionPair;
 				offset_ptr<Subscription> outOptrFoundSubscription;
@@ -649,6 +655,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 				pBase->mutexSharedMemory_.unlock();
 				nResult = RC_SUBSCRIBE_ERROR;
 			}
+			CLTRACE(9, "PubSubServer: Subscribe: Outside lock 2.");
 		}
 	}
 	catch (const std::exception &ex)
@@ -708,6 +715,7 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 			pBase->mutexSharedMemory_.lock();
 			try
 			{
+				CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Inside lock.");
 				pszExceptionStateTracker = "Call clear";
 				subscriptionIdsForProcess.clear();
 
@@ -754,6 +762,7 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 				pBase->mutexSharedMemory_.unlock();
 				nResult = RC_CANCELBYPROCESSID_ERROR;
 			}
+			CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Outside lock.");
 
 			// We are done if there are no subscriptions to cancel
 			pszExceptionStateTracker = "Subscriptions gathered";
@@ -837,6 +846,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 		try
 		{
 			// Look for this subscription.
+			CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Inside lock.");
 			eventtype_map_guid_subscription_map::iterator outItEventType2GuidSubscriptionMap;
 			guid_subscription_map::iterator outItGuidSubscriptionPair;
 			offset_ptr<Subscription> outOptrFoundSubscription;
@@ -873,8 +883,10 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 				{
 					// Give up some cycles.  Free the lock momentarily.
 					pBase->mutexSharedMemory_.unlock();
+					CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Outside lock 2.");
 					Sleep(_knShortRetrySleepMs);
 					pBase->mutexSharedMemory_.lock();
+					CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Inside lock 2.");
 
 					// We released the lock.  The subscription might have moved.  Locate it again.
 					pszExceptionStateTracker = "Call FindSubscription2";
@@ -972,6 +984,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 			pBase->mutexSharedMemory_.unlock();
 			nResult = RC_CANCEL_ERROR;
 		}
+		CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Outside lock.");
 	}
 	catch (const std::exception &ex)
 	{
@@ -1239,7 +1252,7 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 				ULONG processId = GetCurrentProcessId();
 				ULONG threadId = GetCurrentThreadId();
 
-				CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Trace current state of shared memory.  This process ID: %lx. This thread ID: %lx", processId, threadId);
+				CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Inside lock.  Trace current state of shared memory.  This process ID: %lx. This thread ID: %lx", processId, threadId);
 				TraceCurrentStateOfSharedMemory(pBase);
 
 				// Loop through all of the event types in the map<EnumEventType, map<GUID, Subscription>>.
@@ -1303,7 +1316,7 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 				pBase->mutexSharedMemory_.unlock();
 				*returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
 			}
-
+			CLTRACE(9, "PubSubServer: CleanUpUnusedResources: Outside lock.");
 		}
 	}
 	catch (const std::exception &ex)
@@ -1355,6 +1368,7 @@ STDMETHODIMP CPubSubServer::Terminate()
 			try
 			{
 				// Delete all of the subscriptions made by this instance.
+				CLTRACE(9, "PubSubServer: Terminate: Inside lock.");
 				pszExceptionStateTracker = "Delete subscriptions";
 				for (std::vector<UniqueSubscription>::iterator it = _trackedSubscriptionIds.begin(); it != _trackedSubscriptionIds.end(); ++it)
 				{
@@ -1398,7 +1412,7 @@ STDMETHODIMP CPubSubServer::Terminate()
 				CLTRACE(1, "PubSubServer: Terminate: ERROR: C++ exception(lock). Tracker: %s.", pszExceptionStateTracker);
 				pBase->mutexSharedMemory_.unlock();
 			}
-
+			CLTRACE(9, "PubSubServer: Terminate: Outside lock.");
 		}
 	}
 	catch (const std::exception &ex)
