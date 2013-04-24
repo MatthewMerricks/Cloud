@@ -222,16 +222,6 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetRecentsResult : BaseCLHttpRestResult<JsonContracts.Recents>
-    {
-        // construct with all readonly properties
-        internal GetRecentsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Recents Response)
-            : base(Error, Status, Response) { }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
     public sealed class SyncboxUsageResult : BaseCLHttpRestResult<JsonContracts.SyncboxUsageResponse>
     {
         // construct with all readonly properties
@@ -612,6 +602,56 @@ namespace Cloud.REST
 
         // construct with all readonly properties
         internal CredentialsSessionGetForKeyResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLCredentials Response)
+        {
+            this._error = Error;
+            this._status = Status;
+            this._response = Response;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxGetRecentsResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLFileItem[] Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLFileItem[] _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        /// <summary>
+        /// The status resulting from communication
+        /// </summary>
+        public CLHttpRestStatus Status  // &&&& fix this
+        {
+            get
+            {
+                return _status;
+            }
+        }
+        private readonly CLHttpRestStatus _status;  // &&&& fix this
+
+        // construct with all readonly properties
+        internal SyncboxGetRecentsResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLFileItem[] Response)
         {
             this._error = Error;
             this._status = Status;

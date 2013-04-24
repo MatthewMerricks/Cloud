@@ -1,5 +1,5 @@
 ﻿//
-// Recents.cs
+// SyncboxGetRecentsResponse.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -16,10 +16,10 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.GetRecents"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetRecentFilesSinceDateWithLimit"/>
     /// </summary>
     [DataContract]
-    public sealed class Recents
+    public sealed class SyncboxGetRecentsResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataTotalCount, IsRequired = false)]
         public Nullable<long> TotalCount { get; set; }

@@ -291,10 +291,15 @@ namespace Cloud
         /// <summary>
         /// Private constructor to create a functional CLSyncbox object from a server response.
         /// </summary>
-        /// <param name="serverResponse">The server response to use.</param>
+        /// <param name="syncboxId">The syncbox ID.</param>
+        /// <param name="credentials">The credentials to use.</param>
+        /// <param name="status">The (ref) status returned.</param>
+        /// <param name="settings">The settings to use.</param>
+        /// <param name="getNewCredentialsCallback">The delegate to call for getting new temporary credentials.</param>
+        /// <param name="getNewCredentialsCallbackUserState">The user state to pass to the delegate above.</param>
         /// <remarks>All parameters must be tested before calling this constructor.</remarks>
         private CLSyncbox(
-                    JsonContracts.SyncboxResponse serverResponse,
+                    long syncboxId,
                     CLCredentials credentials, 
                     ref CLHttpRestStatus status, 
                     ICLSyncSettings settings,
@@ -303,7 +308,7 @@ namespace Cloud
             )
             : this
             (
-                syncboxId: (long)serverResponse.Syncbox.Id,
+                syncboxId: syncboxId,
                 credentials: credentials,
                 path: null,
                 status: ref status,
@@ -916,13 +921,16 @@ namespace Cloud
                 }
                 if (responseFromServer.Syncbox == null)
                 {
-                    throw new NullReferenceException("Server response.Syncbox must not be null");
+                    throw new NullReferenceException("Server response syncbox must not be null");
                 }
-
+                if (responseFromServer.Syncbox.Id == null)
+                {
+                    throw new NullReferenceException("Server response syncbox ID must not be null");
+                }
 
                 // Convert the response object to a CLSyncbox and return that.
                 syncbox = new CLSyncbox(
-                    responseFromServer,
+                    (long)responseFromServer.Syncbox.Id,
                     credentials,
                     ref status,
                     settings,
@@ -1729,19 +1737,23 @@ namespace Cloud
         }
         #endregion
 
-        #region GetRecents
+        #region GetRecentFilesSinceDateWithLimit (get a list of the recent files starting at a particular time)
         /// <summary>
         /// Asynchronously starts querying the server for recents
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="sinceDate">null to retrieve all of the recents, or specify a date to retrieve items since that date.</param>
+        /// <param name="returnLimit">null to retrieve all of the recents, or specify a limit for the number of items to be returned.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetRecents(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds)
+        public IAsyncResult BeginGetRecentFilesSinceDateWithLimit(
+            AsyncCallback callback,
+            object callbackUserState,
+            DateTime sinceDate,
+            int? returnLimit)
+
         {
-            return _httpRestClient.BeginGetRecents(aCallback, aState, timeoutMilliseconds);
+            return _httpRestClient.BeginGetRecents(callback, callbackUserState, sinceDate, returnLimit);
         }
 
         /// <summary>
@@ -1751,7 +1763,7 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the recents query</param>
         /// <param name="result">(output) The result from the recents query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetRecents(IAsyncResult aResult, out GetRecentsResult result)
+        public CLError EndGetRecentFilesSinceDateWithLimit(IAsyncResult aResult, out SyncboxGetRecentsResult result)
         {
             return _httpRestClient.EndGetRecents(aResult, out result);
         }
@@ -1759,15 +1771,20 @@ namespace Cloud
         /// <summary>
         /// Queries the server for recents
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="sinceDate">null to retrieve all of the recents, or specify a date to retrieve items since that date.</param>
+        /// <param name="returnLimit">null to retrieve all of the recents, or specify a limit for the number of items to be returned.</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetRecents(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Recents response)
+        public CLError GetRecentFilesSinceDateWithLimit(
+            DateTime sinceDate,
+            int? returnLimit,
+            out CLHttpRestStatus status,   // &&&& fix this
+            out CLFileItem [] response)
         {
-            return _httpRestClient.GetRecents(timeoutMilliseconds, out status, out response);
+            return _httpRestClient.GetRecents(sinceDate, returnLimit, out status, out response);
         }
-        #endregion
+        #endregion  // end GetRecentFilesSinceDateWithLimit (get a list of the recent files starting at a particular time)
 
         #region GetFolderContents
         /// <summary>

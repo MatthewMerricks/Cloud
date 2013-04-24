@@ -397,7 +397,7 @@ namespace Cloud.JsonContracts
                 lock (RecentsSerializerLocker)
                 {
                     return _recentsSerializer
-                        ?? (_recentsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Recents)));
+                        ?? (_recentsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetRecentsResponse)));
                 }
             }
         }

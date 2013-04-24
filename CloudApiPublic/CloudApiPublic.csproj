@@ -199,7 +199,7 @@
     <Compile Include="JsonContracts\SyncboxListResponse.cs" />
     <Compile Include="JsonContracts\MetadataDictionary.cs" />
     <Compile Include="JsonContracts\Pictures.cs" />
-    <Compile Include="JsonContracts\Recents.cs" />
+    <Compile Include="JsonContracts\SyncboxGetRecentsResponse.cs" />
     <Compile Include="JsonContracts\Syncbox.cs" />
     <Compile Include="JsonContracts\UsedBytes.cs" />
     <Compile Include="JsonContracts\Videos.cs" />

@@ -517,6 +517,7 @@ namespace Cloud.Static
         public const string CLMetadataItemCount = "item_count";
         public const string CLMetadataDeletedItemCount = "deleted_item_count";
         public const string CLMetadataObjects = "objects";
+        public const string CLMetadataPermissions = "permissions";
 
         // Cloud Events
         public const string CLSyncEvent = "event";

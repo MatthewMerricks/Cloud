@@ -17,7 +17,7 @@ namespace Cloud.JsonContracts
 {
     // removed "<see cref="PendingResponse"/>, " from the summary below because it's internal
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.GetMetadata"/>; also an inner object containing metadata properties for <see cref="FileChangeResponse"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="Pictures"/>, <see cref="Videos"/>, <see cref="Audios"/>, <see cref="Archives"/>, and <see cref="Recents"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetMetadata"/>; also an inner object containing metadata properties for <see cref="FileChangeResponse"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="Pictures"/>, <see cref="Videos"/>, <see cref="Audios"/>, <see cref="Archives"/>, and <see cref="SyncboxGetRecentsResponse"/>
     /// </summary>
     [DataContract]
     public sealed class Metadata
@@ -264,5 +264,24 @@ namespace Cloud.JsonContracts
 
         [DataMember(Name = CLDefinitions.CLMetadataDeletedItemCount, IsRequired = false)]
         public ItemCount DeletedItemCount { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataPermissions, IsRequired = false)]
+        public Nullable<int> Permissions { get; set; }
+
+        public Nullable<POSIXPermissions> PermissionsEnum
+        {
+            get
+            {
+                return (Permissions == null
+                    ? (Nullable<POSIXPermissions>)null
+                    : (POSIXPermissions)((int)Permissions));
+            }
+            set
+            {
+                Permissions = (value == null
+                    ? (Nullable<int>)null
+                    : (int)((POSIXPermissions)value));
+            }
+        }
     }
 }

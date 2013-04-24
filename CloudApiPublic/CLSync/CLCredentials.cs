@@ -124,6 +124,7 @@ namespace Cloud
 
         #endregion
 
+        #region Private Constructors
 
         /// <summary>
         /// Private constructor
@@ -199,14 +200,20 @@ namespace Cloud
                 : settings.CopySettings());
         }
 
+        #endregion  // end Private Constructors
+
+        #region Public Utilities
+
         /// <summary>
         /// Determine whether the credentials were instantiated with a temporary token.
         /// </summary>
         /// <returns>bool: true: The token exists.</returns>
-        public bool CredentialsHasToken()
+        public bool IsSessionToken()
         {
             return !String.IsNullOrEmpty(_token);
         }
+
+        #endregion  // end Public Utilities
 
         #region public authorization HTTP API calls
         #region default settings for CLCredentials HTTP calls
@@ -334,8 +341,8 @@ namespace Cloud
                 }
 
                 // Communicate with the server.
-                JsonContracts.CredentialsListSessionsResponse serverResponse;
-                serverResponse = Helpers.ProcessHttp<JsonContracts.CredentialsListSessionsResponse>(
+                JsonContracts.CredentialsListSessionsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsListSessionsResponse>(
                     /* requestContent */ null, // no request body for listing sessions
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthListSessions,
@@ -348,17 +355,27 @@ namespace Cloud
                     Credentials: this,
                     SyncboxId: null);
 
-                // Convert the server response into an array of CLCredentials to return.
-                List<CLCredentials> listCredentials = new List<CLCredentials>();
-                if (serverResponse != null && serverResponse.Sessions != null)
+                // Convert the server response to the requested output format.
+                if (responseFromServer != null && responseFromServer.Sessions != null)
                 {
-                    foreach (JsonContracts.Session session in serverResponse.Sessions)
+                    List<CLCredentials> listCredentials = new List<CLCredentials>();
+                    foreach (JsonContracts.Session session in responseFromServer.Sessions)
                     {
-                        listCredentials.Add(new CLCredentials(session, copiedSettings));
+                        if (session != null)
+                        {
+                            listCredentials.Add(new CLCredentials(session, copiedSettings));
+                        }
+                        else
+                        {
+                            listCredentials.Add(null);
+                        }
                     }
+                    response = listCredentials.ToArray();
                 }
-                response = listCredentials.ToArray();
-
+                else
+                {
+                    throw new NullReferenceException("Server responded without an array of Sessions");
+                }
             }
             catch (Exception ex)
             {
@@ -506,8 +523,8 @@ namespace Cloud
                 }
 
                 // Communicate with the server
-                JsonContracts.CredentialsSessionCreateResponse serverResponse;
-                serverResponse = Helpers.ProcessHttp<JsonContracts.CredentialsSessionCreateResponse>(
+                JsonContracts.CredentialsSessionCreateResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionCreateResponse>(
                     requestContract, 
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthCreateSession,
@@ -521,9 +538,9 @@ namespace Cloud
                     null);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
-                if (serverResponse.Session != null)
+                if (responseFromServer != null && responseFromServer.Session != null)
                 {
-                    response = new CLCredentials(serverResponse.Session);
+                    response = new CLCredentials(responseFromServer.Session);
                 }
                 else
                 {
@@ -656,8 +673,8 @@ namespace Cloud
                     Helpers.EnumerateSingleItem(new KeyValuePair<string, string>(CLDefinitions.RESTRequestSession_KeyId, Uri.EscapeDataString(key))));
 
                 // Communicate with the server
-                JsonContracts.CredentialsSessionGetForKeyResponse serverResponse;
-                serverResponse = Helpers.ProcessHttp<JsonContracts.CredentialsSessionGetForKeyResponse>(
+                JsonContracts.CredentialsSessionGetForKeyResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionGetForKeyResponse>(
                     null,
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthShowSession + query,
@@ -671,9 +688,9 @@ namespace Cloud
                     null);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
-                if (serverResponse.Session != null)
+                if (responseFromServer != null && responseFromServer.Session != null)
                 {
-                    response = new CLCredentials(serverResponse.Session);
+                    response = new CLCredentials(responseFromServer.Session);
                 }
                 else
                 {
@@ -827,164 +844,9 @@ namespace Cloud
         }
         #endregion (delete a session in the cloud)
 
-        #region ShowSession
-        /// <summary>
-        /// Asynchronously starts showing a session on the server for the current application
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="key">The key of the session to show.</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginShowSession(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds,
-            string key,
-            ICLCredentialsSettings settings = null)
-        {
-            // create the asynchronous result to return
-            GenericAsyncResult<SessionShowResult> toReturn = new GenericAsyncResult<SessionShowResult>(
-                aCallback,
-                aState);
+        #endregion  // public authorization HTTP API calls
 
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<SessionShowResult>, int, string, ICLCredentialsSettings> asyncParams =
-                new Tuple<GenericAsyncResult<SessionShowResult>, int, string, ICLCredentialsSettings>(
-                    toReturn,
-                    timeoutMilliseconds,
-                    key,
-                    settings);
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<SessionShowResult>, int, string, ICLCredentialsSettings> castState =
-                            state as Tuple<GenericAsyncResult<SessionShowResult>, int, string, ICLCredentialsSettings>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
-                {
-                    MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
-                {
-                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
-                    try
-                    {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
-                        // declare the specific type of response for this operation
-                        JsonContracts.CredentialsSessionGetForKeyResponse response;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = ShowSession(
-                            castState.Item2,
-                            out status,
-                            out response,
-                            castState.Item3,
-                            castState.Item4);
-
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new SessionShowResult(
-                                    processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
-                                    response), // the specific type of response for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
-
-            // return the asynchronous result
-            return toReturn;
-        }
-
-        /// <summary>
-        /// Finishes creating the session on the server for the current application if it has not already finished via its asynchronous result and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the creation of the session</param>
-        /// <param name="result">(output) The result from creating the session</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndShowSession(IAsyncResult aResult, out SessionShowResult result)
-        {
-            return Helpers.EndAsyncOperation<SessionShowResult>(aResult, out result);
-        }
-
-        /// <summary>
-        /// Shows a session on the server for the current application
-        /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <param name="key">The key of the session to show.</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ShowSession(int timeoutMilliseconds, out CLHttpRestStatus status,
-                    out JsonContracts.CredentialsSessionGetForKeyResponse response,
-                    string key,
-                    ICLCredentialsSettings settings = null
-            )
-        {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
-            // try/catch to process the metadata query, on catch return the error
-            try
-            {
-                // copy settings so they don't change while processing; this also defaults some values
-                ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
-                    : settings.CopySettings());
-
-                // check input parameters
-
-                if (!(timeoutMilliseconds > 0))
-                {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
-                }
-
-                // Build the query string.
-                string query = Helpers.QueryStringBuilder(
-                    Helpers.EnumerateSingleItem(new KeyValuePair<string, string>(CLDefinitions.RESTRequestSession_KeyId, Uri.EscapeDataString(key))));
-
-                response = Helpers.ProcessHttp<JsonContracts.CredentialsSessionGetForKeyResponse>(
-                    null,
-                    CLDefinitions.CLPlatformAuthServerURL,
-                    CLDefinitions.MethodPathAuthShowSession + query,
-                    Helpers.requestMethod.get,
-                    timeoutMilliseconds,
-                    null, // not an upload nor download
-                    Helpers.HttpStatusesOkAccepted,
-                    ref status,
-                    copiedSettings,
-                    this,
-                    null);
-            }
-            catch (Exception ex)
-            {
-                response = Helpers.DefaultForType<JsonContracts.CredentialsSessionGetForKeyResponse>();
-                return ex;
-            }
-            return null;
-        }
-        #endregion
+        #region Public, But Hidden HTTP API calls for CloudApp
 
         #region LinkDeviceFirstTime
 
@@ -1498,8 +1360,12 @@ namespace Cloud
             return null;
         }
         #endregion  // Unlink Device
-        #endregion  // public authorization HTTP API calls
+
+        #endregion  // end Public, But Hidden HTTP API calls for CloudApp
     }
+
+    #region Public Enums
+
     /// <summary>
     /// Status of creation of <see cref="CLCredentials"/>
     /// </summary>
@@ -1510,4 +1376,6 @@ namespace Cloud
         ErrorNullSecret = 2,
         ErrorUnknown = 3,
     }
+
+    #endregion  // end Public Enums
 }

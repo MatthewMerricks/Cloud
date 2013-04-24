@@ -5,6 +5,7 @@
 // Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.Static;
 using System;
 
 namespace Cloud.Model
@@ -19,13 +20,14 @@ namespace Cloud.Model
         public string Name { get; set; }
         public string Path { get; set; }
         public string Revision { get; set; }
-        public long Size { get; set; }
+        public Nullable<long> Size { get; set; }
         public string MimeType { get; set; }
         public DateTime CreatedTime { get; set; }
-        public DateTime ModifiedTime { get; set; }
+        public Nullable<DateTime> ModifiedTime { get; set; }
         public string Uid { get; set; }
         public string ParentUid { get; set; }
         public bool IsFolder { get; set; }
+        public Nullable<POSIXPermissions> Permissions { get; set; }
 
         #endregion  // end Public Properties
 
@@ -35,13 +37,14 @@ namespace Cloud.Model
             string name,
             string path,
             string revision,
-            long size,
+            Nullable<long> size,
             string mimeType,
             DateTime createdTime,
-            DateTime modifiedTime,
+            Nullable<DateTime> modifiedTime,
             string uid,
             string parentUid,
-            bool isFolder)
+            bool isFolder,
+            Nullable<POSIXPermissions> permissions)
         {
             this.Name = name;
             this.Path = path;
@@ -53,29 +56,31 @@ namespace Cloud.Model
             this.Uid = uid;
             this.ParentUid = parentUid;
             this.IsFolder = isFolder;
+            this.Permissions = permissions;
         }
 
-        public CLFileItem(JsonContracts.Metadata response)
+        internal CLFileItem(JsonContracts.Metadata response)
         {
             if (response == null)
             {
                 throw new NullReferenceException("response must not be null");
             }
-            if (response.Size == null)
+            if (response.CreatedDate == null)
             {
-                throw new NullReferenceException("size must not be null");
+                throw new NullReferenceException("response CreatedDate must not be null");
             }
 
             this.Name = response.Name;
             this.Path = response.RelativePath;
             this.Revision = response.Revision;
-            this.Size = (long)response.Size;
+            this.Size = response.Size;
             this.MimeType = response.MimeType;
-            this.CreatedTime = response.CreatedDate ?? DateTime.MinValue;
-            this.ModifiedTime = response.ModifiedDate ?? DateTime.MinValue;
+            this.CreatedTime = (DateTime)response.CreatedDate;
+            this.ModifiedTime = response.ModifiedDate;
             this.Uid = response.ServerUid;
             this.ParentUid = response.ParentUid;
             this.IsFolder = response.IsFolder ?? false;
+            this.Permissions = response.PermissionsEnum;
         }
 
         #endregion

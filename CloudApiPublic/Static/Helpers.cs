@@ -2174,7 +2174,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.Videos), JsonContractHelpers.VideosSerializer },
             { typeof(JsonContracts.Audios), JsonContractHelpers.AudiosSerializer },
             { typeof(JsonContracts.Archives), JsonContractHelpers.ArchivesSerializer },
-            { typeof(JsonContracts.Recents), JsonContractHelpers.RecentsSerializer },
+            { typeof(JsonContracts.SyncboxGetRecentsResponse), JsonContractHelpers.RecentsSerializer },
             { typeof(JsonContracts.SyncboxUsageResponse), JsonContractHelpers.SyncboxUsageSerializer },
             { typeof(JsonContracts.Folders), JsonContractHelpers.FoldersSerializer },
             { typeof(JsonContracts.FolderContents), JsonContractHelpers.FolderContentsSerializer },
