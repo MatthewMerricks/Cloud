@@ -1946,48 +1946,44 @@ namespace Cloud
         }
         #endregion  // end GetAllTextItems  (Gets all of the text items from the cloud for this syncbox)
 
-        #region GetArchives
+        #region GetAllArchiveItems  (Gets all of the archive items from the cloud for this syncbox)
         /// <summary>
-        /// Asynchronously starts querying the server for archives
+        /// Asynchronously starts querying the server for archive items.
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetArchives(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds)
+        public IAsyncResult BeginGetAllArchiveItems(AsyncCallback callback, object callbackUserState)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetArchives(aCallback, aState, timeoutMilliseconds);
+            return _httpRestClient.BeginGetAllArchiveItems(callback, callbackUserState);
         }
 
         /// <summary>
-        /// Finishes querying for archives if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes querying for archive items, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the archives query</param>
-        /// <param name="result">(output) The result from the archives query</param>
+        /// <param name="aResult">The asynchronous result provided upon starting the audios query</param>
+        /// <param name="result">(output) The result from the audios query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetArchives(IAsyncResult aResult, out GetArchivesResult result)
+        public CLError EndGetAllArchiveItems(IAsyncResult aResult, out SyncboxGetAllArchiveItemsResult result)
         {
             CheckDisposed();
-            return _httpRestClient.EndGetArchives(aResult, out result);
+            return _httpRestClient.EndGetAllArchiveItems(aResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for archives
+        /// Queries the server for archive items.
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetArchives(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Archives response)
+        public CLError GetAllArchiveItems(out CLHttpRestStatus status, CLFileItem[] response)
         {
             CheckDisposed();
-            return _httpRestClient.GetArchives(timeoutMilliseconds, out status, out response);
+            return _httpRestClient.GetAllArchiveItems(out status, out response);
         }
-        #endregion
+        #endregion  // end GetAllArchiveItems  (Gets all of the archive items from the cloud for this syncbox)
 
         #region GetRecentFilesSinceDateWithLimit (get a list of the recent files starting at a particular time)
         /// <summary>

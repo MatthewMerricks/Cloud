@@ -3855,173 +3855,99 @@ namespace Cloud.REST
         }
         #endregion  // end GetAllTextItems (Get all of the text files from the server for this syncbox)
 
-        #region GetArchives
+        #region GetAllArchiveItems (Get all of the archive files from the server for this syncbox)
         /// <summary>
-        /// Asynchronously starts querying the server for archives
+        /// Asynchronously starts querying the server for archive items.
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetArchives(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds)
+        public IAsyncResult BeginGetAllArchiveItems(AsyncCallback callback, object callbackUserState)
         {
-            // create the asynchronous result to return
-            GenericAsyncResult<GetArchivesResult> toReturn = new GenericAsyncResult<GetArchivesResult>(
-                aCallback,
-                aState);
-
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetArchivesResult>, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetArchivesResult>, int>(
-                    toReturn,
-                    timeoutMilliseconds);
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetArchivesResult>, int> castState = state as Tuple<GenericAsyncResult<GetArchivesResult>, int>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
                 {
-                    MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxGetAllArchiveItemsResult>(
+                        callback,
+                        callbackUserState)
+                },
+                (Data, errorToAccumulate) =>
                 {
+                    // The ThreadProc.
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
                         // declare the output status for communication
-                        CLHttpRestStatus status;
+                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
-                        JsonContracts.Archives result;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = GetArchives(
-                            castState.Item2,
+                        CLFileItem[] response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = GetAllArchiveItems(
                             out status,
-                            out result);
+                            out response);
 
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new GetArchivesResult(
-                                    processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
-                                    result), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.Complete(
+                            new SyncboxGetAllArchiveItemsResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
                     {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
                     }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
 
             // return the asynchronous result
-            return toReturn;
+            return asyncThread.TypedData.toReturn;
         }
 
         /// <summary>
-        /// Finishes querying for archives if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes querying for archive items, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the archives query</param>
-        /// <param name="result">(output) The result from the archives query</param>
+        /// <param name="aResult">The asynchronous result provided upon starting the audios query</param>
+        /// <param name="result">(output) The result from the audios query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetArchives(IAsyncResult aResult, out GetArchivesResult result)
+        public CLError EndGetAllArchiveItems(IAsyncResult aResult, out SyncboxGetAllArchiveItemsResult result)
         {
-            // declare the specific type of asynchronous result for archives query
-            GenericAsyncResult<GetArchivesResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the type for archives query and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for archives query
-                castAResult = aResult as GenericAsyncResult<GetArchivesResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException("aResult does not match expected internal type");
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<GetArchivesResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<SyncboxGetAllArchiveItemsResult>(aResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for archives
+        /// Queries the server for audios
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetArchives(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Archives response)
+        public CLError GetAllArchiveItems(out CLHttpRestStatus status, out CLFileItem[] response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
-            // try/catch to process the archives query, on catch return the error
+            // try/catch to process the audios query, on catch return the error
             try
             {
                 // check input parameters
 
-                if (!(timeoutMilliseconds > 0))
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
 
-                // build the location of the archives retrieval method on the server dynamically
+                // build the location of the audios retrieval method on the server dynamically
                 string serverMethodPath =
-                    CLDefinitions.MethodPathGetArchives + // path for getting archives
+                    CLDefinitions.MethodPathGetArchives + // method path
                     Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
-                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                    // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
                     ));
 
@@ -4036,27 +3962,50 @@ namespace Cloud.REST
                 };
 
                 // run the HTTP communication and store the response object to the output parameter
-                response = Helpers.ProcessHttp<JsonContracts.Archives>(
+                JsonContracts.SyncboxGetAllArchiveItemsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxGetAllArchiveItemsResponse>(
                     null, // HTTP Get method does not have content
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
-                    serverMethodPath, // path to query archives (dynamic adding query string)
-                    Helpers.requestMethod.get, // query archives is a get
-                    timeoutMilliseconds, // time before communication timeout
+                    serverMethodPath, // path to query audios (dynamic adding query string)
+                    Helpers.requestMethod.get, // query audios is a get
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Metadata != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata));
+                        }
+                        else
+                        {
+                            listFileItems.Add(null);
+                        }
+                    }
+                    response = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException("Server responded without an array of Metadata");
+                }
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.Archives>();
+                response = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
             return null;
         }
-        #endregion
+        #endregion  // end GetAllArchiveItems (Get all of the archive files from the server for this syncbox)
 
         #region GetRecents
         /// <summary>
