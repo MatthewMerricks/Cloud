@@ -145,6 +145,7 @@ namespace Cloud.Static
         public const string MethodPathGetAudios = VersionPrefix + "/sync/file/audios";                                  // GET
         public const string MethodPathGetDocuments = VersionPrefix + "/sync/file/documents";                            // GET
         public const string MethodPathGetPresentations = VersionPrefix + "/sync/file/presentations";                    // GET
+        public const string MethodPathGetTexts = VersionPrefix + "/sync/file/texts";                                    // GET
         public const string MethodPathGetArchives = VersionPrefix + "/sync/file/archives";                              // GET
         public const string MethodPathGetRecents = VersionPrefix + "/sync/file/recents";                                // GET
         #endregion
@@ -228,6 +229,7 @@ namespace Cloud.Static
         public const string MethodPathGetAudios = "/1/file/audios";                                     // GET
         public const string MethodPathGetDocuments = "/1/file/documents";                               // GET
         public const string MethodPathGetPresentations = "/1/file/presentations";                       // GET
+        public const string MethodPathGetTexts = "1/1/file/texts";                                      // GET
         public const string MethodPathGetArchives = "/1/file/archives";                                 // GET
         public const string MethodPathGetRecents = "/1/file/recents";                                   // GET
         #endregion
