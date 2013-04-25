@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using Cloud.Model;
 using CloudApiPrivate.Model;
 using CloudApiPrivate.Model.Settings;
-using Cloud.Resources;
+using Cloud.Static;
 using Cloud.Static;
 using System.IO;
 using CloudApiPrivate.Static;

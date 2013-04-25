@@ -1407,11 +1407,11 @@ namespace Cloud.Sync
                                 SyncboxId: Data.commonThisEngine.syncbox.SyncboxId,
                                 DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
 
-                            return new GenericHolder<Exception>(null);
+                            throw new Exception("No internet connection detected.");
                         }
                         catch (Exception ex)
                         {
-                            return new GenericHolder<Exception>(ex);
+                            return ex;
                         }
                     }
 
@@ -2100,7 +2100,6 @@ namespace Cloud.Sync
                     commonThisEngine = this,
                     existingFilePath = new GenericHolder<string>(null),
                     topLevelChange = new GenericHolder<PossiblyStreamableFileChange>(new PossiblyStreamableFileChange()), // <-- default constructed PossiblyStreamableFileChange is invalid, must be replaced before property getters fire
-                    existingFileMD5Error = new GenericHolder<CLError>(null),
                     existingFileMD5 = new GenericHolder<byte[]>(null),
                     onCompletionOfSynchronousPreprocessedEventReturnWhetherErrorOccurredCompletingEvent = onCompletionOfSynchronousPreprocessedEventReturnWhetherErrorOccurredCompletingEvent,
                     notifyOnConfirmMetadataForInitialUploadOrDownload = notifyOnConfirmMetadataForInitialUploadOrDownload,
@@ -2116,8 +2115,7 @@ namespace Cloud.Sync
 
                     FileInfo existingFile = new FileInfo(Data.existingFilePath.Value);
                     bool matchingFileFound;
-                    if (Data.existingFileMD5Error.Value == null
-                        && Data.existingFileMD5.Value != null
+                    if (Data.existingFileMD5.Value != null
                         && existingFile.Exists
                         && (Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                             || Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.CreationTime.ToUniversalTime().Ticks == FileConstants.InvalidUtcTimeTicks
@@ -2467,19 +2465,13 @@ namespace Cloud.Sync
                                 // advanced trace, InitialRunFileTransfer
                                 Data.oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.InitialRunFileTransfer, Helpers.EnumerateSingleItem(topLevelChange.FileChange), Data.traceChangesEnumerableWithFlowState, Data.positionInChangeFlow, Data.changesToTrace);
 
-                                byte[] existingFileMD5;
-                                CLError existingFileMD5Error = topLevelChange.FileChange.GetMD5Bytes(out existingFileMD5);
-                                if (existingFileMD5Error != null)
-                                {
-                                    errorToAccumulate.Value += new AggregateException("Error retrieving MD5 from topLevelChange FileChange", existingFileMD5Error.Exceptions);
-                                }
+                                byte[] existingFileMD5 = topLevelChange.FileChange.MD5;
                                 string existingFilePath = topLevelChange.FileChange.NewPath.ToString();
 
                                 switch (topLevelChange.FileChange.Direction)
                                 {
                                     case SyncDirection.From:
                                         Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedData.existingFileMD5.Value = existingFileMD5;
-                                        Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedData.existingFileMD5Error.Value = existingFileMD5Error;
                                         Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedData.existingFilePath.Value = existingFilePath;
                                         Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedData.initialMetadataFailuresAsInnerDependencies.Value = initialMetadataFailuresAsInnerDependencies;
                                         Data.verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred.TypedData.topLevelChange.Value = topLevelChange;
@@ -3795,7 +3787,7 @@ namespace Cloud.Sync
                 var disconnectedException = checkInternetConnection.TypedProcess();
                 if (disconnectedException != null)
                 {
-                    return disconnectedException.Value;
+                    return disconnectedException;
                 }
 
                 // try/catch for primary sync logic, exception is aggregated to return
@@ -4552,8 +4544,7 @@ namespace Cloud.Sync
                         // declare byte array for the event hash for comparison
                         byte[] toCompleteBytes;
                         // if unable to retrieve existing MD5 then set MD5 from revision
-                        if (toComplete.FileChange.GetMD5Bytes(out toCompleteBytes) != null // retrieves hash and set MD5 from revision if error occurred
-                            || toCompleteBytes == null) // or no error occurred retrieving MD5 but there was no MD5 then set MD5 from revision
+                        if ((toCompleteBytes = toComplete.FileChange.MD5) == null) //there was no MD5 then set MD5 from revision
                         {
                             try
                             {
@@ -6792,13 +6783,8 @@ namespace Cloud.Sync
                         findNewPath = nonNullPreviousFileChange.FileChange.NewPath;
                         // set the old path for renames or null otherwise
                         findOldPath = nonNullPreviousFileChange.FileChange.OldPath;
-                        // try to retrieve the hash, storing any error that occurs (could be null for non-files)
-                        CLError hashRetrievalError = nonNullPreviousFileChange.FileChange.GetMD5LowercaseString(out findHash);
-                        // if an error occurred retrieving the hash, then rethrow the exception
-                        if (hashRetrievalError != null)
-                        {
-                            throw new AggregateException("Error retrieving MD5 hash as lowercase string", hashRetrievalError.Exceptions);
-                        }
+                        // retrieve the hash (could be null for non-files)
+                        findHash = nonNullPreviousFileChange.FileChange.GetMD5LowercaseString();
                         // set the unique server id
                         findServerUid = nonNullPreviousFileChange.FileChange.Metadata.ServerUid;
                         // set the unique parent folder server id
@@ -7400,20 +7386,7 @@ namespace Cloud.Sync
 
                                         CreatedDate = currentEvent.FileChange.Metadata.HashableProperties.CreationTime, // when the file system object was created
                                         Deleted = currentEvent.FileChange.Type == FileChangeType.Deleted, // whether or not the file system object is deleted
-                                        Hash = ((Func<FileChange, string>)(innerEvent => // hash must be retrieved via function because the appropriate FileChange call has an output parameter (and requires error checking)
-                                        {
-                                            // declare hash to return
-                                            string currentEventMD5;
-                                            // try to retrieve the hash from the current FileChange (can be null), storing any error
-                                            CLError currentEventMD5Error = innerEvent.GetMD5LowercaseString(out currentEventMD5);
-                                            // if there was an error retrieving the hash, then rethrow the error
-                                            if (currentEventMD5Error != null)
-                                            {
-                                                throw new AggregateException("Error retrieving currentEvent.GetMD5LowercaseString", currentEventMD5Error.Exceptions);
-                                            }
-                                            // return the retrieved hash (or null)
-                                            return currentEventMD5;
-                                        }))(currentEvent.FileChange), // run the above hash retrieval function for the current FileChange
+                                        Hash = currentEvent.FileChange.GetMD5LowercaseString(), // retrieve the hash from the current FileChange (can be null)
                                         IsFolder = currentEvent.FileChange.Metadata.HashableProperties.IsFolder, // whether this is a folder
                                         LastEventId = lastEventId, // the highest event id of all FileChanges in the current batch
                                         ModifiedDate = currentEvent.FileChange.Metadata.HashableProperties.LastTime, // when this file system object was last modified

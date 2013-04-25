@@ -5,6 +5,7 @@
 //  Created by DavidBruck.
 //  Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.Static;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -59,7 +60,7 @@ namespace Cloud.Model
                     Monitor.Pulse(blocker);
                 }
             }
-            catch (ThreadAbortException ex)
+            catch (ThreadAbortException) // expect possibility of thread abortion since that's how this class is disposed
             {
             }
         }
@@ -103,7 +104,7 @@ namespace Cloud.Model
             {
                 if (Disposed)
                 {
-                    throw new ObjectDisposedException("This ListRemoveAllEnumerator has already been disposed");
+                    throw new CLObjectDisposedException(Static.CLExceptionCode.General_Invalid, Resources.ExceptionListRemoveAllEnumeratorDisposed);
                 }
 
                 return _current;
@@ -155,7 +156,7 @@ namespace Cloud.Model
         {
             if (Disposed)
             {
-                throw new ObjectDisposedException("This ListRemoveAllEnumerator has already been disposed");
+                throw new CLObjectDisposedException(Static.CLExceptionCode.General_Invalid, Resources.ExceptionListRemoveAllEnumeratorDisposed);
             }
 
             if (endReached)
@@ -185,10 +186,10 @@ namespace Cloud.Model
         /// <summary>
         /// Not supported
         /// </summary>
-        /// <exception cref="System.NotSupportedException">Always throws this exception</exception>
+        /// <exception cref="Cloud.Model.CLException">Always throws this exception</exception>
         public void Reset()
         {
-            throw new NotSupportedException("Reset not supported");
+            throw new CLNotSupportedException(CLExceptionCode.General_Invalid, Resources.ExceptionListRemoveAllEnumeratorReset);
         }
 
         #endregion

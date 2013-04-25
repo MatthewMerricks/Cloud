@@ -1691,12 +1691,7 @@ namespace Cloud.REST
                         // else if change is a file, set path and create request content for file creation
                         else
                         {
-                            string addHashString;
-                            CLError addHashStringError = toCommunicate.GetMD5LowercaseString(out addHashString);
-                            if (addHashStringError != null)
-                            {
-                                throw new AggregateException("Error retrieving toCommunicate MD5 lowercase string", addHashStringError.Exceptions);
-                            }
+                            string addHashString = toCommunicate.GetMD5LowercaseString();
 
                             // check additional parameters for file creation
 
@@ -1757,12 +1752,7 @@ namespace Cloud.REST
 
                         // grab MD5 hash string and rethrow any error that occurs
 
-                        string modifyHashString;
-                        CLError modifyHashStringError = toCommunicate.GetMD5LowercaseString(out modifyHashString);
-                        if (modifyHashStringError != null)
-                        {
-                            throw new AggregateException("Error retrieving toCommunicate MD5 lowercase string", modifyHashStringError.Exceptions);
-                        }
+                        string modifyHashString = toCommunicate.GetMD5LowercaseString();
 
                         // check additional parameters for file modification
 

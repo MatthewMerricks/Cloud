@@ -101,13 +101,12 @@ namespace Cloud.Model
             base.Metadata = baseChange.Metadata;
             base.NewPath = baseChange.NewPath;
             base.OldPath = baseChange.OldPath;
-            byte[] previousMD5Bytes;
-            CLError retrievePreviousMD5Bytes = baseChange.GetMD5Bytes(out previousMD5Bytes);
-            if (retrievePreviousMD5Bytes != null)
+            byte[] previousMD5Bytes = baseChange.MD5;
+            CLError setMD5Error = base.SetMD5(previousMD5Bytes);
+            if (setMD5Error != null)
             {
-                throw retrievePreviousMD5Bytes.PrimaryException;
+                throw new CLException(CLExceptionCode.Syncing_Model, "Error setting MD5 from baseChange to new FileChangeWithDependencies", setMD5Error.Exceptions);
             }
-            base.SetMD5(previousMD5Bytes);
             base.Type = baseChange.Type;
 
             this._dependencies = (initialDependencies == null ? new List<FileChange>() : new List<FileChange>(initialDependencies));

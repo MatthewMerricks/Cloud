@@ -223,6 +223,7 @@
     <Compile Include="Model\EventMessages\UploadProgressMessage.cs" />
     <Compile Include="Model\HashedStreamReaderAdapter.cs" />
     <Compile Include="Model\HashMismatchException.cs" />
+    <Compile Include="Model\InternalCLExceptions.cs" />
     <Compile Include="Model\ListRemoveAllEnumerator.cs" />
     <Compile Include="Model\Md5Hasher.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
@@ -346,11 +347,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Resources\Resources.fr.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.fr.resx</DependentUpon>
-    </Compile>
     <Compile Include="SQLIndexer\IndexingAgent.cs" />
     <Compile Include="SQLIndexer\Migrations\MigrationList.cs" />
     <Compile Include="SQLIndexer\Model\FileResultRoot.cs" />
@@ -383,17 +379,11 @@
     <EmbeddedResource Include="Resources\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Cloud.Static</CustomToolNamespace>
     </EmbeddedResource>
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Resources.fr.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.fr.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="Docs\MainPage.dox" />

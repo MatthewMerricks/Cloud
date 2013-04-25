@@ -1017,12 +1017,7 @@ namespace Cloud.SQLIndexer
                         DateTime storeCreationTimeUTC;
                         DateTime storeLastTimeUTC;
 
-                        byte[] getMD5;
-                        CLError getMD5Error = newEvent.change.GetMD5Bytes(out getMD5);
-                        if (getMD5Error != null)
-                        {
-                            throw new AggregateException("Error getting MD5 from newEvent change", getMD5Error.Exceptions);
-                        }
+                        byte[] getMD5 = newEvent.change.MD5;
 
                         // Define the new event to add for the unprocessed change
                         eventsToAdd.Add(new Event()
@@ -2008,12 +2003,7 @@ namespace Cloud.SQLIndexer
                                                             ? (Nullable<long>)null
                                                             : lastTimeUTC.Ticks);
                                                     }
-                                                    byte[] getMD5;
-                                                    CLError getMD5Error = toUpdate.GetMD5Bytes(out getMD5);
-                                                    if (getMD5Error != null)
-                                                    {
-                                                        throw new AggregateException("Error retrieving MD5 bytes from toUpdate", getMD5Error.Exceptions);
-                                                    }
+                                                    byte[] getMD5 = toUpdate.MD5;
                                                     existingRow.MD5 = getMD5;
                                                     existingRow.MimeType = toUpdate.Metadata.MimeType;
                                                     existingRow.Name = toUpdate.NewPath.Name;

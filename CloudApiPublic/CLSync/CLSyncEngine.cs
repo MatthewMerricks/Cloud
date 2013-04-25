@@ -392,7 +392,7 @@ namespace Cloud
         //    catch (Exception ex)
         //    {
         //        CLError error = ex;
-        //        error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+        //        error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
         //        _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(7).  Msg: <{0}>.", ex.Message);
         //        ReleaseResources();
         //        Status = CLSyncStartStatus.ErrorGeneralSyncStartException;

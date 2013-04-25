@@ -41,6 +41,11 @@ namespace Cloud.Static
         /// </summary>
         General_Arguments = (((ulong)CLExceptionDomain.General) << 32) | 1, // 0_1
 
+        /// <summary>
+        /// Operation is not valid
+        /// </summary>
+        General_Invalid = (((ulong)CLExceptionDomain.General) << 32) | 2, // 0_2
+
         #endregion
 
         #region Http
@@ -166,6 +171,21 @@ namespace Cloud.Static
         /// Database access error
         /// </summary>
         Syncing_Database = (((ulong)CLExceptionDomain.Syncing) << 32) | 0, // 4_0
+
+        /// <summary>
+        /// Active syncing engine error
+        /// </summary>
+        Syncing_ActiveEngine = (((ulong)CLExceptionDomain.Syncing) << 32) | 1, // 4_1
+
+        /// <summary>
+        /// Active syncing index error
+        /// </summary>
+        Syncing_ActiveIndex = (((ulong)CLExceptionDomain.Syncing) << 32) | 2, // 4_2
+
+        /// <summary>
+        /// Error in a syncing model class
+        /// </summary>
+        Syncing_Model = (((ulong)CLExceptionDomain.Syncing) << 32) | 3, // 4_3
 
         #endregion
 

@@ -2672,12 +2672,7 @@ namespace Cloud.FileMonitor
                                                         CurrentDependencyTree.DependencyFileChange.NotFoundForStreamCounter++;
                                                         throw;
                                                     }
-                                                    byte[] previousMD5Bytes;
-                                                    CLError retrieveMD5Error = CurrentDependencyTree.DependencyFileChange.GetMD5Bytes(out previousMD5Bytes);
-                                                    if (retrieveMD5Error != null)
-                                                    {
-                                                        throw new AggregateException("Error retrieving previousMD5Bytes", retrieveMD5Error.Exceptions);
-                                                    }
+                                                    byte[] previousMD5Bytes = CurrentDependencyTree.DependencyFileChange.MD5;
 
                                                     Model.Md5Hasher hasher = new Model.Md5Hasher(FileConstants.MaxUploadIntermediateHashBytesSize);
 
