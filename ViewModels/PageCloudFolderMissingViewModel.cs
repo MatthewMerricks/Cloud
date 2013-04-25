@@ -339,7 +339,7 @@ namespace win_client.ViewModels
                                                         // Display the error message in a modal dialog
                                                         // Leave the user on this dialog when the user clicks OK on the error message modal dialog
                                                         CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                                                                errorMessage: error.errorDescription, 
+                                                                errorMessage: error.PrimaryException.Message, 
                                                                 title: Resources.Resources.pageCloudFolderMissingErrorTitle,
                                                                 headerText: Resources.Resources.pageCloudFolderMissingErrorHeader,
                                                                 rightButtonContent: Resources.Resources.pageCloudFolderMissingErrorRightButtonContent,
@@ -391,7 +391,7 @@ namespace win_client.ViewModels
             catch (Exception ex)
             {
                 error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 return;
             }
             error = null;
@@ -428,7 +428,7 @@ namespace win_client.ViewModels
             if (error != null)
             {
                 CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                    errorMessage: error.errorDescription,
+                    errorMessage: error.PrimaryException.Message,
                     title: Resources.Resources.pageCloudFolderMissingErrorTitle,
                     headerText: Resources.Resources.pageCloudFolderMissingErrorHeader,
                     rightButtonContent: Resources.Resources.pageCloudFolderMissingErrorRightButtonContent,
@@ -486,7 +486,7 @@ namespace win_client.ViewModels
                                                 {
                                                     // Error creating the cloud folder.  Display the error and stay on this dialog.
                                                     CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                                                        errorMessage: error.errorDescription,
+                                                        errorMessage: error.PrimaryException.Message,
                                                         title: Resources.Resources.pageCloudFolderMissingErrorTitle,
                                                         headerText: Resources.Resources.pageCloudFolderMissingErrorHeader,
                                                         rightButtonContent: Resources.Resources.pageCloudFolderMissingErrorRightButtonContent,

@@ -100,6 +100,10 @@ namespace Cloud.Model
     {
         public abstract object Data { get; }
         public abstract object Process();
+        public void VoidProcess()
+        {
+            Process();
+        }
 
         public static DelegateAndDataHolder<TData, TReturn> Create<TData, TReturn>(TData data, DelegateForHolder<TData, TReturn> delegateToWrap, GenericHolder<CLError> errorToAccumulate)
         {

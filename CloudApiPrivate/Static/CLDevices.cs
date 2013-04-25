@@ -61,8 +61,8 @@ namespace Cloud.Static
 	        catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                _trace.writeToLog(1, "CLDevices: GetComputerType: ERROR: Exception: Msg: <{0}>.  Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                _trace.writeToLog(1, "CLDevices: GetComputerType: ERROR: Exception: Msg: <{0}>.  Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
 	        }
 
             return returnType;

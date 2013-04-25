@@ -83,9 +83,9 @@ namespace Cloud.Model
         }
         private SyncDirection _direction = SyncDirection.To;
         // a global counter which is interlocked-incremented everytime a FileChange is created
-        private static long InMemoryIdCounter = 0;
+        private static int InMemoryIdCounter = 0;
         // the current FileChange's incremented id
-        internal long InMemoryId { get; private set; }
+        internal readonly int InMemoryId;
 
         /// <summary>
         /// Boolean set when already indexed events are requeued in the FileMonitor,
@@ -105,45 +105,22 @@ namespace Cloud.Model
         private bool _doNotAddToSQLIndex = false;
 
         /// <summary>
-        /// Returns the MD5 as a 16 length byte array, or null
-        /// </summary>
-        /// <param name="md5">Output MD5 bytes</param>
-        /// <returns>Returns error in retrieving MD5, if any</returns>
-        public CLError GetMD5Bytes(out byte[] md5)
-        {
-            try
-            {
-                md5 = this.MD5;
-            }
-            catch (Exception ex)
-            {
-                md5 = Helpers.DefaultForType<byte[]>();
-                return ex;
-            }
-            return null;
-        }
-
-        /// <summary>
         /// Returns the MD5 as a lowercase hexadecimal string 32 characters long with no seperators, or null
         /// </summary>
         /// <param name="md5">Output MD5 string</param>
-        /// <returns>Returns error in retrieving MD5, if any</returns>
-        public CLError GetMD5LowercaseString(out string md5)
+        public string GetMD5LowercaseString()
         {
-            try
+            byte[] storeMD5 = this._mD5;
+            if (storeMD5 == null)
             {
-                md5 = (this.MD5 == null
-                    ? null
-                    : this.MD5
-                        .Select(md5Byte => string.Format("{0:x2}", md5Byte))
-                        .Aggregate((previousBytes, newByte) => previousBytes + newByte));
+                return null;
             }
-            catch (Exception ex)
+            else
             {
-                md5 = Helpers.DefaultForType<string>();
-                return ex;
+                return storeMD5
+                    .Select(md5Byte => string.Format("{0:x2}", md5Byte))
+                    .Aggregate((previousBytes, newByte) => previousBytes + newByte);
             }
-            return null;
         }
 
         /// <summary>
@@ -156,12 +133,21 @@ namespace Cloud.Model
         {
             try
             {
-                if (md5 != null
-                    && md5.Length != 16)
+                if (md5 == null)
                 {
-                    throw new Exception("MD5 must be 128 bits (a byte array of length 16)");
+                    this._mD5 = null;
                 }
-                this.MD5 = md5;
+                else
+                {
+                    byte[] copiedMD5 = new byte[md5.Length];
+                    Buffer.BlockCopy(md5, 0, copiedMD5, 0, md5.Length);
+                    if (copiedMD5 != null
+                        && copiedMD5.Length != 16)
+                    {
+                        throw new CLArgumentException(CLExceptionCode.Syncing_Model, Static.Resources.ExceptionFileChangeSetMD5ByteLength);
+                    }
+                    this._mD5 = copiedMD5;
+                }
             }
             catch (Exception ex)
             {
@@ -169,6 +155,7 @@ namespace Cloud.Model
             }
             return null;
         }
+
         /// <summary>
         /// Sets the MD5 from a 32 character hexadecimal string or clears it for a null/empty input;
         /// returns an error if the string is improperly formatted or if the resulting parsed byte array is not 16 length
@@ -186,7 +173,23 @@ namespace Cloud.Model
                 return ex;
             }
         }
-        private byte[] MD5 = null;
+
+        public byte[] MD5
+        {
+            get
+            {
+                byte[] storeMD5 = _mD5;
+                if (storeMD5 == null)
+                {
+                    return null;
+                }
+                byte[] toReturn = new byte[storeMD5.Length];
+                Buffer.BlockCopy(storeMD5, 0, toReturn, 0, storeMD5.Length);
+                return storeMD5;
+            }
+        }
+        private byte[] _mD5 = null;
+
         internal byte FailureCounter = 0;
         internal byte NotFoundForStreamCounter = 0;
         internal bool FileIsTooBig = false;
@@ -203,7 +206,7 @@ namespace Cloud.Model
             : base(DelayCompletedLocker)
         {
             this.fileDownloadMoveLocker = fileDownloadMoveLocker;
-            SetIncrementedId();
+            this.InMemoryId = Interlocked.Increment(ref InMemoryIdCounter);
         }
         /// <summary>
         /// Constructor for an object to store parameters,
@@ -212,13 +215,6 @@ namespace Cloud.Model
         public FileChange() : base()
         {
             this.fileDownloadMoveLocker = null;
-            SetIncrementedId();
-        }
-
-        // method which interlock-increments a static counter and sets the current object's in-memory id accordingly;
-        // must be called from the constructor
-        private void SetIncrementedId()
-        {
             this.InMemoryId = Interlocked.Increment(ref InMemoryIdCounter);
         }
 
@@ -263,7 +259,7 @@ namespace Cloud.Model
                 // check that the input parameter was set; if it wasn't, throw an exception
                 if (SendBackChange == null)
                 {
-                    throw new NullReferenceException("SendBackChange cannot be null");
+                    throw new CLNullReferenceException(CLExceptionCode.Syncing_Model, Static.Resources.ExceptionFileChangeUpDownEventArgsNullSendBackChange);
                 }
 
                 // store the callback

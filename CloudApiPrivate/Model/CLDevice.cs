@@ -8,7 +8,7 @@
 using System;
 using Cloud.Support;
 using System.Resources;
-using Cloud.Resources;
+using Cloud.Static;
 using Cloud.Static;
 
 namespace CloudApiPrivate.Model

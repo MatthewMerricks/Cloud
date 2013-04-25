@@ -89,8 +89,8 @@ namespace Cloud.BadgeNET
                     if (_fIsInitialized)
                     {
                         CLError error = new Exception("Already initialized");
-                        error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
-                        _trace.writeToLog(1, "BadgeComPubSubEvents: Initialize: ERROR: Exception (2): Msg: <{0}>.", error.errorDescription);
+                        error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                        _trace.writeToLog(1, "BadgeComPubSubEvents: Initialize: ERROR: Exception (2): Msg: <{0}>.", error.PrimaryException.Message);
                         return;
                     }
 
@@ -114,7 +114,7 @@ namespace Cloud.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: Initialize: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 throw;
             }
@@ -149,7 +149,7 @@ namespace Cloud.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: PublishEventToBadgeCom: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
@@ -180,7 +180,7 @@ namespace Cloud.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribeToBadgeComInitializationEvents: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
 
@@ -250,7 +250,7 @@ namespace Cloud.BadgeNET
                         catch (Exception ex)
                         {
                             CLError error = ex;
-                            error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                            error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                             _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: Exception: Msg: <{0}>.", ex.Message);
                         }
                     }
@@ -293,7 +293,7 @@ namespace Cloud.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: SubscribingThreadProc: ERROR: Exception(2): Msg: <{0}>.", ex.Message);
             }
 
@@ -364,7 +364,7 @@ namespace Cloud.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: WatchingThreadProc: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 if (!_fRequestWatchingThreadExit && !_fTerminating)
                 {
@@ -383,7 +383,7 @@ namespace Cloud.BadgeNET
                     catch (Exception ex2)
                     {
                         CLError error2 = ex2;
-                        error2.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                        error2.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                         _trace.writeToLog(1, "BadgeComPubSubEvents: WatchingThreadProc: ERROR: Exception(2): Msg: <{0}>.", ex2.Message);
                     }
                 }
@@ -461,7 +461,7 @@ namespace Cloud.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: KillSubscribingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
@@ -527,7 +527,7 @@ namespace Cloud.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: KillWatchingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
@@ -570,7 +570,7 @@ namespace Cloud.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: StartSubscribingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
 
@@ -608,7 +608,7 @@ namespace Cloud.BadgeNET
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 _trace.writeToLog(1, "BadgeComPubSubEvents: StartWatchingThread: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
@@ -679,7 +679,7 @@ namespace Cloud.BadgeNET
                     catch (Exception ex)
                     {
                         CLError error = ex;
-                        error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                        error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                         _trace.writeToLog(1, "BadgeComPubSubEvents: Dispose: ERROR: Exception. Killing threads.: Msg: <{0}>.", ex.Message);
                     }
                 }
@@ -698,7 +698,7 @@ namespace Cloud.BadgeNET
                 catch (Exception ex)
                 {
                     CLError error = ex;
-                    error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                    error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                     _trace.writeToLog(1, "BadgeComPubSubEvents: Dispose: ERROR: Exception. Freeing PubSubServer resources. Msg: <{0}>.", ex.Message);
                 }
                 finally

@@ -99,8 +99,8 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLShortcuts: AddCloudFolderToExplorerFavorites: ERROR: Exception: Msg: {0}, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(1, "CLShortcuts: AddCloudFolderToExplorerFavorites: ERROR: Exception: Msg: {0}, Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
             }
         }
 
@@ -127,8 +127,8 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLShortcuts: RemoveCloudFolderShortcutToFolder: ERROR: Exception: Msg: {0}, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(1, "CLShortcuts: RemoveCloudFolderShortcutToFolder: ERROR: Exception: Msg: {0}, Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
             }
         }
 
@@ -155,7 +155,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: SetCloudFolderIcon: ERROR: Exception: Msg: {0}.", ex.Message);
             }
         }
@@ -181,7 +181,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: RemoveCloudFolderShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
             _trace.writeToLog(9, "CLShortcuts: RemoveCloudFolderShortcuts: Exit.");
@@ -202,7 +202,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: AddCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -221,7 +221,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: RemoveCloudAutostartShortcut: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -246,7 +246,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: UpdateAllShortcuts: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -275,7 +275,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: UpdateShouldStartCloudAppWithSystem: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -309,7 +309,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: UpdateShouldShowCloudFolderOnDesktop: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -345,7 +345,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: UpdateShouldShowCloudFolderInExplorerFavorites: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -378,7 +378,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: UpdateShouldShowCloudFolderInInternetExplorerFavorites: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -408,7 +408,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: UpdateShouldShowCloudFolderOnTaskbar: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -438,7 +438,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: UpdateShouldShowCloudFolderInStartMenu: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -478,7 +478,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: UpdateShouldUseCloudIconForCloudFolder: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -510,7 +510,7 @@ namespace CloudApiPrivate.Common
 	        catch (Exception ex)
 	        {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: ModifyShortcutTargetPath: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -595,7 +595,7 @@ namespace CloudApiPrivate.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: PinShowCloudFolderToTaskbar: ERROR: Exception.  Msg: <{0}>.", ex.Message);
             }
             _trace.writeToLog(9, "CLShortcuts: AddCloudFolderShortcuts: Exit.");
@@ -622,7 +622,7 @@ namespace CloudApiPrivate.Common
             catch (System.Exception other)
             {
                 CLError error = other;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLShortcuts: StartBrowserToUrl: ERROR: Exception(2).  Msg: <{0}>.", other.Message);
             }
         }

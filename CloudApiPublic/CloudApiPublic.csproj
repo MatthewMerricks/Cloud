@@ -46,10 +46,11 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNoSSL|AnyCPU'">
     <OutputPath>bin\ReleaseNoSSL\</OutputPath>
@@ -198,6 +199,8 @@
     <Compile Include="JsonContracts\SyncBoxUsage.cs" />
     <Compile Include="JsonContracts\UsedBytes.cs" />
     <Compile Include="JsonContracts\Videos.cs" />
+    <Compile Include="Model\CLException.cs" />
+    <Compile Include="Model\CLHttpException.cs" />
     <Compile Include="Model\DelegateAndDataHolder.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\BasicMessage.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\IncrementCountMessage.cs" />
@@ -219,6 +222,8 @@
     <Compile Include="Model\EventMessages\UploadProgressMessage.cs" />
     <Compile Include="Model\HashedStreamReaderAdapter.cs" />
     <Compile Include="Model\HashMismatchException.cs" />
+    <Compile Include="Model\InternalCLExceptions.cs" />
+    <Compile Include="Model\ListRemoveAllEnumerator.cs" />
     <Compile Include="Model\Md5Hasher.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\StreamContext.cs" />
@@ -341,11 +346,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Resources\Resources.fr.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.fr.resx</DependentUpon>
-    </Compile>
     <Compile Include="SQLIndexer\IndexingAgent.cs" />
     <Compile Include="SQLIndexer\Migrations\MigrationList.cs" />
     <Compile Include="SQLIndexer\Model\FileResultRoot.cs" />
@@ -379,20 +379,13 @@
     <EmbeddedResource Include="Resources\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Cloud.Static</CustomToolNamespace>
     </EmbeddedResource>
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Resources.fr.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.fr.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="CloudPlatformCodeSigning.pfx" />
     <None Include="Docs\MainPage.dox" />
     <None Include="FileMonitor\FileMonitorMemory.xsd">
       <SubType>Designer</SubType>

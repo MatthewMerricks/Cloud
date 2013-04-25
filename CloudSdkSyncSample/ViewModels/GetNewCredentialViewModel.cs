@@ -261,7 +261,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "GetNewCredentialViewModel: SaveSettings: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
@@ -281,7 +281,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "GetNewCredentialViewModel: Exit: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }

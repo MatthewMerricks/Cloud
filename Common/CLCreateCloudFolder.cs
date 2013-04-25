@@ -102,7 +102,7 @@ namespace win_client.Common
             catch (Exception ex)
             {
                 error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 creationTime = (DateTime)Helpers.DefaultForType(typeof(DateTime));
                 return;
             }
@@ -174,7 +174,7 @@ namespace win_client.Common
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(9, "CLCreateCloudFolder: IsNewCloudFolderLocationValid: ERROR. Exception.  Msg: <{0}>.", ex.Message);
                 return false;
             }

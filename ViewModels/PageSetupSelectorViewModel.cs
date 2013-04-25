@@ -522,7 +522,7 @@ namespace win_client.ViewModels
             {
                 // An error occurred.  Show the user an Oh Snap! modal dialog.
                 CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                            errorMessage: err.errorDescription,
+                            errorMessage: err.PrimaryException.Message,
                             title: Resources.Resources.appDelegateErrorInstallingTitle,
                             headerText: Resources.Resources.appDelegateErrorInstallingHeader,
                             rightButtonContent: Resources.Resources.appDelegateErrorInstallingButtonTryAgain,

@@ -131,7 +131,7 @@ namespace win_client
                     catch (Exception ex)
                     {
                         CLError error = ex;
-                        error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                        error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                         _trace.writeToLog(1, "App.xaml: OnStartup: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                         MessageBox.Show(String.Format("Error starting the Cloud application. Startup exception: <{0}>.", ex.Message), "Oh Snap!", MessageBoxButton.OK);
                         this.Shutdown(0);
@@ -225,7 +225,7 @@ namespace win_client
             {
                 e.Handled = true;
                 _trace.writeToLog(1, "App.xaml: Application_DispatcherUnhandledException: ERROR: Exception: Msg: <{0}>.", e.Exception.Message);
-                ((CLError)e.Exception).LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                ((CLError)e.Exception).Log(_trace.TraceLocation, _trace.LogErrors);
             }
             catch
             {

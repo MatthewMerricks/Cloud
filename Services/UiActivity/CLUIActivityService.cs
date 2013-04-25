@@ -89,7 +89,7 @@ namespace win_client.Services.UiActivity
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 _trace.writeToLog(1, "CLUIActivityService: BeginUIActivityService: ERROR. Exception.  Msg: <{0}>.", ex.Message);
             }
         }
@@ -110,7 +110,7 @@ namespace win_client.Services.UiActivity
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 _trace.writeToLog(1, "CLUIActivityService: EndUIActivityService: ERROR. Exception.  Msg: <{0}>.", ex.Message);
             }
         }

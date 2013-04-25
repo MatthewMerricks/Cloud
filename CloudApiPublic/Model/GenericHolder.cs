@@ -25,31 +25,31 @@ namespace Cloud.Model
         [DataMember]
         public T Value { get; set; }
 
-        public static readonly PropertyInfo ValueInfo = typeof(GenericHolder<T>)
+        internal static readonly PropertyInfo ValueInfo = typeof(GenericHolder<T>)
             .GetProperty("Value", BindingFlags.Instance | BindingFlags.Public);
 
-        /// <summary>
-        /// Attempts to cast the first parameter as the current generic typed GenericHolder and sets Value to the second parameter
-        /// </summary>
-        /// <param name="toSet">Generic-typed GenericHolder for setting Value</param>
-        /// <param name="value">Generic-type instance to put in Value</param>
-        public static void GenericSet(object toSet, T value)
-        {
-            GenericSet(toSet as GenericHolder<T>, value);
-        }
+        ///// <summary>
+        ///// Attempts to cast the first parameter as the current generic typed GenericHolder and sets Value to the second parameter
+        ///// </summary>
+        ///// <param name="toSet">Generic-typed GenericHolder for setting Value</param>
+        ///// <param name="value">Generic-type instance to put in Value</param>
+        //public static void GenericSet(object toSet, T value)
+        //{
+        //    GenericSet(toSet as GenericHolder<T>, value);
+        //}
 
-        /// <summary>
-        /// Sets Value of the first parameter to the second parameter
-        /// </summary>
-        /// <param name="toSet">Holder of Value</param>
-        /// <param name="value">Instance to put in Value</param>
-        public static void GenericSet(GenericHolder<T> toSet, T value)
-        {
-            if (toSet != null)
-            {
-                toSet.Value = value;
-            }
-        }
+        ///// <summary>
+        ///// Sets Value of the first parameter to the second parameter
+        ///// </summary>
+        ///// <param name="toSet">Holder of Value</param>
+        ///// <param name="value">Instance to put in Value</param>
+        //public static void GenericSet(GenericHolder<T> toSet, T value)
+        //{
+        //    if (toSet != null)
+        //    {
+        //        toSet.Value = value;
+        //    }
+        //}
 
         public GenericHolder() { }
         public GenericHolder(T defaultValue)

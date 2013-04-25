@@ -225,9 +225,14 @@ namespace Cloud
                             getNewCredentialCallbackUserState: getNewCredentialCallbackUserState);
             if (createRestClientError != null)
             {
-                _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());
+                _trace.writeToLog(1,
+                    "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.",
+                    createRestClientError.PrimaryException.Message,
+                    createRestClientError.PrimaryException.Code);
                 status = CLSyncboxCreationStatus.ErrorCreatingRestClient;
-                throw new AggregateException("Error creating REST HTTP client", createRestClientError.GrabExceptions());
+                throw new CLException(CLExceptionCode.Syncbox_CreateRestClient,
+                    "Error creating REST HTTP client",
+                    createRestClientError.Exceptions);
             }
             if (_httpRestClient == null)
             {

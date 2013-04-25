@@ -208,7 +208,7 @@ namespace Cloud.Model
                             CLError grabRecursionError = currentInnerFolder.GrabHierarchyForPath(null, out innerFolderNode);
                             if (grabRecursionError != null)
                             {
-                                throw grabRecursionError.GrabFirstException();
+                                throw grabRecursionError.PrimaryException;
                             }
                             else if (innerFolderNode == null)
                             {
@@ -319,7 +319,7 @@ namespace Cloud.Model
                             CLError recurseHierarchyError = innerFolders[recursePath].GrabHierarchyForPath(key, out outputNode, suppressException);
                             if (recurseHierarchyError != null)
                             {
-                                throw recurseHierarchyError.GrabFirstException();
+                                throw recurseHierarchyError.PrimaryException;
                             }
                         }
                     }
@@ -652,7 +652,7 @@ namespace Cloud.Model
                                 this.recursiveRenameCallback);
                             if (innerFolderError != null)
                             {
-                                throw innerFolderError.GrabFirstException();
+                                throw innerFolderError.PrimaryException;
                             }
 
                             // recursively call Add on innerFolder to build child structure and eventually add the value
@@ -689,7 +689,7 @@ namespace Cloud.Model
                             pathsAtCurrentLevel[existingCurrentPath]);
                         if (innerFolderError != null)
                         {
-                            throw innerFolderError.GrabFirstException();
+                            throw innerFolderError.PrimaryException;
                         }
 
                         // recursively call Add on innerFolder to build child structure and eventually add the value 
