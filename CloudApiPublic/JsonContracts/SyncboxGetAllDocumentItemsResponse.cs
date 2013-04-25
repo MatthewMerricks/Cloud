@@ -1,5 +1,5 @@
 ﻿//
-// SyncboxGetAllAudioItemsResponse.cs
+// SyncboxGetAllDocumentItemsResponse.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -19,7 +19,7 @@ namespace Cloud.JsonContracts
     /// Result from <see cref="Cloud.CLSyncbox.GetAllAudioItems"/>
     /// </summary>
     [DataContract]
-    public sealed class SyncboxGetAllAudioItemsResponse
+    public sealed class SyncboxGetAllDocumentItemsResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataTotalCount, IsRequired = false)]
         public Nullable<long> TotalCount { get; set; }

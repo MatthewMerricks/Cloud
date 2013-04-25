@@ -143,6 +143,7 @@ namespace Cloud.Static
         public const string MethodPathGetPictures = VersionPrefix + "/sync/file/pictures";                              // GET
         public const string MethodPathGetVideos = VersionPrefix + "/sync/file/videos";                                  // GET
         public const string MethodPathGetAudios = VersionPrefix + "/sync/file/audios";                                  // GET
+        public const string MethodPathGetDocuments = VersionPrefix + "/sync/file/documents";                            // GET
         public const string MethodPathGetArchives = VersionPrefix + "/sync/file/archives";                              // GET
         public const string MethodPathGetRecents = VersionPrefix + "/sync/file/recents";                                // GET
         #endregion

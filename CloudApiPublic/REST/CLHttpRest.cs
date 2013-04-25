@@ -3399,6 +3399,158 @@ namespace Cloud.REST
         }
         #endregion  // end GetAllAudioItems (Get all of the video files from the server for this syncbox)
 
+        #region GetAllDocumentItems (Get all of the document files from the server for this syncbox)
+        /// <summary>
+        /// Asynchronously starts querying the server for document items.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetAllDocumentItems(AsyncCallback callback, object callbackUserState)
+        {
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxGetAllDocumentItemsResult>(
+                        callback,
+                        callbackUserState)
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLHttpRestStatus status;    // &&&&& Fix this
+                        // declare the specific type of result for this operation
+                        CLFileItem[] response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = GetAllDocumentItems(
+                            out status,
+                            out response);
+
+                        Data.toReturn.Complete(
+                            new SyncboxGetAllDocumentItemsResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes querying for audios if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the audios query</param>
+        /// <param name="result">(output) The result from the audios query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetAllDocumentItems(IAsyncResult aResult, out SyncboxGetAllDocumentItemsResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxGetAllDocumentItemsResult>(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the server for audios
+        /// </summary>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetAllDocumentItems(out CLHttpRestStatus status, out CLFileItem[] response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the audios query, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // build the location of the audios retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathGetDocuments + // path for getting documents
+                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
+                    // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
+                    ));
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // run the HTTP communication and store the response object to the output parameter
+                JsonContracts.SyncboxGetAllDocumentItemsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxGetAllDocumentItemsResponse>(
+                    null, // HTTP Get method does not have content
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // path to query audios (dynamic adding query string)
+                    Helpers.requestMethod.get, // query audios is a get
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status, // reference to update the output success/failure status for the communication
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Metadata != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata));
+                        }
+                        else
+                        {
+                            listFileItems.Add(null);
+                        }
+                    }
+                    response = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException("Server responded without an array of Metadata");
+                }
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion  // end GetAllDocumentItems (Get all of the document files from the server for this syncbox)
+
         #region GetArchives
         /// <summary>
         /// Asynchronously starts querying the server for archives

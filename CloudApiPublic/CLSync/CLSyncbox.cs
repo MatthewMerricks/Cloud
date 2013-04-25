@@ -1718,7 +1718,6 @@ namespace Cloud
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllImageItems(AsyncCallback callback, object callbackUserState)
         {
@@ -1791,14 +1790,14 @@ namespace Cloud
         }
         #endregion  // end GetAllVideoItems  (Gets all of the video items from the cloud for this syncbox)
 
-        #region GetAllAudioItems  (Gets all of the audio items from the cloud for this syncbox)
+        #region GetAllAudioItems (Gets all of the audio items from the cloud for this syncbox)
         /// <summary>
         /// Asynchronously starts querying the server for audio items.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAudios(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetAllAudioItems(AsyncCallback callback, object callbackUserState)
         {
             CheckDisposed();
             return _httpRestClient.BeginGetAllAudioItems(callback, callbackUserState);
@@ -1811,25 +1810,63 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the audios query</param>
         /// <param name="result">(output) The result from the audios query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetAudios(IAsyncResult aResult, out SyncboxGetAllAudioItemsResult result)
+        public CLError EndGetAllAudioItems(IAsyncResult aResult, out SyncboxGetAllAudioItemsResult result)
         {
             CheckDisposed();
             return _httpRestClient.EndGetAllAudioItems(aResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for audios
+        /// Queries the server for audio items.
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAudios(int timeoutMilliseconds, out CLHttpRestStatus status, CLFileItem [] response)
+        public CLError GetAllAudioItems(out CLHttpRestStatus status, CLFileItem [] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllAudioItems(out status, out response);
         }
-        #endregion
+        #endregion  // end GetAllAudioItems (Gets all of the audio items from the cloud for this syncbox)
+
+        #region GetAllDocumentItems  (Gets all of the document items from the cloud for this syncbox)
+        /// <summary>
+        /// Asynchronously starts querying the server for document items.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetAllDocumentItems(AsyncCallback callback, object callbackUserState)
+        {
+            CheckDisposed();
+            return _httpRestClient.BeginGetAllDocumentItems(callback, callbackUserState);
+        }
+
+        /// <summary>
+        /// Finishes querying for document items, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the audios query</param>
+        /// <param name="result">(output) The result from the audios query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetAllDocumentItems(IAsyncResult aResult, out SyncboxGetAllDocumentItemsResult result)
+        {
+            CheckDisposed();
+            return _httpRestClient.EndGetAllDocumentItems(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the server for document items.
+        /// </summary>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetAllDocumentItems(out CLHttpRestStatus status, CLFileItem[] response)
+        {
+            CheckDisposed();
+            return _httpRestClient.GetAllDocumentItems(out status, out response);
+        }
+        #endregion  // end GetAllDocumentItems  (Gets all of the document items from the cloud for this syncbox)
 
         #region GetArchives
         /// <summary>
