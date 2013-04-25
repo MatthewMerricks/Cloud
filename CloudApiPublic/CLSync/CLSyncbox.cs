@@ -1997,8 +1997,8 @@ namespace Cloud
         public IAsyncResult BeginGetRecentFilesSinceDateWithLimit(
             AsyncCallback callback,
             object callbackUserState,
-            DateTime sinceDate,
-            int? returnLimit)
+            Nullable<DateTime> sinceDate,
+            Nullable<int> returnLimit)
 
         {
             CheckDisposed();
@@ -2027,8 +2027,8 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetRecentFilesSinceDateWithLimit(
-            DateTime sinceDate,
-            int? returnLimit,
+            Nullable<DateTime> sinceDate,
+            Nullable<int> returnLimit,
             out CLHttpRestStatus status,   // &&&& fix this
             out CLFileItem [] response)
         {

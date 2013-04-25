@@ -4019,8 +4019,8 @@ namespace Cloud.REST
         public IAsyncResult BeginGetRecents(
             AsyncCallback callback,
             object callbackUserState,
-            DateTime sinceDate,
-            int? returnLimit)
+            Nullable<DateTime> sinceDate,
+            Nullable<int> returnLimit)
         {
             var asyncThread = DelegateAndDataHolder.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -4093,7 +4093,7 @@ namespace Cloud.REST
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetRecents(
-            DateTime sinceDate,
+            Nullable<DateTime> sinceDate,
             Nullable<int> returnLimit,
             out CLHttpRestStatus status,
             out CLFileItem[] response)
