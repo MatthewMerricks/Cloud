@@ -157,18 +157,6 @@ namespace Cloud.REST
             : base(Error, Status, Response) { }
     }
 
-    //// GetUsedBytes is deprecated
-    //
-    ///// <summary>
-    ///// Holds result properties
-    ///// </summary>
-    //public sealed class GetUsedBytesResult : BaseCLHttpRestResult<JsonContracts.UsedBytes>
-    //{
-    //    // construct with all readonly properties
-    //    internal GetUsedBytesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.UsedBytes Response)
-    //        : base(Error, Status, Response) { }
-    //}
-
     /// <summary>
     /// Holds result properties
     /// </summary>
@@ -176,26 +164,6 @@ namespace Cloud.REST
     {
         // construct with all readonly properties
         internal CopyFileResult(CLError Error, CLHttpRestStatus Status, JsonContracts.FileChangeResponse Response)
-            : base(Error, Status, Response) { }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class GetPicturesResult : BaseCLHttpRestResult<JsonContracts.Pictures>
-    {
-        // construct with all readonly properties
-        internal GetPicturesResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Pictures Response)
-            : base(Error, Status, Response) { }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class GetVideosResult : BaseCLHttpRestResult<JsonContracts.Videos>
-    {
-        // construct with all readonly properties
-        internal GetVideosResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Videos Response)
             : base(Error, Status, Response) { }
     }
 
@@ -702,6 +670,106 @@ namespace Cloud.REST
 
         // construct with all readonly properties
         internal SyncboxListResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLSyncbox[] Response)
+        {
+            this._error = Error;
+            this._status = Status;
+            this._response = Response;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxGetAllImageItemsResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLFileItem[] Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLFileItem[] _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        /// <summary>
+        /// The status resulting from communication
+        /// </summary>
+        public CLHttpRestStatus Status  // &&&& fix this
+        {
+            get
+            {
+                return _status;
+            }
+        }
+        private readonly CLHttpRestStatus _status;  // &&&& fix this
+
+        // construct with all readonly properties
+        internal SyncboxGetAllImageItemsResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLFileItem[] Response)
+        {
+            this._error = Error;
+            this._status = Status;
+            this._response = Response;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxGetAllVideoItemsResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLFileItem[] Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLFileItem[] _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        /// <summary>
+        /// The status resulting from communication
+        /// </summary>
+        public CLHttpRestStatus Status  // &&&& fix this
+        {
+            get
+            {
+                return _status;
+            }
+        }
+        private readonly CLHttpRestStatus _status;  // &&&& fix this
+
+        // construct with all readonly properties
+        internal SyncboxGetAllVideoItemsResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLFileItem[] Response)
         {
             this._error = Error;
             this._status = Status;

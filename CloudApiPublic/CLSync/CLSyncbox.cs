@@ -1329,6 +1329,7 @@ namespace Cloud
         #region Public Instance HTTP REST Methods
 
         #region GetMetadata
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path; outputs CLHttpRestStatus.NoContent for status if not found on server;
         /// Check for Deleted flag being true in case the metadata represents a deleted item
@@ -1353,6 +1354,7 @@ namespace Cloud
                 timeoutMilliseconds);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying the server at a given file or folder server id (must be specified) for existing metadata at that id; outputs CLHttpRestStatus.NoContent for status if not found on server;
         /// Check for Deleted flag being true in case the metadata represents a deleted item
@@ -1376,7 +1378,8 @@ namespace Cloud
                 serverId,
                 timeoutMilliseconds);
         }
-        
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Finishes a metadata query if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
@@ -1389,7 +1392,8 @@ namespace Cloud
             CheckDisposed();
             return _httpRestClient.EndGetMetadata(aResult, out result);
         }
-        
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Queries the server at a given file or folder path (must be specified) for existing metadata at that path; outputs CLHttpRestStatus.NoContent for status if not found on server;
         /// Check for Deleted flag being true in case the metadata represents a deleted item
@@ -1406,6 +1410,7 @@ namespace Cloud
             return _httpRestClient.GetMetadata(fullPath, isFolder, timeoutMilliseconds, out status, out response);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Queries the server at a given file or folder server id (must be specified) for existing metadata at that id; outputs CLHttpRestStatus.NoContent for status if not found on server;
         /// Check for Deleted flag being true in case the metadata represents a deleted item
@@ -1424,6 +1429,7 @@ namespace Cloud
         #endregion
 
         #region GetAllPending
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying for all pending files
         /// </summary>
@@ -1439,6 +1445,7 @@ namespace Cloud
             return _httpRestClient.BeginGetAllPending(aCallback, aState, timeoutMilliseconds);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Finishes a query for all pending files if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
@@ -1452,6 +1459,7 @@ namespace Cloud
             return _httpRestClient.EndGetAllPending(aResult, out result);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Queries the server for a given sync box and device to get all files which are still pending upload
         /// </summary>
@@ -1467,6 +1475,7 @@ namespace Cloud
         #endregion
 
         #region GetFileVersions
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
@@ -1486,7 +1495,8 @@ namespace Cloud
                 fileServerId,
                 timeoutMilliseconds);
         }
-        
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
@@ -1509,7 +1519,8 @@ namespace Cloud
                 timeoutMilliseconds,
                 includeDeletedVersions);
         }
-        
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
@@ -1528,6 +1539,7 @@ namespace Cloud
             return _httpRestClient.BeginGetFileVersions(aCallback, aState, timeoutMilliseconds, pathToFile);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
@@ -1547,7 +1559,8 @@ namespace Cloud
             CheckDisposed();
             return _httpRestClient.BeginGetFileVersions(aCallback, aState, timeoutMilliseconds, pathToFile, includeDeletedVersions);
         }
-        
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
@@ -1567,6 +1580,7 @@ namespace Cloud
             return _httpRestClient.BeginGetFileVersions(aCallback, aState, fileServerId, timeoutMilliseconds, pathToFile);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
@@ -1588,6 +1602,7 @@ namespace Cloud
             return _httpRestClient.BeginGetFileVersions(aCallback, aState, fileServerId, timeoutMilliseconds, pathToFile, includeDeletedVersions);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Finishes querying for all versions of a given file if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
@@ -1600,7 +1615,8 @@ namespace Cloud
             CheckDisposed();
             return _httpRestClient.EndGetFileVersions(aResult, out result);
         }
-        
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Queries the server for all versions of a given file
         /// </summary>
@@ -1615,6 +1631,7 @@ namespace Cloud
             return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, out status, out response);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Queries the server for all versions of a given file
         /// </summary>
@@ -1630,6 +1647,7 @@ namespace Cloud
             return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, out status, out response, includeDeletedVersions);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Queries the server for all versions of a given file
         /// </summary>
@@ -1644,6 +1662,7 @@ namespace Cloud
             return _httpRestClient.GetFileVersions(timeoutMilliseconds, pathToFile, out status, out response);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Queries the server for all versions of a given file
         /// </summary>
@@ -1659,6 +1678,7 @@ namespace Cloud
             return _httpRestClient.GetFileVersions(timeoutMilliseconds, pathToFile, out status, out response, includeDeletedVersions);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Queries the server for all versions of a given file
         /// </summary>
@@ -1674,6 +1694,7 @@ namespace Cloud
             return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out status, out response);
         }
 
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Queries the server for all versions of a given file
         /// </summary>
@@ -1691,91 +1712,84 @@ namespace Cloud
         }
         #endregion
 
-        #region GetPictures
+        #region GetAllImageItems (Gets all of the image items from the cloud for this syncbox)
         /// <summary>
-        /// Asynchronously starts querying the server for pictures
+        /// Asynchronously starts querying the server for image items.
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetPictures(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds)
+        public IAsyncResult BeginGetAllImageItems(AsyncCallback callback, object callbackUserState)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetPictures(aCallback, aState, timeoutMilliseconds);
+            return _httpRestClient.BeginGetAllImageItems(callback, callbackUserState);
         }
 
         /// <summary>
-        /// Finishes querying for pictures if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes querying the server for image items, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the pictures query</param>
         /// <param name="result">(output) The result from the pictures query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetPictures(IAsyncResult aResult, out GetPicturesResult result)
+        public CLError EndGetAllImageItems(IAsyncResult aResult, out SyncboxGetAllImageItemsResult result)
         {
             CheckDisposed();
-            return _httpRestClient.EndGetPictures(aResult, out result);
+            return _httpRestClient.EndGetAllImageItems(aResult, out result);
         }
 
         /// <summary>
         /// Queries the server for pictures
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetPictures(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Pictures response)
+        public CLError GetAllImageItems(out CLHttpRestStatus status, out CLFileItem[] response)
         {
             CheckDisposed();
-            return _httpRestClient.GetPictures(timeoutMilliseconds, out status, out response);
+            return _httpRestClient.GetAllImageItems(out status, out response);
         }
-        #endregion
+        #endregion  // end GetAllImageItems (Gets all of the image items from the cloud for this syncbox)
 
-        #region GetVideos
+        #region GetAllVideoItems  (Gets all of the video items from the cloud for this syncbox)
         /// <summary>
-        /// Asynchronously starts querying the server for videos
+        /// Asynchronously starts querying the server for video file items.
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetVideos(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds)
+        public IAsyncResult BeginGetAllVideoItems(AsyncCallback callback, object callbackUserState)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetVideos(aCallback, aState, timeoutMilliseconds);
+            return _httpRestClient.BeginGetAllVideoItems(callback, callbackUserState);
         }
 
         /// <summary>
-        /// Finishes querying for videos if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes querying the server for video file items, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the videos query</param>
         /// <param name="result">(output) The result from the videos query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetVideos(IAsyncResult aResult, out GetVideosResult result)
+        public CLError EndGetAllVideoItems(IAsyncResult aResult, out SyncboxGetAllVideoItemsResult result)
         {
             CheckDisposed();
-            return _httpRestClient.EndGetVideos(aResult, out result);
+            return _httpRestClient.EndGetAllVideoItems(aResult, out result);
         }
 
         /// <summary>
         /// Queries the server for videos
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetVideos(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Videos response)
+        public CLError GetGetAllVideoItems(out CLHttpRestStatus status, CLFileItem[] response)
         {
             CheckDisposed();
-            return _httpRestClient.GetVideos(timeoutMilliseconds, out status, out response);
+            return _httpRestClient.GetAllVideoItems(out status, out response);
         }
-        #endregion
+        #endregion  // end GetAllVideoItems  (Gets all of the video items from the cloud for this syncbox)
 
         #region GetAudios
         /// <summary>

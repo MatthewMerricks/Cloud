@@ -198,11 +198,11 @@
     <Compile Include="JsonContracts\ItemCount.cs" />
     <Compile Include="JsonContracts\SyncboxListResponse.cs" />
     <Compile Include="JsonContracts\MetadataDictionary.cs" />
-    <Compile Include="JsonContracts\Pictures.cs" />
+    <Compile Include="JsonContracts\SyncboxGetAllImageItemsResponse.cs" />
     <Compile Include="JsonContracts\SyncboxGetRecentsResponse.cs" />
     <Compile Include="JsonContracts\Syncbox.cs" />
     <Compile Include="JsonContracts\UsedBytes.cs" />
-    <Compile Include="JsonContracts\Videos.cs" />
+    <Compile Include="JsonContracts\SyncboxGetAllVideoItemsResponse.cs" />
     <Compile Include="Model\CLStoragePlan.cs" />
     <Compile Include="Model\CLFileItem.cs" />
     <Compile Include="Model\DelegateAndDataHolder.cs" />

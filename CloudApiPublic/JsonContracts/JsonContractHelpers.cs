@@ -341,7 +341,7 @@ namespace Cloud.JsonContracts
                 lock (PicturesSerializerLocker)
                 {
                     return _picturesSerializer
-                        ?? (_picturesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Pictures)));
+                        ?? (_picturesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllImageItemsResponse)));
                 }
             }
         }
@@ -355,7 +355,7 @@ namespace Cloud.JsonContracts
                 lock (VideosSerializerLocker)
                 {
                     return _videosSerializer
-                        ?? (_videosSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Videos)));
+                        ?? (_videosSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllVideoItemsResponse)));
                 }
             }
         }

@@ -17,7 +17,7 @@ namespace Cloud.JsonContracts
 {
     // removed "<see cref="PendingResponse"/>, " from the summary below because it's internal
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.GetMetadata"/>; also an inner object containing metadata properties for <see cref="FileChangeResponse"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="Pictures"/>, <see cref="Videos"/>, <see cref="Audios"/>, <see cref="Archives"/>, and <see cref="SyncboxGetRecentsResponse"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetMetadata"/>; also an inner object containing metadata properties for <see cref="FileChangeResponse"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="SyncboxGetAllImageItemsResponse"/>, <see cref="SyncboxGetAllVideoItemsResponse"/>, <see cref="Audios"/>, <see cref="Archives"/>, and <see cref="SyncboxGetRecentsResponse"/>
     /// </summary>
     [DataContract]
     public sealed class Metadata

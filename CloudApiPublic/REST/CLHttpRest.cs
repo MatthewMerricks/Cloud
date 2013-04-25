@@ -2942,84 +2942,61 @@ namespace Cloud.REST
         }
         #endregion
 
-        #region GetPictures
+        #region GetAllImageItems (Get all the pictures from the server for this syncbox)
         /// <summary>
-        /// Asynchronously starts querying the server for pictures
+        /// Asynchronously starts querying the server for all image items.
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetPictures(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds)
+        public IAsyncResult BeginGetAllImageItems(AsyncCallback callback, object callbackUserState)
         {
-            // create the asynchronous result to return
-            GenericAsyncResult<GetPicturesResult> toReturn = new GenericAsyncResult<GetPicturesResult>(
-                aCallback,
-                aState);
-
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetPicturesResult>, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetPicturesResult>, int>(
-                    toReturn,
-                    timeoutMilliseconds);
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetPicturesResult>, int> castState = state as Tuple<GenericAsyncResult<GetPicturesResult>, int>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
                 {
-                    MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxGetAllImageItemsResult>(
+                        callback,
+                        callbackUserState)
+                },
+                (Data, errorToAccumulate) =>
                 {
+                    // The ThreadProc.
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
                         // declare the output status for communication
-                        CLHttpRestStatus status;
+                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
-                        JsonContracts.Pictures result;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = GetPictures(
-                            castState.Item2,
+                        CLFileItem[] response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = GetAllImageItems(
                             out status,
-                            out result);
+                            out response);
 
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new GetPicturesResult(
-                                    processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
-                                    result), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.Complete(
+                            new SyncboxGetAllImageItemsResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
                     {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
                     }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
 
             // return the asynchronous result
-            return toReturn;
+            return asyncThread.TypedData.toReturn;
         }
 
         /// <summary>
@@ -3027,70 +3004,20 @@ namespace Cloud.REST
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the pictures query</param>
-        /// <param name="result">(output) The result from the pictures query</param>
+        /// <param name="result">(output) The result from the query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetPictures(IAsyncResult aResult, out GetPicturesResult result)
+        public CLError EndGetAllImageItems(IAsyncResult aResult, out SyncboxGetAllImageItemsResult result)
         {
-            // declare the specific type of asynchronous result for pictures query
-            GenericAsyncResult<GetPicturesResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the type for pictures query and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for pictures query
-                castAResult = aResult as GenericAsyncResult<GetPicturesResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException("aResult does not match expected internal type");
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<GetPicturesResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<SyncboxGetAllImageItemsResult>(aResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for pictures
+        /// Queries the server for all image items.
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetPictures(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Pictures response)
+        public CLError GetAllImageItems(out CLHttpRestStatus status, out CLFileItem [] response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -3099,7 +3026,7 @@ namespace Cloud.REST
             {
                 // check input parameters
 
-                if (!(timeoutMilliseconds > 0))
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
@@ -3123,106 +3050,105 @@ namespace Cloud.REST
                 };
 
                 // run the HTTP communication and store the response object to the output parameter
-                response = Helpers.ProcessHttp<JsonContracts.Pictures>(
+                JsonContracts.SyncboxGetAllImageItemsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxGetAllImageItemsResponse>(
                     null, // HTTP Get method does not have content
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query pictures (dynamic adding query string)
                     Helpers.requestMethod.get, // query pictures is a get
-                    timeoutMilliseconds, // time before communication timeout
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Metadata != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata));
+                        }
+                        else
+                        {
+                            listFileItems.Add(null);
+                        }
+                    }
+                    response = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException("Server responded without an array of Metadata");
+                }
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.Pictures>();
+                response = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
             return null;
         }
-        #endregion
+        #endregion  // end GetAllImageItems (Get all the pictures from the server for this syncbox)
 
-        #region GetVideos
+        #region GetAllVideoItems (Get all of the video files from the server for this syncbox)
         /// <summary>
         /// Asynchronously starts querying the server for videos
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetVideos(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds)
+        public IAsyncResult BeginGetAllVideoItems(AsyncCallback callback, object callbackUserState)
         {
-            // create the asynchronous result to return
-            GenericAsyncResult<GetVideosResult> toReturn = new GenericAsyncResult<GetVideosResult>(
-                aCallback,
-                aState);
-
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetVideosResult>, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetVideosResult>, int>(
-                    toReturn,
-                    timeoutMilliseconds);
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetVideosResult>, int> castState = state as Tuple<GenericAsyncResult<GetVideosResult>, int>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
                 {
-                    MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxGetAllVideoItemsResult>(
+                        callback,
+                        callbackUserState)
+                },
+                (Data, errorToAccumulate) =>
                 {
+                    // The ThreadProc.
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
                         // declare the output status for communication
-                        CLHttpRestStatus status;
+                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
-                        JsonContracts.Videos result;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = GetVideos(
-                            castState.Item2,
+                        CLFileItem[] response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = GetAllVideoItems(
                             out status,
-                            out result);
+                            out response);
 
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new GetVideosResult(
-                                    processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
-                                    result), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.Complete(
+                            new SyncboxGetAllVideoItemsResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
                     {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
                     }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
 
             // return the asynchronous result
-            return toReturn;
+            return asyncThread.TypedData.toReturn;
         }
 
         /// <summary>
@@ -3232,68 +3158,18 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting the videos query</param>
         /// <param name="result">(output) The result from the videos query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetVideos(IAsyncResult aResult, out GetVideosResult result)
+        public CLError EndGetAllVideoItems(IAsyncResult aResult, out SyncboxGetAllVideoItemsResult result)
         {
-            // declare the specific type of asynchronous result for videos query
-            GenericAsyncResult<GetVideosResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the type for videos query and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for videos query
-                castAResult = aResult as GenericAsyncResult<GetVideosResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException("aResult does not match expected internal type");
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<GetVideosResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<SyncboxGetAllVideoItemsResult>(aResult, out result);
         }
 
         /// <summary>
         /// Queries the server for videos
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetVideos(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Videos response)
+        public CLError GetAllVideoItems(out CLHttpRestStatus status, out CLFileItem [] response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -3302,7 +3178,7 @@ namespace Cloud.REST
             {
                 // check input parameters
 
-                if (!(timeoutMilliseconds > 0))
+                if (!(_copiedSettings.HttpTimeoutMilliseconds> 0))
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
@@ -3326,27 +3202,50 @@ namespace Cloud.REST
                 };
 
                 // run the HTTP communication and store the response object to the output parameter
-                response = Helpers.ProcessHttp<JsonContracts.Videos>(
+                JsonContracts.SyncboxGetAllVideoItemsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxGetAllVideoItemsResponse>(
                     null, // HTTP Get method does not have content
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query videos (dynamic adding query string)
                     Helpers.requestMethod.get, // query videos is a get
-                    timeoutMilliseconds, // time before communication timeout
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Metadata != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata));
+                        }
+                        else
+                        {
+                            listFileItems.Add(null);
+                        }
+                    }
+                    response = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException("Server responded without an array of Metadata");
+                }
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.Videos>();
+                response = Helpers.DefaultForType<CLFileItem []>();
                 return ex;
             }
             return null;
         }
-        #endregion
+        #endregion  // end GetAllVideoItems (Get all of the video files from the server for this syncbox)
 
         #region GetAudios
         /// <summary>

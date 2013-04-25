@@ -1,5 +1,5 @@
 ﻿//
-// Videos.cs
+// SyncboxGetAllVideoItemsResponse.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -19,7 +19,7 @@ namespace Cloud.JsonContracts
     /// Result from <see cref="Cloud.CLSyncbox.GetVideos"/>
     /// </summary>
     [DataContract]
-    public sealed class Videos
+    public sealed class SyncboxGetAllVideoItemsResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataTotalCount, IsRequired = false)]
         public Nullable<long> TotalCount { get; set; }

@@ -1,5 +1,5 @@
 ﻿//
-// Pictures.cs
+// GetAllImageItemsResponse.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -16,10 +16,10 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.GetPictures"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetAllImageItems"/>
     /// </summary>
     [DataContract]
-    public sealed class Pictures
+    public sealed class SyncboxGetAllImageItemsResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataTotalCount, IsRequired = false)]
         public Nullable<long> TotalCount { get; set; }
