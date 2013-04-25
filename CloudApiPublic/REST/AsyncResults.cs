@@ -170,10 +170,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetAudiosResult : BaseCLHttpRestResult<JsonContracts.Audios>
+    public sealed class GetAudiosResult : BaseCLHttpRestResult<JsonContracts.SyncboxGetAllAudioItemsResponse>
     {
         // construct with all readonly properties
-        internal GetAudiosResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Audios Response)
+        internal GetAudiosResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxGetAllAudioItemsResponse Response)
             : base(Error, Status, Response) { }
     }
 
@@ -770,6 +770,56 @@ namespace Cloud.REST
 
         // construct with all readonly properties
         internal SyncboxGetAllVideoItemsResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLFileItem[] Response)
+        {
+            this._error = Error;
+            this._status = Status;
+            this._response = Response;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxGetAllAudioItemsResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLFileItem[] Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLFileItem[] _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        /// <summary>
+        /// The status resulting from communication
+        /// </summary>
+        public CLHttpRestStatus Status  // &&&& fix this
+        {
+            get
+            {
+                return _status;
+            }
+        }
+        private readonly CLHttpRestStatus _status;  // &&&& fix this
+
+        // construct with all readonly properties
+        internal SyncboxGetAllAudioItemsResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLFileItem[] Response)
         {
             this._error = Error;
             this._status = Status;

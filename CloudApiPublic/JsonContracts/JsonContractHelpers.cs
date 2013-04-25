@@ -369,7 +369,7 @@ namespace Cloud.JsonContracts
                 lock (AudiosSerializerLocker)
                 {
                     return _audiosSerializer
-                        ?? (_audiosSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Audios)));
+                        ?? (_audiosSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllAudioItemsResponse)));
                 }
             }
         }
