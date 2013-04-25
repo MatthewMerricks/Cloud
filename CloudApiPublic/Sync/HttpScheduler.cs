@@ -255,7 +255,7 @@ namespace Cloud.Sync
             }
             catch (Exception ex)
             {
-                ((CLError)ex).LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+                ((CLError)ex).Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                 return false;
             }
             return true;
@@ -397,8 +397,8 @@ namespace Cloud.Sync
             // keep in mind this appears to be a deep copy of the original exception since an object reference comparison returns false against all
             // exceptions in the Flatten().InnerExceptions below
             CLError aggregatedError = ex.GetBaseException();
-            // append additional description to the 
-            aggregatedError.errorDescription = (direction == SyncDirection.From ? "Download" : "Upload") + " HttpScheduler logged aggregate base: " + aggregatedError.errorDescription;
+            // set a flag to append additional description for when the error is logged
+            aggregatedError.SetHttpSchedulerLogged(direction);
 
             // define bool to force logging exceptions regardless of Settings for the severe case of displaying a MessageBox to the user,
             // which only happens if the exception was not properly wrapped in a ExecutableException
@@ -438,7 +438,7 @@ namespace Cloud.Sync
                 }
             }
             // performs the actual logging of errors, forces logging even if the setting is turned off in the severe case where a message box had to appear
-            aggregatedError.LogErrors(_syncSettings.TraceLocation, overrideLoggingOnMessageBox ? true : _syncSettings.LogErrors);
+            aggregatedError.Log(_syncSettings.TraceLocation, overrideLoggingOnMessageBox ? true : _syncSettings.LogErrors);
         }
 
         /// <summary>

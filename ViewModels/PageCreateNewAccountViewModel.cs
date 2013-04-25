@@ -522,7 +522,7 @@ namespace win_client.ViewModels
             {
                 // There was an error registering this user.  Display the error and leave the user on the same page.
                 CLModalMessageBoxDialogs.Instance.DisplayModalErrorMessage(
-                    errorMessage: error.errorDescription,
+                    errorMessage: error.PrimaryException.Message,
                     title: Resources.Resources.generalErrorTitle,
                     headerText: Resources.Resources.createNewAccountErrorHeader,
                     rightButtonContent: Resources.Resources.generalOkButtonContent,

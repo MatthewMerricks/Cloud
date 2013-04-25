@@ -117,6 +117,49 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AbbreviatedGigabytes" xml:space="preserve">
+    <value>GB</value>
+  </data>
+  <data name="AbbreviatedKilobytes" xml:space="preserve">
+    <value>KB</value>
+  </data>
+  <data name="AbbreviatedMegabytes" xml:space="preserve">
+    <value>MB</value>
+  </data>
+  <data name="AppDataFolderNameVista" xml:space="preserve">
+    <value>AppData</value>
+    <comment>Vista and up (no XP equivalent); defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="BytesPlural" xml:space="preserve">
+    <value>Bytes</value>
+  </data>
+  <data name="BytesSingular" xml:space="preserve">
+    <value>Byte</value>
+  </data>
+  <data name="CommonStartMenuParentFolderNameVista" xml:space="preserve">
+    <value>ProgramData\Microsoft\Windows</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="CommonStartMenuParentFolderNameXP" xml:space="preserve">
+    <value>Documents and Settings\All Users</value>
+    <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="DocumentsAndSettingsVista" xml:space="preserve">
+    <value>Users</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="DocumentsAndSettingsXP" xml:space="preserve">
+    <value>Documents and Settings</value>
+    <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="DocumentsFolderNameVista" xml:space="preserve">
+    <value>Documents</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="DocumentsFolderNameXP" xml:space="preserve">
+    <value>My Documents</value>
+    <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
   <data name="ErrorPostingSyncFromServer" xml:space="preserve">
     <value>Oops.  We're sorry, it seems that something went wrong while requesting status from the server.</value>
     <comment>SyncFrom</comment>
@@ -131,6 +174,66 @@
   <data name="ExceptionCreatingUserRegistrationWithCode" xml:space="preserve">
     <value>Oops. We're sorry, it seems like something went wrong while creating your account.  The error code is {0}.</value>
   </data>
+  <data name="ExceptionFileChangeSetMD5ByteLength" xml:space="preserve">
+    <value>MD5 must be 128 bits (a byte array of length 16)</value>
+    <comment>MD5 should not be translated</comment>
+  </data>
+  <data name="ExceptionFileChangeUpDownEventArgsNullSendBackChange" xml:space="preserve">
+    <value>SendBackChange cannot be null</value>
+    <comment>SendBackChange should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersCheckForBadPathDriveLetter" xml:space="preserve">
+    <value>rootPathObject must start with a upper-case drive letter</value>
+    <comment>rootPathObject should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersCheckForBadPathDriveType" xml:space="preserve">
+    <value>rootPathObject root drive letter represents an invalid DriveType: {0}</value>
+    <comment>rootPathObject and DriveType should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersCheckForBadPathEmptyDirectory" xml:space="preserve">
+    <value>rootPathObject cannot have an empty directory name for any directory in the parent path hierarchy and cannot have a trailing slash</value>
+    <comment>rootPathObject should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersCheckForBadPathProceedingSlash" xml:space="preserve">
+    <value>rootPathObject must start at a drive letter and have a proceeding trailing slash</value>
+    <comment>rootPathObject should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersCheckLogFileExistanceTraceCategoryNull" xml:space="preserve">
+    <value>TraceCategory must not be null</value>
+    <comment>TraceCategory must not be null</comment>
+  </data>
+  <data name="ExceptionHelpersCheckSyncRootLengthTooLongPlural" xml:space="preserve">
+    <value>syncRootFullPath is too long by {0} characters</value>
+    <comment>syncRootFullPath should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersCheckSyncRootLengthTooLongSingular" xml:space="preserve">
+    <value>syncRootFullPath is too long by {0} character</value>
+    <comment>syncRootFullPath should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersDictionaryTryGetValueResultInvalid" xml:space="preserve">
+    <value>Cannot retrieve property values on an invalid DictionaryTryGetValueResult</value>
+    <comment>Dictionary and TryGetValueResult should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersParseHexadecimalStringToByteArrayHashStringFormat" xml:space="preserve">
+    <value>hashString must be in a hexadecimal string format with no seperator characters and two characters per byte</value>
+    <comment>hashString should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersRunActionWithRetriesFailedRetries" xml:space="preserve">
+    <value>Operation failed all retries with a numRetries of {0}</value>
+    <comment>numRetries should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersRunActionWithRetriesNullToRun" xml:space="preserve">
+    <value>toRun cannot be null</value>
+    <comment>toRun should not be translated</comment>
+  </data>
+  <data name="ExceptionListRemoveAllEnumeratorDisposed" xml:space="preserve">
+    <value>This ListRemoveAllEnumerator has already been disposed</value>
+    <comment>ListRemoveAllEnumerator should not be translated</comment>
+  </data>
+  <data name="ExceptionListRemoveAllEnumeratorReset" xml:space="preserve">
+    <value>Reset not supported</value>
+    <comment>Reset should not be translated</comment>
+  </data>
   <data name="ExceptionLoggingInWithCode" xml:space="preserve">
     <value>Oops. We're sorry, it seems like something went wrong while logging into your account.  The error code is {0}.</value>
   </data>
@@ -140,8 +243,184 @@
   <data name="ExceptionUnlinkingWithCode" xml:space="preserve">
     <value>Oops. We're sorry, it seems like something went wrong while removing this device from your account.  The error code is {0}.</value>
   </data>
+  <data name="LocalAppDataFolderNameVista" xml:space="preserve">
+    <value>AppData\Local</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="LocalAppDataFolderNameXP" xml:space="preserve">
+    <value>Local Settings\Application Data</value>
+    <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="MusicFolderNameVista" xml:space="preserve">
+    <value>Music</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="MusicFolderNameXP" xml:space="preserve">
+    <value>My Music</value>
+    <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="NoSpacesHelpersGetDefaultNameFromApplicationNameDefault" xml:space="preserve">
+    <value>PossiblyUnmanagedCode</value>
+    <comment>Remove all spaces</comment>
+  </data>
+  <data name="NotTranslatedAppDataFolderNameVistaName" xml:space="preserve">
+    <value>AppDataFolderNameVista</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedCheckLogFileExistanceSearchStart" xml:space="preserve">
+    <value>Trace-????-??-??-</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedCheckLogFileExistanceStarDot" xml:space="preserve">
+    <value>*.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedCheckLogFileExistanceTrace" xml:space="preserve">
+    <value>Trace-</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedCheckLogFileExistanceYearMonthDay" xml:space="preserve">
+    <value>yyyy-MM-dd-</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedCommonStartMenuParentFolderNameVistaName" xml:space="preserve">
+    <value>CommonStartMenuParentFolderNameVista</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedCommonStartMenuParentFolderNameXPName" xml:space="preserve">
+    <value>CommonStartMenuParentFolderNameXP</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedDocumentsAndSettingsVistaName" xml:space="preserve">
+    <value>DocumentsAndSettingsVista</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedDocumentsAndSettingsXPName" xml:space="preserve">
+    <value>DocumentsAndSettingsXP</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedDocumentsFolderNameVistaName" xml:space="preserve">
+    <value>DocumentsFolderNameVista</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedDocumentsFolderNameXPName" xml:space="preserve">
+    <value>DocumentsFolderNameXP</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedExplicitOperator" xml:space="preserve">
+    <value>op_Explicit</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedHelpersCheckForBadPathDriveLetterRegex" xml:space="preserve">
+    <value>^[a-z]:\\$</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedHelpersFormatBytesString" xml:space="preserve">
+    <value>{0:##.##} {1}</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedHelpersMethodInfoConvertTo" xml:space="preserve">
+    <value>ConvertTo</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedHelpersMethodInfoDefaultForType" xml:space="preserve">
+    <value>DefaultForType</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedImplicitOperator" xml:space="preserve">
+    <value>op_Implicit</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedLocalAppDataFolderNameVistaName" xml:space="preserve">
+    <value>LocalAppDataFolderNameVista</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedLocalAppDataFolderNameXPName" xml:space="preserve">
+    <value>LocalAppDataFolderNameXP</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedMusicFolderNameVistaName" xml:space="preserve">
+    <value>MusicFolderNameVista</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedMusicFolderNameXPName" xml:space="preserve">
+    <value>MusicFolderNameXP</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedPicturesFolderNameVistaName" xml:space="preserve">
+    <value>PicturesFolderNameVista</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedPicturesFolderNameXPName" xml:space="preserve">
+    <value>PicturesFolderNameXP</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedPublicUserNameVistaName" xml:space="preserve">
+    <value>PublicUserNameVista</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedPublicUserNameXPName" xml:space="preserve">
+    <value>PublicUserNameXP</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedRoamingAppDataFolderNameVistaName" xml:space="preserve">
+    <value>RoamingAppDataFolderNameVista</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedRoamingAppDataFolderNameXPName" xml:space="preserve">
+    <value>RoamingAppDataFolderNameXP</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedStartMenuFolderNameVistaName" xml:space="preserve">
+    <value>StartMenuFolderNameVista</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedStartMenuFolderNameXPName" xml:space="preserve">
+    <value>StartMenuFolderNameXP</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSystemDrive" xml:space="preserve">
+    <value>SystemDrive</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedZeroedVersion" xml:space="preserve">
+    <value>0.0.0.0</value>
+    <comment>Do not translate</comment>
+  </data>
   <data name="OsBits" xml:space="preserve">
     <value>bits</value>
     <comment>e.g., "32 bits" or "64 bits"</comment>
+  </data>
+  <data name="PicturesFolderNameVista" xml:space="preserve">
+    <value>Pictures</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="PicturesFolderNameXP" xml:space="preserve">
+    <value>My Pictures</value>
+    <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="PublicUserNameVista" xml:space="preserve">
+    <value>Public</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="PublicUserNameXP" xml:space="preserve">
+    <value>All Users</value>
+    <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="RoamingAppDataFolderNameVista" xml:space="preserve">
+    <value>AppData\Roaming</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="RoamingAppDataFolderNameXP" xml:space="preserve">
+    <value>Application Data</value>
+    <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="StartMenuFolderNameVista" xml:space="preserve">
+    <value>AppData\Roaming\Microsoft\Windows\Start Menu</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="StartMenuFolderNameXP" xml:space="preserve">
+    <value>Start Menu</value>
+    <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
   </data>
 </root>

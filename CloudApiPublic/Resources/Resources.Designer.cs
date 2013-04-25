@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Cloud.Resources {
+namespace Cloud.Static {
     using System;
     
     
@@ -61,6 +61,114 @@ namespace Cloud.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to GB.
+        /// </summary>
+        internal static string AbbreviatedGigabytes {
+            get {
+                return ResourceManager.GetString("AbbreviatedGigabytes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to KB.
+        /// </summary>
+        internal static string AbbreviatedKilobytes {
+            get {
+                return ResourceManager.GetString("AbbreviatedKilobytes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MB.
+        /// </summary>
+        internal static string AbbreviatedMegabytes {
+            get {
+                return ResourceManager.GetString("AbbreviatedMegabytes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AppData.
+        /// </summary>
+        internal static string AppDataFolderNameVista {
+            get {
+                return ResourceManager.GetString("AppDataFolderNameVista", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bytes.
+        /// </summary>
+        internal static string BytesPlural {
+            get {
+                return ResourceManager.GetString("BytesPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Byte.
+        /// </summary>
+        internal static string BytesSingular {
+            get {
+                return ResourceManager.GetString("BytesSingular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ProgramData\Microsoft\Windows.
+        /// </summary>
+        internal static string CommonStartMenuParentFolderNameVista {
+            get {
+                return ResourceManager.GetString("CommonStartMenuParentFolderNameVista", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Documents and Settings\All Users.
+        /// </summary>
+        internal static string CommonStartMenuParentFolderNameXP {
+            get {
+                return ResourceManager.GetString("CommonStartMenuParentFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Users.
+        /// </summary>
+        internal static string DocumentsAndSettingsVista {
+            get {
+                return ResourceManager.GetString("DocumentsAndSettingsVista", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Documents and Settings.
+        /// </summary>
+        internal static string DocumentsAndSettingsXP {
+            get {
+                return ResourceManager.GetString("DocumentsAndSettingsXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Documents.
+        /// </summary>
+        internal static string DocumentsFolderNameVista {
+            get {
+                return ResourceManager.GetString("DocumentsFolderNameVista", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to My Documents.
+        /// </summary>
+        internal static string DocumentsFolderNameXP {
+            get {
+                return ResourceManager.GetString("DocumentsFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops.  We&apos;re sorry, it seems that something went wrong while requesting status from the server..
         /// </summary>
         internal static string ErrorPostingSyncFromServer {
@@ -97,6 +205,141 @@ namespace Cloud.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MD5 must be 128 bits (a byte array of length 16).
+        /// </summary>
+        internal static string ExceptionFileChangeSetMD5ByteLength {
+            get {
+                return ResourceManager.GetString("ExceptionFileChangeSetMD5ByteLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SendBackChange cannot be null.
+        /// </summary>
+        internal static string ExceptionFileChangeUpDownEventArgsNullSendBackChange {
+            get {
+                return ResourceManager.GetString("ExceptionFileChangeUpDownEventArgsNullSendBackChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to rootPathObject must start with a upper-case drive letter.
+        /// </summary>
+        internal static string ExceptionHelpersCheckForBadPathDriveLetter {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersCheckForBadPathDriveLetter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to rootPathObject root drive letter represents an invalid DriveType: {0}.
+        /// </summary>
+        internal static string ExceptionHelpersCheckForBadPathDriveType {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersCheckForBadPathDriveType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to rootPathObject cannot have an empty directory name for any directory in the parent path hierarchy and cannot have a trailing slash.
+        /// </summary>
+        internal static string ExceptionHelpersCheckForBadPathEmptyDirectory {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersCheckForBadPathEmptyDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to rootPathObject must start at a drive letter and have a proceeding trailing slash.
+        /// </summary>
+        internal static string ExceptionHelpersCheckForBadPathProceedingSlash {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersCheckForBadPathProceedingSlash", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TraceCategory must not be null.
+        /// </summary>
+        internal static string ExceptionHelpersCheckLogFileExistanceTraceCategoryNull {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersCheckLogFileExistanceTraceCategoryNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncRootFullPath is too long by {0} characters.
+        /// </summary>
+        internal static string ExceptionHelpersCheckSyncRootLengthTooLongPlural {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersCheckSyncRootLengthTooLongPlural", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncRootFullPath is too long by {0} character.
+        /// </summary>
+        internal static string ExceptionHelpersCheckSyncRootLengthTooLongSingular {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersCheckSyncRootLengthTooLongSingular", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot retrieve property values on an invalid DictionaryTryGetValueResult.
+        /// </summary>
+        internal static string ExceptionHelpersDictionaryTryGetValueResultInvalid {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersDictionaryTryGetValueResultInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hashString must be in a hexadecimal string format with no seperator characters and two characters per byte.
+        /// </summary>
+        internal static string ExceptionHelpersParseHexadecimalStringToByteArrayHashStringFormat {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersParseHexadecimalStringToByteArrayHashStringFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation failed all retries with a numRetries of {0}.
+        /// </summary>
+        internal static string ExceptionHelpersRunActionWithRetriesFailedRetries {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersRunActionWithRetriesFailedRetries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toRun cannot be null.
+        /// </summary>
+        internal static string ExceptionHelpersRunActionWithRetriesNullToRun {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersRunActionWithRetriesNullToRun", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This ListRemoveAllEnumerator has already been disposed.
+        /// </summary>
+        internal static string ExceptionListRemoveAllEnumeratorDisposed {
+            get {
+                return ResourceManager.GetString("ExceptionListRemoveAllEnumeratorDisposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset not supported.
+        /// </summary>
+        internal static string ExceptionListRemoveAllEnumeratorReset {
+            get {
+                return ResourceManager.GetString("ExceptionListRemoveAllEnumeratorReset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while logging into your account.  The error code is {0}..
         /// </summary>
         internal static string ExceptionLoggingInWithCode {
@@ -124,11 +367,407 @@ namespace Cloud.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to AppData\Local.
+        /// </summary>
+        internal static string LocalAppDataFolderNameVista {
+            get {
+                return ResourceManager.GetString("LocalAppDataFolderNameVista", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local Settings\Application Data.
+        /// </summary>
+        internal static string LocalAppDataFolderNameXP {
+            get {
+                return ResourceManager.GetString("LocalAppDataFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Music.
+        /// </summary>
+        internal static string MusicFolderNameVista {
+            get {
+                return ResourceManager.GetString("MusicFolderNameVista", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to My Music.
+        /// </summary>
+        internal static string MusicFolderNameXP {
+            get {
+                return ResourceManager.GetString("MusicFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PossiblyUnmanagedCode.
+        /// </summary>
+        internal static string NoSpacesHelpersGetDefaultNameFromApplicationNameDefault {
+            get {
+                return ResourceManager.GetString("NoSpacesHelpersGetDefaultNameFromApplicationNameDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AppDataFolderNameVista.
+        /// </summary>
+        internal static string NotTranslatedAppDataFolderNameVistaName {
+            get {
+                return ResourceManager.GetString("NotTranslatedAppDataFolderNameVistaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Trace-????-??-??-.
+        /// </summary>
+        internal static string NotTranslatedCheckLogFileExistanceSearchStart {
+            get {
+                return ResourceManager.GetString("NotTranslatedCheckLogFileExistanceSearchStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to *..
+        /// </summary>
+        internal static string NotTranslatedCheckLogFileExistanceStarDot {
+            get {
+                return ResourceManager.GetString("NotTranslatedCheckLogFileExistanceStarDot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Trace-.
+        /// </summary>
+        internal static string NotTranslatedCheckLogFileExistanceTrace {
+            get {
+                return ResourceManager.GetString("NotTranslatedCheckLogFileExistanceTrace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to yyyy-MM-dd-.
+        /// </summary>
+        internal static string NotTranslatedCheckLogFileExistanceYearMonthDay {
+            get {
+                return ResourceManager.GetString("NotTranslatedCheckLogFileExistanceYearMonthDay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CommonStartMenuParentFolderNameVista.
+        /// </summary>
+        internal static string NotTranslatedCommonStartMenuParentFolderNameVistaName {
+            get {
+                return ResourceManager.GetString("NotTranslatedCommonStartMenuParentFolderNameVistaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CommonStartMenuParentFolderNameXP.
+        /// </summary>
+        internal static string NotTranslatedCommonStartMenuParentFolderNameXPName {
+            get {
+                return ResourceManager.GetString("NotTranslatedCommonStartMenuParentFolderNameXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DocumentsAndSettingsVista.
+        /// </summary>
+        internal static string NotTranslatedDocumentsAndSettingsVistaName {
+            get {
+                return ResourceManager.GetString("NotTranslatedDocumentsAndSettingsVistaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DocumentsAndSettingsXP.
+        /// </summary>
+        internal static string NotTranslatedDocumentsAndSettingsXPName {
+            get {
+                return ResourceManager.GetString("NotTranslatedDocumentsAndSettingsXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DocumentsFolderNameVista.
+        /// </summary>
+        internal static string NotTranslatedDocumentsFolderNameVistaName {
+            get {
+                return ResourceManager.GetString("NotTranslatedDocumentsFolderNameVistaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DocumentsFolderNameXP.
+        /// </summary>
+        internal static string NotTranslatedDocumentsFolderNameXPName {
+            get {
+                return ResourceManager.GetString("NotTranslatedDocumentsFolderNameXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to op_Explicit.
+        /// </summary>
+        internal static string NotTranslatedExplicitOperator {
+            get {
+                return ResourceManager.GetString("NotTranslatedExplicitOperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ^[a-z]:\\$.
+        /// </summary>
+        internal static string NotTranslatedHelpersCheckForBadPathDriveLetterRegex {
+            get {
+                return ResourceManager.GetString("NotTranslatedHelpersCheckForBadPathDriveLetterRegex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0:##.##} {1}.
+        /// </summary>
+        internal static string NotTranslatedHelpersFormatBytesString {
+            get {
+                return ResourceManager.GetString("NotTranslatedHelpersFormatBytesString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ConvertTo.
+        /// </summary>
+        internal static string NotTranslatedHelpersMethodInfoConvertTo {
+            get {
+                return ResourceManager.GetString("NotTranslatedHelpersMethodInfoConvertTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DefaultForType.
+        /// </summary>
+        internal static string NotTranslatedHelpersMethodInfoDefaultForType {
+            get {
+                return ResourceManager.GetString("NotTranslatedHelpersMethodInfoDefaultForType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to op_Implicit.
+        /// </summary>
+        internal static string NotTranslatedImplicitOperator {
+            get {
+                return ResourceManager.GetString("NotTranslatedImplicitOperator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LocalAppDataFolderNameVista.
+        /// </summary>
+        internal static string NotTranslatedLocalAppDataFolderNameVistaName {
+            get {
+                return ResourceManager.GetString("NotTranslatedLocalAppDataFolderNameVistaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LocalAppDataFolderNameXP.
+        /// </summary>
+        internal static string NotTranslatedLocalAppDataFolderNameXPName {
+            get {
+                return ResourceManager.GetString("NotTranslatedLocalAppDataFolderNameXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MusicFolderNameVista.
+        /// </summary>
+        internal static string NotTranslatedMusicFolderNameVistaName {
+            get {
+                return ResourceManager.GetString("NotTranslatedMusicFolderNameVistaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MusicFolderNameXP.
+        /// </summary>
+        internal static string NotTranslatedMusicFolderNameXPName {
+            get {
+                return ResourceManager.GetString("NotTranslatedMusicFolderNameXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PicturesFolderNameVista.
+        /// </summary>
+        internal static string NotTranslatedPicturesFolderNameVistaName {
+            get {
+                return ResourceManager.GetString("NotTranslatedPicturesFolderNameVistaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PicturesFolderNameXP.
+        /// </summary>
+        internal static string NotTranslatedPicturesFolderNameXPName {
+            get {
+                return ResourceManager.GetString("NotTranslatedPicturesFolderNameXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PublicUserNameVista.
+        /// </summary>
+        internal static string NotTranslatedPublicUserNameVistaName {
+            get {
+                return ResourceManager.GetString("NotTranslatedPublicUserNameVistaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PublicUserNameXP.
+        /// </summary>
+        internal static string NotTranslatedPublicUserNameXPName {
+            get {
+                return ResourceManager.GetString("NotTranslatedPublicUserNameXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RoamingAppDataFolderNameVista.
+        /// </summary>
+        internal static string NotTranslatedRoamingAppDataFolderNameVistaName {
+            get {
+                return ResourceManager.GetString("NotTranslatedRoamingAppDataFolderNameVistaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RoamingAppDataFolderNameXP.
+        /// </summary>
+        internal static string NotTranslatedRoamingAppDataFolderNameXPName {
+            get {
+                return ResourceManager.GetString("NotTranslatedRoamingAppDataFolderNameXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to StartMenuFolderNameVista.
+        /// </summary>
+        internal static string NotTranslatedStartMenuFolderNameVistaName {
+            get {
+                return ResourceManager.GetString("NotTranslatedStartMenuFolderNameVistaName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to StartMenuFolderNameXP.
+        /// </summary>
+        internal static string NotTranslatedStartMenuFolderNameXPName {
+            get {
+                return ResourceManager.GetString("NotTranslatedStartMenuFolderNameXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SystemDrive.
+        /// </summary>
+        internal static string NotTranslatedSystemDrive {
+            get {
+                return ResourceManager.GetString("NotTranslatedSystemDrive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 0.0.0.0.
+        /// </summary>
+        internal static string NotTranslatedZeroedVersion {
+            get {
+                return ResourceManager.GetString("NotTranslatedZeroedVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to bits.
         /// </summary>
         internal static string OsBits {
             get {
                 return ResourceManager.GetString("OsBits", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pictures.
+        /// </summary>
+        internal static string PicturesFolderNameVista {
+            get {
+                return ResourceManager.GetString("PicturesFolderNameVista", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to My Pictures.
+        /// </summary>
+        internal static string PicturesFolderNameXP {
+            get {
+                return ResourceManager.GetString("PicturesFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public.
+        /// </summary>
+        internal static string PublicUserNameVista {
+            get {
+                return ResourceManager.GetString("PublicUserNameVista", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All Users.
+        /// </summary>
+        internal static string PublicUserNameXP {
+            get {
+                return ResourceManager.GetString("PublicUserNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AppData\Roaming.
+        /// </summary>
+        internal static string RoamingAppDataFolderNameVista {
+            get {
+                return ResourceManager.GetString("RoamingAppDataFolderNameVista", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Application Data.
+        /// </summary>
+        internal static string RoamingAppDataFolderNameXP {
+            get {
+                return ResourceManager.GetString("RoamingAppDataFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AppData\Roaming\Microsoft\Windows\Start Menu.
+        /// </summary>
+        internal static string StartMenuFolderNameVista {
+            get {
+                return ResourceManager.GetString("StartMenuFolderNameVista", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start Menu.
+        /// </summary>
+        internal static string StartMenuFolderNameXP {
+            get {
+                return ResourceManager.GetString("StartMenuFolderNameXP", resourceCulture);
             }
         }
     }

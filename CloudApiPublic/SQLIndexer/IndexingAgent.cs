@@ -754,11 +754,11 @@ namespace Cloud.SQLIndexer
 
                     if (createCurrentBatchTrackPathChangesError != null)
                     {
-                        throw new AggregateException("Unable to make a FilePathDictionary with current indexedPath", createCurrentBatchTrackPathChangesError.GrabExceptions());
+                        throw new AggregateException("Unable to make a FilePathDictionary with current indexedPath", createCurrentBatchTrackPathChangesError.Exceptions);
                     }
                     //if (currentBatchTrackPathChangesPair.Value != null)
                     //{
-                    //    throw new AggregateException("Unable to make a FilePathDictionary from anonymous type template batchedPathTrackingValueTemplate with current indexedPath", currentBatchTrackPathChangesPair.Value.GrabExceptions());
+                    //    throw new AggregateException("Unable to make a FilePathDictionary from anonymous type template batchedPathTrackingValueTemplate with current indexedPath", currentBatchTrackPathChangesPair.Value.Exceptions);
                     //}
 
                     //var currentBatchTrackPathChanges = currentBatchTrackPathChangesPair.Key;
@@ -1017,12 +1017,7 @@ namespace Cloud.SQLIndexer
                         DateTime storeCreationTimeUTC;
                         DateTime storeLastTimeUTC;
 
-                        byte[] getMD5;
-                        CLError getMD5Error = newEvent.change.GetMD5Bytes(out getMD5);
-                        if (getMD5Error != null)
-                        {
-                            throw new AggregateException("Error getting MD5 from newEvent change", getMD5Error.GrabExceptions());
-                        }
+                        byte[] getMD5 = newEvent.change.MD5;
 
                         // Define the new event to add for the unprocessed change
                         eventsToAdd.Add(new Event()
@@ -1416,7 +1411,7 @@ namespace Cloud.SQLIndexer
 
                         if (mergeChangedError != null)
                         {
-                            throw new AggregateException("An error occurred merging a batch of communicated changes before completing a new sync", mergeChangedError.GrabExceptions());
+                            throw new AggregateException("An error occurred merging a batch of communicated changes before completing a new sync", mergeChangedError.Exceptions);
                         }
 
                         if (notMarkedAsChanged.Count > 0)
@@ -1464,7 +1459,7 @@ namespace Cloud.SQLIndexer
                         CLError markCompletionError = MarkEventAsCompletedOnPreviousSync(synchronouslyCompletedEventId, connAndTran);
                         if (markCompletionError != null)
                         {
-                            throw new AggregateException("Error marking Event at synchronouslyCompletedEventId completed on RecordCompleted", markCompletionError.GrabExceptions());
+                            throw new AggregateException("Error marking Event at synchronouslyCompletedEventId completed on RecordCompleted", markCompletionError.Exceptions);
                         }
                     }
 
@@ -1839,7 +1834,7 @@ namespace Cloud.SQLIndexer
 
                                                 if (removeBatchError != null)
                                                 {
-                                                    toReturn += new AggregateException("One or more errors occurred removing a batch of events by ids", removeBatchError.GrabExceptions());
+                                                    toReturn += new AggregateException("One or more errors occurred removing a batch of events by ids", removeBatchError.Exceptions);
                                                 }
 
                                                 // no point wasting effort to clear the list for future batches if there will be no future batches
@@ -2008,12 +2003,7 @@ namespace Cloud.SQLIndexer
                                                             ? (Nullable<long>)null
                                                             : lastTimeUTC.Ticks);
                                                     }
-                                                    byte[] getMD5;
-                                                    CLError getMD5Error = toUpdate.GetMD5Bytes(out getMD5);
-                                                    if (getMD5Error != null)
-                                                    {
-                                                        throw new AggregateException("Error retrieving MD5 bytes from toUpdate", getMD5Error.GrabExceptions());
-                                                    }
+                                                    byte[] getMD5 = toUpdate.MD5;
                                                     existingRow.MD5 = getMD5;
                                                     existingRow.MimeType = toUpdate.Metadata.MimeType;
                                                     existingRow.Name = toUpdate.NewPath.Name;
@@ -2257,7 +2247,7 @@ namespace Cloud.SQLIndexer
                     moveObjectsToNewParent.Process();
                     if (moveObjectsToNewParentError.Value != null)
                     {
-                        throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.GrabExceptions());
+                        throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.Exceptions);
                     }
 
                     using (ISQLiteCommand movePreviousesCommand = castTransaction.sqlConnection.CreateCommand())
@@ -2381,7 +2371,7 @@ namespace Cloud.SQLIndexer
                         moveObjectsToNewParent.Process();
                         if (moveObjectsToNewParentError.Value != null)
                         {
-                            throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.GrabExceptions());
+                            throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.Exceptions);
                         }
 
                         if (!SqlAccessor<FileSystemObject>.DeleteRow(
@@ -2894,7 +2884,7 @@ namespace Cloud.SQLIndexer
                 out indexPaths);
             if (indexPathCreationError != null)
             {
-                throw indexPathCreationError.GrabFirstException();
+                throw indexPathCreationError.PrimaryException;
             }
 
             FilePathDictionary<FileMetadata> combinedIndexPlusChanges;
@@ -2902,7 +2892,7 @@ namespace Cloud.SQLIndexer
                 out combinedIndexPlusChanges);
             if (combinedIndexCreationError != null)
             {
-                throw combinedIndexCreationError.GrabFirstException();
+                throw combinedIndexCreationError.PrimaryException;
             }
 
             FilePathDictionary<GenericHolder<bool>> pathDeletions;
@@ -2910,7 +2900,7 @@ namespace Cloud.SQLIndexer
                 out pathDeletions);
             if (pathDeletionsCreationError != null)
             {
-                throw pathDeletionsCreationError.GrabFirstException();
+                throw pathDeletionsCreationError.PrimaryException;
             }
 
             using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
@@ -3027,7 +3017,7 @@ namespace Cloud.SQLIndexer
                         CLError setCurrentChangeMD5Error = currentChange.SetMD5(currentObject.Value.MD5);
                         if (setCurrentChangeMD5Error != null)
                         {
-                            throw new AggregateException("Error setting currentChange MD5", setCurrentChangeMD5Error.GrabExceptions());
+                            throw new AggregateException("Error setting currentChange MD5", setCurrentChangeMD5Error.Exceptions);
                         }
 
                         (currentObject.Value.SyncCounter == null
@@ -3325,8 +3315,8 @@ namespace Cloud.SQLIndexer
                     // sync will determine that there are no files in the Syncbox folder, and it will actually delete all of the files on the server.
                     // We have to stop this thread dead in its tracks, and do it in such a way that it is not recoverable.
                     CLError error = new Exception("Unable to find cloud directory at path: " + currentDirectoryFullPath);
-                    error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                    _trace.writeToLog(1, "IndexingAgent: RecursiveIndexDirectory: ERROR: Exception: Msg: <{0}>.", error.errorDescription);
+                    error.Log(_trace.TraceLocation, _trace.LogErrors);
+                    _trace.writeToLog(1, "IndexingAgent: RecursiveIndexDirectory: ERROR: Exception: Msg: <{0}>.", error.PrimaryException.Message);
 
                     // root path required, blow up
                     throw new DirectoryNotFoundException("Unable to find Cloud directory at path: " + currentDirectoryFullPath);

@@ -307,7 +307,7 @@ namespace Cloud.PushNotification
                 {
                     CLError error = ex;
                     _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}.", ex.Message);
-                    error.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
+                    error.Log(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
 
                     // This exception probably occurred because we had difficulty reaching the server.  In that case, we should
                     // probably retry soon because it may just be a temporary inability to communication.  So, we have to reverse
@@ -367,7 +367,7 @@ namespace Cloud.PushNotification
 
                             CLError error = ex;
                             _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception (4): Msg: {0}.", ex.Message);
-                            error.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
+                            error.Log(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
                         }
                         else
                         {
@@ -543,7 +543,7 @@ namespace Cloud.PushNotification
                 {
                     CLError error = ex;
                     _trace.writeToLog(1, "CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}.", ex.Message);
-                    error.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
+                    error.Log(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
 
                     // This exception probably occurred because we had difficulty reaching the server.  In that case, we should
                     // probably retry soon because it may just be a temporary inability to communication.  So, we have to reverse
@@ -788,8 +788,8 @@ namespace Cloud.PushNotification
                     CLError errorFromUnsubscribe = _syncbox.HttpRestClient.SendUnsubscribeToServer(200, out status, out response, castState._syncbox);
                     if (errorFromUnsubscribe != null)
                     {
-                        _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}.", errorFromUnsubscribe.errorDescription);
-                        errorFromUnsubscribe.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
+                        _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}.", errorFromUnsubscribe.PrimaryException.Message);
+                        errorFromUnsubscribe.Log(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
                     }
 
                     // Fail the service manager thread.
@@ -830,7 +830,7 @@ namespace Cloud.PushNotification
             {
                 CLError error = ex;
                 _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Exception: Msg: {0}.", ex.Message);
-                error.LogErrors(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
+                error.Log(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
             }
             _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Exit.");
         }

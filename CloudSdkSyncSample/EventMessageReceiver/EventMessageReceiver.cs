@@ -277,7 +277,7 @@ namespace SampleLiveSync.EventMessageReceiver
                 this);
             if (subscriptionError != null)
             {
-                throw new AggregateException("Error subscribing this receiver to MessageEvents", subscriptionError.GrabExceptions());
+                throw new AggregateException("Error subscribing this receiver to MessageEvents", subscriptionError.Exceptions);
             }
 
             // Save the parameters to private fields.

@@ -46,14 +46,14 @@ namespace Cloud
     {
         #region Private Fields
         
-        private static CLTrace _trace = CLTrace.Instance;
+        private static readonly CLTrace _trace = CLTrace.Instance;
         private static readonly List<CLSyncEngine> _startedSyncEngines = new List<CLSyncEngine>();
         private static readonly object _startLocker = new object();
 
-        private CLSyncEngine _syncEngine = null;
+        private readonly CLSyncEngine _syncEngine;
         private bool _isStarted = false;
         private bool Disposed = false;   // This stores if this current instance has been disposed (defaults to not disposed)
-        private ReaderWriterLockSlim _propertyChangeLocker = new ReaderWriterLockSlim();  // for locking any reads and writes to the changeable properties.
+        private readonly ReaderWriterLockSlim _propertyChangeLocker = new ReaderWriterLockSlim();  // for locking any reads and writes to the changeable properties.
 
 
         #endregion  // end Private Fields
@@ -130,10 +130,14 @@ namespace Cloud
             get
             {
                 _propertyChangeLocker.EnterReadLock();
-                string toReturn = _friendlyName;
-                _propertyChangeLocker.ExitReadLock();
-
-                return toReturn;
+                try
+                {
+                    return _friendlyName;
+                }
+                finally
+                {
+                    _propertyChangeLocker.ExitReadLock();
+                }
             }
         }
         private string _friendlyName;
@@ -158,10 +162,14 @@ namespace Cloud
             get
             {
                 _propertyChangeLocker.EnterReadLock();
-                long toReturn = _storagePlanId;
-                _propertyChangeLocker.ExitReadLock();
-
-                return toReturn;
+                try
+                {
+                    return _storagePlanId;
+                }
+                finally
+                {
+                    _propertyChangeLocker.ExitReadLock();
+                }
             }
         }
         private long _storagePlanId;
@@ -211,8 +219,7 @@ namespace Cloud
             string path = null,
             ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
-            object getNewCredentialsCallbackUserState = null
-            )
+            object getNewCredentialsCallbackUserState = null)
         {
             // check input parameters
 
@@ -261,16 +268,16 @@ namespace Cloud
                                 getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
                 if (createRestClientError != null)
                 {
-                    _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());
+                    _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.", createRestClientError.PrimaryException.Message, createRestClientError.PrimaryException.Code.ToString());
                     status = CLHttpRestStatus.BadRequest;  ///&&&&&&& fix this
-                    throw new AggregateException("Error creating REST HTTP client", createRestClientError.GrabExceptions());
+                    throw new CLException(CLExceptionCode.Syncbox_CreateRestClient, "Error creating REST HTTP client", createRestClientError.Exceptions);
                 }
                 if (_httpRestClient == null)
                 {
                     const string nullRestClient = "Unknown error creating HTTP REST client";
                     _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}.", nullRestClient);
                     status = CLHttpRestStatus.BadRequest;  ///&&&&&&& fix this
-                    throw new NullReferenceException(nullRestClient);
+                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
                 }
 
                 // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
@@ -279,7 +286,7 @@ namespace Cloud
                 CLError errorFromStatus = GetCurrentSyncboxStatus(out statusFromStatus);
                 if (errorFromStatus != null)
                 {
-                    throw new AggregateException("Error getting syncbox status from Cloud", errorFromStatus.GrabExceptions());
+                    throw new CLException(CLExceptionCode.Syncbox_InitialStatus, "Error getting syncbox status from Cloud", errorFromStatus.Exceptions);
                 }
 
                 // Create the sync engine
@@ -358,14 +365,14 @@ namespace Cloud
                                 getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
                 if (createRestClientError != null)
                 {
-                    _trace.writeToLog(1, "CLSyncbox: CLSyncbox(contract): ERROR: Msg: {0}. Code: {1}.", createRestClientError.errorDescription, ((int)createRestClientError.code).ToString());
-                    throw new AggregateException("Error creating REST HTTP client", createRestClientError.GrabExceptions());
+                    _trace.writeToLog(1, "CLSyncbox: CLSyncbox(contract): ERROR: Msg: {0}. Code: {1}.", createRestClientError.PrimaryException.Message, createRestClientError.PrimaryException.Code);
+                    throw new CLException(CLExceptionCode.Syncbox_CreateRestClient, "Error creating REST HTTP client", createRestClientError.Exceptions);
                 }
                 if (_httpRestClient == null)
                 {
                     const string nullRestClient = "Unknown error creating HTTP REST client";
                     _trace.writeToLog(1, "CLSyncbox: CLSyncbox(contract): ERROR: Msg: {0}.", nullRestClient);
-                    throw new NullReferenceException(nullRestClient);
+                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
                 }
 
                 // Create the sync engine
@@ -542,9 +549,9 @@ namespace Cloud
                 System.Threading.WaitCallback syncStatusChangedCallback = null,
                 object syncStatusChangedCallbackUserState = null)
         {
-            CLError toReturn = null;
-
             CheckDisposed();
+
+            bool startExceptionLogged = false;
 
             try
             {
@@ -566,13 +573,13 @@ namespace Cloud
                         CLError errorPathTooLong = Helpers.CheckSyncRootLength(_path, out nOutTooLongChars);
                         if (errorPathTooLong != null)
                         {
-                            throw new AggregateException(String.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.GrabExceptions());
+                            throw new CLArgumentException(errorPathTooLong.PrimaryException.Code, string.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.Exceptions);
                         }
 
                         CLError errorBadPath = Helpers.CheckForBadPath(_path);
                         if (errorBadPath != null)
                         {
-                            throw new AggregateException("syncbox path contains invalid characters.", errorBadPath.GrabExceptions());
+                            throw new CLArgumentException(errorBadPath.PrimaryException.Code, "syncbox path contains invalid characters.", errorBadPath.Exceptions);
                         }
                         _path = path;
                     }
@@ -581,33 +588,37 @@ namespace Cloud
 
                     // Start the sync engine
                     CLSyncStartStatus startStatus;
-                    toReturn = _syncEngine.Start(
+                    CLError syncEngineStartError = _syncEngine.Start(
                         Syncbox: this, // syncbox to sync (contains required settings)
                         Status: out startStatus, // The completion status of the Start() function
                         StatusUpdated: syncStatusChangedCallback, // called when sync status is updated
                         StatusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
 
-                    if (toReturn != null)
+                    if (syncEngineStartError != null)
                     {
-                        _trace.writeToLog(1, "Error starting sync engine. Msg: {0}. Reason: {0}.", toReturn.errorDescription, startStatus.ToString());
-                        toReturn.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                        _trace.writeToLog(1, "Error starting sync engine. Msg: {0}. Code: {1}.", syncEngineStartError.PrimaryException.Message, syncEngineStartError.PrimaryException.Code);
+                        syncEngineStartError.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                        startExceptionLogged = true;
+                        throw new CLException(syncEngineStartError.PrimaryException.Code, "Error starting active syncing", syncEngineStartError.Exceptions);
                     }
-                    else
-                    {
-                        // The sync engines started with syncboxes must be tracked statically so we can stop them all when the application terminates (in the ShutDown) method.
-                        _startedSyncEngines.Add(_syncEngine);
-                        _isStarted = true;
-                    }
+
+                    // The sync engines started with syncboxes must be tracked statically so we can stop them all when the application terminates (in the ShutDown) method.
+                    _startedSyncEngines.Add(_syncEngine);
+                    _isStarted = true;
                 }
             }
             catch (Exception ex)
             {
-                toReturn += ex;
-                toReturn.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                _trace.writeToLog(1, "CLSyncbox: StartSync: ERROR.  Exception.  Msg: {0}. Code: {1}.", toReturn.errorDescription, ((int)toReturn.code).ToString());
+                CLError toReturn = ex;
+                if (!startExceptionLogged)
+                {
+                    toReturn.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                    _trace.writeToLog(1, "CLSyncbox: StartSync: ERROR.  Exception.  Msg: {0}. Code: {1}.", toReturn.PrimaryException.Message, toReturn.PrimaryException.Code);
+                }
+                return toReturn;
             }
 
-            return toReturn;
+            return null;
         }
 
         /// <summary>
@@ -639,14 +650,13 @@ namespace Cloud
                     _startedSyncEngines.Remove(_syncEngine);
 
                     _isStarted = false;
-                    _syncEngine = null;
                 }
             }
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                _trace.writeToLog(1, "CLSyncbox: StopSync: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                error.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                _trace.writeToLog(1, "CLSyncbox: StopSync: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
             }
         }
 
@@ -656,9 +666,9 @@ namespace Cloud
         /// </summary>
         public CLError ResetLocalCache()
         {
-            CLError toReturn = null;
-
             CheckDisposed();
+
+            bool resetSyncErrorLogged = false;
 
             try
             {
@@ -666,26 +676,32 @@ namespace Cloud
                 {
                     if (_isStarted)
                     {
-                        throw new InvalidOperationException("Stop the syncbox first.");
+                        throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, "Stop the syncbox first.");
                     }
 
                     // Reset the sync engine
-                    toReturn = _syncEngine.SyncReset(this);
-                    if (toReturn != null)
+                    CLError resetSyncError = _syncEngine.SyncReset(this);
+                    if (resetSyncError != null)
                     {
-                        _trace.writeToLog(1, "CLSyncbox: ResetLocalCache: ERROR: From syncEngine.SyncReset: Msg: {0}.", toReturn.errorDescription);
-                        toReturn.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                        _trace.writeToLog(1, "CLSyncbox: ResetLocalCache: ERROR: From syncEngine.SyncReset: Msg: {0}. Code {1}.", resetSyncError.PrimaryException.Message, resetSyncError.PrimaryException.Code);
+                        resetSyncError.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                        resetSyncErrorLogged = true;
+                        throw new CLException(CLExceptionCode.Syncing_Database, "Error resetting syncing database", resetSyncError.Exceptions);
                     }
                 }
             }
             catch (Exception ex)
             {
-                toReturn += ex;
-                toReturn.LogErrors(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                _trace.writeToLog(1, "CLSyncbox: ResetLocalCache: ERROR.  Exception.  Msg: {0}. Code: {1}.", toReturn.errorDescription, ((int)toReturn.code).ToString());
+                CLError toReturn = ex;
+                if (!resetSyncErrorLogged)
+                {
+                    toReturn.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                    _trace.writeToLog(1, "CLSyncbox: ResetLocalCache: ERROR.  Exception.  Msg: {0}. Code: {1}.", toReturn.PrimaryException.Message, toReturn.PrimaryException.Code);
+                }
+                return toReturn;
             }
 
-            return toReturn;
+            return null;
         }
 
         /// <summary>
@@ -3042,8 +3058,14 @@ namespace Cloud
 
             // Update this object's properties atomically.
             this._propertyChangeLocker.EnterWriteLock();
-            this._storagePlanId = (long)response.Syncbox.PlanId;
-            this._propertyChangeLocker.ExitWriteLock();
+            try
+            {
+                this._storagePlanId = (long)response.Syncbox.PlanId;
+            }
+            finally
+            {
+                this._propertyChangeLocker.ExitWriteLock();
+            }
         }
         #endregion  // end (changes the storage plan associated with this syncbox in the cloud)
 
@@ -3162,11 +3184,15 @@ namespace Cloud
             }
 
             this._propertyChangeLocker.EnterWriteLock();
-
-            this._friendlyName = response.Syncbox.FriendlyName;
-            this._storagePlanId = (long)response.Syncbox.PlanId;
-
-            this._propertyChangeLocker.ExitWriteLock();
+            try
+            {
+                this._friendlyName = response.Syncbox.FriendlyName;
+                this._storagePlanId = (long)response.Syncbox.PlanId;
+            }
+            finally
+            {
+                this._propertyChangeLocker.ExitWriteLock();
+            }
         }
         #endregion  // end GetCurrentStatus (update the status of this syncbox from the cloud)
 
@@ -3209,7 +3235,7 @@ namespace Cloud
         private readonly GenericHolder<bool> _reservedForActiveSync = new GenericHolder<bool>(false);
 
         /// <summary>
-        /// A serious notification error has occurred.  Push notification is no longer functioning.
+        /// A serious notification error has occurred. Push notification is no longer functioning.
         /// </summary>
         /// <param name="sender">The sending object.</param>
         /// <param name="e">Arguments including the manual poll and/or web sockets errors (possibly aggregated).</param>
@@ -3217,8 +3243,39 @@ namespace Cloud
         {
             try
             {
+                if (e.ErrorStillDisconnectedPing == null)
+                {
+                    if (e.ErrorWebSockets == null)
+                    {
+                        _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: No errors.");
+                        try
+                        {
+                            throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, "Push notification connection error event fired without an error");
+                        }
+                        catch (Exception ex)
+                        {
+                            ((CLError)ex).Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                        }
+                    }
+                    else
+                    {
+                        _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Web socket error message: <{0}>. Web socket error code: {1}.", e.ErrorWebSockets.PrimaryException.Message, e.ErrorWebSockets.PrimaryException.Code);
+                        e.ErrorWebSockets.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                    }
+                }
+                else if (e.ErrorWebSockets == null)
+                {
+                    _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Manual poll error message: <{0}>. Manual poll error code: {1}.", e.ErrorStillDisconnectedPing.PrimaryException.Message, e.ErrorStillDisconnectedPing.PrimaryException.Code);
+                    e.ErrorStillDisconnectedPing.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                }
+                else
+                {
+                    _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Web socket error message: <{0}>. Web socket error code: {1}. Manual poll error message: <{2}>. Manual poll error code: {3}.", e.ErrorWebSockets.PrimaryException.Message, e.ErrorWebSockets.PrimaryException.Code, e.ErrorStillDisconnectedPing.PrimaryException.Message, e.ErrorStillDisconnectedPing.PrimaryException.Code);
+                    e.ErrorWebSockets.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                    e.ErrorStillDisconnectedPing.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                }
+
                 // Tell the application
-                _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Manual poll error: <{0}>. Web socket error: <{1}>.", e.ErrorStillDisconnectedPing.errorDescription, e.ErrorWebSockets.errorDescription);
                 if (PushNotificationError != null)
                 {
                     _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Notify the application.");
@@ -3291,8 +3348,13 @@ namespace Cloud
                     // cleanup inner managed objects
                     if (_propertyChangeLocker != null)
                     {
-                        _propertyChangeLocker.Dispose();
-                        _propertyChangeLocker = null;
+                        try
+                        {
+                            _propertyChangeLocker.Dispose();
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
 

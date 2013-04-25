@@ -1,0 +1,588 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{CBFD5A87-0104-472C-8411-95DA030CDE6E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Cloud</RootNamespace>
+    <AssemblyName>Cloud</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>
+    </DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>bin\Release\Cloud.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugNoSSL|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\DebugNoSSL\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NOSSL</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNoSSL|AnyCPU'">
+    <OutputPath>bin\ReleaseNoSSL\</OutputPath>
+    <DefineConstants>TRACE;NOSSL</DefineConstants>
+    <DocumentationFile>bin\Release\CloudApiPublic.XML</DocumentationFile>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- AUTO-BUILD TAG FOR BadgeComLib -->
+    <Reference Include="BadgeCOMLib, Version=0.2.4.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
+    <Reference Include="Interop.Shell32, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.Net.Http.CSDK, Version=0.3.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Practices.ServiceLocation.CSDK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json.CSDK, Version=4.5.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="Salient.Data.CSDK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Salient.Data.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SimpleJson.CSDK, Version=0.1.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\SimpleJson.CSDK.dll</HintPath>
+      <Aliases>global,SimpleJsonBase</Aliases>
+      <SpecificVersion>True</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.SQLite32, Version=1.0.84.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=x86">
+      <HintPath>..\3rdParty\bin\Release\System.Data.SQLite32.dll</HintPath>
+      <Aliases>global,SQL32</Aliases>
+    </Reference>
+    <Reference Include="System.Data.SQLite64, Version=1.0.84.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=AMD64">
+      <HintPath>..\3rdParty\bin\Release64\System.Data.SQLite64.dll</HintPath>
+      <Aliases>global,SQL64</Aliases>
+    </Reference>
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BadgeNET\BadgeComPubSubEvents.cs" />
+    <Compile Include="BadgeNET\Enums.cs" />
+    <Compile Include="BadgeNET\IconOverlay.cs" />
+    <Compile Include="CLSync\CLCredentials.cs" />
+    <Compile Include="CLSync\CLCredentialsSettings.cs" />
+    <Compile Include="CLSync\CLSyncbox.cs" />
+    <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
+    <Compile Include="CLSync\CLSyncTransferringFile.cs" />
+    <Compile Include="CLSync\CLSyncStartStatus.cs" />
+    <Compile Include="CompilerServices.cs" />
+    <Compile Include="FileMonitor\FileMonitorMemory.cs">
+      <DependentUpon>FileMonitorMemory.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="FileMonitor\MonitorAgent.cs" />
+    <Compile Include="FileMonitor\SyncImplementation\SyncData.cs" />
+    <Compile Include="Interfaces\IAfterDownloadCallbackState.cs" />
+    <Compile Include="Interfaces\IEventMessageReceiver.cs" />
+    <Compile Include="Interfaces\ITransferTaskState.cs" />
+    <Compile Include="JsonContracts\Archives.cs" />
+    <Compile Include="JsonContracts\SyncboxGetAllArchiveItemsResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxGetAllTextItemsResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxGetAllPresentationItemsResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxGetAllDocumentItemsResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxGetAllAudioItemsResponse.cs" />
+    <Compile Include="JsonContracts\AuthenticationError.cs" />
+    <Compile Include="JsonContracts\AuthenticationErrorMessage.cs" />
+    <Compile Include="JsonContracts\AuthenticationErrorResponse.cs" />
+    <Compile Include="JsonContracts\ContainsMetadataDictionaryAttribute.cs" />
+    <Compile Include="JsonContracts\SyncboxStatusResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxDeleteResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxCreateRequest.cs" />
+    <Compile Include="JsonContracts\SyncboxAuthResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxForUpdateRequest.cs" />
+    <Compile Include="JsonContracts\SyncboxIdOnly.cs" />
+    <Compile Include="JsonContracts\SyncboxMetadata.cs" />
+    <Compile Include="JsonContracts\SyncboxQuota.cs" />
+    <Compile Include="JsonContracts\SyncboxResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxUpdateStoragePlanRequest.cs" />
+    <Compile Include="JsonContracts\SyncboxUpdateStoragePlanResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxUpdateRequest.cs" />
+    <Compile Include="JsonContracts\SyncboxUsageResponse.cs" />
+    <Compile Include="JsonContracts\UnlinkDeviceResponse.cs" />
+    <Compile Include="JsonContracts\UnlinkDeviceRequest.cs" />
+    <Compile Include="JsonContracts\LinkDeviceResponse.cs" />
+    <Compile Include="JsonContracts\LinkDeviceRequest.cs" />
+    <Compile Include="JsonContracts\LinkDeviceFirstTimeResponse.cs" />
+    <Compile Include="JsonContracts\LinkDeviceFirstTimeRequest.cs" />
+    <Compile Include="JsonContracts\DeviceResponse.cs" />
+    <Compile Include="JsonContracts\DeviceRequest.cs" />
+    <Compile Include="JsonContracts\UserRegistrationResponse.cs" />
+    <Compile Include="JsonContracts\UserRegistrationRequest.cs" />
+    <Compile Include="JsonContracts\NotificationUnsubscribeResponse.cs" />
+    <Compile Include="JsonContracts\NotificationUnsubscribeRequest.cs" />
+    <Compile Include="JsonContracts\CredentialsSessionDeleteResponse.cs" />
+    <Compile Include="JsonContracts\CredentialsSessionDeleteRequest.cs" />
+    <Compile Include="JsonContracts\CredentialsSessionGetForKeyResponse.cs" />
+    <Compile Include="JsonContracts\CredentialsListSessionsResponse.cs" />
+    <Compile Include="JsonContracts\CredentialsSessionCreateAllRequest.cs" />
+    <Compile Include="JsonContracts\CredentialsSessionCreateRequest.cs" />
+    <Compile Include="JsonContracts\CredentialsSessionCreateResponse.cs" />
+    <Compile Include="JsonContracts\Session.cs" />
+    <Compile Include="JsonContracts\StoragePlanListResponse.cs" />
+    <Compile Include="JsonContracts\StoragePlanResponse.cs" />
+    <Compile Include="JsonContracts\FileAdd.cs" />
+    <Compile Include="JsonContracts\FileCopy.cs" />
+    <Compile Include="JsonContracts\FileOrFolderDelete.cs" />
+    <Compile Include="JsonContracts\FileModify.cs" />
+    <Compile Include="JsonContracts\FileOrFolderMove.cs" />
+    <Compile Include="JsonContracts\FileOrFolderUndelete.cs" />
+    <Compile Include="JsonContracts\FileVersion.cs" />
+    <Compile Include="JsonContracts\FolderAdd.cs" />
+    <Compile Include="JsonContracts\FolderContents.cs" />
+    <Compile Include="JsonContracts\Folders.cs" />
+    <Compile Include="JsonContracts\ItemCount.cs" />
+    <Compile Include="JsonContracts\SyncboxListResponse.cs" />
+    <Compile Include="JsonContracts\MetadataDictionary.cs" />
+    <Compile Include="JsonContracts\SyncboxGetAllImageItemsResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxGetRecentsResponse.cs" />
+    <Compile Include="JsonContracts\Syncbox.cs" />
+    <Compile Include="JsonContracts\UsedBytes.cs" />
+<<<<<<< HEAD
+    <Compile Include="JsonContracts\SyncboxGetAllVideoItemsResponse.cs" />
+    <Compile Include="Model\CLStoragePlan.cs" />
+    <Compile Include="Model\CLFileItem.cs" />
+=======
+    <Compile Include="JsonContracts\Videos.cs" />
+    <Compile Include="Model\CLException.cs" />
+    <Compile Include="Model\CLHttpException.cs" />
+>>>>>>> master
+    <Compile Include="Model\DelegateAndDataHolder.cs" />
+    <Compile Include="Model\EventMessageReceiverArgs\BasicMessage.cs" />
+    <Compile Include="Model\EventMessageReceiverArgs\IncrementCountMessage.cs" />
+    <Compile Include="Model\EventMessageReceiverArgs\SetCountMessage.cs" />
+    <Compile Include="Model\EventMessageReceiverArgs\TransferUpdateMessage.cs" />
+    <Compile Include="Model\EventMessages\BaseMessage.cs" />
+    <Compile Include="Model\EventMessages\DownloadingCountMessage.cs" />
+    <Compile Include="Model\EventMessages\DownloadProgressMessage.cs" />
+    <Compile Include="Model\EventMessages\ErrorInfo\BaseErrorInfo.cs" />
+    <Compile Include="Model\EventMessages\ErrorMessage.cs" />
+    <Compile Include="Model\EventMessages\ErrorInfo\HaltSyncboxOnAuthenticationFailureErrorInfo.cs" />
+    <Compile Include="Model\EventMessages\ErrorInfo\HaltSyncboxOnConnectionFailureErrorInfo.cs" />
+    <Compile Include="Model\EventMessages\ErrorInfo\GeneralErrorInfo.cs" />
+    <Compile Include="Model\EventMessages\ErrorInfo\HaltAllOfCloudSDKErrorInfo.cs" />
+    <Compile Include="Model\EventMessages\InformationalMessage.cs" />
+    <Compile Include="Model\EventMessages\SuccessfulDownloadsIncrementedMessage.cs" />
+    <Compile Include="Model\EventMessages\SuccessfulUploadsIncrementedMessage.cs" />
+    <Compile Include="Model\EventMessages\UploadingCountMessage.cs" />
+    <Compile Include="Model\EventMessages\UploadProgressMessage.cs" />
+    <Compile Include="Model\HashedStreamReaderAdapter.cs" />
+    <Compile Include="Model\HashMismatchException.cs" />
+    <Compile Include="Model\InternalCLExceptions.cs" />
+    <Compile Include="Model\ListRemoveAllEnumerator.cs" />
+    <Compile Include="Model\Md5Hasher.cs" />
+    <Compile Include="Model\NotifiableObject.cs" />
+    <Compile Include="Model\StreamContext.cs" />
+    <Compile Include="Model\StreamReaderAdapter.cs" />
+    <Compile Include="Model\UploadStreamContext.cs" />
+    <Compile Include="Model\Sync\AsyncUploadDownloadTask.cs" />
+    <Compile Include="Model\Sync\DownloadIdAndMD5.cs" />
+    <Compile Include="Model\Sync\EventIdAndCompletionProcessor.cs" />
+    <Compile Include="Model\Sync\PossiblyChangedFileChange.cs" />
+    <Compile Include="Model\Sync\PossiblyStreamableAndPossiblyChangedFileChange.cs" />
+    <Compile Include="Model\Sync\PossiblyStreamableAndPossiblyChangedFileChangeWithError.cs" />
+    <Compile Include="Model\Sync\PossiblyStreamableAndPossiblyPreexistingErrorFileChange.cs" />
+    <Compile Include="Model\Sync\PossiblyStreamableFileChangeWithSyncData.cs" />
+    <Compile Include="Model\Sync\PossiblyStreamableFileChangeWithUploadDownloadTask.cs" />
+    <Compile Include="PushNotification\CLNotificationManualPollingEngine.cs" />
+    <Compile Include="REST\AsyncResults.cs" />
+    <Compile Include="PushNotification\CLNotificationSseEngine.cs" />
+    <Compile Include="PushNotification\ICLNotificationEngine.cs" />
+    <Compile Include="PushNotification\CLNotificationService.cs" />
+    <Compile Include="REST\CLHttpRest.cs" />
+    <Compile Include="REST\GenericAsyncResult.cs" />
+    <Compile Include="REST\TransferProgress.cs" />
+    <Compile Include="SQLIndexer\Model\SQLTransactionalBase.cs" />
+    <Compile Include="SQLIndexer\SqlModel\Constants.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\EnumCategory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\Event.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\FileSystemObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\SqlAccessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\SqlEnum.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLIndexer\SqlModel\Sync.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SQLProxies\32Bit\SQLiteCommand32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteConnection32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteDataReader32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteException32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteParameter32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteParameterCollection32.cs" />
+    <Compile Include="SQLProxies\32Bit\SQLiteTransaction32.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteCommand64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteConnection64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteDataReader64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteException64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteParameter64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteParameterCollection64.cs" />
+    <Compile Include="SQLProxies\64Bit\SQLiteTransaction64.cs" />
+    <Compile Include="SQLProxies\DisposableProxyObject.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteCommand.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteConnection.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteDataReader.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteException.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteParameter.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteParameterCollection.cs" />
+    <Compile Include="SQLProxies\Interfaces\ISQLiteTransaction.cs" />
+    <Compile Include="SQLProxies\SQLConstructors.cs" />
+    <Compile Include="SQLProxies\SQLiteExceptionBase.cs" />
+    <Compile Include="SQLProxies\WrappedEnums.cs" />
+    <Compile Include="Static\ItemsControlHelper.cs" />
+    <Compile Include="Support\CLCopyFiles.cs" />
+    <Compile Include="CLSync\CLSyncEngine.cs" />
+    <Compile Include="Static\CLOsVersionInfo.cs" />
+    <Compile Include="Support\RelayCommand.cs" />
+    <Compile Include="CLSync\CLSyncSettings.cs" />
+    <Compile Include="FilePath\FilePathHierarchicalNode.cs" />
+    <Compile Include="Interfaces\ISyncDataObject.cs" />
+    <Compile Include="Interfaces\ICLSyncSettings.cs" />
+    <Compile Include="JsonContracts\Download.cs" />
+    <Compile Include="JsonContracts\FileChangeResponse.cs" />
+    <Compile Include="JsonContracts\Header.cs" />
+    <Compile Include="JsonContracts\JsonContractHelpers.cs" />
+    <Compile Include="JsonContracts\Metadata.cs" />
+    <Compile Include="JsonContracts\NotificationResponse.cs" />
+    <Compile Include="JsonContracts\PurgePending.cs" />
+    <Compile Include="JsonContracts\PendingResponse.cs" />
+    <Compile Include="JsonContracts\Push.cs" />
+    <Compile Include="JsonContracts\PushResponse.cs" />
+    <Compile Include="JsonContracts\To.cs" />
+    <Compile Include="Model\CLStatusFileTransferUpdateParameters.cs" />
+    <Compile Include="Model\CombinedCollection.cs" />
+    <Compile Include="Model\BadgePathDeletedArgs.cs" />
+    <Compile Include="Model\BadgePathRenamedArgs.cs" />
+    <Compile Include="Model\RenameBadgePath.cs" />
+    <Compile Include="Model\DeleteBadgePath.cs" />
+    <Compile Include="Model\SetBadgeQueuedArgs.cs" />
+    <Compile Include="Model\SetBadge.cs" />
+    <Compile Include="Model\EventMessageArgs.cs" />
+    <Compile Include="Model\FileChange.cs" />
+    <Compile Include="Model\FileChangeMerge.cs" />
+    <Compile Include="Model\FileChangeMergeToStateArgs.cs" />
+    <Compile Include="Model\FileChangeWithDependencies.cs" />
+    <Compile Include="Model\FileMetadata.cs" />
+    <Compile Include="FilePath\FilePath.cs" />
+    <Compile Include="FilePath\FilePathComparer.cs" />
+    <Compile Include="FilePath\FilePathDictionary.cs" />
+    <Compile Include="FilePath\FlattenedFilePathDictionaryKeys.cs" />
+    <Compile Include="FilePath\FlattenedFilePathDictionaryPairs.cs" />
+    <Compile Include="FilePath\FlattenedFilePathDictionaryValues.cs" />
+    <Compile Include="Model\CLJsonResultWithError.cs" />
+    <Compile Include="Model\GenericHolder.cs" />
+    <Compile Include="Model\HandleableEventArgs.cs" />
+    <Compile Include="Model\PossiblyPreexistingFileChangeInError.cs" />
+    <Compile Include="Model\PossiblyStreamableFileChange.cs" />
+    <Compile Include="Model\RevisionChanger.cs" />
+    <Compile Include="Model\UpdatePathArgs.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resources\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="SQLIndexer\IndexingAgent.cs" />
+    <Compile Include="SQLIndexer\Migrations\MigrationList.cs" />
+    <Compile Include="SQLIndexer\Model\FileResultRoot.cs" />
+    <Compile Include="SQLIndexer\Model\FindFileResult.cs" />
+    <Compile Include="SQLIndexer\Model\IFileResultParent.cs" />
+    <Compile Include="SQLIndexer\Model\SafeSearchHandle.cs" />
+    <Compile Include="SQLIndexer\StringCRC.cs" />
+    <Compile Include="Static\Enums.cs" />
+    <Compile Include="Static\Helpers.cs" />
+    <Compile Include="Static\MessageEvents.cs" />
+    <Compile Include="Static\NativeMethods.cs" />
+    <Compile Include="Static\ComTrace.cs" />
+    <Compile Include="Static\Log.cs">
+      <DependentUpon>Log.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Static\TraceType.cs" />
+    <Compile Include="Model\CLError.cs" />
+    <Compile Include="Static\CLDefinitions.cs" />
+    <Compile Include="Support\CLTrace.cs" />
+    <Compile Include="Support\DelayProcessable.cs" />
+    <Compile Include="Support\ProcessingQueuesTimer.cs" />
+    <Compile Include="Sync\ExecutableException.cs" />
+    <Compile Include="Sync\HttpScheduler.cs" />
+    <Compile Include="Sync\IEnumerableStreamExtensions.cs" />
+    <Compile Include="Sync\IExecutableException.cs" />
+    <Compile Include="Sync\NetworkMonitor.cs" />
+    <Compile Include="Sync\NLANetworkMonitor.cs" />
+    <Compile Include="Sync\SyncEngine.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Cloud.Static</CustomToolNamespace>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\MainPage.dox" />
+    <None Include="FileMonitor\FileMonitorMemory.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Static\Log.xsd">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\15FileSystemObjects_EventTimeUTCTicks.index.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\10FileSystemObjects_Name.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\11FileSystemObjects_ParentFolderId.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_EventId.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects_ServerUid.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14FileSystemObjects_Pending.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\27Finalize.pragma.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\1Initialize.pragma.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\2EnumCategories.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\3AddFileChangeTypeEnumCategory.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\5AddFileChangeTypeEnumValues.data.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\6Syncs.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_GroupId.index.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\17FileSystemObjects_ParentFolderId_Update.trigger.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\16FileSystemObjects_CalculatedFullPath.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\18FileSystemObjects_Name_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\19FileSystemObjects_CalculatedFullPath_Incorrect_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\20FileSystemObjects_CalculatedFullPath_Correct_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\21FileSystemObjects_Incorrect_Insert.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\22FileSystemObjects_Correct_Insert.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\23FileSystemObjects_Before_Delete.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\24FileSystemObjects_After_Delete.trigger.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\25FileSystemObjects_EventId_Update.trigger.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\26FileSystemObjects_EventOrder.index.sql" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>echo ************  START POST BUILD STEPS **********************
+REM ----------------------
+set ErrorTracker=1
+echo copy $(SolutionDir)3rdParty\bin\Release\System.Data.SQLite32.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release\System.Data.SQLite32.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=2
+echo copy $(SolutionDir)3rdParty\bin\Release\System.Data.SQLite32.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release\System.Data.SQLite32.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=3
+echo copy $(SolutionDir)3rdParty\bin\Release64\System.Data.SQLite64.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release64\System.Data.SQLite64.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=4
+echo copy $(SolutionDir)3rdParty\bin\Release64\System.Data.SQLite64.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release64\System.Data.SQLite64.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=5
+echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=6
+echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=7
+echo copy $(SolutionDir)3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=8
+echo copy $(SolutionDir)3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=9
+echo copy $(SolutionDir)3rdParty\bin\Release\RateBar.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release\RateBar.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=10
+echo copy $(SolutionDir)3rdParty\bin\Release\RateBar.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release\RateBar.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=11
+echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=12
+echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----- Copy the CloudApiPublic binaries only for the Release build  -----------------
+if /I $(ConfigurationName) == Debug goto DoneWithCloudApiPublic
+
+REM ----------------------
+set ErrorTracker=13
+echo copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetFileName)
+copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetFileName)
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=14
+echo copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetFileName)
+copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetFileName)
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=15
+echo copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=16
+echo copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=17
+echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=18
+echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=19
+echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=20
+echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+:DoneWithCloudApiPublic
+
+
+REM ---- PLACE THIS CODE AT THE END
+REM Exit properly because the build will not fail
+REM unless the final step exits with an error code
+goto BuildEventOK
+:BuildEventFailed
+echo POSTBUILDSTEP for $(ProjectName) FAILED at step %25ErrorTracker%25
+set ErrorTracker=
+echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
+exit 1
+:BuildEventOK
+echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
+echo ************  POST BUILD STEP COMPLETED OK **********************
+
+</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

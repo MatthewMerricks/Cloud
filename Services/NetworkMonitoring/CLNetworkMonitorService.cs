@@ -85,7 +85,7 @@ namespace win_client.Services.Badging
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLNetworkMonitorService: EndNetworkMonitoring: ERROR: Exception. Msg: <{0}>.", ex.Message);
             }
         }

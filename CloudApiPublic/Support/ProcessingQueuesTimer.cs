@@ -122,8 +122,8 @@ namespace Cloud.Support
                     catch (Exception ex)
                     {
                         CLError error = ex;
-                        error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                        _trace.writeToLog(1, "ProcessingQueuesTimer: StartTimerIfNotRunning: Inner thread. ERROR: Exception.  Msg: {0}.", error.errorDescription);
+                        error.Log(_trace.TraceLocation, _trace.LogErrors);
+                        _trace.writeToLog(1, "ProcessingQueuesTimer: StartTimerIfNotRunning: Inner thread. ERROR: Exception.  Msg: {0}.", error.PrimaryException.Message);
                     }
                 })).Start(new object[] { (Action<object>)this.OnTimeout, this.UserState });
             }

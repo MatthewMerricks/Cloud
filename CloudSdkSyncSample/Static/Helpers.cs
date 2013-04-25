@@ -226,7 +226,7 @@ namespace SampleLiveSync.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "Helpers: IsAdministrator: ERROR: Exception: Msg: <{0}>. Return false.", ex.Message);
                 return false;
             }

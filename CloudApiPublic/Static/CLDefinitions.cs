@@ -8,8 +8,8 @@
 // Back end definitions
 // @@@@@@@@@ AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND    // cloud.com
-#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
-//#define STAGING_BACKEND       // cloudstaging.us
+//#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
+#define STAGING_BACKEND       // cloudstaging.us
 // @@@@@@@@@ END AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 
 // URL definitions

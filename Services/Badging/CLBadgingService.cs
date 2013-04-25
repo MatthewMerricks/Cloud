@@ -61,7 +61,7 @@ namespace win_client.Services.Badging
             CLError badgingInitializedError = IsBadgingInitialized(out isBadgingInitialized);
             if (badgingInitializedError != null)
             {
-                _trace.writeToLog(1, "CLBadgingServices: BeginBadgingServices: ERROR: From IconOverlay.IsBadingInitialized. Msg: <{0}>. Code: {1}.", badgingInitializedError.errorDescription, badgingInitialized((int)error.code).ToString());
+                _trace.writeToLog(1, "CLBadgingServices: BeginBadgingServices: ERROR: From IconOverlay.IsBadingInitialized. Msg: <{0}>. Code: {1}.", badgingInitializedError.PrimaryException.Message, badgingInitializederror.PrimaryException.Code);
             }
             else
             {
@@ -70,7 +70,7 @@ namespace win_client.Services.Badging
                     CLError initializeError = Initialize(CLSettingsSync.Instance);
                     if (initializeError != null)
                     {
-                        _trace.writeToLog(1, "CLBadgingServices: BeginBadgingServices: ERROR: From IconOverlay.Initialize. Msg: <{0}>. Code: {1}.", initializeError.errorDescription, initialize((int)error.code).ToString());
+                        _trace.writeToLog(1, "CLBadgingServices: BeginBadgingServices: ERROR: From IconOverlay.Initialize. Msg: <{0}>. Code: {1}.", initializeError.PrimaryException.Message, initializeerror.PrimaryException.Code);
                     }
                 }
             }
@@ -84,7 +84,7 @@ namespace win_client.Services.Badging
             CLError error = Shutdown();
             if (error != null)
             {
-                _trace.writeToLog(1, "CLBadgingServices: EndBadgingServices: ERROR: From IconOverlay.Shutdonw. Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                _trace.writeToLog(1, "CLBadgingServices: EndBadgingServices: ERROR: From IconOverlay.Shutdonw. Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
             }
         }
     }

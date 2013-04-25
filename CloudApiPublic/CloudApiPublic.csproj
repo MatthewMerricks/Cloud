@@ -63,9 +63,8 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- AUTO-BUILD TAG FOR BadgeComLib -->
-    <Reference Include="BadgeCOMLib, Version=0.2.2.1, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+    <Reference Include="BadgeCOMLib">
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="Interop.Shell32, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
@@ -131,7 +130,7 @@
     <Compile Include="BadgeNET\IconOverlay.cs" />
     <Compile Include="CLSync\CLCredentials.cs" />
     <Compile Include="CLSync\CLCredentialsSettings.cs" />
-    <Compile Include="CLSync\CLSyncbox.cs" />
+    <Compile Include="CLSync\CLSyncBox.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
     <Compile Include="CLSync\CLSyncStartStatus.cs" />
@@ -209,6 +208,8 @@
     <Compile Include="JsonContracts\SyncboxGetAllVideoItemsResponse.cs" />
     <Compile Include="Model\CLStoragePlan.cs" />
     <Compile Include="Model\CLFileItem.cs" />
+    <Compile Include="Model\CLException.cs" />
+    <Compile Include="Model\CLHttpException.cs" />
     <Compile Include="Model\DelegateAndDataHolder.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\BasicMessage.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\IncrementCountMessage.cs" />
@@ -230,6 +231,8 @@
     <Compile Include="Model\EventMessages\UploadProgressMessage.cs" />
     <Compile Include="Model\HashedStreamReaderAdapter.cs" />
     <Compile Include="Model\HashMismatchException.cs" />
+    <Compile Include="Model\InternalCLExceptions.cs" />
+    <Compile Include="Model\ListRemoveAllEnumerator.cs" />
     <Compile Include="Model\Md5Hasher.cs" />
     <Compile Include="Model\NotifiableObject.cs" />
     <Compile Include="Model\StreamContext.cs" />
@@ -352,11 +355,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Resources\Resources.fr.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.fr.resx</DependentUpon>
-    </Compile>
     <Compile Include="SQLIndexer\IndexingAgent.cs" />
     <Compile Include="SQLIndexer\Migrations\MigrationList.cs" />
     <Compile Include="SQLIndexer\Model\FileResultRoot.cs" />
@@ -383,23 +381,18 @@
     <Compile Include="Sync\IEnumerableStreamExtensions.cs" />
     <Compile Include="Sync\IExecutableException.cs" />
     <Compile Include="Sync\NetworkMonitor.cs" />
+    <Compile Include="Sync\NLANetworkMonitor.cs" />
     <Compile Include="Sync\SyncEngine.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Cloud.Static</CustomToolNamespace>
     </EmbeddedResource>
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Resources.fr.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.fr.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="Docs\MainPage.dox" />

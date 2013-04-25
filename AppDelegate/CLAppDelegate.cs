@@ -357,8 +357,8 @@ namespace win_client.AppDelegate
             catch (Exception ex)
             {
                 error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
             }
             _trace.writeToLog(9, "CLAppDelegate: UnlinkFromCloudDotCom: Exit.");
         }
@@ -467,8 +467,8 @@ namespace win_client.AppDelegate
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.errorDescription, ((int)error.code).ToString());
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.PrimaryException.Message, error.PrimaryException.Code);
             }
         }
 
@@ -497,14 +497,14 @@ namespace win_client.AppDelegate
                     this.UnlinkFromCloudDotComSync(out error);
                     if (error != null)
                     {
-                        _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.errorDescription, ((int)error.code).ToString());
+                        _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception: Msg: <{0}>. Code: {1}", error.PrimaryException.Message, error.PrimaryException.Code);
                     }
                 }
                 catch (Exception ex)
                 {
                     error += ex;
-                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                    _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception(2): Msg: <{0}>. Code: {1}", error.errorDescription, ((int)error.code).ToString());
+                    error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                    _trace.writeToLog(1, "CLAppDelegate: ExitApplication: ERROR: Exception(2): Msg: <{0}>. Code: {1}", error.PrimaryException.Message, error.PrimaryException.Code);
                 }
             }
 
@@ -794,8 +794,8 @@ namespace win_client.AppDelegate
                 catch (Exception ex)
                 {
                     CLError error = ex;
-                    error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                    _trace.writeToLog(1, "CLAppDelegate: LocateMovedCloudFolder: ERROR: Exception.  Msg: <{0}>, Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                    error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                    _trace.writeToLog(1, "CLAppDelegate: LocateMovedCloudFolder: ERROR: Exception.  Msg: <{0}>, Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
                 }
             }
 
@@ -924,7 +924,7 @@ namespace win_client.AppDelegate
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
 
                 foundOriginalPath = null;
                 foundDeletionTimeLocal = (DateTime)Helpers.DefaultForType(typeof(DateTime));

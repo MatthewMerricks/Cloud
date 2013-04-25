@@ -58,7 +58,7 @@ namespace win_client.Services.FileSystemMonitoring
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLFSMonitoringService: ERROR: Creating the Syncbox. Msg: <{0}>", ex.Message);
             }
         }
@@ -76,7 +76,7 @@ namespace win_client.Services.FileSystemMonitoring
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLFSMonitoringService: BeginFileSystemMonitoring: ERROR: Starting the Syncbox. Msg: <{0}>", ex.Message);
             }
         }
@@ -93,7 +93,7 @@ namespace win_client.Services.FileSystemMonitoring
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 _trace.writeToLog(1, "CLFSMonitoringService: EndFileSystemMonitoring. ERROR: Stop Syncbox. Msg: <{0}>", ex.Message);
             }
         }

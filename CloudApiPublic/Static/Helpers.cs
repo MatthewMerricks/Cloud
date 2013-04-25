@@ -148,7 +148,7 @@ namespace Cloud.Static
         /// MethodInfo for the generic-typed Helpers.DefaultForType(of T); this can be used for compiling dynamic expressions
         /// </summary>
         public static readonly MethodInfo DefaultForTypeInfo = typeof(Helpers)
-            .GetMethod("DefaultForType",
+            .GetMethod(Resources.NotTranslatedHelpersMethodInfoDefaultForType,
                 BindingFlags.Public | BindingFlags.Static,
                 null,
                 new Type[] { typeof(Type) },
@@ -209,7 +209,7 @@ namespace Cloud.Static
                 {
                     if (!_isValid)
                     {
-                        throw new ArgumentException("Cannot retrieve property values on an invalid DictionaryTryGetValueResult");
+                        throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.ExceptionHelpersDictionaryTryGetValueResultInvalid);
                     }
 
                     return _success;
@@ -223,7 +223,7 @@ namespace Cloud.Static
                 {
                     if (!_isValid)
                     {
-                        throw new ArgumentException("Cannot retrieve property values on an invalid DictionaryTryGetValueResult");
+                        throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.ExceptionHelpersDictionaryTryGetValueResultInvalid);
                     }
 
                     return _value;
@@ -421,10 +421,11 @@ namespace Cloud.Static
         /// <typeparam name="TKey">Type of the property used for distict selection</typeparam>
         /// <param name="source">Extension source parameter for the pre-filtered input enumerable</param>
         /// <param name="keySelector">Selector for parameter used for distict comparison</param>
+        /// <param name="keyComparer">(optional) Allows override of the default comparison behavior after a key is selected</param>
         /// <returns>Returns enumerable filtered for duplicates</returns>
-        public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+        public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, IEqualityComparer<TKey> keyComparer = null)
         {
-            HashSet<TKey> seenKeys = new HashSet<TKey>();
+            HashSet<TKey> seenKeys = new HashSet<TKey>(keyComparer);
             foreach (TSource element in source)
             {
                 if (seenKeys.Add(keySelector(element)))
@@ -605,7 +606,7 @@ namespace Cloud.Static
             {
                 if (throwExceptionOnFailure)
                 {
-                    throw new NullReferenceException("toRun cannot be null");
+                    throw new CLArgumentNullException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersRunActionWithRetriesNullToRun);
                 }
                 return;
             }
@@ -617,13 +618,19 @@ namespace Cloud.Static
                     toRun(toRunState);
                     return;
                 }
-                catch
+                catch (Exception ex)
                 {
                     if (retryCounter == 0)
                     {
                         if (throwExceptionOnFailure)
                         {
-                            throw;
+                            CLException castEx = ex as CLException;
+
+                            throw new CLException(
+                                (castEx == null
+                                    ? CLExceptionCode.General_Miscellaneous
+                                    : castEx.Code),
+                                string.Format(Resources.ExceptionHelpersRunActionWithRetriesFailedRetries, numRetries), ex);
                         }
                     }
                     else if (millisecondsBetweenRetries > 0
@@ -648,7 +655,7 @@ namespace Cloud.Static
             {
                 if (throwExceptionOnFailure)
                 {
-                    throw new NullReferenceException("toRun cannot be null");
+                    throw new CLArgumentNullException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersRunActionWithRetriesNullToRun);
                 }
                 return;
             }
@@ -660,13 +667,19 @@ namespace Cloud.Static
                     toRun();
                     return;
                 }
-                catch
+                catch (Exception ex)
                 {
                     if (retryCounter == 0)
                     {
                         if (throwExceptionOnFailure)
                         {
-                            throw;
+                            CLException castEx = ex as CLException;
+
+                            throw new CLException(
+                                (castEx == null
+                                    ? CLExceptionCode.General_Miscellaneous
+                                    : castEx.Code),
+                                string.Format(Resources.ExceptionHelpersRunActionWithRetriesFailedRetries, numRetries), ex);
                         }
                     }
                     else if (millisecondsBetweenRetries > 0
@@ -790,7 +803,7 @@ namespace Cloud.Static
         /// MethodInfo for the generic-typed Helpers.ConvertTo(of T); this can be used for compiling dynamic expressions
         /// </summary>
         public static readonly MethodInfo ConvertToInfo = typeof(Helpers)
-            .GetMethod("ConvertTo",
+            .GetMethod(Resources.NotTranslatedHelpersMethodInfoConvertTo,
                 BindingFlags.Static | BindingFlags.Public,
                 null,
                 new Type[] { typeof(object) },
@@ -823,41 +836,52 @@ namespace Cloud.Static
             try
             {
                 System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
-                foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in
-                    entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyProductAttribute), false).OfType<System.Reflection.AssemblyProductAttribute>())
+
+                if (entryAssembly != null)
                 {
-                    if (!string.IsNullOrWhiteSpace(currentProductAttribute.Product))
+                    foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in
+                        entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyProductAttribute), false).OfType<System.Reflection.AssemblyProductAttribute>())
                     {
-                        return currentProductAttribute.Product;
+                        if (!string.IsNullOrWhiteSpace(currentProductAttribute.Product))
+                        {
+                            return currentProductAttribute.Product;
+                        }
                     }
-                }
-                foreach (System.Reflection.AssemblyTitleAttribute currentTitleAttribute in
-                    entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), false).OfType<System.Reflection.AssemblyTitleAttribute>())
-                {
-                    if (!string.IsNullOrWhiteSpace(currentTitleAttribute.Title))
+                    foreach (System.Reflection.AssemblyTitleAttribute currentTitleAttribute in
+                        entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), false).OfType<System.Reflection.AssemblyTitleAttribute>())
                     {
-                        return currentTitleAttribute.Title;
+                        if (!string.IsNullOrWhiteSpace(currentTitleAttribute.Title))
+                        {
+                            return currentTitleAttribute.Title;
+                        }
                     }
+                    return entryAssembly.GetName().Name;
                 }
-                return entryAssembly.GetName().Name;
             }
             catch
             {
-                try
+            }
+
+            try
+            {
+                // The calling thread may be from a native COM application.  If that is the case, the GetEntryAssembly() method will probably return null, but we handle if it throws an exception as well.
+                // Get the application name via another method.
+                // PInvoke:
+                //    StringBuilder exePath = new StringBuilder(1024);
+                //    int exePathLen = NativeMethods.GetModuleFileName(IntPtr.Zero, exePath, exePath.Capacity);
+                System.Diagnostics.Process currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+
+                if (currentProcess != null)
                 {
-                    // The calling thread may be from a native COM application.  If that is the case, the GetEntryAssembly() method throws an exception.
-                    // Get the application name via another method.
-                    // PInvoke:
-                    //    StringBuilder exePath = new StringBuilder(1024);
-                    //    int exePathLen = NativeMethods.GetModuleFileName(IntPtr.Zero, exePath, exePath.Capacity);
-                    return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-                }
-                catch
-                {
-                    // The PInvoke method failed too.  Return a placeholder string.
-                    return "PossiblyUnmanagedCode";
+                    return currentProcess.ProcessName;
                 }
             }
+            catch
+            {
+            }
+
+            // The PInvoke method failed too.  Return a placeholder string.
+            return Resources.NoSpacesHelpersGetDefaultNameFromApplicationNameDefault;
         }
 
         /// <summary>
@@ -903,7 +927,7 @@ namespace Cloud.Static
                     | System.Text.RegularExpressions.RegexOptions.CultureInvariant // a-f must be standard across all locales
                     | System.Text.RegularExpressions.RegexOptions.IgnoreCase)) // ignore case (alternative: optionally do not ignore case and add A-F to the regex pattern)
             {
-                throw new ArgumentException("hashString must be in a hexadecimal string format with no seperator characters and be 16 bytes in length (32 characters)");
+                throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersParseHexadecimalStringToByteArrayHashStringFormat);
             }
 
             #region optional fix to allow for a string with an odd number of hex chars
@@ -916,7 +940,7 @@ namespace Cloud.Static
             //}
             //else
             //{
-            hexChars = hashString.ToCharArray();
+            hexChars = hashString.ToCharArray(); // required whether you are using the odd number fix or not
             //}
             #endregion
 
@@ -952,6 +976,124 @@ namespace Cloud.Static
         }
 
         /// <summary>
+        /// Gets a string of the name of folder "Documents and Settings" localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string DocumentsAndSettingsXP = Resources.ResourceManager.GetString(Resources.NotTranslatedDocumentsAndSettingsXPName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the name of folder "Users" localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string DocumentsAndSettingsVista = Resources.ResourceManager.GetString(Resources.NotTranslatedDocumentsAndSettingsVistaName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the name of the user "All Users" localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string PublicUserNameXP = Resources.ResourceManager.GetString(Resources.NotTranslatedPublicUserNameXPName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the name of the user "Public" localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string PublicUserNameVista = Resources.ResourceManager.GetString(Resources.NotTranslatedPublicUserNameVistaName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "My Documents" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string DocumentsFolderXP = Resources.ResourceManager.GetString(Resources.NotTranslatedDocumentsFolderNameXPName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "Documents" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string DocumentsFolderVista = Resources.ResourceManager.GetString(Resources.NotTranslatedDocumentsFolderNameVistaName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "My Pictures" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string PicturesFolderXP = Resources.ResourceManager.GetString(Resources.NotTranslatedPicturesFolderNameXPName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "Pictures" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string PicturesFolderVista = Resources.ResourceManager.GetString(Resources.NotTranslatedPicturesFolderNameVistaName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "My Music" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string MusicFolderXP = Resources.ResourceManager.GetString(Resources.NotTranslatedMusicFolderNameXPName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "Music" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string MusicFolderVista = Resources.ResourceManager.GetString(Resources.NotTranslatedMusicFolderNameVistaName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "AppData" folder name localized by the installation of Windows and not the current culture; no equivalent in Windows XP except for certain inner folders
+        /// </summary>
+        public static string AppDataFolderVista = Resources.ResourceManager.GetString(Resources.NotTranslatedAppDataFolderNameVistaName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "Application Data" folder (which functions as roaming AppData) name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string RoamingAppDataXP = Resources.ResourceManager.GetString(Resources.NotTranslatedRoamingAppDataFolderNameXPName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "AppData\Roaming" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string RoamingAppDataVista = Resources.ResourceManager.GetString(Resources.NotTranslatedRoamingAppDataFolderNameVistaName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        internal static string RoamingPortionOfRoamingAppDataVista = RoamingAppDataVista.Substring(RoamingAppDataVista.IndexOf(/* '\\' */ (char)0x005c) + 1);
+
+        /// <summary>
+        /// Gets a string of the "Local Settings\Application Data" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string LocalAppDataXP = Resources.ResourceManager.GetString(Resources.NotTranslatedLocalAppDataFolderNameXPName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "AppData\Local" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string LocalAppDataVista = Resources.ResourceManager.GetString(Resources.NotTranslatedLocalAppDataFolderNameVistaName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        internal static string LocalPortionOfLocalAppDataVista = LocalAppDataVista.Substring(LocalAppDataVista.IndexOf(/* '\\' */ (char)0x005c) + 1);
+        
+        /// <summary>
+        /// Gets a string of the "Start Menu" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string StartMenuXP = Resources.ResourceManager.GetString(Resources.NotTranslatedStartMenuFolderNameXPName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "AppData\Roaming\Microsoft\Windows\Start Menu" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string StartMenuVista = Resources.ResourceManager.GetString(Resources.NotTranslatedStartMenuFolderNameVistaName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "Documents and Settings\All Users" folder name folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string CommonStartMenuParentXP = Resources.ResourceManager.GetString(Resources.NotTranslatedCommonStartMenuParentFolderNameXPName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        /// <summary>
+        /// Gets a string of the "ProgramData\Microsoft\Windows" folder name localized by the installation of Windows and not the current culture
+        /// </summary>
+        public static string CommonStartMenuParentVista = Resources.ResourceManager.GetString(Resources.NotTranslatedCommonStartMenuParentFolderNameVistaName, System.Globalization.CultureInfo.InstalledUICulture);
+
+        internal static int LengthDifferenceDocumentsAndSettingsXPMinusVista = DocumentsAndSettingsXP.Length - DocumentsAndSettingsVista.Length;
+
+        internal static int LengthDifferencePublicUserNameXPMinusVista = PublicUserNameXP.Length - PublicUserNameVista.Length;
+
+        internal static int LengthDifferenceDocumentsFolderNameXPMinusVista = DocumentsFolderXP.Length - DocumentsFolderVista.Length;
+
+        internal static int LengthDifferencePicturesFolderNameXPMinusVista = (DocumentsFolderXP.Length + 1 /* slash character in between */ + PicturesFolderXP.Length) - PicturesFolderVista.Length;
+
+        internal static int LengthDifferenceMusicFolderNameXPMinusVista = (DocumentsFolderXP.Length + 1 /* slash character in between */ + MusicFolderXP.Length) - MusicFolderVista.Length;
+
+        internal static int LengthDifferenceRoamingAppDataFolderNameXPMinusVista = RoamingAppDataXP.Length - RoamingAppDataVista.Length;
+
+        internal static int LengthDifferenceLocalAppDataFolderNameXPMinusVista = LocalAppDataXP.Length - LocalAppDataVista.Length;
+
+        // note, this is the only case where the difference is Vista minus XP instead of the other way around
+        internal static int LengthDifferenceStartMenuFolderNameVistaMinusXP = StartMenuVista.Length - StartMenuXP.Length;
+
+        internal static int LengthDifferenceCommonStartMenuParentXPMinusVista = CommonStartMenuParentXP.Length - CommonStartMenuParentVista.Length;
+
+        /// <summary>
         /// Checks the length of a path to sync to prevent download failures for long server paths.
         /// Uses a dynamic length based on directory so the same structure can be used across all supported versions of Windows: XP and up.
         /// For example C:\Documents and Settings\MyLongUserNameIsHere\BigApplicationName is the maximum length and translates to C:\Users\MyLongUserNameIsHere\BigApplicationName which is artificially more restricted (65 chars versus 48 chars)
@@ -961,158 +1103,187 @@ namespace Cloud.Static
         /// <returns>Returns an error if the provided path was too long, otherwise null</returns>
         public static CLError CheckSyncRootLength(string syncRootFullPath, out int tooLongChars)
         {
-            tooLongChars = 0; // base max length for root is 65 characters (excluding trailing slash), anything beyond that are "too long characters"
+            const int baseLengthRestriction = 65;
+
+            // base max length for root is 65 characters (excluding trailing slash), anything beyond that are "too long characters"
+            Func<int, Exception> getTooLongException = innerTooLongChars => new CLPathTooLongException(
+                CLExceptionCode.General_Arguments,
+                string.Format(
+                    (innerTooLongChars == 1
+                        ? Resources.ExceptionHelpersCheckSyncRootLengthTooLongSingular
+                        : Resources.ExceptionHelpersCheckSyncRootLengthTooLongPlural),
+                    innerTooLongChars));
+
+            // default if no exceptions are thrown
+            tooLongChars = 0;
+
             try
             {
                 FilePath rootPathObject = syncRootFullPath;
 
                 string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile); // \Users\[current user]
-                string usersDirectory = userProfile.Substring(0, userProfile.LastIndexOf('\\')); // \Users
+                string usersDirectory = userProfile.Substring(0, userProfile.LastIndexOf(/* '\\' */ (char)0x005c)); // \Users
                 FilePath usersDirectoryObject = usersDirectory;
 
                 if (rootPathObject.Contains(usersDirectoryObject, true))
                 {
-                    if (usersDirectory.EndsWith("Users", StringComparison.InvariantCultureIgnoreCase)) // Vista and up
+                    if (usersDirectory.EndsWith(DocumentsAndSettingsVista, StringComparison.InvariantCultureIgnoreCase)) // Vista and up
                     {
                         if (FilePathComparer.Instance.Equals(usersDirectoryObject, rootPathObject))
                         {
-                            if (syncRootFullPath.Length > 48) // 17 characters more restrictive: LEN("Documents and Settings") - LEN("Users")
+                            int DocumentsAndSettingsRestrictionLength = baseLengthRestriction - LengthDifferenceDocumentsAndSettingsXPMinusVista; // 17 characters more restrictive: LEN("Documents and Settings") - LEN("Users")
+
+                            if (syncRootFullPath.Length > DocumentsAndSettingsRestrictionLength)
                             {
-                                tooLongChars = syncRootFullPath.Length - 48;
-                                throw new Exception();
+                                throw getTooLongException(tooLongChars = syncRootFullPath.Length - DocumentsAndSettingsRestrictionLength);
                             }
                         }
                         else
                         {
-                            string partAfterUsers = rootPathObject.GetRelativePath(usersDirectoryObject, false);
-                            int nextSlashAfterUserProfile = partAfterUsers.IndexOf("\\", 1);
+                            string partAfterUsers = rootPathObject.GetRelativePath(usersDirectoryObject, replaceWithForwardSlashes: false);
+                            int nextSlashAfterUserProfile = partAfterUsers.IndexOf(/* '\\' */ (char)0x005c, 1);
 
                             // store if user is Public since Public translated back to All Users which adds 3 characters more restriction
-                            bool userIsPublic = partAfterUsers.Equals("\\Public", StringComparison.InvariantCultureIgnoreCase)
+                            bool userIsPublic = partAfterUsers.Equals(
+                                (/* '\\' */ (char)0x005c) +
+                                    PublicUserNameVista,
+                                StringComparison.InvariantCultureIgnoreCase)
+
                                 || (nextSlashAfterUserProfile != -1
                                     && string.Equals(partAfterUsers.Substring(1, nextSlashAfterUserProfile - 1),
-                                        "Public",
+                                        PublicUserNameVista,
                                         StringComparison.InvariantCultureIgnoreCase));
+                            int publicNameAdditionalRestriction = (userIsPublic ? LengthDifferencePublicUserNameXPMinusVista : 0);
+
+                            // username of public user may restrict even more
+                            int DocumentsAndSettingsRestrictionLength = baseLengthRestriction - LengthDifferenceDocumentsAndSettingsXPMinusVista - publicNameAdditionalRestriction;
 
                             if (nextSlashAfterUserProfile != -1)
                             {
-                                int slashAfterNextComponent = partAfterUsers.IndexOf('\\', nextSlashAfterUserProfile + 1);
+                                // possible logic error:
+                                // public user has different names for public documents folders, but perhaps if XP doesn't have different names then it won't matter since it will only restrict the system even more:
+                                // I remember though "Common Documents" in XP or something...
+
+                                int slashAfterNextComponent = partAfterUsers.IndexOf(/* '\\' */ (char)0x005c, nextSlashAfterUserProfile + 1);
                                 string entireNextComponent = partAfterUsers.Substring(nextSlashAfterUserProfile + 1);
-                                if (entireNextComponent.Equals("Documents", StringComparison.InvariantCultureIgnoreCase)
+                                if (entireNextComponent.Equals(DocumentsFolderVista, StringComparison.InvariantCultureIgnoreCase)
                                     || (slashAfterNextComponent != -1
                                         && string.Equals(partAfterUsers.Substring(nextSlashAfterUserProfile + 1, slashAfterNextComponent - nextSlashAfterUserProfile - 1),
-                                            "Documents",
+                                            DocumentsFolderVista,
                                             StringComparison.InvariantCultureIgnoreCase)))
                                 {
-                                    if (syncRootFullPath.Length > (userIsPublic ? 42 : 45)) // 20 characters more restrictive: LEN("Documents and Settings\<user>\My Documents") - LEN("Users\<user>\Documents")
+                                    // 20 characters more restrictive: LEN("Documents and Settings\<user>\My Documents") - LEN("Users\<user>\Documents");
+                                    // also, username of public user may restrict even more
+                                    int MyDocumentsRestrictionLength = baseLengthRestriction - LengthDifferenceDocumentsAndSettingsXPMinusVista - LengthDifferenceDocumentsFolderNameXPMinusVista - publicNameAdditionalRestriction;
+
+                                    if (syncRootFullPath.Length > MyDocumentsRestrictionLength)
                                     {
-                                        tooLongChars = syncRootFullPath.Length - (userIsPublic ? 42 : 45);
-                                        throw new Exception();
+                                        throw getTooLongException(tooLongChars = syncRootFullPath.Length - MyDocumentsRestrictionLength);
                                     }
                                 }
-                                else if (entireNextComponent.Equals("Pictures", StringComparison.InvariantCultureIgnoreCase)
+                                else if (entireNextComponent.Equals(PicturesFolderVista, StringComparison.InvariantCultureIgnoreCase)
                                     || (slashAfterNextComponent != -1
                                         && string.Equals(partAfterUsers.Substring(nextSlashAfterUserProfile + 1, slashAfterNextComponent - nextSlashAfterUserProfile - 1),
-                                            "Pictures",
+                                            PicturesFolderVista,
                                             StringComparison.InvariantCultureIgnoreCase)))
                                 {
-                                    if (syncRootFullPath.Length > (userIsPublic ? 29 : 32)) // 33 characters more restrictive: LEN("Documents and Settings\<user>\My Documents\My Pictures") - LEN("Users\<user>\Pictures")
+                                    // 33 characters more restrictive: LEN("Documents and Settings\<user>\My Documents\My Pictures") - LEN("Users\<user>\Pictures");
+                                    // also, username of public user may restrict even more
+                                    int MyPicturesRestrictionLength = baseLengthRestriction - LengthDifferenceDocumentsAndSettingsXPMinusVista - LengthDifferencePicturesFolderNameXPMinusVista - publicNameAdditionalRestriction;
+
+                                    if (syncRootFullPath.Length > MyPicturesRestrictionLength)
                                     {
-                                        tooLongChars = syncRootFullPath.Length - (userIsPublic ? 29 : 32);
-                                        throw new Exception();
+                                        throw getTooLongException(tooLongChars = syncRootFullPath.Length - MyPicturesRestrictionLength);
                                     }
                                 }
-                                else if (entireNextComponent.Equals("Music", StringComparison.InvariantCultureIgnoreCase)
+                                else if (entireNextComponent.Equals(MusicFolderVista, StringComparison.InvariantCultureIgnoreCase)
                                     || (slashAfterNextComponent != -1
                                         && string.Equals(partAfterUsers.Substring(nextSlashAfterUserProfile + 1, slashAfterNextComponent - nextSlashAfterUserProfile - 1),
-                                            "Music",
+                                            MusicFolderVista,
                                             StringComparison.InvariantCultureIgnoreCase)))
                                 {
-                                    if (syncRootFullPath.Length > (userIsPublic ? 29 : 32)) // 33 characters more restrictive: LEN("Documents and Settings\<user>\My Documents\My Music") - LEN("Users\<user>\Music")
+                                    // 33 characters more restrictive: LEN("Documents and Settings\<user>\My Documents\My Music") - LEN("Users\<user>\Music");
+                                    // also, username of public user may restrict even more
+                                    int MyMusicRestrictionLength = baseLengthRestriction - LengthDifferenceDocumentsAndSettingsXPMinusVista - LengthDifferenceMusicFolderNameXPMinusVista - publicNameAdditionalRestriction;
+
+                                    if (syncRootFullPath.Length > MyMusicRestrictionLength)
                                     {
-                                        tooLongChars = syncRootFullPath.Length - (userIsPublic ? 29 : 32);
-                                        throw new Exception();
+                                        throw getTooLongException(tooLongChars = syncRootFullPath.Length - MyMusicRestrictionLength);
                                     }
                                 }
                                 else if (!userIsPublic // Public user does not have AppData
-                                    && (entireNextComponent.Equals("AppData", StringComparison.InvariantCultureIgnoreCase)
+                                    && (entireNextComponent.Equals(AppDataFolderVista, StringComparison.InvariantCultureIgnoreCase)
                                         || (slashAfterNextComponent != -1
                                             && string.Equals(partAfterUsers.Substring(nextSlashAfterUserProfile + 1, slashAfterNextComponent - nextSlashAfterUserProfile - 1),
-                                                "AppData",
+                                                AppDataFolderVista,
                                                 StringComparison.InvariantCultureIgnoreCase))))
                                 {
                                     if (slashAfterNextComponent == -1)
                                     {
-                                        if (syncRootFullPath.Length > 65) // not more restrictive because Windows XP has no equivalent for the exact path "%userprofile%\AppData"
+                                        if (syncRootFullPath.Length > baseLengthRestriction) // not more restrictive because Windows XP has no equivalent for the exact path "%userprofile%\AppData"
                                         {
-                                            tooLongChars = syncRootFullPath.Length - 65;
-                                            throw new Exception();
+                                            throw getTooLongException(tooLongChars = syncRootFullPath.Length - baseLengthRestriction);
                                         }
                                     }
                                     else
                                     {
                                         string partAfterAppData = partAfterUsers.Substring(slashAfterNextComponent);
-                                        int nextSlashAfterAppData = partAfterAppData.IndexOf("\\", 1);
+                                        int nextSlashAfterAppData = partAfterAppData.IndexOf(/* '\\' */ (char)0x005c, 1);
                                         string entireAppDataFolder = partAfterUsers.Substring(slashAfterNextComponent + 1);
-                                        if (entireAppDataFolder.Equals("Roaming", StringComparison.InvariantCultureIgnoreCase)
+                                        if (entireAppDataFolder.Equals(RoamingPortionOfRoamingAppDataVista, StringComparison.InvariantCultureIgnoreCase)
                                             || (nextSlashAfterAppData != -1
                                                 && string.Equals(partAfterAppData.Substring(1, nextSlashAfterAppData - 1),
-                                                    "Roaming",
+                                                    RoamingPortionOfRoamingAppDataVista,
                                                     StringComparison.InvariantCultureIgnoreCase)))
                                         {
-                                            if (partAfterAppData.StartsWith("\\Roaming" +
+                                            if (partAfterAppData.StartsWith(/* '\\' */ (char)0x005c + RoamingPortionOfRoamingAppDataVista +
                                                     ((FilePath)Environment.GetFolderPath(Environment.SpecialFolder.StartMenu)).GetRelativePath(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), false),
                                                 StringComparison.InvariantCultureIgnoreCase))
                                             {
-                                                if (syncRootFullPath.Length > 65) // not more restrictive because Windows XP actually has a shorter equivalent path for "%userprofile%\AppData\Roaming\Microsoft\Windows\Start Menu" which is "%userprofile%\Start Menu"
+                                                if (syncRootFullPath.Length > baseLengthRestriction) // not more restrictive because Windows XP actually has a shorter equivalent path for "%userprofile%\AppData\Roaming\Microsoft\Windows\Start Menu" which is "%userprofile%\Start Menu"
                                                 {
-                                                    tooLongChars = syncRootFullPath.Length - 65;
-                                                    throw new Exception();
+                                                    throw getTooLongException(tooLongChars = syncRootFullPath.Length - baseLengthRestriction);
                                                 }
                                             }
                                             else
                                             {
-                                                if (syncRootFullPath.Length > 47) // 18 characters more restrictive: LEN("Documents and Settings\<user>\Application Data") - LEN("Users\<user>\AppData\Roaming")
+                                                int RoamingAppDataRestrictionLength = baseLengthRestriction - LengthDifferenceDocumentsAndSettingsXPMinusVista - LengthDifferenceRoamingAppDataFolderNameXPMinusVista; // 18 characters more restrictive: LEN("Documents and Settings\<user>\Application Data") - LEN("Users\<user>\AppData\Roaming")
+
+                                                if (syncRootFullPath.Length > RoamingAppDataRestrictionLength)
                                                 {
-                                                    tooLongChars = syncRootFullPath.Length - 47;
-                                                    throw new Exception();
+                                                    throw getTooLongException(tooLongChars = syncRootFullPath.Length - RoamingAppDataRestrictionLength);
                                                 }
                                             }
                                         }
                                         // The following is an extremely restrictive case to be compatible between Windows XP and later: Local application data would only allow 7 dynamic characters (such as a 5 character username and a 1 character application name or 7 character username and no application name)
-                                        else if (entireAppDataFolder.Equals("Local", StringComparison.InvariantCultureIgnoreCase)
+                                        else if (entireAppDataFolder.Equals(LocalPortionOfLocalAppDataVista, StringComparison.InvariantCultureIgnoreCase)
                                             || (nextSlashAfterAppData != -1
                                                 && string.Equals(partAfterAppData.Substring(1, nextSlashAfterAppData - 1),
-                                                    "Local",
+                                                    LocalPortionOfLocalAppDataVista,
                                                     StringComparison.InvariantCultureIgnoreCase)))
                                         {
-                                            if (syncRootFullPath.Length > 30) // 35 characters more restrictive: LEN("Documents and Settigns\<user>\Local Settings\Application Data") - LEN("Users\<user>\AppData\Local")
+                                            int LocalAppDataRestrictionLength = baseLengthRestriction - LengthDifferenceDocumentsAndSettingsXPMinusVista - LengthDifferenceLocalAppDataFolderNameXPMinusVista; // 35 characters more restrictive: LEN("Documents and Settigns\<user>\Local Settings\Application Data") - LEN("Users\<user>\AppData\Local")
+
+                                            if (syncRootFullPath.Length > LocalAppDataRestrictionLength)
                                             {
-                                                tooLongChars = syncRootFullPath.Length - 30;
-                                                throw new Exception();
+                                                throw getTooLongException(tooLongChars = syncRootFullPath.Length - LocalAppDataRestrictionLength);
                                             }
                                         }
                                         // Remaining cases inside AppData which are not Local or Roaming, none have equivalents in Windows XP
-                                        else
+                                        else if (syncRootFullPath.Length > baseLengthRestriction) // not more restrictive than Windows XP because AppData only has equivalents for Local and Roaming
                                         {
-                                            if (syncRootFullPath.Length > 65) // not more restrictive than Windows XP because AppData only has equivalents for Local and Roaming
-                                            {
-                                                tooLongChars = syncRootFullPath.Length - 65;
-                                                throw new Exception();
-                                            }
+                                            throw getTooLongException(tooLongChars = syncRootFullPath.Length - baseLengthRestriction);
                                         }
                                     }
                                 }
-                                else if (syncRootFullPath.Length > (userIsPublic ? 45 : 48)) // 17 characters more restrictive: LEN("Documents and Settings") - LEN("Users")
+                                else if (syncRootFullPath.Length > DocumentsAndSettingsRestrictionLength) // 17 characters more restrictive: LEN("Documents and Settings") - LEN("Users")
                                 {
-                                    tooLongChars = syncRootFullPath.Length - (userIsPublic ? 45 : 48);
-                                    throw new Exception();
+                                    throw getTooLongException(tooLongChars = syncRootFullPath.Length - DocumentsAndSettingsRestrictionLength);
                                 }
                             }
-                            else if (syncRootFullPath.Length > (userIsPublic ? 45 : 48)) // 17 characters more restrictive: LEN("Documents and Settings") - LEN("Users")
+                            else if (syncRootFullPath.Length > DocumentsAndSettingsRestrictionLength) // 17 characters more restrictive: LEN("Documents and Settings") - LEN("Users")
                             {
-                                tooLongChars = syncRootFullPath.Length - (userIsPublic ? 45 : 48);
-                                throw new Exception();
+                                throw getTooLongException(tooLongChars = syncRootFullPath.Length - DocumentsAndSettingsRestrictionLength);
                             }
                         }
                     }
@@ -1120,101 +1291,128 @@ namespace Cloud.Static
                     {
                         if (FilePathComparer.Instance.Equals(usersDirectoryObject, rootPathObject))
                         {
-                            if (syncRootFullPath.Length > 65)
+                            if (syncRootFullPath.Length > baseLengthRestriction)
                             {
-                                tooLongChars = syncRootFullPath.Length - 65;
-                                throw new Exception();
+                                throw getTooLongException(tooLongChars = syncRootFullPath.Length - baseLengthRestriction);
                             }
                         }
                         else
                         {
                             string partAfterUsers = rootPathObject.GetRelativePath(usersDirectoryObject, false);
-                            int nextSlashAfterUserProfile = partAfterUsers.IndexOf("\\", 1);
+                            int nextSlashAfterUserProfile = partAfterUsers.IndexOf(/* '\\' */ (char)0x005c, 1);
 
                             if (nextSlashAfterUserProfile != -1
                                 && !string.Equals(partAfterUsers.Substring(1, nextSlashAfterUserProfile - 1),
-                                    "Public",
+                                    PublicUserNameXP,
                                     StringComparison.InvariantCultureIgnoreCase))
                             {
-                                int slashAfterNextComponent = partAfterUsers.IndexOf('\\', nextSlashAfterUserProfile + 1);
+                                int slashAfterNextComponent = partAfterUsers.IndexOf(/* '\\' */ (char)0x005c, nextSlashAfterUserProfile + 1);
                                 string entireNextComponent = partAfterUsers.Substring(nextSlashAfterUserProfile + 1);
-                                if (entireNextComponent.Equals("Start Menu", StringComparison.InvariantCultureIgnoreCase)
+                                if (entireNextComponent.Equals(StartMenuXP, StringComparison.InvariantCultureIgnoreCase)
                                     || (slashAfterNextComponent != -1
                                         && string.Equals(partAfterUsers.Substring(nextSlashAfterUserProfile + 1, slashAfterNextComponent - nextSlashAfterUserProfile - 1),
-                                            "Start Menu",
+                                            StartMenuXP,
                                             StringComparison.InvariantCultureIgnoreCase)))
                                 {
-                                    if (syncRootFullPath.Length > 48) // 17 characters more restrictive: LEN("Users\<user>\AppData\Roaming\Microsoft\Windows\Start Menu") - LEN("Documents and Settings\<user>\Start Menu")
+                                    // notice no less restricted based on special username "All Users" since we excluded that condition in the outer if statement
+                                    int StartMenuRestrictionLength = baseLengthRestriction + /* <-- notice the plus here since XP is longer for Documents and Settings, thus less restricted */ LengthDifferenceDocumentsAndSettingsXPMinusVista - LengthDifferenceStartMenuFolderNameVistaMinusXP;
+
+                                    if (syncRootFullPath.Length > StartMenuRestrictionLength) // 17 characters more restrictive: LEN("Users\<user>\AppData\Roaming\Microsoft\Windows\Start Menu") - LEN("Documents and Settings\<user>\Start Menu")
                                     {
-                                        tooLongChars = syncRootFullPath.Length - 48;
-                                        throw new Exception();
+                                        throw getTooLongException(tooLongChars = syncRootFullPath.Length - StartMenuRestrictionLength);
                                     }
                                 }
-                                else if (syncRootFullPath.Length > 65)
+                                else if (syncRootFullPath.Length > baseLengthRestriction)
                                 {
-                                    tooLongChars = syncRootFullPath.Length - 65;
-                                    throw new Exception();
+                                    throw getTooLongException(tooLongChars = syncRootFullPath.Length - baseLengthRestriction);
                                 }
                             }
-                            else if (syncRootFullPath.Length > 65)
+                            else if (syncRootFullPath.Length > baseLengthRestriction)
                             {
-                                tooLongChars = syncRootFullPath.Length - 65;
-                                throw new Exception();
+                                throw getTooLongException(tooLongChars = syncRootFullPath.Length - baseLengthRestriction);
                             }
                         }
+                    }
+                }
+                else if (usersDirectory.EndsWith(DocumentsAndSettingsVista, StringComparison.InvariantCultureIgnoreCase)) // Vista and up
+                {
+                    if (rootPathObject.Contains(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), true)
+                        || rootPathObject.Contains(Environment.GetFolderPath(Environment.SpecialFolder.CommonTemplates), true))
+                    {
+                        int CommonStartMenuParentRestrictionLength = baseLengthRestriction - LengthDifferenceCommonStartMenuParentXPMinusVista; // 3 characters more restrictive: LEN("Documents and Settings\All Users") - LEN("ProgramData\Microsoft\Windows") !! note: ProgramData could also contain Start Menu and Templates before but we calculate by most restriction
+
+                        if (syncRootFullPath.Length > CommonStartMenuParentRestrictionLength)
+                        {
+                            throw getTooLongException(tooLongChars = syncRootFullPath.Length - CommonStartMenuParentRestrictionLength);
+                        }
+                    }
+                    else if (syncRootFullPath.Length > baseLengthRestriction)
+                    {
+                        throw getTooLongException(tooLongChars = syncRootFullPath.Length - baseLengthRestriction);
                     }
                 }
                 else
-                {
-                    if (usersDirectory.EndsWith("Users", StringComparison.InvariantCultureIgnoreCase)) // Vista and up
+                    // ProgramData is for Vista and up which should not enter this else condition as per the last if condition;
+                    // also, I don't understand where the 44 number came from for the calculation below
+                //{
+                //    string systemDrive = Environment.GetEnvironmentVariable(Resources.NotTranslatedSystemDrive);
+                //    if (rootPathObject.Contains(systemDrive + "\\ProgramData\\Start Menu", true)
+                //        && rootPathObject.Contains(systemDrive + "\\ProgramData\\Templates", true))
+                //    {
+                //        Users\Public\AppData\Roaming\Microsoft\Windows\Start Menu
+                //        AppData\Roaming\Microsoft\Windows\Start Menu
+                //        ProgramData\Microsoft\Windows\Start Menu
+                //        ProgramData\Start Menu
+                        
+
+                //            need to figure out why the 44 number below...
+
+                //        if (syncRootFullPath.Length > 44)
+                //        {
+                //            throw getTooLongException(tooLongChars = syncRootFullPath.Length - 44);
+                //        }
+                //    }
+                //    else
+                        if (syncRootFullPath.Length > baseLengthRestriction)
                     {
-                        if (rootPathObject.Contains(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), true)
-                            || rootPathObject.Contains(Environment.GetFolderPath(Environment.SpecialFolder.CommonTemplates), true))
-                        {
-                            if (syncRootFullPath.Length > 62) // 3 characters more restrictive: LEN("Documents and Settings\All Users") - LEN("ProgramData\Microsoft\Windows") !! note: ProgramData could also contain Start Menu and Templates before but we calculate by most restriction
-                            {
-                                tooLongChars = syncRootFullPath.Length - 62;
-                                throw new Exception();
-                            }
-                        }
-                        else if (syncRootFullPath.Length > 65)
-                        {
-                            tooLongChars = syncRootFullPath.Length - 65;
-                            throw new Exception();
-                        }
+                        throw getTooLongException(tooLongChars = syncRootFullPath.Length - baseLengthRestriction);
                     }
-                    else
-                    {
-                        if (rootPathObject.Contains(Environment.GetEnvironmentVariable("SystemDrive") + "\\ProgramData\\Start Menu", true)
-                            && rootPathObject.Contains(Environment.GetEnvironmentVariable("SystemDrive") + "\\ProgramData\\Templates", true))
-                        {
-                            if (syncRootFullPath.Length > 44)
-                            {
-                                tooLongChars = syncRootFullPath.Length - 44;
-                                throw new Exception();
-                            }
-                        }
-                        else if (syncRootFullPath.Length > 65)
-                        {
-                            tooLongChars = syncRootFullPath.Length - 65;
-                            throw new Exception();
-                        }
-                    }
-                }
+                //}
             }
-            catch
+            catch (Exception ex)
             {
-                return new ArgumentException("syncRootFullPath is too long by " + tooLongChars.ToString() + " character" + (tooLongChars == 1 ? string.Empty : "s"));
+                return ex;
             }
             return null;
         }
 
         /// <summary>
+        /// Marks each item for removal one at a time and completes removal after the last item is enumerated. Each item is returned immediately upon marking for removal.
+        /// </summary>
+        /// <typeparam name="T">Type of item in List</typeparam>
+        /// <param name="removeSource">List of items to enumerate</param>
+        /// <param name="conditionalRemoval">Optionally provide a condition if not all items are supposed to be removed and returned, otherwise all will be removed and returned</param>
+        /// <returns>Returns the enumeration of removed items</returns>
+        public static IEnumerable<T> RemoveAllFromList<T>(List<T> removeSource, Predicate<T> conditionalRemoval = null)
+        {
+            using (IEnumerator<T> removeIterator = new ListRemoveAllEnumerator<T>(removeSource,
+                (conditionalRemoval == null
+                    ? currentToRemove => true
+                    : conditionalRemoval)))
+            {
+                while (removeIterator.MoveNext())
+                {
+                    yield return removeIterator.Current;
+                }
+            }
+        }
+
+        /// <summary>
         /// Checks for a bad full path for sync (does not check if path was too long for root which must be done after this check);
-        /// Path cannot have empty directory portions (i.e. C:\NextWillBeEmpty\\LastWasEmpty;
-        /// Path cannot have a trailing slash (i.e. C:\SeeNextSlash\);
-        /// Root of path cannot represent anything besides a drive letter (i.e. \RelativePath\);
-        /// Root of path cannot represent anything besides a fixed drive or a removable disk (i.e. net use X: \\computer name\share name)
+        /// Path cannot have empty directory portions (e.g. C:\NextWillBeEmpty\\LastWasEmpty;
+        /// Path cannot have a trailing slash (e.g. C:\SeeNextSlash\) except for drive roots which require a trailing slash;
+        /// Root of path cannot represent anything besides a drive letter (e.g. \RelativePath\);
+        /// Root of path cannot represent anything besides a fixed drive or a removable disk (e.g. net use X: \\computer name\share name)
         /// </summary>
         /// <param name="rootPathObject">Full path of directory to sync</param>
         /// <returns>Returns an error if the provided path was bad, otherwise null</returns>
@@ -1227,26 +1425,26 @@ namespace Cloud.Static
                 {
                     if (string.IsNullOrEmpty(checkForEmptyName.Name))
                     {
-                        throw new ArgumentException("settings.CloudRoot cannot have an empty directory name for any directory in the parent path hierarchy and cannot have a trailing slash");
+                        throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersCheckForBadPathEmptyDirectory);
                     }
 
                     if (checkForEmptyName.Parent == null)
                     {
                         if (!Regex.IsMatch(checkForEmptyName.Name,
-                            "^[a-z]:\\\\$",
+                            Resources.NotTranslatedHelpersCheckForBadPathDriveLetterRegex,
                             RegexOptions.CultureInvariant
                                 | RegexOptions.Compiled
                                 | RegexOptions.IgnoreCase))
                         {
-                            throw new ArgumentException("settings.CloudRoot must start at a drive letter");
+                            throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersCheckForBadPathProceedingSlash);
                         }
 
                         char rootDriveLetter = checkForEmptyName.Name[0];
                         if (!char.IsUpper(rootDriveLetter))
                         {
-                            throw new ArgumentException("settings.CloudRoot must start with a upper-case drive letter");
+                            throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersCheckForBadPathDriveLetter);
                         }
-                        DriveInfo rootDrive = new DriveInfo(new string(new[] { rootDriveLetter }));
+                        DriveInfo rootDrive = new DriveInfo(char.ToString(rootDriveLetter));
                         switch (rootDrive.DriveType)
                         {
                             case DriveType.CDRom:
@@ -1254,7 +1452,7 @@ namespace Cloud.Static
                             case DriveType.NoRootDirectory:
                             case DriveType.Ram:
                             case DriveType.Unknown:
-                                throw new ArgumentException("settings.CloudRoot root drive letter represents an invalid DriveType: " + rootDrive.DriveType.ToString());
+                                throw new CLArgumentException(CLExceptionCode.General_Arguments, string.Format(Resources.ExceptionHelpersCheckForBadPathDriveType, rootDrive.DriveType.ToString()));
                         }
                     }
 
@@ -1270,7 +1468,7 @@ namespace Cloud.Static
 
         #region Choose and Maintain Trace File Names
         
-        internal class TraceFile
+        internal sealed class TraceFile
         {
             public DateTime dateFromFileName { get; set; }
             public string fullPath { get; set; }
@@ -1295,11 +1493,12 @@ namespace Cloud.Static
         /// <returns>string: The full path and filename.ext of the trace file to use.</returns>
         internal static string CheckLogFileExistance(string TraceLocation, Nullable<long> SyncboxId, string UserDeviceId, string TraceCategory, string FileExtensionWithoutPeriod, Action<TextWriter, string, Nullable<long>, string, string> OnNewTraceFile, Action<TextWriter> OnPreviousCompletion)
         {
-            // Get the last day we created a trace file for this category
             if (String.IsNullOrWhiteSpace(TraceCategory))
             {
-                throw new Exception("TraceCategory must not be null");
+                throw new CLArgumentNullException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersCheckLogFileExistanceTraceCategoryNull);
             }
+
+            // Get the last day we created a trace file for this category
             Nullable<DateTime> LastDayLogCreated;
             bool isValueOk = DictLastDayLogCreatedByTraceCategory.TryGetValue(TraceCategory, out LastDayLogCreated);
             if (!isValueOk)
@@ -1312,26 +1511,26 @@ namespace Cloud.Static
             // <TraceLocation>\Trace-????-??-??-<TraceCategory>.
             // Make sure TraceLocation ends with a backslash.
             string localTraceLocation;
-            if (TraceLocation.EndsWith(@"\"))
+            if (TraceLocation.EndsWith(char.ToString(/* '\\' */ (char)0x005c)))
             {
                 localTraceLocation = TraceLocation;
             }
             else
             {
-                localTraceLocation = TraceLocation + @"\";
+                localTraceLocation = TraceLocation + (/* '\\' */ (char)0x005c);
             }
 
             // store the current date (UTC)
             DateTime currentDate = DateTime.UtcNow.Date;
 
             // Build the base full path without the extension.
-            string logLocationBaseForCategoryWithoutExtension = localTraceLocation + "Trace-" +
-                currentDate.ToString("yyyy-MM-dd-") + // formats to "YYYY-MM-DD-"
+            string logLocationBaseForCategoryWithoutExtension = localTraceLocation + Resources.NotTranslatedCheckLogFileExistanceTrace +
+                currentDate.ToString(Resources.NotTranslatedCheckLogFileExistanceYearMonthDay) + // formats to "YYYY-MM-DD-"
                 TraceCategory;
             FileInfo logFileBaseForCategoryWithoutExtension = new FileInfo(logLocationBaseForCategoryWithoutExtension);
 
             // Build the search string for enumeration within the directory.
-            string logFilenameExtensionSearchString = "Trace-????-??-??-" + TraceCategory + "*." + FileExtensionWithoutPeriod;
+            string logFilenameExtensionSearchString = Resources.NotTranslatedCheckLogFileExistanceSearchStart + TraceCategory + Resources.NotTranslatedCheckLogFileExistanceStarDot + FileExtensionWithoutPeriod;
 
             // Build the final full path of the trace file with filename and extension.
             string finalLocation = logFileBaseForCategoryWithoutExtension.FullName +
@@ -1339,7 +1538,7 @@ namespace Cloud.Static
                 // Removed device id from trace file name since now my trace files have SyncboxId for every entry -David
                 //(UserDeviceId == null ? "" : "-" + UserDeviceId) +
 
-                "." + FileExtensionWithoutPeriod;
+                (/* '.' */ (char)0x002e) + FileExtensionWithoutPeriod;
 
             bool logAlreadyExists = File.Exists(finalLocation);
 
@@ -1430,23 +1629,11 @@ namespace Cloud.Static
                                         using (TextWriter logWriter = File.AppendText(currentDeletePath))
                                         {
                                             OnPreviousCompletion(logWriter);
-                                            //logWriter.Write(Environment.NewLine + "</Log>");
                                         }
                                     }
                                     catch
                                     {
                                     }
-                                }
-
-                                try
-                                {
-                                    using (TextWriter logWriter = File.AppendText(currentDeletePath))
-                                    {
-                                        logWriter.Write(Environment.NewLine + "</Log>");
-                                    }
-                                }
-                                catch
-                                {
                                 }
                             }
                             currentCount++;
@@ -1482,8 +1669,6 @@ namespace Cloud.Static
                             using (TextWriter logWriter = File.CreateText(finalLocation))
                             {
                                 OnNewTraceFile(logWriter, finalLocation, SyncboxId, UserDeviceId, CloudVersion);
-                                //logWriter.Write(LogXmlStart(finalLocation,
-                                //    "DeviceUuid: {" + UserDeviceId + "}, SyncboxId: {" + UniqueUserId + "}"));
                             }
                         }
                         catch
@@ -1505,20 +1690,22 @@ namespace Cloud.Static
         /// </summary>
         public static void DelayedInvoke(this Dispatcher dispatcher, TimeSpan delay, Action action)
         {
-            Thread thread = new Thread(DoDelayedInvokeByAction);
-            thread.Start(new Tuple<Dispatcher, TimeSpan, Action>(dispatcher, delay, action));
-        }
+            var delayDelegate = DelegateAndDataHolder.Create(
+                new
+                {
+                    dispatcher = dispatcher,
+                    delay = delay,
+                    action = action
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    Thread.Sleep(Data.delay);
 
-        ///<summary>
-        ///Private delayed invocation by action.
-        ///</summary>
-        private static void DoDelayedInvokeByAction(object parameter)
-        {
-            Tuple<Dispatcher, TimeSpan, Action> parameterData = (Tuple<Dispatcher, TimeSpan, Action>)parameter;
+                    Data.dispatcher.BeginInvoke(Data.action);
+                },
+                null);
 
-            Thread.Sleep(parameterData.Item2);
-
-            parameterData.Item1.BeginInvoke(parameterData.Item3);
+            (new Thread(delayDelegate.VoidProcess)).Start();
         }
 
         /// <summary>
@@ -1526,20 +1713,23 @@ namespace Cloud.Static
         /// </summary>
         public static void DelayedInvoke(this Dispatcher dispatcher, TimeSpan delay, System.Delegate d, params object[] args)
         {
-            Thread thread = new Thread(DoDelayedInvokeByDelegate);
-            thread.Start(new Tuple<Dispatcher, TimeSpan, System.Delegate, object[]>(dispatcher, delay, d, args));
-        }
+            var delayDelegate = DelegateAndDataHolder.Create(
+                new
+                {
+                    dispatcher = dispatcher,
+                    delay = delay,
+                    d = d,
+                    args = args
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    Thread.Sleep(Data.delay);
 
-        /// <summary>
-        /// Private delayed invocation by delegate.
-        /// </summary>
-        private static void DoDelayedInvokeByDelegate(object parameter)
-        {
-            Tuple<Dispatcher, TimeSpan, System.Delegate, object[]> parameterData = (Tuple<Dispatcher, TimeSpan, System.Delegate, object[]>)parameter;
+                    Data.dispatcher.BeginInvoke(Data.d, Data.args);
+                },
+                null);
 
-            Thread.Sleep(parameterData.Item2);
-
-            parameterData.Item1.BeginInvoke(parameterData.Item3, parameterData.Item4);
+            (new Thread(delayDelegate.VoidProcess)).Start();
         }
         #endregion
 
@@ -1557,7 +1747,7 @@ namespace Cloud.Static
                         }
                         catch
                         {
-                            _cloudVersion.Value = "0.0.0.0";
+                            _cloudVersion.Value = Resources.NotTranslatedZeroedVersion;
                         }
                     }
                     return _cloudVersion.Value;
@@ -1575,7 +1765,7 @@ namespace Cloud.Static
         {
             if (bytes == 1)
             {
-                return "1 Byte"; // special case to remove the plural
+                return bytes.ToString() + (/* ' ' */ (char)0x0020) + Resources.BytesSingular; // special case to remove the plural
             }
 
             const int scale = 1024;
@@ -1585,35 +1775,46 @@ namespace Cloud.Static
             {
                 if (bytes > max)
                 {
-                    return string.Format("{0:##.##} {1}", decimal.Divide(bytes, max), order);
+                    return string.Format(Resources.NotTranslatedHelpersFormatBytesString, decimal.Divide(bytes, max), order);
                 }
                 else if (bytes == max)
                 {
-                    return string.Format("1 {0}", order);
+                    return 1.ToString() + (/* ' ' */ (char)0x0020) + order;
                 }
 
                 max /= scale;
             }
-            return "0 Bytes"; // default for bytes that are less than or equal to zero
+            return bytes.ToString() + (/* ' ' */ (char)0x0020) + Resources.BytesPlural; // default for bytes that are less than or equal to zero
         }
-        private static readonly string[] FormatBytesOrders = new string[] { "GB", "MB", "KB", "Bytes" };
+        private static readonly string[] FormatBytesOrders = new [] { Resources.AbbreviatedGigabytes, Resources.AbbreviatedMegabytes, Resources.AbbreviatedKilobytes, Resources.BytesPlural };
 
         public static bool IsCastableTo(this Type from, Type to)
         {
+            if (from == null
+                || to == null)
+            {
+                return false;
+            }
+
             if (to.IsAssignableFrom(from))
             {
                 return true;
             }
-            var methods = from.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                              .Where(
-                                  m => m.ReturnType == to &&
-                                       m.Name == "op_Implicit" ||
-                                       m.Name == "op_Explicit"
-                              );
+
+            ParameterInfo[] operatorParameters;
+            IEnumerable<MethodInfo> methods = from.GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .Concat(to.GetMethods(BindingFlags.Public | BindingFlags.Static))
+                .Where(m => m.ReturnType == to
+                    && (m.Name == Resources.NotTranslatedImplicitOperator
+                        || m.Name == Resources.NotTranslatedExplicitOperator)
+                    && (operatorParameters = m.GetParameters()) != null
+                    && operatorParameters.Length == 1
+                    && operatorParameters[0].ParameterType == from);
+
             return methods.Count() > 0;
         }
 
-        private static readonly Encoding UTF8WithoutBOM = new UTF8Encoding(false);
+        private static readonly Encoding UTF8WithoutBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
         /// <summary>
         /// Write an embedded resource file out to the file system as a real file
@@ -1698,7 +1899,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 _trace.writeToLog(1, "Helpers: WriteResourceFileToFilesystemFile: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 return 4;
             }
@@ -1851,7 +2052,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 CLTrace.Instance.writeToLog(1, "Helpers: Gen: ERROR. Exception.  Msg: <{0}>.", ex.Message);
             }
 
@@ -1915,7 +2116,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "Helpers: DeleteEverythingInDirectory: ERROR: Exception.  Msg: <{0}>.", ex.Message);
                 return error;
             }
@@ -1931,7 +2132,7 @@ namespace Cloud.Static
         /// <remarks>Can throw.</remarks>
         internal static string GetTempFileDownloadPath(ICLSyncSettingsAdvanced settings, long syncboxId)
         {
-            string toReturn = "";
+            string toReturn = string.Empty;
             try
             {
                 if (settings == null)
@@ -1966,7 +2167,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 CLTrace.Instance.writeToLog(1, "Helpers: GetTempFileDownloadPath: ERROR. Exception.  Msg: <{0}>.", ex.Message);
                 throw ex;
             }
@@ -1999,7 +2200,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 CLTrace.Instance.writeToLog(1, "Helpers: GetTempFileDownloadPath: ERROR. Exception.  Msg: <{0}>.", ex.Message);
                 throw ex;
             }
@@ -2067,7 +2268,7 @@ namespace Cloud.Static
         /// Debug function to assert whether a tree of dependencies for a FileChange has a change with an equivalent dependency;
         /// throws an InvalidOperationException of a duplicate is found as dependent to itself
         /// </summary>
-        public static void CheckFileChangeDependenciesForDuplicates(FileChange toCheck)
+        internal static void CheckFileChangeDependenciesForDuplicates(FileChange toCheck)
         {
             FileChangeWithDependencies castToCheck = toCheck as FileChangeWithDependencies;
             if (castToCheck != null
@@ -2083,6 +2284,21 @@ namespace Cloud.Static
                         CheckFileChangeDependenciesForDuplicates(innerDependency);
                     });
             }
+        }
+
+        /// <summary>
+        /// function to build spaces by tab count (4 spaces per tab)
+        /// </summary>
+        public static string MakeTabs(int tabCount = 1)
+        {
+            if (tabCount <= 0)
+            {
+                return string.Empty;
+            }
+
+            return new string(
+                ' ', // components of the tab are spaces
+                4 * tabCount); // the "4 *" multiplier means each tab is 4 spaces
         }
 
         #region ProcessHttp
@@ -4450,11 +4666,7 @@ namespace Cloud.Static
                 }
 
                 // hash is used in http header for MD5 validation of content stream
-                CLError retrieveHashError = this.ChangeToTransfer.GetMD5LowercaseString(out this._hash);
-                if (retrieveHashError != null)
-                {
-                    throw new AggregateException("Unable to retrieve MD5 from ChangeToTransfer", retrieveHashError.GrabExceptions());
-                }
+                this._hash = this.ChangeToTransfer.GetMD5LowercaseString();
                 if (this._hash == null)
                 {
                     throw new NullReferenceException("ChangeToTransfer must have an MD5 hash");
@@ -4576,7 +4788,7 @@ namespace Cloud.Static
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "Helpers: IsAdministrator: ERROR: Exception: Msg: <{0}>. Return false.", ex.Message);
                 return false;
             }

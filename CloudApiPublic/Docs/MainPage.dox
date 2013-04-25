@@ -374,7 +374,7 @@
 /// catch (Exception ex)
 /// {
 ///     error += ex;
-///     error.LogErrors(_syncSettings.TraceLocation, _syncSettings.LogErrors);
+///     error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
 ///     ...
 /// }
 /// \endcode
