@@ -735,8 +735,16 @@ namespace Cloud
                                 if (startNetworkMonitor)
                                 {
                                     NetworkMonitor.Instance.NetworkChanged += NetworkChanged;
-                                    NetworkMonitor.Instance.StartNetworkMonitor();
-                                    SyncEngine.InternetConnected = NetworkMonitor.Instance.CheckInternetIsConnected();
+                                    try
+                                    {
+                                        NetworkMonitor.Instance.StartNetworkMonitor();
+                                        SyncEngine.InternetConnected = NetworkMonitor.Instance.CheckInternetIsConnected();
+                                    }
+                                    catch
+                                    {
+                                        SyncEngine.InternetConnected = true;
+                                        NetworkMonitor.Instance.NetworkChanged -= NetworkChanged;
+                                    }
                                 }
                             }
                         }

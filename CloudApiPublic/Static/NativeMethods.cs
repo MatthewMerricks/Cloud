@@ -660,10 +660,115 @@ namespace Cloud.Static
         [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public extern static Int32 WSAGetLastError();
 
+
+        [StructLayoutAttribute(LayoutKind.Sequential)]
+        public sealed class OVERLAPPED
+        {
+            public UIntPtr Internal;
+            public UIntPtr InternalHigh;
+            public Anonymous_7416d31a_1ce9_4e50_b1e1_0f2ad25c0196 Union1;
+            public IntPtr hEvent;
+        }
+
+        [StructLayoutAttribute(LayoutKind.Explicit)]
+        public struct Anonymous_7416d31a_1ce9_4e50_b1e1_0f2ad25c0196
+        {
+            [FieldOffsetAttribute(0)]
+            public Anonymous_ac6e4301_4438_458f_96dd_e86faeeca2a6 Struct1;
+
+            [FieldOffsetAttribute(0)]
+            public IntPtr Pointer;
+        }
+
+        [StructLayoutAttribute(LayoutKind.Sequential)]
+        public struct Anonymous_ac6e4301_4438_458f_96dd_e86faeeca2a6
+        {
+            public uint Offset;
+            public uint OffsetHigh;
+        }
+
+
+
+        public enum WSACOMPLETIONTYPE : uint
+        {
+            NSP_NOTIFY_IMMEDIATELY = 0,
+            NSP_NOTIFY_HWND,
+            NSP_NOTIFY_EVENT,
+            NSP_NOTIFY_PORT,
+            NSP_NOTIFY_APC,
+        }
+
+        [StructLayoutAttribute(LayoutKind.Sequential)]
+        public sealed class WSACOMPLETION
+        {
+            public WSACOMPLETIONTYPE Type;
+            public Anonymous_1773BCC2_3C29_4525_8847_432883EBCA5D Parameters;
+        }
+
+        [StructLayoutAttribute(LayoutKind.Explicit)]
+        public struct Anonymous_1773BCC2_3C29_4525_8847_432883EBCA5D
+        {
+            [FieldOffsetAttribute(0)]
+            public Anonymous_8ADAE2D7_95D3_4AC9_8922_D0C1D761BE43 WindowMessage;
+
+            [FieldOffsetAttribute(0)]
+            public Anonymous_2BBEA3C4_CD78_401E_8739_091AF8D0AE8A Event;
+
+            [FieldOffsetAttribute(0)]
+            public Anonymous_7A1561CB_C42C_463B_B7A1_EEAA812AF258 Apc;
+
+            [FieldOffsetAttribute(0)]
+            public Anonymous_EC48E59D_9E58_45E9_A59F_E0B7F0795DFB Port;
+        }
+
+        [StructLayoutAttribute(LayoutKind.Sequential)]
+        public struct Anonymous_EC48E59D_9E58_45E9_A59F_E0B7F0795DFB
+        {
+            public IntPtr lpOverlapped; // OVERLAPPED*
+            public IntPtr hPort; // HANDLE
+            public UIntPtr Key; // ULONG_PTR 
+        }
+
+        [StructLayoutAttribute(LayoutKind.Sequential)]
+        public struct Anonymous_7A1561CB_C42C_463B_B7A1_EEAA812AF258
+        {
+            public IntPtr lpOverlapped; // WSAOVERLAPPED*
+            public IntPtr lpfnCompletionProc; // LPOVERLAPPED_COMPLETION_ROUTINE lpfnCompletionProc (C# delegate?)
+        }
+
+        // I don't think this is possible
+        //public delegate void LPOVERLAPPED_COMPLETION_ROUTINE(uint dwErrorCode, uint dwNumberOfBytesTransfered, ref OVERLAPPED lpOverlapped);
+
+        [StructLayoutAttribute(LayoutKind.Sequential)]
+        public struct Anonymous_8ADAE2D7_95D3_4AC9_8922_D0C1D761BE43
+        {
+            public HWND hWnd;
+            public uint uMsg;
+            public UIntPtr context;
+        }
+
+        [StructLayoutAttribute(LayoutKind.Sequential)]
+        public struct HWND
+        {
+            public int unused;
+        }
+
+        [StructLayoutAttribute(LayoutKind.Sequential)]
+        public struct Anonymous_2BBEA3C4_CD78_401E_8739_091AF8D0AE8A
+        {
+            public IntPtr lpOverlapped; // OVERLAPPED*
+        }
+
+
+
+        public const UInt32 SIO_NSP_NOTIFY_CHANGE = 0x88000019; //_WSAIOW(IOC_WS2,25) -> (IOC_IN|(x)|(y)) -> 0x80000000 | 0x08000000 | 25
+        public const int LUP_RETURN_BLOB = 0x0200;
+
         #region WSAErrors
 
         public enum WinSockErrors : int
         {
+            SOCKET_ERROR = -1,
             /// <Summary>An application attempts to use an event object, but the specified handle is not valid. Note that this error is returned by the operating system, so the error number may change in future releases of Windows.</Summary>
             WSA_INVALID_HANDLE = 6,
             /// <Summary>Insufficient memory available.</Summary>
@@ -1293,7 +1398,7 @@ namespace Cloud.Static
         /// <summary>
         /// Well-known folder paths
         /// </summary>
-        public class KnownFolder
+        public sealed class KnownFolder
         {
             private static readonly Guid LocalAppDataGuid = new Guid(
                 "F1B32785-6FBA-4FCF-9D55-7B8E7F157091");
@@ -1537,7 +1642,7 @@ namespace Cloud.Static
         /// <summary>
         /// Represents a wrapper class for a token handle.
         /// </summary>
-        public class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
+        public sealed class SafeTokenHandle : SafeHandleZeroOrMinusOneIsInvalid
         {
             private SafeTokenHandle()
                 : base(true)

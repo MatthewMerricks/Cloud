@@ -374,6 +374,7 @@
     <Compile Include="Sync\IEnumerableStreamExtensions.cs" />
     <Compile Include="Sync\IExecutableException.cs" />
     <Compile Include="Sync\NetworkMonitor.cs" />
+    <Compile Include="Sync\NLANetworkMonitor.cs" />
     <Compile Include="Sync\SyncEngine.cs" />
   </ItemGroup>
   <ItemGroup>
