@@ -44,7 +44,7 @@ namespace ContextMenuNET
                 catch (Exception ex) 
                 {
                     CLError error = ex;
-                    error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                    error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                     CLTrace.Instance.writeToLog(1, "NamedPipeServer: WaitForConnectionEx: ERROR: Exception: Msg: {0}.", ex.Message);
                     e = ex; 
                 }
@@ -238,8 +238,8 @@ namespace ContextMenuNET
             {
                 // If there are no more avail connections (254 is in use already) then just keep looping until one is avail 
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: ERROR: Exception.  Msg: {0}. Code: {1}. Wait 50 ms and try again.", error.errorDescription, ((int)error.code).ToString());
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                CLTrace.Instance.writeToLog(1, "NamedPipeServer: ProcessNextClient: ERROR: Exception.  Msg: {0}. Code: {1}. Wait 50 ms and try again.", error.PrimaryException.Message, error.PrimaryException.Code);
                 Thread.Sleep(50);
             }
         }

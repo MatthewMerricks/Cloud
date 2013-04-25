@@ -8,8 +8,10 @@
 using Cloud.Static;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
 
 namespace Cloud.Model
@@ -19,82 +21,151 @@ namespace Cloud.Model
     /// </summary>
     public sealed class CLError
     {
-        /// <summary>
-        /// Common error codes
-        /// </summary>
-        public enum ErrorCodes : int
-        {
-            Exception = 9999
-        }
+        private List<Stream> streams = null;
 
         /// <summary>
-        /// errorInfo key for exceptions
+        /// Returns the collection of exceptions causing the error
         /// </summary>
-        public const string ErrorInfo_Exception = "Exception";
-        internal const string ErrorInfo_FileStreamToDispose = "FileStream";
-        /// <summary>
-        /// errorInfo key for the last recorded status in the Run method in Sync class
-        /// </summary>
-        public const string ErrorInfo_Sync_Run_Status = "SyncRunStatus";
-
-        /// <summary>
-        /// The application domain
-        /// </summary>
-        public string errorDomain;
-        /// <summary>
-        /// The message of the first exception
-        /// </summary>
-        public string errorDescription;
-        /// <summary>
-        /// The error code for the first exception
-        /// </summary>
-        public ErrorCodes code;
-        /// <summary>
-        /// Returns the dictionary of infoes for the current CLError;
-        /// it is never null
-        /// </summary>
-        // Converted to property with only a getter to prevent any possibility of null reference errors
-        // -David
-        public Dictionary<string, object> errorInfo
+        public ReadOnlyCollection<CLException> Exceptions
         {
             get
             {
-                if (_errorInfo == null)
-                {
-                    _errorInfo = new Dictionary<string, object>();
-                }
-                return _errorInfo;
+                return new ReadOnlyCollection<CLException>(_exceptions.Count == 0 ? new List<CLException>(Helpers.EnumerateSingleItem(PrimaryException)) : _exceptions);
             }
         }
-        private Dictionary<string, object> _errorInfo = null;
+        private readonly List<CLException> _exceptions;
 
-        /// <summary>
-        /// Constructs an empty error without message, domain, nor code
-        /// </summary>
-        public CLError()
+        internal bool IsExceptionsBackingFieldEmpty
         {
-            errorDomain = string.Empty;
-            errorDescription = string.Empty;
-            code = (ErrorCodes)0;
+            get
+            {
+                return _exceptions.Count == 0;
+            }
         }
 
         /// <summary>
-        /// Implicitly converts from an exception. Adds the exception to the dictionary of infoes and sets the message, domain, and code
+        /// Returns the primary exception causing the error
+        /// </summary>
+        public CLException PrimaryException
+        {
+            get
+            {
+                if (_exceptions.Count == 0)
+                {
+                    try
+                    {
+                        throw new CLException(
+                            CLExceptionCode.General_Miscellaneous,
+                            (streams == null
+                                ? "CLExceptions does not contain a PrimaryException"
+                                : "FileStream added first instead of exception"));
+                    }
+                    catch (CLException ex)
+                    {
+                        return ex;
+                    }
+                }
+                else
+                {
+                    return _exceptions[0];
+                }
+            }
+        }
+
+        /// <summary>
+        /// Internal constructor
+        /// </summary>
+        internal CLError(params CLException[] exceptions)
+        {
+            _exceptions = new List<CLException>(exceptions);
+        }
+
+        /// <summary>
+        /// Set the last state of the SyncEngine running thread before the error will be logged
+        /// </summary>
+        internal string SyncEngineRunStatus
+        {
+            set
+            {
+                _syncEngineRunStatus = value;
+            }
+        }
+        private string _syncEngineRunStatus = null;
+
+        internal void SetHttpSchedulerLogged(SyncDirection direction)
+        {
+            httpSchedulerLogged = direction;
+        }
+        private Nullable<SyncDirection> httpSchedulerLogged = null;
+
+        /// <summary>
+        /// Implicitly converts from an exception. Adds the exception to this error including its message, domain, and code.
         /// </summary>
         /// <param name="ex">Implictly converted exception</param>
         /// <returns>Returns CLError resulting from implicit conversion</returns>
         public static implicit operator CLError(Exception ex)
         {
-            return new CLError()
+            if (ex == null)
             {
-                code = ErrorCodes.Exception,
-                errorDescription = ex.Message,
-                errorDomain = Helpers.GetDefaultNameFromApplicationName(),
-                _errorInfo = new Dictionary<string, object>()
+                return null;
+            }
+
+            CLException castEx = ex as CLException;
+            if (castEx == null)
+            {
+                castEx = new CLException(
+                    CLExceptionCode.General_Miscellaneous,
+                    ex.Message,
+                    ex);
+            }
+
+            return new CLError(castEx);
+        }
+
+        // Added so we can append FileStream objects which can later be disposed upon error handling
+        // -David
+        internal void AddFileStream(Stream fStream)
+        {
+            if (fStream != null)
+            {
+                if (streams == null)
                 {
-                    { CLError.ErrorInfo_Exception, ex }
+                    streams = new List<Stream>(Helpers.EnumerateSingleItem(fStream));
                 }
-            };
+                else
+                {
+                    streams.Add(fStream);
+                }
+            }
+        }
+
+        // Added so we can append FileStream objects which can later be disposed upon error handling
+        // -David
+        /// <summary>
+        /// Do not use this implicit operator, other Stream-related operations for CLError are not exposed
+        /// </summary>
+        public static CLError operator +(CLError err, Stream fStream)
+        {
+            if (fStream == null)
+            {
+                return err;
+            }
+            if (err == null)
+            {
+                err = new CLError();
+            }
+
+            err.AddFileStream(fStream);
+            return err;
+        }
+
+        /// <summary>
+        /// Takes all the FileStream instances out of this error and returns them for disposal
+        /// </summary>
+        /// <returns>Returns dequeued FileStream objects</returns>
+        internal IEnumerable<Stream> DequeueStreams()
+        {
+            return Helpers.RemoveAllFromList(streams);
         }
 
         /// <summary>
@@ -114,216 +185,42 @@ namespace Cloud.Model
             return err;
         }
 
-        // Added so we can append FileStream objects which can later be disposed upon error handling
-        // -David
-        /// <summary>
-        /// Do not use this implicit operator, other Stream-related operations for CLError are not exposed
-        /// </summary>
-        public static CLError operator +(CLError err, Stream fStream)
-        {
-            if (fStream == null)
-            {
-                return err;
-            }
-            if (err == null)
-            {
-                return ((CLError)new Exception(StreamFirstMessage)) + fStream;
-            }
-
-            err.AddFileStream(fStream);
-            return err;
-        }
-        internal const string StreamFirstMessage = "FileStream added first instead of exception";
-
-        // Added so we can append FileStream objects which can later be disposed upon error handling
-        // -David
-        internal void AddFileStream(Stream fStream)
-        {
-            if (fStream == null)
-            {
-                return;
-            }
-
-            this.errorInfo.Add(CLError.ErrorInfo_FileStreamToDispose +
-                    this.errorInfo.Count(currentPair => currentPair.Key != null && currentPair.Key.StartsWith(CLError.ErrorInfo_FileStreamToDispose)).ToString(),
-                fStream);
-        }
-
-        /// <summary>
-        /// Appends an exception to an error and returns the error
-        /// </summary>
-        /// <param name="toAppend">Existing CLError to append</param>
-        /// <param name="ex">Exception to add</param>
-        public static CLError AddException(CLError toAppend, Exception ex)
-        {
-            if (toAppend == null)
-            {
-                return ex;
-            }
-
-            toAppend.AddException(ex);
-            return toAppend;
-        }
-
-        /// <summary>
-        /// Appends an exception to an error and returns the error
-        /// </summary>
-        /// <param name="toAppend">Existing CLError to append</param>
-        /// <param name="ex">Exception to add</param>
-        /// <param name="replaceErrorDescription">Whether the message of this error should be set from the currently appended exception</param>
-        public static CLError AddException(CLError toAppend, Exception ex, bool replaceErrorDescription)
-        {
-            if (toAppend == null)
-            {
-                return ex;
-            }
-
-            toAppend.AddException(ex, replaceErrorDescription);
-            return toAppend;
-        }
-
         /// <summary>
         /// Appends an exception to this error
         /// </summary>
         /// <param name="ex">To append</param>
-        /// <param name="replaceErrorDescription">(optional) Whether the message of this error should be set from the currently appended exception</param>
-        public void AddException(Exception ex, bool replaceErrorDescription = false)
+        /// <param name="replacePrimaryError">(optional) Whether the message of this error should be set from the currently appended exception</param>
+        internal void AddException(Exception ex, bool replacePrimaryError = false)
         {
             if (ex != null)
             {
-                this.errorInfo.Add(CLError.ErrorInfo_Exception +
-                        this.errorInfo.Count(currentPair => currentPair.Key != null && currentPair.Key.StartsWith(CLError.ErrorInfo_Exception)).ToString(),
-                    ex);
-                if (replaceErrorDescription)
+                CLException castEx = ex as CLException;
+                if (castEx == null)
                 {
-                    this.errorDescription = ex.Message;
+                    castEx = new CLException(
+                        CLExceptionCode.General_Miscellaneous,
+                        ex.Message,
+                        ex);
+                }
+
+                if (replacePrimaryError)
+                {
+                    _exceptions.Insert(/* index */ 0, castEx);
+                }
+                else
+                {
+                    _exceptions.Add(castEx);
                 }
             }
         }
 
         /// <summary>
-        /// Takes all the FileStream instances out of this error and returns them for disposal
+        /// Logs error information from this CLError to the specified location if loggingEnabled parameter is passed as true
         /// </summary>
-        /// <returns>Returns dequeued FileStream objects</returns>
-        internal IEnumerable<Stream> DequeueStreams()
-        {
-            Stream tryCast;
-            Func<KeyValuePair<string, object>, Func<string, bool>, Stream> removeAndReturnValue = (currentPair, removeAction) =>
-                {
-                    try
-                    {
-                        removeAction(currentPair.Key);
-                    }
-                    catch
-                    {
-                    }
-                    return currentPair.Value as Stream;
-                };
-            return this.errorInfo.Where(currentPair => currentPair.Key != null && currentPair.Key.StartsWith(CLError.ErrorInfo_FileStreamToDispose)
-                    && (tryCast = currentPair.Value as Stream) != null)
-                .ToArray()
-                .Select(currentPair => removeAndReturnValue(currentPair, this.errorInfo.Remove));
-        }
-
-        /// <summary>
-        /// Takes all the FileStream instances out of a CLError and returns them for disposal;
-        /// returns an empty array for null input
-        /// </summary>
-        /// <param name="err">CLError for FileStream dequeue</param>
-        /// <returns>Returns dequeued FileStream objects</returns>
-        internal static IEnumerable<Stream> DequeueFileStreams(CLError err)
-        {
-            if (err == null)
-            {
-                return new FileStream[0];
-            }
-            return err.DequeueStreams();
-        }
-
-        /// <summary>
-        /// Returns the first exception contained in errorInfo within a CLError;
-        /// null for null input
-        /// </summary>
-        /// <param name="err">CLError for pulling exception</param>
-        /// <returns>Returns pulled exception</returns>
-        public static Exception GrabFirstException(CLError err)
-        {
-            if (err == null)
-            {
-                return null;
-            }
-            return err.GrabFirstException();
-        }
-
-        /// <summary>
-        /// Returns the first exception contained in errorInfo within this CLError
-        /// </summary>
-        /// <returns>Returns pulled exception</returns>
-        public Exception GrabFirstException()
-        {
-            object dictionaryValue;
-            if (this.errorInfo.TryGetValue(CLError.ErrorInfo_Exception, out dictionaryValue))
-            {
-                return dictionaryValue as Exception;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Returns all exceptions contained in the errorInfo within a CLError;
-        /// empty array for null input
-        /// </summary>
-        /// <param name="err">CLError for pullling exceptions</param>
-        /// <returns>Returns pulled exceptions</returns>
-        public static IEnumerable<Exception> GrabExceptions(CLError err)
-        {
-            if (err == null)
-            {
-                return Enumerable.Empty<Exception>();
-            }
-            return err.GrabExceptions();
-        }
-
-        /// <summary>
-        /// Returns all exceptions contained in the errorInfo of this CLError
-        /// </summary>
-        /// <returns>Returns pulled exceptions</returns>
-        public IEnumerable<Exception> GrabExceptions()
-        {
-            List<Exception> toReturn = new List<Exception>();
-            foreach (Exception currentValue in this.errorInfo.Where(currentPair => currentPair.Key != null && currentPair.Key.StartsWith(CLError.ErrorInfo_Exception))
-                .Select(currentPair => currentPair.Value))
-            {
-                Exception castValue = currentValue as Exception;
-                if (castValue != null)
-                {
-                    toReturn.Add(castValue);
-                }
-            }
-            return toReturn;
-        }
-
-        /// <summary>
-        /// Logs error information to the specified location if loggingEnabled parameter is passed as true for a CLError
-        /// </summary>
-        /// <param name="err">CLError to log</param>
-        /// <param name="logLocation">Base location for log files before date and extention are appended</param>
-        /// <param name="loggingEnabled">Determines whether logging will actually occur</param>
-        public static void LogErrors(CLError err, string logLocation, bool loggingEnabled)
-        {
-            if (err != null)
-            {
-                err.LogErrors(logLocation, loggingEnabled);
-            }
-        }
-
-        /// <summary>
-        /// Logs error information to the specified location if loggingEnabled parameter is passed as true for this CLError
-        /// </summary>
-        /// <param name="logLocation">Base location for log files before date and extention are appended</param>
+        /// <param name="logLocation">Base location for log files before date and extension are appended</param>
         /// <param name="loggingEnabled">Determines whether logging will actually occur</param>
         [MethodImpl(MethodImplOptions.Synchronized)] // synchronized so multiple logs don't try writing to the files simultaneously
-        public void LogErrors(string logLocation, bool loggingEnabled)
+        public void Log(string logLocation, bool loggingEnabled)
         {
             // skip logging if it is either disabled or the location of the log is invalid
             if (loggingEnabled
@@ -351,117 +248,86 @@ namespace Cloud.Model
                                 logWriter.WriteLine("ProcessId: " + System.Diagnostics.Process.GetCurrentProcess().Id.ToString());
                                 logWriter.WriteLine("ThreadId: " + System.Threading.Thread.CurrentThread.ManagedThreadId.ToString());
 
-                                // for each custom error key status,
-                                // if the key/value pair exists in errorInfo then write them first to the log
+                                // for each custom error status,
+                                // if they exist then write them first to the log
                                 #region custom error key statuses
-                                if (this.errorInfo.ContainsKey(CLError.ErrorInfo_Sync_Run_Status))
+                                if (!string.IsNullOrEmpty(this._syncEngineRunStatus))
                                 {
-                                    logWriter.WriteLine(this.errorInfo[CLError.ErrorInfo_Sync_Run_Status]);
+                                    logWriter.WriteLine(this._syncEngineRunStatus);
+                                }
+
+                                if (this.httpSchedulerLogged != null)
+                                {
+                                    logWriter.WriteLine((((SyncDirection)this.httpSchedulerLogged) == SyncDirection.From ? "Download" : "Upload") +
+                                        " HttpScheduler logged aggregate base:");
                                 }
                                 #endregion
 
-                                // write the message of this error to the log
-                                logWriter.WriteLine(this.errorDescription);
+                                // create a queue for exceptions which need to be logged with stacktrace and recursive inner exception messages
+                                Queue<Exception> loggableExceptions = new Queue<Exception>();
 
-                                // pull out the values from the errorInfo key/value pairs whose keys start with the exception name
-                                foreach (KeyValuePair<string, object> currentException in this.errorInfo
-                                    .Where(currentPair => currentPair.Key.StartsWith(CLError.ErrorInfo_Exception)))
+                                foreach (CLException currentException in _exceptions)
                                 {
-                                    // create a queue for exceptions which need to be logged with stacktrace and recursive inner exception messages
-                                    Queue<Exception> loggableExceptions = new Queue<Exception>();
-
-                                    // try cast the current value as an exception
-                                    Exception castCurrent = currentException.Value as Exception;
-                                    if (castCurrent != null)
+                                    if (currentException != null)
                                     {
-                                        loggableExceptions.Enqueue(castCurrent);
+                                        loggableExceptions.Enqueue(currentException);
                                     }
-
-                                    // define a boolean for whether this is the outermost exception (pulled from the CLError dictionary)
-                                    bool outermostException = true;
-
+                                    
                                     // loop while there are still exceptions to log in the queue
                                     while (loggableExceptions.Count > 0)
                                     {
                                         // dequeue the current exception to log
                                         Exception dequeuedException = loggableExceptions.Dequeue();
 
-                                        // verify you pulled out an actual exception
-                                        if (dequeuedException != null)
+                                        // define a string for storing the StackTrace, defaulting to null
+                                        string stack = null;
+                                        // I don't know if it's dangerous to pull out the StackTrace, so I wrap it safely
+                                        try
                                         {
-                                            // define a string for storing the StackTrace, defaulting to null
-                                            string stack = null;
-                                            // I don't know if it's dangerous to pull out the StackTrace, so I wrap it safely
-                                            try
+                                            stack = dequeuedException.StackTrace;
+                                        }
+                                        catch
+                                        {
+                                        }
+
+                                        // keep track of how many inner exceptions have recursed to increase tab amount
+                                        int tabCounter = 1;
+
+                                        // traverse through inner exceptions, each time with an extra tab appended
+                                        while (dequeuedException != null)
+                                        {
+                                            // write the current exception message to the log after the tabCounter worth of tabs
+                                            logWriter.WriteLine(
+                                                Helpers.MakeTabs(tabCounter++) + // increment the tab count so the next message will be more indented
+                                                    dequeuedException.Message);
+
+                                            // if the current exception is an aggregate, then enqueue its inner exceptions to relog (for viewing their stacktrace)
+                                            AggregateException dequeuedAsAggregate = dequeuedException as AggregateException;
+                                            if (dequeuedAsAggregate != null)
                                             {
-                                                stack = dequeuedException.StackTrace;
-                                            }
-                                            catch
-                                            {
-                                            }
-
-                                            // keep track of how many inner exceptions have recursed to increase tab amount
-                                            int tabCounter = 1;
-                                            // define function to build spaces by tab count
-                                            Func<int, string> makeTabs = tabCount =>
-                                                new string(Enumerable.Range(0, 4 * tabCount)// the "4 *" multiplier means each tab is 4 spaces
-                                                    .Select(currentTabSpace => ' ')// components of the tab are spaces
-                                                    .ToArray());
-
-                                            // determines if this exception message was already written by writing errorDescription
-                                            bool foundSameMessage = outermostException
-                                                && currentException.Key == CLError.ErrorInfo_Exception
-                                                && dequeuedException.Message == this.errorDescription;
-
-                                            // define that this is no longer the outermost exception since we already used the boolean and any proceeding iterations won't be outermost
-                                            outermostException = false;
-
-                                            // traverse through inner exceptions, each time with an extra tab appended
-                                            while (dequeuedException != null)
-                                            {
-                                                // if we recognized that the message was already logged for a matching exception, then reset the bool
-                                                if (foundSameMessage)
+                                                foreach (Exception aggregatedException in
+                                                    dequeuedAsAggregate.InnerExceptions)
                                                 {
-                                                    foundSameMessage = false;
+                                                    loggableExceptions.Enqueue(aggregatedException);
                                                 }
-                                                // else we did not recognize that the message was already logged to log it
-                                                else
-                                                {
-                                                    // write the current exception message to the log after the tabCounter worth of tabs
-                                                    logWriter.WriteLine(
-                                                        makeTabs(tabCounter) +
-                                                        dequeuedException.Message);
-
-                                                    // increment the tab count so the next message will be more indented
-                                                    tabCounter++;
-                                                }
-
-                                                // if the current exception is an aggregate, then enqueue its inner exceptions to relog (for viewing their stacktrace)
-                                                if (dequeuedException is AggregateException)
-                                                {
-                                                    foreach (Exception aggregatedException in
-                                                        ((AggregateException)dequeuedException).InnerExceptions)
-                                                    {
-                                                        loggableExceptions.Enqueue(aggregatedException);
-                                                    }
-                                                }
-
-                                                // prepare for next inner exception traversal
-                                                dequeuedException = dequeuedException.InnerException;
                                             }
 
-                                            // if a StackTrace was found,
-                                            // then write it to the log
-                                            if (!string.IsNullOrWhiteSpace(stack))
-                                            {
-                                                // write the StackTrace to the log with 1 tab
-                                                logWriter.WriteLine(
-                                                    makeTabs(1) + "StackTrace:" + Environment.NewLine +
-                                                    stack);
-                                            }
+                                            // prepare for next inner exception traversal
+                                            dequeuedException = dequeuedException.InnerException;
+                                        }
+
+                                        // if a StackTrace was found,
+                                        // then write it to the log
+                                        if (!string.IsNullOrWhiteSpace(stack))
+                                        {
+                                            // write the StackTrace to the log with 1 tab
+                                            logWriter.WriteLine(
+                                                Helpers.MakeTabs() + "StackTrace:" + Environment.NewLine +
+                                                stack);
                                         }
                                     }
                                 }
+
                                 // end log with one extra line to seperate from next error entries
                                 logWriter.WriteLine();
                                 logWriter.Flush();

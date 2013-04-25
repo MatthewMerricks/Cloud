@@ -110,7 +110,7 @@ namespace win_client.Views
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
                 return ex;
             }
             return null;

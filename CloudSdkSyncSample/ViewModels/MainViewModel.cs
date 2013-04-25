@@ -641,7 +641,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: BrowseSyncboxFolder: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
@@ -687,7 +687,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: ShowAdvancedOptions: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
@@ -714,7 +714,7 @@ namespace SampleLiveSync.ViewModels
                 CLError badPathError = Cloud.Static.Helpers.CheckForBadPath(SyncRoot);
                 if (badPathError != null)
                 {
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Syncbox Folder path is invalid: " + badPathError.errorDescription });
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Syncbox Folder path is invalid: " + badPathError.PrimaryException.Message });
                     this.IsSyncboxIdFocused = true;
                     return;
                 }
@@ -724,7 +724,7 @@ namespace SampleLiveSync.ViewModels
                 CLError checkCaseError = Cloud.Static.Helpers.DirectoryMatchesCaseWithDisk(SyncRoot, out syncPathMatches);
                 if (checkCaseError != null)
                 {
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "There was an error checking whether the Syncbox Folder matches case with an existing directory on disk: " + checkCaseError.errorDescription });
+                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "There was an error checking whether the Syncbox Folder matches case with an existing directory on disk: " + checkCaseError.PrimaryException.Message });
                     this.IsSyncboxIdFocused = true;
                     return;
                 }
@@ -834,7 +834,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: SaveSettings: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
@@ -1208,7 +1208,7 @@ namespace SampleLiveSync.ViewModels
 
                             if (errorCreateSyncCredential != null)
                             {
-                                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLCredential.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncCredential.errorDescription);
+                                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLCredential.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncCredential.PrimaryException.Message);
                             }
                             if (syncCredentialStatus != CLCredentialCreationStatus.Success)
                             {
@@ -1218,7 +1218,7 @@ namespace SampleLiveSync.ViewModels
                                     {
                                         Data = errorCreateSyncCredential,
                                         Message = "syncCredentialStatus: " + syncCredentialStatus.ToString() + ":" + Environment.NewLine +
-                                            errorCreateSyncCredential.errorDescription
+                                            errorCreateSyncCredential.PrimaryException.Message
                                     });
                                 }
                             }
@@ -1237,7 +1237,7 @@ namespace SampleLiveSync.ViewModels
 
                                 if (errorCreateSyncbox != null)
                                 {
-                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncbox.errorDescription);
+                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncbox.PrimaryException.Message);
                                 }
                                 if (syncboxStatus != CLSyncboxCreationStatus.Success)
                                 {
@@ -1247,7 +1247,7 @@ namespace SampleLiveSync.ViewModels
                                         {
                                             Data = errorCreateSyncbox,
                                             Message = "syncboxStatus: " + syncboxStatus.ToString() + ":" + Environment.NewLine +
-                                                errorCreateSyncbox.errorDescription
+                                                errorCreateSyncbox.PrimaryException.Message
                                         });
                                     }
                                 }
@@ -1264,13 +1264,13 @@ namespace SampleLiveSync.ViewModels
                                         {
                                             _syncEngine = null;
                                             startSyncbox = false;
-                                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.SyncReset: Msg: <{0}.", errorFromSyncReset.errorDescription);
+                                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.SyncReset: Msg: <{0}.", errorFromSyncReset.PrimaryException.Message);
                                             if (NotifyException != null)
                                             {
                                                 NotifyException(this, new NotificationEventArgs<CLError>()
                                                 {
                                                     Data = errorFromSyncReset,
-                                                    Message = String.Format("Error resetting the Syncbox: {0}.", errorFromSyncReset.errorDescription)
+                                                    Message = String.Format("Error resetting the Syncbox: {0}.", errorFromSyncReset.PrimaryException.Message)
                                                 });
                                             }
                                         }
@@ -1300,7 +1300,7 @@ namespace SampleLiveSync.ViewModels
                     if (errorFromSyncboxStart != null)
                     {
                         _syncEngine = null;
-                        _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.Start: Msg: <{0}>.", errorFromSyncboxStart.errorDescription);
+                        _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.Start: Msg: <{0}>.", errorFromSyncboxStart.PrimaryException.Message);
                     }
                     if (startStatus != CLSyncStartStatus.Success)
                     {
@@ -1338,7 +1338,7 @@ namespace SampleLiveSync.ViewModels
 
                                 if (errorCreateVM != null)
                                 {
-                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From EventMessageReceiver.CreateAndInitialize: Msg: <{0}>.", errorCreateVM.errorDescription);
+                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From EventMessageReceiver.CreateAndInitialize: Msg: <{0}>.", errorCreateVM.PrimaryException.Message);
                                 }
                                 else
                                 {
@@ -1365,7 +1365,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
@@ -1443,9 +1443,9 @@ namespace SampleLiveSync.ViewModels
                     }
                     else
                     {
-                        errorCredential.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                        _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: ERROR: Exception: Msg: <{0}>.", errorCredential.errorDescription);
-                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorCredential, Message = String.Format("Error: {0}.", errorCredential.errorDescription) });
+                        errorCredential.Log(_trace.TraceLocation, _trace.LogErrors);
+                        _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: ERROR: Exception: Msg: <{0}>.", errorCredential.PrimaryException.Message);
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorCredential, Message = String.Format("Error: {0}.", errorCredential.PrimaryException.Message) });
                     }
 
                 }
@@ -1457,7 +1457,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialCallback: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
@@ -1489,7 +1489,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: ResetSync: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
@@ -1518,9 +1518,9 @@ namespace SampleLiveSync.ViewModels
         {
             string errorMsg = "Push notification stopped.  Changes on other devices will no longer be automatically synced to this device.";
             CLError error = new Exception(errorMsg);
-            error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-            _trace.writeToLog(1, "MainViewModel: OnPushNotificationError: ERROR: Exception: Msg: <{0}>.", error.errorDescription);
-            NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", error.errorDescription) });
+            error.Log(_trace.TraceLocation, _trace.LogErrors);
+            _trace.writeToLog(1, "MainViewModel: OnPushNotificationError: ERROR: Exception: Msg: <{0}>.", error.PrimaryException.Message);
+            NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", error.PrimaryException.Message) });
         }
 
         /// <summary>
@@ -1564,7 +1564,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StopSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
@@ -1582,7 +1582,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: GenerateDeviceId: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
@@ -1617,7 +1617,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: Exit: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
@@ -2078,7 +2078,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StartExplorer: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
         }
@@ -2120,7 +2120,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StopExplorer: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
             _trace.writeToLog(9, "MainViewModel: StopExplorer: Return. explorerLocation: <{0}>.", explorerLocation);
@@ -2168,7 +2168,7 @@ namespace SampleLiveSync.ViewModels
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: IsExplorerRunning: ERROR: Exception: Msg: <{0}>.", ex.Message);
             }
 

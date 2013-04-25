@@ -55,9 +55,13 @@ namespace Cloud.Support
 	        catch (Exception ex)
 	        {
                 CLError error = ex;
-                error.LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
-                CLTrace.Instance.writeToLog(1, "CLCopyFiles: CopyFileOrDirectoryWithUi: ERROR: Exception. Msg: <{0}>, Code: {1} while copying file <{2}> to file <{3}>.", 
-                    error.errorDescription, ((int)error.code).ToString(), source, target);
+                error.Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                CLTrace.Instance.writeToLog(1,
+                    "CLCopyFiles: CopyFileOrDirectoryWithUi: ERROR: Exception. Msg: <{0}>, Code: {1} while copying file <{2}> to file <{3}>.",
+                    error.PrimaryException.Message,
+                    error.PrimaryException.Code,
+                    source,
+                    target);
 	        }
         }
     }

@@ -43,9 +43,9 @@ namespace SampleLiveSync.Views
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
-                _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
-                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (WindowSyncStatus).  Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString()));
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
+                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (WindowSyncStatus).  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code));
                 global::System.Windows.Application.Current.Shutdown(0);
             }
 

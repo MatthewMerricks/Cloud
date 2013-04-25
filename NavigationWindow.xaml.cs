@@ -80,9 +80,9 @@ namespace win_client
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(9, "NavigationWindow: NavigationWindow: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
-                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (MyNavigationWindow).  Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString()));
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(9, "NavigationWindow: NavigationWindow: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
+                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (MyNavigationWindow).  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code));
                 global::System.Windows.Application.Current.Shutdown(0);
             }
             _trace.writeToLog(9, "NavigationWindow: NavigationWindow constructor: Exit.");
@@ -199,8 +199,8 @@ namespace win_client
 	        catch (Exception ex)
 	        {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(9, "NavigationWindow: ResetNotifyIcon: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(9, "NavigationWindow: ResetNotifyIcon: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
             }
         }
 

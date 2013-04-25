@@ -1146,12 +1146,7 @@ namespace Cloud.Static
         }
         private static string PullMD5(FileChange toPull)
         {
-            string toReturn;
-            CLError getMD5Error = toPull.GetMD5LowercaseString(out toReturn);
-            if (getMD5Error != null)
-            {
-                throw new AggregateException("Failed to retrieve MD5 lowercase string", getMD5Error.GrabExceptions());
-            }
+            string toReturn = toPull.GetMD5LowercaseString();
             return toReturn;
         }
         #endregion

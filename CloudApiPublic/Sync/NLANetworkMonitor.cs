@@ -207,7 +207,7 @@ namespace Cloud.Sync
             }
             catch (Exception ex)
             {
-                ((CLError)ex).LogErrors(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
+                ((CLError)ex).Log(CLTrace.Instance.TraceLocation, CLTrace.Instance.LogErrors);
             }
         }
 

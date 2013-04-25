@@ -62,9 +62,9 @@ namespace win_client.Views
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
-                _trace.writeToLog(9, "PageHome: PageHome: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString());
-                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (PageHome).  Msg: <{0}>. Code: {1}.", error.errorDescription, ((int)error.code).ToString()));
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                _trace.writeToLog(9, "PageHome: PageHome: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
+                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (PageHome).  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code));
                 global::System.Windows.Application.Current.Shutdown(0);
             }
             _trace.writeToLog(9, "PageHome: PageHome constructor: Exit.");
@@ -133,7 +133,7 @@ namespace win_client.Views
             catch (Exception ex)
             {
                 CLError error = ex;
-                error.LogErrors(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
+                error.Log(Settings.Instance.TraceLocation, Settings.Instance.LogErrors);
                 return ex;
             }
             return null;
