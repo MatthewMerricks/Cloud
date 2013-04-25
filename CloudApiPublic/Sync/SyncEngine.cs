@@ -77,8 +77,7 @@ namespace Cloud.Sync
             {
                 lock (InternetConnectedLocker)
                 {
-                    return true;
-                    //TODO: Debug on SkyNet and revert to this statement: return _internetConnected;
+                    return _internetConnected;
                 }
             }
             set
@@ -1410,7 +1409,7 @@ namespace Cloud.Sync
                                 SyncboxId: Data.commonThisEngine.syncbox.SyncboxId,
                                 DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
 
-                            return new GenericHolder<Exception>(null);
+                            return new GenericHolder<Exception>(new Exception("No internet connection detected."));
                         }
                         catch (Exception ex)
                         {
