@@ -1111,23 +1111,19 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">(optional) the settings to use with this method</param>
-        //
-        //// The following metadata parameter was temporarily removed until the server checks for it for this call
-        //
-        ///// <param name="metadata">(optional) string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public static CLError DeleteSyncbox(
                     long syncboxId,
                     CLCredentials credentials,
                     out CLHttpRestStatus status,
                     out JsonContracts.SyncboxDeleteResponse response,
-                    ICLCredentialsSettings settings = null/*, JsonContracts.MetadataDictionary metadata = null*/)
+                    ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
 
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
-            // try/catch to process the metadata query, on catch return the error
+            // try/catch to process the query, on catch return the error
             try
             {
                 // copy settings so they don't change while processing; this also defaults some values
@@ -1269,7 +1265,7 @@ namespace Cloud
 
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
-            // try/catch to process the metadata query, on catch return the error
+            // try/catch to process the query, on catch return the error
             try
             {
                 // copy settings so they don't change while processing; this also defaults some values
@@ -1344,58 +1340,29 @@ namespace Cloud
 
         #region Public Instance HTTP REST Methods
 
-        #region GetMetadata
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        #region GetItemAtPath (Queries the cloud for the item at a particular path)
         /// <summary>
         /// Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path; outputs CLHttpRestStatus.NoContent for status if not found on server;
         /// Check for Deleted flag being true in case the metadata represents a deleted item
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
         /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetMetadata(AsyncCallback aCallback,
-            object aState,
-            FilePath fullPath,
+        public IAsyncResult BeginGetItemAtPath(AsyncCallback callback, object callbackUserState, string path,
             bool isFolder,
             int timeoutMilliseconds)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetMetadata(aCallback,
-                aState,
+            return _httpRestClient.BeginGetMetadata(callback,
+                callbackUserState,
                 fullPath,
                 isFolder,
                 timeoutMilliseconds);
         }
 
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        /// <summary>
-        /// Asynchronously starts querying the server at a given file or folder server id (must be specified) for existing metadata at that id; outputs CLHttpRestStatus.NoContent for status if not found on server;
-        /// Check for Deleted flag being true in case the metadata represents a deleted item
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
-        /// <param name="serverId">Unique id of the item on the server</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetMetadata(AsyncCallback aCallback,
-            object aState,
-            bool isFolder,
-            string serverId,
-            int timeoutMilliseconds)
-        {
-            CheckDisposed();
-            return _httpRestClient.BeginGetMetadata(aCallback,
-                aState,
-                isFolder,
-                serverId,
-                timeoutMilliseconds);
-        }
-
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Finishes a metadata query if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
@@ -1403,13 +1370,12 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) The result from the metadata query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetMetadata(IAsyncResult aResult, out GetMetadataResult result)
+        public CLError EndGetItemAtPath(IAsyncResult aResult, out GetMetadataResult result)
         {
             CheckDisposed();
             return _httpRestClient.EndGetMetadata(aResult, out result);
         }
 
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Queries the server at a given file or folder path (must be specified) for existing metadata at that path; outputs CLHttpRestStatus.NoContent for status if not found on server;
         /// Check for Deleted flag being true in case the metadata represents a deleted item
@@ -1420,29 +1386,13 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetMetadata(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
+        public CLError GetItemAtPath(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
         {
             CheckDisposed();
             return _httpRestClient.GetMetadata(fullPath, isFolder, timeoutMilliseconds, out status, out response);
         }
 
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        /// <summary>
-        /// Queries the server at a given file or folder server id (must be specified) for existing metadata at that id; outputs CLHttpRestStatus.NoContent for status if not found on server;
-        /// Check for Deleted flag being true in case the metadata represents a deleted item
-        /// </summary>
-        /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
-        /// <param name="serverId">Unique id of the item on the server</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetMetadata(bool isFolder, string serverId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
-        {
-            CheckDisposed();
-            return _httpRestClient.GetMetadata(isFolder, serverId, timeoutMilliseconds, out status, out response);
-        }
-        #endregion
+        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
 
         #region GetAllPending
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
