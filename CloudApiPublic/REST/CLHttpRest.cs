@@ -1124,13 +1124,10 @@ namespace Cloud.REST
         /// <summary>
         /// Queries the server for all image items.
         /// </summary>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllImageItems(out CLHttpRestStatus status, out CLFileItem [] response)
+        public CLError GetAllImageItems(out CLFileItem[] response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the pictures query, on catch return the error
             try
             {
@@ -1169,7 +1166,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.

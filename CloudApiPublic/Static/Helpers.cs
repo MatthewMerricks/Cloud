@@ -2448,59 +2448,6 @@ namespace Cloud.Static
             }
         }
 
-        #region todo: remove this debug only code
-        internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
-            string serverUrl, // the server URL
-            string serverMethodPath, // the server method path
-            requestMethod method, // type of HTTP method (get vs. put vs. post)
-            int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
-            uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
-            HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
-            ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
-            ref CLHttpRestStatus status, // todo: remove this debug only code
-            CLCredentials Credentials, // contains key/secret for authorization
-            Nullable<long> SyncboxId) // unique id for the sync box on the server
-            where T : class // restrict T to an object type to allow default null return
-        {
-            status = CLHttpRestStatus.Success; // todo: remove this debug only code
-            return ProcessHttp<T>(requestContent,
-                serverUrl,
-                serverMethodPath,
-                method,
-                timeoutMilliseconds,
-                uploadDownload,
-                validStatusCodes,
-                CopiedSettings,
-                Credentials,
-                SyncboxId);
-        }
-        internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
-            string serverUrl, // the server URL
-            string serverMethodPath, // the server method path
-            requestMethod method, // type of HTTP method (get vs. put vs. post)
-            int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
-            uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
-            HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
-            ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
-            ref CLHttpRestStatus status, // todo: remove this debug only code
-            Nullable<long> SyncboxId,  // unique id for the sync box on the server
-            RequestNewCredentialsInfo RequestNewCredentialsInfo) // gets the credentials and renews the credentials if needed
-            where T : class // restrict T to an object type to allow default null return
-        {
-            status = CLHttpRestStatus.Success;
-            return ProcessHttp<T>(requestContent,
-                serverUrl,
-                serverMethodPath,
-                method,
-                timeoutMilliseconds,
-                uploadDownload,
-                validStatusCodes,
-                CopiedSettings,
-                SyncboxId,
-                RequestNewCredentialsInfo);
-        }
-        #endregion
-
         /// <summary>
         /// forwards to the main HTTP REST routine helper method which processes the actual communication, but only where the return type is object
         /// </summary>

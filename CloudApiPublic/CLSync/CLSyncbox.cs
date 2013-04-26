@@ -1702,10 +1702,10 @@ namespace Cloud
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllImageItems(out CLHttpRestStatus status, out CLFileItem[] response)
+        public CLError GetAllImageItems(out CLFileItem[] response)
         {
             CheckDisposed();
-            return _httpRestClient.GetAllImageItems(out status, out response);
+            return _httpRestClient.GetAllImageItems(out response);
         }
         #endregion  // end GetAllImageItems (Gets all of the image items from the cloud for this syncbox)
 
