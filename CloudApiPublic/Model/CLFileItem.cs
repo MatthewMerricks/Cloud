@@ -27,6 +27,7 @@ namespace Cloud.Model
         public string Uid { get; set; }
         public string ParentUid { get; set; }
         public bool IsFolder { get; set; }
+        public bool IsDeleted { get; set; }
         public Nullable<POSIXPermissions> Permissions { get; set; }
 
         #endregion  // end Public Properties
@@ -44,6 +45,7 @@ namespace Cloud.Model
             string uid,
             string parentUid,
             bool isFolder,
+            bool isDeleted,
             Nullable<POSIXPermissions> permissions)
         {
             this.Name = name;
@@ -56,10 +58,11 @@ namespace Cloud.Model
             this.Uid = uid;
             this.ParentUid = parentUid;
             this.IsFolder = isFolder;
+            this.IsDeleted = isDeleted;
             this.Permissions = permissions;
         }
 
-        internal CLFileItem(JsonContracts.Metadata response)
+        internal CLFileItem(JsonContracts.SyncboxMetadataResponse response)
         {
             if (response == null)
             {
@@ -80,6 +83,7 @@ namespace Cloud.Model
             this.Uid = response.ServerUid;
             this.ParentUid = response.ParentUid;
             this.IsFolder = response.IsFolder ?? false;
+            this.IsDeleted = response.IsDeleted ?? false;
             this.Permissions = response.PermissionsEnum;
         }
 

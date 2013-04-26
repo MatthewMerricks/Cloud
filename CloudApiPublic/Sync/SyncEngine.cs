@@ -2038,7 +2038,7 @@ namespace Cloud.Sync
 
                         if (getAllPendingsResult != null)
                         {
-                            foreach (JsonContracts.Metadata pendingMetadata in (getAllPendingsResult.Files ?? Enumerable.Empty<JsonContracts.Metadata>()))
+                            foreach (JsonContracts.SyncboxMetadataResponse pendingMetadata in (getAllPendingsResult.Files ?? Enumerable.Empty<JsonContracts.SyncboxMetadataResponse>()))
                             {
                                 if (!string.IsNullOrEmpty(pendingMetadata.StorageKey))
                                 {
@@ -2179,7 +2179,7 @@ namespace Cloud.Sync
                         Data.notifyOnConfirmMetadataForInitialUploadOrDownload.Process();
 
                         CLHttpRestStatus latestMetadataStatus;
-                        JsonContracts.Metadata latestMetadataResult;
+                        JsonContracts.SyncboxMetadataResponse latestMetadataResult;
                         CLError latestMetadataError = Data.commonThisEngine.httpRestClient.GetMetadata(
                             Data.topLevelChange.Value.FileChange.NewPath,
                             /* isFolder */ false,
@@ -2809,7 +2809,7 @@ namespace Cloud.Sync
                         FilePath rootPath = Data.commonThisEngine.syncbox.Path;
 
                         CLHttpRestStatus getRootStatus;
-                        JsonContracts.Metadata rootResponse;
+                        JsonContracts.SyncboxMetadataResponse rootResponse;
                         CLError rootError = Data.commonThisEngine.httpRestClient.GetMetadata(
                             rootPath,
                             /* isFolder */ true,
@@ -7355,7 +7355,7 @@ namespace Cloud.Sync
                                                             : getArgumentException(false, currentEvent.FileChange.Type, "Place LinkTargetPath here" /*currentEvent.FileChange.Metadata.LinkTargetPath*/))))))), // the only FileChangeTypes recognized are created/deleted/renamed/modified
 
                                     EventId = currentEvent.FileChange.EventId, // this is out local identifier for the event which will be passed as the "client_reference" and returned so we can correlate the response event
-                                    Metadata = new Metadata()
+                                    Metadata = new SyncboxMetadataResponse()
                                     {
                                         ServerUid = currentEvent.FileChange.Metadata.ServerUid, // the unique id on the server
                                         ParentUid = currentEvent.FileChange.Metadata.ParentFolderServerUid,
@@ -7384,7 +7384,7 @@ namespace Cloud.Sync
                                         //    : null),
 
                                         CreatedDate = currentEvent.FileChange.Metadata.HashableProperties.CreationTime, // when the file system object was created
-                                        Deleted = currentEvent.FileChange.Type == FileChangeType.Deleted, // whether or not the file system object is deleted
+                                        IsDeleted = currentEvent.FileChange.Type == FileChangeType.Deleted, // whether or not the file system object is deleted
                                         Hash = currentEvent.FileChange.GetMD5LowercaseString(), // retrieve the hash from the current FileChange (can be null)
                                         IsFolder = currentEvent.FileChange.Metadata.HashableProperties.IsFolder, // whether this is a folder
                                         LastEventId = lastEventId, // the highest event id of all FileChanges in the current batch
@@ -8057,7 +8057,7 @@ namespace Cloud.Sync
                                                             // declare the status of communication from getting metadata
                                                             CLHttpRestStatus getNewMetadataStatus;
                                                             // declare the response object of the actual metadata when returned
-                                                            JsonContracts.Metadata newMetadata;
+                                                            JsonContracts.SyncboxMetadataResponse newMetadata;
                                                             // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
                                                             CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath, // path to query
                                                                 currentChange.Metadata.HashableProperties.IsFolder, // whether path represents a folder (as opposed to a file or shortcut)
@@ -8080,7 +8080,7 @@ namespace Cloud.Sync
 
                                                             // if there was no content, then the metadata was not found at the given path so throw an error
                                                             if (getNewMetadataStatus == CLHttpRestStatus.NoContent
-                                                                || newMetadata.Deleted == true)
+                                                                || newMetadata.IsDeleted == true)
                                                             {
                                                                 throw new Exception("Metadata not found for given path");
                                                             }
@@ -8949,7 +8949,7 @@ namespace Cloud.Sync
                                                                     }
                                                                     else
                                                                     {
-                                                                        JsonContracts.Metadata oldPathMetadataRevision;
+                                                                        JsonContracts.SyncboxMetadataResponse oldPathMetadataRevision;
                                                                         CLHttpRestStatus oldPathMetadataRevisionStatus;
                                                                         CLError oldPathMetadataRevisionError = httpRestClient.GetMetadata(
                                                                             originalConflictPath,
@@ -8960,7 +8960,7 @@ namespace Cloud.Sync
 
                                                                         if (oldPathMetadataRevisionStatus == CLHttpRestStatus.Success
                                                                             && oldPathMetadataRevision != null
-                                                                            && oldPathMetadataRevision.Deleted != true)
+                                                                            && oldPathMetadataRevision.IsDeleted != true)
                                                                         {
                                                                             bool createOldPathFileChange = false;
 
@@ -9880,7 +9880,7 @@ namespace Cloud.Sync
                                             // declare the status of communication from getting metadata
                                             CLHttpRestStatus getNewMetadataStatus;
                                             // declare the response object of the actual metadata when returned
-                                            JsonContracts.Metadata newMetadata;
+                                            JsonContracts.SyncboxMetadataResponse newMetadata;
                                             // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
                                             CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath,
                                                 currentChange.Metadata.HashableProperties.IsFolder,
@@ -9903,7 +9903,7 @@ namespace Cloud.Sync
 
                                             // if there was no content, then the metadata was not found at the given path so throw an error
                                             if (getNewMetadataStatus == CLHttpRestStatus.NoContent
-                                                || newMetadata.Deleted == true)
+                                                || newMetadata.IsDeleted == true)
                                             {
                                                 throw new Exception("Metadata not found for given path");
                                             }

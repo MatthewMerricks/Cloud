@@ -109,6 +109,7 @@ namespace Cloud.Static
         public const string MethodPathPurgePending = VersionPrefix + "/sync/file/purge_pending";                        // POST
         public const string MethodPathGetPending = VersionPrefix + "/sync/file/pending";                                // GET
         public const string MethodPathGetFileMetadata = VersionPrefix + "/sync/file/metadata";                          // GET
+        public const string MethodPathGetItemMetadata = VersionPrefix + "/sync/metadata";                               // GET
         public const string MethodPathGetFolderMetadata = VersionPrefix + "/sync/folder/metadata";                      // GET
         public const string MethodPathSyncboxList = VersionPrefix + "/sync/syncbox/list";                               // POST
 
@@ -195,6 +196,7 @@ namespace Cloud.Static
         public const string MethodPathGetPending = "/1/file/pending";                                   // GET
         public const string MethodPathGetFileMetadata = "/1/file/metadata";                             // GET
         public const string MethodPathGetFolderMetadata = "/1/folder/metadata";                         // GET
+        public const string MethodPathGetFolderMetadata = "/1/metadata";                                // GET
         public const string MethodPathSyncboxList = "/1/sync_box/list";                                 // POST
 
         //public const string MethodPathGetUsedBytes = "/1/file/used_bytes";                              // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
@@ -319,6 +321,8 @@ namespace Cloud.Static
         public const string QueryStringDeviceId = "device_uuid";
         public const string QueryStringSyncboxId = "sync_box_id";
         public const string QueryStringIncludeDeleted = "include_deleted";
+        public const string QueryStringIncludeFolders = "include_folders";
+        public const string QueryStringIncludeStoredOnly = "include_stored_only";
         public const string QueryStringDepth = "depth";
         public const string QueryStringIncludeCount = "include_count";
         public const string QueryStringSender = "sender";

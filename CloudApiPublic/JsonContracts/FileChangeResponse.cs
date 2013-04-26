@@ -25,7 +25,7 @@ namespace Cloud.JsonContracts
         public string Action { get; set; }
 
         [DataMember(Name = CLDefinitions.CLSyncEventMetadata, IsRequired = false)]
-        public Metadata Metadata { get; set; }
+        public SyncboxMetadataResponse Metadata { get; set; }
 
         [DataMember(Name = CLDefinitions.CLClientEventId, IsRequired = false)]
         public string EventIdString

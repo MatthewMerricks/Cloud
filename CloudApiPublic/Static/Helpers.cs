@@ -2378,7 +2378,7 @@ namespace Cloud.Static
         // dictionary to find which Json contract serializer to use given a provided input type
         private static readonly Dictionary<Type, DataContractJsonSerializer> SerializableResponseTypes = new Dictionary<Type, DataContractJsonSerializer>()
         {
-            { typeof(JsonContracts.Metadata), JsonContractHelpers.GetMetadataResponseSerializer },
+            { typeof(JsonContracts.SyncboxMetadataResponse), JsonContractHelpers.GetMetadataResponseSerializer },
             { typeof(JsonContracts.NotificationResponse), JsonContractHelpers.NotificationResponseSerializer },
             { typeof(JsonContracts.PendingResponse), JsonContractHelpers.PendingResponseSerializer },
             { typeof(JsonContracts.PushResponse), JsonContractHelpers.PushResponseSerializer },
@@ -2393,7 +2393,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxGetRecentsResponse), JsonContractHelpers.RecentsSerializer },
             { typeof(JsonContracts.SyncboxUsageResponse), JsonContractHelpers.SyncboxUsageSerializer },
             { typeof(JsonContracts.Folders), JsonContractHelpers.FoldersSerializer },
-            { typeof(JsonContracts.FolderContents), JsonContractHelpers.FolderContentsSerializer },
+            { typeof(JsonContracts.SyncboxFolderContentsResponse), JsonContractHelpers.FolderContentsSerializer },
             { typeof(JsonContracts.AuthenticationErrorResponse), JsonContractHelpers.AuthenticationErrorResponseSerializer },
             //{ typeof(JsonContracts.AuthenticationErrorMessage), JsonContractHelpers.AuthenticationErrorMessageSerializer }, // deprecated
 

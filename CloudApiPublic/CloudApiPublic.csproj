@@ -196,7 +196,7 @@
     <Compile Include="JsonContracts\FileOrFolderUndelete.cs" />
     <Compile Include="JsonContracts\FileVersion.cs" />
     <Compile Include="JsonContracts\FolderAdd.cs" />
-    <Compile Include="JsonContracts\FolderContents.cs" />
+    <Compile Include="JsonContracts\SyncboxFolderContentsResponse.cs" />
     <Compile Include="JsonContracts\Folders.cs" />
     <Compile Include="JsonContracts\ItemCount.cs" />
     <Compile Include="JsonContracts\SyncboxListResponse.cs" />
@@ -315,7 +315,7 @@
     <Compile Include="JsonContracts\FileChangeResponse.cs" />
     <Compile Include="JsonContracts\Header.cs" />
     <Compile Include="JsonContracts\JsonContractHelpers.cs" />
-    <Compile Include="JsonContracts\Metadata.cs" />
+    <Compile Include="JsonContracts\SyncboxMetadataResponse.cs" />
     <Compile Include="JsonContracts\NotificationResponse.cs" />
     <Compile Include="JsonContracts\PurgePending.cs" />
     <Compile Include="JsonContracts\PendingResponse.cs" />
@@ -389,6 +389,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Cloud.Static</CustomToolNamespace>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />

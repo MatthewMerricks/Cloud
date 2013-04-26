@@ -21,6 +21,6 @@ namespace Cloud.JsonContracts
     public sealed class PendingResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataFiles, IsRequired = false)]
-        public Metadata[] Files { get; set; }
+        public SyncboxMetadataResponse[] Files { get; set; }
     }
 }

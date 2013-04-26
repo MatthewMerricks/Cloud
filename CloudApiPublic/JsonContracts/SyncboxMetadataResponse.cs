@@ -17,10 +17,10 @@ namespace Cloud.JsonContracts
 {
     // removed "<see cref="PendingResponse"/>, " from the summary below because it's internal
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.GetMetadata"/>; also an inner object containing metadata properties for <see cref="FileChangeResponse"/>, <see cref="FolderContents"/>, <see cref="Folders"/>, <see cref="SyncboxGetAllImageItemsResponse"/>, <see cref="SyncboxGetAllVideoItemsResponse"/>, <see cref="SyncboxGetAllAudioItemsResponse"/>, <see cref="Archives"/>, and <see cref="SyncboxGetRecentsResponse"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetMetadata"/>; also an inner object containing metadata properties for <see cref="FileChangeResponse"/>, <see cref="SyncboxFolderContentsResponse"/>, <see cref="Folders"/>, <see cref="SyncboxGetAllImageItemsResponse"/>, <see cref="SyncboxGetAllVideoItemsResponse"/>, <see cref="SyncboxGetAllAudioItemsResponse"/>, <see cref="Archives"/>, and <see cref="SyncboxGetRecentsResponse"/>
     /// </summary>
     [DataContract]
-    public sealed class Metadata
+    public sealed class SyncboxMetadataResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataName, IsRequired = false)]
         public string Name { get; set; }
@@ -41,7 +41,7 @@ namespace Cloud.JsonContracts
         public string ServerUid { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataIsDeleted, IsRequired = false)]
-        public Nullable<bool> Deleted { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataMimeType, IsRequired = false)]
         public string MimeType { get; set; }

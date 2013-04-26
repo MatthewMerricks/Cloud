@@ -217,11 +217,11 @@
     <comment>TraceCategory must not be null</comment>
   </data>
   <data name="ExceptionHelpersCheckSyncRootLengthTooLongPlural" xml:space="preserve">
-    <value>syncRootFullPath is too long by {0} characters</value>
+    <value>syncbox path is too long by {0} characters</value>
     <comment>syncRootFullPath should not be translated</comment>
   </data>
   <data name="ExceptionHelpersCheckSyncRootLengthTooLongSingular" xml:space="preserve">
-    <value>syncRootFullPath is too long by {0} character</value>
+    <value>syncbox path is too long by {0} character</value>
     <comment>syncRootFullPath should not be translated</comment>
   </data>
   <data name="ExceptionHelpersDictionaryTryGetValueResultInvalid" xml:space="preserve">

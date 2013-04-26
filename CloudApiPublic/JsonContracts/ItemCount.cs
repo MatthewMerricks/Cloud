@@ -15,7 +15,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// An inner object containing item count properties for <see cref="Metadata"/>
+    /// An inner object containing item count properties for <see cref="SyncboxMetadataResponse"/>
     /// </summary>
     [DataContract]
     public sealed class ItemCount

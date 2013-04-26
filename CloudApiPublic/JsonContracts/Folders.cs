@@ -25,6 +25,6 @@ namespace Cloud.JsonContracts
         public Nullable<long> TotalCount { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataFolders, IsRequired = false)]
-        public JsonContracts.Metadata[] Metadata { get; set; }
+        public JsonContracts.SyncboxMetadataResponse[] Metadata { get; set; }
     }
 }

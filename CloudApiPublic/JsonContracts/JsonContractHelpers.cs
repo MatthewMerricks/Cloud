@@ -65,7 +65,7 @@ namespace Cloud.JsonContracts
                 lock (GetMetadataResponseSerializerLocker)
                 {
                     return _getMetadataResponseSerializer
-                        ?? (_getMetadataResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Metadata)));
+                        ?? (_getMetadataResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxMetadataResponse)));
                 }
             }
         }
@@ -551,7 +551,7 @@ namespace Cloud.JsonContracts
                 lock (FolderContentsSerializerLocker)
                 {
                     return _folderContentsSerializer
-                        ?? (_folderContentsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FolderContents)));
+                        ?? (_folderContentsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxFolderContentsResponse)));
                 }
             }
         }
