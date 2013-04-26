@@ -1242,10 +1242,12 @@ namespace Cloud.Static
                         }
 
                         char rootDriveLetter = checkForEmptyName.Name[0];
-                        if (!char.IsUpper(rootDriveLetter))
-                        {
-                            throw new ArgumentException("settings.CloudRoot must start with a upper-case drive letter");
-                        }
+                        //TODO: This was removed because the SDK now upper cases the first letter of the syncbox path.  All of that should be removed when the sync engine becomes case insensitive.
+                        //if (!char.IsUpper(rootDriveLetter))
+                        //{
+                        //    throw new ArgumentException("settings.CloudRoot must start with a upper-case drive letter");
+                        //}
+
                         DriveInfo rootDrive = new DriveInfo(new string(new[] { rootDriveLetter }));
                         switch (rootDrive.DriveType)
                         {
