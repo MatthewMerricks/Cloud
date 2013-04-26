@@ -1080,8 +1080,8 @@ namespace Cloud.REST
                 };
 
                 // Communicate with the server to get the response.
-                JsonContracts.Metadata responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.Metadata>(
+                JsonContracts.SyncboxMetadataResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMetadataResponse>(
                     null, // HTTP Get method does not have content
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query metadata (dynamic based on file or folder)
@@ -1203,7 +1203,7 @@ namespace Cloud.REST
                         // declare the output status for communication
                         CLHttpRestStatus status;
                         // declare the specific type of result for this operation
-                        JsonContracts.Metadata result;
+                        JsonContracts.SyncboxMetadataResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetMetadata(
                             castState.Item2,
@@ -1311,7 +1311,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetMetadata(bool isFolder, string serverId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
+        public CLError GetMetadata(bool isFolder, string serverId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxMetadataResponse response)
         {
             return GetMetadata(/*fullPath*/ null, serverId, isFolder, timeoutMilliseconds, out status, out response);
         }
@@ -1325,7 +1325,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetMetadata(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
+        public CLError GetMetadata(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxMetadataResponse response)
         {
             return GetMetadata(fullPath, /*serverId*/ null, isFolder, timeoutMilliseconds, out status, out response);
         }
@@ -1340,7 +1340,7 @@ namespace Cloud.REST
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        private CLError GetMetadata(FilePath fullPath, string serverId, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Metadata response)
+        private CLError GetMetadata(FilePath fullPath, string serverId, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxMetadataResponse response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -1406,7 +1406,7 @@ namespace Cloud.REST
                 };
 
                 // run the HTTP communication and store the response object to the output parameter
-                response = Helpers.ProcessHttp<JsonContracts.Metadata>(
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxMetadataResponse>(
                     null, // HTTP Get method does not have content
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query metadata (dynamic based on file or folder)
@@ -1421,7 +1421,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.Metadata>();
+                response = Helpers.DefaultForType<JsonContracts.SyncboxMetadataResponse>();
                 return ex;
             }
             return null;
@@ -3226,7 +3226,7 @@ namespace Cloud.REST
                 if (responseFromServer != null && responseFromServer.Metadata != null)
                 {
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
                     {
                         if (metadata != null)
                         {
@@ -3378,7 +3378,7 @@ namespace Cloud.REST
                 if (responseFromServer != null && responseFromServer.Metadata != null)
                 {
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
                     {
                         if (metadata != null)
                         {
@@ -3530,7 +3530,7 @@ namespace Cloud.REST
                 if (responseFromServer != null && responseFromServer.Metadata != null)
                 {
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
                     {
                         if (metadata != null)
                         {
@@ -3682,7 +3682,7 @@ namespace Cloud.REST
                 if (responseFromServer != null && responseFromServer.Metadata != null)
                 {
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
                     {
                         if (metadata != null)
                         {
@@ -3834,7 +3834,7 @@ namespace Cloud.REST
                 if (responseFromServer != null && responseFromServer.Metadata != null)
                 {
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
                     {
                         if (metadata != null)
                         {
@@ -3986,7 +3986,7 @@ namespace Cloud.REST
                 if (responseFromServer != null && responseFromServer.Metadata != null)
                 {
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
                     {
                         if (metadata != null)
                         {
@@ -4138,7 +4138,7 @@ namespace Cloud.REST
                 if (responseFromServer != null && responseFromServer.Metadata != null)
                 {
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
                     {
                         if (metadata != null)
                         {
@@ -4305,7 +4305,7 @@ namespace Cloud.REST
                 if (responseFromServer != null && responseFromServer.Metadata != null)
                 {
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    foreach (Metadata metadata in responseFromServer.Metadata)
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
                     {
                         if (metadata != null)
                         {
@@ -4752,100 +4752,68 @@ namespace Cloud.REST
         }
         #endregion
 
-        #region GetFolderContents
+        #region GetFolderContentsAtPath (Query the server for the folder contents at a path)
         /// <summary>
-        /// Asynchronously starts querying folder contents with optional path and optional depth limit
+        /// Asynchronously starts querying folder contents at a path.
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
-        /// <param name="contentsRoot">(optional) root path of contents query</param>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="path">(optional) root path of contents query</param>
         /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
         /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFolderContents(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds,
-            bool includeCount = false,
-            FilePath contentsRoot = null,
-            Nullable<byte> depthLimit = null,
-            bool includeDeleted = false)
+        public IAsyncResult BeginGetFolderContentsAtPath(
+            AsyncCallback callback, 
+            object callbackUserState,
+            string path = null)
         {
-            // create the asynchronous result to return
-            GenericAsyncResult<GetFolderContentsResult> toReturn = new GenericAsyncResult<GetFolderContentsResult>(
-                aCallback,
-                aState);
-
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetFolderContentsResult>, int, bool, FilePath, Nullable<byte>, bool> asyncParams =
-                new Tuple<GenericAsyncResult<GetFolderContentsResult>, int, bool, FilePath, Nullable<byte>, bool>(
-                    toReturn,
-                    timeoutMilliseconds,
-                    includeCount,
-                    contentsRoot,
-                    depthLimit,
-                    includeDeleted);
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetFolderContentsResult>, int, bool, FilePath, Nullable<byte>, bool> castState = state as Tuple<GenericAsyncResult<GetFolderContentsResult>, int, bool, FilePath, Nullable<byte>, bool>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
                 {
-                    MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxGetFolderContentsAtPathResult>(
+                        callback,
+                        callbackUserState),
+                    path
+                },
+                (Data, errorToAccumulate) =>
                 {
+                    // The ThreadProc.
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
                         // declare the output status for communication
-                        CLHttpRestStatus status;
+                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
-                        JsonContracts.FolderContents result;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = GetFolderContents(
-                            castState.Item2,
+                        CLFileItem[] response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = GetFolderContentsAtPath(
+                            Data.path,
                             out status,
-                            out result,
-                            castState.Item3,
-                            castState.Item4,
-                            castState.Item5,
-                            castState.Item6);
+                            out response);
 
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new GetFolderContentsResult(
-                                    processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
-                                    result), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.Complete(
+                            new SyncboxGetFolderContentsAtPathResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
                     {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
                     }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
 
             // return the asynchronous result
-            return toReturn;
+            return asyncThread.TypedData.toReturn;
         }
 
         /// <summary>
@@ -4855,79 +4823,22 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting getting folder contents</param>
         /// <param name="result">(output) The result from folder contents</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetFolderContents(IAsyncResult aResult, out GetFolderContentsResult result)
+        public CLError EndGetFolderContents(IAsyncResult aResult, out SyncboxGetFolderContentsAtPathResult result)
         {
-            // declare the specific type of asynchronous result for getting folder contents
-            GenericAsyncResult<GetFolderContentsResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the type for getting folder contents and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for getting folder contents
-                castAResult = aResult as GenericAsyncResult<GetFolderContentsResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException("aResult does not match expected internal type");
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<GetFolderContentsResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<SyncboxGetFolderContentsAtPathResult>(aResult, out result);
         }
 
         /// <summary>
-        /// Queries server for folder contents with an optional path and an optional depth limit
+        /// Queries server for folder contents at a path.
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="path">The full path of the folder that would be on disk in the syncbox folder.</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
-        /// <param name="includeCount">(optional) whether to include counts of items inside each folder in the response object</param>
-        /// <param name="contentsRoot">(optional) root path of hierarchy query</param>
-        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
-        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderContents(
-            int timeoutMilliseconds,
+        public CLError GetFolderContentsAtPath(
+            string path,
             out CLHttpRestStatus status,
-            out JsonContracts.FolderContents response,
-            bool includeCount = false,
-            FilePath contentsRoot = null,
-            Nullable<byte> depthLimit = null,
-            bool includeDeleted = false)
+            out CLFileItem [] response)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -4936,16 +4847,36 @@ namespace Cloud.REST
             {
                 // check input parameters
 
-                if (!(timeoutMilliseconds > 0))
+
+                // check input parameters
+
+                if (path == null)
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new NullReferenceException("path must not be null");
                 }
+
+                CLError pathError = Helpers.CheckForBadPath(path);
+                if (pathError != null)
+                {
+                    throw new AggregateException("path is not in the proper format", pathError.Exceptions);
+                }
+
                 if (string.IsNullOrEmpty(_syncbox.Path))
                 {
                     throw new NullReferenceException("settings SyncRoot cannot be null");
                 }
 
+                if (!path.Contains(_syncbox.Path))
+                {
+                    throw new ArgumentException("path does not contain settings SyncRoot");
+                }
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
                 // build the location of the folder contents retrieval method on the server dynamically
+                FilePath contentsRoot = new FilePath(path);
                 string serverMethodPath =
                     CLDefinitions.MethodPathGetFolderContents + // path for getting folder contents
                     Helpers.QueryStringBuilder(new[]
@@ -4953,21 +4884,17 @@ namespace Cloud.REST
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
 
-                        (depthLimit == null
-                            ? new KeyValuePair<string, string>() // do not add extra query string parameter if depth is not limited
-                            : new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)depthLimit).ToString())), // query string parameter for optional depth limit
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
 
-                        (contentsRoot == null
-                            ? new KeyValuePair<string, string>() // do not add extra query string parameter if path is not set
-                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.GetRelativePath(_syncbox.Path, true) + "/"))), // query string parameter for optional path with escaped value
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.GetRelativePath(_syncbox.Path, true) + "/")), // query string parameter for optional path with escaped value
 
-                        (includeDeleted
-                            ? new KeyValuePair<string, string>() // do not add extra query string parameter if parameter is already the default
-                            : new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false")), // query string parameter for not including deleted objects
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
 
-                        (includeCount
-                            ? new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true") // query string parameter for including counts within each folder
-                            : new KeyValuePair<string, string>()) // do not add extra query string parameter if parameter is already the default
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -4980,28 +4907,51 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                // run the HTTP communication and store the response object to the output parameter
-                response = Helpers.ProcessHttp<JsonContracts.FolderContents>(
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxFolderContentsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxFolderContentsResponse>(
                     null, // HTTP Get method does not have content
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query folder contents (dynamic adding query string)
                     Helpers.requestMethod.get, // query folder contents is a get
-                    timeoutMilliseconds, // time before communication timeout
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Objects != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Objects)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata));
+                        }
+                        else
+                        {
+                            listFileItems.Add(null);
+                        }
+                    }
+                    response = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException("Server responded without an array of Metadata");
+                }
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.FolderContents>();
+                response = Helpers.DefaultForType<CLFileItem []>();
                 return ex;
             }
             return null;
         }
-        #endregion
+        #endregion  // end GetFolderContentsAtPath (Query the server for the folder contents at a path)
 
         #region PurgePending
         /// <summary>

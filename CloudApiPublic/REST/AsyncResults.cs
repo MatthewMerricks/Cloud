@@ -110,10 +110,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetMetadataResult : BaseCLHttpRestResult<JsonContracts.Metadata>
+    public sealed class GetMetadataResult : BaseCLHttpRestResult<JsonContracts.SyncboxMetadataResponse>
     {
         // construct with all readonly properties
-        internal GetMetadataResult(CLError Error, CLHttpRestStatus Status, JsonContracts.Metadata Response)
+        internal GetMetadataResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxMetadataResponse Response)
             : base(Error, Status, Response) { }
     }
 
@@ -210,10 +210,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetFolderContentsResult : BaseCLHttpRestResult<JsonContracts.FolderContents>
+    public sealed class GetFolderContentsResult : BaseCLHttpRestResult<JsonContracts.SyncboxFolderContentsResponse>
     {
         // construct with all readonly properties
-        internal GetFolderContentsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.FolderContents Response)
+        internal GetFolderContentsResult(CLError Error, CLHttpRestStatus Status, JsonContracts.SyncboxFolderContentsResponse Response)
             : base(Error, Status, Response) { }
     }
 
@@ -1020,6 +1020,56 @@ namespace Cloud.REST
 
         // construct with all readonly properties
         internal SyncboxGetAllArchiveItemsResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLFileItem[] Response)
+        {
+            this._error = Error;
+            this._status = Status;
+            this._response = Response;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxGetFolderContentsAtPathResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLFileItem[] Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLFileItem[] _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        /// <summary>
+        /// The status resulting from communication
+        /// </summary>
+        public CLHttpRestStatus Status  // &&&& fix this
+        {
+            get
+            {
+                return _status;
+            }
+        }
+        private readonly CLHttpRestStatus _status;  // &&&& fix this
+
+        // construct with all readonly properties
+        internal SyncboxGetFolderContentsAtPathResult(CLError Error, CLHttpRestStatus Status /* &&&& fix this */, CLFileItem[] Response)
         {
             this._error = Error;
             this._status = Status;

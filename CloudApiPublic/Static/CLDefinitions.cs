@@ -321,6 +321,8 @@ namespace Cloud.Static
         public const string QueryStringDeviceId = "device_uuid";
         public const string QueryStringSyncboxId = "sync_box_id";
         public const string QueryStringIncludeDeleted = "include_deleted";
+        public const string QueryStringIncludeFolders = "include_folders";
+        public const string QueryStringIncludeStoredOnly = "include_stored_only";
         public const string QueryStringDepth = "depth";
         public const string QueryStringIncludeCount = "include_count";
         public const string QueryStringSender = "sender";

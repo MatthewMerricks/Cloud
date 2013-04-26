@@ -19,12 +19,12 @@ namespace Cloud.JsonContracts
     /// Result from <see cref="Cloud.CLSyncbox.GetFolderContents"/>
     /// </summary>
     [DataContract]
-    public sealed class FolderContents
+    public sealed class SyncboxFolderContentsResponse
     {
         [DataMember(Name = CLDefinitions.CLMetadataTotalCount, IsRequired = false)]
         public Nullable<long> TotalCount { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataObjects, IsRequired = false)]
-        public Metadata[] Objects { get; set; }
+        public SyncboxMetadataResponse[] Objects { get; set; }
     }
 }
