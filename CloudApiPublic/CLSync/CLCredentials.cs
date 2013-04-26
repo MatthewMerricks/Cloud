@@ -257,7 +257,7 @@ namespace Cloud
         {
             Helpers.CheckHalted();
 
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -412,7 +412,7 @@ namespace Cloud
         {
             Helpers.CheckHalted();
 
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -589,7 +589,7 @@ namespace Cloud
         {
             Helpers.CheckHalted();
 
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -744,7 +744,7 @@ namespace Cloud
         {
             Helpers.CheckHalted();
 
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {

@@ -198,7 +198,7 @@ namespace Cloud.REST
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetItemAtPath(AsyncCallback callback, object callbackUserState, string path)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -366,7 +366,7 @@ namespace Cloud.REST
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, string path)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -1062,7 +1062,7 @@ namespace Cloud.REST
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllImageItems(AsyncCallback callback, object callbackUserState)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -1214,7 +1214,7 @@ namespace Cloud.REST
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllVideoItems(AsyncCallback callback, object callbackUserState)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -1366,7 +1366,7 @@ namespace Cloud.REST
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllAudioItems(AsyncCallback callback, object callbackUserState)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -1518,7 +1518,7 @@ namespace Cloud.REST
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllDocumentItems(AsyncCallback callback, object callbackUserState)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -1670,7 +1670,7 @@ namespace Cloud.REST
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllPresentationItems(AsyncCallback callback, object callbackUserState)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -1822,7 +1822,7 @@ namespace Cloud.REST
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllTextItems(AsyncCallback callback, object callbackUserState)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -1974,7 +1974,7 @@ namespace Cloud.REST
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllArchiveItems(AsyncCallback callback, object callbackUserState)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -2132,7 +2132,7 @@ namespace Cloud.REST
             Nullable<DateTime> sinceDate,
             Nullable<int> returnLimit)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
@@ -2719,7 +2719,7 @@ namespace Cloud.REST
             object callbackUserState,
             string path = null)
         {
-            var asyncThread = DelegateAndDataHolder.Create(
+            var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
